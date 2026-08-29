@@ -2,7 +2,7 @@ import type { Int32 } from "node-opcua-basic-types";
 import type { DiagnosticInfo } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTFetchResult } from "./dt_fetch_result";
+import type { DTFetchResult } from "./dt_fetch_result.js";
 
 // ----- this file has been automatically generated - do not edit
 

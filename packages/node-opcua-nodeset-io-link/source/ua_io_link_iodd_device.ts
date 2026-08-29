@@ -7,8 +7,8 @@ import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { UAOptionSet } from "node-opcua-nodeset-ua/dist/ua_option_set";
 import type { DataType } from "node-opcua-variant";
 
-import type { UADeviceVariant } from "./ua_device_variant";
-import type { UAIOLinkDevice, UAIOLinkDevice_Base, UAIOLinkDevice_parameterSet } from "./ua_io_link_device";
+import type { UADeviceVariant } from "./ua_device_variant.js";
+import type { UAIOLinkDevice, UAIOLinkDevice_Base, UAIOLinkDevice_parameterSet } from "./ua_io_link_device.js";
 
 // ----- this file has been automatically generated - do not edit
 

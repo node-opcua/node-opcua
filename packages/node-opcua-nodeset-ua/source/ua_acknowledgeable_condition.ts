@@ -1,8 +1,8 @@
 import type { UAMethod } from "node-opcua-address-space-base";
 import type { LocalizedText } from "node-opcua-data-model";
 
-import type { UACondition, UACondition_Base } from "./ua_condition";
-import type { UATwoStateVariable } from "./ua_two_state_variable";
+import type { UACondition, UACondition_Base } from "./ua_condition.js";
+import type { UATwoStateVariable } from "./ua_two_state_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

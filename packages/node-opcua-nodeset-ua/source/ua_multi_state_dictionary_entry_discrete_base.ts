@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAMultiStateValueDiscrete, UAMultiStateValueDiscrete_Base } from "./ua_multi_state_value_discrete";
+import type { UAMultiStateValueDiscrete, UAMultiStateValueDiscrete_Base } from "./ua_multi_state_value_discrete.js";
 
 // ----- this file has been automatically generated - do not edit
 

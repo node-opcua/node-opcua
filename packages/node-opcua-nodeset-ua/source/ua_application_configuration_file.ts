@@ -3,8 +3,8 @@ import type { UAString, UInt16 } from "node-opcua-basic-types";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTUserTokenPolicy } from "./dt_user_token_policy";
-import type { UAConfigurationFile, UAConfigurationFile_Base } from "./ua_configuration_file";
+import type { DTUserTokenPolicy } from "./dt_user_token_policy.js";
+import type { UAConfigurationFile, UAConfigurationFile_Base } from "./ua_configuration_file.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -3,14 +3,14 @@ import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumAASCategory } from "./enum_aas_category";
-import type { EnumAASDataTypeIEC61360 } from "./enum_aas_data_type_iec_61360";
-import type { EnumAASLevelType } from "./enum_aas_level_type";
-import type { UAAASAdministrativeInformation } from "./ua_aas_administrative_information";
-import type { UAAASDataSpecification, UAAASDataSpecification_Base } from "./ua_aas_data_specification";
-import type { UAAASIdentifier } from "./ua_aas_identifier";
-import type { UAAASReference } from "./ua_aas_reference";
-import type { UAValueList } from "./ua_value_list";
+import type { EnumAASCategory } from "./enum_aas_category.js";
+import type { EnumAASDataTypeIEC61360 } from "./enum_aas_data_type_iec_61360.js";
+import type { EnumAASLevelType } from "./enum_aas_level_type.js";
+import type { UAAASAdministrativeInformation } from "./ua_aas_administrative_information.js";
+import type { UAAASDataSpecification, UAAASDataSpecification_Base } from "./ua_aas_data_specification.js";
+import type { UAAASIdentifier } from "./ua_aas_identifier.js";
+import type { UAAASReference } from "./ua_aas_reference.js";
+import type { UAValueList } from "./ua_value_list.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition";
+import type { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition.js";
 
 // ----- this file has been automatically generated - do not edit
 

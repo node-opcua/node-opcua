@@ -1,5 +1,5 @@
-import type { UACatchweigher, UACatchweigher_Base } from "./ua_catchweigher";
-import type { UAProductionPreset } from "./ua_production_preset";
+import type { UACatchweigher, UACatchweigher_Base } from "./ua_catchweigher.js";
+import type { UAProductionPreset } from "./ua_production_preset.js";
 
 // ----- this file has been automatically generated - do not edit
 

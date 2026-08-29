@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-server
  */
-import type { OPCUABaseServer } from "./base_server";
+import type { OPCUABaseServer } from "./base_server.js";
 
 /**
  * Invalidate all cached certificates on a running server so that

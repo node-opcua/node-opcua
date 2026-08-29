@@ -9,9 +9,9 @@ import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
 import type { UATransitionVariable } from "node-opcua-nodeset-ua/dist/ua_transition_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAExecutingSubstateMachine } from "./ua_executing_substate_machine";
-import type { UAIdleSubstateMachine } from "./ua_idle_substate_machine";
-import type { UAOperationStateMachine, UAOperationStateMachine_Base } from "./ua_operation_state_machine";
+import type { UAExecutingSubstateMachine } from "./ua_executing_substate_machine.js";
+import type { UAIdleSubstateMachine } from "./ua_idle_substate_machine.js";
+import type { UAOperationStateMachine, UAOperationStateMachine_Base } from "./ua_operation_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

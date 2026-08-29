@@ -8,8 +8,8 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAGeneralDeviceConditionSet } from "./ua_general_device_condition_set";
-import type { UASignalSet } from "./ua_signal_set";
+import type { UAGeneralDeviceConditionSet } from "./ua_general_device_condition_set.js";
+import type { UASignalSet } from "./ua_signal_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

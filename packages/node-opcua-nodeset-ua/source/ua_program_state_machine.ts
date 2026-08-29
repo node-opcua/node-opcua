@@ -4,13 +4,13 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTProgramDiagnostic2 } from "./dt_program_diagnostic_2";
-import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine";
-import type { UAProgramDiagnostic2 } from "./ua_program_diagnostic_2";
-import type { UAState } from "./ua_state";
-import type { UAStateVariable } from "./ua_state_variable";
-import type { UATransition } from "./ua_transition";
-import type { UATransitionVariable } from "./ua_transition_variable";
+import type { DTProgramDiagnostic2 } from "./dt_program_diagnostic_2.js";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine.js";
+import type { UAProgramDiagnostic2 } from "./ua_program_diagnostic_2.js";
+import type { UAState } from "./ua_state.js";
+import type { UAStateVariable } from "./ua_state_variable.js";
+import type { UATransition } from "./ua_transition.js";
+import type { UATransitionVariable } from "./ua_transition_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

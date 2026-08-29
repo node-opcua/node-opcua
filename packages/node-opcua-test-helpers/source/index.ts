@@ -1,3 +1,3 @@
-export * from "./lorem_ipsum";
-export * from "./make_lorem_ipsum_buffer";
-export * from "./typedarray_helpers";
+export * from "./lorem_ipsum.js";
+export * from "./make_lorem_ipsum_buffer.js";
+export * from "./typedarray_helpers.js";

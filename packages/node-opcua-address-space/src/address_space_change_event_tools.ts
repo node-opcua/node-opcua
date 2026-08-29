@@ -7,8 +7,8 @@ import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { Enum } from "node-opcua-enum";
 import type { NodeId } from "node-opcua-nodeid";
 import { ModelChangeStructureDataType } from "node-opcua-types";
-import type { AddressSpacePrivate } from "./address_space_private";
-import type { BaseNodeImpl } from "./base_node_impl";
+import type { AddressSpacePrivate } from "./address_space_private.js";
+import type { BaseNodeImpl } from "./base_node_impl.js";
 
 const verbFlags = new Enum({
     //                         NodeAdded        0         Indicates the affected Node has been added.

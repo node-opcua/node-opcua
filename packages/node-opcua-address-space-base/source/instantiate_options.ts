@@ -1,8 +1,8 @@
 import type { LocalizedTextLike, QualifiedNameLike } from "node-opcua-data-model";
 import type { NodeIdLike } from "node-opcua-nodeid";
-import type { BaseNode } from "./base_node";
-import type { ModellingRuleType } from "./modelling_rule_type";
-import type { INamespace } from "./namespace";
+import type { BaseNode } from "./base_node.js";
+import type { ModellingRuleType } from "./modelling_rule_type.js";
+import type { INamespace } from "./namespace.js";
 
 export interface InstantiateOptions {
     /**

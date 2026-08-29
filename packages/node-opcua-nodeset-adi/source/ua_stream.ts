@@ -8,8 +8,8 @@ import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
 import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status";
-import type { EnumExecutionCycle } from "./enum_execution_cycle";
+import type { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status.js";
+import type { EnumExecutionCycle } from "./enum_execution_cycle.js";
 
 // ----- this file has been automatically generated - do not edit
 

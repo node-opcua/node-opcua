@@ -37,8 +37,8 @@ import {
 } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import { isNullOrUndefined } from "node-opcua-utils";
-import { DataType } from "./DataType_enum";
-import { VariantArrayType } from "./VariantArrayType_enum";
+import { DataType } from "./DataType_enum.js";
+import { VariantArrayType } from "./VariantArrayType_enum.js";
 
 export { VariantArrayType };
 

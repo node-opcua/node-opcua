@@ -10,8 +10,8 @@ import type { UAPackMLBaseStateMachine } from "node-opcua-nodeset-pack-ml/dist/u
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAProductionPreset } from "./ua_production_preset";
-import type { UAStatistic } from "./ua_statistic";
+import type { UAProductionPreset } from "./ua_production_preset.js";
+import type { UAStatistic } from "./ua_statistic.js";
 
 // ----- this file has been automatically generated - do not edit
 

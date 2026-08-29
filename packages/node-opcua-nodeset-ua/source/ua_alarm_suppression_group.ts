@@ -1,4 +1,4 @@
-import type { UAAlarmGroup, UAAlarmGroup_Base } from "./ua_alarm_group";
+import type { UAAlarmGroup, UAAlarmGroup_Base } from "./ua_alarm_group.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

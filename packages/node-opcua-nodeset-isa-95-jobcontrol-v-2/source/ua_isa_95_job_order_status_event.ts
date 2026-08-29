@@ -2,9 +2,9 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTISA95JobOrder } from "./dt_isa_95_job_order";
-import type { DTISA95JobResponse } from "./dt_isa_95_job_response";
-import type { DTISA95State } from "./dt_isa_95_state";
+import type { DTISA95JobOrder } from "./dt_isa_95_job_order.js";
+import type { DTISA95JobResponse } from "./dt_isa_95_job_response.js";
+import type { DTISA95State } from "./dt_isa_95_state.js";
 
 // ----- this file has been automatically generated - do not edit
 

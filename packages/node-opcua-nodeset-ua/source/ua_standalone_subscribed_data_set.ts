@@ -1,8 +1,8 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTDataSetMeta } from "./dt_data_set_meta";
-import type { UASubscribedDataSet } from "./ua_subscribed_data_set";
+import type { DTDataSetMeta } from "./dt_data_set_meta.js";
+import type { UASubscribedDataSet } from "./ua_subscribed_data_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

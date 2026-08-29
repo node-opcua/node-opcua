@@ -3,8 +3,8 @@ import { assert } from "node-opcua-assert";
 import { NodeClass, type QualifiedName, type QualifiedNameOptions } from "node-opcua-data-model";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, type NodeIdLike, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { BaseNodeImpl } from "./base_node_impl";
-import { type ReferenceImpl, resolveReferenceType } from "./reference_impl";
+import { BaseNodeImpl } from "./base_node_impl.js";
+import { type ReferenceImpl, resolveReferenceType } from "./reference_impl.js";
 
 const _debugLog = make_debugLog("nodeid_manager");
 const _warningLog = make_warningLog("nodeid_manager");

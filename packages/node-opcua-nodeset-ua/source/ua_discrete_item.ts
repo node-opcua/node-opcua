@@ -1,6 +1,6 @@
 import type { DataType } from "node-opcua-variant";
 
-import type { UADataItem, UADataItem_Base } from "./ua_data_item";
+import type { UADataItem, UADataItem_Base } from "./ua_data_item.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

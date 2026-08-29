@@ -4,7 +4,7 @@
  */
 
 import { assert } from "node-opcua-assert";
-import { SaxLtx } from "./thirdparties/parser/lts";
+import { SaxLtx } from "./thirdparties/parser/lts.js";
 
 export type SimpleCallback = (err?: Error) => void;
 export type Callback<T> = (err?: Error | null, result?: T) => void;

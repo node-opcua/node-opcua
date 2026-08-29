@@ -44,7 +44,7 @@ import {
 } from "node-opcua-service-discovery";
 import { ApplicationDescription, type ApplicationDescriptionOptions, ApplicationType } from "node-opcua-service-endpoints";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
-import { MDNSResponder } from "./mdns_responder";
+import { MDNSResponder } from "./mdns_responder.js";
 
 const debugLog = make_debugLog("LDSSERVER");
 const doDebug = checkDebugFlag("LDSSERVER");

@@ -4,7 +4,7 @@ import type {
     CreateSubscriptionRequestOptions,
     CreateSubscriptionResponse
 } from "node-opcua-service-subscription";
-import type { ResponseCallback } from "./basic_session_interface";
+import type { ResponseCallback } from "./basic_session_interface.js";
 
 /**
  * @module node-opcua-pseudo-session

@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-status-codes
  */
-import type { StatusCode } from "./opcua_status_code";
+import type { StatusCode } from "./opcua_status_code.js";
 
 export type ErrorCallback = (err?: Error) => void;
 export type Callback2<T> = (err: Error | null, result?: T) => void;

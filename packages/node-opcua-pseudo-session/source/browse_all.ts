@@ -13,7 +13,7 @@ import type {
     IBasicSessionBrowseAsyncMultiple,
     IBasicSessionBrowseNextAsyncMultiple,
     IBasicSessionReadAsyncMultiple
-} from "./basic_session_interface";
+} from "./basic_session_interface.js";
 
 const debugLog = make_debugLog("browse_all");
 const doDebug = checkDebugFlag("browse_all");

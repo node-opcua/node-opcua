@@ -6,10 +6,10 @@ import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { StructureField } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
-import type { TranslationTable } from "../../source/xml_writer";
-import { type BaseNodeImpl, getReferenceType } from "../base_node_impl";
-import type { NamespacePrivate } from "../namespace_private";
-import type { UAVariableImpl } from "../ua_variable_impl";
+import type { TranslationTable } from "../../source/xml_writer.js";
+import { type BaseNodeImpl, getReferenceType } from "../base_node_impl.js";
+import type { NamespacePrivate } from "../namespace_private.js";
+import type { UAVariableImpl } from "../ua_variable_impl.js";
 
 const warningLog = make_warningLog("construct_namespace_dependency");
 const _debugLog = make_debugLog("construct_namespace_dependency");

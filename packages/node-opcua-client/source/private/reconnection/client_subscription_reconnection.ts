@@ -13,10 +13,10 @@ import {
     type CreateMonitoredItemsResponse,
     type MonitoredItemCreateRequestOptions
 } from "node-opcua-types";
-import type { ClientMonitoredItemBaseMap, ClientSubscription } from "../../client_subscription";
-import type { ClientMonitoredItemImpl } from "../client_monitored_item_impl";
-import { __create_subscription, type ClientSubscriptionImpl, TERMINATED_SUBSCRIPTION_ID } from "../client_subscription_impl";
-import { _shouldNotContinue } from "./reconnection";
+import type { ClientMonitoredItemBaseMap, ClientSubscription } from "../../client_subscription.js";
+import type { ClientMonitoredItemImpl } from "../client_monitored_item_impl.js";
+import { __create_subscription, type ClientSubscriptionImpl, TERMINATED_SUBSCRIPTION_ID } from "../client_subscription_impl.js";
+import { _shouldNotContinue } from "./reconnection.js";
 
 const debugLog = make_debugLog("RECONNECTION");
 const doDebug = checkDebugFlag("RECONNECTION");

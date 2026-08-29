@@ -1,6 +1,6 @@
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { _make_flag } from "./_make_flag";
-import { _accessLevelFlagToString } from "./access_level";
+import { _make_flag } from "./_make_flag.js";
+import { _accessLevelFlagToString } from "./access_level.js";
 /**
  * from https://reference.opcfoundation.org/v104/Core/docs/Part3/8.58/:
  *

@@ -3,7 +3,7 @@ import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
 import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAnalyserDevice, UAAnalyserDevice_Base, UAAnalyserDevice_parameterSet } from "./ua_analyser_device";
+import type { UAAnalyserDevice, UAAnalyserDevice_Base, UAAnalyserDevice_parameterSet } from "./ua_analyser_device.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,4 +1,4 @@
-import type { UAIOLinkAlarm, UAIOLinkAlarm_Base } from "./ua_io_link_alarm";
+import type { UAIOLinkAlarm, UAIOLinkAlarm_Base } from "./ua_io_link_alarm.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

@@ -131,16 +131,16 @@ import type {
     SetMonitoringModeRequestLike,
     SubscriptionId,
     TransferSubscriptionsRequestLike
-} from "../client_session";
-import { ClientSessionKeepAliveManager } from "../client_session_keepalive_manager";
-import type { ClientSubscription } from "../client_subscription";
-import type { Request, Response } from "../common";
-import type { UserIdentityInfo } from "../user_identity_info";
+} from "../client_session.js";
+import { ClientSessionKeepAliveManager } from "../client_session_keepalive_manager.js";
+import type { ClientSubscription } from "../client_subscription.js";
+import type { Request, Response } from "../common.js";
+import type { UserIdentityInfo } from "../user_identity_info.js";
 
-import { ClientSidePublishEngine } from "./client_publish_engine";
-import { ClientSubscriptionImpl } from "./client_subscription_impl";
-import type { IClientBase } from "./i_private_client";
-import { repair_client_session } from "./reconnection/reconnection";
+import { ClientSidePublishEngine } from "./client_publish_engine.js";
+import { ClientSubscriptionImpl } from "./client_subscription_impl.js";
+import type { IClientBase } from "./i_private_client.js";
+import { repair_client_session } from "./reconnection/reconnection.js";
 
 const helpAPIChange = process.env.DEBUG?.match(/API/);
 const debugLog = make_debugLog("client_session_impl");

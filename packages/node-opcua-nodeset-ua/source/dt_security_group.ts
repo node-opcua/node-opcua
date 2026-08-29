@@ -1,9 +1,9 @@
 import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTKeyValuePair } from "./dt_key_value_pair";
-import type { DTRolePermission } from "./dt_role_permission";
-import type { DTStructure } from "./dt_structure";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
+import type { DTRolePermission } from "./dt_role_permission.js";
+import type { DTStructure } from "./dt_structure.js";
 
 // ----- this file has been automatically generated - do not edit
 

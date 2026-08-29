@@ -47,11 +47,11 @@ import {
     type Request,
     type Response,
     type ServiceFaultAnnotatedError
-} from "../common";
-import { MessageBuilder } from "../message_builder";
-import { type ChunkMessageParameters, MessageChunker } from "../message_chunker";
-import { messageHeaderToString } from "../message_header_to_string";
-import type { SecurityHeader } from "../secure_message_chunk_manager";
+} from "../common.js";
+import { MessageBuilder } from "../message_builder.js";
+import { type ChunkMessageParameters, MessageChunker } from "../message_chunker.js";
+import { messageHeaderToString } from "../message_header_to_string.js";
+import type { SecurityHeader } from "../secure_message_chunk_manager.js";
 import {
     coerceSecurityPolicy,
     computeDerivedKeys,
@@ -62,7 +62,7 @@ import {
     type SecureMessageData,
     SecurityPolicy,
     toURI
-} from "../security_policy";
+} from "../security_policy.js";
 import {
     AsymmetricAlgorithmSecurityHeader,
     CloseSecureChannelRequest,
@@ -70,8 +70,8 @@ import {
     OpenSecureChannelResponse,
     SecurityTokenRequestType,
     ServiceFault
-} from "../services";
-import { TokenStack } from "../token_stack";
+} from "../services.js";
+import { TokenStack } from "../token_stack.js";
 import {
     _dump_client_transaction_statistics,
     type ClientTransactionStatistics,
@@ -86,8 +86,8 @@ import {
     traceClientRequestMessage,
     traceClientResponseContent,
     traceClientResponseMessage
-} from "../utils";
-import { absoluteDurationToString, durationToString } from "./duration_to_string";
+} from "../utils.js";
+import { absoluteDurationToString, durationToString } from "./duration_to_string.js";
 
 const debugLog = make_debugLog("SecureChannel");
 const errorLog = make_errorLog("SecureChannel");

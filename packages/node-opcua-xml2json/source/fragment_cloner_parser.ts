@@ -1,5 +1,5 @@
-import { InternalFragmentClonerReaderState } from "./fragment_cloner";
-import type { XmlAttributes } from "./xml2json";
+import { InternalFragmentClonerReaderState } from "./fragment_cloner.js";
+import type { XmlAttributes } from "./xml2json.js";
 
 export class FragmentClonerParser {
     public value: string | null | undefined;

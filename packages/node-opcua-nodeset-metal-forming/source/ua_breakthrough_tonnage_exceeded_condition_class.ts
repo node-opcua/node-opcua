@@ -1,4 +1,4 @@
-import type { UAFormingProcessConditionClass, UAFormingProcessConditionClass_Base } from "./ua_forming_process_condition_class";
+import type { UAFormingProcessConditionClass, UAFormingProcessConditionClass_Base } from "./ua_forming_process_condition_class.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

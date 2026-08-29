@@ -71,22 +71,22 @@ import {
     type WriteValue
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
-import { AddressSpaceAccessor } from "./addressSpace_accessor";
-import { HistoryServerCapabilities, type HistoryServerCapabilitiesOptions } from "./history_server_capabilities";
-import type { IAddressSpaceAccessor } from "./i_address_space_accessor";
-import { MonitoredItem } from "./monitored_item";
-import type { OPCUAServerOptions } from "./opcua_server";
+import { AddressSpaceAccessor } from "./addressSpace_accessor.js";
+import { HistoryServerCapabilities, type HistoryServerCapabilitiesOptions } from "./history_server_capabilities.js";
+import type { IAddressSpaceAccessor } from "./i_address_space_accessor.js";
+import { MonitoredItem } from "./monitored_item.js";
+import type { OPCUAServerOptions } from "./opcua_server.js";
 import {
     defaultServerCapabilities,
     ServerCapabilities,
     type ServerCapabilitiesOptions,
     type ServerOperationLimits
-} from "./server_capabilities";
-import { ServerSidePublishEngine } from "./server_publish_engine";
-import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions";
-import { ServerSession } from "./server_session";
-import { Subscription } from "./server_subscription";
-import { getTransferSessionIdentity, sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer";
+} from "./server_capabilities.js";
+import { ServerSidePublishEngine } from "./server_publish_engine.js";
+import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions.js";
+import { ServerSession } from "./server_session.js";
+import { Subscription } from "./server_subscription.js";
+import { getTransferSessionIdentity, sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer.js";
 
 const debugLog = make_debugLog("server_engine");
 const errorLog = make_errorLog("server_engine");

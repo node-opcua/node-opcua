@@ -42,10 +42,10 @@ import {
     StatusCodes2
 } from "node-opcua-transport";
 import { get_clock_tick, randomBytes } from "node-opcua-utils";
-import { getThumbprint, type Request, type Response } from "../common";
-import { MessageBuilder, type ObjectFactory } from "../message_builder";
-import { type ChunkMessageParameters, MessageChunker } from "../message_chunker";
-import type { SecurityHeader } from "../secure_message_chunk_manager";
+import { getThumbprint, type Request, type Response } from "../common.js";
+import { MessageBuilder, type ObjectFactory } from "../message_builder.js";
+import { type ChunkMessageParameters, MessageChunker } from "../message_chunker.js";
+import type { SecurityHeader } from "../secure_message_chunk_manager.js";
 import {
     coerceSecurityPolicy,
     computeDerivedKeys,
@@ -56,15 +56,15 @@ import {
     getSignParams,
     type SecureMessageData,
     SecurityPolicy
-} from "../security_policy";
+} from "../security_policy.js";
 import {
     AsymmetricAlgorithmSecurityHeader,
     OpenSecureChannelRequest,
     OpenSecureChannelResponse,
     SecurityTokenRequestType,
     ServiceFault
-} from "../services";
-import { TokenStack } from "../token_stack";
+} from "../services.js";
+import { TokenStack } from "../token_stack.js";
 import {
     _dump_transaction_statistics,
     doPerfMonitoring,
@@ -72,7 +72,7 @@ import {
     type ServerTransactionStatistics,
     traceRequestMessage,
     traceResponseMessage
-} from "../utils";
+} from "../utils.js";
 
 const debugLog = make_debugLog("SecureChannel");
 const errorLog = make_errorLog("SecureChannel");
@@ -168,10 +168,10 @@ function isValidSecurityPolicy(securityPolicy: SecurityPolicy) {
     }
 }
 
-export { isEmptyNonce, Nonce, nonceAlreadyBeenUsed } from "./nonce_cache";
+export { isEmptyNonce, Nonce, nonceAlreadyBeenUsed } from "./nonce_cache.js";
 
-import type { Nonce } from "./nonce_cache";
-import { nonceAlreadyBeenUsed } from "./nonce_cache";
+import type { Nonce } from "./nonce_cache.js";
+import { nonceAlreadyBeenUsed } from "./nonce_cache.js";
 
 export interface IServerSessionBase {
     sessionTimeout: number;

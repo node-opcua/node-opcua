@@ -3,11 +3,11 @@ import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTKeyValue } from "./dt_key_value";
-import type { DTSampleInfo } from "./dt_sample_info";
-import type { UAProgramTemplate } from "./ua_program_template";
-import type { UAResultFileSet } from "./ua_result_file_set";
-import type { UAVariableSet } from "./ua_variable_set";
+import type { DTKeyValue } from "./dt_key_value.js";
+import type { DTSampleInfo } from "./dt_sample_info.js";
+import type { UAProgramTemplate } from "./ua_program_template.js";
+import type { UAResultFileSet } from "./ua_result_file_set.js";
+import type { UAVariableSet } from "./ua_variable_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

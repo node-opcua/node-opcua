@@ -6,10 +6,10 @@ import { AddressSpace, PseudoSession } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { constructNodesetFilename, nodesetCatalog } from "node-opcua-nodesets";
 
-import { convertNamespaceTypeToTypescript } from "./convert_namespace_to_typescript";
-import { packagesFolder } from "./package_root";
-import { cleanUpTypescriptModule } from "./remove_unused";
-import { updateParentTSConfig } from "./update_parent_tsconfig";
+import { convertNamespaceTypeToTypescript } from "./convert_namespace_to_typescript.js";
+import { packagesFolder } from "./package_root.js";
+import { cleanUpTypescriptModule } from "./remove_unused.js";
+import { updateParentTSConfig } from "./update_parent_tsconfig.js";
 
 async function runWithConcurrency<T>(items: T[], limit: number, fn: (item: T) => Promise<void>): Promise<void> {
     let cursor = 0;

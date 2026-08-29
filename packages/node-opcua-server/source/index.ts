@@ -23,18 +23,18 @@
 /**
  * @module node-opcua-server
  */
-export * from "./base_server";
-export * from "./helper";
-export * from "./invalidate_server_certificate_cache";
-export * from "./monitored_item";
-export * from "./opcua_server";
-export * from "./register_server_manager";
-export * from "./register_server_manager_mdns_only";
-export * from "./reverse_connect_manager";
-export * from "./server_capabilities";
-export * from "./server_end_point";
-export * from "./server_engine";
-export * from "./server_publish_engine";
-export * from "./server_session";
-export * from "./server_subscription";
-export * from "./user_manager";
+export * from "./base_server.js";
+export * from "./helper.js";
+export * from "./invalidate_server_certificate_cache.js";
+export * from "./monitored_item.js";
+export * from "./opcua_server.js";
+export * from "./register_server_manager.js";
+export * from "./register_server_manager_mdns_only.js";
+export * from "./reverse_connect_manager.js";
+export * from "./server_capabilities.js";
+export * from "./server_end_point.js";
+export * from "./server_engine.js";
+export * from "./server_publish_engine.js";
+export * from "./server_session.js";
+export * from "./server_subscription.js";
+export * from "./user_manager.js";

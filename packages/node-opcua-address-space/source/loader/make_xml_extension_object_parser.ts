@@ -25,9 +25,9 @@ import {
     type Xml2Json,
     type XmlAttributes
 } from "node-opcua-xml2json";
-import { localizedText_parser } from "./parsers/localized_text_parser";
-import { makeQualifiedNameParser } from "./parsers/qualified_name_parser";
-import { makeVariantReader } from "./parsers/variant_parser";
+import { localizedText_parser } from "./parsers/localized_text_parser.js";
+import { makeQualifiedNameParser } from "./parsers/qualified_name_parser.js";
+import { makeVariantReader } from "./parsers/variant_parser.js";
 
 const warningLog = make_warningLog("make_xml_extension_object_parser");
 const debugLog = make_debugLog("make_xml_extension_object_parser");

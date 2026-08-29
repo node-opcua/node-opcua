@@ -2,11 +2,11 @@ import type { UAObject } from "node-opcua-address-space-base";
 import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTLldpManagementAddress } from "./dt_lldp_management_address";
-import type { DTLldpTlv } from "./dt_lldp_tlv";
-import type { EnumChassisIdSubtype } from "./enum_chassis_id_subtype";
-import type { EnumPortIdSubtype } from "./enum_port_id_subtype";
-import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { DTLldpManagementAddress } from "./dt_lldp_management_address.js";
+import type { DTLldpTlv } from "./dt_lldp_tlv.js";
+import type { EnumChassisIdSubtype } from "./enum_chassis_id_subtype.js";
+import type { EnumPortIdSubtype } from "./enum_port_id_subtype.js";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

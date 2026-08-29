@@ -2,7 +2,7 @@ import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
 
-import type { DTScanData } from "./dt_scan_data";
+import type { DTScanData } from "./dt_scan_data.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,8 +1,8 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTContentFilter } from "./dt_content_filter";
-import type { DTMonitoringFilter } from "./dt_monitoring_filter";
-import type { DTSimpleAttributeOperand } from "./dt_simple_attribute_operand";
+import type { DTContentFilter } from "./dt_content_filter.js";
+import type { DTMonitoringFilter } from "./dt_monitoring_filter.js";
+import type { DTSimpleAttributeOperand } from "./dt_simple_attribute_operand.js";
 
 // ----- this file has been automatically generated - do not edit
 

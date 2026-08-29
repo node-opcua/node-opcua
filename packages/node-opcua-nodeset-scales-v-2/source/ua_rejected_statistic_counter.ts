@@ -1,4 +1,4 @@
-import type { UAStatisticCounter, UAStatisticCounter_Base } from "./ua_statistic_counter";
+import type { UAStatisticCounter, UAStatisticCounter_Base } from "./ua_statistic_counter.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

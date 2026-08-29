@@ -4,7 +4,7 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAOrderedList } from "node-opcua-nodeset-ua/dist/ua_ordered_list";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAProductionJobStateMachine } from "./ua_production_job_state_machine";
+import type { UAProductionJobStateMachine } from "./ua_production_job_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

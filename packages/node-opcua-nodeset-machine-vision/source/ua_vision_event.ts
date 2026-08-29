@@ -3,14 +3,14 @@ import type { UAString } from "node-opcua-basic-types";
 import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTConfigurationId } from "./dt_configuration_id";
-import type { DTJobId } from "./dt_job_id";
-import type { DTMeasId } from "./dt_meas_id";
-import type { DTPartId } from "./dt_part_id";
-import type { DTProductId } from "./dt_product_id";
-import type { DTRecipeIdExternal } from "./dt_recipe_id_external";
-import type { DTRecipeIdInternal } from "./dt_recipe_id_internal";
-import type { DTResultId } from "./dt_result_id";
+import type { DTConfigurationId } from "./dt_configuration_id.js";
+import type { DTJobId } from "./dt_job_id.js";
+import type { DTMeasId } from "./dt_meas_id.js";
+import type { DTPartId } from "./dt_part_id.js";
+import type { DTProductId } from "./dt_product_id.js";
+import type { DTRecipeIdExternal } from "./dt_recipe_id_external.js";
+import type { DTRecipeIdInternal } from "./dt_recipe_id_internal.js";
+import type { DTResultId } from "./dt_result_id.js";
 
 // ----- this file has been automatically generated - do not edit
 

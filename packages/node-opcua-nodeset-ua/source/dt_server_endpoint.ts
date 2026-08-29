@@ -1,8 +1,8 @@
 import type { UAString, UInt16 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTEndpoint } from "./dt_endpoint";
-import type { DTKeyValuePair } from "./dt_key_value_pair";
+import type { DTEndpoint } from "./dt_endpoint.js";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -5,9 +5,9 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { StatusCode } from "node-opcua-status-code";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event";
-import type { UAConditionVariable } from "./ua_condition_variable";
-import type { UATwoStateVariable } from "./ua_two_state_variable";
+import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event.js";
+import type { UAConditionVariable } from "./ua_condition_variable.js";
+import type { UATwoStateVariable } from "./ua_two_state_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

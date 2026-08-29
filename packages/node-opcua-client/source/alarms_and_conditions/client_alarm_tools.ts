@@ -13,9 +13,9 @@ import { type ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-
 import type { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
 import { DataType, type Variant } from "node-opcua-variant";
 
-import type { ClientMonitoredItem } from "../client_monitored_item";
-import type { ClientSession } from "../client_session";
-import type { ClientSubscription } from "../client_subscription";
+import type { ClientMonitoredItem } from "../client_monitored_item.js";
+import type { ClientSession } from "../client_session.js";
+import type { ClientSubscription } from "../client_subscription.js";
 
 const doDebug = checkDebugFlag("A&E");
 const debugLog = make_debugLog("A&E");

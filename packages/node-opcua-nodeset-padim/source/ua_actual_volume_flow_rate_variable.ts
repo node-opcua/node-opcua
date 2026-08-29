@@ -1,4 +1,4 @@
-import type { UAFlowMeasurementVariable, UAFlowMeasurementVariable_Base } from "./ua_flow_measurement_variable";
+import type { UAFlowMeasurementVariable, UAFlowMeasurementVariable_Base } from "./ua_flow_measurement_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

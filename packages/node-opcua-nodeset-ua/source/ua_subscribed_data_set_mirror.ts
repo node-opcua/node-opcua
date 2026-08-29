@@ -1,4 +1,4 @@
-import type { UASubscribedDataSet, UASubscribedDataSet_Base } from "./ua_subscribed_data_set";
+import type { UASubscribedDataSet, UASubscribedDataSet_Base } from "./ua_subscribed_data_set.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

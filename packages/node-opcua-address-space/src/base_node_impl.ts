@@ -59,12 +59,12 @@ import {
 } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, VariantArrayType } from "node-opcua-variant";
-import { dumpReferenceDescriptions, dumpReferences } from "../source/helpers/dump_tools";
-import { SessionContext, WellKnownRolesNodeId } from "../source/session_context";
-import type { XmlWriter } from "../source/xml_writer";
-import type { AddressSpace } from "../src/address_space";
-import { _handle_add_reference_change_event } from "./address_space_change_event_tools";
-import type { AddressSpacePrivate } from "./address_space_private";
+import { dumpReferenceDescriptions, dumpReferences } from "../source/helpers/dump_tools.js";
+import { SessionContext, WellKnownRolesNodeId } from "../source/session_context.js";
+import type { XmlWriter } from "../source/xml_writer.js";
+import type { AddressSpace } from "../src/address_space.js";
+import { _handle_add_reference_change_event } from "./address_space_change_event_tools.js";
+import type { AddressSpacePrivate } from "./address_space_private.js";
 import {
     _constructReferenceDescription,
     _get_HierarchicalReference,
@@ -80,9 +80,9 @@ import {
     BaseNode_toString,
     type HierarchicalIndexMap,
     ToStringBuilder
-} from "./base_node_private";
-import { type MinimalistAddressSpace, ReferenceImpl } from "./reference_impl";
-import { coerceRolePermissions } from "./role_permissions";
+} from "./base_node_private.js";
+import { type MinimalistAddressSpace, ReferenceImpl } from "./reference_impl.js";
+import { coerceRolePermissions } from "./role_permissions.js";
 
 type ApplyFunc = { apply: (...args: unknown[]) => void };
 

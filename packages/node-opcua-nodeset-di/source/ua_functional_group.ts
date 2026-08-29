@@ -1,6 +1,6 @@
 import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder";
 
-import type { UAUIElement } from "./ua_ui_element";
+import type { UAUIElement } from "./ua_ui_element.js";
 
 // ----- this file has been automatically generated - do not edit
 

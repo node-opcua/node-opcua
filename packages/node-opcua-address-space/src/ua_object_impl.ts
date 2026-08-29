@@ -32,9 +32,9 @@ import { NodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-import { apply_condition_refresh, type ConditionRefreshCache } from "./apply_condition_refresh";
-import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
-import { _clone, ToStringBuilder, UAObject_toString } from "./base_node_private";
+import { apply_condition_refresh, type ConditionRefreshCache } from "./apply_condition_refresh.js";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl.js";
+import { _clone, ToStringBuilder, UAObject_toString } from "./base_node_private.js";
 
 const errorLog = make_errorLog("ua_object_impl");
 

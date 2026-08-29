@@ -1,6 +1,6 @@
 import type { UAObject } from "node-opcua-address-space-base";
 
-import type { UACyclicProcessValue } from "./ua_cyclic_process_value";
+import type { UACyclicProcessValue } from "./ua_cyclic_process_value.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,7 +1,7 @@
 import { createPrivateKey, KeyObject, subtle } from "node:crypto";
 import { type PrivateKey, privateKeyToPEM } from "node-opcua-crypto/web";
 import { make_warningLog } from "node-opcua-debug";
-import { RSAPKCS1V15_Decrypt, RSAPKCS1V15_Encrypt } from "./security_policy";
+import { RSAPKCS1V15_Decrypt, RSAPKCS1V15_Encrypt } from "./security_policy.js";
 
 const warningLog = make_warningLog("NODE-OPCUA-W27");
 

@@ -1,8 +1,8 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTStructure } from "./dt_structure";
-import type { EnumIdentityCriteria } from "./enum_identity_criteria";
+import type { DTStructure } from "./dt_structure.js";
+import type { EnumIdentityCriteria } from "./enum_identity_criteria.js";
 
 // ----- this file has been automatically generated - do not edit
 

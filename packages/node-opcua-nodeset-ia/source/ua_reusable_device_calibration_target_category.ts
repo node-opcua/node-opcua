@@ -1,4 +1,4 @@
-import type { UAReusableCalibrationTargetCategory, UAReusableCalibrationTargetCategory_Base } from "./ua_reusable_calibration_target_category";
+import type { UAReusableCalibrationTargetCategory, UAReusableCalibrationTargetCategory_Base } from "./ua_reusable_calibration_target_category.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

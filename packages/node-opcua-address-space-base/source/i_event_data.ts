@@ -1,7 +1,7 @@
 import type { NodeId } from "node-opcua-nodeid";
 import type { BrowsePath, BrowsePathResult } from "node-opcua-types";
 import type { Variant, VariantLike } from "node-opcua-variant";
-import type { BaseNode } from "./base_node";
+import type { BaseNode } from "./base_node.js";
 
 export interface IEventData {
     /**

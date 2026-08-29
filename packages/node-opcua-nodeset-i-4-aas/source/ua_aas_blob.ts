@@ -1,6 +1,6 @@
 import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file";
 
-import type { UAAASSubmodelElement, UAAASSubmodelElement_Base } from "./ua_aas_submodel_element";
+import type { UAAASSubmodelElement, UAAASSubmodelElement_Base } from "./ua_aas_submodel_element.js";
 
 // ----- this file has been automatically generated - do not edit
 

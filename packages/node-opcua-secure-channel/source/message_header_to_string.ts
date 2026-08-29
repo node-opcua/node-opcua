@@ -5,7 +5,7 @@ import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { readMessageHeader, SequenceHeader } from "node-opcua-chunkmanager";
 import { hexDump } from "node-opcua-debug";
-import { chooseSecurityHeader } from "./secure_message_chunk_manager";
+import { chooseSecurityHeader } from "./secure_message_chunk_manager.js";
 
 /**
  * convert the messageChunk header to a string

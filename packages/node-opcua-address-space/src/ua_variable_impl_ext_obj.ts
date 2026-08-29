@@ -11,9 +11,9 @@ import { StatusCodes } from "node-opcua-status-code";
 import type { StructureField } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, VariantArrayType, type VariantLike } from "node-opcua-variant";
-import { IndexIterator } from "./idx_iterator";
-import type { UADataTypeImpl } from "./ua_data_type_impl";
-import { UAVariableImpl } from "./ua_variable_impl";
+import { IndexIterator } from "./idx_iterator.js";
+import type { UADataTypeImpl } from "./ua_data_type_impl.js";
+import { UAVariableImpl } from "./ua_variable_impl.js";
 
 const doDebug = checkDebugFlag("ua_variable_impl_ext_obj");
 const debugLog = make_debugLog("ua_variable_impl_ext_obj");

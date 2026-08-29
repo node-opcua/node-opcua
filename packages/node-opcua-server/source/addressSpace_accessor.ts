@@ -31,7 +31,7 @@ import {
     type WriteValue
 } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
-import type { IAddressSpaceAccessor } from "./i_address_space_accessor";
+import type { IAddressSpaceAccessor } from "./i_address_space_accessor.js";
 
 const doDebug = checkDebugFlag("addressSpace_accessor");
 const debugLog = make_debugLog("addressSpace_accessor");

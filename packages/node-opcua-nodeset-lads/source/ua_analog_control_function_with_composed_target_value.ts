@@ -1,5 +1,5 @@
-import type { UAAnalogControlFunction, UAAnalogControlFunction_Base } from "./ua_analog_control_function";
-import type { UAVariableSet } from "./ua_variable_set";
+import type { UAAnalogControlFunction, UAAnalogControlFunction_Base } from "./ua_analog_control_function.js";
+import type { UAVariableSet } from "./ua_variable_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

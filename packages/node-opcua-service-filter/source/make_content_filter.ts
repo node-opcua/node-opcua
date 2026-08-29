@@ -15,7 +15,7 @@ import {
     FilterOperator,
     LiteralOperand,
     SimpleAttributeOperand
-} from "./imports";
+} from "./imports.js";
 
 export function ofType(nodeId: NodeIdLike): ContentFilterElement {
     const element: ContentFilterElement = new ContentFilterElement({

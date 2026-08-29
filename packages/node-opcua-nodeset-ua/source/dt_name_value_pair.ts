@@ -2,7 +2,7 @@ import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { Variant } from "node-opcua-variant";
 
-import type { DTStructure } from "./dt_structure";
+import type { DTStructure } from "./dt_structure.js";
 
 // ----- this file has been automatically generated - do not edit
 

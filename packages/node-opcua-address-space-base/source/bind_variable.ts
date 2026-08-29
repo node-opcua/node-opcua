@@ -10,8 +10,8 @@ import type {
     ReadRawModifiedDetails
 } from "node-opcua-types";
 import type { Variant, VariantLike } from "node-opcua-variant";
-import type { ContinuationData, ISessionContext } from "./session_context";
-import type { UAVariable } from "./ua_variable";
+import type { ContinuationData, ISessionContext } from "./session_context.js";
+import type { UAVariable } from "./ua_variable.js";
 
 export type VariableSetterVariation1 = (this: UAVariable, value: Variant) => StatusCode;
 

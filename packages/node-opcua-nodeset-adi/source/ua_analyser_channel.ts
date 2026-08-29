@@ -6,7 +6,7 @@ import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodes
 import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAnalyserChannelStateMachine } from "./ua_analyser_channel_state_machine";
+import type { UAAnalyserChannelStateMachine } from "./ua_analyser_channel_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

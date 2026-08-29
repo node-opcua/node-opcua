@@ -1,8 +1,8 @@
 import type { UAMethod, UAObject } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumPubSubState } from "./enum_pub_sub_state";
-import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { EnumPubSubState } from "./enum_pub_sub_state.js";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

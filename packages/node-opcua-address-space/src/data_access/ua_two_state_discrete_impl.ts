@@ -10,12 +10,12 @@ import assert from "node-opcua-assert";
 import { VariableTypeIds } from "node-opcua-constants";
 import { coerceLocalizedText, type LocalizedText, type LocalizedTextLike } from "node-opcua-data-model";
 import { DataType, Variant } from "node-opcua-variant";
-import type { AddTwoStateDiscreteOptions } from "../../source/address_space_ts";
-import type { UATwoStateDiscreteEx } from "../../source/interfaces/data_access/ua_two_state_discrete_ex";
-import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
-import { registerNodePromoter } from "../../source/loader/register_node_promoter";
-import { UAVariableImpl } from "../ua_variable_impl";
-import { add_dataItem_stuff } from "./add_dataItem_stuff";
+import type { AddTwoStateDiscreteOptions } from "../../source/address_space_ts.js";
+import type { UATwoStateDiscreteEx } from "../../source/interfaces/data_access/ua_two_state_discrete_ex.js";
+import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options.js";
+import { registerNodePromoter } from "../../source/loader/register_node_promoter.js";
+import { UAVariableImpl } from "../ua_variable_impl.js";
+import { add_dataItem_stuff } from "./add_dataItem_stuff.js";
 
 export class UATwoStateDiscreteImplBase extends UAVariableImpl {
     private get $5(): UATwoStateDiscreteEx {

@@ -1,9 +1,9 @@
 import type { UAMethod } from "node-opcua-address-space-base";
 
-import type { UAPubSubDiagnosticsReaderGroup } from "./ua_pub_sub_diagnostics_reader_group";
-import type { UAPubSubGroup, UAPubSubGroup_Base } from "./ua_pub_sub_group";
-import type { UAReaderGroupMessage } from "./ua_reader_group_message";
-import type { UAReaderGroupTransport } from "./ua_reader_group_transport";
+import type { UAPubSubDiagnosticsReaderGroup } from "./ua_pub_sub_diagnostics_reader_group.js";
+import type { UAPubSubGroup, UAPubSubGroup_Base } from "./ua_pub_sub_group.js";
+import type { UAReaderGroupMessage } from "./ua_reader_group_message.js";
+import type { UAReaderGroupTransport } from "./ua_reader_group_transport.js";
 
 // ----- this file has been automatically generated - do not edit
 

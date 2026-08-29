@@ -1,8 +1,8 @@
 import type { DataType } from "node-opcua-variant";
 
-import type { DT3DCartesianCoordinates } from "./dt_3_d_cartesian_coordinates";
-import type { UABaseDataVariable } from "./ua_base_data_variable";
-import type { UACartesianCoordinates, UACartesianCoordinates_Base } from "./ua_cartesian_coordinates";
+import type { DT3DCartesianCoordinates } from "./dt_3_d_cartesian_coordinates.js";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
+import type { UACartesianCoordinates, UACartesianCoordinates_Base } from "./ua_cartesian_coordinates.js";
 
 // ----- this file has been automatically generated - do not edit
 

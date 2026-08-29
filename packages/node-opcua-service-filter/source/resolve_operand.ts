@@ -5,7 +5,7 @@ import { constructBrowsePathFromQualifiedName } from "node-opcua-service-transla
 import { StatusCodes } from "node-opcua-status-code";
 import { AttributeOperand, SimpleAttributeOperand } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
-import type { FilterContext } from "./filter_context";
+import type { FilterContext } from "./filter_context.js";
 
 const warningLog = make_warningLog("FILTER");
 const debugLog = make_debugLog("FILTER");

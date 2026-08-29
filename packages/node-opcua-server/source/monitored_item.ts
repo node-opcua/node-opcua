@@ -53,11 +53,11 @@ import {
     type SubscriptionDiagnosticsDataType
 } from "node-opcua-types";
 import { sameVariant, Variant } from "node-opcua-variant";
-import { checkWhereClauseOnAdressSpace as checkWhereClauseOnAddressSpace } from "./filter/check_where_clause_on_address_space";
-import { appendToTimer, removeFromTimer } from "./node_sampler";
-import type { SamplingFunc } from "./sampling_func";
-import type { MonitoredItemBase } from "./server_subscription";
-import { validateFilter } from "./validate_filter";
+import { checkWhereClauseOnAdressSpace as checkWhereClauseOnAddressSpace } from "./filter/check_where_clause_on_address_space.js";
+import { appendToTimer, removeFromTimer } from "./node_sampler.js";
+import type { SamplingFunc } from "./sampling_func.js";
+import type { MonitoredItemBase } from "./server_subscription.js";
+import { validateFilter } from "./validate_filter.js";
 
 const errorLog = make_errorLog("monitored_item");
 

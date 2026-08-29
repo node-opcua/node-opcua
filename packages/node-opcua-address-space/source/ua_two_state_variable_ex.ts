@@ -5,7 +5,7 @@ import type { UAVariableT } from "node-opcua-address-space-base";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { UAStateVariable, UATwoStateVariable_Base } from "node-opcua-nodeset-ua";
 import type { DataType } from "node-opcua-variant";
-import type { ISetStateOptions } from "./interfaces/i_set_state_options";
+import type { ISetStateOptions } from "./interfaces/i_set_state_options.js";
 
 /**
  * @see https://reference.opcfoundation.org/v104/Core/docs/Part9/5.2/

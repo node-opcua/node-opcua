@@ -4,9 +4,9 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { StatusCode } from "node-opcua-status-code";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTArgument } from "./dt_argument";
-import type { DTProgramDiagnostic2 } from "./dt_program_diagnostic_2";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+import type { DTArgument } from "./dt_argument.js";
+import type { DTProgramDiagnostic2 } from "./dt_program_diagnostic_2.js";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -5,7 +5,7 @@
 import assert from "node-opcua-assert";
 import { BinaryStream, type OutputBinaryStream } from "node-opcua-binary-stream";
 import { isValidGuid } from "node-opcua-guid";
-import { cryptoRandomBytes } from "./crypto_random";
+import { cryptoRandomBytes } from "./crypto_random.js";
 
 export { emptyGuid, isValidGuid } from "node-opcua-guid";
 

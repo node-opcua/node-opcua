@@ -2,8 +2,8 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTEnumValue } from "./dt_enum_value";
-import type { UADiscreteItem, UADiscreteItem_Base } from "./ua_discrete_item";
+import type { DTEnumValue } from "./dt_enum_value.js";
+import type { UADiscreteItem, UADiscreteItem_Base } from "./ua_discrete_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

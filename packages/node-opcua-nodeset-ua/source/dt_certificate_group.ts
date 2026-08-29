@@ -2,8 +2,8 @@ import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
 
-import type { DTBaseConfigurationRecord } from "./dt_base_configuration_record";
-import type { DTKeyValuePair } from "./dt_key_value_pair";
+import type { DTBaseConfigurationRecord } from "./dt_base_configuration_record.js";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
 
 // ----- this file has been automatically generated - do not edit
 

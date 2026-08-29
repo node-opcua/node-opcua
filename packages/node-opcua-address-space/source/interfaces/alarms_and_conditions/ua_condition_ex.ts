@@ -5,13 +5,13 @@ import type { UACondition_Base } from "node-opcua-nodeset-ua";
 import type { StatusCode } from "node-opcua-status-code";
 import type { TimeZoneDataType } from "node-opcua-types";
 import type { DataType } from "node-opcua-variant";
-import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
-import type { ISetStateOptions } from "../i_set_state_options";
-import type { ConditionInfoOptions } from "./condition_info_i";
-import type { ConditionSnapshot } from "./condition_snapshot";
-import type { UABaseEventEvents, UABaseEventEx, UABaseEventHelper } from "./ua_base_event_ex";
+import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex.js";
+import type { ISetStateOptions } from "../i_set_state_options.js";
+import type { ConditionInfoOptions } from "./condition_info_i.js";
+import type { ConditionSnapshot } from "./condition_snapshot.js";
+import type { UABaseEventEvents, UABaseEventEx, UABaseEventHelper } from "./ua_base_event_ex.js";
 
-export type { UABaseEventHelper } from "./ua_base_event_ex";
+export type { UABaseEventHelper } from "./ua_base_event_ex.js";
 
 export type AddCommentEventHandler = (eventId: Buffer | null, comment: LocalizedText, branch: ConditionSnapshot) => void;
 

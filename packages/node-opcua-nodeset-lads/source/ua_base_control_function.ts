@@ -11,9 +11,9 @@ import type { UATwoStateVariable } from "node-opcua-nodeset-ua/dist/ua_two_state
 import type { StatusCode } from "node-opcua-status-code";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAControlFunctionStateMachine } from "./ua_control_function_state_machine";
-import type { UAControllerTuningParameter } from "./ua_controller_tuning_parameter";
-import type { UAFunction, UAFunction_Base } from "./ua_function";
+import type { UAControlFunctionStateMachine } from "./ua_control_function_state_machine.js";
+import type { UAControllerTuningParameter } from "./ua_controller_tuning_parameter.js";
+import type { UAFunction, UAFunction_Base } from "./ua_function.js";
 
 // ----- this file has been automatically generated - do not edit
 

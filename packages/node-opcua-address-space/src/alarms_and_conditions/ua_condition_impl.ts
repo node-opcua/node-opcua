@@ -31,19 +31,19 @@ import { type CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code"
 import { type CallMethodResultOptions, TimeZoneDataType } from "node-opcua-types";
 import { DataType, Variant, type VariantLike, type VariantOptions } from "node-opcua-variant";
 
-import type { ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
-import type { ConditionSnapshot } from "../../source/interfaces/alarms_and_conditions/condition_snapshot";
-import type { InstantiateConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_condition_options";
-import type { UAConditionEvents, UAConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_condition_ex";
-import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
+import type { ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditions/condition_info_i.js";
+import type { ConditionSnapshot } from "../../source/interfaces/alarms_and_conditions/condition_snapshot.js";
+import type { InstantiateConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_condition_options.js";
+import type { UAConditionEvents, UAConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_condition_ex.js";
+import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options.js";
 
-import type { AddressSpacePrivate } from "../address_space_private";
-import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
-import type { UAConditionType } from "../ua_condition_type";
-import { UAObjectImpl } from "../ua_object_impl";
-import type { UAVariableImpl } from "../ua_variable_impl";
-import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
-import { UABaseEventImplBase } from "./ua_base_event_impl";
+import type { AddressSpacePrivate } from "../address_space_private.js";
+import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable.js";
+import type { UAConditionType } from "../ua_condition_type.js";
+import { UAObjectImpl } from "../ua_object_impl.js";
+import type { UAVariableImpl } from "../ua_variable_impl.js";
+import { ConditionSnapshotImpl } from "./condition_snapshot_impl.js";
+import { UABaseEventImplBase } from "./ua_base_event_impl.js";
 
 const debugLog = make_debugLog("ua_condition_impl");
 const errorLog = make_errorLog("ua_condition_impl");

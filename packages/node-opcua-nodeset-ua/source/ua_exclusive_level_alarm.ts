@@ -1,4 +1,4 @@
-import type { UAExclusiveLimitAlarm, UAExclusiveLimitAlarm_Base } from "./ua_exclusive_limit_alarm";
+import type { UAExclusiveLimitAlarm, UAExclusiveLimitAlarm_Base } from "./ua_exclusive_limit_alarm.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

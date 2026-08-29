@@ -10,11 +10,11 @@ import type { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
-import { SessionContext, type UAReferenceType as UAReferenceTypePublic } from "../source";
-import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
-import { BaseNode_getCache } from "./base_node_private";
-import { ReferenceImpl } from "./reference_impl";
-import { construct_isSubtypeOf, construct_slow_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
+import { SessionContext, type UAReferenceType as UAReferenceTypePublic } from "../source/index.js";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl.js";
+import { BaseNode_getCache } from "./base_node_private.js";
+import { ReferenceImpl } from "./reference_impl.js";
+import { construct_isSubtypeOf, construct_slow_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf.js";
 
 const ReferenceTypeCounter = { count: 0 };
 

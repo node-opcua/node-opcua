@@ -15,8 +15,8 @@ import {
 } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 //
-import type { FilterContext } from "./filter_context";
-import { resolveOperand } from "./resolve_operand";
+import type { FilterContext } from "./filter_context.js";
+import { resolveOperand } from "./resolve_operand.js";
 
 const warningLog = make_warningLog("Filter");
 

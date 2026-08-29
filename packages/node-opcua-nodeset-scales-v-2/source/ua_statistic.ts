@@ -3,8 +3,8 @@ import type { UAString } from "node-opcua-basic-types";
 import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAStatisticCounter } from "./ua_statistic_counter";
-import type { UAWeighingItem } from "./ua_weighing_item";
+import type { UAStatisticCounter } from "./ua_statistic_counter.js";
+import type { UAWeighingItem } from "./ua_weighing_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

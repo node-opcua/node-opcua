@@ -3,8 +3,8 @@ import type { DTCurrencyUnit } from "node-opcua-nodeset-ua/dist/dt_currency_unit
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { UACatchweigherProduct, UACatchweigherProduct_Base } from "./ua_catchweigher_product";
-import type { UAWeighingItem } from "./ua_weighing_item";
+import type { UACatchweigherProduct, UACatchweigherProduct_Base } from "./ua_catchweigher_product.js";
+import type { UAWeighingItem } from "./ua_weighing_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,8 +1,8 @@
 import type { LocalizedText } from "node-opcua-data-model";
 
-import type { UAExclusiveLimitStateMachine } from "./ua_exclusive_limit_state_machine";
-import type { UALimitAlarm, UALimitAlarm_Base } from "./ua_limit_alarm";
-import type { UATwoStateVariable } from "./ua_two_state_variable";
+import type { UAExclusiveLimitStateMachine } from "./ua_exclusive_limit_state_machine.js";
+import type { UALimitAlarm, UALimitAlarm_Base } from "./ua_limit_alarm.js";
+import type { UATwoStateVariable } from "./ua_two_state_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

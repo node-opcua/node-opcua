@@ -6,12 +6,12 @@ import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
 import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTCncPosition } from "./dt_cnc_position";
-import type { EnumCncChannelProgramStatus } from "./enum_cnc_channel_program_status";
-import type { EnumCncChannelStatus } from "./enum_cnc_channel_status";
-import type { EnumCncOperationMode } from "./enum_cnc_operation_mode";
-import type { UACncComponent, UACncComponent_Base } from "./ua_cnc_component";
-import type { UACncPositionVariable } from "./ua_cnc_position_variable";
+import type { DTCncPosition } from "./dt_cnc_position.js";
+import type { EnumCncChannelProgramStatus } from "./enum_cnc_channel_program_status.js";
+import type { EnumCncChannelStatus } from "./enum_cnc_channel_status.js";
+import type { EnumCncOperationMode } from "./enum_cnc_operation_mode.js";
+import type { UACncComponent, UACncComponent_Base } from "./ua_cnc_component.js";
+import type { UACncPositionVariable } from "./ua_cnc_position_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

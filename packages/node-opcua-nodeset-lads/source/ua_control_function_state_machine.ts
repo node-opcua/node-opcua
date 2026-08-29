@@ -1,6 +1,6 @@
 import type { UAMethod } from "node-opcua-address-space-base";
 
-import type { UAFunctionalStateMachine, UAFunctionalStateMachine_Base } from "./ua_functional_state_machine";
+import type { UAFunctionalStateMachine, UAFunctionalStateMachine_Base } from "./ua_functional_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

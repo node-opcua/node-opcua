@@ -1,5 +1,5 @@
-import type { UABaseSensorFunction, UABaseSensorFunction_Base } from "./ua_base_sensor_function";
-import type { UAFunction_functionSet } from "./ua_function";
+import type { UABaseSensorFunction, UABaseSensorFunction_Base } from "./ua_base_sensor_function.js";
+import type { UAFunction_functionSet } from "./ua_function.js";
 
 // ----- this file has been automatically generated - do not edit
 

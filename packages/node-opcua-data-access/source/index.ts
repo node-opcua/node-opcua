@@ -3,5 +3,5 @@
  */
 
 export { AxisInformation, AxisScaleEnumeration } from "node-opcua-types";
-export * from "./EUInformation";
-export * from "./Range";
+export * from "./EUInformation.js";
+export * from "./Range.js";

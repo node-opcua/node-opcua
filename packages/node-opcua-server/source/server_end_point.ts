@@ -31,8 +31,8 @@ import type { StatusCode } from "node-opcua-status-code";
 import { type IHelloAckLimits, parseEndpointUrl } from "node-opcua-transport";
 import type { UserTokenPolicyOptions } from "node-opcua-types";
 
-import type { IChannelData } from "./i_channel_data";
-import type { ISocketData } from "./i_socket_data";
+import type { IChannelData } from "./i_channel_data.js";
+import type { ISocketData } from "./i_socket_data.js";
 
 const debugLog = make_debugLog("server_end_point");
 const errorLog = make_errorLog("server_end_point");

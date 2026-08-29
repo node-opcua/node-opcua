@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataValue } from "node-opcua-data-value";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_audit_history_delete_event";
+import type { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_audit_history_delete_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

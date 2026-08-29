@@ -13,8 +13,8 @@ import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug
 import { coerceNodeId } from "node-opcua-nodeid";
 import { ClientSecureChannelLayer, type ServiceFaultAnnotatedError } from "node-opcua-secure-channel";
 import { StatusCodes } from "node-opcua-status-code";
-import type { ClientSessionImpl } from "./private/client_session_impl";
-import type { IClientBase } from "./private/i_private_client";
+import type { ClientSessionImpl } from "./private/client_session_impl.js";
+import type { IClientBase } from "./private/i_private_client.js";
 
 const serverStatusStateNodeId = coerceNodeId(VariableIds.Server_ServerStatus_State);
 

@@ -7,7 +7,7 @@ import type {
     IBasicSessionBrowseAsyncMultiple,
     IBasicSessionBrowseAsyncSimple,
     IBasicSessionReadAsyncSimple
-} from "./basic_session_interface";
+} from "./basic_session_interface.js";
 
 const doDebug = false;
 const debugLog = make_debugLog("extract_fields");

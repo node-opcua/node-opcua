@@ -11,7 +11,7 @@ import {
     initialize_field,
     parameters
 } from "node-opcua-factory";
-import { StatusCodes2 } from "./status_codes";
+import { StatusCodes2 } from "./status_codes.js";
 
 /**
  * The maximum encoded length (in bytes) of the ServerUri and EndpointUrl fields.

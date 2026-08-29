@@ -2,10 +2,10 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumApplication } from "./enum_application";
-import type { UAAuthorizationServicesConfigurationFolder } from "./ua_authorization_services_configuration_folder";
-import type { UAKeyCredentialConfigurationFolder } from "./ua_key_credential_configuration_folder";
-import type { UAServerConfiguration, UAServerConfiguration_Base } from "./ua_server_configuration";
+import type { EnumApplication } from "./enum_application.js";
+import type { UAAuthorizationServicesConfigurationFolder } from "./ua_authorization_services_configuration_folder.js";
+import type { UAKeyCredentialConfigurationFolder } from "./ua_key_credential_configuration_folder.js";
+import type { UAServerConfiguration, UAServerConfiguration_Base } from "./ua_server_configuration.js";
 
 // ----- this file has been automatically generated - do not edit
 

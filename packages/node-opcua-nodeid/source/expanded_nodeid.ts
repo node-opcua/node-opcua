@@ -2,7 +2,7 @@
  * @module node-opcua-nodeid
  */
 import type { Guid } from "node-opcua-guid";
-import { coerceNodeId, NodeId, NodeIdType } from "./nodeid";
+import { coerceNodeId, NodeId, NodeIdType } from "./nodeid.js";
 
 /**
  * An ExpandedNodeId extends the NodeId structure.

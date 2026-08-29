@@ -19,7 +19,7 @@ import type {
 import type { Callback, ErrorCallback, StatusCode } from "node-opcua-status-code";
 import type { Variant } from "node-opcua-variant";
 
-import type { ClientSubscription } from "./client_subscription";
+import type { ClientSubscription } from "./client_subscription.js";
 
 export interface ClientMonitoredItemOrGroupAction {
     modify(parameters: MonitoringParametersOptions, timestampsToReturn?: TimestampsToReturn): Promise<MonitoredItemModifyResult>;

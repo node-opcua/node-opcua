@@ -4,7 +4,7 @@
 
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
-import { getRandomInt } from "./utils";
+import { getRandomInt } from "./utils.js";
 
 export function isValidString(value: unknown): boolean {
     return typeof value === "string";

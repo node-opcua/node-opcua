@@ -10,9 +10,9 @@ import type { Argument } from "node-opcua-service-call";
 import type { WriteValueOptions } from "node-opcua-service-write";
 import type { StatusCode } from "node-opcua-status-code";
 import type { DataType, Variant } from "node-opcua-variant";
-import type { UAProxyManager } from "./proxy_manager";
-import type { ProxyNode } from "./proxy_transition";
-import type { ProxyVariable } from "./proxy_variable";
+import type { UAProxyManager } from "./proxy_manager.js";
+import type { ProxyNode } from "./proxy_transition.js";
+import type { ProxyVariable } from "./proxy_variable.js";
 
 export interface ArgumentEx extends Argument {
     _basicDataType: DataType;

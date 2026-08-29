@@ -7,7 +7,7 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UATwoStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_two_state_discrete";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAStatistic } from "./ua_statistic";
+import type { UAStatistic } from "./ua_statistic.js";
 
 // ----- this file has been automatically generated - do not edit
 

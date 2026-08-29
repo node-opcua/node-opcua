@@ -2,9 +2,9 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTQos } from "./dt_qos";
-import type { UAConnectionTransport, UAConnectionTransport_Base } from "./ua_connection_transport";
-import type { UANetworkAddress } from "./ua_network_address";
+import type { DTQos } from "./dt_qos.js";
+import type { UAConnectionTransport, UAConnectionTransport_Base } from "./ua_connection_transport.js";
+import type { UANetworkAddress } from "./ua_network_address.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -2,10 +2,10 @@ import type { Int16, UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
 
-import type { DTLocation } from "./dt_location";
-import type { DTOpticalScanResult } from "./dt_optical_scan_result";
-import type { DTPosition } from "./dt_position";
-import type { DTScanData } from "./dt_scan_data";
+import type { DTLocation } from "./dt_location.js";
+import type { DTOpticalScanResult } from "./dt_optical_scan_result.js";
+import type { DTPosition } from "./dt_position.js";
+import type { DTScanData } from "./dt_scan_data.js";
 
 // ----- this file has been automatically generated - do not edit
 

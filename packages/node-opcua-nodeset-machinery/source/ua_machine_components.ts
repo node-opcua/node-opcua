@@ -2,7 +2,7 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { QualifiedName } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAMachineryItemIdentification } from "./ua_machinery_item_identification";
+import type { UAMachineryItemIdentification } from "./ua_machinery_item_identification.js";
 
 // ----- this file has been automatically generated - do not edit
 

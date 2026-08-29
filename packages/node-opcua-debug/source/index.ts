@@ -2,10 +2,10 @@
  * @module node-opcua-debug
  */
 
-export { displayTraceFromThisProjectOnly, traceFromThisProjectOnly } from "./display_trace";
-export { dump, dumpIf } from "./dump_if";
-export { hexDump } from "./hexDump";
-export { inlineText, makeBufferFromTrace } from "./make_buffer_from_trace";
+export { displayTraceFromThisProjectOnly, traceFromThisProjectOnly } from "./display_trace.js";
+export { dump, dumpIf } from "./dump_if.js";
+export { hexDump } from "./hexDump.js";
+export { inlineText, makeBufferFromTrace } from "./make_buffer_from_trace.js";
 export {
     checkDebugFlag,
     LogLevel,
@@ -20,5 +20,5 @@ export {
     setLogLevel,
     setTraceLogger,
     setWarningLogger
-} from "./make_loggers";
-export { removeDecoration } from "./remove_decoration";
+} from "./make_loggers.js";
+export { removeDecoration } from "./remove_decoration.js";

@@ -20,10 +20,10 @@ import {
 import { type Callback, type ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { Variant } from "node-opcua-variant";
 
-import { ClientMonitoredItem } from "../client_monitored_item";
-import { type ClientMonitoredItemBaseEx, ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
-import type { ClientSubscription } from "../client_subscription";
-import { ClientMonitoredItem_create, type ClientSubscriptionImpl } from "./client_subscription_impl";
+import { ClientMonitoredItem } from "../client_monitored_item.js";
+import { type ClientMonitoredItemBaseEx, ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox.js";
+import type { ClientSubscription } from "../client_subscription.js";
+import { ClientMonitoredItem_create, type ClientSubscriptionImpl } from "./client_subscription_impl.js";
 
 const _debugLog = make_debugLog("client_monitored_item_impl");
 const warningLog = make_warningLog("client_monitored_item_impl");

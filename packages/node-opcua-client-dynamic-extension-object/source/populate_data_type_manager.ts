@@ -6,9 +6,9 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { type IBasicSessionAsync2, readNamespaceArray } from "node-opcua-pseudo-session";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 //
-import type { ExtraDataTypeManager } from "./extra_data_type_manager";
-import { populateDataTypeManager103 } from "./private/populate_data_type_manager_103";
-import { populateDataTypeManager104 } from "./private/populate_data_type_manager_104";
+import type { ExtraDataTypeManager } from "./extra_data_type_manager.js";
+import { populateDataTypeManager103 } from "./private/populate_data_type_manager_103.js";
+import { populateDataTypeManager104 } from "./private/populate_data_type_manager_104.js";
 
 const doDebug = checkDebugFlag("populateDataTypeManager");
 const debugLog = make_debugLog("populateDataTypeManager");

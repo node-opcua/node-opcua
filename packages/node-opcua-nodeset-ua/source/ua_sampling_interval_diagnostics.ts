@@ -1,8 +1,8 @@
 import type { UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTSamplingIntervalDiagnostics } from "./dt_sampling_interval_diagnostics";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+import type { DTSamplingIntervalDiagnostics } from "./dt_sampling_interval_diagnostics.js";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

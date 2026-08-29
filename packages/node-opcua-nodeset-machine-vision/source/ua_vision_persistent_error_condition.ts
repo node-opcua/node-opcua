@@ -1,4 +1,4 @@
-import type { UAVisionCondition, UAVisionCondition_Base } from "./ua_vision_condition";
+import type { UAVisionCondition, UAVisionCondition_Base } from "./ua_vision_condition.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

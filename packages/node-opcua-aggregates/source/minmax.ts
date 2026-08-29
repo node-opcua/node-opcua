@@ -57,8 +57,8 @@ import { DataValue } from "node-opcua-data-value";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { Variant } from "node-opcua-variant";
 
-import { getAggregateData } from "./common";
-import type { AggregateConfigurationOptions, Interval } from "./interval";
+import { getAggregateData } from "./common.js";
+import type { AggregateConfigurationOptions, Interval } from "./interval.js";
 
 function calculateIntervalMinOrMaxValue(
     interval: Interval,

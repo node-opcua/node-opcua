@@ -3,7 +3,7 @@ import type { EUInformation } from "node-opcua-data-access";
 import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTLocation } from "./dt_location";
+import type { DTLocation } from "./dt_location.js";
 
 // ----- this file has been automatically generated - do not edit
 

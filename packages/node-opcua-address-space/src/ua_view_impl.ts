@@ -8,8 +8,8 @@ import { DataValue, type DataValueLike } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
-import { SessionContext } from "../source/session_context";
-import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
+import { SessionContext } from "../source/session_context.js";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl.js";
 
 export interface InternalViewOptions extends InternalBaseNodeOptions {
     containsNoLoops?: boolean;

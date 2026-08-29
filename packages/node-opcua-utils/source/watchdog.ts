@@ -3,7 +3,7 @@
  */
 import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
-import { get_clock_tick } from "./get_clock_tick";
+import { get_clock_tick } from "./get_clock_tick.js";
 
 type ArbitraryClockTick = number; // in millisecond
 type DurationInMillisecond = number;

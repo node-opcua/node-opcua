@@ -9,15 +9,15 @@ export {
     addAggregateSupport,
     getAggregateConfiguration,
     installAggregateConfigurationOptions
-} from "./aggregates";
-export * from "./average";
-export * from "./common";
-export { getCountData } from "./count";
-export { getDurationBadData } from "./duration_bad";
-export { getDurationGoodData } from "./duration_good";
-export * from "./interpolate";
-export * from "./interval";
-export * from "./minmax";
-export { getPercentBadData } from "./percent_bad";
-export { getPercentGoodData } from "./percent_good";
-export * from "./read_processed_details";
+} from "./aggregates.js";
+export * from "./average.js";
+export * from "./common.js";
+export { getCountData } from "./count.js";
+export { getDurationBadData } from "./duration_bad.js";
+export { getDurationGoodData } from "./duration_good.js";
+export * from "./interpolate.js";
+export * from "./interval.js";
+export * from "./minmax.js";
+export { getPercentBadData } from "./percent_bad.js";
+export { getPercentGoodData } from "./percent_good.js";
+export * from "./read_processed_details.js";

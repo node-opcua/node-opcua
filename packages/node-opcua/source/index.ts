@@ -130,5 +130,5 @@ export { is_valid_endpointUrl, parseEndpointUrl } from "node-opcua-transport";
 // ----------------------------------------------------------------------------------------------------------
 // server management
 // ----------------------------------------------------------------------------------------------------------
-export * from "./server-stuff";
+export * from "./server-stuff.js";
 export { utils };

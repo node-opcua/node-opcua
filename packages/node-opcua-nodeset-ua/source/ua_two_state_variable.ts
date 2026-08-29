@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAStateVariable, UAStateVariable_Base } from "./ua_state_variable";
+import type { UAStateVariable, UAStateVariable_Base } from "./ua_state_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

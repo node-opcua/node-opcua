@@ -1,9 +1,9 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumAASValueType } from "./enum_aas_value_type";
-import type { UAAASReference } from "./ua_aas_reference";
-import type { UAAASSubmodelElement, UAAASSubmodelElement_Base } from "./ua_aas_submodel_element";
+import type { EnumAASValueType } from "./enum_aas_value_type.js";
+import type { UAAASReference } from "./ua_aas_reference.js";
+import type { UAAASSubmodelElement, UAAASSubmodelElement_Base } from "./ua_aas_submodel_element.js";
 
 // ----- this file has been automatically generated - do not edit
 

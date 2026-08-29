@@ -25,13 +25,13 @@ import { type NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { type StatusCode, type StatusCodeCallback, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, type VariantLike, type VariantT } from "node-opcua-variant";
-import type { AddTwoStateVariableOptions } from "../../source/address_space_ts";
-import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
+import type { AddTwoStateVariableOptions } from "../../source/address_space_ts.js";
+import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options.js";
 // public interfaces
-import { registerNodePromoter } from "../../source/loader/register_node_promoter";
-import type { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
+import { registerNodePromoter } from "../../source/loader/register_node_promoter.js";
+import type { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex.js";
 // private types
-import { UAVariableImpl, UAVariableImplT } from "../ua_variable_impl";
+import { UAVariableImpl, UAVariableImplT } from "../ua_variable_impl.js";
 
 const hasTrueSubState_ReferenceTypeNodeId = resolveNodeId("HasTrueSubState");
 const hasFalseSubState_ReferenceTypeNodeId = resolveNodeId("HasFalseSubState");

@@ -9,7 +9,7 @@ import type {
     RequestHeader,
     ResponseHeader
 } from "node-opcua-service-secure-channel";
-import type { ServiceFault } from "./services";
+import type { ServiceFault } from "./services.js";
 
 export interface IResponseBase {
     responseHeader: ResponseHeader;

@@ -1,10 +1,10 @@
 import type { UAObject } from "node-opcua-address-space-base";
 import type { UAMachineComponents } from "node-opcua-nodeset-machinery/dist/ua_machine_components";
 
-import type { UAConfigurationRules } from "./ua_configuration_rules";
-import type { UAGlassMachineIdentification } from "./ua_glass_machine_identification";
-import type { UAManualFolder } from "./ua_manual_folder";
-import type { UAProduction } from "./ua_production";
+import type { UAConfigurationRules } from "./ua_configuration_rules.js";
+import type { UAGlassMachineIdentification } from "./ua_glass_machine_identification.js";
+import type { UAManualFolder } from "./ua_manual_folder.js";
+import type { UAProduction } from "./ua_production.js";
 
 // ----- this file has been automatically generated - do not edit
 

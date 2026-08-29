@@ -1,8 +1,8 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTStructure } from "./dt_structure";
-import type { EnumHistoryUpdate } from "./enum_history_update";
+import type { DTStructure } from "./dt_structure.js";
+import type { EnumHistoryUpdate } from "./enum_history_update.js";
 
 // ----- this file has been automatically generated - do not edit
 

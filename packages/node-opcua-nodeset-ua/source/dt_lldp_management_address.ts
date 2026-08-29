@@ -1,8 +1,8 @@
 import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTStructure } from "./dt_structure";
-import type { EnumManAddrIfSubtype } from "./enum_man_addr_if_subtype";
+import type { DTStructure } from "./dt_structure.js";
+import type { EnumManAddrIfSubtype } from "./enum_man_addr_if_subtype.js";
 
 // ----- this file has been automatically generated - do not edit
 

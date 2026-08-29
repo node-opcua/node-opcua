@@ -6,8 +6,8 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumExecutionMode } from "./enum_execution_mode";
-import type { UATaskControlOperation } from "./ua_task_control_operation";
+import type { EnumExecutionMode } from "./enum_execution_mode.js";
+import type { UATaskControlOperation } from "./ua_task_control_operation.js";
 
 // ----- this file has been automatically generated - do not edit
 

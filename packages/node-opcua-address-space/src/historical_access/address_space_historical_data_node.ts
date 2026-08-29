@@ -29,9 +29,9 @@ import {
 } from "node-opcua-service-history";
 import { type CallbackT, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace } from "../../source/address_space_ts";
-import type { AddressSpacePrivate } from "../address_space_private";
-import { UAVariableImpl } from "../ua_variable_impl";
+import { AddressSpace } from "../../source/address_space_ts.js";
+import type { AddressSpacePrivate } from "../address_space_private.js";
+import { UAVariableImpl } from "../ua_variable_impl.js";
 
 const warningLog = make_warningLog("address_space_historical_data_node");
 

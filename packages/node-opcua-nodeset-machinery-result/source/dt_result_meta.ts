@@ -3,8 +3,8 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
 
-import type { DTProcessingTimes } from "./dt_processing_times";
-import type { EnumResultEvaluationEnum } from "./enum_result_evaluation_enum";
+import type { DTProcessingTimes } from "./dt_processing_times.js";
+import type { EnumResultEvaluationEnum } from "./enum_result_evaluation_enum.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -10,5 +10,5 @@ export {
     type PrivateKeyProvider,
     PrivateKeyUnavailableError
 } from "node-opcua-pki";
-export * from "./certificate_manager";
-export * from "./make_subject";
+export * from "./certificate_manager.js";
+export * from "./make_subject.js";

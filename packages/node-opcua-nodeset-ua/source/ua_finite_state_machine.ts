@@ -2,10 +2,10 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABaseDataVariable } from "./ua_base_data_variable";
-import type { UAStateMachine, UAStateMachine_Base } from "./ua_state_machine";
-import type { UAStateVariable } from "./ua_state_variable";
-import type { UATransitionVariable } from "./ua_transition_variable";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
+import type { UAStateMachine, UAStateMachine_Base } from "./ua_state_machine.js";
+import type { UAStateVariable } from "./ua_state_variable.js";
+import type { UATransitionVariable } from "./ua_transition_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

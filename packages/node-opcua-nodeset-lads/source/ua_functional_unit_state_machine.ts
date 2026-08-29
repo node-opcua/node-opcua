@@ -3,7 +3,7 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { UAStateVariable } from "node-opcua-nodeset-ua/dist/ua_state_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAFunctionalStateMachine, UAFunctionalStateMachine_Base } from "./ua_functional_state_machine";
+import type { UAFunctionalStateMachine, UAFunctionalStateMachine_Base } from "./ua_functional_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

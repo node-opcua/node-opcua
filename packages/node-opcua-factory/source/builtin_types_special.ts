@@ -5,8 +5,8 @@
 import { assert } from "node-opcua-assert";
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
-import { registerType } from "./builtin_types";
-import type { ConstructorFunc } from "./types";
+import { registerType } from "./builtin_types.js";
+import type { ConstructorFunc } from "./types.js";
 
 // biome-ignore lint/suspicious/noShadowRestrictedNames: local var/param genuinely holds a constructor function
 function _self_encode(constructor: ConstructorFunc) {

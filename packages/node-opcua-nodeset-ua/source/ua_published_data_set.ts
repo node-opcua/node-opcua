@@ -2,9 +2,9 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { Guid } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTConfigurationVersion } from "./dt_configuration_version";
-import type { DTDataSetMeta } from "./dt_data_set_meta";
-import type { UAExtensionFields } from "./ua_extension_fields";
+import type { DTConfigurationVersion } from "./dt_configuration_version.js";
+import type { DTDataSetMeta } from "./dt_data_set_meta.js";
+import type { UAExtensionFields } from "./ua_extension_fields.js";
 
 // ----- this file has been automatically generated - do not edit
 

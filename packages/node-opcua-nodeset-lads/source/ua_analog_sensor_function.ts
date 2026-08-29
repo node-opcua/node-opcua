@@ -5,7 +5,7 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAExclusiveLevelAlarm } from "node-opcua-nodeset-ua/dist/ua_exclusive_level_alarm";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABaseSensorFunction, UABaseSensorFunction_Base } from "./ua_base_sensor_function";
+import type { UABaseSensorFunction, UABaseSensorFunction_Base } from "./ua_base_sensor_function.js";
 
 // ----- this file has been automatically generated - do not edit
 

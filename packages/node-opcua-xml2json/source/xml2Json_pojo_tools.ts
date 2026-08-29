@@ -1,5 +1,5 @@
 import { lowerFirstLetter } from "node-opcua-utils";
-import { type IReaderState, ReaderStateBase, type Xml2Json, type XmlAttributes } from "./xml2json";
+import { type IReaderState, ReaderStateBase, type Xml2Json, type XmlAttributes } from "./xml2json.js";
 export type withPojoLambda = (name: string, pojo: unknown) => void;
 
 export class ReaderState2 extends ReaderStateBase {

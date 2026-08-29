@@ -2,10 +2,10 @@ import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_uni
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumChannelMode } from "./enum_channel_mode";
-import type { EnumChannelState } from "./enum_channel_state";
-import type { UAChannelModifier } from "./ua_channel_modifier";
-import type { UAElementMonitoring, UAElementMonitoring_Base } from "./ua_element_monitoring";
+import type { EnumChannelMode } from "./enum_channel_mode.js";
+import type { EnumChannelState } from "./enum_channel_state.js";
+import type { UAChannelModifier } from "./ua_channel_modifier.js";
+import type { UAElementMonitoring, UAElementMonitoring_Base } from "./ua_element_monitoring.js";
 
 // ----- this file has been automatically generated - do not edit
 

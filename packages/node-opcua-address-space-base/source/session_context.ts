@@ -4,10 +4,10 @@ import type { PreciseClock } from "node-opcua-date-time";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import type { StatusCode } from "node-opcua-status-code";
 import type { MessageSecurityMode, PermissionType, ReferenceDescription, UserIdentityToken } from "node-opcua-types";
-import type { BaseNode } from "./base_node";
-import type { ContinuationPoint } from "./continuation_point";
-import type { UAObject } from "./ua_object";
-import type { UAObjectType } from "./ua_object_type";
+import type { BaseNode } from "./base_node.js";
+import type { ContinuationPoint } from "./continuation_point.js";
+import type { UAObject } from "./ua_object.js";
+import type { UAObjectType } from "./ua_object_type.js";
 
 export function getContextMaxMessageSize(context: ISessionContext): number {
     if (!context.session?.channel?.getTransportSettings) return 0;

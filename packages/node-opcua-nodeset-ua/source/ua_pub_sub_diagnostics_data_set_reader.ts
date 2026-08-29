@@ -3,9 +3,9 @@ import type { UInt16, UInt32 } from "node-opcua-basic-types";
 import type { StatusCode } from "node-opcua-status-code";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABaseDataVariable } from "./ua_base_data_variable";
-import type { UAPubSubDiagnostics, UAPubSubDiagnostics_Base, UAPubSubDiagnostics_counters } from "./ua_pub_sub_diagnostics";
-import type { UAPubSubDiagnosticsCounter } from "./ua_pub_sub_diagnostics_counter";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
+import type { UAPubSubDiagnostics, UAPubSubDiagnostics_Base, UAPubSubDiagnostics_counters } from "./ua_pub_sub_diagnostics.js";
+import type { UAPubSubDiagnosticsCounter } from "./ua_pub_sub_diagnostics_counter.js";
 
 // ----- this file has been automatically generated - do not edit
 

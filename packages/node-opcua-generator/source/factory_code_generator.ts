@@ -20,8 +20,8 @@ import {
 } from "node-opcua-factory";
 import { coerceNodeId, type NodeId } from "node-opcua-nodeid";
 import { capitalizeFirstLetter } from "node-opcua-utils";
-import { LineFile1, normalize_require_file } from "./utils/index";
-import { makeWrite, type WriteFunc } from "./utils/write_func";
+import { LineFile1, normalize_require_file } from "./utils/index.js";
+import { makeWrite, type WriteFunc } from "./utils/write_func.js";
 
 const produceComment = false;
 

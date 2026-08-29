@@ -1,7 +1,7 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTReceiveQos } from "./dt_receive_qos";
+import type { DTReceiveQos } from "./dt_receive_qos.js";
 
 // ----- this file has been automatically generated - do not edit
 

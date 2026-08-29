@@ -3,7 +3,7 @@ import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAComponent, UAComponent_Base } from "./ua_component";
+import type { UAComponent, UAComponent_Base } from "./ua_component.js";
 
 // ----- this file has been automatically generated - do not edit
 

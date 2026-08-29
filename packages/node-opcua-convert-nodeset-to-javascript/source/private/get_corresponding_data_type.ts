@@ -1,9 +1,9 @@
 import type { NodeId } from "node-opcua-nodeid";
 import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { DataType } from "node-opcua-variant";
-import type { Cache } from "./cache";
-import { type Import, referenceEnumeration, referenceExtensionObject } from "./cache";
-import { _convertNodeIdToDataTypeAsync, getValueRank } from "./utils";
+import type { Cache } from "./cache.js";
+import { type Import, referenceEnumeration, referenceExtensionObject } from "./cache.js";
+import { _convertNodeIdToDataTypeAsync, getValueRank } from "./utils.js";
 
 export async function getCorrespondingJavascriptType2(
     session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,

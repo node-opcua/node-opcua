@@ -1,5 +1,5 @@
-import type { UACertificateGroup } from "./ua_certificate_group";
-import type { UAFolder, UAFolder_Base } from "./ua_folder";
+import type { UACertificateGroup } from "./ua_certificate_group.js";
+import type { UAFolder, UAFolder_Base } from "./ua_folder.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -2,9 +2,9 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { EUInformation } from "node-opcua-data-access";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTNumberRange } from "./dt_number_range";
-import type { DTRange } from "./dt_range";
-import type { UADataItem, UADataItem_Base } from "./ua_data_item";
+import type { DTNumberRange } from "./dt_number_range.js";
+import type { DTRange } from "./dt_range.js";
+import type { UADataItem, UADataItem_Base } from "./ua_data_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -2,10 +2,10 @@ import type { Byte, UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
 
-import type { DTErrorInformation } from "./dt_error_information";
-import type { DTJoiningTrace } from "./dt_joining_trace";
-import type { DTResultValue } from "./dt_result_value";
-import type { DTStepResult } from "./dt_step_result";
+import type { DTErrorInformation } from "./dt_error_information.js";
+import type { DTJoiningTrace } from "./dt_joining_trace.js";
+import type { DTResultValue } from "./dt_result_value.js";
+import type { DTStepResult } from "./dt_step_result.js";
 
 // ----- this file has been automatically generated - do not edit
 

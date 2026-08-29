@@ -20,4 +20,4 @@ export {
     HelloMessage
 } from "node-opcua-transport";
 
-export { MessageChunker } from "./message_chunker";
+export { MessageChunker } from "./message_chunker.js";

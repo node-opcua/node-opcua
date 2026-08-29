@@ -1,9 +1,9 @@
 import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-basic-types";
 import type { UAShelvedStateMachine_Base, UAState } from "node-opcua-nodeset-ua";
-import type { UAStateMachineEx } from "./ua_state_machine_type";
+import type { UAStateMachineEx } from "./ua_state_machine_type.js";
 
-import type { UATransitionEx } from "./ua_transition_ex";
+import type { UATransitionEx } from "./ua_transition_ex.js";
 
 export interface UAShelvedStateMachineHelper {
     _timer: NodeJS.Timeout | null;

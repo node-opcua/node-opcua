@@ -5,8 +5,8 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTAntennaNameIdPair } from "./dt_antenna_name_id_pair";
-import type { UAAutoIdDevice, UAAutoIdDevice_Base, UAAutoIdDevice_diagnostics, UAAutoIdDevice_runtimeParameters } from "./ua_auto_id_device";
+import type { DTAntennaNameIdPair } from "./dt_antenna_name_id_pair.js";
+import type { UAAutoIdDevice, UAAutoIdDevice_Base, UAAutoIdDevice_diagnostics, UAAutoIdDevice_runtimeParameters } from "./ua_auto_id_device.js";
 
 // ----- this file has been automatically generated - do not edit
 

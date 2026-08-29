@@ -2,8 +2,8 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTContentFilter } from "./dt_content_filter";
-import type { UAGuardVariable, UAGuardVariable_Base } from "./ua_guard_variable";
+import type { DTContentFilter } from "./dt_content_filter.js";
+import type { UAGuardVariable, UAGuardVariable_Base } from "./ua_guard_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,4 +1,4 @@
-import type { UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device";
+import type { UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

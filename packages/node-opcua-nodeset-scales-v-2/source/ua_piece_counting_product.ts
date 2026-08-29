@@ -4,10 +4,10 @@ import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTWeight } from "./dt_weight";
-import type { UAProduct, UAProduct_Base } from "./ua_product";
-import type { UATargetItem } from "./ua_target_item";
-import type { UAWeightItem } from "./ua_weight_item";
+import type { DTWeight } from "./dt_weight.js";
+import type { UAProduct, UAProduct_Base } from "./ua_product.js";
+import type { UATargetItem } from "./ua_target_item.js";
+import type { UAWeightItem } from "./ua_weight_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

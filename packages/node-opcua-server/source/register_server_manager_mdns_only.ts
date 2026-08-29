@@ -6,8 +6,8 @@
 import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import { BonjourHolder } from "node-opcua-service-discovery";
-import { OPCUABaseServer } from "./base_server";
-import { type IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager";
+import { OPCUABaseServer } from "./base_server.js";
+import { type IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager.js";
 
 /**
  * a RegisterServerManager that declare the server the OPCUA Bonjour service

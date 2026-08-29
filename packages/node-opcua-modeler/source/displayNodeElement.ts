@@ -11,7 +11,7 @@ import {
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
-import { TableHelper } from "./tableHelper";
+import { TableHelper } from "./tableHelper.js";
 
 function symbol(nodeClass: NodeClass) {
     switch (nodeClass) {

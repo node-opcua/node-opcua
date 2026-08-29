@@ -2,9 +2,9 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTEventFilter } from "./dt_event_filter";
-import type { DTUserTokenPolicy } from "./dt_user_token_policy";
-import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
+import type { DTEventFilter } from "./dt_event_filter.js";
+import type { DTUserTokenPolicy } from "./dt_user_token_policy.js";
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode.js";
 
 // ----- this file has been automatically generated - do not edit
 

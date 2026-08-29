@@ -2,8 +2,8 @@ import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
 
-import type { DTStructure } from "./dt_structure";
-import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
+import type { DTStructure } from "./dt_structure.js";
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -4,8 +4,8 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTWwMessageArgument } from "./dt_ww_message_argument";
-import type { EnumWwEventCategory } from "./enum_ww_event_category";
+import type { DTWwMessageArgument } from "./dt_ww_message_argument.js";
+import type { EnumWwEventCategory } from "./enum_ww_event_category.js";
 
 // ----- this file has been automatically generated - do not edit
 

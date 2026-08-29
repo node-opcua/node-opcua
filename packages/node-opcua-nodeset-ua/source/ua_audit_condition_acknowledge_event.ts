@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_condition_event";
+import type { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_condition_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

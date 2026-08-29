@@ -8,7 +8,7 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAProcessDataVariable } from "./ua_process_data_variable";
+import type { UAProcessDataVariable } from "./ua_process_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,14 +1,14 @@
 import type { LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import type { BaseNode } from "./base_node";
-import { CloneHelper } from "./clone_helper";
-import type { ModellingRuleType } from "./modelling_rule_type";
-import type { INamespace } from "./namespace";
-import type { UAMethod } from "./ua_method";
-import type { UAObject } from "./ua_object";
-import type { UAObjectType } from "./ua_object_type";
-import type { UAReference } from "./ua_reference";
-import type { UAVariable } from "./ua_variable";
+import type { BaseNode } from "./base_node.js";
+import { CloneHelper } from "./clone_helper.js";
+import type { ModellingRuleType } from "./modelling_rule_type.js";
+import type { INamespace } from "./namespace.js";
+import type { UAMethod } from "./ua_method.js";
+import type { UAObject } from "./ua_object.js";
+import type { UAObjectType } from "./ua_object_type.js";
+import type { UAReference } from "./ua_reference.js";
+import type { UAVariable } from "./ua_variable.js";
 
 export interface CloneFilter {
     shouldKeep(node: BaseNode): boolean;

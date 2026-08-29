@@ -1,8 +1,8 @@
 import type { UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABaseDataVariable } from "./ua_base_data_variable";
-import type { UAIIeeeTsnInterfaceConfiguration, UAIIeeeTsnInterfaceConfiguration_Base } from "./ua_i_ieee_tsn_interface_configuration";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
+import type { UAIIeeeTsnInterfaceConfiguration, UAIIeeeTsnInterfaceConfiguration_Base } from "./ua_i_ieee_tsn_interface_configuration.js";
 
 // ----- this file has been automatically generated - do not edit
 

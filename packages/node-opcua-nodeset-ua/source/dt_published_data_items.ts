@@ -1,7 +1,7 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTPublishedDataSetSource } from "./dt_published_data_set_source";
-import type { DTPublishedVariable } from "./dt_published_variable";
+import type { DTPublishedDataSetSource } from "./dt_published_data_set_source.js";
+import type { DTPublishedVariable } from "./dt_published_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,15 +1,15 @@
 import type { UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTDataSetMeta } from "./dt_data_set_meta";
-import type { DTEndpointDescription } from "./dt_endpoint_description";
-import type { DTKeyValuePair } from "./dt_key_value_pair";
-import type { DTPubSubConfiguration } from "./dt_pub_sub_configuration";
-import type { DTPubSubConnection } from "./dt_pub_sub_connection";
-import type { DTPubSubKeyPushTarget } from "./dt_pub_sub_key_push_target";
-import type { DTPublishedDataSet } from "./dt_published_data_set";
-import type { DTSecurityGroup } from "./dt_security_group";
-import type { DTStandaloneSubscribedDataSet } from "./dt_standalone_subscribed_data_set";
+import type { DTDataSetMeta } from "./dt_data_set_meta.js";
+import type { DTEndpointDescription } from "./dt_endpoint_description.js";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
+import type { DTPubSubConfiguration } from "./dt_pub_sub_configuration.js";
+import type { DTPubSubConnection } from "./dt_pub_sub_connection.js";
+import type { DTPubSubKeyPushTarget } from "./dt_pub_sub_key_push_target.js";
+import type { DTPublishedDataSet } from "./dt_published_data_set.js";
+import type { DTSecurityGroup } from "./dt_security_group.js";
+import type { DTStandaloneSubscribedDataSet } from "./dt_standalone_subscribed_data_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

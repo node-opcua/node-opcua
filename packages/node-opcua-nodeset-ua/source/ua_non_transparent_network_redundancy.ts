@@ -1,8 +1,8 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTNetworkGroup } from "./dt_network_group";
-import type { UANonTransparentRedundancy, UANonTransparentRedundancy_Base } from "./ua_non_transparent_redundancy";
+import type { DTNetworkGroup } from "./dt_network_group.js";
+import type { UANonTransparentRedundancy, UANonTransparentRedundancy_Base } from "./ua_non_transparent_redundancy.js";
 
 // ----- this file has been automatically generated - do not edit
 

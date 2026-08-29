@@ -1,4 +1,4 @@
-import { ObjectIds } from "./opcua_node_ids";
+import { ObjectIds } from "./opcua_node_ids.js";
 
 // Values are computed references into the generated ObjectIds table (not literals) so this
 // mapping can never drift from the generated node ids as they're regenerated over time.

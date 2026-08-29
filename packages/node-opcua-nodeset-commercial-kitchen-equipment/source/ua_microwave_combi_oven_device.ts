@@ -1,5 +1,5 @@
-import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device";
-import type { UAMicrowaveCombiOvenParameter } from "./ua_microwave_combi_oven_parameter";
+import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device.js";
+import type { UAMicrowaveCombiOvenParameter } from "./ua_microwave_combi_oven_parameter.js";
 
 // ----- this file has been automatically generated - do not edit
 

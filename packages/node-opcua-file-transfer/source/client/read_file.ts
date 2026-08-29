@@ -1,7 +1,7 @@
 import { coerceInt32 } from "node-opcua-basic-types";
-import { type IClientFile, OpenFileMode } from "./client_file";
-import { getTransportMaxMessageSize, type ISessionWithTransportSettings } from "./get_transport_max_size";
-import { readMaxByteStringLength } from "./read_max_byte_string_length";
+import { type IClientFile, OpenFileMode } from "./client_file.js";
+import { getTransportMaxMessageSize, type ISessionWithTransportSettings } from "./get_transport_max_size.js";
+import { readMaxByteStringLength } from "./read_max_byte_string_length.js";
 
 export async function readFile(clientFile: IClientFile, options?: { chunkSize?: number }): Promise<Buffer> {
     options = options || { chunkSize: await readMaxByteStringLength(clientFile.session) };

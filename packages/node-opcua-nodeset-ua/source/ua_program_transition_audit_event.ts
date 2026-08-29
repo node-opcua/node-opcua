@@ -1,7 +1,7 @@
 import type { LocalizedText } from "node-opcua-data-model";
 
-import type { UAAuditUpdateStateEvent, UAAuditUpdateStateEvent_Base } from "./ua_audit_update_state_event";
-import type { UAFiniteTransitionVariable } from "./ua_finite_transition_variable";
+import type { UAAuditUpdateStateEvent, UAAuditUpdateStateEvent_Base } from "./ua_audit_update_state_event.js";
+import type { UAFiniteTransitionVariable } from "./ua_finite_transition_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

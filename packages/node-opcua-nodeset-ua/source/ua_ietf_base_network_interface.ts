@@ -2,10 +2,10 @@ import type { UAObject } from "node-opcua-address-space-base";
 import type { UAString, UInt64 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumInterfaceAdminStatus } from "./enum_interface_admin_status";
-import type { EnumInterfaceOperStatus } from "./enum_interface_oper_status";
-import type { UAAnalogUnit } from "./ua_analog_unit";
-import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { EnumInterfaceAdminStatus } from "./enum_interface_admin_status.js";
+import type { EnumInterfaceOperStatus } from "./enum_interface_oper_status.js";
+import type { UAAnalogUnit } from "./ua_analog_unit.js";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

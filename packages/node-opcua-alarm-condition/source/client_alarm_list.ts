@@ -1,8 +1,8 @@
 import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import type { NodeId } from "node-opcua-nodeid";
-import { ClientAlarm } from "./client_alarm";
-import type { EventStuff } from "./event_stuff";
+import { ClientAlarm } from "./client_alarm.js";
+import type { EventStuff } from "./event_stuff.js";
 
 export interface ClientAlarmList {
     on(eventName: "alarmChanged", handler: (alarm: ClientAlarm) => void): this;

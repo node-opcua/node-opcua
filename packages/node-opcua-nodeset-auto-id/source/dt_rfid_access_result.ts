@@ -1,8 +1,8 @@
 import type { Int32, UAString, UInt16 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTAccessResult } from "./dt_access_result";
-import type { DTScanData } from "./dt_scan_data";
+import type { DTAccessResult } from "./dt_access_result.js";
+import type { DTScanData } from "./dt_scan_data.js";
 
 // ----- this file has been automatically generated - do not edit
 

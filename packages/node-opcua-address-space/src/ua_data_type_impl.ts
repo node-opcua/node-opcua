@@ -22,17 +22,17 @@ import {
     StructureType
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import type { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
-import { SessionContext } from "../source/session_context";
-import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
+import type { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor.js";
+import { SessionContext } from "../source/session_context.js";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl.js";
 import {
     BaseNode_getCache,
     BaseNode_References_toString,
     BaseNode_toString,
     ToStringBuilder,
     type ToStringOption
-} from "./base_node_private";
-import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
+} from "./base_node_private.js";
+import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf.js";
 
 const debugLog = make_debugLog("DATA_TYPE");
 const doDebug = checkDebugFlag("DATA_TYPE");

@@ -13,9 +13,9 @@ import type {
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import { type NodeId, type NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import type { BaseNodeImpl } from "./base_node_impl";
-import { BaseNode_getCache } from "./base_node_private";
-import { ReferenceImpl } from "./reference_impl";
+import type { BaseNodeImpl } from "./base_node_impl.js";
+import { BaseNode_getCache } from "./base_node_private.js";
+import { ReferenceImpl } from "./reference_impl.js";
 
 const HasSubTypeNodeId = resolveNodeId("HasSubtype");
 

@@ -3,8 +3,8 @@ import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
 import type { Variant } from "node-opcua-variant";
 
-import type { DTStructure } from "./dt_structure";
-import type { EnumOverrideValueHandling } from "./enum_override_value_handling";
+import type { DTStructure } from "./dt_structure.js";
+import type { EnumOverrideValueHandling } from "./enum_override_value_handling.js";
 
 // ----- this file has been automatically generated - do not edit
 

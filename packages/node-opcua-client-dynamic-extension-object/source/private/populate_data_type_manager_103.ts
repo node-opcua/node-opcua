@@ -32,8 +32,8 @@ import { type ReadValueIdOptions, StructureDefinition } from "node-opcua-types";
 import {
     type CacheForFieldResolution,
     convertDataTypeDefinitionToStructureTypeSchema
-} from "../convert_data_type_definition_to_structuretype_schema";
-import type { ExtraDataTypeManager } from "../extra_data_type_manager";
+} from "../convert_data_type_definition_to_structuretype_schema.js";
+import type { ExtraDataTypeManager } from "../extra_data_type_manager.js";
 
 const doDebug = checkDebugFlag("populate_data_type_manager_103");
 const debugLog = make_debugLog("populate_data_type_manager_103");

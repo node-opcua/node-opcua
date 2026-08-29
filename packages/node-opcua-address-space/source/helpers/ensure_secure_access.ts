@@ -1,7 +1,7 @@
 import type { BaseNode, IChannelBase, UAMethod, UAObject, UAVariable } from "node-opcua-address-space-base";
 import { allPermissions, BrowseDirection, makeAccessRestrictionsFlag, makePermissionFlag, NodeClass } from "node-opcua-data-model";
 import { MessageSecurityMode } from "node-opcua-types";
-import { WellKnownRoles } from "../session_context";
+import { WellKnownRoles } from "../session_context.js";
 
 function _isChannelSecure(channel: IChannelBase): boolean {
     if (channel.securityMode === MessageSecurityMode.SignAndEncrypt) {

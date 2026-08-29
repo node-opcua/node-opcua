@@ -43,8 +43,8 @@ import {
 } from "node-opcua-types";
 //
 import { DataType } from "node-opcua-variant";
-import type { ExtraDataTypeManager } from "./extra_data_type_manager";
-import { _findEncodings } from "./private/find_encodings";
+import type { ExtraDataTypeManager } from "./extra_data_type_manager.js";
+import { _findEncodings } from "./private/find_encodings.js";
 
 const debugLog = make_debugLog("convert_data_type_definition_to_structuretype_schema");
 const doDebug = checkDebugFlag("convert_data_type_definition_to_structuretype_schema");

@@ -6,22 +6,22 @@
 import type { AddressSpace, UAObject } from "node-opcua-address-space";
 import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers";
 
-import { addAccessRightVariables } from "./conformance_testing/access_right_variables";
-import { addAnalogDataItems } from "./conformance_testing/analog_data_items";
+import { addAccessRightVariables } from "./conformance_testing/access_right_variables.js";
+import { addAnalogDataItems } from "./conformance_testing/analog_data_items.js";
 import {
     addMultiStateDiscreteVariable,
     addMultiStateValueDiscreteVariables,
     addTwoStateDiscreteVariables
-} from "./conformance_testing/discrete_variables";
-import { addEnumerationVariable } from "./conformance_testing/enumeration_variable";
-import { addMassVariables } from "./conformance_testing/mass_variables";
-import { addNodeWithReferences } from "./conformance_testing/node_with_references";
-import { addObjectWithMethod } from "./conformance_testing/object_with_methods";
-import { addPath10Deep, addVeryLargeArrayVariables } from "./conformance_testing/path_and_large_arrays";
-import { addSampleView } from "./conformance_testing/sample_view";
-import { addSimulationVariables } from "./conformance_testing/simulation_variables";
-import { addStaticVariables } from "./conformance_testing/static_variables";
-import { addTriggerNodes } from "./conformance_testing/trigger_nodes";
+} from "./conformance_testing/discrete_variables.js";
+import { addEnumerationVariable } from "./conformance_testing/enumeration_variable.js";
+import { addMassVariables } from "./conformance_testing/mass_variables.js";
+import { addNodeWithReferences } from "./conformance_testing/node_with_references.js";
+import { addObjectWithMethod } from "./conformance_testing/object_with_methods.js";
+import { addPath10Deep, addVeryLargeArrayVariables } from "./conformance_testing/path_and_large_arrays.js";
+import { addSampleView } from "./conformance_testing/sample_view.js";
+import { addSimulationVariables } from "./conformance_testing/simulation_variables.js";
+import { addStaticVariables } from "./conformance_testing/static_variables.js";
+import { addTriggerNodes } from "./conformance_testing/trigger_nodes.js";
 
 export async function build_address_space_for_conformance_testing(
     addressSpace: AddressSpace,

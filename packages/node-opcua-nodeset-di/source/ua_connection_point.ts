@@ -1,5 +1,5 @@
-import type { UAFunctionalGroup } from "./ua_functional_group";
-import type { UATopologyElement, UATopologyElement_Base } from "./ua_topology_element";
+import type { UAFunctionalGroup } from "./ua_functional_group.js";
+import type { UATopologyElement, UATopologyElement_Base } from "./ua_topology_element.js";
 
 // ----- this file has been automatically generated - do not edit
 

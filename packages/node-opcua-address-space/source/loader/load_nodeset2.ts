@@ -37,14 +37,14 @@ import type { EnumFieldOptions, RolePermissionTypeOptions } from "node-opcua-typ
 import { DataType, Variant, VariantArrayType, type VariantOptions } from "node-opcua-variant";
 import { _definitionParser, ReaderState, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
 import semver from "semver";
-import type { AddressSpacePrivate } from "../../src/address_space_private";
-import type { NamespacePrivate } from "../../src/namespace_private";
-import type { StructureFieldOptionsEx } from "../../src/ua_data_type_impl";
-import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
-import { ensureDatatypeExtracted } from "./ensure_datatype_extracted";
-import { makeSemverCompatible } from "./make_semver_compatible";
-import { promoteObjectsAndVariables } from "./namespace_post_step";
-import { makeVariantReader } from "./parsers/variant_parser";
+import type { AddressSpacePrivate } from "../../src/address_space_private.js";
+import type { NamespacePrivate } from "../../src/namespace_private.js";
+import type { StructureFieldOptionsEx } from "../../src/ua_data_type_impl.js";
+import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.js";
+import { ensureDatatypeExtracted } from "./ensure_datatype_extracted.js";
+import { makeSemverCompatible } from "./make_semver_compatible.js";
+import { promoteObjectsAndVariables } from "./namespace_post_step.js";
+import { makeVariantReader } from "./parsers/variant_parser.js";
 
 const doDebug = checkDebugFlag("load_nodeset2");
 const debugLog = make_debugLog("load_nodeset2");

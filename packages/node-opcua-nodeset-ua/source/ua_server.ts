@@ -2,14 +2,14 @@ import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-ba
 import type { Byte, UAString, UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTServerStatus } from "./dt_server_status";
-import type { DTTimeZone } from "./dt_time_zone";
-import type { UANamespaces } from "./ua_namespaces";
-import type { UAServerCapabilities } from "./ua_server_capabilities";
-import type { UAServerDiagnostics } from "./ua_server_diagnostics";
-import type { UAServerRedundancy } from "./ua_server_redundancy";
-import type { UAServerStatus } from "./ua_server_status";
-import type { UAVendorServerInfo } from "./ua_vendor_server_info";
+import type { DTServerStatus } from "./dt_server_status.js";
+import type { DTTimeZone } from "./dt_time_zone.js";
+import type { UANamespaces } from "./ua_namespaces.js";
+import type { UAServerCapabilities } from "./ua_server_capabilities.js";
+import type { UAServerDiagnostics } from "./ua_server_diagnostics.js";
+import type { UAServerRedundancy } from "./ua_server_redundancy.js";
+import type { UAServerStatus } from "./ua_server_status.js";
+import type { UAVendorServerInfo } from "./ua_vendor_server_info.js";
 
 // ----- this file has been automatically generated - do not edit
 

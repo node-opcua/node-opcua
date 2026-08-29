@@ -1,4 +1,4 @@
-import type { LineFile1 } from "./line_file";
+import type { LineFile1 } from "./line_file.js";
 
 export interface WriteFunc {
     (...args: string[]): void;

@@ -4,8 +4,8 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { StatusCode } from "node-opcua-status-code";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTTraceContext } from "./dt_trace_context";
-import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event";
+import type { DTTraceContext } from "./dt_trace_context.js";
+import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

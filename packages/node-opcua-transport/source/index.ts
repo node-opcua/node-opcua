@@ -23,19 +23,19 @@
 /**
  * @module node-opcua-transport
  */
-export * from "./AcknowledgeMessage";
-export * from "./client_tcp_transport";
-export * from "./client_transport_base";
-export * from "./default_client_transport_factory";
-export * from "./HelloMessage";
-export * from "./i_client_transport";
-export * from "./i_hello_ack_limits";
-export * from "./message_builder_base";
-export * from "./ReverseHelloMessage";
-export * from "./reverse_client_tcp_transport";
-export * from "./server_tcp_transport";
-export * from "./status_codes";
-export * from "./TCPErrorMessage";
-export * from "./tcp_transport";
-export * from "./tools";
-export * from "./utils";
+export * from "./AcknowledgeMessage.js";
+export * from "./client_tcp_transport.js";
+export * from "./client_transport_base.js";
+export * from "./default_client_transport_factory.js";
+export * from "./HelloMessage.js";
+export * from "./i_client_transport.js";
+export * from "./i_hello_ack_limits.js";
+export * from "./message_builder_base.js";
+export * from "./ReverseHelloMessage.js";
+export * from "./reverse_client_tcp_transport.js";
+export * from "./server_tcp_transport.js";
+export * from "./status_codes.js";
+export * from "./TCPErrorMessage.js";
+export * from "./tcp_transport.js";
+export * from "./tools.js";
+export * from "./utils.js";

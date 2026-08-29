@@ -48,13 +48,13 @@ import {
     EventFilterResult,
     type MonitoringFilter
 } from "node-opcua-types";
-import { type IServerSidePublishEngine, TransferredSubscription } from "./i_server_side_publish_engine";
+import { type IServerSidePublishEngine, TransferredSubscription } from "./i_server_side_publish_engine.js";
 
-import { MonitoredItem, type MonitoredItemOptions, type QueueItem } from "./monitored_item";
-import { Queue } from "./queue";
-import type { ServerSession } from "./server_session";
-import type { ITransferSessionIdentity } from "./sessions_compatible_for_transfer";
-import { validateFilter } from "./validate_filter";
+import { MonitoredItem, type MonitoredItemOptions, type QueueItem } from "./monitored_item.js";
+import { Queue } from "./queue.js";
+import type { ServerSession } from "./server_session.js";
+import type { ITransferSessionIdentity } from "./sessions_compatible_for_transfer.js";
+import { validateFilter } from "./validate_filter.js";
 
 const debugLog = make_debugLog("server_subscription");
 const doDebug = checkDebugFlag("server_subscription");

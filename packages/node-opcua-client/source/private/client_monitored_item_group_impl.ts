@@ -9,12 +9,12 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { MonitoringMode, type MonitoringParametersOptions } from "node-opcua-service-subscription";
 import type { Callback, ErrorCallback, StatusCode } from "node-opcua-status-code";
 import type { MonitoredItemModifyResult, ReadValueIdOptions } from "node-opcua-types";
-import type { ClientMonitoredItemBase } from "../client_monitored_item_base";
-import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
-import { type ClientMonitoredItemBaseEx, ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
-import type { ClientSubscription } from "../client_subscription";
-import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
-import type { ClientSubscriptionImpl } from "./client_subscription_impl";
+import type { ClientMonitoredItemBase } from "../client_monitored_item_base.js";
+import { ClientMonitoredItemGroup } from "../client_monitored_item_group.js";
+import { type ClientMonitoredItemBaseEx, ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox.js";
+import type { ClientSubscription } from "../client_subscription.js";
+import { ClientMonitoredItemImpl } from "./client_monitored_item_impl.js";
+import type { ClientSubscriptionImpl } from "./client_subscription_impl.js";
 
 const warningLog = make_warningLog("client_monitored_item_group_impl");
 

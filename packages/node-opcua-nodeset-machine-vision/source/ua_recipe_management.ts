@@ -2,10 +2,10 @@ import type { UAMethod, UAObject } from "node-opcua-address-space-base";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTProduct } from "./dt_product";
-import type { UAProductFolder } from "./ua_product_folder";
-import type { UARecipeFolder } from "./ua_recipe_folder";
-import type { UARecipeTransfer } from "./ua_recipe_transfer";
+import type { DTProduct } from "./dt_product.js";
+import type { UAProductFolder } from "./ua_product_folder.js";
+import type { UARecipeFolder } from "./ua_recipe_folder.js";
+import type { UARecipeTransfer } from "./ua_recipe_transfer.js";
 
 // ----- this file has been automatically generated - do not edit
 

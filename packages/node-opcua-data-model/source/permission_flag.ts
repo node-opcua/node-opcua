@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-data-model
  */
-import { _make_flag } from "./_make_flag";
+import { _make_flag } from "./_make_flag.js";
 
 /**
  * https://reference.opcfoundation.org/v104/Core/docs/Part3/8.55/

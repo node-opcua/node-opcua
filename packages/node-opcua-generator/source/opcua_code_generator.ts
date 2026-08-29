@@ -2,7 +2,7 @@
 /**
  * @module node-opcua-generator
  */
-import { generateTypeScriptCodeFromSchema } from "./generator";
+import { generateTypeScriptCodeFromSchema } from "./generator.js";
 
 console.log(process.argv);
 

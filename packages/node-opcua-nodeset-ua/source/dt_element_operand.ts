@@ -1,7 +1,7 @@
 import type { UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTFilterOperand } from "./dt_filter_operand";
+import type { DTFilterOperand } from "./dt_filter_operand.js";
 
 // ----- this file has been automatically generated - do not edit
 

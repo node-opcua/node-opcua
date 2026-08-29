@@ -1,8 +1,8 @@
 import type { UAObject } from "node-opcua-address-space-base";
 
-import type { UAProductionActiveProgram } from "./ua_production_active_program";
-import type { UAProductionJobList } from "./ua_production_job_list";
-import type { UAProductionStatistics } from "./ua_production_statistics";
+import type { UAProductionActiveProgram } from "./ua_production_active_program.js";
+import type { UAProductionJobList } from "./ua_production_job_list.js";
+import type { UAProductionStatistics } from "./ua_production_statistics.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -40,14 +40,14 @@ export {
 // Runtime class `StaticCertificateChainProvider` + interfaces; only depends
 // on `node-opcua-crypto/web` and the type-only re-export from
 // `./opcua_secure_object` (erased at compile time).
-export * from "./certificate_chain_provider";
+export * from "./certificate_chain_provider.js";
 // Pure interfaces — compile away to nothing at runtime.
-export * from "./i_certificate_store";
+export * from "./i_certificate_store.js";
 // Runtime — uses only `node-opcua-crypto/web`. The
 // `import type { ICertificateKeyPairProviderWithLocation } from "./opcua_secure_object"`
 // is `import type` and erased; no runtime require is emitted.
-export * from "./in_memory_certificate_key_pair_provider";
+export * from "./in_memory_certificate_key_pair_provider.js";
 // Runtime — uses only `node-opcua-crypto/web` and `node-opcua-status-code`.
-export * from "./in_memory_certificate_store";
+export * from "./in_memory_certificate_store.js";
 // Pure string utility.
-export * from "./make_subject";
+export * from "./make_subject.js";

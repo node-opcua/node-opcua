@@ -1,8 +1,8 @@
 import type { DataType } from "node-opcua-variant";
 
-import type { DT3DOrientation } from "./dt_3_d_orientation";
-import type { UABaseDataVariable } from "./ua_base_data_variable";
-import type { UAOrientation, UAOrientation_Base } from "./ua_orientation";
+import type { DT3DOrientation } from "./dt_3_d_orientation.js";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
+import type { UAOrientation, UAOrientation_Base } from "./ua_orientation.js";
 
 // ----- this file has been automatically generated - do not edit
 

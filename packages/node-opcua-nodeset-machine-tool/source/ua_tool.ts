@@ -3,9 +3,9 @@ import type { UInt32 } from "node-opcua-basic-types";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumToolLocked } from "./enum_tool_locked";
-import type { EnumToolManagement } from "./enum_tool_management";
-import type { UABaseTool, UABaseTool_Base } from "./ua_base_tool";
+import type { EnumToolLocked } from "./enum_tool_locked.js";
+import type { EnumToolManagement } from "./enum_tool_management.js";
+import type { UABaseTool, UABaseTool_Base } from "./ua_base_tool.js";
 
 // ----- this file has been automatically generated - do not edit
 

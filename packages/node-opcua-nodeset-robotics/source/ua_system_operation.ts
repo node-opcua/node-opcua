@@ -3,7 +3,7 @@ import type { QualifiedName } from "node-opcua-data-model";
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { UASystemOperationStateMachine } from "./ua_system_operation_state_machine";
+import type { UASystemOperationStateMachine } from "./ua_system_operation_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

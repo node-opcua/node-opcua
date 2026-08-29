@@ -3,7 +3,7 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
 
-import type { DTDesignValue } from "./dt_design_value";
+import type { DTDesignValue } from "./dt_design_value.js";
 
 // ----- this file has been automatically generated - do not edit
 

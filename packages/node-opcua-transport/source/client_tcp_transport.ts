@@ -11,10 +11,10 @@ import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import type { ErrorCallback } from "node-opcua-status-code";
 
-import { ClientTransportBase } from "./client_transport_base";
-import type { TransportSettingsOptions } from "./i_client_transport";
-import { getFakeTransport, type ISocketLike } from "./tcp_transport";
-import { parseEndpointUrl } from "./tools";
+import { ClientTransportBase } from "./client_transport_base.js";
+import type { TransportSettingsOptions } from "./i_client_transport.js";
+import { getFakeTransport, type ISocketLike } from "./tcp_transport.js";
+import { parseEndpointUrl } from "./tools.js";
 
 const doDebug = checkDebugFlag("client_tcp_transport");
 const debugLog = make_debugLog("client_tcp_transport");

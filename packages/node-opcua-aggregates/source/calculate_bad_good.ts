@@ -1,6 +1,6 @@
 import { extraStatusCodeBits, StatusCode, StatusCodes } from "node-opcua-status-code";
 
-import { type AggregateConfigurationOptions, type Interval, isUncertain } from "./interval";
+import { type AggregateConfigurationOptions, type Interval, isUncertain } from "./interval.js";
 
 const a = (s: StatusCode | undefined, options: AggregateConfigurationOptions) =>
     !s || s === StatusCodes.BadNoData

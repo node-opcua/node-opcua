@@ -2,8 +2,8 @@ import type { UAString } from "node-opcua-basic-types";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base, UAIJoiningSystemAsset_parameters } from "./ua_i_joining_system_asset";
-import type { UAJoiningDataVariable } from "./ua_joining_data_variable";
+import type { UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base, UAIJoiningSystemAsset_parameters } from "./ua_i_joining_system_asset.js";
+import type { UAJoiningDataVariable } from "./ua_joining_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

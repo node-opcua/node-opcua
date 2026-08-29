@@ -1,4 +1,4 @@
 /**
  * @module node-opcua-hostname
  */
-export * from "./hostname";
+export * from "./hostname.js";

@@ -1,8 +1,8 @@
 import type { UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTPortableNodeId } from "./dt_portable_node_id";
-import type { DTStructure } from "./dt_structure";
+import type { DTPortableNodeId } from "./dt_portable_node_id.js";
+import type { DTStructure } from "./dt_structure.js";
 
 // ----- this file has been automatically generated - do not edit
 

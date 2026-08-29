@@ -1,7 +1,7 @@
 import type { Byte } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTWriterGroupTransport } from "./dt_writer_group_transport";
+import type { DTWriterGroupTransport } from "./dt_writer_group_transport.js";
 
 // ----- this file has been automatically generated - do not edit
 

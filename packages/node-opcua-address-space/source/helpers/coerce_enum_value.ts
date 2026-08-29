@@ -5,7 +5,7 @@ import { assert } from "node-opcua-assert";
 import { coerceInt64, type Int64 } from "node-opcua-basic-types";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { EnumValueType } from "node-opcua-types";
-import type { EnumValueTypeOptionsLike } from "../address_space_ts";
+import type { EnumValueTypeOptionsLike } from "../address_space_ts.js";
 
 export function coerceEnumValues(enumValues: EnumValueTypeOptionsLike[] | { [key: string]: number | Int64 }): EnumValueType[] {
     if (Array.isArray(enumValues)) {

@@ -1,4 +1,4 @@
-import type { UABaseConditionClass, UABaseConditionClass_Base } from "./ua_base_condition_class";
+import type { UABaseConditionClass, UABaseConditionClass_Base } from "./ua_base_condition_class.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

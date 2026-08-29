@@ -5,8 +5,8 @@ import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import type { IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { type DataTypeDefinition, EnumDefinition } from "node-opcua-types";
-import type { Options } from "../options";
-import { getBrowseName, getDefinition } from "./utils";
+import type { Options } from "../options.js";
+import { getBrowseName, getDefinition } from "./utils.js";
 
 export interface Import {
     name: string;

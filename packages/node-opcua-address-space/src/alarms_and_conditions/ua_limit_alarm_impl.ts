@@ -6,10 +6,10 @@ import { make_warningLog } from "node-opcua-debug";
 import type { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, type VariantOptions } from "node-opcua-variant";
-import type { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
-import type { UALimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_limit_alarm_ex";
-import type { NamespacePrivate } from "../namespace_private";
-import { UAAlarmConditionImplBase } from "./ua_alarm_condition_impl";
+import type { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options.js";
+import type { UALimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_limit_alarm_ex.js";
+import type { NamespacePrivate } from "../namespace_private.js";
+import { UAAlarmConditionImplBase } from "./ua_alarm_condition_impl.js";
 
 const warningLog = make_warningLog("AlarmsAndConditions");
 

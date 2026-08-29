@@ -3,8 +3,8 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAProductionProgram, UAProductionProgram_Base } from "./ua_production_program";
-import type { UAProductionProgramStateMachine } from "./ua_production_program_state_machine";
+import type { UAProductionProgram, UAProductionProgram_Base } from "./ua_production_program.js";
+import type { UAProductionProgramStateMachine } from "./ua_production_program_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

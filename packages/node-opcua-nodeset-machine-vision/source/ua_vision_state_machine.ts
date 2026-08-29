@@ -3,8 +3,8 @@ import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua
 import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
 import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
 
-import type { UAVisionAutomaticModeStateMachine } from "./ua_vision_automatic_mode_state_machine";
-import type { UAVisionStepModelStateMachine } from "./ua_vision_step_model_state_machine";
+import type { UAVisionAutomaticModeStateMachine } from "./ua_vision_automatic_mode_state_machine.js";
+import type { UAVisionStepModelStateMachine } from "./ua_vision_step_model_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

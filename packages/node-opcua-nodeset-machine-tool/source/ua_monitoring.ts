@@ -1,7 +1,7 @@
 import type { UAObject } from "node-opcua-address-space-base";
 import type { UABasicStacklight } from "node-opcua-nodeset-ia/dist/ua_basic_stacklight";
 
-import type { UAMachineOperationMonitoring } from "./ua_machine_operation_monitoring";
+import type { UAMachineOperationMonitoring } from "./ua_machine_operation_monitoring.js";
 
 // ----- this file has been automatically generated - do not edit
 

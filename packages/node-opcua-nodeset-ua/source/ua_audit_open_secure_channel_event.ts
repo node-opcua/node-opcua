@@ -2,9 +2,9 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
-import type { EnumSecurityTokenRequest } from "./enum_security_token_request";
-import type { UAAuditChannelEvent, UAAuditChannelEvent_Base } from "./ua_audit_channel_event";
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode.js";
+import type { EnumSecurityTokenRequest } from "./enum_security_token_request.js";
+import type { UAAuditChannelEvent, UAAuditChannelEvent_Base } from "./ua_audit_channel_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -4,8 +4,8 @@ import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
 import type { StatusCode } from "node-opcua-status-code";
 import { DataType, type Variant } from "node-opcua-variant";
-import { acknowledgeCondition, confirmCondition } from "./call_method_condition";
-import type { EventStuff } from "./event_stuff";
+import { acknowledgeCondition, confirmCondition } from "./call_method_condition.js";
+import type { EventStuff } from "./event_stuff.js";
 
 export interface ClientAlarm {
     conditionId: NodeId;

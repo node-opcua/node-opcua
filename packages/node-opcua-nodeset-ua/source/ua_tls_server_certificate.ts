@@ -1,4 +1,4 @@
-import type { UATlsCertificate, UATlsCertificate_Base } from "./ua_tls_certificate";
+import type { UATlsCertificate, UATlsCertificate_Base } from "./ua_tls_certificate.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

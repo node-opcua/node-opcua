@@ -7,7 +7,7 @@ import { BinaryStream, type OutputBinaryStream } from "node-opcua-binary-stream"
 import { readMessageHeader } from "node-opcua-chunkmanager";
 import type { BaseUAObject } from "node-opcua-factory";
 
-import { TCPErrorMessage } from "./TCPErrorMessage";
+import { TCPErrorMessage } from "./TCPErrorMessage.js";
 
 function is_valid_msg_type(msgType: string): boolean {
     assert(

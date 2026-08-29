@@ -1,4 +1,4 @@
-import { type NodesetMeta, type NodesetName, nodesetCatalog } from "./nodeset_catalog";
+import { type NodesetMeta, type NodesetName, nodesetCatalog } from "./nodeset_catalog.js";
 
 export const allNodesetMeta: NodesetMeta[] = nodesetCatalog.map(({ name, uri, dependencies, licence }) => ({
     name,
@@ -14,4 +14,4 @@ for (const { name } of nodesetCatalog) {
     nodesets[name] = `nodeset:${name}`;
 }
 
-export * from "./nodeset_catalog";
+export * from "./nodeset_catalog.js";

@@ -2,7 +2,7 @@ import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-ba
 import type { UAString, UInt16 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTUserTokenPolicy } from "./dt_user_token_policy";
+import type { DTUserTokenPolicy } from "./dt_user_token_policy.js";
 
 // ----- this file has been automatically generated - do not edit
 

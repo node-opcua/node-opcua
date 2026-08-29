@@ -1,4 +1,4 @@
-import type { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal";
+import type { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

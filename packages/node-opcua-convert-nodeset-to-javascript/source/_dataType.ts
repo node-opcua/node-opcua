@@ -4,9 +4,9 @@ import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } fro
 import { EnumDefinition, StructureDefinition, type StructureField } from "node-opcua-types";
 import { LineFile } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
-import type { Type } from "./convert_to_typescript";
-import { type Cache, makeName2 } from "./private/cache";
-import { getCorrespondingJavascriptType } from "./private/get_corresponding_data_type";
+import type { Type } from "./convert_to_typescript.js";
+import { type Cache, makeName2 } from "./private/cache.js";
+import { getCorrespondingJavascriptType } from "./private/get_corresponding_data_type.js";
 import {
     getBrowseName,
     getDefinition,
@@ -15,8 +15,8 @@ import {
     getSubtypeNodeId,
     type Import,
     makeTypeNameNew
-} from "./private-stuff";
-import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "./utils2";
+} from "./private-stuff.js";
+import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "./utils2.js";
 
 function requireFieldName(field: { name?: string | null }): string {
     if (!field.name) {

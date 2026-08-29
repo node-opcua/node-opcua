@@ -10,7 +10,7 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAWwEventsDispatcher } from "./ua_ww_events_dispatcher";
+import type { UAWwEventsDispatcher } from "./ua_ww_events_dispatcher.js";
 
 // ----- this file has been automatically generated - do not edit
 

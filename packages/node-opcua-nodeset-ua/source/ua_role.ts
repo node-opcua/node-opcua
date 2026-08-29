@@ -2,8 +2,8 @@ import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-ba
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTEndpoint } from "./dt_endpoint";
-import type { DTIdentityMappingRule } from "./dt_identity_mapping_rule";
+import type { DTEndpoint } from "./dt_endpoint.js";
+import type { DTIdentityMappingRule } from "./dt_identity_mapping_rule.js";
 
 // ----- this file has been automatically generated - do not edit
 

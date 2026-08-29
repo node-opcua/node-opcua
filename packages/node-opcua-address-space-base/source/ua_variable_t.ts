@@ -3,8 +3,8 @@ import type { DataValueT } from "node-opcua-data-value";
 import type { NumericRange } from "node-opcua-numeric-range";
 import type { CallbackT, StatusCode, StatusCodeCallback } from "node-opcua-status-code";
 import type { DataType } from "node-opcua-variant";
-import type { ISessionContext } from "./session_context";
-import type { UAVariable } from "./ua_variable";
+import type { ISessionContext } from "./session_context.js";
+import type { UAVariable } from "./ua_variable.js";
 
 export interface UAVariableT<T, DT extends DataType> extends UAVariable {
     readValue(

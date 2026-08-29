@@ -6,7 +6,7 @@ import type {
     ReadValueIdOptions
 } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
-import type { IBasicSessionAsync } from "./basic_session_interface";
+import type { IBasicSessionAsync } from "./basic_session_interface.js";
 
 export interface IBasicMonitoredItem {
     // a data-change monitored item reports a DataValue per change, while an event

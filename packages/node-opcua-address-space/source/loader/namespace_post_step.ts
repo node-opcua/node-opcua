@@ -1,7 +1,7 @@
 import type { IAddressSpace, INamespace, UAObject, UAVariable } from "node-opcua-address-space-base";
 import { NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import type { NamespacePrivate } from "../../src/namespace_private";
+import type { NamespacePrivate } from "../../src/namespace_private.js";
 
 const debugLog = make_debugLog("namespace_post_step");
 const doDebug = checkDebugFlag("namespace_post_step");

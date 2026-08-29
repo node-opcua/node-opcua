@@ -6,14 +6,14 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { HistoryData, HistoryReadResult, type ReadProcessedDetails } from "node-opcua-service-history";
 import { type CallbackT, StatusCodes } from "node-opcua-status-code";
-import { getAverageData } from "./average";
-import { getCountData } from "./count";
-import { getDurationBadData } from "./duration_bad";
-import { getDurationGoodData } from "./duration_good";
-import { getInterpolatedData } from "./interpolate";
-import { getMaxData, getMinData } from "./minmax";
-import { getPercentBadData } from "./percent_bad";
-import { getPercentGoodData } from "./percent_good";
+import { getAverageData } from "./average.js";
+import { getCountData } from "./count.js";
+import { getDurationBadData } from "./duration_bad.js";
+import { getDurationGoodData } from "./duration_good.js";
+import { getInterpolatedData } from "./interpolate.js";
+import { getMaxData, getMinData } from "./minmax.js";
+import { getPercentBadData } from "./percent_bad.js";
+import { getPercentGoodData } from "./percent_good.js";
 
 function _buildResult(err: Error | null, dataValues: DataValue[] | undefined, callback2: CallbackT<HistoryReadResult>) {
     if (err) {

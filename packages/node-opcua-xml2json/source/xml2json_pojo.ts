@@ -1,5 +1,5 @@
-import { ReaderState2, type withPojoLambda } from "./xml2Json_pojo_tools";
-import { type IReaderState, type ReaderState, type ReaderStateParser, Xml2Json, type XmlAttributes } from "./xml2json";
+import { ReaderState2, type withPojoLambda } from "./xml2Json_pojo_tools.js";
+import { type IReaderState, type ReaderState, type ReaderStateParser, Xml2Json, type XmlAttributes } from "./xml2json.js";
 
 const json_extractor: ReaderState2 = new ReaderState2();
 export const json_parser: ReaderStateParser = {

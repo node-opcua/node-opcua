@@ -41,9 +41,9 @@ import type {
     UserIdentityToken
 } from "node-opcua-types";
 import { type ISubscriber, type IWatchdogData2, lowerFirstLetter, randomBytes, WatchDog } from "node-opcua-utils";
-import type { ServerEngine } from "./server_engine";
-import { ServerSidePublishEngine } from "./server_publish_engine";
-import { type Subscription, SubscriptionState } from "./server_subscription";
+import type { ServerEngine } from "./server_engine.js";
+import { ServerSidePublishEngine } from "./server_publish_engine.js";
+import { type Subscription, SubscriptionState } from "./server_subscription.js";
 
 const debugLog = make_debugLog("server_session");
 const errorLog = make_errorLog("server_session");

@@ -3,10 +3,10 @@ import { assert } from "node-opcua-assert";
 import { type INodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { EnumDefinition, StructureDefinition } from "node-opcua-types";
 import XMLWriter from "xml-writer";
-import type { XmlWriter } from "../../source/xml_writer";
-import type { AddressSpacePrivate } from "../address_space_private";
-import type { NamespacePrivate } from "../namespace_private";
-import { constructNamespaceDependency } from "./construct_namespace_dependency";
+import type { XmlWriter } from "../../source/xml_writer.js";
+import type { AddressSpacePrivate } from "../address_space_private.js";
+import type { NamespacePrivate } from "../namespace_private.js";
+import { constructNamespaceDependency } from "./construct_namespace_dependency.js";
 
 function dumpEnumeratedType(xw: XmlWriter, e: EnumDefinition, name: string): void {
     xw.startElement("opc:EnumeratedType");

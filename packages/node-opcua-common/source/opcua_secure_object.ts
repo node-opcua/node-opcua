@@ -5,9 +5,9 @@ import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import { type Certificate, type IKeyOperations, type PrivateKey, split_der } from "node-opcua-crypto/web";
 
-import type { ICertificateChainProvider } from "./certificate_chain_provider";
-import { DiskCertificateKeyPairProvider } from "./disk_certificate_key_pair_provider";
-import { getKeyOperationsFromProvider } from "./local_key_operations_provider";
+import type { ICertificateChainProvider } from "./certificate_chain_provider.js";
+import { DiskCertificateKeyPairProvider } from "./disk_certificate_key_pair_provider.js";
+import { getKeyOperationsFromProvider } from "./local_key_operations_provider.js";
 
 export interface ICertificateKeyPairProvider {
     getCertificate(): Certificate;

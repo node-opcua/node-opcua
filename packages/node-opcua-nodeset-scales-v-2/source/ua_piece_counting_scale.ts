@@ -1,9 +1,9 @@
 import type { UAMethod } from "node-opcua-address-space-base";
 import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
 
-import type { UAMeasuredItem } from "./ua_measured_item";
-import type { UAProductionPreset } from "./ua_production_preset";
-import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device";
+import type { UAMeasuredItem } from "./ua_measured_item.js";
+import type { UAProductionPreset } from "./ua_production_preset.js";
+import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device.js";
 
 // ----- this file has been automatically generated - do not edit
 

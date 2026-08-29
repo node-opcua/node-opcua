@@ -3,10 +3,10 @@ import type { Int32 } from "node-opcua-basic-types";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumCombiSteamerMode } from "./enum_combi_steamer_mode";
-import type { EnumEnergySource } from "./enum_energy_source";
-import type { UACombiSteamerParameter, UACombiSteamerParameter_actualInternalCoreTemperature_$No_$, UACombiSteamerParameter_actualTemperatureChamber_$No_$, UACombiSteamerParameter_setProcessTimeProgram, UACombiSteamerParameter_setTemperature, UACombiSteamerParameter_timeRemainingProgram } from "./ua_combi_steamer_parameter";
-import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device";
+import type { EnumCombiSteamerMode } from "./enum_combi_steamer_mode.js";
+import type { EnumEnergySource } from "./enum_energy_source.js";
+import type { UACombiSteamerParameter, UACombiSteamerParameter_actualInternalCoreTemperature_$No_$, UACombiSteamerParameter_actualTemperatureChamber_$No_$, UACombiSteamerParameter_setProcessTimeProgram, UACombiSteamerParameter_setTemperature, UACombiSteamerParameter_timeRemainingProgram } from "./ua_combi_steamer_parameter.js";
+import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device.js";
 
 // ----- this file has been automatically generated - do not edit
 

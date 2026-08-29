@@ -1,6 +1,6 @@
 import type { UAObject } from "node-opcua-address-space-base";
 
-import type { UAToolList } from "./ua_tool_list";
+import type { UAToolList } from "./ua_tool_list.js";
 
 // ----- this file has been automatically generated - do not edit
 

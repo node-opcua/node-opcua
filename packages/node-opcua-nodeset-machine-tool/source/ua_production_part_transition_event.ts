@@ -4,8 +4,8 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua/dist/ua_transition_event";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumPartQuality } from "./enum_part_quality";
-import type { EnumProcessIrregularity } from "./enum_process_irregularity";
+import type { EnumPartQuality } from "./enum_part_quality.js";
+import type { EnumProcessIrregularity } from "./enum_process_irregularity.js";
 
 // ----- this file has been automatically generated - do not edit
 

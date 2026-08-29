@@ -7,8 +7,8 @@ import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import type { ReadValueIdOptions } from "node-opcua-service-read";
 import type { MonitoringParametersOptions } from "node-opcua-types";
 
-import type { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "./client_monitored_item_base";
-import type { ClientSubscription } from "./client_subscription";
+import type { ClientMonitoredItemBase, ClientMonitoredItemOrGroupAction } from "./client_monitored_item_base.js";
+import type { ClientSubscription } from "./client_subscription.js";
 
 export interface ClientMonitoredItemGroup extends EventEmitter, ClientMonitoredItemOrGroupAction {
     on(event: "changed", eventHandler: (monitoredItem: ClientMonitoredItemBase, dataValue: DataValue, index: number) => void): this;

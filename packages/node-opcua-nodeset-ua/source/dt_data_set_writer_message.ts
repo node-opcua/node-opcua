@@ -1,4 +1,4 @@
-import type { DTStructure } from "./dt_structure";
+import type { DTStructure } from "./dt_structure.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

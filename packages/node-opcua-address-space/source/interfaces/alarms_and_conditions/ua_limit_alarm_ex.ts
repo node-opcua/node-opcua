@@ -1,7 +1,7 @@
 import type { UALimitAlarm_Base } from "node-opcua-nodeset-ua";
-import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
-import type { UAShelvedStateMachineEx } from "../state_machine/ua_shelved_state_machine_ex";
-import type { UAAlarmConditionEx, UAAlarmConditionHelper } from "./ua_alarm_condition_ex";
+import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex.js";
+import type { UAShelvedStateMachineEx } from "../state_machine/ua_shelved_state_machine_ex.js";
+import type { UAAlarmConditionEx, UAAlarmConditionHelper } from "./ua_alarm_condition_ex.js";
 
 export interface UALimitAlarmHelper extends UAAlarmConditionHelper {
     setLowLowLimit(value: number): void;

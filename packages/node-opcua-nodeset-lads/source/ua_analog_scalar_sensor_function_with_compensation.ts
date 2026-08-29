@@ -1,7 +1,7 @@
 import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAnalogScalarSensorFunction, UAAnalogScalarSensorFunction_Base } from "./ua_analog_scalar_sensor_function";
+import type { UAAnalogScalarSensorFunction, UAAnalogScalarSensorFunction_Base } from "./ua_analog_scalar_sensor_function.js";
 
 // ----- this file has been automatically generated - do not edit
 

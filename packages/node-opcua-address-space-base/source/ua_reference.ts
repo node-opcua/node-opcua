@@ -1,6 +1,6 @@
 import type { NodeId } from "node-opcua-nodeid";
-import type { IAddressSpace } from "./address_space";
-import type { BaseNode } from "./base_node";
+import type { IAddressSpace } from "./address_space.js";
+import type { BaseNode } from "./base_node.js";
 
 export interface UAReference {
     readonly nodeId: NodeId;

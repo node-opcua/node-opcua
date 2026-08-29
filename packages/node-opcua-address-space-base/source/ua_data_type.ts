@@ -2,7 +2,7 @@ import type { NodeClass } from "node-opcua-data-model";
 import type { ExpandedNodeId, NodeId, NodeIdLike } from "node-opcua-nodeid";
 import type { DataTypeDefinition, EnumDefinition, StructureDefinition } from "node-opcua-types";
 import type { DataType } from "node-opcua-variant";
-import type { BaseNode, BaseNodeEvents } from "./base_node";
+import type { BaseNode, BaseNodeEvents } from "./base_node.js";
 
 export interface UADataType extends BaseNode<BaseNodeEvents> {
     readonly nodeClass: NodeClass.DataType;

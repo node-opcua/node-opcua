@@ -1,8 +1,8 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTHistoryEventFieldList } from "./dt_history_event_field_list";
-import type { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_audit_history_delete_event";
+import type { DTHistoryEventFieldList } from "./dt_history_event_field_list.js";
+import type { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_audit_history_delete_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

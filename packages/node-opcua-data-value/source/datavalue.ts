@@ -39,8 +39,8 @@ import {
     type VariantOptionsT,
     type VariantT
 } from "node-opcua-variant";
-import { DataValueEncodingByte } from "./DataValueEncodingByte_enum";
-import { TimestampsToReturn } from "./TimestampsToReturn_enum";
+import { DataValueEncodingByte } from "./DataValueEncodingByte_enum.js";
+import { TimestampsToReturn } from "./TimestampsToReturn_enum.js";
 
 const errorLog = make_errorLog("datavalue");
 

@@ -2,8 +2,8 @@ import type { IEventData, ISessionContext } from "node-opcua-address-space-base"
 import type { SimpleAttributeOperand } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
 //
-import { extractEventFieldsBase } from "../extract_event_field";
-import { FilterContextOnAddressSpace } from "./filter_context_on_address_space";
+import { extractEventFieldsBase } from "../extract_event_field.js";
+import { FilterContextOnAddressSpace } from "./filter_context_on_address_space.js";
 
 /**
 

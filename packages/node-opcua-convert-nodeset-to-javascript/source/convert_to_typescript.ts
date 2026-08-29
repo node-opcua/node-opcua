@@ -8,11 +8,11 @@ import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } fro
 import { type ReferenceDescription, StructureDefinition } from "node-opcua-types";
 import { LineFile } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
-import { _exportDataTypeToTypescript } from "./_dataType";
-import type { Options } from "./options";
-import { type Cache, constructCache, type Import, makeTypeNameNew, type RequestedSubSymbol } from "./private/cache";
-import { getCorrespondingJavascriptType2 } from "./private/get_corresponding_data_type";
-import { toFilename } from "./private/to_filename";
+import { _exportDataTypeToTypescript } from "./_dataType.js";
+import type { Options } from "./options.js";
+import { type Cache, constructCache, type Import, makeTypeNameNew, type RequestedSubSymbol } from "./private/cache.js";
+import { getCorrespondingJavascriptType2 } from "./private/get_corresponding_data_type.js";
+import { toFilename } from "./private/to_filename.js";
 import {
     extractBasicDataType,
     getBrowseName,
@@ -26,8 +26,8 @@ import {
     getSubtypeNodeIdIfAny,
     getTypeDefOrBaseType,
     getValueRank
-} from "./private/utils";
-import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "./utils2";
+} from "./private/utils.js";
+import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "./utils2.js";
 
 const warningLog = make_warningLog("typescript");
 const debugLog = make_debugLog("typescript");

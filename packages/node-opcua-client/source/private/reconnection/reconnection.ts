@@ -8,11 +8,11 @@ import { invalidateExtraDataTypeManager } from "node-opcua-client-dynamic-extens
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { TransferSubscriptionsRequest, type TransferSubscriptionsResponse } from "node-opcua-service-subscription";
 import { CloseSessionRequest } from "node-opcua-types";
-import type { ClientSessionImpl, Reconnectable } from "../client_session_impl";
-import type { ClientSubscriptionImpl } from "../client_subscription_impl";
-import type { IClientBase } from "../i_private_client";
-import { republish } from "./client_publish_engine_reconnection";
-import { recreateSubscriptionAndMonitoredItem } from "./client_subscription_reconnection";
+import type { ClientSessionImpl, Reconnectable } from "../client_session_impl.js";
+import type { ClientSubscriptionImpl } from "../client_subscription_impl.js";
+import type { IClientBase } from "../i_private_client.js";
+import { republish } from "./client_publish_engine_reconnection.js";
+import { recreateSubscriptionAndMonitoredItem } from "./client_subscription_reconnection.js";
 
 const debugLog = make_debugLog("RECONNECTION");
 const doDebug = checkDebugFlag("RECONNECTION");

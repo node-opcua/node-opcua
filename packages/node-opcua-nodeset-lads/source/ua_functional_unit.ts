@@ -6,10 +6,10 @@ import type { UALockingServices } from "node-opcua-nodeset-di/dist/ua_locking_se
 import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAFunctionSet } from "./ua_function_set";
-import type { UAFunctionalUnitStateMachine } from "./ua_functional_unit_state_machine";
-import type { UAProgramManager } from "./ua_program_manager";
-import type { UASupportedPropertiesSet } from "./ua_supported_properties_set";
+import type { UAFunctionSet } from "./ua_function_set.js";
+import type { UAFunctionalUnitStateMachine } from "./ua_functional_unit_state_machine.js";
+import type { UAProgramManager } from "./ua_program_manager.js";
+import type { UASupportedPropertiesSet } from "./ua_supported_properties_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

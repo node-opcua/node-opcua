@@ -3,8 +3,8 @@ import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory"
 import type { NodeId } from "node-opcua-nodeid";
 import { clearSessionCache, type IBasicSessionAsync2, readNamespaceArray } from "node-opcua-pseudo-session";
 //
-import { ExtraDataTypeManager } from "./extra_data_type_manager";
-import { DataTypeExtractStrategy, populateDataTypeManager } from "./populate_data_type_manager";
+import { ExtraDataTypeManager } from "./extra_data_type_manager.js";
+import { DataTypeExtractStrategy, populateDataTypeManager } from "./populate_data_type_manager.js";
 
 const doDebug = checkDebugFlag("get_extra_data_type_manager");
 const debugLog = make_debugLog("get_extra_data_type_manager");

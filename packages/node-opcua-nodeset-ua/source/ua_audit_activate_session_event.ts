@@ -3,9 +3,9 @@ import type { UAString } from "node-opcua-basic-types";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTSignedSoftwareCertificate } from "./dt_signed_software_certificate";
-import type { DTUserIdentityToken } from "./dt_user_identity_token";
-import type { UAAuditSessionEvent, UAAuditSessionEvent_Base } from "./ua_audit_session_event";
+import type { DTSignedSoftwareCertificate } from "./dt_signed_software_certificate.js";
+import type { DTUserIdentityToken } from "./dt_user_identity_token.js";
+import type { UAAuditSessionEvent, UAAuditSessionEvent_Base } from "./ua_audit_session_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

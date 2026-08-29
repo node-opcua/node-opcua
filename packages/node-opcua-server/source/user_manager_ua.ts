@@ -2,7 +2,7 @@ import { ensureObjectIsSecure, type IAddressSpace, type UAObject, type UARole, t
 import { ObjectIds } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";
 import { DataType, Variant } from "node-opcua-variant";
-import type { UAUserManagerBase } from "./user_manager";
+import type { UAUserManagerBase } from "./user_manager.js";
 
 export function bindRoleSet(userManager: UAUserManagerBase, addressSpace: IAddressSpace) {
     const roleSet = addressSpace.findNode(ObjectIds.Server_ServerCapabilities_RoleSet) as UARoleSet;

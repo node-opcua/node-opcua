@@ -3,7 +3,7 @@ import type { IUserManager, UARoleSet } from "node-opcua-address-space";
 import { make_errorLog } from "node-opcua-debug";
 import type { NodeId } from "node-opcua-nodeid";
 import type { IdentityMappingRuleType } from "node-opcua-types";
-import type { ServerSession } from "./server_session";
+import type { ServerSession } from "./server_session.js";
 
 const errorLog = make_errorLog("user_manager");
 

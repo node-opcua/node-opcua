@@ -4,9 +4,9 @@ import { pipeline } from "node:stream/promises";
 
 import { BinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { type IClientFile, OpenFileMode } from "./client_file";
-import { getTransportMaxMessageSize, type ISessionWithTransportSettings } from "./get_transport_max_size";
-import { readMaxByteStringLength } from "./read_max_byte_string_length";
+import { type IClientFile, OpenFileMode } from "./client_file.js";
+import { getTransportMaxMessageSize, type ISessionWithTransportSettings } from "./get_transport_max_size.js";
+import { readMaxByteStringLength } from "./read_max_byte_string_length.js";
 
 const debugLog = make_debugLog("FileType");
 // const errorLog = make_errorLog("FileType");

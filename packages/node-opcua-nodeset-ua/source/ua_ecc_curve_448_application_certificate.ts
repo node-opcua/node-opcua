@@ -1,4 +1,4 @@
-import type { UAEccApplicationCertificate, UAEccApplicationCertificate_Base } from "./ua_ecc_application_certificate";
+import type { UAEccApplicationCertificate, UAEccApplicationCertificate_Base } from "./ua_ecc_application_certificate.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

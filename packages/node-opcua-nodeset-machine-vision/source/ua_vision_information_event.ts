@@ -1,4 +1,4 @@
-import type { UAVisionEvent, UAVisionEvent_Base } from "./ua_vision_event";
+import type { UAVisionEvent, UAVisionEvent_Base } from "./ua_vision_event.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

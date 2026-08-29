@@ -3,7 +3,7 @@ import type { ExpandedNodeId } from "node-opcua-nodeid";
 import type { StatusCode } from "node-opcua-status-code";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAuditClientEvent, UAAuditClientEvent_Base } from "./ua_audit_client_event";
+import type { UAAuditClientEvent, UAAuditClientEvent_Base } from "./ua_audit_client_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,7 +1,7 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTHistoryEventFieldList } from "./dt_history_event_field_list";
-import type { DTStructure } from "./dt_structure";
+import type { DTHistoryEventFieldList } from "./dt_history_event_field_list.js";
+import type { DTStructure } from "./dt_structure.js";
 
 // ----- this file has been automatically generated - do not edit
 

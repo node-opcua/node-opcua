@@ -5,10 +5,10 @@ import type { UAResult, UAResult_Base, UAResult_resultMetaData } from "node-opcu
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTEntity } from "./dt_entity";
-import type { DTJoiningResultMeta } from "./dt_joining_result_meta";
-import type { DTKeyValue } from "./dt_key_value";
-import type { DTResultCounter } from "./dt_result_counter";
+import type { DTEntity } from "./dt_entity.js";
+import type { DTJoiningResultMeta } from "./dt_joining_result_meta.js";
+import type { DTKeyValue } from "./dt_key_value.js";
+import type { DTResultCounter } from "./dt_result_counter.js";
 
 // ----- this file has been automatically generated - do not edit
 

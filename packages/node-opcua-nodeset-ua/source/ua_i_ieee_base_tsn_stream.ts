@@ -1,9 +1,9 @@
 import type { Byte, UAString, UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumTsnStreamState } from "./enum_tsn_stream_state";
-import type { UABaseDataVariable } from "./ua_base_data_variable";
-import type { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface";
+import type { EnumTsnStreamState } from "./enum_tsn_stream_state.js";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
+import type { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface.js";
 
 // ----- this file has been automatically generated - do not edit
 

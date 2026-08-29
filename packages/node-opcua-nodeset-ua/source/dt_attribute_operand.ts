@@ -2,8 +2,8 @@ import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
 
-import type { DTFilterOperand } from "./dt_filter_operand";
-import type { DTRelativePath } from "./dt_relative_path";
+import type { DTFilterOperand } from "./dt_filter_operand.js";
+import type { DTRelativePath } from "./dt_relative_path.js";
 
 // ----- this file has been automatically generated - do not edit
 

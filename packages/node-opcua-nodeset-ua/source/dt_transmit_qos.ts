@@ -1,4 +1,4 @@
-import type { DTQos } from "./dt_qos";
+import type { DTQos } from "./dt_qos.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

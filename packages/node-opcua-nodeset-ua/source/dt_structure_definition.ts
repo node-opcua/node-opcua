@@ -1,9 +1,9 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
 
-import type { DTDataTypeDefinition } from "./dt_data_type_definition";
-import type { DTStructureField } from "./dt_structure_field";
-import type { EnumStructure } from "./enum_structure";
+import type { DTDataTypeDefinition } from "./dt_data_type_definition.js";
+import type { DTStructureField } from "./dt_structure_field.js";
+import type { EnumStructure } from "./enum_structure.js";
 
 // ----- this file has been automatically generated - do not edit
 

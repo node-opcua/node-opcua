@@ -3,7 +3,7 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABasicStacklight, UABasicStacklight_Base } from "./ua_basic_stacklight";
+import type { UABasicStacklight, UABasicStacklight_Base } from "./ua_basic_stacklight.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -3,7 +3,7 @@ import type { UAString } from "node-opcua-basic-types";
 import type { QualifiedName } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAMachineryItemIdentification, UAMachineryItemIdentification_Base } from "./ua_machinery_item_identification";
+import type { UAMachineryItemIdentification, UAMachineryItemIdentification_Base } from "./ua_machinery_item_identification.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -2,9 +2,9 @@ import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
 
-import type { DTArgument } from "./dt_argument";
-import type { DTStatusResult } from "./dt_status_result";
-import type { DTStructure } from "./dt_structure";
+import type { DTArgument } from "./dt_argument.js";
+import type { DTStatusResult } from "./dt_status_result.js";
+import type { DTStructure } from "./dt_structure.js";
 
 // ----- this file has been automatically generated - do not edit
 

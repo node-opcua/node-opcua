@@ -29,8 +29,8 @@ import { decodeStatusCode, type StatusCode, StatusCodes } from "node-opcua-statu
 import { doTraceChunk, MessageBuilderBase, type MessageBuilderBaseOptions, StatusCodes2 } from "node-opcua-transport";
 import { timestamp } from "node-opcua-utils";
 
-import { SymmetricAlgorithmSecurityHeader } from "./secure_channel_service";
-import { chooseSecurityHeader, type SecurityHeader } from "./secure_message_chunk_manager";
+import { SymmetricAlgorithmSecurityHeader } from "./secure_channel_service.js";
+import { chooseSecurityHeader, type SecurityHeader } from "./secure_message_chunk_manager.js";
 import {
     asymmetricDecryptWithKeyOps,
     asymmetricDecryptWithKeyOpsSync,
@@ -39,9 +39,9 @@ import {
     coerceSecurityPolicy,
     getCryptoFactory,
     SecurityPolicy
-} from "./security_policy";
-import type { IDerivedKeyProvider } from "./token_stack";
-import { reduceLength, removePadding } from "./utils";
+} from "./security_policy.js";
+import type { IDerivedKeyProvider } from "./token_stack.js";
+import { reduceLength, removePadding } from "./utils.js";
 
 const debugLog = make_debugLog("SecureChannel");
 const doDebug = checkDebugFlag("SecureChannel");

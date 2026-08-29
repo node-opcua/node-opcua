@@ -8,8 +8,8 @@ import { coerceNodeId } from "node-opcua-nodeid";
 import { type HistoryData, type HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-service-history";
 import { StatusCode } from "node-opcua-status-code";
 
-import { getAggregateConfiguration } from "./aggregates";
-import { type AggregateConfigurationOptionsEx, getInterval, type Interval } from "./interval";
+import { getAggregateConfiguration } from "./aggregates.js";
+import { type AggregateConfigurationOptionsEx, getInterval, type Interval } from "./interval.js";
 
 /**
  * @internal

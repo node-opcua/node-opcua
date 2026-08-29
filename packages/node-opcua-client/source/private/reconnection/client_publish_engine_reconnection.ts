@@ -3,11 +3,11 @@ import assert from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { RepublishRequest, type RepublishResponse } from "node-opcua-types";
-import type { ClientSidePublishEngine } from "../client_publish_engine";
-import type { ClientSessionImpl } from "../client_session_impl";
-import type { ClientSubscriptionImpl } from "../client_subscription_impl";
-import { recreateSubscriptionAndMonitoredItem } from "./client_subscription_reconnection";
-import { _shouldNotContinue2 } from "./reconnection";
+import type { ClientSidePublishEngine } from "../client_publish_engine.js";
+import type { ClientSessionImpl } from "../client_session_impl.js";
+import type { ClientSubscriptionImpl } from "../client_subscription_impl.js";
+import { recreateSubscriptionAndMonitoredItem } from "./client_subscription_reconnection.js";
+import { _shouldNotContinue2 } from "./reconnection.js";
 
 const debugLog = make_debugLog("RECONNECTION");
 const doDebug = checkDebugFlag("RECONNECTION");

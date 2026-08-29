@@ -1,8 +1,8 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumServerState } from "./enum_server_state";
-import type { UASystemEvent, UASystemEvent_Base } from "./ua_system_event";
+import type { EnumServerState } from "./enum_server_state.js";
+import type { UASystemEvent, UASystemEvent_Base } from "./ua_system_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

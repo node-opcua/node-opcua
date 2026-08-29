@@ -3,7 +3,7 @@ import type { QualifiedName } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { UATaskControlStateMachine } from "./ua_task_control_state_machine";
+import type { UATaskControlStateMachine } from "./ua_task_control_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

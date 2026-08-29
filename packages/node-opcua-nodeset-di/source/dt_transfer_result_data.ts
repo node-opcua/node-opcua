@@ -1,8 +1,8 @@
 import type { Int32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTFetchResult } from "./dt_fetch_result";
-import type { DTParameterResult } from "./dt_parameter_result";
+import type { DTFetchResult } from "./dt_fetch_result.js";
+import type { DTParameterResult } from "./dt_parameter_result.js";
 
 // ----- this file has been automatically generated - do not edit
 

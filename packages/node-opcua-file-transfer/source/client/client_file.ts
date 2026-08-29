@@ -14,9 +14,9 @@ import { DataType, VariantArrayType } from "node-opcua-variant";
 const debugLog = make_debugLog("FileType");
 const doDebug = checkDebugFlag("FileType");
 
-import { OpenFileMode } from "../open_mode";
+import { OpenFileMode } from "../open_mode.js";
 
-export { OpenFileMode } from "../open_mode";
+export { OpenFileMode } from "../open_mode.js";
 
 export interface IClientFile {
     fileHandle: number;

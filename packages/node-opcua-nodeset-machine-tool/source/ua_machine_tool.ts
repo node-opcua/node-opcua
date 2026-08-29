@@ -6,12 +6,12 @@ import type { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/d
 import type { UAFileDirectory } from "node-opcua-nodeset-ua/dist/ua_file_directory";
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 
-import type { UAEquipment } from "./ua_equipment";
-import type { UAMachineOperationModeStateMachine } from "./ua_machine_operation_mode_state_machine";
-import type { UAMachineToolIdentification } from "./ua_machine_tool_identification";
-import type { UAMonitoring } from "./ua_monitoring";
-import type { UANotification } from "./ua_notification";
-import type { UAProduction } from "./ua_production";
+import type { UAEquipment } from "./ua_equipment.js";
+import type { UAMachineOperationModeStateMachine } from "./ua_machine_operation_mode_state_machine.js";
+import type { UAMachineToolIdentification } from "./ua_machine_tool_identification.js";
+import type { UAMonitoring } from "./ua_monitoring.js";
+import type { UANotification } from "./ua_notification.js";
+import type { UAProduction } from "./ua_production.js";
 
 // ----- this file has been automatically generated - do not edit
 

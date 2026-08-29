@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAuditSecurityEvent, UAAuditSecurityEvent_Base } from "./ua_audit_security_event";
+import type { UAAuditSecurityEvent, UAAuditSecurityEvent_Base } from "./ua_audit_security_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -8,9 +8,9 @@ import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "n
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { Bonjour, type Service, type ServiceConfig } from "sterfive-bonjour-service";
 
-import type { Announcement } from "./Announcement";
-import { announcementToServiceConfig } from "./announcement_to_service_config";
-import { isSameService, serviceToString } from "./tools";
+import type { Announcement } from "./Announcement.js";
+import { announcementToServiceConfig } from "./announcement_to_service_config.js";
+import { isSameService, serviceToString } from "./tools.js";
 
 const debugLog = make_debugLog("Bonjour");
 const doDebug = checkDebugFlag("Bonjour");

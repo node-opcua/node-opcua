@@ -1,10 +1,10 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTDataSetMeta } from "./dt_data_set_meta";
-import type { DTKeyValuePair } from "./dt_key_value_pair";
-import type { DTPublishedDataSetSource } from "./dt_published_data_set_source";
-import type { DTStructure } from "./dt_structure";
+import type { DTDataSetMeta } from "./dt_data_set_meta.js";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
+import type { DTPublishedDataSetSource } from "./dt_published_data_set_source.js";
+import type { DTStructure } from "./dt_structure.js";
 
 // ----- this file has been automatically generated - do not edit
 

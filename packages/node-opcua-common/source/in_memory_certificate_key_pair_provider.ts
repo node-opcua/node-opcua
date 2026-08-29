@@ -19,8 +19,8 @@ import {
     privateKeyToPEM
 } from "node-opcua-crypto/web";
 
-import { localKeyOperationsOfProvider } from "./local_key_operations_provider";
-import type { ICertificateKeyPairProvider2, ICertificateKeyPairProviderWithLocation } from "./opcua_secure_object";
+import { localKeyOperationsOfProvider } from "./local_key_operations_provider.js";
+import type { ICertificateKeyPairProvider2, ICertificateKeyPairProviderWithLocation } from "./opcua_secure_object.js";
 
 export interface EnsureCertificateExistsParams {
     applicationUri: string;

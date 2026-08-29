@@ -3,9 +3,9 @@ import type { UInt32 } from "node-opcua-basic-types";
 import type { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAnalogSignalVariable } from "./ua_analog_signal_variable";
-import type { UACalibrationPointSet } from "./ua_calibration_point_set";
-import type { UASignal, UASignal_Base } from "./ua_signal";
+import type { UAAnalogSignalVariable } from "./ua_analog_signal_variable.js";
+import type { UACalibrationPointSet } from "./ua_calibration_point_set.js";
+import type { UASignal, UASignal_Base } from "./ua_signal.js";
 
 // ----- this file has been automatically generated - do not edit
 

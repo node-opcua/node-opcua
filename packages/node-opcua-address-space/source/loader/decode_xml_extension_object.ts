@@ -5,7 +5,7 @@ import type { NodeId } from "node-opcua-nodeid";
 import { NodeClass } from "node-opcua-types";
 import { Xml2Json } from "node-opcua-xml2json";
 
-import { type DefinitionMap2, makeXmlExtensionObjectReader, type TypeInfo } from "./make_xml_extension_object_parser";
+import { type DefinitionMap2, makeXmlExtensionObjectReader, type TypeInfo } from "./make_xml_extension_object_parser.js";
 
 const doDebug = checkDebugFlag("decode_xml_extension_object");
 const debugLog = make_debugLog("decode_xml_extension_object");

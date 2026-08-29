@@ -4,12 +4,12 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumCoatingClass } from "./enum_coating_class";
-import type { EnumSignificantSide } from "./enum_significant_side";
-import type { EnumStructureAlignment } from "./enum_structure_alignment";
-import type { UABaseMaterial } from "./ua_base_material";
-import type { UAGlass } from "./ua_glass";
-import type { UAProductionJob, UAProductionJob_Base } from "./ua_production_job";
+import type { EnumCoatingClass } from "./enum_coating_class.js";
+import type { EnumSignificantSide } from "./enum_significant_side.js";
+import type { EnumStructureAlignment } from "./enum_structure_alignment.js";
+import type { UABaseMaterial } from "./ua_base_material.js";
+import type { UAGlass } from "./ua_glass.js";
+import type { UAProductionJob, UAProductionJob_Base } from "./ua_production_job.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -25,9 +25,9 @@ import {
 import { NodeId } from "node-opcua-nodeid";
 import { type DataTypeAndEncodingId, type MapDataTypeAndEncodingIdProvider, parseBinaryXSD } from "node-opcua-schemas";
 
-import { writeStructuredType } from "./factory_code_generator";
-import { LineFile1 } from "./utils/line_file";
-import { makeWrite } from "./utils/write_func";
+import { writeStructuredType } from "./factory_code_generator.js";
+import { LineFile1 } from "./utils/line_file.js";
+import { makeWrite } from "./utils/write_func.js";
 
 const doDebug = checkDebugFlag("generate_extension_object_code");
 const debugLog = make_debugLog("generate_extension_object_code");

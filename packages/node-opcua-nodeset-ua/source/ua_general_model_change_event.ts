@@ -1,8 +1,8 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTModelChangeStructure } from "./dt_model_change_structure";
-import type { UABaseModelChangeEvent, UABaseModelChangeEvent_Base } from "./ua_base_model_change_event";
+import type { DTModelChangeStructure } from "./dt_model_change_structure.js";
+import type { UABaseModelChangeEvent, UABaseModelChangeEvent_Base } from "./ua_base_model_change_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

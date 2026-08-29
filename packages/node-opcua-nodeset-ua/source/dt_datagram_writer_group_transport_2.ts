@@ -1,9 +1,9 @@
 import type { Byte, UAString, UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTDatagramWriterGroupTransport } from "./dt_datagram_writer_group_transport";
-import type { DTNetworkAddress } from "./dt_network_address";
-import type { DTTransmitQos } from "./dt_transmit_qos";
+import type { DTDatagramWriterGroupTransport } from "./dt_datagram_writer_group_transport.js";
+import type { DTNetworkAddress } from "./dt_network_address.js";
+import type { DTTransmitQos } from "./dt_transmit_qos.js";
 
 // ----- this file has been automatically generated - do not edit
 

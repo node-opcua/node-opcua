@@ -19,8 +19,8 @@ import { coerceNodeId, makeNodeId, type NodeId, type NodeIdLike, resolveNodeId, 
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 
-import type { AggregateConfigurationOptionsEx } from "./interval";
-import { readProcessedDetails } from "./read_processed_details";
+import type { AggregateConfigurationOptionsEx } from "./interval.js";
+import { readProcessedDetails } from "./read_processed_details.js";
 
 // import { HistoryServerCapabilities } from "node-opcua-server";
 

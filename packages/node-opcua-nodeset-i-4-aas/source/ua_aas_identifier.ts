@@ -2,7 +2,7 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumAASIdentifierType } from "./enum_aas_identifier_type";
+import type { EnumAASIdentifierType } from "./enum_aas_identifier_type.js";
 
 // ----- this file has been automatically generated - do not edit
 

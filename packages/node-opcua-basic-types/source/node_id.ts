@@ -6,11 +6,11 @@ import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream"
 import type { Guid } from "node-opcua-guid";
 import { ExpandedNodeId, makeNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 
-import { decodeByteString, encodeByteString } from "./byte_string";
-import { decodeGuid, encodeGuid, isValidGuid } from "./guid";
-import { decodeUInt32, encodeUInt32 } from "./integers";
-import { decodeString, encodeString } from "./string";
-import { getRandomInt } from "./utils";
+import { decodeByteString, encodeByteString } from "./byte_string.js";
+import { decodeGuid, encodeGuid, isValidGuid } from "./guid.js";
+import { decodeUInt32, encodeUInt32 } from "./integers.js";
+import { decodeString, encodeString } from "./string.js";
+import { getRandomInt } from "./utils.js";
 
 enum EnumNodeIdEncoding {
     TwoBytes = 0x00, // A numeric value that fits into the two byte representation.

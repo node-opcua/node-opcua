@@ -2,7 +2,7 @@ import { BrowseDirection } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import type { ReferenceDescription } from "node-opcua-types";
-import type { IBasicSessionBrowseAsyncSimple } from "./basic_session_interface";
+import type { IBasicSessionBrowseAsyncSimple } from "./basic_session_interface.js";
 
 const warningLog = make_warningLog("get_child_by_browse_name");
 

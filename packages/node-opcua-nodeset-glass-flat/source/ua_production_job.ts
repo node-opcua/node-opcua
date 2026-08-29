@@ -7,9 +7,9 @@ import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { UAStateVariable } from "node-opcua-nodeset-ua/dist/ua_state_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAInitializingSubStateMachine } from "./ua_initializing_sub_state_machine";
-import type { UAInstruction } from "./ua_instruction";
-import type { UAProductionStateMachine } from "./ua_production_state_machine";
+import type { UAInitializingSubStateMachine } from "./ua_initializing_sub_state_machine.js";
+import type { UAInstruction } from "./ua_instruction.js";
+import type { UAProductionStateMachine } from "./ua_production_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

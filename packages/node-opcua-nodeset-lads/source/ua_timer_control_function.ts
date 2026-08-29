@@ -1,7 +1,7 @@
 import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABaseControlFunction, UABaseControlFunction_Base, UABaseControlFunction_operational } from "./ua_base_control_function";
+import type { UABaseControlFunction, UABaseControlFunction_Base, UABaseControlFunction_operational } from "./ua_base_control_function.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,9 +1,9 @@
 import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine";
-import type { UAState } from "./ua_state";
-import type { UATransition } from "./ua_transition";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine.js";
+import type { UAState } from "./ua_state.js";
+import type { UATransition } from "./ua_transition.js";
 
 // ----- this file has been automatically generated - do not edit
 

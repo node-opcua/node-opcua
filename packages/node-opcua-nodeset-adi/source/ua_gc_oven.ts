@@ -1,4 +1,4 @@
-import type { UAAccessory, UAAccessory_Base } from "./ua_accessory";
+import type { UAAccessory, UAAccessory_Base } from "./ua_accessory.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

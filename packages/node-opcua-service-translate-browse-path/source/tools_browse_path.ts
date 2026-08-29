@@ -4,7 +4,7 @@
 import { ReferenceTypeIds } from "node-opcua-constants";
 import type { QualifiedNameLike } from "node-opcua-data-model";
 import { makeNodeId, type NodeId } from "node-opcua-nodeid";
-import { BrowsePath } from "./imports";
+import { BrowsePath } from "./imports.js";
 
 // const hierarchicalReferencesId = makeNodeId(ReferenceTypeIds.HierarchicalReferences);
 const aggregatesReferencesId = makeNodeId(ReferenceTypeIds.Aggregates);

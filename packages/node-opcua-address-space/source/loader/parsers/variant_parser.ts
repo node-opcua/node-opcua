@@ -17,10 +17,10 @@ import {
     createXMLExtensionObjectDecodingTask,
     makeExtensionObjectInnerParser,
     makeExtensionObjectParser
-} from "./extension_object_parser";
-import { type LocalizedTextParserLikeL1, localizedText_parser } from "./localized_text_parser";
-import { makeNodeIdParser } from "./nodeid_parser";
-import { makeQualifiedNameParser, type QualifiedNameParserL1 } from "./qualified_name_parser";
+} from "./extension_object_parser.js";
+import { type LocalizedTextParserLikeL1, localizedText_parser } from "./localized_text_parser.js";
+import { makeNodeIdParser } from "./nodeid_parser.js";
+import { makeQualifiedNameParser, type QualifiedNameParserL1 } from "./qualified_name_parser.js";
 
 const debugLog = make_debugLog("variant_parser");
 const doDebug = checkDebugFlag("variant_parser");

@@ -3,7 +3,7 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis";
+import type { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis.js";
 
 // ----- this file has been automatically generated - do not edit
 

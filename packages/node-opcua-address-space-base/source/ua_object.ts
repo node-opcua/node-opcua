@@ -4,12 +4,12 @@ import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
 import type { StatusCode } from "node-opcua-status-code";
 import type { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import type { BaseNode, BaseNodeEvents, IPropertyAndComponentHolder, ListenerSignature } from "./base_node";
-import type { CloneExtraInfo, CloneFilter, CloneOptions } from "./clone_options";
-import type { EventNotifierFlags } from "./event_notifier_flags";
-import type { UAEventType } from "./ua_event_type";
-import type { UAMethod } from "./ua_method";
-import type { UAObjectType } from "./ua_object_type";
+import type { BaseNode, BaseNodeEvents, IPropertyAndComponentHolder, ListenerSignature } from "./base_node.js";
+import type { CloneExtraInfo, CloneFilter, CloneOptions } from "./clone_options.js";
+import type { EventNotifierFlags } from "./event_notifier_flags.js";
+import type { UAEventType } from "./ua_event_type.js";
+import type { UAMethod } from "./ua_method.js";
+import type { UAObjectType } from "./ua_object_type.js";
 
 export type EventTypeLike = string | NodeId | UAEventType;
 

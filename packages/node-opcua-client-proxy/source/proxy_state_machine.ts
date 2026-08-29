@@ -4,7 +4,7 @@
 import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import type { NodeId } from "node-opcua-nodeid";
-import type { UAProxyManager } from "./proxy_manager";
+import type { UAProxyManager } from "./proxy_manager.js";
 
 export class StateMachineProxy extends EventEmitter {
     public nodeId: NodeId;

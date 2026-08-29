@@ -8,7 +8,7 @@ import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_s
 import type { UAOptionSet } from "node-opcua-nodeset-ua/dist/ua_option_set";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAIOLinkDevice } from "./ua_io_link_device";
+import type { UAIOLinkDevice } from "./ua_io_link_device.js";
 
 // ----- this file has been automatically generated - do not edit
 

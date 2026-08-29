@@ -1,4 +1,4 @@
-import { registerEnumeration } from "./enumerations";
+import { registerEnumeration } from "./enumerations.js";
 
 export enum NodeIdType {
     ReferenceType = 0x01,

@@ -2,9 +2,9 @@ import type { EUInformation } from "node-opcua-data-access";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTRange } from "./dt_range";
-import type { DTStructure } from "./dt_structure";
-import type { EnumAxisScale } from "./enum_axis_scale";
+import type { DTRange } from "./dt_range.js";
+import type { DTStructure } from "./dt_structure.js";
+import type { EnumAxisScale } from "./enum_axis_scale.js";
 
 // ----- this file has been automatically generated - do not edit
 

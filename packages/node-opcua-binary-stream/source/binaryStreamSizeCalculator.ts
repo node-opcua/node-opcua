@@ -2,7 +2,7 @@
  * @module node-opcua-binary-stream
  */
 import { assert } from "node-opcua-assert";
-import { calculateByteLength, clampArrayBufferLength } from "./binaryStream";
+import { calculateByteLength, clampArrayBufferLength } from "./binaryStream.js";
 
 /**
  * a BinaryStreamSizeCalculator can be used to quickly evaluate the required size

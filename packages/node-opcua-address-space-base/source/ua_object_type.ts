@@ -1,11 +1,11 @@
 import type { QualifiedNameLike, QualifiedNameOptions } from "node-opcua-data-model";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import type { NodeClass } from "node-opcua-types";
-import type { BaseNode, BaseNodeEvents, IPropertyAndComponentHolder } from "./base_node";
-import type { EventNotifierFlags } from "./event_notifier_flags";
-import type { InstantiateOptions } from "./instantiate_options";
-import type { UAMethod } from "./ua_method";
-import type { UAObject } from "./ua_object";
+import type { BaseNode, BaseNodeEvents, IPropertyAndComponentHolder } from "./base_node.js";
+import type { EventNotifierFlags } from "./event_notifier_flags.js";
+import type { InstantiateOptions } from "./instantiate_options.js";
+import type { UAMethod } from "./ua_method.js";
+import type { UAObject } from "./ua_object.js";
 
 export interface InstantiateObjectOptions extends InstantiateOptions {
     //

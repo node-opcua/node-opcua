@@ -4,7 +4,7 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTTimeZone } from "./dt_time_zone";
+import type { DTTimeZone } from "./dt_time_zone.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -4,7 +4,7 @@
 import type { UInt16 } from "node-opcua-basic-types";
 import { LocalizedText } from "node-opcua-data-model";
 import type { StatusCode } from "node-opcua-status-code";
-import type { ConditionInfo, ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
+import type { ConditionInfo, ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditions/condition_info_i.js";
 
 /**
  * @private

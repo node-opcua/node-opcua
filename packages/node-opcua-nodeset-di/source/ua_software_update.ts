@@ -5,12 +5,12 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumSoftwareClass } from "./enum_software_class";
-import type { UAConfirmationStateMachine } from "./ua_confirmation_state_machine";
-import type { UAInstallationStateMachine } from "./ua_installation_state_machine";
-import type { UAPowerCycleStateMachine } from "./ua_power_cycle_state_machine";
-import type { UAPrepareForUpdateStateMachine } from "./ua_prepare_for_update_state_machine";
-import type { UASoftwareLoading } from "./ua_software_loading";
+import type { EnumSoftwareClass } from "./enum_software_class.js";
+import type { UAConfirmationStateMachine } from "./ua_confirmation_state_machine.js";
+import type { UAInstallationStateMachine } from "./ua_installation_state_machine.js";
+import type { UAPowerCycleStateMachine } from "./ua_power_cycle_state_machine.js";
+import type { UAPrepareForUpdateStateMachine } from "./ua_prepare_for_update_state_machine.js";
+import type { UASoftwareLoading } from "./ua_software_loading.js";
 
 // ----- this file has been automatically generated - do not edit
 

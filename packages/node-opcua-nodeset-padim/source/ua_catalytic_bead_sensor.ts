@@ -1,5 +1,5 @@
-import type { UAPADIM_deviceConditionSet } from "./ua_padim";
-import type { UAProcessAnalyser, UAProcessAnalyser_Base } from "./ua_process_analyser";
+import type { UAPADIM_deviceConditionSet } from "./ua_padim.js";
+import type { UAProcessAnalyser, UAProcessAnalyser_Base } from "./ua_process_analyser.js";
 
 // ----- this file has been automatically generated - do not edit
 

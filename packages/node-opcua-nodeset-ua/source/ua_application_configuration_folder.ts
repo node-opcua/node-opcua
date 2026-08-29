@@ -1,4 +1,4 @@
-import type { UAFolder, UAFolder_Base } from "./ua_folder";
+import type { UAFolder, UAFolder_Base } from "./ua_folder.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

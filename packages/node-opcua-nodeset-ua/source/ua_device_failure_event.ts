@@ -1,4 +1,4 @@
-import type { UASystemEvent, UASystemEvent_Base } from "./ua_system_event";
+import type { UASystemEvent, UASystemEvent_Base } from "./ua_system_event.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

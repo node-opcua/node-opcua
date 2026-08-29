@@ -1,8 +1,8 @@
 import type { UADiscreteItem } from "node-opcua-nodeset-ua/dist/ua_discrete_item";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAControlFunctionStateMachine } from "./ua_control_function_state_machine";
-import type { UADiscreteControlFunction, UADiscreteControlFunction_Base } from "./ua_discrete_control_function";
+import type { UAControlFunctionStateMachine } from "./ua_control_function_state_machine.js";
+import type { UADiscreteControlFunction, UADiscreteControlFunction_Base } from "./ua_discrete_control_function.js";
 
 // ----- this file has been automatically generated - do not edit
 

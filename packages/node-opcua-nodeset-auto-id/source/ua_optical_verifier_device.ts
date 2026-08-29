@@ -1,6 +1,6 @@
 import type { UAMethod } from "node-opcua-address-space-base";
 
-import type { UAOpticalReaderDevice, UAOpticalReaderDevice_Base } from "./ua_optical_reader_device";
+import type { UAOpticalReaderDevice, UAOpticalReaderDevice_Base } from "./ua_optical_reader_device.js";
 
 // ----- this file has been automatically generated - do not edit
 

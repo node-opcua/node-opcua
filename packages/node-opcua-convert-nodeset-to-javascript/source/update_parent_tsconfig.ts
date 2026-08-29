@@ -9,7 +9,7 @@ import path from "node:path";
 
 import { nodesetCatalog } from "node-opcua-nodesets";
 
-import { packagesFolder } from "./package_root";
+import { packagesFolder } from "./package_root.js";
 
 export async function updateParentTSConfig() {
     const parentTSConfigFile = path.join(packagesFolder, "tsconfig.json");

@@ -6,14 +6,14 @@ import type { UAFiniteStateVariable } from "node-opcua-nodeset-ua/dist/ua_finite
 import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTSystemStateDescription } from "./dt_system_state_description";
-import type { UAConfigurationManagement } from "./ua_configuration_management";
-import type { UARecipeManagement } from "./ua_recipe_management";
-import type { UAResultManagement } from "./ua_result_management";
-import type { UASafetyStateManagement } from "./ua_safety_state_management";
-import type { UAVisionAutomaticModeStateMachine } from "./ua_vision_automatic_mode_state_machine";
-import type { UAVisionStateMachine } from "./ua_vision_state_machine";
-import type { UAVisionStepModelStateMachine } from "./ua_vision_step_model_state_machine";
+import type { DTSystemStateDescription } from "./dt_system_state_description.js";
+import type { UAConfigurationManagement } from "./ua_configuration_management.js";
+import type { UARecipeManagement } from "./ua_recipe_management.js";
+import type { UAResultManagement } from "./ua_result_management.js";
+import type { UASafetyStateManagement } from "./ua_safety_state_management.js";
+import type { UAVisionAutomaticModeStateMachine } from "./ua_vision_automatic_mode_state_machine.js";
+import type { UAVisionStateMachine } from "./ua_vision_state_machine.js";
+import type { UAVisionStepModelStateMachine } from "./ua_vision_step_model_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

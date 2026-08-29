@@ -2,7 +2,7 @@ import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { EUInformation } from "node-opcua-data-access";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAutoIdDevice, UAAutoIdDevice_Base } from "./ua_auto_id_device";
+import type { UAAutoIdDevice, UAAutoIdDevice_Base } from "./ua_auto_id_device.js";
 
 // ----- this file has been automatically generated - do not edit
 

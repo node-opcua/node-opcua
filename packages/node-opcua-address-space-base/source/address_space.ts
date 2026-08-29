@@ -5,20 +5,20 @@ import type { StatusCode } from "node-opcua-status-code";
 import type { BrowseDescription, BrowsePath, BrowsePathResult, BrowseResult } from "node-opcua-types";
 import type { DataType, Variant, VariantByteString } from "node-opcua-variant";
 //
-import type { AddReferenceOpts, BaseNode } from "./base_node";
-import type { IEventData } from "./i_event_data";
-import type { INamespace } from "./namespace";
-import type { ISessionContext } from "./session_context";
-import type { UADataType } from "./ua_data_type";
-import type { UAEventType } from "./ua_event_type";
-import type { UAMethod } from "./ua_method";
-import type { UAObject } from "./ua_object";
-import type { UAObjectType } from "./ua_object_type";
-import type { UAReference } from "./ua_reference";
-import type { UAReferenceType } from "./ua_reference_type";
-import type { IHistoricalDataNodeOptions, UAVariable } from "./ua_variable";
-import type { UAVariableType } from "./ua_variable_type";
-import type { UAView } from "./ua_view";
+import type { AddReferenceOpts, BaseNode } from "./base_node.js";
+import type { IEventData } from "./i_event_data.js";
+import type { INamespace } from "./namespace.js";
+import type { ISessionContext } from "./session_context.js";
+import type { UADataType } from "./ua_data_type.js";
+import type { UAEventType } from "./ua_event_type.js";
+import type { UAMethod } from "./ua_method.js";
+import type { UAObject } from "./ua_object.js";
+import type { UAObjectType } from "./ua_object_type.js";
+import type { UAReference } from "./ua_reference.js";
+import type { UAReferenceType } from "./ua_reference_type.js";
+import type { IHistoricalDataNodeOptions, UAVariable } from "./ua_variable.js";
+import type { UAVariableType } from "./ua_variable_type.js";
+import type { UAView } from "./ua_view.js";
 
 export type ShutdownTask = ((this: IAddressSpace) => void) | ((this: IAddressSpace) => Promise<void>);
 

@@ -3,8 +3,8 @@ import type { UAString } from "node-opcua-basic-types";
 import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTWeight } from "./dt_weight";
-import type { UAWeightItem } from "./ua_weight_item";
+import type { DTWeight } from "./dt_weight.js";
+import type { UAWeightItem } from "./ua_weight_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

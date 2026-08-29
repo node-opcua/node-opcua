@@ -1,7 +1,7 @@
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAnalogSignal, UAAnalogSignal_Base } from "./ua_analog_signal";
-import type { UAAnalogSignalVariable } from "./ua_analog_signal_variable";
+import type { UAAnalogSignal, UAAnalogSignal_Base } from "./ua_analog_signal.js";
+import type { UAAnalogSignalVariable } from "./ua_analog_signal_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

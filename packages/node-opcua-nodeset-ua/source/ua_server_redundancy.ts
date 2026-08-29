@@ -1,8 +1,8 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTRedundantServer } from "./dt_redundant_server";
-import type { EnumRedundancySupport } from "./enum_redundancy_support";
+import type { DTRedundantServer } from "./dt_redundant_server.js";
+import type { EnumRedundancySupport } from "./enum_redundancy_support.js";
 
 // ----- this file has been automatically generated - do not edit
 

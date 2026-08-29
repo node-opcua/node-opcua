@@ -2,9 +2,9 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumExceptionDeviationFormat } from "./enum_exception_deviation_format";
-import type { UAAggregateConfiguration } from "./ua_aggregate_configuration";
-import type { UAFolder } from "./ua_folder";
+import type { EnumExceptionDeviationFormat } from "./enum_exception_deviation_format.js";
+import type { UAAggregateConfiguration } from "./ua_aggregate_configuration.js";
+import type { UAFolder } from "./ua_folder.js";
 
 // ----- this file has been automatically generated - do not edit
 

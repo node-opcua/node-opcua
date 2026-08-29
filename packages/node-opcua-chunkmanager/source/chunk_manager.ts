@@ -6,7 +6,7 @@ import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 
-import { readMessageHeader } from "./read_message_header";
+import { readMessageHeader } from "./read_message_header.js";
 
 export function verify_message_chunk(messageChunk: Buffer): void {
     assert(messageChunk);

@@ -32,7 +32,7 @@ import {
     type TransportSettingsOptions
 } from "node-opcua-transport";
 
-import { type WebSocketLike, WsSocketAdapter } from "./ws_socket_adapter";
+import { type WebSocketLike, WsSocketAdapter } from "./ws_socket_adapter.js";
 
 const debugLog = make_debugLog("ClientWS_transport");
 const warningLog = make_warningLog("ClientWS_transport");

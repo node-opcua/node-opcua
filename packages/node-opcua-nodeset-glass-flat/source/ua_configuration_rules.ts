@@ -2,8 +2,8 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { EUInformation } from "node-opcua-data-access";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTFileFormat } from "./dt_file_format";
-import type { EnumCoordinateSystem } from "./enum_coordinate_system";
+import type { DTFileFormat } from "./dt_file_format.js";
+import type { EnumCoordinateSystem } from "./enum_coordinate_system.js";
 
 // ----- this file has been automatically generated - do not edit
 

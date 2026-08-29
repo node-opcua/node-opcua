@@ -1,4 +1,4 @@
-import type { UAInterruptedEvent, UAInterruptedEvent_Base } from "./ua_interrupted_event";
+import type { UAInterruptedEvent, UAInterruptedEvent_Base } from "./ua_interrupted_event.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

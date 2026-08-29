@@ -9,12 +9,12 @@
  */
 import type { Certificate, IKeyOperations, PrivateKey } from "node-opcua-crypto/web";
 
-import { localKeyOperationsOfProvider } from "./local_key_operations_provider";
+import { localKeyOperationsOfProvider } from "./local_key_operations_provider.js";
 import type {
     ICertificateKeyPairProvider,
     ICertificateKeyPairProvider2,
     ICertificateKeyPairProviderWithLocation
-} from "./opcua_secure_object";
+} from "./opcua_secure_object.js";
 
 /**
  * Provides a certificate chain and private key to an OPC UA endpoint.

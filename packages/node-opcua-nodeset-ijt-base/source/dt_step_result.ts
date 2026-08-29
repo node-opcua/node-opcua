@@ -3,7 +3,7 @@ import type { ExtensionObject } from "node-opcua-extension-object";
 import type { EnumResultEvaluationEnum } from "node-opcua-nodeset-machinery-result/dist/enum_result_evaluation_enum";
 import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
 
-import type { DTResultValue } from "./dt_result_value";
+import type { DTResultValue } from "./dt_result_value.js";
 
 // ----- this file has been automatically generated - do not edit
 

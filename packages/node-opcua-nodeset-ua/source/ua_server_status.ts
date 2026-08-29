@@ -2,11 +2,11 @@ import type { UInt32 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTBuildInfo } from "./dt_build_info";
-import type { DTServerStatus } from "./dt_server_status";
-import type { EnumServerState } from "./enum_server_state";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
-import type { UABuildInfo } from "./ua_build_info";
+import type { DTBuildInfo } from "./dt_build_info.js";
+import type { DTServerStatus } from "./dt_server_status.js";
+import type { EnumServerState } from "./enum_server_state.js";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable.js";
+import type { UABuildInfo } from "./ua_build_info.js";
 
 // ----- this file has been automatically generated - do not edit
 

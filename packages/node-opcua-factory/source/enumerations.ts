@@ -7,8 +7,8 @@ import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream"
 import { DataTypeIds } from "node-opcua-constants";
 import { type _TypescriptEnum, adaptTypescriptEnum, Enum, type EnumItem } from "node-opcua-enum";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { TypeSchemaBase } from "./builtin_types";
-import type { EnumerationDefinition, TypeSchemaConstructorOptions } from "./types";
+import { TypeSchemaBase } from "./builtin_types.js";
+import type { EnumerationDefinition, TypeSchemaConstructorOptions } from "./types.js";
 
 function _encode_enumeration(typedEnum: Enum, value: number, stream: OutputBinaryStream): void {
     assert(typeof value === "number", "Expecting a number here");

@@ -1,4 +1,4 @@
-import type { UAJoiningSystemResultReadyEvent, UAJoiningSystemResultReadyEvent_Base } from "./ua_joining_system_result_ready_event";
+import type { UAJoiningSystemResultReadyEvent, UAJoiningSystemResultReadyEvent_Base } from "./ua_joining_system_result_ready_event.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

@@ -2,7 +2,7 @@ import type { Int64, UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTEnumValue } from "./dt_enum_value";
+import type { DTEnumValue } from "./dt_enum_value.js";
 
 // ----- this file has been automatically generated - do not edit
 

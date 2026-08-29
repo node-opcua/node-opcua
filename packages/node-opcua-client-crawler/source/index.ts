@@ -24,6 +24,6 @@
  * @module node-opcua-client-crawler
  */
 
-export * from "./cache_node";
-export * from "./node_crawler";
-export * from "./node_crawler_base";
+export * from "./cache_node.js";
+export * from "./node_crawler.js";
+export * from "./node_crawler_base.js";

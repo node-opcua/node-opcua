@@ -2,8 +2,8 @@ import { OpaqueStructure } from "node-opcua-extension-object";
 import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 //
-import { getExtraDataTypeManager } from "./get_extra_data_type_manager";
-import { resolveDynamicExtensionObject } from "./resolve_dynamic_extension_object";
+import { getExtraDataTypeManager } from "./get_extra_data_type_manager.js";
+import { resolveDynamicExtensionObject } from "./resolve_dynamic_extension_object.js";
 
 export interface PseudoDataValue {
     value: Variant;

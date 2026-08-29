@@ -1,4 +1,4 @@
-import type { UAAuditCertificateEvent, UAAuditCertificateEvent_Base } from "./ua_audit_certificate_event";
+import type { UAAuditCertificateEvent, UAAuditCertificateEvent_Base } from "./ua_audit_certificate_event.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

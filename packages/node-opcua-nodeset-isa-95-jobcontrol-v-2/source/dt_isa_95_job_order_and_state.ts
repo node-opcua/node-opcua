@@ -1,8 +1,8 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
 
-import type { DTISA95JobOrder } from "./dt_isa_95_job_order";
-import type { DTISA95State } from "./dt_isa_95_state";
+import type { DTISA95JobOrder } from "./dt_isa_95_job_order.js";
+import type { DTISA95State } from "./dt_isa_95_state.js";
 
 // ----- this file has been automatically generated - do not edit
 

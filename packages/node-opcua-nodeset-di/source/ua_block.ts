@@ -3,7 +3,7 @@ import type { Int32 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { UATopologyElement, UATopologyElement_Base } from "./ua_topology_element";
+import type { UATopologyElement, UATopologyElement_Base } from "./ua_topology_element.js";
 
 // ----- this file has been automatically generated - do not edit
 

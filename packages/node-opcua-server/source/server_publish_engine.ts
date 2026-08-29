@@ -13,8 +13,8 @@ import { ObjectRegistry } from "node-opcua-object-registry";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import { PublishRequest, PublishResponse, ServiceFault, type SubscriptionAcknowledgement } from "node-opcua-types";
-import type { IClosedOrTransferredSubscription, IServerSidePublishEngine } from "./i_server_side_publish_engine";
-import { Subscription, SubscriptionState } from "./server_subscription";
+import type { IClosedOrTransferredSubscription, IServerSidePublishEngine } from "./i_server_side_publish_engine.js";
+import { Subscription, SubscriptionState } from "./server_subscription.js";
 
 const debugLog = make_debugLog("server_publish_engine");
 const doDebug = checkDebugFlag("server_publish_engine");

@@ -68,7 +68,7 @@ export {
     TransferSubscriptionsResponse
 } from "node-opcua-types";
 
-export * from "./deadband_checker";
+export * from "./deadband_checker.js";
 
 import { assert } from "node-opcua-assert";
 import { MonitoringParameters, PublishResponse } from "node-opcua-types";

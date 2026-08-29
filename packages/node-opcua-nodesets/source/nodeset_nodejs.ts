@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { type NodesetMeta, type NodesetName, nodesetCatalog } from "./nodeset_catalog";
+import { type NodesetMeta, type NodesetName, nodesetCatalog } from "./nodeset_catalog.js";
 
 // The one place this module learns where it sits on disk. `import.meta.dirname`
 // cannot be used while this package emits CommonJS (TS1470), so the ESM migration

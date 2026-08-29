@@ -1,11 +1,11 @@
 import type { Byte } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumTsnFailureCode } from "./enum_tsn_failure_code";
-import type { EnumTsnListenerStatus } from "./enum_tsn_listener_status";
-import type { EnumTsnTalkerStatus } from "./enum_tsn_talker_status";
-import type { UABaseDataVariable } from "./ua_base_data_variable";
-import type { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface";
+import type { EnumTsnFailureCode } from "./enum_tsn_failure_code.js";
+import type { EnumTsnListenerStatus } from "./enum_tsn_listener_status.js";
+import type { EnumTsnTalkerStatus } from "./enum_tsn_talker_status.js";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
+import type { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface.js";
 
 // ----- this file has been automatically generated - do not edit
 

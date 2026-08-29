@@ -1,4 +1,4 @@
-import { _make_flag } from "./_make_flag";
+import { _make_flag } from "./_make_flag.js";
 
 export enum AccessRestrictionsFlag {
     SigningRequired = 1,

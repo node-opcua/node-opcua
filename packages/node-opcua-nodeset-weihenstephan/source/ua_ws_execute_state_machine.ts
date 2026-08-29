@@ -1,8 +1,8 @@
 import type { UAPackMLExecuteStateMachine, UAPackMLExecuteStateMachine_Base } from "node-opcua-nodeset-pack-ml/dist/ua_pack_ml_execute_state_machine";
 import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
 
-import type { UAWSHeldStateMachine } from "./ua_ws_held_state_machine";
-import type { UAWSSuspendedStateMachine } from "./ua_ws_suspended_state_machine";
+import type { UAWSHeldStateMachine } from "./ua_ws_held_state_machine.js";
+import type { UAWSSuspendedStateMachine } from "./ua_ws_suspended_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

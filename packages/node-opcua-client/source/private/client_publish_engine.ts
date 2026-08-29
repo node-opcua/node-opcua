@@ -9,10 +9,10 @@ import type { ServiceFaultAnnotatedError } from "node-opcua-secure-channel";
 import { PublishRequest, type PublishResponse } from "node-opcua-service-subscription";
 import type { SubscriptionAcknowledgementOptions } from "node-opcua-types";
 
-import type { ClientSession, SubscriptionId } from "../client_session";
-import type { ClientSubscription } from "../client_subscription";
-import type { ClientSessionImpl } from "../private/client_session_impl";
-import type { ClientSubscriptionImpl } from "./client_subscription_impl";
+import type { ClientSession, SubscriptionId } from "../client_session.js";
+import type { ClientSubscription } from "../client_subscription.js";
+import type { ClientSessionImpl } from "../private/client_session_impl.js";
+import type { ClientSubscriptionImpl } from "./client_subscription_impl.js";
 
 const debugLog = make_debugLog("client_publish_engine");
 const doDebug = checkDebugFlag("client_publish_engine");

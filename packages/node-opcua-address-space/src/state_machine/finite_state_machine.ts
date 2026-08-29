@@ -22,12 +22,12 @@ import type {
     TransitionSelector,
     UAStateMachineEx,
     UAStateMachineTypeHelper
-} from "../../source/interfaces/state_machine/ua_state_machine_type";
-import type { UATransitionEx } from "../../source/interfaces/state_machine/ua_transition_ex";
-import { registerNodePromoter } from "../../source/loader/register_node_promoter";
-import { BaseNodeImpl } from "../base_node_impl";
-import { UAObjectImpl } from "../ua_object_impl";
-import { UAObjectTypeImpl } from "../ua_object_type_impl";
+} from "../../source/interfaces/state_machine/ua_state_machine_type.js";
+import type { UATransitionEx } from "../../source/interfaces/state_machine/ua_transition_ex.js";
+import { registerNodePromoter } from "../../source/loader/register_node_promoter.js";
+import { BaseNodeImpl } from "../base_node_impl.js";
+import { UAObjectImpl } from "../ua_object_impl.js";
+import { UAObjectTypeImpl } from "../ua_object_type_impl.js";
 
 const warningLog = make_warningLog("finite_state_machine");
 

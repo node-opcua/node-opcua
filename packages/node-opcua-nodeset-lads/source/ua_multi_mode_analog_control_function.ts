@@ -2,8 +2,8 @@ import type { UInt32 } from "node-opcua-basic-types";
 import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABaseControlFunction, UABaseControlFunction_Base, UABaseControlFunction_operational } from "./ua_base_control_function";
-import type { UAControllerParameterSet } from "./ua_controller_parameter_set";
+import type { UABaseControlFunction, UABaseControlFunction_Base, UABaseControlFunction_operational } from "./ua_base_control_function.js";
+import type { UAControllerParameterSet } from "./ua_controller_parameter_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

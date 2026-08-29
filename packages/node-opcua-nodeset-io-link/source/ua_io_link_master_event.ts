@@ -1,4 +1,4 @@
-import type { UAIOLinkEvent, UAIOLinkEvent_Base } from "./ua_io_link_event";
+import type { UAIOLinkEvent, UAIOLinkEvent_Base } from "./ua_io_link_event.js";
 
 // ----- this file has been automatically generated - do not edit
 /**
