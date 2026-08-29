@@ -7,9 +7,14 @@
  *
  * @module node-opcua-common
  */
-import type { Certificate, PrivateKey } from "node-opcua-crypto/web";
+import type { Certificate, IKeyOperations, PrivateKey } from "node-opcua-crypto/web";
 
-import type { ICertificateKeyPairProvider, ICertificateKeyPairProviderWithLocation } from "./opcua_secure_object";
+import { localKeyOperationsOfProvider } from "./local_key_operations_provider";
+import type {
+    ICertificateKeyPairProvider,
+    ICertificateKeyPairProvider2,
+    ICertificateKeyPairProviderWithLocation
+} from "./opcua_secure_object";
 
 /**
  * Provides a certificate chain and private key to an OPC UA endpoint.
@@ -32,7 +37,9 @@ export interface ICertificateChainProvider extends ICertificateKeyPairProvider {
  * Used as the default provider when push certificate management
  * is NOT installed. The chain can be replaced in-place via `update()`.
  */
-export class StaticCertificateChainProvider implements ICertificateChainProvider, ICertificateKeyPairProviderWithLocation {
+export class StaticCertificateChainProvider
+    implements ICertificateChainProvider, ICertificateKeyPairProviderWithLocation, ICertificateKeyPairProvider2
+{
     #chain: Certificate[];
     #key: PrivateKey;
 
@@ -59,6 +66,11 @@ export class StaticCertificateChainProvider implements ICertificateChainProvider
 
     public getPrivateKey(): PrivateKey {
         return this.#key;
+    }
+
+    /** The key as an opaque sign/decrypt object — see {@link localKeyOperationsOfProvider}. */
+    public getKeyOperations(): IKeyOperations {
+        return localKeyOperationsOfProvider(this);
     }
 
     /**

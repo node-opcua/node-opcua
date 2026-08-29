@@ -3,15 +3,37 @@
  */
 import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
-import { type Certificate, type PrivateKey, split_der } from "node-opcua-crypto/web";
+import { type Certificate, type IKeyOperations, type PrivateKey, split_der } from "node-opcua-crypto/web";
 
 import type { ICertificateChainProvider } from "./certificate_chain_provider";
 import { DiskCertificateKeyPairProvider } from "./disk_certificate_key_pair_provider";
+import { getKeyOperationsFromProvider } from "./local_key_operations_provider";
 
 export interface ICertificateKeyPairProvider {
     getCertificate(): Certificate;
     getCertificateChain(): Certificate[];
+    /**
+     * The raw private key. Kept for compatibility — new code should prefer
+     * {@link ICertificateKeyPairProvider2.getKeyOperations} (via
+     * `getKeyOperationsFromProvider`), which works whether the key is local
+     * or HSM/KMS-held; an opaque provider implements this method by
+     * throwing `PrivateKeyUnavailableError`.
+     */
     getPrivateKey(): PrivateKey;
+}
+
+/**
+ * Extends {@link ICertificateKeyPairProvider} with the key as an opaque
+ * sign/decrypt object, so consumers can use the private key without ever
+ * holding its material — the seam HSM/KMS-held keys plug into.
+ *
+ * Same additive pattern as {@link ICertificateKeyPairProviderWithLocation}:
+ * the base interface is untouched, existing implementations stay valid, and
+ * {@link getKeyOperationsFromProvider} bridges the gap by wrapping
+ * `getPrivateKey()` locally when a provider does not implement this.
+ */
+export interface ICertificateKeyPairProvider2 extends ICertificateKeyPairProvider {
+    getKeyOperations(): IKeyOperations;
 }
 
 /**
@@ -169,8 +191,23 @@ export class OPCUASecureObject<T extends Record<string | symbol, any> = any>
         return this.#provider.getCertificateChain();
     }
 
+    /**
+     * The raw private key. Prefer {@link getKeyOperations} in new code: it
+     * works whether the key is local or HSM/KMS-held, while this throws
+     * `PrivateKeyUnavailableError` when the installed provider is opaque.
+     */
     public getPrivateKey(): PrivateKey {
         return this.#provider.getPrivateKey();
+    }
+
+    /**
+     * The private key as an opaque sign/decrypt object, whatever the
+     * provider: an {@link ICertificateKeyPairProvider2} answers directly
+     * (the only usable path when the key is HSM/KMS-held), any other
+     * provider gets its raw key wrapped. See {@link getKeyOperationsFromProvider}.
+     */
+    public getKeyOperations(): IKeyOperations {
+        return getKeyOperationsFromProvider(this.#provider);
     }
 
     /**

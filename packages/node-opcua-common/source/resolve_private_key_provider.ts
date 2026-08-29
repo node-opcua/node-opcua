@@ -8,14 +8,31 @@
  *
  * @module node-opcua-common
  */
-import type { PrivateKey } from "node-opcua-crypto/web";
+import type { IKeyOperations, PrivateKey } from "node-opcua-crypto/web";
 
+import { OpaqueCertificateKeyPairProvider } from "./opaque_certificate_key_pair_provider";
 import type { ICertificateKeyPairProvider } from "./opcua_secure_object";
 import { ResolvedCertificateKeyPairProvider } from "./resolved_certificate_key_pair_provider";
 
 /** Minimal shape of an `OPCUACertificateManager` needed to resolve the private key. */
 export interface ICertificateManagerWithAsyncPrivateKey {
     getPrivateKey(): Promise<PrivateKey>;
+}
+
+/** Shape of a certificate manager whose key is opaque (HSM/KMS-held, `keyOperations` configured). */
+export interface ICertificateManagerWithOpaqueKey {
+    isPrivateKeyOpaque(): boolean;
+    getKeyOperations(): IKeyOperations;
+}
+
+function hasOpaqueKey(manager: unknown): manager is ICertificateManagerWithOpaqueKey {
+    const candidate = manager as ICertificateManagerWithOpaqueKey;
+    return (
+        !!manager &&
+        typeof candidate.isPrivateKeyOpaque === "function" &&
+        typeof candidate.getKeyOperations === "function" &&
+        candidate.isPrivateKeyOpaque()
+    );
 }
 
 /**
@@ -59,6 +76,12 @@ function hasIsPrivateKeyManaged(manager: unknown): manager is IHasIsPrivateKeyMa
  * (decrypting with the manager's configured `privateKeyPassphrase` /
  * `privateKeyProvider` if needed) and install it as `secureObject`'s
  * provider.
+ *
+ * When the certificate manager reports an OPAQUE key
+ * (`isPrivateKeyOpaque()` true — `keyOperations` configured, HSM/KMS-held),
+ * an {@link OpaqueCertificateKeyPairProvider} is installed instead, with the
+ * key metadata (and public half, when available) prefetched here so later
+ * synchronous consumers never await the ops provider for facts.
  *
  * No-ops — leaves the current provider untouched — when:
  * - `hasUserProvidedProvider` is `true` (the secure object was constructed
@@ -105,6 +128,18 @@ export async function resolvePrivateKeyProviderIfNeeded(
     const certificateFile = secureObject.certificateFile;
     if (certificateFile === "<in-memory>" || certificateFile === "<unknown>") {
         return false;
+    }
+    if (hasOpaqueKey(certificateManager)) {
+        // the key is HSM/KMS-held: getPrivateKey() would throw, so install an
+        // opaque provider instead — prefetching the key facts (and the public
+        // half, when available) once here, asynchronously, so every later
+        // synchronous consumer reads them from the provider. This is also the
+        // fail-early probe: an unreachable ops provider rejects now.
+        const keyOperations = certificateManager.getKeyOperations();
+        const keyMetadata = await keyOperations.getKeyMetadata();
+        const publicKey = keyOperations.getPublicKey ? await keyOperations.getPublicKey() : undefined;
+        secureObject.setProvider(new OpaqueCertificateKeyPairProvider({ certificateFile, keyOperations, keyMetadata, publicKey }));
+        return true;
     }
     if (!hasAsyncGetPrivateKey(certificateManager)) {
         return false;
