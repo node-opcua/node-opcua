@@ -2,8 +2,8 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { EUInformation } from "node-opcua-data-access";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTCartesianCoordinates } from "./dt_cartesian_coordinates";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+import type { DTCartesianCoordinates } from "./dt_cartesian_coordinates.js";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

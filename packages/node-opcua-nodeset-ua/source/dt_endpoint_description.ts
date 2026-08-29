@@ -1,10 +1,10 @@
 import type { Byte, UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTApplicationDescription } from "./dt_application_description";
-import type { DTStructure } from "./dt_structure";
-import type { DTUserTokenPolicy } from "./dt_user_token_policy";
-import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
+import type { DTApplicationDescription } from "./dt_application_description.js";
+import type { DTStructure } from "./dt_structure.js";
+import type { DTUserTokenPolicy } from "./dt_user_token_policy.js";
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode.js";
 
 // ----- this file has been automatically generated - do not edit
 

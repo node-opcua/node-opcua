@@ -1,4 +1,4 @@
-import type { UAElementMonitoring, UAElementMonitoring_Base } from "./ua_element_monitoring";
+import type { UAElementMonitoring, UAElementMonitoring_Base } from "./ua_element_monitoring.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

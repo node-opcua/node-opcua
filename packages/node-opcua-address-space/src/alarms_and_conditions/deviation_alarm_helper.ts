@@ -7,9 +7,9 @@ import { assert } from "node-opcua-assert";
 import type { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
-import type { DeviationStuff } from "../../source/interfaces/alarms_and_conditions/deviation_stuff";
-import type { InstallSetPointOptions } from "../../source/interfaces/alarms_and_conditions/install_setpoint_options";
-import type { AddressSpacePrivate } from "../address_space_private";
+import type { DeviationStuff } from "../../source/interfaces/alarms_and_conditions/deviation_stuff.js";
+import type { InstallSetPointOptions } from "../../source/interfaces/alarms_and_conditions/install_setpoint_options.js";
+import type { AddressSpacePrivate } from "../address_space_private.js";
 
 export function DeviationAlarmHelper_getSetpointNodeNode(
     this: DeviationStuff

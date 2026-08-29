@@ -14,11 +14,11 @@ import type { CreateSubscriptionRequestOptions, MonitoringParametersOptions } fr
 import { StatusCodes } from "node-opcua-status-code";
 import type { Variant } from "node-opcua-variant";
 
-import { readUAStructure } from "./object_explorer";
-import { makeRefId } from "./proxy";
-import { ProxyObject } from "./proxy_object";
-import type { ProxyNode } from "./proxy_transition";
-import { ProxyStateMachineType } from "./state_machine_proxy";
+import { readUAStructure } from "./object_explorer.js";
+import { makeRefId } from "./proxy.js";
+import { ProxyObject } from "./proxy_object.js";
+import type { ProxyNode } from "./proxy_transition.js";
+import { ProxyStateMachineType } from "./state_machine_proxy.js";
 
 interface ProxyObjectWithDynamicFields extends ProxyObject {
     dataValue?: DataValue;

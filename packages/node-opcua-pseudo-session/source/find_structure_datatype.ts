@@ -1,7 +1,7 @@
 import { DataTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClassMask } from "node-opcua-data-model";
 import { coerceNodeId, type NodeId } from "node-opcua-nodeid";
-import type { IBasicSessionBrowseAsyncSimple, IBasicSessionBrowseNextAsyncSimple } from "./basic_session_interface";
+import type { IBasicSessionBrowseAsyncSimple, IBasicSessionBrowseNextAsyncSimple } from "./basic_session_interface.js";
 
 export async function findStructureDataType(
     session: IBasicSessionBrowseAsyncSimple & IBasicSessionBrowseNextAsyncSimple,

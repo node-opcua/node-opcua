@@ -3,12 +3,12 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTRecipeTargetValue } from "./dt_recipe_target_value";
-import type { DTRecipeThreshold } from "./dt_recipe_threshold";
-import type { UAMaterial } from "./ua_material";
-import type { UAProductionPreset } from "./ua_production_preset";
-import type { UARecipeManagement } from "./ua_recipe_management";
-import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device";
+import type { DTRecipeTargetValue } from "./dt_recipe_target_value.js";
+import type { DTRecipeThreshold } from "./dt_recipe_threshold.js";
+import type { UAMaterial } from "./ua_material.js";
+import type { UAProductionPreset } from "./ua_production_preset.js";
+import type { UARecipeManagement } from "./ua_recipe_management.js";
+import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device.js";
 
 // ----- this file has been automatically generated - do not edit
 

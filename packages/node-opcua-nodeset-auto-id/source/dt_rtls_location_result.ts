@@ -1,10 +1,10 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTLocation } from "./dt_location";
-import type { DTRotation } from "./dt_rotation";
-import type { DTScanData } from "./dt_scan_data";
-import type { DTScanResult } from "./dt_scan_result";
+import type { DTLocation } from "./dt_location.js";
+import type { DTRotation } from "./dt_rotation.js";
+import type { DTScanData } from "./dt_scan_data.js";
+import type { DTScanResult } from "./dt_scan_result.js";
 
 // ----- this file has been automatically generated - do not edit
 

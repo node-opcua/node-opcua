@@ -17,4 +17,4 @@ export {
     X509IdentityToken
 } from "node-opcua-types";
 
-export * from "./SessionAuthenticationToken";
+export * from "./SessionAuthenticationToken.js";

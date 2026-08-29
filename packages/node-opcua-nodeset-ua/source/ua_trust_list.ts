@@ -2,7 +2,7 @@ import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAFile, UAFile_Base } from "./ua_file";
+import type { UAFile, UAFile_Base } from "./ua_file.js";
 
 // ----- this file has been automatically generated - do not edit
 

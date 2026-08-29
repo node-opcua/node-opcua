@@ -1,4 +1,4 @@
-import type { UAStream, UAStream_Base } from "./ua_stream";
+import type { UAStream, UAStream_Base } from "./ua_stream.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

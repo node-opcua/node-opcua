@@ -6,9 +6,9 @@ import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumCookingKettleMode } from "./enum_cooking_kettle_mode";
-import type { EnumSignalMode } from "./enum_signal_mode";
-import type { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter";
+import type { EnumCookingKettleMode } from "./enum_cooking_kettle_mode.js";
+import type { EnumSignalMode } from "./enum_signal_mode.js";
+import type { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter.js";
 
 // ----- this file has been automatically generated - do not edit
 

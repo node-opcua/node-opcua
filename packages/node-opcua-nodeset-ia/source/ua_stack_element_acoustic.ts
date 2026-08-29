@@ -3,7 +3,7 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAOrderedList } from "node-opcua-nodeset-ua/dist/ua_ordered_list";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAStackElement, UAStackElement_Base } from "./ua_stack_element";
+import type { UAStackElement, UAStackElement_Base } from "./ua_stack_element.js";
 
 // ----- this file has been automatically generated - do not edit
 

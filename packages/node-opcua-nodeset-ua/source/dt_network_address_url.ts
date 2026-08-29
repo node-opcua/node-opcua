@@ -1,7 +1,7 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTNetworkAddress } from "./dt_network_address";
+import type { DTNetworkAddress } from "./dt_network_address.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,8 +1,8 @@
 import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTFieldTarget } from "./dt_field_target";
-import type { UASubscribedDataSet, UASubscribedDataSet_Base } from "./ua_subscribed_data_set";
+import type { DTFieldTarget } from "./dt_field_target.js";
+import type { UASubscribedDataSet, UASubscribedDataSet_Base } from "./ua_subscribed_data_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

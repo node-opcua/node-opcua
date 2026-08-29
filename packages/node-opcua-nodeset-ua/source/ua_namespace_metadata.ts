@@ -2,9 +2,9 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString, UInt16, UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTRolePermission } from "./dt_role_permission";
-import type { EnumId } from "./enum_id";
-import type { UAAddressSpaceFile } from "./ua_address_space_file";
+import type { DTRolePermission } from "./dt_role_permission.js";
+import type { EnumId } from "./enum_id.js";
+import type { UAAddressSpaceFile } from "./ua_address_space_file.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -15,8 +15,8 @@ import { NodeId, type NodeIdLike, sameNodeId } from "node-opcua-nodeid";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import type { AbstractFs } from "../common/abstract_fs";
-import { OpenFileMode, OpenFileModeMask } from "../open_mode";
+import type { AbstractFs } from "../common/abstract_fs.js";
+import { OpenFileMode, OpenFileModeMask } from "../open_mode.js";
 
 const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");

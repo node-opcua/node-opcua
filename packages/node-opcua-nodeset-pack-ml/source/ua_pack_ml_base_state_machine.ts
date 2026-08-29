@@ -6,7 +6,7 @@ import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
 import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAPackMLMachineStateMachine } from "./ua_pack_ml_machine_state_machine";
+import type { UAPackMLMachineStateMachine } from "./ua_pack_ml_machine_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

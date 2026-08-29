@@ -5,8 +5,8 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumDeviceHealth } from "./enum_device_health";
-import type { UAComponent, UAComponent_Base } from "./ua_component";
+import type { EnumDeviceHealth } from "./enum_device_health.js";
+import type { UAComponent, UAComponent_Base } from "./ua_component.js";
 
 // ----- this file has been automatically generated - do not edit
 

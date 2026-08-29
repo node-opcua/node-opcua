@@ -21,11 +21,11 @@ export {
     RegisterServerResponse,
     ServerOnNetwork
 } from "node-opcua-types";
-export { Announcement } from "./Announcement";
-export { announcementToServiceConfig } from "./announcement_to_service_config";
-export { BonjourHolder } from "./bonjourHolder";
-export { serverCapabilities } from "./server_capabilities";
+export { Announcement } from "./Announcement.js";
+export { announcementToServiceConfig } from "./announcement_to_service_config.js";
+export { BonjourHolder } from "./bonjourHolder.js";
+export { serverCapabilities } from "./server_capabilities.js";
 export {
     isSameService,
     serviceToString
-} from "./tools";
+} from "./tools.js";

@@ -4,7 +4,7 @@ import type { DTCurrencyUnit } from "node-opcua-nodeset-ua/dist/dt_currency_unit
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAProduct, UAProduct_Base } from "./ua_product";
+import type { UAProduct, UAProduct_Base } from "./ua_product.js";
 
 // ----- this file has been automatically generated - do not edit
 

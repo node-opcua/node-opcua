@@ -1,5 +1,5 @@
 /**
  * @module node-opcua-date-time
  */
-export * from "./date_time";
-export * from "./encode_decode";
+export * from "./date_time.js";
+export * from "./encode_decode.js";

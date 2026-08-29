@@ -2,7 +2,7 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString, UInt16 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAProductionProgramStateMachine } from "./ua_production_program_state_machine";
+import type { UAProductionProgramStateMachine } from "./ua_production_program_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

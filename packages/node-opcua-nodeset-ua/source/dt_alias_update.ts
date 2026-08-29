@@ -1,8 +1,8 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTAliasCategoryUpdate } from "./dt_alias_category_update";
-import type { DTStructure } from "./dt_structure";
+import type { DTAliasCategoryUpdate } from "./dt_alias_category_update.js";
+import type { DTStructure } from "./dt_structure.js";
 
 // ----- this file has been automatically generated - do not edit
 

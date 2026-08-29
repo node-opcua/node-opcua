@@ -1,8 +1,8 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTBuildInfo } from "./dt_build_info";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+import type { DTBuildInfo } from "./dt_build_info.js";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

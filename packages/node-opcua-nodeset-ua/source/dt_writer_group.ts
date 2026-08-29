@@ -1,13 +1,13 @@
 import type { Byte, UAString, UInt16, UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTDataSetWriter } from "./dt_data_set_writer";
-import type { DTEndpointDescription } from "./dt_endpoint_description";
-import type { DTKeyValuePair } from "./dt_key_value_pair";
-import type { DTPubSubGroup } from "./dt_pub_sub_group";
-import type { DTWriterGroupMessage } from "./dt_writer_group_message";
-import type { DTWriterGroupTransport } from "./dt_writer_group_transport";
-import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
+import type { DTDataSetWriter } from "./dt_data_set_writer.js";
+import type { DTEndpointDescription } from "./dt_endpoint_description.js";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
+import type { DTPubSubGroup } from "./dt_pub_sub_group.js";
+import type { DTWriterGroupMessage } from "./dt_writer_group_message.js";
+import type { DTWriterGroupTransport } from "./dt_writer_group_transport.js";
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode.js";
 
 // ----- this file has been automatically generated - do not edit
 

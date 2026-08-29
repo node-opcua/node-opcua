@@ -12,13 +12,13 @@ import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog 
 import { type ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-status-code";
 
 // this package requires
-import { AcknowledgeMessage } from "./AcknowledgeMessage";
-import { HelloMessage } from "./HelloMessage";
-import type { IHelloAckLimits } from "./i_hello_ack_limits";
-import { ReverseHelloMessage, validateReverseHelloFields } from "./ReverseHelloMessage";
-import { type ISocketLike, TCP_transport } from "./tcp_transport";
-import { decodeMessage, packTcpMessage } from "./tools";
-import { doTraceHelloAck } from "./utils";
+import { AcknowledgeMessage } from "./AcknowledgeMessage.js";
+import { HelloMessage } from "./HelloMessage.js";
+import type { IHelloAckLimits } from "./i_hello_ack_limits.js";
+import { ReverseHelloMessage, validateReverseHelloFields } from "./ReverseHelloMessage.js";
+import { type ISocketLike, TCP_transport } from "./tcp_transport.js";
+import { decodeMessage, packTcpMessage } from "./tools.js";
+import { doTraceHelloAck } from "./utils.js";
 
 const debugLog = make_debugLog("TRANSPORT");
 const errorLog = make_errorLog("TRANSPORT");

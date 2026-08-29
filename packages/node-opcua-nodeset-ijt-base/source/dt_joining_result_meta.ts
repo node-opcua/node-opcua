@@ -5,9 +5,9 @@ import type { DTProcessingTimes } from "node-opcua-nodeset-machinery-result/dist
 import type { DTResultMeta } from "node-opcua-nodeset-machinery-result/dist/dt_result_meta";
 import type { EnumResultEvaluationEnum } from "node-opcua-nodeset-machinery-result/dist/enum_result_evaluation_enum";
 
-import type { DTEntity } from "./dt_entity";
-import type { DTKeyValue } from "./dt_key_value";
-import type { DTResultCounter } from "./dt_result_counter";
+import type { DTEntity } from "./dt_entity.js";
+import type { DTKeyValue } from "./dt_key_value.js";
+import type { DTResultCounter } from "./dt_result_counter.js";
 
 // ----- this file has been automatically generated - do not edit
 

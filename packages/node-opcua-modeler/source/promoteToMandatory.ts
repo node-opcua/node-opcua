@@ -14,7 +14,7 @@ import { NodeClass } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 
-import { displayNodeElement } from "./displayNodeElement";
+import { displayNodeElement } from "./displayNodeElement.js";
 
 const warningLog = make_warningLog("promoteToMandatory");
 

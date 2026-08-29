@@ -2,10 +2,10 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTEventFilter } from "./dt_event_filter";
-import type { DTHistoryEventFieldList } from "./dt_history_event_field_list";
-import type { EnumPerformUpdate } from "./enum_perform_update";
-import type { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_audit_history_update_event";
+import type { DTEventFilter } from "./dt_event_filter.js";
+import type { DTHistoryEventFieldList } from "./dt_history_event_field_list.js";
+import type { EnumPerformUpdate } from "./enum_perform_update.js";
+import type { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_audit_history_update_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

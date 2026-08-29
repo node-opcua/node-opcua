@@ -2,14 +2,14 @@ import type { UAString, UInt16, UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { Variant } from "node-opcua-variant";
 
-import type { DTDataSetMeta } from "./dt_data_set_meta";
-import type { DTDataSetReaderMessage } from "./dt_data_set_reader_message";
-import type { DTDataSetReaderTransport } from "./dt_data_set_reader_transport";
-import type { DTEndpointDescription } from "./dt_endpoint_description";
-import type { DTKeyValuePair } from "./dt_key_value_pair";
-import type { DTStructure } from "./dt_structure";
-import type { DTSubscribedDataSet } from "./dt_subscribed_data_set";
-import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
+import type { DTDataSetMeta } from "./dt_data_set_meta.js";
+import type { DTDataSetReaderMessage } from "./dt_data_set_reader_message.js";
+import type { DTDataSetReaderTransport } from "./dt_data_set_reader_transport.js";
+import type { DTEndpointDescription } from "./dt_endpoint_description.js";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
+import type { DTStructure } from "./dt_structure.js";
+import type { DTSubscribedDataSet } from "./dt_subscribed_data_set.js";
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode.js";
 
 // ----- this file has been automatically generated - do not edit
 

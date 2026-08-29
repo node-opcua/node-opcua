@@ -2,8 +2,8 @@ import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAContinuousScale, UAContinuousScale_Base } from "./ua_continuous_scale";
-import type { UAMeasuredItem } from "./ua_measured_item";
+import type { UAContinuousScale, UAContinuousScale_Base } from "./ua_continuous_scale.js";
+import type { UAMeasuredItem } from "./ua_measured_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

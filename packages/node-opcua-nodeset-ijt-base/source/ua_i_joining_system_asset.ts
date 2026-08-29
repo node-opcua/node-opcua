@@ -13,8 +13,8 @@ import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-u
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTSignal } from "./dt_signal";
-import type { UAJoiningDataVariable } from "./ua_joining_data_variable";
+import type { DTSignal } from "./dt_signal.js";
+import type { UAJoiningDataVariable } from "./ua_joining_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -3,12 +3,12 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
 
-import type { DTISA95Equipment } from "./dt_isa_95_equipment";
-import type { DTISA95Material } from "./dt_isa_95_material";
-import type { DTISA95Parameter } from "./dt_isa_95_parameter";
-import type { DTISA95Personnel } from "./dt_isa_95_personnel";
-import type { DTISA95PhysicalAsset } from "./dt_isa_95_physical_asset";
-import type { DTISA95WorkMaster } from "./dt_isa_95_work_master";
+import type { DTISA95Equipment } from "./dt_isa_95_equipment.js";
+import type { DTISA95Material } from "./dt_isa_95_material.js";
+import type { DTISA95Parameter } from "./dt_isa_95_parameter.js";
+import type { DTISA95Personnel } from "./dt_isa_95_personnel.js";
+import type { DTISA95PhysicalAsset } from "./dt_isa_95_physical_asset.js";
+import type { DTISA95WorkMaster } from "./dt_isa_95_work_master.js";
 
 // ----- this file has been automatically generated - do not edit
 

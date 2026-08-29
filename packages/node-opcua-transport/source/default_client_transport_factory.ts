@@ -2,8 +2,8 @@
  * @module node-opcua-transport
  */
 
-import { ClientTCP_transport, type TransportSettingsOptions } from "./client_tcp_transport";
-import type { IClientTransport, IClientTransportFactory } from "./i_client_transport";
+import { ClientTCP_transport, type TransportSettingsOptions } from "./client_tcp_transport.js";
+import type { IClientTransport, IClientTransportFactory } from "./i_client_transport.js";
 
 /**
  * The default client-transport factory, which returns a {@link ClientTCP_transport}.

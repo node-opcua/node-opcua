@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAConfigurableObject, UAConfigurableObject_Base } from "node-opcua-nodeset-di/dist/ua_configurable_object";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAccessorySlotStateMachine } from "./ua_accessory_slot_state_machine";
+import type { UAAccessorySlotStateMachine } from "./ua_accessory_slot_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

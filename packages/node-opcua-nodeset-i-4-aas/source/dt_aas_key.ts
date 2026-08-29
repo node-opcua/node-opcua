@@ -2,8 +2,8 @@ import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
 
-import type { EnumAASKeyElements } from "./enum_aas_key_elements";
-import type { EnumAASKeyType } from "./enum_aas_key_type";
+import type { EnumAASKeyElements } from "./enum_aas_key_elements.js";
+import type { EnumAASKeyType } from "./enum_aas_key_type.js";
 
 // ----- this file has been automatically generated - do not edit
 

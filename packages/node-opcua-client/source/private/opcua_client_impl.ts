@@ -50,22 +50,22 @@ import {
 import { type Callback, type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
 import { isNullOrUndefined, matchUri, randomBytes } from "node-opcua-utils";
-import type { OPCUAClientBaseEvents } from "../client_base";
-import type { ClientSession } from "../client_session";
-import type { ClientSubscriptionOptions } from "../client_subscription";
-import type { Response } from "../common";
+import type { OPCUAClientBaseEvents } from "../client_base.js";
+import type { ClientSession } from "../client_session.js";
+import type { ClientSubscriptionOptions } from "../client_subscription.js";
+import type { Response } from "../common.js";
 import {
     type EndpointWithUserIdentity,
     OPCUAClient,
     type OPCUAClientOptions,
     type WithSessionFuncP,
     type WithSubscriptionFuncP
-} from "../opcua_client";
-import type { AnonymousIdentity, UserIdentityInfo, UserIdentityInfoUserName, UserIdentityInfoX509 } from "../user_identity_info";
-import { ClientBaseImpl } from "./client_base_impl";
-import { ClientSessionImpl } from "./client_session_impl";
-import type { IClientBase } from "./i_private_client";
-import { repair_client_sessions } from "./reconnection/reconnection";
+} from "../opcua_client.js";
+import type { AnonymousIdentity, UserIdentityInfo, UserIdentityInfoUserName, UserIdentityInfoX509 } from "../user_identity_info.js";
+import { ClientBaseImpl } from "./client_base_impl.js";
+import { ClientSessionImpl } from "./client_session_impl.js";
+import type { IClientBase } from "./i_private_client.js";
+import { repair_client_sessions } from "./reconnection/reconnection.js";
 
 interface TokenAndSignature {
     userIdentityToken: UserIdentityToken | null;

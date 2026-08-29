@@ -6,9 +6,9 @@ import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumCombiSteamerMode } from "./enum_combi_steamer_mode";
-import type { EnumSpecialCookingMode } from "./enum_special_cooking_mode";
-import type { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter";
+import type { EnumCombiSteamerMode } from "./enum_combi_steamer_mode.js";
+import type { EnumSpecialCookingMode } from "./enum_special_cooking_mode.js";
+import type { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter.js";
 
 // ----- this file has been automatically generated - do not edit
 

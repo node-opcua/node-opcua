@@ -1,8 +1,8 @@
 import type { UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTServerDiagnosticsSummary } from "./dt_server_diagnostics_summary";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+import type { DTServerDiagnosticsSummary } from "./dt_server_diagnostics_summary.js";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

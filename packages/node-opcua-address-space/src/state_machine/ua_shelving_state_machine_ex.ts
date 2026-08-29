@@ -14,11 +14,11 @@ import type { UAState } from "node-opcua-nodeset-ua";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { type CallbackT, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, type VariantLike } from "node-opcua-variant";
-import type { UAShelvedStateMachineEx } from "../../source/interfaces/state_machine/ua_shelved_state_machine_ex";
-import type { UATransitionEx } from "../../source/interfaces/state_machine/ua_transition_ex";
-import { UAAlarmConditionImpl, UAAlarmConditionImplBase } from "../alarms_and_conditions/ua_alarm_condition_impl";
+import type { UAShelvedStateMachineEx } from "../../source/interfaces/state_machine/ua_shelved_state_machine_ex.js";
+import type { UATransitionEx } from "../../source/interfaces/state_machine/ua_transition_ex.js";
+import { UAAlarmConditionImpl, UAAlarmConditionImplBase } from "../alarms_and_conditions/ua_alarm_condition_impl.js";
 
-import { promoteToStateMachine, UAStateMachineImpl } from "./finite_state_machine";
+import { promoteToStateMachine, UAStateMachineImpl } from "./finite_state_machine.js";
 
 const debugLog = make_debugLog("ua_shelving_state_machine_ex");
 const doDebug = checkDebugFlag("ua_shelving_state_machine_ex");

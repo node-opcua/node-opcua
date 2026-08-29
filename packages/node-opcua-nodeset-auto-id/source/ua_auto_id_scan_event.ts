@@ -3,7 +3,7 @@ import type { UAString } from "node-opcua-basic-types";
 import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTScanResult } from "./dt_scan_result";
+import type { DTScanResult } from "./dt_scan_result.js";
 
 // ----- this file has been automatically generated - do not edit
 

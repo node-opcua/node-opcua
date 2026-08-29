@@ -1,4 +1,4 @@
-import type { UANonExclusiveLimitAlarm, UANonExclusiveLimitAlarm_Base } from "./ua_non_exclusive_limit_alarm";
+import type { UANonExclusiveLimitAlarm, UANonExclusiveLimitAlarm_Base } from "./ua_non_exclusive_limit_alarm.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

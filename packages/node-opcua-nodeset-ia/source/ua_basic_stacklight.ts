@@ -2,9 +2,9 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAOrderedList, UAOrderedList_Base } from "node-opcua-nodeset-ua/dist/ua_ordered_list";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumStacklightOperationMode } from "./enum_stacklight_operation_mode";
-import type { UAStackLevel } from "./ua_stack_level";
-import type { UAStackRunning } from "./ua_stack_running";
+import type { EnumStacklightOperationMode } from "./enum_stacklight_operation_mode.js";
+import type { UAStackLevel } from "./ua_stack_level.js";
+import type { UAStackRunning } from "./ua_stack_running.js";
 
 // ----- this file has been automatically generated - do not edit
 

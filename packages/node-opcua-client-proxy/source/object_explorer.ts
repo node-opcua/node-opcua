@@ -13,10 +13,10 @@ import { type Argument, CallMethodRequest } from "node-opcua-service-call";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
-import { makeRefId } from "./proxy";
-import type { ArgumentEx, MethodDescription, ProxyBaseNode } from "./proxy_base_node";
-import type { UAProxyManager } from "./proxy_manager";
-import { ProxyVariable } from "./proxy_variable";
+import { makeRefId } from "./proxy.js";
+import type { ArgumentEx, MethodDescription, ProxyBaseNode } from "./proxy_base_node.js";
+import type { UAProxyManager } from "./proxy_manager.js";
+import { ProxyVariable } from "./proxy_variable.js";
 
 const doDebug = false;
 const debugLog = make_debugLog("Proxy");
@@ -136,7 +136,7 @@ function convertToVariantArray(inputArgsDef: ArgumentEx[], inputArgs: Record<str
 }
 
 import type { StatusCode } from "node-opcua-status-code";
-import type { ProxyNode } from "./proxy_transition";
+import type { ProxyNode } from "./proxy_transition.js";
 
 function makeFunction(obj: ProxyNodeUnderConstruction, methodName: string) {
     return async function functionCaller(

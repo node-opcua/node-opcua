@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { UADiscreteAlarm, UADiscreteAlarm_Base } from "./ua_discrete_alarm";
+import type { UADiscreteAlarm, UADiscreteAlarm_Base } from "./ua_discrete_alarm.js";
 
 // ----- this file has been automatically generated - do not edit
 

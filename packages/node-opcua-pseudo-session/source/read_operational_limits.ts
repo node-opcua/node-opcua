@@ -9,7 +9,7 @@ import { make_warningLog } from "node-opcua-debug";
 import { type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { AttributeIds } from "node-opcua-service-read";
 import type { SignedSoftwareCertificate } from "node-opcua-types";
-import type { IBasicSessionReadAsyncMultiple } from "./basic_session_interface";
+import type { IBasicSessionReadAsyncMultiple } from "./basic_session_interface.js";
 
 const warningLog = make_warningLog("read_operational_limits");
 

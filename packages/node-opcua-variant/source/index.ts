@@ -24,9 +24,9 @@
  * @module node-opcua-variant
  */
 
-export * from "./adjust_variant";
-export * from "./cast_variant";
-export * from "./DataType_enum";
-export * from "./VariantArrayType_enum";
-export * from "./variant";
-export * from "./verify_rank_and_dimension";
+export * from "./adjust_variant.js";
+export * from "./cast_variant.js";
+export * from "./DataType_enum.js";
+export * from "./VariantArrayType_enum.js";
+export * from "./variant.js";
+export * from "./verify_rank_and_dimension.js";

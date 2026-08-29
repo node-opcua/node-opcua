@@ -1,6 +1,6 @@
 import type { LocalizedText } from "node-opcua-data-model";
 
-import type { UAGuardVariable, UAGuardVariable_Base } from "./ua_guard_variable";
+import type { UAGuardVariable, UAGuardVariable_Base } from "./ua_guard_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

@@ -13,7 +13,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import type { ConstructorFunc } from "node-opcua-factory";
 import ts from "typescript";
 
-import { get_class_TScript_filename, produce_TScript_code } from "./factory_code_generator";
+import { get_class_TScript_filename, produce_TScript_code } from "./factory_code_generator.js";
 
 // The one place this module learns where it sits on disk. `import.meta.dirname`
 // cannot be used while this package emits CommonJS (TS1470), so the ESM migration

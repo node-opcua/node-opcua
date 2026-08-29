@@ -2,8 +2,8 @@ import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTStructure } from "./dt_structure";
-import type { EnumApplication } from "./enum_application";
+import type { DTStructure } from "./dt_structure.js";
+import type { EnumApplication } from "./enum_application.js";
 
 // ----- this file has been automatically generated - do not edit
 

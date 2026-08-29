@@ -10,8 +10,8 @@ import {
 } from "node-opcua-factory";
 import { ExpandedNodeId } from "node-opcua-nodeid";
 
-import { createDynamicObjectConstructor } from "./dynamic_extension_object";
-import type { InternalTypeDictionary, MapDataTypeAndEncodingIdProvider, StructureTypeRaw } from "./parse_binary_xsd";
+import { createDynamicObjectConstructor } from "./dynamic_extension_object.js";
+import type { InternalTypeDictionary, MapDataTypeAndEncodingIdProvider, StructureTypeRaw } from "./parse_binary_xsd.js";
 
 const errorLog = make_errorLog("tools");
 const _doDebug = false; // process.env.DEBUG && process.env.DEBUG.includes("node-opcua-schemas");

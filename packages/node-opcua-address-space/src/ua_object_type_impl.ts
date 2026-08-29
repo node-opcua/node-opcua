@@ -18,13 +18,13 @@ import type { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
-import { SessionContext } from "../source/session_context";
-import { initialize_properties_and_components } from "./_instantiate_helpers";
-import type { AddressSpacePrivate } from "./address_space_private";
-import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
-import { ToStringBuilder, UAObjectType_toString } from "./base_node_private";
-import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
-import { assertUnusedChildBrowseName, topMostParentIsObjectTypeOrVariableType } from "./ua_variable_type_impl";
+import { SessionContext } from "../source/session_context.js";
+import { initialize_properties_and_components } from "./_instantiate_helpers.js";
+import type { AddressSpacePrivate } from "./address_space_private.js";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl.js";
+import { ToStringBuilder, UAObjectType_toString } from "./base_node_private.js";
+import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf.js";
+import { assertUnusedChildBrowseName, topMostParentIsObjectTypeOrVariableType } from "./ua_variable_type_impl.js";
 
 export interface UAObjectTypeOptions extends InternalBaseNodeOptions {
     isAbstract?: boolean | null;

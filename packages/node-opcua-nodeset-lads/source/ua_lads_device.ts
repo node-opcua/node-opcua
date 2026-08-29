@@ -12,11 +12,11 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAFunctionalUnitSet } from "./ua_functional_unit_set";
-import type { UALADSComponents } from "./ua_lads_components";
-import type { UALADSDeviceStateMachine } from "./ua_lads_device_state_machine";
-import type { UALADSOperationModeStateMachine } from "./ua_lads_operation_mode_state_machine";
-import type { UAMaintenanceSet } from "./ua_maintenance_set";
+import type { UAFunctionalUnitSet } from "./ua_functional_unit_set.js";
+import type { UALADSComponents } from "./ua_lads_components.js";
+import type { UALADSDeviceStateMachine } from "./ua_lads_device_state_machine.js";
+import type { UALADSOperationModeStateMachine } from "./ua_lads_operation_mode_state_machine.js";
+import type { UAMaintenanceSet } from "./ua_maintenance_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

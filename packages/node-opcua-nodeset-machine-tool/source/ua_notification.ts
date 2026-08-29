@@ -1,7 +1,7 @@
 import type { UAObject } from "node-opcua-address-space-base";
 
-import type { UAMessages } from "./ua_messages";
-import type { UAPrognosisList } from "./ua_prognosis_list";
+import type { UAMessages } from "./ua_messages.js";
+import type { UAPrognosisList } from "./ua_prognosis_list.js";
 
 // ----- this file has been automatically generated - do not edit
 

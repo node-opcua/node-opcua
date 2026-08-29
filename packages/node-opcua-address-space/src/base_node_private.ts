@@ -35,11 +35,11 @@ import type { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExpandedNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { ReferenceDescription, type ReferenceDescriptionOptions } from "node-opcua-types";
-import type { AddressSpacePrivate } from "./address_space_private";
-import { BaseNodeImpl, getReferenceType } from "./base_node_impl";
-import { UANamespace_process_modelling_rule } from "./namespace_private";
-import { ReferenceImpl } from "./reference_impl";
-import { wipeMemorizedStuff } from "./tool_isSubtypeOf";
+import type { AddressSpacePrivate } from "./address_space_private.js";
+import { BaseNodeImpl, getReferenceType } from "./base_node_impl.js";
+import { UANamespace_process_modelling_rule } from "./namespace_private.js";
+import { ReferenceImpl } from "./reference_impl.js";
+import { wipeMemorizedStuff } from "./tool_isSubtypeOf.js";
 
 const errorLog = make_errorLog("address-space:BaseNode");
 const doTrace = checkDebugFlag("INSTANTIATE");

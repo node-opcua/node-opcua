@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAIOLinkDeviceAlarm, UAIOLinkDeviceAlarm_Base } from "./ua_io_link_device_alarm";
+import type { UAIOLinkDeviceAlarm, UAIOLinkDeviceAlarm_Base } from "./ua_io_link_device_alarm.js";
 
 // ----- this file has been automatically generated - do not edit
 

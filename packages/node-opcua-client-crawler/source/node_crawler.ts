@@ -6,9 +6,9 @@ import { make_warningLog } from "node-opcua-debug";
 import { type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { ReferenceDescription } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { type CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cache_node";
-import { NodeCrawlerBase, type NodeCrawlerClientSession, type ObjectMap, type Pojo, type UserData } from "./node_crawler_base";
-import { type EmptyCallback, removeCycle, type TaskReconstruction } from "./private";
+import { type CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cache_node.js";
+import { NodeCrawlerBase, type NodeCrawlerClientSession, type ObjectMap, type Pojo, type UserData } from "./node_crawler_base.js";
+import { type EmptyCallback, removeCycle, type TaskReconstruction } from "./private.js";
 
 const warningLog = make_warningLog("node_crawler");
 

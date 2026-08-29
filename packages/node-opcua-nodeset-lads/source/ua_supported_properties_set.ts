@@ -1,4 +1,4 @@
-import type { UASet, UASet_Base } from "./ua_set";
+import type { UASet, UASet_Base } from "./ua_set.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

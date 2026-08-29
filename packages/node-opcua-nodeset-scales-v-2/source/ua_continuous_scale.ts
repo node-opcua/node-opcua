@@ -2,11 +2,11 @@ import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumRateControlMode } from "./enum_rate_control_mode";
-import type { UAMeasuredItem } from "./ua_measured_item";
-import type { UAProductionPreset } from "./ua_production_preset";
-import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device";
-import type { UATotalizer } from "./ua_totalizer";
+import type { EnumRateControlMode } from "./enum_rate_control_mode.js";
+import type { UAMeasuredItem } from "./ua_measured_item.js";
+import type { UAProductionPreset } from "./ua_production_preset.js";
+import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device.js";
+import type { UATotalizer } from "./ua_totalizer.js";
 
 // ----- this file has been automatically generated - do not edit
 

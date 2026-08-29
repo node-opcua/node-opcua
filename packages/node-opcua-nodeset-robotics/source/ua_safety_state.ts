@@ -5,7 +5,7 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumOperationalMode } from "./enum_operational_mode";
+import type { EnumOperationalMode } from "./enum_operational_mode.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,7 +1,7 @@
 import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTPriorityMappingEntry } from "./dt_priority_mapping_entry";
+import type { DTPriorityMappingEntry } from "./dt_priority_mapping_entry.js";
 
 // ----- this file has been automatically generated - do not edit
 

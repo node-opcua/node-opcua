@@ -3,8 +3,8 @@ import { DataValue } from "node-opcua-data-value";
 import { extraStatusCodeBits, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
-import { getAggregateData } from "./common";
-import { type AggregateConfigurationOptions, type Interval, isUncertain } from "./interval";
+import { getAggregateData } from "./common.js";
+import { type AggregateConfigurationOptions, type Interval, isUncertain } from "./interval.js";
 
 /**
  * The Count Aggregate retrieves a count of all the raw values within an interval.

@@ -1,4 +1,4 @@
-import type { UAOutOfResourcesConditionClass, UAOutOfResourcesConditionClass_Base } from "./ua_out_of_resources_condition_class";
+import type { UAOutOfResourcesConditionClass, UAOutOfResourcesConditionClass_Base } from "./ua_out_of_resources_condition_class.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

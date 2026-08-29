@@ -3,7 +3,7 @@ import type { EUInformation } from "node-opcua-data-access";
 import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumToolLifeIndication } from "./enum_tool_life_indication";
+import type { EnumToolLifeIndication } from "./enum_tool_life_indication.js";
 
 // ----- this file has been automatically generated - do not edit
 

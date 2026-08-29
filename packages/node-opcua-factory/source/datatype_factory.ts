@@ -8,9 +8,9 @@ import { DataTypeIds } from "node-opcua-constants";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import type { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 
-import { getBuiltInType, hasBuiltInType } from "./builtin_types";
-import { type EnumerationDefinitionSchema, getBuiltInEnumeration, hasBuiltInEnumeration } from "./enumerations";
-import type { CommonInterface, ConstructorFunc, ConstructorFuncWithSchema, IBaseUAObject, IStructuredTypeSchema } from "./types";
+import { getBuiltInType, hasBuiltInType } from "./builtin_types.js";
+import { type EnumerationDefinitionSchema, getBuiltInEnumeration, hasBuiltInEnumeration } from "./enumerations.js";
+import type { CommonInterface, ConstructorFunc, ConstructorFuncWithSchema, IBaseUAObject, IStructuredTypeSchema } from "./types.js";
 
 const debugLog = make_debugLog("datatype_factory");
 const doDebug = checkDebugFlag("datatype_factory");

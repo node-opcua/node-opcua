@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAuditCreateSessionEvent, UAAuditCreateSessionEvent_Base } from "./ua_audit_create_session_event";
+import type { UAAuditCreateSessionEvent, UAAuditCreateSessionEvent_Base } from "./ua_audit_create_session_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

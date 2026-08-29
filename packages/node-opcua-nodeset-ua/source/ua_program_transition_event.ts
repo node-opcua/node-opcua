@@ -1,5 +1,5 @@
-import type { UABaseDataVariable } from "./ua_base_data_variable";
-import type { UATransitionEvent, UATransitionEvent_Base } from "./ua_transition_event";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
+import type { UATransitionEvent, UATransitionEvent_Base } from "./ua_transition_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

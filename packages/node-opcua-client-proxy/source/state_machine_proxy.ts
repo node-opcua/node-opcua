@@ -2,8 +2,8 @@
  * @module node-opcua-client-proxy
  */
 import { assert } from "node-opcua-assert";
-import { makeProxyState, ProxyState } from "./proxy_state";
-import { makeProxyTransition, type ProxyNode, type ProxyTransition } from "./proxy_transition";
+import { makeProxyState, ProxyState } from "./proxy_state.js";
+import { makeProxyTransition, type ProxyNode, type ProxyTransition } from "./proxy_transition.js";
 
 export class ProxyStateMachineType {
     public initialState: ProxyState | undefined;

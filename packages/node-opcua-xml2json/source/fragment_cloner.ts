@@ -1,4 +1,4 @@
-import type { IReaderState, Xml2Json, XmlAttributes } from "./xml2json";
+import type { IReaderState, Xml2Json, XmlAttributes } from "./xml2json.js";
 
 interface XmlWriter {
     startElement(elementName: string): this;

@@ -9,7 +9,7 @@ import type { UAStateVariable } from "node-opcua-nodeset-ua/dist/ua_state_variab
 import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
 import type { DataType } from "node-opcua-variant";
 
-import type { UARunningStateMachine } from "./ua_running_state_machine";
+import type { UARunningStateMachine } from "./ua_running_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

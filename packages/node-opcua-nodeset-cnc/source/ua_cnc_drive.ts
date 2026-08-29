@@ -6,7 +6,7 @@ import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
 import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
 import type { DataType } from "node-opcua-variant";
 
-import type { UACncComponent, UACncComponent_Base } from "./ua_cnc_component";
+import type { UACncComponent, UACncComponent_Base } from "./ua_cnc_component.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { getRandomIntInclusive } from "./utils";
+import { getRandomIntInclusive } from "./utils.js";
 
 export function isValidUInt16(value: number): boolean {
     if (!Number.isFinite(value)) {

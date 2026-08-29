@@ -1,6 +1,6 @@
 import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
 
-import type { UASignalSet } from "./ua_signal_set";
+import type { UASignalSet } from "./ua_signal_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -2,10 +2,10 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumAASEntityType } from "./enum_aas_entity_type";
-import type { EnumAASModelingKind } from "./enum_aas_modeling_kind";
-import type { UAAASReference } from "./ua_aas_reference";
-import type { UAAASSubmodelElement, UAAASSubmodelElement_Base } from "./ua_aas_submodel_element";
+import type { EnumAASEntityType } from "./enum_aas_entity_type.js";
+import type { EnumAASModelingKind } from "./enum_aas_modeling_kind.js";
+import type { UAAASReference } from "./ua_aas_reference.js";
+import type { UAAASSubmodelElement, UAAASSubmodelElement_Base } from "./ua_aas_submodel_element.js";
 
 // ----- this file has been automatically generated - do not edit
 

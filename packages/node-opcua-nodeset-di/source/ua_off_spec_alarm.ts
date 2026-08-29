@@ -1,4 +1,4 @@
-import type { UADeviceHealthDiagnosticAlarm, UADeviceHealthDiagnosticAlarm_Base } from "./ua_device_health_diagnostic_alarm";
+import type { UADeviceHealthDiagnosticAlarm, UADeviceHealthDiagnosticAlarm_Base } from "./ua_device_health_diagnostic_alarm.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

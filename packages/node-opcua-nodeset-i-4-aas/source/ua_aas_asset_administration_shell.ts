@@ -1,7 +1,7 @@
 import type { UAObject } from "node-opcua-address-space-base";
 
-import type { UAAASAsset } from "./ua_aas_asset";
-import type { UAAASReference } from "./ua_aas_reference";
+import type { UAAASAsset } from "./ua_aas_asset.js";
+import type { UAAASReference } from "./ua_aas_reference.js";
 
 // ----- this file has been automatically generated - do not edit
 

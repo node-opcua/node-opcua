@@ -2,12 +2,12 @@ import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-ba
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTKeyValuePair } from "./dt_key_value_pair";
-import type { UAConnectionTransport } from "./ua_connection_transport";
-import type { UANetworkAddress } from "./ua_network_address";
-import type { UAPubSubDiagnosticsConnection } from "./ua_pub_sub_diagnostics_connection";
-import type { UAPubSubStatus } from "./ua_pub_sub_status";
-import type { UASelectionList } from "./ua_selection_list";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
+import type { UAConnectionTransport } from "./ua_connection_transport.js";
+import type { UANetworkAddress } from "./ua_network_address.js";
+import type { UAPubSubDiagnosticsConnection } from "./ua_pub_sub_diagnostics_connection.js";
+import type { UAPubSubStatus } from "./ua_pub_sub_status.js";
+import type { UASelectionList } from "./ua_selection_list.js";
 
 // ----- this file has been automatically generated - do not edit
 

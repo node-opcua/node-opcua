@@ -3,14 +3,14 @@ import type { NodeClass } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
-import type { BaseNode } from "./base_node";
-import type { BindVariableOptions } from "./bind_variable";
-import type { InstantiateOptions } from "./instantiate_options";
-import type { UAMethod } from "./ua_method";
-import type { UAObject } from "./ua_object";
-import type { UAObjectType } from "./ua_object_type";
-import type { UAVariable, VariableAttributes } from "./ua_variable";
-import type { UAVariableT } from "./ua_variable_t";
+import type { BaseNode } from "./base_node.js";
+import type { BindVariableOptions } from "./bind_variable.js";
+import type { InstantiateOptions } from "./instantiate_options.js";
+import type { UAMethod } from "./ua_method.js";
+import type { UAObject } from "./ua_object.js";
+import type { UAObjectType } from "./ua_object_type.js";
+import type { UAVariable, VariableAttributes } from "./ua_variable.js";
+import type { UAVariableT } from "./ua_variable_t.js";
 
 export interface InstantiateVariableOptions extends InstantiateOptions {
     arrayDimensions?: number[] | null;

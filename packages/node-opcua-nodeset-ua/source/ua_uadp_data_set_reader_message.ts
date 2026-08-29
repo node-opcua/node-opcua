@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { Guid, UInt16, UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UADataSetReaderMessage, UADataSetReaderMessage_Base } from "./ua_data_set_reader_message";
+import type { UADataSetReaderMessage, UADataSetReaderMessage_Base } from "./ua_data_set_reader_message.js";
 
 // ----- this file has been automatically generated - do not edit
 

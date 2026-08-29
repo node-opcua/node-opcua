@@ -21,10 +21,10 @@ import {
 import {
     convertDataTypeDefinitionToStructureTypeSchema,
     type ICache
-} from "../convert_data_type_definition_to_structuretype_schema";
+} from "../convert_data_type_definition_to_structuretype_schema.js";
 //
-import type { ExtraDataTypeManager } from "../extra_data_type_manager";
-import { hasBoostedSession } from "../get_extra_data_type_manager";
+import type { ExtraDataTypeManager } from "../extra_data_type_manager.js";
+import { hasBoostedSession } from "../get_extra_data_type_manager.js";
 
 const errorLog = make_errorLog("populateDataTypeManager");
 const debugLog = make_debugLog("populateDataTypeManager");

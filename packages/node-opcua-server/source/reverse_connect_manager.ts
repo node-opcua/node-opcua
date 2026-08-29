@@ -18,7 +18,7 @@ import type { Socket } from "node:net";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import type { ServerSecureChannelLayer } from "node-opcua-secure-channel";
 
-import type { OPCUAServerEndPoint } from "./server_end_point";
+import type { OPCUAServerEndPoint } from "./server_end_point.js";
 
 const debugLog = make_debugLog("REVERSE");
 const warningLog = make_warningLog("REVERSE");

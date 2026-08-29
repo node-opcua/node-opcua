@@ -20,8 +20,8 @@ import {
     SecureMessageChunkManager,
     type SecureMessageChunkManagerOptions,
     type SecurityHeader
-} from "./secure_message_chunk_manager";
-import { SequenceNumberGenerator } from "./sequence_number_generator";
+} from "./secure_message_chunk_manager.js";
+import { SequenceNumberGenerator } from "./sequence_number_generator.js";
 
 const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
 const errorLog = make_errorLog("secure_channel");

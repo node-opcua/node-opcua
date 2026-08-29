@@ -1,9 +1,9 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTAxisInformation } from "./dt_axis_information";
-import type { DTXV } from "./dt_xv";
-import type { UAArrayItem, UAArrayItem_Base } from "./ua_array_item";
+import type { DTAxisInformation } from "./dt_axis_information.js";
+import type { DTXV } from "./dt_xv.js";
+import type { UAArrayItem, UAArrayItem_Base } from "./ua_array_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

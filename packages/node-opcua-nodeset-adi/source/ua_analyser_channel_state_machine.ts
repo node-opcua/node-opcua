@@ -2,10 +2,10 @@ import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua
 import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state";
 import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
 
-import type { UAAnalyserChannelLocalState } from "./ua_analyser_channel_local_state";
-import type { UAAnalyserChannelMaintenanceState } from "./ua_analyser_channel_maintenance_state";
-import type { UAAnalyserChannel_OperatingModeSubStateMachine } from "./ua_analyser_channel_operating_mode_sub_state_machine";
-import type { UAAnalyserChannelOperatingState } from "./ua_analyser_channel_operating_state";
+import type { UAAnalyserChannelLocalState } from "./ua_analyser_channel_local_state.js";
+import type { UAAnalyserChannelMaintenanceState } from "./ua_analyser_channel_maintenance_state.js";
+import type { UAAnalyserChannel_OperatingModeSubStateMachine } from "./ua_analyser_channel_operating_mode_sub_state_machine.js";
+import type { UAAnalyserChannelOperatingState } from "./ua_analyser_channel_operating_state.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -2,8 +2,8 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumPubSubState } from "./enum_pub_sub_state";
-import type { UASystemEvent, UASystemEvent_Base } from "./ua_system_event";
+import type { EnumPubSubState } from "./enum_pub_sub_state.js";
+import type { UASystemEvent, UASystemEvent_Base } from "./ua_system_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

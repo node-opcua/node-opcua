@@ -1,8 +1,8 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTWriterGroupTransport } from "./dt_writer_group_transport";
-import type { EnumBrokerTransportQualityOfService } from "./enum_broker_transport_quality_of_service";
+import type { DTWriterGroupTransport } from "./dt_writer_group_transport.js";
+import type { EnumBrokerTransportQualityOfService } from "./enum_broker_transport_quality_of_service.js";
 
 // ----- this file has been automatically generated - do not edit
 

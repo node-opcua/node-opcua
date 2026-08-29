@@ -1,6 +1,6 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTPublishedDataSetSource } from "./dt_published_data_set_source";
+import type { DTPublishedDataSetSource } from "./dt_published_data_set_source.js";
 
 // ----- this file has been automatically generated - do not edit
 

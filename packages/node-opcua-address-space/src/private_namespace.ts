@@ -1,5 +1,5 @@
-import type { Namespace } from "../source/namespace";
-import type { NodeEntry1, NodeIdManager } from "./nodeid_manager";
+import type { Namespace } from "../source/namespace.js";
+import type { NodeEntry1, NodeIdManager } from "./nodeid_manager.js";
 
 interface NamespaceWithNodeIdManager extends Namespace {
     _nodeIdManager: NodeIdManager;

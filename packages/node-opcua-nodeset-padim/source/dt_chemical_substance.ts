@@ -2,7 +2,7 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
 
-import type { EnumPatDictionaryEnum } from "./enum_pat_dictionary_enum";
+import type { EnumPatDictionaryEnum } from "./enum_pat_dictionary_enum.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -2,9 +2,9 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { Byte, UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTLldpManagementAddressTxPort } from "./dt_lldp_management_address_tx_port";
-import type { EnumPortIdSubtype } from "./enum_port_id_subtype";
-import type { UAFolder } from "./ua_folder";
+import type { DTLldpManagementAddressTxPort } from "./dt_lldp_management_address_tx_port.js";
+import type { EnumPortIdSubtype } from "./enum_port_id_subtype.js";
+import type { UAFolder } from "./ua_folder.js";
 
 // ----- this file has been automatically generated - do not edit
 

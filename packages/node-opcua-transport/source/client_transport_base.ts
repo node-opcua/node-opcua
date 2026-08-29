@@ -17,13 +17,13 @@ import { readMessageHeader } from "node-opcua-chunkmanager";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import type { ErrorCallback } from "node-opcua-status-code";
 
-import { AcknowledgeMessage } from "./AcknowledgeMessage";
-import { HelloMessage } from "./HelloMessage";
-import type { TransportSettingsOptions } from "./i_client_transport";
-import { TCPErrorMessage } from "./TCPErrorMessage";
-import { TCP_transport } from "./tcp_transport";
-import { decodeMessage, packTcpMessage } from "./tools";
-import { doTraceHelloAck } from "./utils";
+import { AcknowledgeMessage } from "./AcknowledgeMessage.js";
+import { HelloMessage } from "./HelloMessage.js";
+import type { TransportSettingsOptions } from "./i_client_transport.js";
+import { TCPErrorMessage } from "./TCPErrorMessage.js";
+import { TCP_transport } from "./tcp_transport.js";
+import { decodeMessage, packTcpMessage } from "./tools.js";
+import { doTraceHelloAck } from "./utils.js";
 
 // Use a string category instead of `__filename` so the module loads in
 // browsers without a Node-style filename global.

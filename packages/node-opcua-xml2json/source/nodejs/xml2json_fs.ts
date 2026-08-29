@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { Xml2Json } from "../xml2json";
+import { Xml2Json } from "../xml2json.js";
 
 export class Xml2JsonFs extends Xml2Json {
     /**

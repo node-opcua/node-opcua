@@ -4,8 +4,8 @@ import type { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/u
 import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumAxisMotionProfile } from "./enum_axis_motion_profile";
-import type { UALoad } from "./ua_load";
+import type { EnumAxisMotionProfile } from "./enum_axis_motion_profile.js";
+import type { UALoad } from "./ua_load.js";
 
 // ----- this file has been automatically generated - do not edit
 

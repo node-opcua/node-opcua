@@ -12,10 +12,10 @@ import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTWeight } from "./dt_weight";
-import type { UAProductionPreset } from "./ua_production_preset";
-import type { UAStatistic } from "./ua_statistic";
-import type { UAWeightItem } from "./ua_weight_item";
+import type { DTWeight } from "./dt_weight.js";
+import type { UAProductionPreset } from "./ua_production_preset.js";
+import type { UAStatistic } from "./ua_statistic.js";
+import type { UAWeightItem } from "./ua_weight_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

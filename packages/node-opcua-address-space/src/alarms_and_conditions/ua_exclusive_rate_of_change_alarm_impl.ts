@@ -2,8 +2,8 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import type { UAExclusiveRateOfChangeAlarm_Base } from "node-opcua-nodeset-ua";
-import type { UAExclusiveLimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_exclusive_limit_alarm_ex";
-import { UAExclusiveLimitAlarmImpl } from "./ua_exclusive_limit_alarm_impl";
+import type { UAExclusiveLimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_exclusive_limit_alarm_ex.js";
+import { UAExclusiveLimitAlarmImpl } from "./ua_exclusive_limit_alarm_impl.js";
 
 export interface UAExclusiveRateOfChangeAlarmEx
     extends Omit<

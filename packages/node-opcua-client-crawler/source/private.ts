@@ -6,8 +6,8 @@ import {
     QualifiedName,
     type ReferenceDescription
 } from "node-opcua-client";
-import type { CacheNode } from "./cache_node";
-import type { Pojo, UserData } from "./node_crawler_base";
+import type { CacheNode } from "./cache_node.js";
+import type { Pojo, UserData } from "./node_crawler_base.js";
 
 const warningLog = make_warningLog("CRAWLER");
 

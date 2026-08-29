@@ -2,7 +2,7 @@
  * @module node-opcua-client-proxy
  */
 import type { NodeId } from "node-opcua-nodeid";
-import type { ProxyNode } from "./proxy_transition";
+import type { ProxyNode } from "./proxy_transition.js";
 
 export class ProxyState {
     private _node: ProxyNode & { stateNumber?: ProxyNode };

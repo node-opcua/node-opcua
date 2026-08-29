@@ -9,7 +9,7 @@ import { hrtime } from "node-opcua-utils";
 const debugLog = make_debugLog("node_sampler");
 const doDebug = checkDebugFlag("node_sampler");
 
-import type { MonitoredItem } from "./monitored_item";
+import type { MonitoredItem } from "./monitored_item.js";
 
 interface ITimer {
     _samplingId: NodeJS.Timeout | false;

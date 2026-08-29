@@ -2,10 +2,10 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTEndpointDescription } from "./dt_endpoint_description";
-import type { DTKeyValuePair } from "./dt_key_value_pair";
-import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
-import type { UAPubSubStatus } from "./ua_pub_sub_status";
+import type { DTEndpointDescription } from "./dt_endpoint_description.js";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode.js";
+import type { UAPubSubStatus } from "./ua_pub_sub_status.js";
 
 // ----- this file has been automatically generated - do not edit
 

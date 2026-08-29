@@ -23,7 +23,7 @@ import type {
 } from "node-opcua-nodeset-ua";
 import type { DataType } from "node-opcua-variant";
 
-import type { UATransitionEx } from "./ua_transition_ex";
+import type { UATransitionEx } from "./ua_transition_ex.js";
 
 export type UtcTime = DateTime;
 

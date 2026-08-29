@@ -1,7 +1,7 @@
 import type { UAObject } from "node-opcua-address-space-base";
 
-import type { UAFunctionalGroup } from "./ua_functional_group";
-import type { UALockingServices } from "./ua_locking_services";
+import type { UAFunctionalGroup } from "./ua_functional_group.js";
+import type { UALockingServices } from "./ua_locking_services.js";
 
 // ----- this file has been automatically generated - do not edit
 

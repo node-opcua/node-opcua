@@ -2,7 +2,7 @@ import type { UAVariableT } from "node-opcua-address-space-base";
 import type { Int64, UInt64 } from "node-opcua-basic-types";
 import type { UAMultiStateValueDiscrete_Base } from "node-opcua-nodeset-ua";
 import type { DataType, Variant } from "node-opcua-variant";
-import type { ISetStateOptions } from "../i_set_state_options";
+import type { ISetStateOptions } from "../i_set_state_options.js";
 
 /**
  * @see https://reference.opcfoundation.org/v104/Core/docs/Part8/5.3.3/#5.3.3.4

@@ -6,11 +6,11 @@ import type { BaseNode, ListenerSignature } from "node-opcua-address-space-base"
 import { assert } from "node-opcua-assert";
 import type { NodeId } from "node-opcua-nodeid";
 import { DataType, Variant } from "node-opcua-variant";
-import type { UABaseEventEvents, UABaseEventEx } from "../../source/interfaces/alarms_and_conditions/ua_base_event_ex";
-import { BaseNodeImpl } from "../base_node_impl";
-import { UAObjectImpl } from "../ua_object_impl";
+import type { UABaseEventEvents, UABaseEventEx } from "../../source/interfaces/alarms_and_conditions/ua_base_event_ex.js";
+import { BaseNodeImpl } from "../base_node_impl.js";
+import { UAObjectImpl } from "../ua_object_impl.js";
 
-export type { UABaseEventEvents, UABaseEventEx } from "../../source/interfaces/alarms_and_conditions/ua_base_event_ex";
+export type { UABaseEventEvents, UABaseEventEx } from "../../source/interfaces/alarms_and_conditions/ua_base_event_ex.js";
 
 const $ = (a: UABaseEventImplBase): UABaseEventEx => a as unknown as UABaseEventEx;
 

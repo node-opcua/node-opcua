@@ -40,9 +40,9 @@ import { ServiceFault } from "node-opcua-service-secure-channel";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { ApplicationDescriptionOptions, EndpointDescription, GetEndpointsRequest } from "node-opcua-types";
 import { checkFileExistsAndIsNotEmpty, matchUri } from "node-opcua-utils";
-import type { IChannelData } from "./i_channel_data";
-import type { ISocketData } from "./i_socket_data";
-import type { OPCUAServerEndPoint } from "./server_end_point";
+import type { IChannelData } from "./i_channel_data.js";
+import type { ISocketData } from "./i_socket_data.js";
+import type { OPCUAServerEndPoint } from "./server_end_point.js";
 
 const doDebug = checkDebugFlag("base_server");
 const debugLog = make_debugLog("base_server");

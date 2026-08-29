@@ -1,7 +1,7 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTDiscoveryConfiguration } from "./dt_discovery_configuration";
+import type { DTDiscoveryConfiguration } from "./dt_discovery_configuration.js";
 
 // ----- this file has been automatically generated - do not edit
 

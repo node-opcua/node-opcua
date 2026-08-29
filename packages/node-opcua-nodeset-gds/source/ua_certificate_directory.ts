@@ -1,7 +1,7 @@
 import type { UAMethod } from "node-opcua-address-space-base";
 import type { UACertificateGroupFolder } from "node-opcua-nodeset-ua/dist/ua_certificate_group_folder";
 
-import type { UADirectory, UADirectory_Base } from "./ua_directory";
+import type { UADirectory, UADirectory_Base } from "./ua_directory.js";
 
 // ----- this file has been automatically generated - do not edit
 

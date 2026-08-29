@@ -2,7 +2,7 @@ import type { UAObject, UAObjectType } from "node-opcua-address-space-base";
 import type { QualifiedNameLike } from "node-opcua-data-model";
 import type { UAState } from "node-opcua-nodeset-ua";
 
-import type { UATransitionEx } from "./interfaces/state_machine/ua_transition_ex";
+import type { UATransitionEx } from "./interfaces/state_machine/ua_transition_ex.js";
 export interface INamespaceMachineState {
     addState(
         component: UAObject | UAObjectType,

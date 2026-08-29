@@ -2,7 +2,7 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal";
+import type { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,4 +1,4 @@
 /***
  * @module node-opcua-benchmarker
  */
-export * from "./benchmarker";
+export * from "./benchmarker.js";

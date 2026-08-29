@@ -3,10 +3,10 @@ import type { UAString, UInt16, UInt32 } from "node-opcua-basic-types";
 import type { QualifiedName } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTSignedSoftwareCertificate } from "./dt_signed_software_certificate";
-import type { UAFolder } from "./ua_folder";
-import type { UAOperationLimits } from "./ua_operation_limits";
-import type { UARoleSet } from "./ua_role_set";
+import type { DTSignedSoftwareCertificate } from "./dt_signed_software_certificate.js";
+import type { UAFolder } from "./ua_folder.js";
+import type { UAOperationLimits } from "./ua_operation_limits.js";
+import type { UARoleSet } from "./ua_role_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

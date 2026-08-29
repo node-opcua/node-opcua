@@ -3,9 +3,9 @@ import type { UAString } from "node-opcua-basic-types";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTProgramDiagnostic } from "./dt_program_diagnostic";
-import type { DTStatusResult } from "./dt_status_result";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+import type { DTProgramDiagnostic } from "./dt_program_diagnostic.js";
+import type { DTStatusResult } from "./dt_status_result.js";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

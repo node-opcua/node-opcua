@@ -2,7 +2,7 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumChassisIdSubtype } from "./enum_chassis_id_subtype";
+import type { EnumChassisIdSubtype } from "./enum_chassis_id_subtype.js";
 
 // ----- this file has been automatically generated - do not edit
 

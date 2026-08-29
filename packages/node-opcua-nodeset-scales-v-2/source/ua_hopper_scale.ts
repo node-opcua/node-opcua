@@ -3,8 +3,8 @@ import type { EUInformation } from "node-opcua-data-access";
 import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumEqualityAndRelationalOperator } from "./enum_equality_and_relational_operator";
-import type { UASimpleScale, UASimpleScale_Base } from "./ua_simple_scale";
+import type { EnumEqualityAndRelationalOperator } from "./enum_equality_and_relational_operator.js";
+import type { UASimpleScale, UASimpleScale_Base } from "./ua_simple_scale.js";
 
 // ----- this file has been automatically generated - do not edit
 

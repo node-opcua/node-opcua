@@ -2,9 +2,9 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { Byte, UAString, UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTTransmitQos } from "./dt_transmit_qos";
-import type { UANetworkAddress } from "./ua_network_address";
-import type { UAWriterGroupTransport, UAWriterGroupTransport_Base } from "./ua_writer_group_transport";
+import type { DTTransmitQos } from "./dt_transmit_qos.js";
+import type { UANetworkAddress } from "./ua_network_address.js";
+import type { UAWriterGroupTransport, UAWriterGroupTransport_Base } from "./ua_writer_group_transport.js";
 
 // ----- this file has been automatically generated - do not edit
 

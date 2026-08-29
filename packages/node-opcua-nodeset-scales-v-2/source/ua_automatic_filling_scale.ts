@@ -2,9 +2,9 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumToleranceState } from "./enum_tolerance_state";
-import type { UAProductionPreset } from "./ua_production_preset";
-import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device";
+import type { EnumToleranceState } from "./enum_tolerance_state.js";
+import type { UAProductionPreset } from "./ua_production_preset.js";
+import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device.js";
 
 // ----- this file has been automatically generated - do not edit
 

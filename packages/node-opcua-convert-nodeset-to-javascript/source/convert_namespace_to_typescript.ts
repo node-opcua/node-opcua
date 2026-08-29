@@ -2,17 +2,17 @@ import fs from "node:fs";
 import path from "node:path";
 import { DataTypeIds } from "node-opcua-constants";
 import type { IBasicSessionAsync } from "node-opcua-pseudo-session";
-import { convertTypeToTypescript } from "./convert_to_typescript";
-import type { Options } from "./options";
-import { packageRoot } from "./package_root";
-import { constructCache } from "./private/cache";
-import { writeFileSyncRetry } from "./private/fs_retry";
+import { convertTypeToTypescript } from "./convert_to_typescript.js";
+import type { Options } from "./options.js";
+import { packageRoot } from "./package_root.js";
+import { constructCache } from "./private/cache.js";
+import { writeFileSyncRetry } from "./private/fs_retry.js";
 import {
     type ReferenceDescriptionEx,
     walkThroughDataTypes,
     walkThroughObjectTypes,
     walkThroughVariableTypes
-} from "./walk_through";
+} from "./walk_through.js";
 
 function findPackageJson(dependency: string, options: Options): string | undefined {
     const l = [...(options.lookupFolders || [])];

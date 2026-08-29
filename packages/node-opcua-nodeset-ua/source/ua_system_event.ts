@@ -1,4 +1,4 @@
-import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event";
+import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

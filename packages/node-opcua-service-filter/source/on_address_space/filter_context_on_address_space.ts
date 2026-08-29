@@ -17,7 +17,7 @@ import { coerceNodeId, NodeId, type NodeIdLike, sameNodeId } from "node-opcua-no
 import type { BrowsePath } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 //
-import type { FilterContext } from "../filter_context";
+import type { FilterContext } from "../filter_context.js";
 
 const warningLog = make_warningLog("Filter");
 

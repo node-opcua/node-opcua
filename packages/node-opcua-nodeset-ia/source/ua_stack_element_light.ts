@@ -2,10 +2,10 @@ import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTRGBW } from "./dt_rgbw";
-import type { EnumSignalColor } from "./enum_signal_color";
-import type { EnumSignalModeLight } from "./enum_signal_mode_light";
-import type { UAStackElement, UAStackElement_Base } from "./ua_stack_element";
+import type { DTRGBW } from "./dt_rgbw.js";
+import type { EnumSignalColor } from "./enum_signal_color.js";
+import type { EnumSignalModeLight } from "./enum_signal_mode_light.js";
+import type { UAStackElement, UAStackElement_Base } from "./ua_stack_element.js";
 
 // ----- this file has been automatically generated - do not edit
 

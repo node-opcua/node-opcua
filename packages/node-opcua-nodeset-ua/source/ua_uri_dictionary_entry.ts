@@ -1,4 +1,4 @@
-import type { UADictionaryEntry, UADictionaryEntry_Base } from "./ua_dictionary_entry";
+import type { UADictionaryEntry, UADictionaryEntry_Base } from "./ua_dictionary_entry.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

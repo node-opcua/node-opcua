@@ -15,7 +15,7 @@ import type { DTEnumValue, UADiscreteItem, UADiscreteItem_Base, UAMultiStateDisc
  * @module node-opcua-address-space.DataAccess
  */
 import type { StatusCode } from "node-opcua-status-code";
-import type { ISetStateOptions } from "../i_set_state_options";
+import type { ISetStateOptions } from "../i_set_state_options.js";
 
 export { UAMultiStateDiscrete } from "node-opcua-nodeset-ua";
 

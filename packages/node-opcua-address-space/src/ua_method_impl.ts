@@ -30,11 +30,11 @@ import { Argument } from "node-opcua-service-call";
 import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type CallMethodResultOptions, PermissionType } from "node-opcua-types";
 import { DataType, Variant, type VariantLike } from "node-opcua-variant";
-import type { SessionContext } from "../source/session_context";
-import type { AddressSpacePrivate } from "./address_space_private";
-import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
-import { _clone } from "./base_node_private";
-import { _handle_hierarchy_parent } from "./namespace_impl";
+import type { SessionContext } from "../source/session_context.js";
+import type { AddressSpacePrivate } from "./address_space_private.js";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl.js";
+import { _clone } from "./base_node_private.js";
+import { _handle_hierarchy_parent } from "./namespace_impl.js";
 
 const warningLog = make_warningLog("ua_method_impl");
 const debugLog = make_debugLog("ua_method_impl");

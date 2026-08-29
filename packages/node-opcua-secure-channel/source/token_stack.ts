@@ -3,7 +3,7 @@ import { assert } from "node-opcua-assert";
 import type { DateTime } from "node-opcua-basic-types";
 import type { DerivedKeys } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import type { DerivedKeys1 } from "./security_policy";
+import type { DerivedKeys1 } from "./security_policy.js";
 
 const debugLog = make_debugLog("TOKEN");
 const doDebug = checkDebugFlag("TOKEN");

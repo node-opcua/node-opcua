@@ -4,7 +4,7 @@ import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DTArgument } from "node-opcua-nodeset-ua/dist/dt_argument";
 
-import type { DTWwMessageArgumentValue } from "./dt_ww_message_argument_value";
+import type { DTWwMessageArgumentValue } from "./dt_ww_message_argument_value.js";
 
 // ----- this file has been automatically generated - do not edit
 

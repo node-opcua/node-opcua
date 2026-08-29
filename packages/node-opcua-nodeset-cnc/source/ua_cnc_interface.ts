@@ -2,9 +2,9 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UACncAxisList } from "./ua_cnc_axis_list";
-import type { UACncChannelList } from "./ua_cnc_channel_list";
-import type { UACncSpindleList } from "./ua_cnc_spindle_list";
+import type { UACncAxisList } from "./ua_cnc_axis_list.js";
+import type { UACncChannelList } from "./ua_cnc_channel_list.js";
+import type { UACncSpindleList } from "./ua_cnc_spindle_list.js";
 
 // ----- this file has been automatically generated - do not edit
 

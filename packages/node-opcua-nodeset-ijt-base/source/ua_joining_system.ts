@@ -2,11 +2,11 @@ import type { UAObject } from "node-opcua-address-space-base";
 import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 
-import type { UAJoiningProcessManagement } from "./ua_joining_process_management";
-import type { UAJoiningSystemAssetMethodSet } from "./ua_joining_system_asset_method_set";
-import type { UAJoiningSystemIdentification } from "./ua_joining_system_identification";
-import type { UAJoiningSystemResultManagement } from "./ua_joining_system_result_management";
-import type { UAJointManagement } from "./ua_joint_management";
+import type { UAJoiningProcessManagement } from "./ua_joining_process_management.js";
+import type { UAJoiningSystemAssetMethodSet } from "./ua_joining_system_asset_method_set.js";
+import type { UAJoiningSystemIdentification } from "./ua_joining_system_identification.js";
+import type { UAJoiningSystemResultManagement } from "./ua_joining_system_result_management.js";
+import type { UAJointManagement } from "./ua_joint_management.js";
 
 // ----- this file has been automatically generated - do not edit
 

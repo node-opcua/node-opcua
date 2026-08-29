@@ -1,4 +1,4 @@
-import type { UAOffNormalAlarm, UAOffNormalAlarm_Base } from "./ua_off_normal_alarm";
+import type { UAOffNormalAlarm, UAOffNormalAlarm_Base } from "./ua_off_normal_alarm.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

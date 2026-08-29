@@ -68,7 +68,7 @@ export { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object
 export { ExtensionObject } from "node-opcua-extension-object";
 export { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
 
-import type { ClientSubscription } from "./client_subscription";
+import type { ClientSubscription } from "./client_subscription.js";
 
 export interface MonitoredItemData {
     clientHandles: Uint32Array;

@@ -4,7 +4,7 @@
 import type { InstantiateObjectOptions, UAObject } from "node-opcua-address-space-base";
 import type { UAExclusiveLimitStateMachine_Base } from "node-opcua-nodeset-ua";
 
-import type { UAStateMachineEx, UAStateMachineHelper, UAStateMachineType } from "./ua_state_machine_type";
+import type { UAStateMachineEx, UAStateMachineHelper, UAStateMachineType } from "./ua_state_machine_type.js";
 
 export interface UAExclusiveLimitStateMachineEx
     extends UAObject,

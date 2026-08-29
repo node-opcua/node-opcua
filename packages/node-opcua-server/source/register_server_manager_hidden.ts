@@ -2,7 +2,7 @@
  * @module node-opcua-server
  */
 import { EventEmitter } from "node:events";
-import { type IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager";
+import { type IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager.js";
 
 /**
  * a IRegisterServerManager that hides the server from any local discover server

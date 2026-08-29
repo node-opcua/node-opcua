@@ -5,7 +5,7 @@ import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABaseCalibrationTargetCategory } from "./ua_base_calibration_target_category";
+import type { UABaseCalibrationTargetCategory } from "./ua_base_calibration_target_category.js";
 
 // ----- this file has been automatically generated - do not edit
 

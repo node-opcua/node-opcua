@@ -18,8 +18,8 @@ import type { ApplicationDescription, EndpointDescription } from "node-opcua-ser
 import type { ChannelSecurityToken, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import type { ErrorCallback } from "node-opcua-status-code";
 import type { IClientTransportFactory } from "node-opcua-transport";
-import type { Request, Response } from "./common";
-import type { ClientReverseConnect, ReverseConnectExpectation } from "./reverse/client_reverse_connect";
+import type { Request, Response } from "./common.js";
+import type { ClientReverseConnect, ReverseConnectExpectation } from "./reverse/client_reverse_connect.js";
 
 export type FindServersRequestLike = FindServersRequestOptions;
 export type FindServersOnNetworkRequestLike = FindServersOnNetworkRequestOptions;

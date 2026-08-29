@@ -1,7 +1,7 @@
 import { BrowseDirection, coerceQualifiedName, type QualifiedNameLike } from "node-opcua-data-model";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import type { IBasicSessionAsync } from "./basic_session_interface";
+import type { IBasicSessionAsync } from "./basic_session_interface.js";
 
 export async function findInTypeOrSuperType(
     session: IBasicSessionAsync,

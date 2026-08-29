@@ -23,16 +23,16 @@
 /**
  * @module node-opcua-data-model
  */
-export * from "./access_level";
-export * from "./access_level_ex";
-export * from "./access_restrictions";
-export * from "./attributeIds";
-export * from "./BrowseDirection";
-export * from "./data_encoding";
-export * from "./diagnostic_info";
-export * from "./localized_text";
-export * from "./node_class_mask";
-export * from "./nodeclass";
-export * from "./permission_flag";
-export * from "./qualified_name";
-export * from "./result_mask";
+export * from "./access_level.js";
+export * from "./access_level_ex.js";
+export * from "./access_restrictions.js";
+export * from "./attributeIds.js";
+export * from "./BrowseDirection.js";
+export * from "./data_encoding.js";
+export * from "./diagnostic_info.js";
+export * from "./localized_text.js";
+export * from "./node_class_mask.js";
+export * from "./nodeclass.js";
+export * from "./permission_flag.js";
+export * from "./qualified_name.js";
+export * from "./result_mask.js";

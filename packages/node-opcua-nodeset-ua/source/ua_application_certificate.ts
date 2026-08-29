@@ -1,4 +1,4 @@
-import type { UACertificate, UACertificate_Base } from "./ua_certificate";
+import type { UACertificate, UACertificate_Base } from "./ua_certificate.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

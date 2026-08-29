@@ -1,9 +1,9 @@
 import type { ListenerSignature, UAMethod } from "node-opcua-address-space-base";
 import type { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import type { UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua";
-import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
-import type { ConditionSnapshot } from "./condition_snapshot";
-import type { UAConditionEvents, UAConditionEx } from "./ua_condition_ex";
+import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex.js";
+import type { ConditionSnapshot } from "./condition_snapshot.js";
+import type { UAConditionEvents, UAConditionEx } from "./ua_condition_ex.js";
 
 export interface UAAcknowledgeableConditionHelper {
     autoConfirmBranch(branch: ConditionSnapshot, comment: LocalizedTextLike): void;

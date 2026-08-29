@@ -1,6 +1,6 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTVector } from "./dt_vector";
+import type { DTVector } from "./dt_vector.js";
 
 // ----- this file has been automatically generated - do not edit
 

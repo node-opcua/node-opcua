@@ -16,11 +16,11 @@ import { coerceLocalizedText, type LocalizedText } from "node-opcua-data-model";
 import type { UAMultiStateDiscrete_Base } from "node-opcua-nodeset-ua";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import type { AddMultiStateDiscreteOptions } from "../../source/address_space_ts";
-import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
-import { registerNodePromoter } from "../../source/loader/register_node_promoter";
-import { UAVariableImpl } from "../ua_variable_impl";
-import { add_dataItem_stuff } from "./add_dataItem_stuff";
+import type { AddMultiStateDiscreteOptions } from "../../source/address_space_ts.js";
+import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options.js";
+import { registerNodePromoter } from "../../source/loader/register_node_promoter.js";
+import { UAVariableImpl } from "../ua_variable_impl.js";
+import { add_dataItem_stuff } from "./add_dataItem_stuff.js";
 
 export { UAMultiStateDiscrete } from "node-opcua-nodeset-ua";
 

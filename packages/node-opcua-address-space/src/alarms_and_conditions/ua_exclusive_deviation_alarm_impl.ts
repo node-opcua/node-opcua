@@ -7,24 +7,24 @@ import { assert } from "node-opcua-assert";
 import type { DataValue } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType, VariantOptions } from "node-opcua-variant";
-import type { DeviationStuff } from "../../source/interfaces/alarms_and_conditions/deviation_stuff";
+import type { DeviationStuff } from "../../source/interfaces/alarms_and_conditions/deviation_stuff.js";
 import type {
     InstallSetPointOptions,
     SetPointSupport
-} from "../../source/interfaces/alarms_and_conditions/install_setpoint_options";
-import type { InstantiateExclusiveLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_exclusive_limit_alarm_options";
-import type { UAExclusiveDeviationAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_exclusive_deviation_alarm_ex";
+} from "../../source/interfaces/alarms_and_conditions/install_setpoint_options.js";
+import type { InstantiateExclusiveLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_exclusive_limit_alarm_options.js";
+import type { UAExclusiveDeviationAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_exclusive_deviation_alarm_ex.js";
 
-import type { NamespacePrivate } from "../namespace_private";
+import type { NamespacePrivate } from "../namespace_private.js";
 import {
     DeviationAlarmHelper_getSetpointNodeNode,
     DeviationAlarmHelper_getSetpointValue,
     DeviationAlarmHelper_install_setpoint,
     DeviationAlarmHelper_onSetpointDataValueChange
-} from "./deviation_alarm_helper";
+} from "./deviation_alarm_helper.js";
 
-import { UAExclusiveLimitAlarmImpl, UAExclusiveLimitAlarmImplBase } from "./ua_exclusive_limit_alarm_impl";
-import { UALimitAlarmImpl } from "./ua_limit_alarm_impl";
+import { UAExclusiveLimitAlarmImpl, UAExclusiveLimitAlarmImplBase } from "./ua_exclusive_limit_alarm_impl.js";
+import { UALimitAlarmImpl } from "./ua_limit_alarm_impl.js";
 
 export class UAExclusiveDeviationAlarmImplBase extends UAExclusiveLimitAlarmImplBase {
     public static instantiate(

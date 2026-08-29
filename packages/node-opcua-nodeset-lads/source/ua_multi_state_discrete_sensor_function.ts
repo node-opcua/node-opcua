@@ -2,7 +2,7 @@ import type { UInt32 } from "node-opcua-basic-types";
 import type { UADiscreteItem } from "node-opcua-nodeset-ua/dist/ua_discrete_item";
 import type { DataType } from "node-opcua-variant";
 
-import type { UADiscreteSensorFunction, UADiscreteSensorFunction_Base } from "./ua_discrete_sensor_function";
+import type { UADiscreteSensorFunction, UADiscreteSensorFunction_Base } from "./ua_discrete_sensor_function.js";
 
 // ----- this file has been automatically generated - do not edit
 

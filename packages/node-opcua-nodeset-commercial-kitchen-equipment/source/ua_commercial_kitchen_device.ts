@@ -4,7 +4,7 @@ import type { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_devi
 import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABatchInformation } from "./ua_batch_information";
+import type { UABatchInformation } from "./ua_batch_information.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,6 +1,6 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTOrientation } from "./dt_orientation";
+import type { DTOrientation } from "./dt_orientation.js";
 
 // ----- this file has been automatically generated - do not edit
 

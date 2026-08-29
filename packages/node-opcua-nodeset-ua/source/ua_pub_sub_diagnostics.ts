@@ -2,9 +2,9 @@ import type { UAMethod, UAObject } from "node-opcua-address-space-base";
 import type { UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumDiagnosticsLevel } from "./enum_diagnostics_level";
-import type { UABaseDataVariable } from "./ua_base_data_variable";
-import type { UAPubSubDiagnosticsCounter } from "./ua_pub_sub_diagnostics_counter";
+import type { EnumDiagnosticsLevel } from "./enum_diagnostics_level.js";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
+import type { UAPubSubDiagnosticsCounter } from "./ua_pub_sub_diagnostics_counter.js";
 
 // ----- this file has been automatically generated - do not edit
 

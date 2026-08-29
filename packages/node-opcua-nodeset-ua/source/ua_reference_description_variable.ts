@@ -1,9 +1,9 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTReferenceDescription } from "./dt_reference_description";
-import type { DTReferenceListEntry } from "./dt_reference_list_entry";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+import type { DTReferenceDescription } from "./dt_reference_description.js";
+import type { DTReferenceListEntry } from "./dt_reference_list_entry.js";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

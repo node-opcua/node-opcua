@@ -19,11 +19,11 @@ import {
 } from "node-opcua-service-subscription";
 import type { Callback, ErrorCallback, StatusCode } from "node-opcua-status-code";
 import type { MonitoredItemCreateRequestOptions, MonitoringParametersOptions } from "node-opcua-types";
-import type { ClientMonitoredItemBase } from "./client_monitored_item_base";
-import type { SetMonitoringModeRequestLike } from "./client_session";
-import type { ClientSubscription } from "./client_subscription";
-import type { ClientMonitoredItemImpl } from "./private/client_monitored_item_impl";
-import type { ClientSessionImpl } from "./private/client_session_impl";
+import type { ClientMonitoredItemBase } from "./client_monitored_item_base.js";
+import type { SetMonitoringModeRequestLike } from "./client_session.js";
+import type { ClientSubscription } from "./client_subscription.js";
+import type { ClientMonitoredItemImpl } from "./private/client_monitored_item_impl.js";
+import type { ClientSessionImpl } from "./private/client_session_impl.js";
 
 const debugLog = make_debugLog("client_monitored_item_toolbox");
 const doDebug = checkDebugFlag("client_monitored_item_toolbox");

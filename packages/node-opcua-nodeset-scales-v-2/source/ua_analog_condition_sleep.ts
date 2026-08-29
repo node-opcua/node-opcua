@@ -2,8 +2,8 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumEqualityAndRelationalOperator } from "./enum_equality_and_relational_operator";
-import type { UAConditionSleep, UAConditionSleep_Base } from "./ua_condition_sleep";
+import type { EnumEqualityAndRelationalOperator } from "./enum_equality_and_relational_operator.js";
+import type { UAConditionSleep, UAConditionSleep_Base } from "./ua_condition_sleep.js";
 
 // ----- this file has been automatically generated - do not edit
 

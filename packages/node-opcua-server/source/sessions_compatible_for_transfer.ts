@@ -2,7 +2,7 @@ import { assert } from "node-opcua-assert";
 import { makeSHA1Thumbprint } from "node-opcua-crypto";
 import { MessageSecurityMode } from "node-opcua-secure-channel";
 import { AnonymousIdentityToken, type UserIdentityToken, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
-import type { ServerSession } from "./server_session";
+import type { ServerSession } from "./server_session.js";
 
 /**
  * Discriminates a session's user identity for the purpose of the TransferSubscriptions ownership

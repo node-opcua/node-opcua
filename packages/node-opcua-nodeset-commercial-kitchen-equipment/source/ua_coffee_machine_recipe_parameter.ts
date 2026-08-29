@@ -7,8 +7,8 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumBeverageSML } from "./enum_beverage_sml";
-import type { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter";
+import type { EnumBeverageSML } from "./enum_beverage_sml.js";
+import type { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter.js";
 
 // ----- this file has been automatically generated - do not edit
 

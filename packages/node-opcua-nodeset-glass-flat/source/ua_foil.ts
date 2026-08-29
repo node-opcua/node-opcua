@@ -1,7 +1,7 @@
 import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material";
+import type { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material.js";
 
 // ----- this file has been automatically generated - do not edit
 

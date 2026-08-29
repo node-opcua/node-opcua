@@ -1,8 +1,8 @@
 import type { UAMethod, UAObject } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTAbstractWeight } from "./dt_abstract_weight";
-import type { UAMeasuredItem } from "./ua_measured_item";
+import type { DTAbstractWeight } from "./dt_abstract_weight.js";
+import type { UAMeasuredItem } from "./ua_measured_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

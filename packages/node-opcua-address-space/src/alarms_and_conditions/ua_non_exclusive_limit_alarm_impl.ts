@@ -8,13 +8,13 @@ import { NodeClass } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import type { VariantOptions } from "node-opcua-variant";
-import type { ConditionInfo } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
-import type { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
-import type { UANonExclusiveLimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_ex";
-import type { NamespacePrivate } from "../namespace_private";
-import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
-import { ConditionInfoImpl } from "./condition_info_impl";
-import { UALimitAlarmImpl, UALimitAlarmImplBase } from "./ua_limit_alarm_impl";
+import type { ConditionInfo } from "../../source/interfaces/alarms_and_conditions/condition_info_i.js";
+import type { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options.js";
+import type { UANonExclusiveLimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_ex.js";
+import type { NamespacePrivate } from "../namespace_private.js";
+import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable.js";
+import { ConditionInfoImpl } from "./condition_info_impl.js";
+import { UALimitAlarmImpl, UALimitAlarmImplBase } from "./ua_limit_alarm_impl.js";
 
 interface IState {
     highHigh: boolean | "unset";

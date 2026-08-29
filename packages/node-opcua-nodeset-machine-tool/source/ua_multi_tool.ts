@@ -1,4 +1,4 @@
-import type { UABaseTool, UABaseTool_Base } from "./ua_base_tool";
+import type { UABaseTool, UABaseTool_Base } from "./ua_base_tool.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

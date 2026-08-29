@@ -5,7 +5,7 @@ import type { IBaseUAObject, StructuredTypeField } from "node-opcua-factory";
 import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 //
-import type { ExtraDataTypeManager } from "./extra_data_type_manager";
+import type { ExtraDataTypeManager } from "./extra_data_type_manager.js";
 
 const warningLog = make_warningLog("resolve_dynamic_extension_object");
 

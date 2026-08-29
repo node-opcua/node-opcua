@@ -5,7 +5,7 @@ import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
 import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAMaintenanceModeStateMachine } from "./ua_maintenance_mode_state_machine";
+import type { UAMaintenanceModeStateMachine } from "./ua_maintenance_mode_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

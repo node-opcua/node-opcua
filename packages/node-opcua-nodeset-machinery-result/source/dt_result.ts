@@ -2,7 +2,7 @@ import type { ExtensionObject } from "node-opcua-extension-object";
 import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
 import type { Variant } from "node-opcua-variant";
 
-import type { DTResultMeta } from "./dt_result_meta";
+import type { DTResultMeta } from "./dt_result_meta.js";
 
 // ----- this file has been automatically generated - do not edit
 

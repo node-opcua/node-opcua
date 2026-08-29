@@ -1,6 +1,6 @@
-import type { UAAASAdministrativeInformation } from "./ua_aas_administrative_information";
-import type { UAAASIdentifier } from "./ua_aas_identifier";
-import type { UAIAASReferable, UAIAASReferable_Base } from "./ua_iaas_referable";
+import type { UAAASAdministrativeInformation } from "./ua_aas_administrative_information.js";
+import type { UAAASIdentifier } from "./ua_aas_identifier.js";
+import type { UAIAASReferable, UAIAASReferable_Base } from "./ua_iaas_referable.js";
 
 // ----- this file has been automatically generated - do not edit
 

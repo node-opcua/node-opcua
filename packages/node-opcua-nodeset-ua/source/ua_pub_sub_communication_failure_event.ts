@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { StatusCode } from "node-opcua-status-code";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAPubSubStatusEvent, UAPubSubStatusEvent_Base } from "./ua_pub_sub_status_event";
+import type { UAPubSubStatusEvent, UAPubSubStatusEvent_Base } from "./ua_pub_sub_status_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

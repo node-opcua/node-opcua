@@ -1,4 +1,4 @@
-import type { UAGlassEvent, UAGlassEvent_Base } from "./ua_glass_event";
+import type { UAGlassEvent, UAGlassEvent_Base } from "./ua_glass_event.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

@@ -1,8 +1,8 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTRfidAccessResult } from "./dt_rfid_access_result";
-import type { UAAutoIdAccessEvent, UAAutoIdAccessEvent_Base } from "./ua_auto_id_access_event";
+import type { DTRfidAccessResult } from "./dt_rfid_access_result.js";
+import type { UAAutoIdAccessEvent, UAAutoIdAccessEvent_Base } from "./ua_auto_id_access_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

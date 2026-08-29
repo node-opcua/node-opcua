@@ -8,7 +8,7 @@
 import { keyOperationsFromPrivateKey } from "node-opcua-crypto";
 import type { IKeyOperations, PrivateKey } from "node-opcua-crypto/web";
 
-import type { ICertificateKeyPairProvider, ICertificateKeyPairProvider2 } from "./opcua_secure_object";
+import type { ICertificateKeyPairProvider, ICertificateKeyPairProvider2 } from "./opcua_secure_object.js";
 
 function providesKeyOperations(provider: ICertificateKeyPairProvider): provider is ICertificateKeyPairProvider2 {
     return typeof (provider as ICertificateKeyPairProvider2).getKeyOperations === "function";

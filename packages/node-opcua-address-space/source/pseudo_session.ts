@@ -25,9 +25,9 @@ import type { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { BrowseDescriptionOptions, ReadValueIdOptions, WriteValueOptions } from "node-opcua-types";
 
-import { ContinuationPointManager } from "./continuation_points/continuation_point_manager";
-import { callMethodHelper } from "./helpers/call_helpers";
-import { SessionContext } from "./session_context";
+import { ContinuationPointManager } from "./continuation_points/continuation_point_manager.js";
+import { callMethodHelper } from "./helpers/call_helpers.js";
+import { SessionContext } from "./session_context.js";
 
 const errorLog = make_errorLog("PseudoSession");
 

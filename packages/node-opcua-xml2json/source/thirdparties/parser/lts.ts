@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
-import type { XmlAttributes } from "../../xml2json";
-import { unescapeXML } from "../escape";
+import type { XmlAttributes } from "../../xml2json.js";
+import { unescapeXML } from "../escape.js";
 
 const STATE_TEXT = 0;
 const STATE_IGNORE_COMMENT = 1;

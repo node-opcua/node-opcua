@@ -1,24 +1,24 @@
 import type { UAEventType } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
 import type { VariantOptions } from "node-opcua-variant";
-import type { UAOffNormalAlarmEx } from "../src/alarms_and_conditions/ua_off_normal_alarm_impl";
-import type { InstantiateAlarmConditionOptions } from "./interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
-import type { InstantiateConditionOptions } from "./interfaces/alarms_and_conditions/instantiate_condition_options";
-import type { InstantiateExclusiveDeviationAlarmOptions } from "./interfaces/alarms_and_conditions/instantiate_exclusive_deviation_alarm_options";
-import type { InstantiateExclusiveLimitAlarmOptions } from "./interfaces/alarms_and_conditions/instantiate_exclusive_limit_alarm_options";
-import type { InstantiateLimitAlarmOptions } from "./interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
-import type { InstantiateNonExclusiveDeviationAlarmOptions } from "./interfaces/alarms_and_conditions/instantiate_non_exclusive_deviation_alarm_options";
-import type { InstantiateNonExclusiveLimitAlarmOptions } from "./interfaces/alarms_and_conditions/instantiate_non_exclusive_limit_alarm_options";
-import type { InstantiateOffNormalAlarmOptions } from "./interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options";
-import type { UAAcknowledgeableConditionEx } from "./interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex";
-import type { UAAlarmConditionEx } from "./interfaces/alarms_and_conditions/ua_alarm_condition_ex";
-import type { UAConditionEx } from "./interfaces/alarms_and_conditions/ua_condition_ex";
-import type { UADiscreteAlarmEx } from "./interfaces/alarms_and_conditions/ua_discrete_alarm_ex";
-import type { UAExclusiveDeviationAlarmEx } from "./interfaces/alarms_and_conditions/ua_exclusive_deviation_alarm_ex";
-import type { UAExclusiveLimitAlarmEx } from "./interfaces/alarms_and_conditions/ua_exclusive_limit_alarm_ex";
-import type { UALimitAlarmEx } from "./interfaces/alarms_and_conditions/ua_limit_alarm_ex";
-import type { UANonExclusiveDeviationAlarmEx } from "./interfaces/alarms_and_conditions/ua_non_exclusive_deviation_alarm_ex";
-import type { UANonExclusiveLimitAlarmEx } from "./interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_ex";
+import type { UAOffNormalAlarmEx } from "../src/alarms_and_conditions/ua_off_normal_alarm_impl.js";
+import type { InstantiateAlarmConditionOptions } from "./interfaces/alarms_and_conditions/instantiate_alarm_condition_options.js";
+import type { InstantiateConditionOptions } from "./interfaces/alarms_and_conditions/instantiate_condition_options.js";
+import type { InstantiateExclusiveDeviationAlarmOptions } from "./interfaces/alarms_and_conditions/instantiate_exclusive_deviation_alarm_options.js";
+import type { InstantiateExclusiveLimitAlarmOptions } from "./interfaces/alarms_and_conditions/instantiate_exclusive_limit_alarm_options.js";
+import type { InstantiateLimitAlarmOptions } from "./interfaces/alarms_and_conditions/instantiate_limit_alarm_options.js";
+import type { InstantiateNonExclusiveDeviationAlarmOptions } from "./interfaces/alarms_and_conditions/instantiate_non_exclusive_deviation_alarm_options.js";
+import type { InstantiateNonExclusiveLimitAlarmOptions } from "./interfaces/alarms_and_conditions/instantiate_non_exclusive_limit_alarm_options.js";
+import type { InstantiateOffNormalAlarmOptions } from "./interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options.js";
+import type { UAAcknowledgeableConditionEx } from "./interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex.js";
+import type { UAAlarmConditionEx } from "./interfaces/alarms_and_conditions/ua_alarm_condition_ex.js";
+import type { UAConditionEx } from "./interfaces/alarms_and_conditions/ua_condition_ex.js";
+import type { UADiscreteAlarmEx } from "./interfaces/alarms_and_conditions/ua_discrete_alarm_ex.js";
+import type { UAExclusiveDeviationAlarmEx } from "./interfaces/alarms_and_conditions/ua_exclusive_deviation_alarm_ex.js";
+import type { UAExclusiveLimitAlarmEx } from "./interfaces/alarms_and_conditions/ua_exclusive_limit_alarm_ex.js";
+import type { UALimitAlarmEx } from "./interfaces/alarms_and_conditions/ua_limit_alarm_ex.js";
+import type { UANonExclusiveDeviationAlarmEx } from "./interfaces/alarms_and_conditions/ua_non_exclusive_deviation_alarm_ex.js";
+import type { UANonExclusiveLimitAlarmEx } from "./interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_ex.js";
 
 export interface INamespaceAlarmAndCondition {
     // --- Alarms & Conditions -------------------------------------------------

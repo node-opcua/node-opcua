@@ -2,8 +2,8 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumWwUnitMode } from "./enum_ww_unit_mode";
-import type { EnumWwUnitState } from "./enum_ww_unit_state";
+import type { EnumWwUnitMode } from "./enum_ww_unit_mode.js";
+import type { EnumWwUnitState } from "./enum_ww_unit_state.js";
 
 // ----- this file has been automatically generated - do not edit
 

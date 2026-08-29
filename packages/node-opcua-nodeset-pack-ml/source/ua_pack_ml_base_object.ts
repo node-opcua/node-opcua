@@ -2,9 +2,9 @@ import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-ba
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAPackMLAdminObject } from "./ua_pack_ml_admin_object";
-import type { UAPackMLBaseStateMachine } from "./ua_pack_ml_base_state_machine";
-import type { UAPackMLStatusObject } from "./ua_pack_ml_status_object";
+import type { UAPackMLAdminObject } from "./ua_pack_ml_admin_object.js";
+import type { UAPackMLBaseStateMachine } from "./ua_pack_ml_base_state_machine.js";
+import type { UAPackMLStatusObject } from "./ua_pack_ml_status_object.js";
 
 // ----- this file has been automatically generated - do not edit
 

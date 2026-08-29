@@ -1,8 +1,8 @@
 import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTPublishedVariable } from "./dt_published_variable";
-import type { UAPublishedDataSet, UAPublishedDataSet_Base } from "./ua_published_data_set";
+import type { DTPublishedVariable } from "./dt_published_variable.js";
+import type { UAPublishedDataSet, UAPublishedDataSet_Base } from "./ua_published_data_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

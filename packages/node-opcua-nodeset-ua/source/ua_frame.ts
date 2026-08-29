@@ -2,12 +2,12 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTCartesianCoordinates } from "./dt_cartesian_coordinates";
-import type { DTFrame } from "./dt_frame";
-import type { DTOrientation } from "./dt_orientation";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
-import type { UACartesianCoordinates } from "./ua_cartesian_coordinates";
-import type { UAOrientation } from "./ua_orientation";
+import type { DTCartesianCoordinates } from "./dt_cartesian_coordinates.js";
+import type { DTFrame } from "./dt_frame.js";
+import type { DTOrientation } from "./dt_orientation.js";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable.js";
+import type { UACartesianCoordinates } from "./ua_cartesian_coordinates.js";
+import type { UAOrientation } from "./ua_orientation.js";
 
 // ----- this file has been automatically generated - do not edit
 

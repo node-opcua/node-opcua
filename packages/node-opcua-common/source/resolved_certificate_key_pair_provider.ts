@@ -19,9 +19,9 @@ import fs from "node:fs";
 import { readCertificateChain } from "node-opcua-crypto";
 import type { Certificate, IKeyOperations, PrivateKey } from "node-opcua-crypto/web";
 
-import type { ICertificateChainProvider } from "./certificate_chain_provider";
-import { localKeyOperationsOfProvider } from "./local_key_operations_provider";
-import type { ICertificateKeyPairProvider2, ICertificateKeyPairProviderWithLocation } from "./opcua_secure_object";
+import type { ICertificateChainProvider } from "./certificate_chain_provider.js";
+import { localKeyOperationsOfProvider } from "./local_key_operations_provider.js";
+import type { ICertificateKeyPairProvider2, ICertificateKeyPairProviderWithLocation } from "./opcua_secure_object.js";
 
 export class ResolvedCertificateKeyPairProvider
     implements ICertificateChainProvider, ICertificateKeyPairProviderWithLocation, ICertificateKeyPairProvider2

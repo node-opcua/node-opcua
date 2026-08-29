@@ -3,8 +3,8 @@
  */
 import type { Namespace, UAObject } from "node-opcua-address-space";
 
-import { addVariable } from "./helpers";
-import { typeAndDefaultValue } from "./type_defaults";
+import { addVariable } from "./helpers.js";
+import { typeAndDefaultValue } from "./type_defaults.js";
 
 function addMassVariablesOfType(
     namespace: Namespace,

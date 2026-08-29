@@ -9,7 +9,7 @@
 import { type Certificate, makeSHA1Thumbprint } from "node-opcua-crypto/web";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 
-import type { ICertificateStore } from "./i_certificate_store";
+import type { ICertificateStore } from "./i_certificate_store.js";
 
 export interface InMemoryCertificateStoreOptions {
     /**

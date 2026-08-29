@@ -8,7 +8,7 @@
  * @see OPC 10000-3 §4.8.2
  */
 /** biome-ignore-all lint/style/useLiteralEnumMembers: uses ObjectIds constants */
-import { ObjectIds } from "./opcua_node_ids";
+import { ObjectIds } from "./opcua_node_ids.js";
 
 export enum WellKnownRoles {
     /** Very limited access for anonymous Sessions. */

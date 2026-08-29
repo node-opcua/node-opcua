@@ -24,14 +24,14 @@ import type { DataValue } from "node-opcua-data-value";
 import type { DTEnumValue } from "node-opcua-nodeset-ua";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import type { AddMultiStateValueDiscreteOptions } from "../../source/address_space_ts";
-import { coerceEnumValues } from "../../source/helpers/coerce_enum_value";
-import type { UAMultiStateValueDiscreteEx } from "../../source/interfaces/data_access/ua_multistate_value_discrete_ex";
-import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
-import { registerNodePromoter } from "../../source/loader/register_node_promoter";
-import { _getBasicDataTypeFromDataTypeNodeId } from "../get_basic_datatype";
-import { UAVariableImpl } from "../ua_variable_impl";
-import { add_dataItem_stuff } from "./add_dataItem_stuff";
+import type { AddMultiStateValueDiscreteOptions } from "../../source/address_space_ts.js";
+import { coerceEnumValues } from "../../source/helpers/coerce_enum_value.js";
+import type { UAMultiStateValueDiscreteEx } from "../../source/interfaces/data_access/ua_multistate_value_discrete_ex.js";
+import type { ISetStateOptions } from "../../source/interfaces/i_set_state_options.js";
+import { registerNodePromoter } from "../../source/loader/register_node_promoter.js";
+import { _getBasicDataTypeFromDataTypeNodeId } from "../get_basic_datatype.js";
+import { UAVariableImpl } from "../ua_variable_impl.js";
+import { add_dataItem_stuff } from "./add_dataItem_stuff.js";
 
 function convertToArray<T>(array: ArrayLike<T> | T[]): T[] {
     if (Array.isArray(array)) return array;

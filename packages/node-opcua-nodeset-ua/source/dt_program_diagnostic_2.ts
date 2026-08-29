@@ -4,8 +4,8 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { StatusCode } from "node-opcua-status-code";
 import type { Variant } from "node-opcua-variant";
 
-import type { DTArgument } from "./dt_argument";
-import type { DTStructure } from "./dt_structure";
+import type { DTArgument } from "./dt_argument.js";
+import type { DTStructure } from "./dt_structure.js";
 
 // ----- this file has been automatically generated - do not edit
 

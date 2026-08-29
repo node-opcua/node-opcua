@@ -3,9 +3,9 @@ import type { Int32 } from "node-opcua-basic-types";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTPackMLAlarm } from "./dt_pack_ml_alarm";
-import type { DTPackMLCount } from "./dt_pack_ml_count";
-import type { DTPackMLDescriptor } from "./dt_pack_ml_descriptor";
+import type { DTPackMLAlarm } from "./dt_pack_ml_alarm.js";
+import type { DTPackMLCount } from "./dt_pack_ml_count.js";
+import type { DTPackMLDescriptor } from "./dt_pack_ml_descriptor.js";
 
 // ----- this file has been automatically generated - do not edit
 

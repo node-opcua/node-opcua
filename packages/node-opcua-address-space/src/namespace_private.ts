@@ -14,7 +14,7 @@ import type {
 import { assert } from "node-opcua-assert";
 import type { NodeId } from "node-opcua-nodeid";
 
-import type { AddressSpacePrivate } from "./address_space_private";
+import type { AddressSpacePrivate } from "./address_space_private.js";
 
 export interface NamespacePrivate extends INamespace {
     addressSpace: AddressSpacePrivate;

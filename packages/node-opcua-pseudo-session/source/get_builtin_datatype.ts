@@ -2,8 +2,8 @@ import { AttributeIds } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import type { DataType } from "node-opcua-variant";
-import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "./basic_session_interface";
-import { findBasicDataType } from "./find_basic_datatype";
+import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "./basic_session_interface.js";
+import { findBasicDataType } from "./find_basic_datatype.js";
 
 export async function getBuiltInDataType(
     session: IBasicSessionBrowseAsyncSimple & IBasicSessionReadAsyncSimple,

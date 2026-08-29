@@ -2,7 +2,7 @@ import type { UAObject } from "node-opcua-address-space-base";
 import type { UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABaseDataVariable } from "./ua_base_data_variable";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

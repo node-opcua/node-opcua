@@ -11,7 +11,7 @@ import { type BrowsePath, type BrowsePathResult, makeBrowsePath } from "node-opc
 import { lowerFirstLetter } from "node-opcua-utils";
 import type { Variant } from "node-opcua-variant";
 
-import type { ClientSession } from "../client_session";
+import type { ClientSession } from "../client_session.js";
 
 export interface HistoryServerCapabilities {
     [key: string]: Variant;

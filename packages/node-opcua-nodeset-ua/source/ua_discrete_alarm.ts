@@ -1,4 +1,4 @@
-import type { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition";
+import type { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

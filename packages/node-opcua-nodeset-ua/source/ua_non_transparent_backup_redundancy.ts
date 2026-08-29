@@ -1,9 +1,9 @@
 import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTRedundantServer } from "./dt_redundant_server";
-import type { EnumRedundantServerMode } from "./enum_redundant_server_mode";
-import type { UANonTransparentRedundancy, UANonTransparentRedundancy_Base } from "./ua_non_transparent_redundancy";
+import type { DTRedundantServer } from "./dt_redundant_server.js";
+import type { EnumRedundantServerMode } from "./enum_redundant_server_mode.js";
+import type { UANonTransparentRedundancy, UANonTransparentRedundancy_Base } from "./ua_non_transparent_redundancy.js";
 
 // ----- this file has been automatically generated - do not edit
 

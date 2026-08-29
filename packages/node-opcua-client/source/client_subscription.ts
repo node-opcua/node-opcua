@@ -16,10 +16,10 @@ import type {
 } from "node-opcua-service-subscription";
 import type { Callback, ErrorCallback, StatusCode } from "node-opcua-status-code";
 
-import type { ClientMonitoredItem } from "./client_monitored_item";
-import type { ClientMonitoredItemBase } from "./client_monitored_item_base";
-import type { ClientMonitoredItemGroup } from "./client_monitored_item_group";
-import type { ClientSession, MonitoredItemData, SubscriptionId } from "./client_session";
+import type { ClientMonitoredItem } from "./client_monitored_item.js";
+import type { ClientMonitoredItemBase } from "./client_monitored_item_base.js";
+import type { ClientMonitoredItemGroup } from "./client_monitored_item_group.js";
+import type { ClientSession, MonitoredItemData, SubscriptionId } from "./client_session.js";
 
 export interface ClientSubscriptionOptions {
     requestedPublishingInterval?: number;

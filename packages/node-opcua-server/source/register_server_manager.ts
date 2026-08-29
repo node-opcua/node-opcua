@@ -24,7 +24,7 @@ import {
     MdnsDiscoveryConfiguration,
     type RegisteredServerOptions
 } from "node-opcua-types";
-import { type IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager";
+import { type IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager.js";
 
 const doDebug = checkDebugFlag("REGISTER_LDS");
 const debugLog = make_debugLog("REGISTER_LDS");

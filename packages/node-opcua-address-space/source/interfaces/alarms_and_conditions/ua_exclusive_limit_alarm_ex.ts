@@ -1,8 +1,8 @@
 import type { UAExclusiveLimitAlarm_Base } from "node-opcua-nodeset-ua";
-import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
-import type { UAExclusiveLimitStateMachineEx } from "../state_machine/ua_exclusive_limit_state_machine_type_ex";
-import type { UAShelvedStateMachineEx } from "../state_machine/ua_shelved_state_machine_ex";
-import type { UALimitAlarmEx, UALimitAlarmHelper } from "./ua_limit_alarm_ex";
+import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex.js";
+import type { UAExclusiveLimitStateMachineEx } from "../state_machine/ua_exclusive_limit_state_machine_type_ex.js";
+import type { UAShelvedStateMachineEx } from "../state_machine/ua_shelved_state_machine_ex.js";
+import type { UALimitAlarmEx, UALimitAlarmHelper } from "./ua_limit_alarm_ex.js";
 
 /** @deprecated kept for backward compatibility — alias of UALimitAlarmHelper. */
 export type UAExclusiveLimitAlarmHelper = UALimitAlarmHelper;

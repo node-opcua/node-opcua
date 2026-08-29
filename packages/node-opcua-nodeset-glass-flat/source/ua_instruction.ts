@@ -2,7 +2,7 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTFileFormat } from "./dt_file_format";
+import type { DTFileFormat } from "./dt_file_format.js";
 
 // ----- this file has been automatically generated - do not edit
 

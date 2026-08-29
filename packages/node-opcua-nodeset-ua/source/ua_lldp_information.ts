@@ -1,8 +1,8 @@
 import type { UAObject } from "node-opcua-address-space-base";
 
-import type { UAFolder } from "./ua_folder";
-import type { UALldpLocalSystem } from "./ua_lldp_local_system";
-import type { UALldpRemoteStatistics } from "./ua_lldp_remote_statistics";
+import type { UAFolder } from "./ua_folder.js";
+import type { UALldpLocalSystem } from "./ua_lldp_local_system.js";
+import type { UALldpRemoteStatistics } from "./ua_lldp_remote_statistics.js";
 
 // ----- this file has been automatically generated - do not edit
 

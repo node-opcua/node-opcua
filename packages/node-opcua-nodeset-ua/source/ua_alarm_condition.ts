@@ -4,12 +4,12 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "./ua_acknowledgeable_condition";
-import type { UAAlarmGroup } from "./ua_alarm_group";
-import type { UAAudioVariable } from "./ua_audio_variable";
-import type { UABaseDataVariable } from "./ua_base_data_variable";
-import type { UAShelvedStateMachine } from "./ua_shelved_state_machine";
-import type { UATwoStateVariable } from "./ua_two_state_variable";
+import type { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "./ua_acknowledgeable_condition.js";
+import type { UAAlarmGroup } from "./ua_alarm_group.js";
+import type { UAAudioVariable } from "./ua_audio_variable.js";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
+import type { UAShelvedStateMachine } from "./ua_shelved_state_machine.js";
+import type { UATwoStateVariable } from "./ua_two_state_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

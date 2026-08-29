@@ -3,8 +3,8 @@ import type { UInt32 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTRange } from "./dt_range";
-import type { DTUserManagement } from "./dt_user_management";
+import type { DTRange } from "./dt_range.js";
+import type { DTUserManagement } from "./dt_user_management.js";
 
 // ----- this file has been automatically generated - do not edit
 

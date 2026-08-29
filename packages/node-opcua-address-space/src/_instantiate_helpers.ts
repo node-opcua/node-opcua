@@ -15,9 +15,9 @@ import {
 import { BrowseDirection } from "node-opcua-data-model";
 import { checkDebugFlag, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { makeOptionalsMap, type OptionalMap } from "../source/helpers/make_optionals_map";
-import { MandatoryChildOrRequestedOptionalFilter } from "./_mandatory_child_or_requested_optional_filter";
-import { _clone_hierarchical_references } from "./base_node_private";
+import { makeOptionalsMap, type OptionalMap } from "../source/helpers/make_optionals_map.js";
+import { MandatoryChildOrRequestedOptionalFilter } from "./_mandatory_child_or_requested_optional_filter.js";
+import { _clone_hierarchical_references } from "./base_node_private.js";
 
 // const debugLog = make_debugLog("INSTANTIATE");
 // const doDebug = checkDebugFlag("INSTANTIATE");

@@ -1,7 +1,7 @@
 import type { LocalizedText } from "node-opcua-data-model";
 
-import type { UALimitAlarm, UALimitAlarm_Base } from "./ua_limit_alarm";
-import type { UATwoStateVariable } from "./ua_two_state_variable";
+import type { UALimitAlarm, UALimitAlarm_Base } from "./ua_limit_alarm.js";
+import type { UATwoStateVariable } from "./ua_two_state_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

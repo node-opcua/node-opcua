@@ -1,7 +1,7 @@
 import type { LocalizedText, NodeClass } from "node-opcua-data-model";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import type { BaseNode } from "./base_node";
-import type { UAReference } from "./ua_reference";
+import type { BaseNode } from "./base_node.js";
+import type { UAReference } from "./ua_reference.js";
 
 export interface UAReferenceType extends BaseNode {
     readonly nodeClass: NodeClass.ReferenceType;

@@ -35,26 +35,26 @@ import { BrowseDescription, EnumDefinition, StructureDefinition, StructureType }
 import { isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import XMLWriter from "xml-writer";
-import { makeDefinitionMap } from "../../source/loader/decode_xml_extension_object";
-import type { DefinitionMap2 } from "../../source/loader/make_xml_extension_object_parser";
-import type { XmlWriter } from "../../source/xml_writer";
-import { BaseNodeImpl, getReferenceType } from "../base_node_impl";
-import { SessionContext } from "../index_current";
-import { NamespaceImpl } from "../namespace_impl";
-import { ReferenceImpl } from "../reference_impl";
-import { UADataTypeImpl } from "../ua_data_type_impl";
-import { UAMethodImpl } from "../ua_method_impl";
-import { UAObjectImpl } from "../ua_object_impl";
-import { UAObjectTypeImpl } from "../ua_object_type_impl";
-import { UAReferenceTypeImpl } from "../ua_reference_type_impl";
-import { UAVariableImpl } from "../ua_variable_impl";
-import { UAVariableTypeImpl } from "../ua_variable_type_impl";
-import { UAViewImpl } from "../ua_view_impl";
+import { makeDefinitionMap } from "../../source/loader/decode_xml_extension_object.js";
+import type { DefinitionMap2 } from "../../source/loader/make_xml_extension_object_parser.js";
+import type { XmlWriter } from "../../source/xml_writer.js";
+import { BaseNodeImpl, getReferenceType } from "../base_node_impl.js";
+import { SessionContext } from "../index_current.js";
+import { NamespaceImpl } from "../namespace_impl.js";
+import { ReferenceImpl } from "../reference_impl.js";
+import { UADataTypeImpl } from "../ua_data_type_impl.js";
+import { UAMethodImpl } from "../ua_method_impl.js";
+import { UAObjectImpl } from "../ua_object_impl.js";
+import { UAObjectTypeImpl } from "../ua_object_type_impl.js";
+import { UAReferenceTypeImpl } from "../ua_reference_type_impl.js";
+import { UAVariableImpl } from "../ua_variable_impl.js";
+import { UAVariableTypeImpl } from "../ua_variable_type_impl.js";
+import { UAViewImpl } from "../ua_view_impl.js";
 import {
     _constructNamespaceTranslationTable,
     constructNamespaceDependency,
     constructNamespacePriorityTable
-} from "./construct_namespace_dependency";
+} from "./construct_namespace_dependency.js";
 
 const debugLog = make_debugLog("nodeset_to_xml");
 const warningLog = make_warningLog("nodeset_to_xml");

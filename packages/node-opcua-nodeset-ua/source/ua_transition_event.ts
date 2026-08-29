@@ -1,8 +1,8 @@
 import type { LocalizedText } from "node-opcua-data-model";
 
-import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event";
-import type { UAStateVariable } from "./ua_state_variable";
-import type { UATransitionVariable } from "./ua_transition_variable";
+import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event.js";
+import type { UAStateVariable } from "./ua_state_variable.js";
+import type { UATransitionVariable } from "./ua_transition_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

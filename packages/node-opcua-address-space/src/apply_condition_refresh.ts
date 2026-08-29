@@ -1,6 +1,6 @@
-import type { UAObject, UAVariable } from "../source";
-import { UAConditionImpl } from "./alarms_and_conditions/ua_condition_impl";
-import type { UAObjectImpl } from "./ua_object_impl";
+import type { UAObject, UAVariable } from "../source/index.js";
+import { UAConditionImpl } from "./alarms_and_conditions/ua_condition_impl.js";
+import type { UAObjectImpl } from "./ua_object_impl.js";
 
 export type ConditionRefreshCache = Map<string, UAObjectImpl>;
 export function apply_condition_refresh(this: UAObject | UAVariable, cache?: ConditionRefreshCache): void {

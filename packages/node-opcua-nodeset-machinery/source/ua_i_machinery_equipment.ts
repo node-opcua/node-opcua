@@ -4,7 +4,7 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { UALifetimeVariable } from "node-opcua-nodeset-di/dist/ua_lifetime_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAIMachineTagNameplate, UAIMachineTagNameplate_Base } from "./ua_i_machine_tag_nameplate";
+import type { UAIMachineTagNameplate, UAIMachineTagNameplate_Base } from "./ua_i_machine_tag_nameplate.js";
 
 // ----- this file has been automatically generated - do not edit
 

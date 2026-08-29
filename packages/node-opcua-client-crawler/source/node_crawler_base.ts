@@ -45,7 +45,7 @@ import {
     type CacheNodeReferenceType,
     CacheNodeVariable,
     CacheNodeVariableType
-} from "./cache_node";
+} from "./cache_node.js";
 import {
     dedup_reference,
     type EmptyCallback,
@@ -56,7 +56,7 @@ import {
     type TaskCrawl,
     type TaskExtraReference,
     type TaskProcessBrowseResponse
-} from "./private";
+} from "./private.js";
 
 const debugLog = make_debugLog("node_crawler_base");
 const doDebug = checkDebugFlag("node_crawler_base");

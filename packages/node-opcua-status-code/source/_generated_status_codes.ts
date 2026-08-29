@@ -2,7 +2,7 @@
  * @module node-opcua-status-codes
  */
 // this file has been automatically generated
-import { ConstantStatusCode, StatusCode } from "./opcua_status_code";
+import { ConstantStatusCode, StatusCode } from "./opcua_status_code.js";
 export class StatusCodes {
     /** The operation succeeded. */
     static Good: ConstantStatusCode = new ConstantStatusCode({ name: "Good", value: 0x0, description: "The operation succeeded." });

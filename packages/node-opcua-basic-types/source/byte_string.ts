@@ -3,7 +3,7 @@
  */
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
-import { getRandomInt, getRandomIntInclusive } from "./utils";
+import { getRandomInt, getRandomIntInclusive } from "./utils.js";
 
 export function isValidByteString(value: unknown): boolean {
     return value === null || value instanceof Buffer;

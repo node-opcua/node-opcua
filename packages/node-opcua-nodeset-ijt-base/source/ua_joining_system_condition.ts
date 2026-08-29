@@ -1,6 +1,6 @@
 import type { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua/dist/ua_acknowledgeable_condition";
 
-import type { UAJoiningSystemEventContent } from "./ua_joining_system_event_content";
+import type { UAJoiningSystemEventContent } from "./ua_joining_system_event_content.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -70,14 +70,14 @@ import {
     type VariantLike,
     verifyRankAndDimensions
 } from "node-opcua-variant";
-import { convertToCallbackFunction1 } from "../source/helpers/multiform_func";
-import { SessionContext } from "../source/session_context";
-import { apply_condition_refresh, type ConditionRefreshCache } from "./apply_condition_refresh";
-import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
-import { _clone, ToStringBuilder, UAVariable_toString, valueRankToString } from "./base_node_private";
-import { adjustDataValueStatusCode } from "./data_access/adjust_datavalue_status_code";
-import { _getBasicDataType } from "./get_basic_datatype";
-import { type EnumerationInfo, type IEnumItem, UADataTypeImpl } from "./ua_data_type_impl";
+import { convertToCallbackFunction1 } from "../source/helpers/multiform_func.js";
+import { SessionContext } from "../source/session_context.js";
+import { apply_condition_refresh, type ConditionRefreshCache } from "./apply_condition_refresh.js";
+import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl.js";
+import { _clone, ToStringBuilder, UAVariable_toString, valueRankToString } from "./base_node_private.js";
+import { adjustDataValueStatusCode } from "./data_access/adjust_datavalue_status_code.js";
+import { _getBasicDataType } from "./get_basic_datatype.js";
+import { type EnumerationInfo, type IEnumItem, UADataTypeImpl } from "./ua_data_type_impl.js";
 import {
     _bindExtensionObject,
     _bindExtensionObjectArrayOrMatrix,
@@ -88,8 +88,8 @@ import {
     propagateTouchValueDownwardArray,
     propagateTouchValueUpward,
     setExtensionObjectPartialValue
-} from "./ua_variable_impl_ext_obj";
-import { validateDataTypeCorrectness } from "./validate_data_type_correctness";
+} from "./ua_variable_impl_ext_obj.js";
+import { validateDataTypeCorrectness } from "./validate_data_type_correctness.js";
 
 const debugLog = make_debugLog("ua_variable_impl");
 const warningLog = make_warningLog("ua_variable_impl");

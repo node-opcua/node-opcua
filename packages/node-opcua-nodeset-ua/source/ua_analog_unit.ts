@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { EUInformation } from "node-opcua-data-access";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABaseAnalog, UABaseAnalog_Base } from "./ua_base_analog";
+import type { UABaseAnalog, UABaseAnalog_Base } from "./ua_base_analog.js";
 
 // ----- this file has been automatically generated - do not edit
 

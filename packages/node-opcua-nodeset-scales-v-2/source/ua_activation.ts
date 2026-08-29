@@ -4,7 +4,7 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { DataType } from "node-opcua-variant";
 
-import type { UARecipeElement, UARecipeElement_Base } from "./ua_recipe_element";
+import type { UARecipeElement, UARecipeElement_Base } from "./ua_recipe_element.js";
 
 // ----- this file has been automatically generated - do not edit
 

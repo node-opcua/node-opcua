@@ -1,8 +1,8 @@
 import type { UAObject } from "node-opcua-address-space-base";
 import type { LocalizedText } from "node-opcua-data-model";
 
-import type { UAStateVariable } from "./ua_state_variable";
-import type { UATransitionVariable } from "./ua_transition_variable";
+import type { UAStateVariable } from "./ua_state_variable.js";
+import type { UATransitionVariable } from "./ua_transition_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

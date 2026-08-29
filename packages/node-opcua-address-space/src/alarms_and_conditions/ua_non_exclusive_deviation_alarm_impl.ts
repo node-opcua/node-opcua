@@ -7,18 +7,18 @@ import { assert } from "node-opcua-assert";
 import type { DataValue } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType, VariantOptions } from "node-opcua-variant";
-import type { InstallSetPointOptions } from "../../source/interfaces/alarms_and_conditions/install_setpoint_options";
-import type { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
-import type { UANonExclusiveDeviationAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_non_exclusive_deviation_alarm_ex";
-import type { NamespacePrivate } from "../namespace_private";
+import type { InstallSetPointOptions } from "../../source/interfaces/alarms_and_conditions/install_setpoint_options.js";
+import type { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options.js";
+import type { UANonExclusiveDeviationAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_non_exclusive_deviation_alarm_ex.js";
+import type { NamespacePrivate } from "../namespace_private.js";
 import {
     DeviationAlarmHelper_getSetpointNodeNode,
     DeviationAlarmHelper_getSetpointValue,
     DeviationAlarmHelper_install_setpoint,
     DeviationAlarmHelper_onSetpointDataValueChange
-} from "./deviation_alarm_helper";
-import { UALimitAlarmImpl } from "./ua_limit_alarm_impl";
-import { UANonExclusiveLimitAlarmImpl, UANonExclusiveLimitAlarmImplBase } from "./ua_non_exclusive_limit_alarm_impl";
+} from "./deviation_alarm_helper.js";
+import { UALimitAlarmImpl } from "./ua_limit_alarm_impl.js";
+import { UANonExclusiveLimitAlarmImpl, UANonExclusiveLimitAlarmImplBase } from "./ua_non_exclusive_limit_alarm_impl.js";
 
 export class UANonExclusiveDeviationAlarmImplBase extends UANonExclusiveLimitAlarmImplBase {
     public static instantiate(

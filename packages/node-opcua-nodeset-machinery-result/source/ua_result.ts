@@ -3,10 +3,10 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTProcessingTimes } from "./dt_processing_times";
-import type { DTResult } from "./dt_result";
-import type { DTResultMeta } from "./dt_result_meta";
-import type { EnumResultEvaluationEnum } from "./enum_result_evaluation_enum";
+import type { DTProcessingTimes } from "./dt_processing_times.js";
+import type { DTResult } from "./dt_result.js";
+import type { DTResultMeta } from "./dt_result_meta.js";
+import type { EnumResultEvaluationEnum } from "./enum_result_evaluation_enum.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAIMachineryItemVendorNameplate, UAIMachineryItemVendorNameplate_Base } from "./ua_i_machinery_item_vendor_nameplate";
+import type { UAIMachineryItemVendorNameplate, UAIMachineryItemVendorNameplate_Base } from "./ua_i_machinery_item_vendor_nameplate.js";
 
 // ----- this file has been automatically generated - do not edit
 

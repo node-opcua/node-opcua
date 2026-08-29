@@ -2,10 +2,10 @@ import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { Byte, UAString, UInt16 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAPubSubDiagnosticsWriterGroup } from "./ua_pub_sub_diagnostics_writer_group";
-import type { UAPubSubGroup, UAPubSubGroup_Base } from "./ua_pub_sub_group";
-import type { UAWriterGroupMessage } from "./ua_writer_group_message";
-import type { UAWriterGroupTransport } from "./ua_writer_group_transport";
+import type { UAPubSubDiagnosticsWriterGroup } from "./ua_pub_sub_diagnostics_writer_group.js";
+import type { UAPubSubGroup, UAPubSubGroup_Base } from "./ua_pub_sub_group.js";
+import type { UAWriterGroupMessage } from "./ua_writer_group_message.js";
+import type { UAWriterGroupTransport } from "./ua_writer_group_transport.js";
 
 // ----- this file has been automatically generated - do not edit
 

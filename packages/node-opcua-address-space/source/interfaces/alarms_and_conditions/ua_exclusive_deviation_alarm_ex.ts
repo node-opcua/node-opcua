@@ -1,6 +1,6 @@
 import type { UAExclusiveDeviationAlarm_Base } from "node-opcua-nodeset-ua";
-import type { DeviationStuff } from "./deviation_stuff";
-import type { UAExclusiveLimitAlarmEx } from "./ua_exclusive_limit_alarm_ex";
+import type { DeviationStuff } from "./deviation_stuff.js";
+import type { UAExclusiveLimitAlarmEx } from "./ua_exclusive_limit_alarm_ex.js";
 
 export interface UAExclusiveDeviationAlarmEx
     extends Omit<

@@ -1,4 +1,4 @@
-import type { UAChannelMonitoring, UAChannelMonitoring_Base } from "./ua_channel_monitoring";
+import type { UAChannelMonitoring, UAChannelMonitoring_Base } from "./ua_channel_monitoring.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

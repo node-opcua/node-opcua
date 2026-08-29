@@ -3,9 +3,9 @@ import type { UAString } from "node-opcua-basic-types";
 import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAActiveProgram } from "./ua_active_program";
-import type { UAProgramTemplateSet } from "./ua_program_template_set";
-import type { UAResultSet } from "./ua_result_set";
+import type { UAActiveProgram } from "./ua_active_program.js";
+import type { UAProgramTemplateSet } from "./ua_program_template_set.js";
+import type { UAResultSet } from "./ua_result_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

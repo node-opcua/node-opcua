@@ -6,8 +6,8 @@ import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
 import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTISA95JobOrderAndState } from "./dt_isa_95_job_order_and_state";
-import type { DTISA95WorkMaster } from "./dt_isa_95_work_master";
+import type { DTISA95JobOrderAndState } from "./dt_isa_95_job_order_and_state.js";
+import type { DTISA95WorkMaster } from "./dt_isa_95_work_master.js";
 
 // ----- this file has been automatically generated - do not edit
 

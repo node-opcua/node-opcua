@@ -20,9 +20,9 @@ export {
     UserTokenPolicy
 } from "node-opcua-types";
 
-export { AsymmetricAlgorithmSecurityHeader } from "./AsymmetricAlgorithmSecurityHeader";
-export * from "./message_security_mode";
-export { SymmetricAlgorithmSecurityHeader } from "./SymmetricAlgorithmSecurityHeader";
+export { AsymmetricAlgorithmSecurityHeader } from "./AsymmetricAlgorithmSecurityHeader.js";
+export * from "./message_security_mode.js";
+export { SymmetricAlgorithmSecurityHeader } from "./SymmetricAlgorithmSecurityHeader.js";
 
 // createdAt
 ChannelSecurityToken.schema.fields[2].defaultValue = () => new Date();

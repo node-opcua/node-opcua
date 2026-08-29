@@ -1,9 +1,9 @@
 import type { UAMethod } from "node-opcua-address-space-base";
 import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 
-import type { UAProduct, UAProduct_Base } from "./ua_product";
-import type { UATargetItem } from "./ua_target_item";
-import type { UAWeighingItem } from "./ua_weighing_item";
+import type { UAProduct, UAProduct_Base } from "./ua_product.js";
+import type { UATargetItem } from "./ua_target_item.js";
+import type { UAWeighingItem } from "./ua_weighing_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

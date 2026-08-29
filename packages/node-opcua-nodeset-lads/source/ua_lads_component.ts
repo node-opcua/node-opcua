@@ -10,8 +10,8 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { UALADSComponents } from "./ua_lads_components";
-import type { UAMaintenanceSet } from "./ua_maintenance_set";
+import type { UALADSComponents } from "./ua_lads_components.js";
+import type { UAMaintenanceSet } from "./ua_maintenance_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,7 +1,7 @@
 import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAControllerTuningParameter, UAControllerTuningParameter_Base } from "./ua_controller_tuning_parameter";
+import type { UAControllerTuningParameter, UAControllerTuningParameter_Base } from "./ua_controller_tuning_parameter.js";
 
 // ----- this file has been automatically generated - do not edit
 

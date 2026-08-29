@@ -1,5 +1,5 @@
-import type { UAFormingPositions } from "./ua_forming_positions";
-import type { UAProcessWorkingUnit, UAProcessWorkingUnit_Base } from "./ua_process_working_unit";
+import type { UAFormingPositions } from "./ua_forming_positions.js";
+import type { UAProcessWorkingUnit, UAProcessWorkingUnit_Base } from "./ua_process_working_unit.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -6,9 +6,9 @@ import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_uni
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumMachineOperationMode } from "./enum_machine_operation_mode";
-import type { UAMachineOperationModeStateMachine } from "./ua_machine_operation_mode_state_machine";
-import type { UAObligation } from "./ua_obligation";
+import type { EnumMachineOperationMode } from "./enum_machine_operation_mode.js";
+import type { UAMachineOperationModeStateMachine } from "./ua_machine_operation_mode_state_machine.js";
+import type { UAObligation } from "./ua_obligation.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -6,10 +6,10 @@ import { AttributeIds, type ReadValueIdOptions, TimestampsToReturn } from "node-
 import type { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, type Variant } from "node-opcua-variant";
-import { callConditionRefresh } from "./call_condition_refresh";
-import { acknowledgeCondition, confirmCondition } from "./call_method_condition";
-import { type EventStuff, fieldsToJson } from "./event_stuff";
-import { extractConditionFields } from "./extract_condition_fields";
+import { callConditionRefresh } from "./call_condition_refresh.js";
+import { acknowledgeCondition, confirmCondition } from "./call_method_condition.js";
+import { type EventStuff, fieldsToJson } from "./event_stuff.js";
+import { extractConditionFields } from "./extract_condition_fields.js";
 
 const doDebug = checkDebugFlag("acknowledge_all_conditions");
 const debugLog = make_debugLog("acknowledge_all_conditions");

@@ -1,8 +1,8 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UABaseDataVariable } from "./ua_base_data_variable";
-import type { UANetworkAddress, UANetworkAddress_Base } from "./ua_network_address";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
+import type { UANetworkAddress, UANetworkAddress_Base } from "./ua_network_address.js";
 
 // ----- this file has been automatically generated - do not edit
 

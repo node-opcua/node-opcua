@@ -1,6 +1,6 @@
 import type { UAVariable } from "node-opcua-address-space-base";
 import type { NodeIdLike } from "node-opcua-nodeid";
-import type { InstantiateAlarmConditionOptions } from "./instantiate_alarm_condition_options";
+import type { InstantiateAlarmConditionOptions } from "./instantiate_alarm_condition_options.js";
 
 export interface InstantiateOffNormalAlarmOptions extends InstantiateAlarmConditionOptions {
     /**

@@ -9,7 +9,7 @@ import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { findMethodId, type ResponseCallback } from "node-opcua-pseudo-session";
 import type { Callback, StatusCode } from "node-opcua-status-code";
 
-import { ClientSessionImpl } from "../private/client_session_impl";
+import { ClientSessionImpl } from "../private/client_session_impl.js";
 
 ClientSessionImpl.prototype.disableCondition = () => {
     /** */

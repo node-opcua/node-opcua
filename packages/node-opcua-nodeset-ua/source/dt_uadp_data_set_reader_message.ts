@@ -1,7 +1,7 @@
 import type { Guid, UInt16, UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTDataSetReaderMessage } from "./dt_data_set_reader_message";
+import type { DTDataSetReaderMessage } from "./dt_data_set_reader_message.js";
 
 // ----- this file has been automatically generated - do not edit
 

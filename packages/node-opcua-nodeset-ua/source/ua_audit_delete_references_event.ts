@@ -1,8 +1,8 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTDeleteReferencesItem } from "./dt_delete_references_item";
-import type { UAAuditNodeManagementEvent, UAAuditNodeManagementEvent_Base } from "./ua_audit_node_management_event";
+import type { DTDeleteReferencesItem } from "./dt_delete_references_item.js";
+import type { UAAuditNodeManagementEvent, UAAuditNodeManagementEvent_Base } from "./ua_audit_node_management_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

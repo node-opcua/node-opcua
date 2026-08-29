@@ -3,7 +3,7 @@ import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-u
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumDeviceHealth } from "./enum_device_health";
+import type { EnumDeviceHealth } from "./enum_device_health.js";
 
 // ----- this file has been automatically generated - do not edit
 

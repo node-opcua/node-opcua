@@ -3,7 +3,7 @@
  */
 export let get_clock_tick: () => number;
 
-import "./hrtime";
+import "./hrtime.js";
 
 if (typeof process === "object" && process.hrtime) {
     const tickOrigin = process.hrtime();

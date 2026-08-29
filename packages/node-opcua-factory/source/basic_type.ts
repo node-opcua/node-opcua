@@ -5,7 +5,7 @@ import { assert } from "node-opcua-assert";
 import { decodeLocaleId, encodeLocaleId, validateLocaleId } from "node-opcua-basic-types";
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { make_errorLog } from "node-opcua-debug";
-import { getBuiltInType, hasBuiltInType, registerType } from "./builtin_types";
+import { getBuiltInType, hasBuiltInType, registerType } from "./builtin_types.js";
 
 const errorLog = make_errorLog("Factory");
 export interface BasicTypeOptions {

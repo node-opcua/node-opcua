@@ -8,9 +8,9 @@ import { type BinaryStream, BinaryStreamSizeCalculator, type OutputBinaryStream 
 import { hexDump, make_errorLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { isNullOrUndefined } from "node-opcua-utils";
-import type { DataTypeFactory } from "./datatype_factory";
-import { getBuiltInEnumeration, hasBuiltInEnumeration } from "./enumerations";
-import { getStructureTypeConstructor } from "./get_standard_data_type_factory";
+import type { DataTypeFactory } from "./datatype_factory.js";
+import { getBuiltInEnumeration, hasBuiltInEnumeration } from "./enumerations.js";
+import { getStructureTypeConstructor } from "./get_standard_data_type_factory.js";
 
 import {
     type BuiltInTypeDefinition,
@@ -23,7 +23,7 @@ import {
     type IBaseUAObject,
     type IStructuredTypeSchema,
     type StructuredTypeField
-} from "./types";
+} from "./types.js";
 
 const errorLog = make_errorLog("base_ua_object");
 

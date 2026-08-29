@@ -3,12 +3,12 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { CallbackT } from "node-opcua-status-code";
 import type { Argument, CallMethodResultOptions } from "node-opcua-types";
 import type { Variant, VariantLike } from "node-opcua-variant";
-import type { BaseNode, BaseNodeEvents, ListenerSignature } from "./base_node";
-import type { CloneExtraInfo, CloneFilter, CloneOptions } from "./clone_options";
-import type { ISessionContext } from "./session_context";
-import type { UAObject } from "./ua_object";
-import type { UAObjectType } from "./ua_object_type";
-import type { UAVariable } from "./ua_variable";
+import type { BaseNode, BaseNodeEvents, ListenerSignature } from "./base_node.js";
+import type { CloneExtraInfo, CloneFilter, CloneOptions } from "./clone_options.js";
+import type { ISessionContext } from "./session_context.js";
+import type { UAObject } from "./ua_object.js";
+import type { UAObjectType } from "./ua_object_type.js";
+import type { UAVariable } from "./ua_variable.js";
 
 export declare type MethodFunctorC = (
     this: UAMethod,

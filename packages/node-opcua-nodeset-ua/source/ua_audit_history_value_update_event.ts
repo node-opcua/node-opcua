@@ -3,8 +3,8 @@ import type { DataValue } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumPerformUpdate } from "./enum_perform_update";
-import type { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_audit_history_update_event";
+import type { EnumPerformUpdate } from "./enum_perform_update.js";
+import type { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_audit_history_update_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

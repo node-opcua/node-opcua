@@ -6,8 +6,8 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAMachineryItemState_StateMachine } from "./ua_machinery_item_state_state_machine";
-import type { UAMachineryOperationModeStateMachine } from "./ua_machinery_operation_mode_state_machine";
+import type { UAMachineryItemState_StateMachine } from "./ua_machinery_item_state_state_machine.js";
+import type { UAMachineryOperationModeStateMachine } from "./ua_machinery_operation_mode_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

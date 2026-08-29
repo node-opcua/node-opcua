@@ -3,8 +3,8 @@ import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTAnnotation } from "./dt_annotation";
-import type { DTQuantityDimension } from "./dt_quantity_dimension";
+import type { DTAnnotation } from "./dt_annotation.js";
+import type { DTQuantityDimension } from "./dt_quantity_dimension.js";
 
 // ----- this file has been automatically generated - do not edit
 

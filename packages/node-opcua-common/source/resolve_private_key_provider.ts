@@ -10,9 +10,9 @@
  */
 import type { IKeyOperations, PrivateKey } from "node-opcua-crypto/web";
 
-import { OpaqueCertificateKeyPairProvider } from "./opaque_certificate_key_pair_provider";
-import type { ICertificateKeyPairProvider } from "./opcua_secure_object";
-import { ResolvedCertificateKeyPairProvider } from "./resolved_certificate_key_pair_provider";
+import { OpaqueCertificateKeyPairProvider } from "./opaque_certificate_key_pair_provider.js";
+import type { ICertificateKeyPairProvider } from "./opcua_secure_object.js";
+import { ResolvedCertificateKeyPairProvider } from "./resolved_certificate_key_pair_provider.js";
 
 /** Minimal shape of an `OPCUACertificateManager` needed to resolve the private key. */
 export interface ICertificateManagerWithAsyncPrivateKey {

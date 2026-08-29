@@ -14,12 +14,12 @@ import type {
     AddMultiStateValueDiscreteOptions,
     AddTwoStateDiscreteOptions,
     AddTwoStateVariableOptions
-} from "./address_space_ts";
-import type { UAMultiStateDiscreteEx } from "./interfaces/data_access/ua_multistate_discrete_ex";
-import type { UAMultiStateValueDiscreteEx } from "./interfaces/data_access/ua_multistate_value_discrete_ex";
-import type { UATwoStateDiscreteEx } from "./interfaces/data_access/ua_two_state_discrete_ex";
-import type { UAYArrayItemEx } from "./interfaces/data_access/ua_y_array_item_ex";
-import type { UATwoStateVariableEx } from "./ua_two_state_variable_ex";
+} from "./address_space_ts.js";
+import type { UAMultiStateDiscreteEx } from "./interfaces/data_access/ua_multistate_discrete_ex.js";
+import type { UAMultiStateValueDiscreteEx } from "./interfaces/data_access/ua_multistate_value_discrete_ex.js";
+import type { UATwoStateDiscreteEx } from "./interfaces/data_access/ua_two_state_discrete_ex.js";
+import type { UAYArrayItemEx } from "./interfaces/data_access/ua_y_array_item_ex.js";
+import type { UATwoStateVariableEx } from "./ua_two_state_variable_ex.js";
 
 export interface AddDataItemOptions extends AddVariableOptionsWithoutValue {
     arrayType?: VariantArrayType;

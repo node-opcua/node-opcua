@@ -3,7 +3,7 @@ import type { UInt32 } from "node-opcua-basic-types";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAProductionPlan } from "./ua_production_plan";
+import type { UAProductionPlan } from "./ua_production_plan.js";
 
 // ----- this file has been automatically generated - do not edit
 

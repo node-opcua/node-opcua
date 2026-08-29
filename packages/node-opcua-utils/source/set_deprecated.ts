@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 
-import type { FunctionVariadic } from "./function_variadic";
+import type { FunctionVariadic } from "./function_variadic.js";
 
 /* c8 ignore next */
 export function setDeprecated(constructorFunc: FunctionVariadic, methodName: string, helpString: string): void {

@@ -1,7 +1,7 @@
 import type { UAMethod, UAObject } from "node-opcua-address-space-base";
 
-import type { UAPubSubKeyPushTargetFolder } from "./ua_pub_sub_key_push_target_folder";
-import type { UASecurityGroupFolder } from "./ua_security_group_folder";
+import type { UAPubSubKeyPushTargetFolder } from "./ua_pub_sub_key_push_target_folder.js";
+import type { UASecurityGroupFolder } from "./ua_security_group_folder.js";
 
 // ----- this file has been automatically generated - do not edit
 

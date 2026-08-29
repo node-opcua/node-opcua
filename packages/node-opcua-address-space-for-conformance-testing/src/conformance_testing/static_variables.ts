@@ -7,8 +7,8 @@ import type { Namespace, UAObject, UAVariable } from "node-opcua-address-space";
 import { make_errorLog } from "node-opcua-debug";
 import { DataType, Variant } from "node-opcua-variant";
 
-import { addArrayVariable, addMultiDimensionalArrayVariable, addScalarVariable } from "./helpers";
-import { typeAndDefaultValue } from "./type_defaults";
+import { addArrayVariable, addMultiDimensionalArrayVariable, addScalarVariable } from "./helpers.js";
+import { typeAndDefaultValue } from "./type_defaults.js";
 
 const errorLog = make_errorLog("static_variables");
 

@@ -1,8 +1,8 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumAASAssetKind } from "./enum_aas_asset_kind";
-import type { UAAASReference } from "./ua_aas_reference";
+import type { EnumAASAssetKind } from "./enum_aas_asset_kind.js";
+import type { UAAASReference } from "./ua_aas_reference.js";
 
 // ----- this file has been automatically generated - do not edit
 

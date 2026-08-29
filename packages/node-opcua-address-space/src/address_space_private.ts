@@ -23,10 +23,10 @@ import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import type { CallbackT } from "node-opcua-status-code";
 import type { HistoryReadResult, ModelChangeStructureDataType, ReadProcessedDetails } from "node-opcua-types";
-import type { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
-import type { UARootFolder } from "../source/ua_root_folder";
+import type { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor.js";
+import type { UARootFolder } from "../source/ua_root_folder.js";
 
-import type { NamespacePrivate } from "./namespace_private";
+import type { NamespacePrivate } from "./namespace_private.js";
 
 export interface AddressSpacePrivate extends IAddressSpace {
     rootFolder: UARootFolder;

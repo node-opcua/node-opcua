@@ -1,5 +1,5 @@
-import type { UASignal, UASignal_Base } from "./ua_signal";
-import type { UATwoStateDiscreteSignalVariable } from "./ua_two_state_discrete_signal_variable";
+import type { UASignal, UASignal_Base } from "./ua_signal.js";
+import type { UATwoStateDiscreteSignalVariable } from "./ua_two_state_discrete_signal_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

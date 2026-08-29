@@ -2,7 +2,7 @@ import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTBinaryIdBase } from "./dt_binary_id_base";
+import type { DTBinaryIdBase } from "./dt_binary_id_base.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -4,7 +4,7 @@ import path from "node:path";
 import type { ImportDeclarationStructure, OptionalKind, SourceFile } from "ts-morph";
 import { Node, Project, SyntaxKind } from "ts-morph";
 
-import { retryOnTransientWrite } from "./private/fs_retry";
+import { retryOnTransientWrite } from "./private/fs_retry.js";
 
 const dryRun = false;
 

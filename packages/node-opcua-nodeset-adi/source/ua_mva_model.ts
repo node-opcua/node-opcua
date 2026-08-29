@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { Int32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAChemometricModel, UAChemometricModel_Base } from "./ua_chemometric_model";
+import type { UAChemometricModel, UAChemometricModel_Base } from "./ua_chemometric_model.js";
 
 // ----- this file has been automatically generated - do not edit
 

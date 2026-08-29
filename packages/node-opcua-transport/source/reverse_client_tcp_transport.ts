@@ -17,9 +17,9 @@ import chalk from "chalk";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import type { ErrorCallback } from "node-opcua-status-code";
 
-import { ClientTransportBase } from "./client_transport_base";
-import type { IClientTransport, IClientTransportFactory, TransportSettingsOptions } from "./i_client_transport";
-import type { ISocketLike } from "./tcp_transport";
+import { ClientTransportBase } from "./client_transport_base.js";
+import type { IClientTransport, IClientTransportFactory, TransportSettingsOptions } from "./i_client_transport.js";
+import type { ISocketLike } from "./tcp_transport.js";
 
 const doDebug = checkDebugFlag("ReverseClientTCP");
 const debugLog = make_debugLog("ReverseClientTCP");

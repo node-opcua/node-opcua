@@ -3,8 +3,8 @@
  */
 import type { Namespace, UAObject } from "node-opcua-address-space";
 
-import { addArrayVariable } from "./helpers";
-import { typeAndDefaultValue } from "./type_defaults";
+import { addArrayVariable } from "./helpers.js";
+import { typeAndDefaultValue } from "./type_defaults.js";
 
 export function addPath10Deep(namespace: Namespace, simulation_folder: UAObject) {
     let parent = simulation_folder;

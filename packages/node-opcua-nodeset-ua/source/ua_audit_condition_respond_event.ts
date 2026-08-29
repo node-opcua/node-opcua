@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_condition_event";
+import type { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_condition_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

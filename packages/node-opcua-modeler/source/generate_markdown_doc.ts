@@ -13,8 +13,8 @@ import { NodeClass } from "node-opcua-data-model";
 import type { StructureField } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 
-import { displayNodeElement } from "./displayNodeElement";
-import { TableHelper } from "./tableHelper";
+import { displayNodeElement } from "./displayNodeElement.js";
+import { TableHelper } from "./tableHelper.js";
 
 interface NamespacePriv2 extends INamespace {
     nodeIterator(): IterableIterator<BaseNode>;

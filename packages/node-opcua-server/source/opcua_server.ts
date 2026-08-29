@@ -155,19 +155,19 @@ import { isNullOrUndefined, matchUri, randomBytes } from "node-opcua-utils";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 import { withCallback } from "thenify-ex";
 
-import { OPCUABaseServer, type OPCUABaseServerOptions } from "./base_server";
-import { extractPasswordFromDecryptedBlob } from "./extract_password_from_blob";
-import { Factory } from "./factory";
-import type { IChannelData } from "./i_channel_data";
-import type { IRegisterServerManager } from "./i_register_server_manager";
-import type { ISocketData } from "./i_socket_data";
-import { MonitoredItem } from "./monitored_item";
-import { RegisterServerManager } from "./register_server_manager";
-import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
-import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only";
-import { ReverseConnectManager, type ReverseConnectOptions } from "./reverse_connect_manager";
-import type { SamplingFunc } from "./sampling_func";
-import type { ServerCapabilitiesOptions } from "./server_capabilities";
+import { OPCUABaseServer, type OPCUABaseServerOptions } from "./base_server.js";
+import { extractPasswordFromDecryptedBlob } from "./extract_password_from_blob.js";
+import { Factory } from "./factory.js";
+import type { IChannelData } from "./i_channel_data.js";
+import type { IRegisterServerManager } from "./i_register_server_manager.js";
+import type { ISocketData } from "./i_socket_data.js";
+import { MonitoredItem } from "./monitored_item.js";
+import { RegisterServerManager } from "./register_server_manager.js";
+import { RegisterServerManagerHidden } from "./register_server_manager_hidden.js";
+import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only.js";
+import { ReverseConnectManager, type ReverseConnectOptions } from "./reverse_connect_manager.js";
+import type { SamplingFunc } from "./sampling_func.js";
+import type { ServerCapabilitiesOptions } from "./server_capabilities.js";
 import {
     type AdvertisedEndpoint,
     type EndpointDescriptionEx,
@@ -175,12 +175,12 @@ import {
     normalizeAdvertisedEndpoints,
     OPCUAServerEndPoint,
     parseOpcTcpUrl
-} from "./server_end_point";
-import { type ClosingReason, type CreateSessionOption, ServerEngine } from "./server_engine";
-import type { ServerSession } from "./server_session";
-import type { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription } from "./server_subscription";
-import { makeUserManager, type UAUserManagerBase, type UserManagerOptions } from "./user_manager";
-import { bindRoleSet } from "./user_manager_ua";
+} from "./server_end_point.js";
+import { type ClosingReason, type CreateSessionOption, ServerEngine } from "./server_engine.js";
+import type { ServerSession } from "./server_session.js";
+import type { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription } from "./server_subscription.js";
+import { makeUserManager, type UAUserManagerBase, type UserManagerOptions } from "./user_manager.js";
+import { bindRoleSet } from "./user_manager_ua.js";
 
 function isSubscriptionIdInvalid(subscriptionId: number): boolean {
     return subscriptionId < 0 || subscriptionId >= 0xffffffff;

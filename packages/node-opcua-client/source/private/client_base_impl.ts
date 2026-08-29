@@ -70,13 +70,17 @@ import {
     type OPCUAClientBaseEvents,
     type OPCUAClientBaseOptions,
     type TransportSettings
-} from "../client_base";
-import type { Request, Response } from "../common";
-import type { ClientReverseConnect, ICancelableRegistration, ReverseConnectExpectation } from "../reverse/client_reverse_connect";
-import type { UserIdentityInfo } from "../user_identity_info";
-import { performCertificateSanityCheck } from "../verify";
-import type { ClientSessionImpl } from "./client_session_impl";
-import type { IClientBase } from "./i_private_client";
+} from "../client_base.js";
+import type { Request, Response } from "../common.js";
+import type {
+    ClientReverseConnect,
+    ICancelableRegistration,
+    ReverseConnectExpectation
+} from "../reverse/client_reverse_connect.js";
+import type { UserIdentityInfo } from "../user_identity_info.js";
+import { performCertificateSanityCheck } from "../verify.js";
+import type { ClientSessionImpl } from "./client_session_impl.js";
+import type { IClientBase } from "./i_private_client.js";
 
 const debugLog = make_debugLog("client_base_impl");
 const doDebug = checkDebugFlag("client_base_impl");

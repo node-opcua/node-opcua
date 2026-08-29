@@ -1,7 +1,7 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTDataTypeDefinition } from "./dt_data_type_definition";
-import type { DTEnumField } from "./dt_enum_field";
+import type { DTDataTypeDefinition } from "./dt_data_type_definition.js";
+import type { DTEnumField } from "./dt_enum_field.js";
 
 // ----- this file has been automatically generated - do not edit
 

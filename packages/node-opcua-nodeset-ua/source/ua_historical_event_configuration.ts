@@ -1,8 +1,8 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTSimpleAttributeOperand } from "./dt_simple_attribute_operand";
-import type { UAFolder } from "./ua_folder";
+import type { DTSimpleAttributeOperand } from "./dt_simple_attribute_operand.js";
+import type { UAFolder } from "./ua_folder.js";
 
 // ----- this file has been automatically generated - do not edit
 

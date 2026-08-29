@@ -29,11 +29,11 @@ import {
 } from "node-opcua-service-subscription";
 import { type Callback, type ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { isNullOrUndefined } from "node-opcua-utils";
-import type { ClientMonitoredItem } from "../client_monitored_item";
-import type { ClientMonitoredItemBase } from "../client_monitored_item_base";
-import type { ClientMonitoredItemGroup } from "../client_monitored_item_group";
-import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
-import type { ClientSession, MonitoredItemData, SubscriptionId } from "../client_session";
+import type { ClientMonitoredItem } from "../client_monitored_item.js";
+import type { ClientMonitoredItemBase } from "../client_monitored_item_base.js";
+import type { ClientMonitoredItemGroup } from "../client_monitored_item_group.js";
+import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox.js";
+import type { ClientSession, MonitoredItemData, SubscriptionId } from "../client_session.js";
 import {
     type ClientHandle,
     type ClientMonitoredItemBaseMap,
@@ -41,17 +41,17 @@ import {
     type ClientSubscriptionOptions,
     type ModifySubscriptionOptions,
     type ModifySubscriptionResult
-} from "../client_subscription";
-import { ClientMonitoredItemGroupImpl } from "./client_monitored_item_group_impl";
-import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
-import type { ClientSidePublishEngine } from "./client_publish_engine";
-import type { ClientSessionImpl } from "./client_session_impl";
+} from "../client_subscription.js";
+import { ClientMonitoredItemGroupImpl } from "./client_monitored_item_group_impl.js";
+import { ClientMonitoredItemImpl } from "./client_monitored_item_impl.js";
+import type { ClientSidePublishEngine } from "./client_publish_engine.js";
+import type { ClientSessionImpl } from "./client_session_impl.js";
 
 interface ModifySubscriptionOptionsEx extends ModifySubscriptionOptions {
     subscriptionId?: SubscriptionId;
 }
 
-import { detectLongOperation } from "./performance";
+import { detectLongOperation } from "./performance.js";
 
 const debugLog = make_debugLog("CLIENT_SUBSCRIPTION");
 const doDebug = checkDebugFlag("CLIENT_SUBSCRIPTION");

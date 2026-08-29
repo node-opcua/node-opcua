@@ -2,4 +2,4 @@
  * @module node-opcua-guid
  *
  */
-export * from "./guid";
+export * from "./guid.js";

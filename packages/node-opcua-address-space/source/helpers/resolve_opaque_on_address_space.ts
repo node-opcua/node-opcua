@@ -1,8 +1,8 @@
 import type { IAddressSpace } from "node-opcua-address-space-base";
 import { resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
 import { Variant } from "node-opcua-variant";
-import { ensureDatatypeExtracted } from "../loader/ensure_datatype_extracted";
-import { PseudoSession } from "../pseudo_session";
+import { ensureDatatypeExtracted } from "../loader/ensure_datatype_extracted.js";
+import { PseudoSession } from "../pseudo_session.js";
 
 export async function resolveOpaqueOnAddressSpace(
     addressSpace: IAddressSpace,

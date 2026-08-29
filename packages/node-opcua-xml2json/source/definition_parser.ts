@@ -4,7 +4,7 @@
 //   <Field>
 // </Definition>
 import assert from "node-opcua-assert";
-import type { IReaderState, ReaderStateParserLike, Xml2Json, XmlAttributes } from "./xml2json";
+import type { IReaderState, ReaderStateParserLike, Xml2Json, XmlAttributes } from "./xml2json.js";
 
 // <Definition Name="SomeName">
 //        <Field Name="Running" Value="0" dataType: [ValueRank="1"]>

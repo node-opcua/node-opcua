@@ -2,9 +2,9 @@ import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTContentFilter } from "./dt_content_filter";
-import type { DTSimpleAttributeOperand } from "./dt_simple_attribute_operand";
-import type { UAPublishedDataSet, UAPublishedDataSet_Base } from "./ua_published_data_set";
+import type { DTContentFilter } from "./dt_content_filter.js";
+import type { DTSimpleAttributeOperand } from "./dt_simple_attribute_operand.js";
+import type { UAPublishedDataSet, UAPublishedDataSet_Base } from "./ua_published_data_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

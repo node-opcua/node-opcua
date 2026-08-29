@@ -1,6 +1,6 @@
 import type { UAObject, UAObjectType, UAVariable, UAVariableType } from "node-opcua-address-space-base";
 import { NodeClass } from "node-opcua-types";
-import { initialize_properties_and_components } from "../src/_instantiate_helpers";
+import { initialize_properties_and_components } from "../src/_instantiate_helpers.js";
 
 export function implementInterface(
     uaNode: UAObject | UAObjectType | UAVariable | UAVariableType,

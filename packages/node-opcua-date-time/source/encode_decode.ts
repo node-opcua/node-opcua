@@ -2,7 +2,7 @@
  * @module node-opcua-date-time
  */
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { bn_dateToHundredNanoSecondFrom1601, bn_hundredNanoSecondFrom1601ToDate, getMinOPCUADate } from "./date_time";
+import { bn_dateToHundredNanoSecondFrom1601, bn_hundredNanoSecondFrom1601ToDate, getMinOPCUADate } from "./date_time.js";
 
 //  Date(year, month [, day, hours, minutes, seconds, ms])
 export function isValidDateTime(value: unknown) {

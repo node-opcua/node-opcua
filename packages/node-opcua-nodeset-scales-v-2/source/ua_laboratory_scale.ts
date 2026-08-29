@@ -1,7 +1,7 @@
 import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { UASimpleScale, UASimpleScale_Base } from "./ua_simple_scale";
+import type { UASimpleScale, UASimpleScale_Base } from "./ua_simple_scale.js";
 
 // ----- this file has been automatically generated - do not edit
 

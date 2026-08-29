@@ -10,18 +10,18 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, type VariantOptions } from "node-opcua-variant";
-import type { ConditionInfo } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
-import type { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
-import type { UAAlarmConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex";
-import type { AddressSpacePrivate } from "../address_space_private";
+import type { ConditionInfo } from "../../source/interfaces/alarms_and_conditions/condition_info_i.js";
+import type { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_alarm_condition_options.js";
+import type { UAAlarmConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex.js";
+import type { AddressSpacePrivate } from "../address_space_private.js";
 import {
     _clear_timer_if_any,
     type UAShelvedStateMachineExImpl,
     UAShelvedStateMachineExImplBase
-} from "../state_machine/ua_shelving_state_machine_ex";
-import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
-import { ConditionInfoImpl } from "./condition_info_impl";
-import { UAAcknowledgeableConditionImpl, UAAcknowledgeableConditionImplBase } from "./ua_acknowledgeable_condition_impl";
+} from "../state_machine/ua_shelving_state_machine_ex.js";
+import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable.js";
+import { ConditionInfoImpl } from "./condition_info_impl.js";
+import { UAAcknowledgeableConditionImpl, UAAcknowledgeableConditionImplBase } from "./ua_acknowledgeable_condition_impl.js";
 
 const debugLog = make_debugLog("ua_alarm_condition_impl");
 const doDebug = checkDebugFlag("ua_alarm_condition_impl");

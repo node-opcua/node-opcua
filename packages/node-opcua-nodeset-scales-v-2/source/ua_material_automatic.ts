@@ -1,5 +1,5 @@
-import type { UAAutomaticFillingProduct } from "./ua_automatic_filling_product";
-import type { UAMaterial, UAMaterial_Base } from "./ua_material";
+import type { UAAutomaticFillingProduct } from "./ua_automatic_filling_product.js";
+import type { UAMaterial, UAMaterial_Base } from "./ua_material.js";
 
 // ----- this file has been automatically generated - do not edit
 

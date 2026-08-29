@@ -1,8 +1,8 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTRange } from "./dt_range";
-import type { UABaseAnalog, UABaseAnalog_Base } from "./ua_base_analog";
+import type { DTRange } from "./dt_range.js";
+import type { UABaseAnalog, UABaseAnalog_Base } from "./ua_base_analog.js";
 
 // ----- this file has been automatically generated - do not edit
 

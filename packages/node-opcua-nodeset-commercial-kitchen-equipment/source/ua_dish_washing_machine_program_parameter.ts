@@ -6,10 +6,10 @@ import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumHygieneMode } from "./enum_hygiene_mode";
-import type { EnumOperationMode } from "./enum_operation_mode";
-import type { EnumProgramMode } from "./enum_program_mode";
-import type { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter";
+import type { EnumHygieneMode } from "./enum_hygiene_mode.js";
+import type { EnumOperationMode } from "./enum_operation_mode.js";
+import type { EnumProgramMode } from "./enum_program_mode.js";
+import type { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter.js";
 
 // ----- this file has been automatically generated - do not edit
 

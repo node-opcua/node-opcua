@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-data-model
  */
-import type { QualifiedNameLike, QualifiedNameOptions } from "./qualified_name";
+import type { QualifiedNameLike, QualifiedNameOptions } from "./qualified_name.js";
 
 export function isDataEncoding(dataEncoding: unknown): boolean {
     return !!dataEncoding && typeof dataEncoding === "object" && typeof (dataEncoding as { name?: unknown }).name === "string";

@@ -1,7 +1,7 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTUserIdentityToken } from "./dt_user_identity_token";
+import type { DTUserIdentityToken } from "./dt_user_identity_token.js";
 
 // ----- this file has been automatically generated - do not edit
 

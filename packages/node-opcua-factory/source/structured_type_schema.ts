@@ -8,10 +8,10 @@ import type { BinaryStream } from "node-opcua-binary-stream";
 import { make_errorLog, make_warningLog } from "node-opcua-debug";
 import { type ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { TypeSchemaBase } from "./builtin_types";
-import type { DataTypeFactory } from "./datatype_factory";
-import { getStandardDataTypeFactory } from "./get_standard_data_type_factory";
-import { parameters } from "./parameters";
+import { TypeSchemaBase } from "./builtin_types.js";
+import type { DataTypeFactory } from "./datatype_factory.js";
+import { getStandardDataTypeFactory } from "./get_standard_data_type_factory.js";
+import { parameters } from "./parameters.js";
 import {
     type BitField,
     type CommonInterface,
@@ -20,7 +20,7 @@ import {
     type FieldType,
     type IStructuredTypeSchema,
     type StructuredTypeOptions
-} from "./types";
+} from "./types.js";
 
 const warningLog = make_warningLog("structured_type_schema");
 const errorLog = make_errorLog("structured_type_schema");

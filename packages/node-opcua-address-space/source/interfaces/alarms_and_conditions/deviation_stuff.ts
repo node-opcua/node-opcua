@@ -1,7 +1,7 @@
 import type { IAddressSpace, UAVariableT } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-basic-types";
 import type { DataValue } from "node-opcua-data-value";
-import type { SetPointSupport } from "./install_setpoint_options";
+import type { SetPointSupport } from "./install_setpoint_options.js";
 
 export interface DeviationStuff extends SetPointSupport {
     _onSetpointDataValueChange(dataValue: DataValue): void;

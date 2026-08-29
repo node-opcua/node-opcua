@@ -1,4 +1,4 @@
-import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device";
+import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

@@ -2,4 +2,4 @@
  * @module node-opcua-enum
  *
  */
-export * from "./enum";
+export * from "./enum.js";

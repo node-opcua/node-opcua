@@ -8,8 +8,8 @@ import type { UAFileDirectory } from "node-opcua-nodeset-ua/dist/ua_file_directo
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { UASystemOperation } from "./ua_system_operation";
-import type { UAUser } from "./ua_user";
+import type { UASystemOperation } from "./ua_system_operation.js";
+import type { UAUser } from "./ua_user.js";
 
 // ----- this file has been automatically generated - do not edit
 

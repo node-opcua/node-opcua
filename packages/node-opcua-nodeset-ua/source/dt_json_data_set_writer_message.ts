@@ -1,7 +1,7 @@
 import type { UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTDataSetWriterMessage } from "./dt_data_set_writer_message";
+import type { DTDataSetWriterMessage } from "./dt_data_set_writer_message.js";
 
 // ----- this file has been automatically generated - do not edit
 

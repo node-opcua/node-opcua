@@ -2,12 +2,12 @@ import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { Variant } from "node-opcua-variant";
 
-import type { DTConnectionTransport } from "./dt_connection_transport";
-import type { DTKeyValuePair } from "./dt_key_value_pair";
-import type { DTNetworkAddress } from "./dt_network_address";
-import type { DTReaderGroup } from "./dt_reader_group";
-import type { DTStructure } from "./dt_structure";
-import type { DTWriterGroup } from "./dt_writer_group";
+import type { DTConnectionTransport } from "./dt_connection_transport.js";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
+import type { DTNetworkAddress } from "./dt_network_address.js";
+import type { DTReaderGroup } from "./dt_reader_group.js";
+import type { DTStructure } from "./dt_structure.js";
+import type { DTWriterGroup } from "./dt_writer_group.js";
 
 // ----- this file has been automatically generated - do not edit
 

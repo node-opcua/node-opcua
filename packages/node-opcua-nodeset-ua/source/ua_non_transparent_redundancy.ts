@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAServerRedundancy, UAServerRedundancy_Base } from "./ua_server_redundancy";
+import type { UAServerRedundancy, UAServerRedundancy_Base } from "./ua_server_redundancy.js";
 
 // ----- this file has been automatically generated - do not edit
 

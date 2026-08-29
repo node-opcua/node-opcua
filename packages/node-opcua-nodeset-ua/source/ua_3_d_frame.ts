@@ -1,9 +1,9 @@
-import type { DT3DCartesianCoordinates } from "./dt_3_d_cartesian_coordinates";
-import type { DT3DFrame } from "./dt_3_d_frame";
-import type { DT3DOrientation } from "./dt_3_d_orientation";
-import type { UACartesianCoordinates } from "./ua_cartesian_coordinates";
-import type { UAFrame, UAFrame_Base } from "./ua_frame";
-import type { UAOrientation } from "./ua_orientation";
+import type { DT3DCartesianCoordinates } from "./dt_3_d_cartesian_coordinates.js";
+import type { DT3DFrame } from "./dt_3_d_frame.js";
+import type { DT3DOrientation } from "./dt_3_d_orientation.js";
+import type { UACartesianCoordinates } from "./ua_cartesian_coordinates.js";
+import type { UAFrame, UAFrame_Base } from "./ua_frame.js";
+import type { UAOrientation } from "./ua_orientation.js";
 
 // ----- this file has been automatically generated - do not edit
 

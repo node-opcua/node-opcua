@@ -377,9 +377,9 @@ export class ModifiableStatusCode extends StatusCode {
 Object.defineProperty(ModifiableStatusCode.prototype, "_base", { enumerable: false, writable: true });
 Object.defineProperty(ModifiableStatusCode.prototype, "_extraBits", { enumerable: false, writable: true });
 
-import { StatusCodes } from "./_generated_status_codes";
+import { StatusCodes } from "./_generated_status_codes.js";
 
-export { StatusCodes } from "./_generated_status_codes";
+export { StatusCodes } from "./_generated_status_codes.js";
 
 export function coerceStatusCode(statusCode: StatusCode | number | string | { value: number }): StatusCode {
     if (statusCode instanceof StatusCode) {

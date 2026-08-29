@@ -42,8 +42,8 @@
  * the plan once Steps 1–4 land.
  */
 
-export * from "./client_ws_transport";
-export * as uacp from "./uacp";
-export { type WebSocketLike, WsSocketAdapter } from "./ws_socket_adapter";
+export * from "./client_ws_transport.js";
+export * as uacp from "./uacp.js";
+export { type WebSocketLike, WsSocketAdapter } from "./ws_socket_adapter.js";
 
 export const VERSION = "2.172.0";

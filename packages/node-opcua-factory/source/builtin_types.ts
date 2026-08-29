@@ -60,7 +60,7 @@ import { DataTypeIds } from "node-opcua-constants";
 import { emptyGuid } from "node-opcua-guid";
 import { makeExpandedNodeId, makeNodeId } from "node-opcua-nodeid";
 import { coerceStatusCode, decodeStatusCode, encodeStatusCode, StatusCodes } from "node-opcua-status-code";
-import { decodeAny, decodeNull, defaultDecode, defaultEncode, encodeAny, encodeNull, toJSONGuid } from "./encode_decode";
+import { decodeAny, decodeNull, defaultDecode, defaultEncode, encodeAny, encodeNull, toJSONGuid } from "./encode_decode.js";
 import {
     type BasicTypeDefinition,
     type BasicTypeDefinitionOptions,
@@ -68,7 +68,7 @@ import {
     type CommonInterface,
     FieldCategory,
     type TypeSchemaConstructorOptions
-} from "./types";
+} from "./types.js";
 
 /**
  * a type Schema for a OPCUA object

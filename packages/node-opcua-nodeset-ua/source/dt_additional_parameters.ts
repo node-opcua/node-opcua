@@ -1,7 +1,7 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTKeyValuePair } from "./dt_key_value_pair";
-import type { DTStructure } from "./dt_structure";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
+import type { DTStructure } from "./dt_structure.js";
 
 // ----- this file has been automatically generated - do not edit
 

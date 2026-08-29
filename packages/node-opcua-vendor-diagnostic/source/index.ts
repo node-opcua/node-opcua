@@ -1,1 +1,1 @@
-export * from "./vendor_diagnostic_nodes";
+export * from "./vendor_diagnostic_nodes.js";

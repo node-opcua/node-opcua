@@ -3,9 +3,9 @@
  */
 import type { NodeId } from "node-opcua-nodeid";
 import type { VariantOptions } from "node-opcua-variant";
-import type { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
-import type { NamespacePrivate } from "../namespace_private";
-import { UAExclusiveLimitAlarmImpl, UAExclusiveLimitAlarmImplBase } from "./ua_exclusive_limit_alarm_impl";
+import type { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options.js";
+import type { NamespacePrivate } from "../namespace_private.js";
+import { UAExclusiveLimitAlarmImpl, UAExclusiveLimitAlarmImplBase } from "./ua_exclusive_limit_alarm_impl.js";
 
 export class UAExclusiveLevelAlarmImpl extends UAExclusiveLimitAlarmImpl {
     public static instantiate(

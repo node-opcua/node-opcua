@@ -2,7 +2,7 @@ import type { UAObject } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UASelectionList } from "./ua_selection_list";
+import type { UASelectionList } from "./ua_selection_list.js";
 
 // ----- this file has been automatically generated - do not edit
 

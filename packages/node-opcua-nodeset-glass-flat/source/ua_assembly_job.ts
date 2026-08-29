@@ -4,9 +4,9 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAssembly } from "./ua_assembly";
-import type { UABaseMaterial } from "./ua_base_material";
-import type { UAProductionJob, UAProductionJob_Base } from "./ua_production_job";
+import type { UAAssembly } from "./ua_assembly.js";
+import type { UABaseMaterial } from "./ua_base_material.js";
+import type { UAProductionJob, UAProductionJob_Base } from "./ua_production_job.js";
 
 // ----- this file has been automatically generated - do not edit
 

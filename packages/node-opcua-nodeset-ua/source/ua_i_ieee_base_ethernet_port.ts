@@ -1,10 +1,10 @@
 import type { UInt16, UInt64 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumDuplex } from "./enum_duplex";
-import type { UAAnalogUnit } from "./ua_analog_unit";
-import type { UABaseDataVariable } from "./ua_base_data_variable";
-import type { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface";
+import type { EnumDuplex } from "./enum_duplex.js";
+import type { UAAnalogUnit } from "./ua_analog_unit.js";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
+import type { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -15,8 +15,8 @@ import {
     type Xml2Json,
     type XmlAttributes
 } from "node-opcua-xml2json";
-import { decodeXmlExtensionObject } from "../decode_xml_extension_object";
-import { localizedText_parser } from "./localized_text_parser";
+import { decodeXmlExtensionObject } from "../decode_xml_extension_object.js";
+import { localizedText_parser } from "./localized_text_parser.js";
 
 const debugLog = make_debugLog("ExtensionObjectParser");
 const errorLog = make_debugLog("ExtensionObjectParser");

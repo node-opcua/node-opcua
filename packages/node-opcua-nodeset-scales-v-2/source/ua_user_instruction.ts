@@ -2,7 +2,7 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { UARecipeElement, UARecipeElement_Base } from "./ua_recipe_element";
+import type { UARecipeElement, UARecipeElement_Base } from "./ua_recipe_element.js";
 
 // ----- this file has been automatically generated - do not edit
 

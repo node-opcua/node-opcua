@@ -10,11 +10,11 @@ import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog 
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { PacketAssembler, PacketAssemblerErrorCode } from "node-opcua-packet-assembler";
 import type { CallbackWithData, ErrorCallback, StatusCode } from "node-opcua-status-code";
-import { readRawMessageHeader } from "./message_builder_base";
-import { StatusCodes2 } from "./status_codes";
-import { TCPErrorMessage } from "./TCPErrorMessage";
-import { packTcpMessage } from "./tools";
-import { doTraceIncomingChunk } from "./utils";
+import { readRawMessageHeader } from "./message_builder_base.js";
+import { StatusCodes2 } from "./status_codes.js";
+import { TCPErrorMessage } from "./TCPErrorMessage.js";
+import { packTcpMessage } from "./tools.js";
+import { doTraceIncomingChunk } from "./utils.js";
 
 const debugLog = make_debugLog("TRANSPORT");
 const doDebug = checkDebugFlag("TRANSPORT");

@@ -42,8 +42,13 @@ import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
-import { getAggregateData, interpolateValue } from "./common";
-import { _findGoodDataValueBefore, type AggregateConfigurationOptionsEx, adjustProcessingOptions, type Interval } from "./interval";
+import { getAggregateData, interpolateValue } from "./common.js";
+import {
+    _findGoodDataValueBefore,
+    type AggregateConfigurationOptionsEx,
+    adjustProcessingOptions,
+    type Interval
+} from "./interval.js";
 
 /*
  For any intervals containing regions where the StatusCodes are Bad,

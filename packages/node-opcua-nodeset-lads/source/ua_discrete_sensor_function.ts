@@ -1,7 +1,7 @@
 import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
 import type { UADiscreteItem } from "node-opcua-nodeset-ua/dist/ua_discrete_item";
 
-import type { UABaseSensorFunction, UABaseSensorFunction_Base } from "./ua_base_sensor_function";
+import type { UABaseSensorFunction, UABaseSensorFunction_Base } from "./ua_base_sensor_function.js";
 
 // ----- this file has been automatically generated - do not edit
 

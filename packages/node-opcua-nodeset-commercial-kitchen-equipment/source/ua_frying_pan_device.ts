@@ -1,9 +1,9 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumEnergySource } from "./enum_energy_source";
-import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device";
-import type { UAFryingPanParameter } from "./ua_frying_pan_parameter";
+import type { EnumEnergySource } from "./enum_energy_source.js";
+import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device.js";
+import type { UAFryingPanParameter } from "./ua_frying_pan_parameter.js";
 
 // ----- this file has been automatically generated - do not edit
 

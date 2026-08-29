@@ -5,7 +5,7 @@
 import type { ServerOnNetwork } from "node-opcua-service-discovery";
 import type { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
 
-import { ClientBaseImpl } from "../private/client_base_impl";
+import { ClientBaseImpl } from "../private/client_base_impl.js";
 
 export interface FindServerResults {
     servers: ApplicationDescription[];

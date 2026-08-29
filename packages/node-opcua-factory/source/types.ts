@@ -4,7 +4,7 @@
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import type { Enum } from "node-opcua-enum";
 import type { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
-import type { DataTypeFactory } from "./datatype_factory";
+import type { DataTypeFactory } from "./datatype_factory.js";
 
 export enum FieldCategory {
     enumeration = "enumeration",

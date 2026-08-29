@@ -2,10 +2,10 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString, UInt16 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTPrintableWeight } from "./dt_printable_weight";
-import type { DTWeight } from "./dt_weight";
-import type { EnumTareMode } from "./enum_tare_mode";
-import type { UAMeasuredItem, UAMeasuredItem_Base } from "./ua_measured_item";
+import type { DTPrintableWeight } from "./dt_printable_weight.js";
+import type { DTWeight } from "./dt_weight.js";
+import type { EnumTareMode } from "./enum_tare_mode.js";
+import type { UAMeasuredItem, UAMeasuredItem_Base } from "./ua_measured_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

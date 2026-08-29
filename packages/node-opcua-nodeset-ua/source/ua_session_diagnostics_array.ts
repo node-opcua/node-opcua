@@ -1,8 +1,8 @@
 import type { DataType } from "node-opcua-variant";
 
-import type { DTSessionDiagnostics } from "./dt_session_diagnostics";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
-import type { UASessionDiagnosticsVariable } from "./ua_session_diagnostics_variable";
+import type { DTSessionDiagnostics } from "./dt_session_diagnostics.js";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable.js";
+import type { UASessionDiagnosticsVariable } from "./ua_session_diagnostics_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -4,7 +4,7 @@ import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional
 import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAFunctionSet } from "./ua_function_set";
+import type { UAFunctionSet } from "./ua_function_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

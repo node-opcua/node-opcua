@@ -4,7 +4,7 @@
 import { ObjectTypeIds } from "node-opcua-constants";
 import { AttributeIds, coerceQualifiedName, type QualifiedName, type QualifiedNameOptions } from "node-opcua-data-model";
 
-import { ContentFilter, ContentFilterElement, type ContentFilterOptions, EventFilter, SimpleAttributeOperand } from "./imports";
+import { ContentFilter, ContentFilterElement, type ContentFilterOptions, EventFilter, SimpleAttributeOperand } from "./imports.js";
 
 function coerceQualifiedName2(a: string | QualifiedNameOptions) {
     if (typeof a === "string") return coerceQualifiedName(a);

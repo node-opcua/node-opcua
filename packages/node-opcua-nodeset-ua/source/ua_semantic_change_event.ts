@@ -1,8 +1,8 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTSemanticChangeStructure } from "./dt_semantic_change_structure";
-import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event";
+import type { DTSemanticChangeStructure } from "./dt_semantic_change_structure.js";
+import type { UABaseEvent, UABaseEvent_Base } from "./ua_base_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

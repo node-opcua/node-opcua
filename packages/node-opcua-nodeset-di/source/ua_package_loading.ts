@@ -5,8 +5,8 @@ import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data
 import type { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer";
 import type { DataType } from "node-opcua-variant";
 
-import type { UASoftwareLoading, UASoftwareLoading_Base } from "./ua_software_loading";
-import type { UASoftwareVersion } from "./ua_software_version";
+import type { UASoftwareLoading, UASoftwareLoading_Base } from "./ua_software_loading.js";
+import type { UASoftwareVersion } from "./ua_software_version.js";
 
 // ----- this file has been automatically generated - do not edit
 

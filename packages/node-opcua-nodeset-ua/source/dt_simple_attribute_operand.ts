@@ -3,7 +3,7 @@ import type { QualifiedName } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
 
-import type { DTFilterOperand } from "./dt_filter_operand";
+import type { DTFilterOperand } from "./dt_filter_operand.js";
 
 // ----- this file has been automatically generated - do not edit
 

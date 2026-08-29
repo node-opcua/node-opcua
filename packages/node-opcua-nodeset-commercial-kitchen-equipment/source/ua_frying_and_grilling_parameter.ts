@@ -6,9 +6,9 @@ import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumGrillingZoneState } from "./enum_grilling_zone_state";
-import type { EnumPlatenPositionState } from "./enum_platen_position_state";
-import type { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter";
+import type { EnumGrillingZoneState } from "./enum_grilling_zone_state.js";
+import type { EnumPlatenPositionState } from "./enum_platen_position_state.js";
+import type { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter.js";
 
 // ----- this file has been automatically generated - do not edit
 

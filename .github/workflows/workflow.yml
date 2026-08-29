@@ -87,6 +87,13 @@ jobs:
       - run: pnpm run check:debugname
       - name: Unit tests for the debug-name rule
         run: node tools/check-debug-name/test/test_rule.js
+      # ESM has no extension search and no directory resolution, so every relative
+      # specifier must name the emitted file. CommonJS tolerates both forms, which is why
+      # ~4900 extensionless ones accumulated and why they could all be written before any
+      # package flips. Gated so they cannot come back.
+      - run: pnpm run check:importext
+      - name: Unit tests for the import-extension rule
+        run: node tools/check-import-extension/test/test_rule.js
       # Raw private-key access is being migrated to the opaque key-operations
       # path (HSM/KMS capable); the baseline ratchet only ever tightens, so a
       # new .getPrivateKey( call site fails here instead of slipping in.

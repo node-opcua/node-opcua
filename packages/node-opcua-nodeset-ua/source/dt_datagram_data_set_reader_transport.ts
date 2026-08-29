@@ -1,9 +1,9 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTDataSetReaderTransport } from "./dt_data_set_reader_transport";
-import type { DTNetworkAddress } from "./dt_network_address";
-import type { DTReceiveQos } from "./dt_receive_qos";
+import type { DTDataSetReaderTransport } from "./dt_data_set_reader_transport.js";
+import type { DTNetworkAddress } from "./dt_network_address.js";
+import type { DTReceiveQos } from "./dt_receive_qos.js";
 
 // ----- this file has been automatically generated - do not edit
 

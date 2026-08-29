@@ -8,7 +8,7 @@ import {
 import type { DataValue } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataTypeDefinition, ReferenceDescription } from "node-opcua-types";
-import { pendingBrowseName } from "./private";
+import { pendingBrowseName } from "./private.js";
 
 function w(s: string, l: number): string {
     return s.padEnd(l).substring(0, l);

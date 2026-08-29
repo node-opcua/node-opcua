@@ -3,7 +3,7 @@
  */
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { BrowsePath } from "node-opcua-types";
-import { makeRelativePath } from "./make_relative_path";
+import { makeRelativePath } from "./make_relative_path.js";
 
 export declare type NodeIdLikeOrWithNodeId =
     | NodeIdLike

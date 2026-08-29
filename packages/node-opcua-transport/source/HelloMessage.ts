@@ -10,7 +10,7 @@ import {
     initialize_field,
     parameters
 } from "node-opcua-factory";
-import type { IHelloAckLimits } from "./i_hello_ack_limits";
+import type { IHelloAckLimits } from "./i_hello_ack_limits.js";
 
 const schemaHelloMessage = buildStructuredType({
     name: "HelloMessage",

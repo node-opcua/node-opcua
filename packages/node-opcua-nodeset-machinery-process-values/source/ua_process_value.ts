@@ -11,7 +11,7 @@ import type { UAExclusiveLimitAlarm } from "node-opcua-nodeset-ua/dist/ua_exclus
 import type { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAProcessValueSetpointVariable } from "./ua_process_value_setpoint_variable";
+import type { UAProcessValueSetpointVariable } from "./ua_process_value_setpoint_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

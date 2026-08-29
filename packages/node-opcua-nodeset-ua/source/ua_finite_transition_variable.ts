@@ -3,7 +3,7 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { UATransitionVariable, UATransitionVariable_Base } from "./ua_transition_variable";
+import type { UATransitionVariable, UATransitionVariable_Base } from "./ua_transition_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

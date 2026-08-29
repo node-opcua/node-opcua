@@ -31,7 +31,7 @@ import { OPCUAClient, type OPCUAClientOptions } from "node-opcua-client";
 import { InMemoryCertificateKeyPairProvider, InMemoryCertificateStore } from "node-opcua-common";
 import type { Certificate, PrivateKey } from "node-opcua-crypto/web";
 
-import { browserWsTransportFactory } from "./client_ws_transport";
+import { browserWsTransportFactory } from "./client_ws_transport.js";
 
 /**
  * Options accepted by {@link createBrowserClient}. Superset of

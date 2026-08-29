@@ -2,7 +2,7 @@
  * @module node-opcua-transport
  */
 
-import type { AcknowledgeMessage } from "./AcknowledgeMessage";
+import type { AcknowledgeMessage } from "./AcknowledgeMessage.js";
 
 /**
  * Options used to construct a client transport. Passed through {@link IClientTransportFactory.create}

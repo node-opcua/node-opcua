@@ -6,7 +6,7 @@ import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { ReadValueIdOptions } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import type { Variant } from "node-opcua-variant";
-import type { IBasicSessionAsyncMultiple } from "./basic_session_interface";
+import type { IBasicSessionAsyncMultiple } from "./basic_session_interface.js";
 
 export interface NodeAttributes {
     nodeId: NodeId;

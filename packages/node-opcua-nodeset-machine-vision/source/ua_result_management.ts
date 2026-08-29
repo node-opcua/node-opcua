@@ -1,7 +1,7 @@
 import type { UAMethod, UAObject } from "node-opcua-address-space-base";
 
-import type { UAResultFolder } from "./ua_result_folder";
-import type { UAResultTransfer } from "./ua_result_transfer";
+import type { UAResultFolder } from "./ua_result_folder.js";
+import type { UAResultTransfer } from "./ua_result_transfer.js";
 
 // ----- this file has been automatically generated - do not edit
 

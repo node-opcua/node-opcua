@@ -1,4 +1,4 @@
-import { loremIpsum } from "./lorem_ipsum";
+import { loremIpsum } from "./lorem_ipsum.js";
 
 export function make_lorem_ipsum_buffer(): Buffer {
     return Buffer.from(loremIpsum);

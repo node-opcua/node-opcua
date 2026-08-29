@@ -2,8 +2,8 @@ import type { LocalizedText } from "node-opcua-data-model";
 import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
 import type { UAFiniteStateVariable } from "node-opcua-nodeset-ua/dist/ua_finite_state_variable";
 
-import type { UACoverStateMachine } from "./ua_cover_state_machine";
-import type { UAFunction, UAFunction_Base } from "./ua_function";
+import type { UACoverStateMachine } from "./ua_cover_state_machine.js";
+import type { UAFunction, UAFunction_Base } from "./ua_function.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,4 +1,4 @@
-import type { UAAutoIdDiagnosticsEvent, UAAutoIdDiagnosticsEvent_Base } from "./ua_auto_id_diagnostics_event";
+import type { UAAutoIdDiagnosticsEvent, UAAutoIdDiagnosticsEvent_Base } from "./ua_auto_id_diagnostics_event.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

@@ -5,9 +5,9 @@ import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTPackMLDescriptor } from "./dt_pack_ml_descriptor";
-import type { DTPackMLProduct } from "./dt_pack_ml_product";
-import type { DTPackMLRemoteInterface } from "./dt_pack_ml_remote_interface";
+import type { DTPackMLDescriptor } from "./dt_pack_ml_descriptor.js";
+import type { DTPackMLProduct } from "./dt_pack_ml_product.js";
+import type { DTPackMLRemoteInterface } from "./dt_pack_ml_remote_interface.js";
 
 // ----- this file has been automatically generated - do not edit
 

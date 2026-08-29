@@ -1,6 +1,6 @@
 import type { UAMethod } from "node-opcua-address-space-base";
 
-import type { UAFile, UAFile_Base } from "./ua_file";
+import type { UAFile, UAFile_Base } from "./ua_file.js";
 
 // ----- this file has been automatically generated - do not edit
 

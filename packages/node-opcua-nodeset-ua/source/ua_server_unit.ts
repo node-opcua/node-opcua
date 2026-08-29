@@ -1,8 +1,8 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumConversionLimitEnum } from "./enum_conversion_limit_enum";
-import type { UAUnit, UAUnit_Base } from "./ua_unit";
+import type { EnumConversionLimitEnum } from "./enum_conversion_limit_enum.js";
+import type { UAUnit, UAUnit_Base } from "./ua_unit.js";
 
 // ----- this file has been automatically generated - do not edit
 

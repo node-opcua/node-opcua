@@ -7,8 +7,8 @@ import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAMeasuredItem } from "./ua_measured_item";
-import type { UATargetItem } from "./ua_target_item";
+import type { UAMeasuredItem } from "./ua_measured_item.js";
+import type { UATargetItem } from "./ua_target_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

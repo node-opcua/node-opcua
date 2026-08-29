@@ -1,7 +1,7 @@
 import type { Guid, UAString, UInt64 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTSpanContext } from "./dt_span_context";
+import type { DTSpanContext } from "./dt_span_context.js";
 
 // ----- this file has been automatically generated - do not edit
 

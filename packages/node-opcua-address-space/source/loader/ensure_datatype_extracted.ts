@@ -9,12 +9,12 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
 import type { CallbackT } from "node-opcua-status-code";
 import type { StructureField } from "node-opcua-types";
-import type { AddressSpacePrivate } from "../../src/address_space_private";
+import type { AddressSpacePrivate } from "../../src/address_space_private.js";
 import {
     constructNamespaceDependency,
     constructNamespacePriorityTable
-} from "../../src/nodeset_tools/construct_namespace_dependency";
-import { PseudoSession } from "../pseudo_session";
+} from "../../src/nodeset_tools/construct_namespace_dependency.js";
+import { PseudoSession } from "../pseudo_session.js";
 
 const debugLog = make_debugLog("ensure_datatype_extracted");
 const doDebug = checkDebugFlag("ensure_datatype_extracted");

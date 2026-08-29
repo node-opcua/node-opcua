@@ -1,7 +1,7 @@
 import type { UAProcessValue, UAProcessValue_Base } from "node-opcua-nodeset-machinery-process-values/dist/ua_process_value";
 
-import type { DTCyclicProcessValue } from "./dt_cyclic_process_value";
-import type { UACyclicProcessValueVariable } from "./ua_cyclic_process_value_variable";
+import type { DTCyclicProcessValue } from "./dt_cyclic_process_value.js";
+import type { UACyclicProcessValueVariable } from "./ua_cyclic_process_value_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

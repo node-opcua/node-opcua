@@ -49,15 +49,15 @@
  * the transport package — Node consumers would pay the install cost for no
  * benefit, and Node would prefer the npm port over its own built-in.
  */
-export * from "./AcknowledgeMessage";
-export * from "./client_transport_base";
-export * from "./HelloMessage";
-export * from "./i_client_transport";
-export * from "./i_hello_ack_limits";
-export * from "./message_builder_base";
-export * from "./ReverseHelloMessage";
-export * from "./status_codes";
-export * from "./TCPErrorMessage";
-export * from "./tcp_transport";
-export * from "./tools";
-export * from "./utils";
+export * from "./AcknowledgeMessage.js";
+export * from "./client_transport_base.js";
+export * from "./HelloMessage.js";
+export * from "./i_client_transport.js";
+export * from "./i_hello_ack_limits.js";
+export * from "./message_builder_base.js";
+export * from "./ReverseHelloMessage.js";
+export * from "./status_codes.js";
+export * from "./TCPErrorMessage.js";
+export * from "./tcp_transport.js";
+export * from "./tools.js";
+export * from "./utils.js";

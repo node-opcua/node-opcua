@@ -9,10 +9,10 @@ import { NodeId, type NodeIdLike } from "node-opcua-nodeid";
 import type { UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua";
 import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType, type VariantOptions } from "node-opcua-variant";
-import type { InstantiateOffNormalAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options";
-import type { UADiscreteAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_discrete_alarm_ex";
-import type { AddressSpacePrivate } from "../address_space_private";
-import { UADiscreteAlarmImplBase } from "./ua_discrete_alarm_impl";
+import type { InstantiateOffNormalAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options.js";
+import type { UADiscreteAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_discrete_alarm_ex.js";
+import type { AddressSpacePrivate } from "../address_space_private.js";
+import { UADiscreteAlarmImplBase } from "./ua_discrete_alarm_impl.js";
 
 function isEqual(value1: unknown, value2: unknown): boolean {
     return value1 === value2;

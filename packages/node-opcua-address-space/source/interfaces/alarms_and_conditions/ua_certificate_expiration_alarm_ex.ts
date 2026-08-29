@@ -1,8 +1,8 @@
 import type { DateTime } from "node-opcua-basic-types";
 import type { Certificate } from "node-opcua-crypto/web";
 import type { UACertificateExpirationAlarm_Base } from "node-opcua-nodeset-ua";
-import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
-import type { UAAcknowledgeableConditionEx } from "./ua_acknowledgeable_condition_ex";
+import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex.js";
+import type { UAAcknowledgeableConditionEx } from "./ua_acknowledgeable_condition_ex.js";
 
 export interface UACertificateExpirationAlarmEx
     extends Omit<

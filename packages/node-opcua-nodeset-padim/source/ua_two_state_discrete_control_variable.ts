@@ -3,7 +3,7 @@ import type { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/
 import type { UATwoStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_two_state_discrete";
 import type { DataType } from "node-opcua-variant";
 
-import type { UATwoStateDiscreteSignalVariable, UATwoStateDiscreteSignalVariable_Base } from "./ua_two_state_discrete_signal_variable";
+import type { UATwoStateDiscreteSignalVariable, UATwoStateDiscreteSignalVariable_Base } from "./ua_two_state_discrete_signal_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

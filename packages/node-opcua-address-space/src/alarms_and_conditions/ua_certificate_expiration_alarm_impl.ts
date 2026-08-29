@@ -10,10 +10,10 @@ import { makeAccessLevelExFlag } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
 import type { NodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
-import type { InstantiateOffNormalAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options";
-import type { UACertificateExpirationAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_certificate_expiration_alarm_ex";
-import { registerNodePromoter } from "../../source/loader/register_node_promoter";
-import { UASystemOffNormalAlarmImpl } from "./ua_system_off_normal_alarm_impl";
+import type { InstantiateOffNormalAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options.js";
+import type { UACertificateExpirationAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_certificate_expiration_alarm_ex.js";
+import { registerNodePromoter } from "../../source/loader/register_node_promoter.js";
+import { UASystemOffNormalAlarmImpl } from "./ua_system_off_normal_alarm_impl.js";
 
 const warningLog = make_warningLog("AlarmsAndConditions");
 

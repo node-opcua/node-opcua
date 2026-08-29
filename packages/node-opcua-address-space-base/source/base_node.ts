@@ -25,16 +25,16 @@ import type {
     WriteValueOptions
 } from "node-opcua-types";
 import type { DataType } from "node-opcua-variant";
-import type { IAddressSpace } from "./address_space";
-import type { IEventData } from "./i_event_data";
-import type { ModellingRuleType } from "./modelling_rule_type";
-import type { INamespace } from "./namespace";
-import type { ISessionContext } from "./session_context";
-import type { UAObject } from "./ua_object";
-import type { UAProperty } from "./ua_property";
-import type { UAReference } from "./ua_reference";
-import type { UAReferenceType } from "./ua_reference_type";
-import type { UAVariable } from "./ua_variable";
+import type { IAddressSpace } from "./address_space.js";
+import type { IEventData } from "./i_event_data.js";
+import type { ModellingRuleType } from "./modelling_rule_type.js";
+import type { INamespace } from "./namespace.js";
+import type { ISessionContext } from "./session_context.js";
+import type { UAObject } from "./ua_object.js";
+import type { UAProperty } from "./ua_property.js";
+import type { UAReference } from "./ua_reference.js";
+import type { UAReferenceType } from "./ua_reference_type.js";
+import type { UAVariable } from "./ua_variable.js";
 
 export type Duration = number;
 

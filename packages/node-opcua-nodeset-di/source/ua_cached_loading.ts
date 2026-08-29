@@ -1,7 +1,7 @@
 import type { UAMethod } from "node-opcua-address-space-base";
 
-import type { UAPackageLoading, UAPackageLoading_Base } from "./ua_package_loading";
-import type { UASoftwareVersion } from "./ua_software_version";
+import type { UAPackageLoading, UAPackageLoading_Base } from "./ua_package_loading.js";
+import type { UASoftwareVersion } from "./ua_software_version.js";
 
 // ----- this file has been automatically generated - do not edit
 

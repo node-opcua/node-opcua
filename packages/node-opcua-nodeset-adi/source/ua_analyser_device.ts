@@ -8,7 +8,7 @@ import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
 import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAAnalyserDeviceStateMachine } from "./ua_analyser_device_state_machine";
+import type { UAAnalyserDeviceStateMachine } from "./ua_analyser_device_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

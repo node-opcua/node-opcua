@@ -1,4 +1,4 @@
-import type { UABaseLifetimeIndication, UABaseLifetimeIndication_Base } from "./ua_base_lifetime_indication";
+import type { UABaseLifetimeIndication, UABaseLifetimeIndication_Base } from "./ua_base_lifetime_indication.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

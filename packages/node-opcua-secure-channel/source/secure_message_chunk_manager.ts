@@ -14,7 +14,7 @@ import {
     type SignBufferFunc
 } from "node-opcua-chunkmanager";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import type { SequenceNumberGenerator } from "./sequence_number_generator";
+import type { SequenceNumberGenerator } from "./sequence_number_generator.js";
 
 export type SecurityHeader = AsymmetricAlgorithmSecurityHeader | SymmetricAlgorithmSecurityHeader;
 

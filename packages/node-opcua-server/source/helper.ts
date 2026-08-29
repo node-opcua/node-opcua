@@ -1,8 +1,8 @@
 import util from "node:util";
-import type { OPCUAServer } from "./opcua_server";
-import type { ServerEngine } from "./server_engine";
-import type { ServerSession } from "./server_session";
-import { type Subscription, SubscriptionState } from "./server_subscription";
+import type { OPCUAServer } from "./opcua_server.js";
+import type { ServerEngine } from "./server_engine.js";
+import type { ServerSession } from "./server_session.js";
+import { type Subscription, SubscriptionState } from "./server_subscription.js";
 
 const consolelog = (...args: unknown[]) => {
     const d = new Date();

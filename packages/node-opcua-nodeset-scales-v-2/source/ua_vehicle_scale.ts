@@ -1,7 +1,7 @@
 import type { UAMethod } from "node-opcua-address-space-base";
 
-import type { UAProductionPreset } from "./ua_production_preset";
-import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device";
+import type { UAProductionPreset } from "./ua_production_preset.js";
+import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device.js";
 
 // ----- this file has been automatically generated - do not edit
 

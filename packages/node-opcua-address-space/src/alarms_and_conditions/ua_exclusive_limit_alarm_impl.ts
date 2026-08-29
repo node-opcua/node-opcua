@@ -2,11 +2,11 @@ import type { UAEventType, UAObject } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import type { NodeId } from "node-opcua-nodeid";
 import type { VariantOptions } from "node-opcua-variant";
-import type { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
-import type { UAExclusiveLimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_exclusive_limit_alarm_ex";
-import type { NamespacePrivate } from "../namespace_private";
-import { promoteToStateMachine } from "../state_machine/finite_state_machine";
-import { UALimitAlarmImpl, UALimitAlarmImplBase } from "./ua_limit_alarm_impl";
+import type { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options.js";
+import type { UAExclusiveLimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_exclusive_limit_alarm_ex.js";
+import type { NamespacePrivate } from "../namespace_private.js";
+import { promoteToStateMachine } from "../state_machine/finite_state_machine.js";
+import { UALimitAlarmImpl, UALimitAlarmImplBase } from "./ua_limit_alarm_impl.js";
 
 const validState = ["HighHigh", "High", "Low", "LowLow", null];
 

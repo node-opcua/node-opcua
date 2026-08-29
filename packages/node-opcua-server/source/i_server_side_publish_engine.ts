@@ -2,7 +2,7 @@ import assert from "node-opcua-assert";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { SequenceNumberGenerator } from "node-opcua-secure-channel";
 import { PublishResponse, type PublishResponseOptions, type StatusChangeNotification } from "node-opcua-types";
-import type { Subscription } from "./server_subscription";
+import type { Subscription } from "./server_subscription.js";
 
 export interface INotifMsg {
     subscriptionId: number;

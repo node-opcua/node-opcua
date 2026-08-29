@@ -23,13 +23,13 @@ import type {
     WriteValueOptions
 } from "node-opcua-types";
 import type { VariantLike } from "node-opcua-variant";
-import type { BaseNode, BaseNodeEvents, IPropertyAndComponentHolder, ListenerSignature } from "./base_node";
-import type { BindVariableOptions } from "./bind_variable";
+import type { BaseNode, BaseNodeEvents, IPropertyAndComponentHolder, ListenerSignature } from "./base_node.js";
+import type { BindVariableOptions } from "./bind_variable.js";
 //
-import type { CloneExtraInfo, CloneFilter, CloneOptions } from "./clone_options";
-import type { ContinuationData, ISessionContext } from "./session_context";
-import type { UADataType } from "./ua_data_type";
-import type { UAVariableType } from "./ua_variable_type";
+import type { CloneExtraInfo, CloneFilter, CloneOptions } from "./clone_options.js";
+import type { ContinuationData, ISessionContext } from "./session_context.js";
+import type { UADataType } from "./ua_data_type.js";
+import type { UAVariableType } from "./ua_variable_type.js";
 
 export interface IVariableHistorian {
     /**

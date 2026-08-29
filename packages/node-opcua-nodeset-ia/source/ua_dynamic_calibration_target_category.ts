@@ -1,4 +1,4 @@
-import type { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base } from "./ua_base_calibration_target_category";
+import type { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base } from "./ua_base_calibration_target_category.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

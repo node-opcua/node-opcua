@@ -5,7 +5,7 @@ import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
 import type { UAStateVariable } from "node-opcua-nodeset-ua/dist/ua_state_variable";
 import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
 
-import type { UAInitializingSubStateMachine } from "./ua_initializing_sub_state_machine";
+import type { UAInitializingSubStateMachine } from "./ua_initializing_sub_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -2,8 +2,8 @@ import type { Byte, UInt32 } from "node-opcua-basic-types";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTSubscriptionDiagnostics } from "./dt_subscription_diagnostics";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
+import type { DTSubscriptionDiagnostics } from "./dt_subscription_diagnostics.js";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

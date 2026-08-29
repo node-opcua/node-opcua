@@ -1,6 +1,6 @@
 import type { UANonExclusiveLimitAlarm_Base } from "node-opcua-nodeset-ua";
-import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
-import type { UALimitAlarmEx } from "./ua_limit_alarm_ex";
+import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex.js";
+import type { UALimitAlarmEx } from "./ua_limit_alarm_ex.js";
 
 export interface UANonExclusiveLimitAlarmEx
     extends UALimitAlarmEx,

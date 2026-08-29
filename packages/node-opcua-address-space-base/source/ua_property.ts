@@ -1,5 +1,5 @@
 import type { DataType } from "node-opcua-variant";
-import type { UAVariableT } from "./ua_variable_t";
+import type { UAVariableT } from "./ua_variable_t.js";
 /**
  * |                |                                                  |
  * |----------------|--------------------------------------------------|

@@ -2,11 +2,11 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UInt16, UInt32 } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTKeyValuePair } from "./dt_key_value_pair";
-import type { UADataSetWriterMessage } from "./ua_data_set_writer_message";
-import type { UADataSetWriterTransport } from "./ua_data_set_writer_transport";
-import type { UAPubSubDiagnosticsDataSetWriter } from "./ua_pub_sub_diagnostics_data_set_writer";
-import type { UAPubSubStatus } from "./ua_pub_sub_status";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
+import type { UADataSetWriterMessage } from "./ua_data_set_writer_message.js";
+import type { UADataSetWriterTransport } from "./ua_data_set_writer_transport.js";
+import type { UAPubSubDiagnosticsDataSetWriter } from "./ua_pub_sub_diagnostics_data_set_writer.js";
+import type { UAPubSubStatus } from "./ua_pub_sub_status.js";
 
 // ----- this file has been automatically generated - do not edit
 

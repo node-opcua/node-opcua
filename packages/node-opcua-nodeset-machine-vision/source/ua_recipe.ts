@@ -2,9 +2,9 @@ import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-ba
 import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTProductId } from "./dt_product_id";
-import type { DTRecipeIdExternal } from "./dt_recipe_id_external";
-import type { DTRecipeIdInternal } from "./dt_recipe_id_internal";
+import type { DTProductId } from "./dt_product_id.js";
+import type { DTRecipeIdExternal } from "./dt_recipe_id_external.js";
+import type { DTRecipeIdInternal } from "./dt_recipe_id_internal.js";
 
 // ----- this file has been automatically generated - do not edit
 

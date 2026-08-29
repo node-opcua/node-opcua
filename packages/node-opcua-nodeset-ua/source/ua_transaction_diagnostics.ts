@@ -3,7 +3,7 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { StatusCode } from "node-opcua-status-code";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTTransactionError } from "./dt_transaction_error";
+import type { DTTransactionError } from "./dt_transaction_error.js";
 
 // ----- this file has been automatically generated - do not edit
 

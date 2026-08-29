@@ -1,8 +1,8 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTChemicalSubstance } from "./dt_chemical_substance";
-import type { UAAnalyticalMeasurementVariable, UAAnalyticalMeasurementVariable_Base } from "./ua_analytical_measurement_variable";
+import type { DTChemicalSubstance } from "./dt_chemical_substance.js";
+import type { UAAnalyticalMeasurementVariable, UAAnalyticalMeasurementVariable_Base } from "./ua_analytical_measurement_variable.js";
 
 // ----- this file has been automatically generated - do not edit
 

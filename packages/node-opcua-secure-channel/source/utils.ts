@@ -40,7 +40,7 @@ import {
     X509IdentityToken
 } from "node-opcua-types";
 import { timestamp } from "node-opcua-utils";
-import type { Request, Response } from "./common";
+import type { Request, Response } from "./common.js";
 
 const traceLog = make_traceLog("utils");
 

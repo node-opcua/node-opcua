@@ -2,9 +2,9 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTReceiveQos } from "./dt_receive_qos";
-import type { UADataSetReaderTransport, UADataSetReaderTransport_Base } from "./ua_data_set_reader_transport";
-import type { UANetworkAddress } from "./ua_network_address";
+import type { DTReceiveQos } from "./dt_receive_qos.js";
+import type { UADataSetReaderTransport, UADataSetReaderTransport_Base } from "./ua_data_set_reader_transport.js";
+import type { UANetworkAddress } from "./ua_network_address.js";
 
 // ----- this file has been automatically generated - do not edit
 

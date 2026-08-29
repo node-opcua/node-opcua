@@ -15,19 +15,19 @@ import type {
 } from "node-opcua-types";
 import type { VariantLike } from "node-opcua-variant";
 
-import type { IAddressSpace } from "./address_space";
-import type { AddReferenceOpts, BaseNode, ConstructNodeIdOptions } from "./base_node";
-import type { BindVariableOptions } from "./bind_variable";
-import type { ModellingRuleType } from "./modelling_rule_type";
-import type { UADataType } from "./ua_data_type";
-import type { UAEventType } from "./ua_event_type";
-import type { UAMethod } from "./ua_method";
-import type { UAObject } from "./ua_object";
-import type { UAObjectType } from "./ua_object_type";
-import type { UAReferenceType } from "./ua_reference_type";
-import type { UAVariable } from "./ua_variable";
-import type { UAVariableType } from "./ua_variable_type";
-import type { UAView } from "./ua_view";
+import type { IAddressSpace } from "./address_space.js";
+import type { AddReferenceOpts, BaseNode, ConstructNodeIdOptions } from "./base_node.js";
+import type { BindVariableOptions } from "./bind_variable.js";
+import type { ModellingRuleType } from "./modelling_rule_type.js";
+import type { UADataType } from "./ua_data_type.js";
+import type { UAEventType } from "./ua_event_type.js";
+import type { UAMethod } from "./ua_method.js";
+import type { UAObject } from "./ua_object.js";
+import type { UAObjectType } from "./ua_object_type.js";
+import type { UAReferenceType } from "./ua_reference_type.js";
+import type { UAVariable } from "./ua_variable.js";
+import type { UAVariableType } from "./ua_variable_type.js";
+import type { UAView } from "./ua_view.js";
 
 export interface CreateNodeOptions {
     addressSpace?: IAddressSpace;

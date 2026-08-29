@@ -12,11 +12,11 @@ import type {
     OPCUAClientBase,
     OPCUAClientBaseEvents,
     OPCUAClientBaseOptions
-} from "./client_base";
-import type { ClientSession } from "./client_session";
-import type { ClientSubscription, ClientSubscriptionOptions } from "./client_subscription";
-import { OPCUAClientImpl } from "./private/opcua_client_impl";
-import type { UserIdentityInfo } from "./user_identity_info";
+} from "./client_base.js";
+import type { ClientSession } from "./client_session.js";
+import type { ClientSubscription, ClientSubscriptionOptions } from "./client_subscription.js";
+import { OPCUAClientImpl } from "./private/opcua_client_impl.js";
+import type { UserIdentityInfo } from "./user_identity_info.js";
 
 export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
     /**

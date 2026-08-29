@@ -4,9 +4,9 @@
 import { assert } from "node-opcua-assert";
 import { DataTypeIds } from "node-opcua-constants";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { BaseUAObject } from "./base_ua_object";
-import type { DataTypeFactory } from "./datatype_factory";
-import { FieldCategory, type FieldType, type IStructuredTypeSchema, type StructuredTypeField } from "./types";
+import { BaseUAObject } from "./base_ua_object.js";
+import type { DataTypeFactory } from "./datatype_factory.js";
+import { FieldCategory, type FieldType, type IStructuredTypeSchema, type StructuredTypeField } from "./types.js";
 
 const debugLog = make_debugLog("schema_helpers");
 const doDebug = checkDebugFlag("schema_helpers");

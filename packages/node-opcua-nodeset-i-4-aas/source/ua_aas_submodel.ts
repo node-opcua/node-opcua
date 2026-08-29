@@ -2,8 +2,8 @@ import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumAASModelingKind } from "./enum_aas_modeling_kind";
-import type { UAAASSubmodelElement } from "./ua_aas_submodel_element";
+import type { EnumAASModelingKind } from "./enum_aas_modeling_kind.js";
+import type { UAAASSubmodelElement } from "./ua_aas_submodel_element.js";
 
 // ----- this file has been automatically generated - do not edit
 

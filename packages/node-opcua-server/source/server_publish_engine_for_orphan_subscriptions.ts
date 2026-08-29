@@ -5,9 +5,9 @@ import chalk from "chalk";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
-import { ServerSidePublishEngine } from "./server_publish_engine";
-import type { Subscription } from "./server_subscription";
-import { getTransferSessionIdentity } from "./sessions_compatible_for_transfer";
+import { ServerSidePublishEngine } from "./server_publish_engine.js";
+import type { Subscription } from "./server_subscription.js";
+import { getTransferSessionIdentity } from "./sessions_compatible_for_transfer.js";
 
 const debugLog = make_debugLog("server_publish_engine_for_orphan_subscriptions");
 const doDebug = checkDebugFlag("server_publish_engine_for_orphan_subscriptions");

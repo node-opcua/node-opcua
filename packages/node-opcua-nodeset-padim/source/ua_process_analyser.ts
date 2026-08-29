@@ -1,4 +1,4 @@
-import type { UAPADIM, UAPADIM_Base } from "./ua_padim";
+import type { UAPADIM, UAPADIM_Base } from "./ua_padim.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

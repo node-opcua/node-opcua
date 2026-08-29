@@ -62,72 +62,72 @@ import {
 import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, type VariantOptions, verifyRankAndDimensions } from "node-opcua-variant";
 import type {
+    AddMultiStateDiscreteOptions,
+    AddMultiStateValueDiscreteOptions,
+    AddTwoStateDiscreteOptions,
+    AddTwoStateVariableOptions
+} from "../source/address_space_ts.js";
+import type {
     InstantiateAlarmConditionOptions,
     InstantiateLimitAlarmOptions,
     InstantiateOffNormalAlarmOptions,
     UATwoStateDiscreteEx,
     UAYArrayItemEx
-} from "../source";
-import type {
-    AddMultiStateDiscreteOptions,
-    AddMultiStateValueDiscreteOptions,
-    AddTwoStateDiscreteOptions,
-    AddTwoStateVariableOptions
-} from "../source/address_space_ts";
-import type { InstantiateConditionOptions } from "../source/interfaces/alarms_and_conditions/instantiate_condition_options";
-import type { InstantiateExclusiveDeviationAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_exclusive_deviation_alarm_options";
-import type { InstantiateNonExclusiveDeviationAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_non_exclusive_deviation_alarm_options";
-import type { InstantiateNonExclusiveLimitAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_non_exclusive_limit_alarm_options";
-import type { UAAlarmConditionEx } from "../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex";
-import type { UAConditionEx } from "../source/interfaces/alarms_and_conditions/ua_condition_ex";
-import type { UADiscreteAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_discrete_alarm_ex";
-import type { UAExclusiveDeviationAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_exclusive_deviation_alarm_ex";
-import type { UAExclusiveLimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_exclusive_limit_alarm_ex";
-import type { UALimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_limit_alarm_ex";
-import type { UANonExclusiveDeviationAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_non_exclusive_deviation_alarm_ex";
-import type { UANonExclusiveLimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_ex";
-import type { UAMultiStateValueDiscreteEx } from "../source/interfaces/data_access/ua_multistate_value_discrete_ex";
-import type { UAStateMachineEx } from "../source/interfaces/state_machine/ua_state_machine_type";
-import type { UATransitionEx } from "../source/interfaces/state_machine/ua_transition_ex";
-import type { AddAnalogDataItemOptions, AddDataItemOptions } from "../source/namespace_data_access";
-import type { UATwoStateVariableEx } from "../source/ua_two_state_variable_ex";
+} from "../source/index.js";
+import type { InstantiateConditionOptions } from "../source/interfaces/alarms_and_conditions/instantiate_condition_options.js";
+import type { InstantiateExclusiveDeviationAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_exclusive_deviation_alarm_options.js";
+import type { InstantiateNonExclusiveDeviationAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_non_exclusive_deviation_alarm_options.js";
+import type { InstantiateNonExclusiveLimitAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_non_exclusive_limit_alarm_options.js";
+import type { UAAlarmConditionEx } from "../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex.js";
+import type { UAConditionEx } from "../source/interfaces/alarms_and_conditions/ua_condition_ex.js";
+import type { UADiscreteAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_discrete_alarm_ex.js";
+import type { UAExclusiveDeviationAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_exclusive_deviation_alarm_ex.js";
+import type { UAExclusiveLimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_exclusive_limit_alarm_ex.js";
+import type { UALimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_limit_alarm_ex.js";
+import type { UANonExclusiveDeviationAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_non_exclusive_deviation_alarm_ex.js";
+import type { UANonExclusiveLimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_ex.js";
+import type { UAMultiStateValueDiscreteEx } from "../source/interfaces/data_access/ua_multistate_value_discrete_ex.js";
+import type { UAStateMachineEx } from "../source/interfaces/state_machine/ua_state_machine_type.js";
+import type { UATransitionEx } from "../source/interfaces/state_machine/ua_transition_ex.js";
+import type { AddAnalogDataItemOptions, AddDataItemOptions } from "../source/namespace_data_access.js";
+import type { UATwoStateVariableEx } from "../source/ua_two_state_variable_ex.js";
 
-import { _handle_delete_node_model_change_event, _handle_model_change_event } from "./address_space_change_event_tools";
-import type { AddressSpacePrivate } from "./address_space_private";
+import { _handle_delete_node_model_change_event, _handle_model_change_event } from "./address_space_change_event_tools.js";
+import type { AddressSpacePrivate } from "./address_space_private.js";
 import {
     type UAAcknowledgeableConditionImpl,
     UAAcknowledgeableConditionImplBase,
     UAAlarmConditionImplBase,
     UAConditionImplBase,
     UADiscreteAlarmImplBase
-} from "./alarms_and_conditions";
-import { UAExclusiveDeviationAlarmImplBase } from "./alarms_and_conditions/ua_exclusive_deviation_alarm_impl";
-import { UAExclusiveLimitAlarmImplBase } from "./alarms_and_conditions/ua_exclusive_limit_alarm_impl";
-import { UALimitAlarmImplBase } from "./alarms_and_conditions/ua_limit_alarm_impl";
-import { UANonExclusiveDeviationAlarmImplBase } from "./alarms_and_conditions/ua_non_exclusive_deviation_alarm_impl";
-import { UANonExclusiveLimitAlarmImplBase } from "./alarms_and_conditions/ua_non_exclusive_limit_alarm_impl";
-import { type UAOffNormalAlarmEx, UAOffNormalAlarmImplBase } from "./alarms_and_conditions/ua_off_normal_alarm_impl";
-import { BaseNodeImpl } from "./base_node_impl";
-import { add_dataItem_stuff } from "./data_access/add_dataItem_stuff";
-import { _addMultiStateDiscrete, type UAMultiStateDiscreteImpl } from "./data_access/ua_multistate_discrete_impl";
-import { _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete_impl";
-import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete_impl";
+} from "./alarms_and_conditions/index.js";
+import { UAExclusiveDeviationAlarmImplBase } from "./alarms_and_conditions/ua_exclusive_deviation_alarm_impl.js";
+import { UAExclusiveLimitAlarmImplBase } from "./alarms_and_conditions/ua_exclusive_limit_alarm_impl.js";
+import { UALimitAlarmImplBase } from "./alarms_and_conditions/ua_limit_alarm_impl.js";
+import { UANonExclusiveDeviationAlarmImplBase } from "./alarms_and_conditions/ua_non_exclusive_deviation_alarm_impl.js";
+import { UANonExclusiveLimitAlarmImplBase } from "./alarms_and_conditions/ua_non_exclusive_limit_alarm_impl.js";
+import { type UAOffNormalAlarmEx, UAOffNormalAlarmImplBase } from "./alarms_and_conditions/ua_off_normal_alarm_impl.js";
+import { BaseNodeImpl } from "./base_node_impl.js";
+import { add_dataItem_stuff } from "./data_access/add_dataItem_stuff.js";
+import { _addMultiStateDiscrete, type UAMultiStateDiscreteImpl } from "./data_access/ua_multistate_discrete_impl.js";
+import { _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete_impl.js";
+import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete_impl.js";
 //
-import { type NamespacePrivate, UANamespace_process_modelling_rule } from "./namespace_private";
+import { type NamespacePrivate, UANamespace_process_modelling_rule } from "./namespace_private.js";
 
-import { type ConstructNodeIdOptions, NodeIdManager } from "./nodeid_manager";
-import { coerceRolePermissions } from "./role_permissions";
-import type { UAStateMachineImpl, UATransitionImpl } from "./state_machine/finite_state_machine";
+import { type ConstructNodeIdOptions, NodeIdManager } from "./nodeid_manager.js";
+import { coerceRolePermissions } from "./role_permissions.js";
+import type { UAStateMachineImpl, UATransitionImpl } from "./state_machine/finite_state_machine.js";
 // state machine
-import { _addTwoStateVariable } from "./state_machine/ua_two_state_variable";
-import { UADataTypeImpl } from "./ua_data_type_impl";
-import { UAMethodImpl } from "./ua_method_impl";
-import { UAObjectImpl } from "./ua_object_impl";
-import { UAObjectTypeImpl } from "./ua_object_type_impl";
-import { UAReferenceTypeImpl } from "./ua_reference_type_impl";
-import { UAVariableImpl } from "./ua_variable_impl";
-import { UAVariableTypeImpl } from "./ua_variable_type_impl";
-import { UAViewImpl } from "./ua_view_impl";
+import { _addTwoStateVariable } from "./state_machine/ua_two_state_variable.js";
+import { UADataTypeImpl } from "./ua_data_type_impl.js";
+import { UAMethodImpl } from "./ua_method_impl.js";
+import { UAObjectImpl } from "./ua_object_impl.js";
+import { UAObjectTypeImpl } from "./ua_object_type_impl.js";
+import { UAReferenceTypeImpl } from "./ua_reference_type_impl.js";
+import { UAVariableImpl } from "./ua_variable_impl.js";
+import { UAVariableTypeImpl } from "./ua_variable_type_impl.js";
+import { UAViewImpl } from "./ua_view_impl.js";
 
 function _makeHashKey(nodeId: NodeId): string | number {
     switch (nodeId.identifierType) {

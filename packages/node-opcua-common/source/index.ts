@@ -41,15 +41,15 @@ export {
     TimeZoneDataType
 } from "node-opcua-types";
 
-export * from "./applicationurn";
-export * from "./certificate_chain_provider";
-export * from "./disk_certificate_key_pair_provider";
-export * from "./i_certificate_store";
-export * from "./in_memory_certificate_key_pair_provider";
-export * from "./in_memory_certificate_store";
-export * from "./local_key_operations_provider";
-export * from "./make_subject";
-export * from "./opaque_certificate_key_pair_provider";
-export * from "./opcua_secure_object";
-export * from "./resolve_private_key_provider";
-export * from "./resolved_certificate_key_pair_provider";
+export * from "./applicationurn.js";
+export * from "./certificate_chain_provider.js";
+export * from "./disk_certificate_key_pair_provider.js";
+export * from "./i_certificate_store.js";
+export * from "./in_memory_certificate_key_pair_provider.js";
+export * from "./in_memory_certificate_store.js";
+export * from "./local_key_operations_provider.js";
+export * from "./make_subject.js";
+export * from "./opaque_certificate_key_pair_provider.js";
+export * from "./opcua_secure_object.js";
+export * from "./resolve_private_key_provider.js";
+export * from "./resolved_certificate_key_pair_provider.js";

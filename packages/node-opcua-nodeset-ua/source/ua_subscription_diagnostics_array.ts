@@ -1,8 +1,8 @@
 import type { DataType } from "node-opcua-variant";
 
-import type { DTSubscriptionDiagnostics } from "./dt_subscription_diagnostics";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable";
-import type { UASubscriptionDiagnostics } from "./ua_subscription_diagnostics";
+import type { DTSubscriptionDiagnostics } from "./dt_subscription_diagnostics.js";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable.js";
+import type { UASubscriptionDiagnostics } from "./ua_subscription_diagnostics.js";
 
 // ----- this file has been automatically generated - do not edit
 

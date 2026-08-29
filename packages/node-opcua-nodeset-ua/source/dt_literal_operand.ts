@@ -1,7 +1,7 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { Variant } from "node-opcua-variant";
 
-import type { DTFilterOperand } from "./dt_filter_operand";
+import type { DTFilterOperand } from "./dt_filter_operand.js";
 
 // ----- this file has been automatically generated - do not edit
 

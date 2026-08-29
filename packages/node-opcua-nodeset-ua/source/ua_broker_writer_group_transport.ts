@@ -2,8 +2,8 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumBrokerTransportQualityOfService } from "./enum_broker_transport_quality_of_service";
-import type { UAWriterGroupTransport, UAWriterGroupTransport_Base } from "./ua_writer_group_transport";
+import type { EnumBrokerTransportQualityOfService } from "./enum_broker_transport_quality_of_service.js";
+import type { UAWriterGroupTransport, UAWriterGroupTransport_Base } from "./ua_writer_group_transport.js";
 
 // ----- this file has been automatically generated - do not edit
 

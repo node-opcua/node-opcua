@@ -15,7 +15,7 @@ import {
 import { NodeId } from "node-opcua-nodeid";
 import { type ReaderStateParser, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
 
-import { getOrCreateStructuredTypeSchema } from "./tools";
+import { getOrCreateStructuredTypeSchema } from "./tools.js";
 
 const doDebug = checkDebugFlag("parse_binary_xsd");
 const debugLog = make_debugLog("parse_binary_xsd");

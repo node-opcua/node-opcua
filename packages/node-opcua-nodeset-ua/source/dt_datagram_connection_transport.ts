@@ -1,7 +1,7 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTConnectionTransport } from "./dt_connection_transport";
-import type { DTNetworkAddress } from "./dt_network_address";
+import type { DTConnectionTransport } from "./dt_connection_transport.js";
+import type { DTNetworkAddress } from "./dt_network_address.js";
 
 // ----- this file has been automatically generated - do not edit
 

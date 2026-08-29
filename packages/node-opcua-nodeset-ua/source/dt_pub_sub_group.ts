@@ -1,10 +1,10 @@
 import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTEndpointDescription } from "./dt_endpoint_description";
-import type { DTKeyValuePair } from "./dt_key_value_pair";
-import type { DTStructure } from "./dt_structure";
-import type { EnumMessageSecurityMode } from "./enum_message_security_mode";
+import type { DTEndpointDescription } from "./dt_endpoint_description.js";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
+import type { DTStructure } from "./dt_structure.js";
+import type { EnumMessageSecurityMode } from "./enum_message_security_mode.js";
 
 // ----- this file has been automatically generated - do not edit
 

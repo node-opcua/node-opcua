@@ -6,8 +6,8 @@ import { assert } from "node-opcua-assert";
 import { isValidBoolean, isValidUInt16 } from "node-opcua-basic-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
-import { addVariable, findDataType, getRandomFuncForType } from "./helpers";
-import { typeAndDefaultValue } from "./type_defaults";
+import { addVariable, findDataType, getRandomFuncForType } from "./helpers.js";
+import { typeAndDefaultValue } from "./type_defaults.js";
 
 export function addSimulationVariables(namespace: Namespace, scalarFolder: UAObject): void {
     let values_to_change: { dataType: DataType; randomFunc: () => unknown; variable: UAVariable }[] = [];

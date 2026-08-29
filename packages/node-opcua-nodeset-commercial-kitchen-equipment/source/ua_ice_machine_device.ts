@@ -1,5 +1,5 @@
-import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device";
-import type { UAIceMachineParameter } from "./ua_ice_machine_parameter";
+import type { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device.js";
+import type { UAIceMachineParameter } from "./ua_ice_machine_parameter.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,9 +1,9 @@
 import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTDatagramConnectionTransport } from "./dt_datagram_connection_transport";
-import type { DTNetworkAddress } from "./dt_network_address";
-import type { DTQos } from "./dt_qos";
+import type { DTDatagramConnectionTransport } from "./dt_datagram_connection_transport.js";
+import type { DTNetworkAddress } from "./dt_network_address.js";
+import type { DTQos } from "./dt_qos.js";
 
 // ----- this file has been automatically generated - do not edit
 

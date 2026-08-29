@@ -8,7 +8,7 @@ import { BrowseDirection } from "node-opcua-data-model";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { BrowseDescription, type BrowseDescriptionOptions, type ReferenceDescription } from "node-opcua-types";
 
-import { resolveReferenceType } from "../../src/reference_impl";
+import { resolveReferenceType } from "../../src/reference_impl.js";
 
 export function referenceTypeToString(addressSpace: IAddressSpace, referenceTypeId: NodeIdLike | null): string {
     // c8 ignore next

@@ -1,9 +1,9 @@
 import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
 import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
 
-import type { UAAcceptedStatisticCounter } from "./ua_accepted_statistic_counter";
-import type { UARejectedStatisticCounter } from "./ua_rejected_statistic_counter";
-import type { UAStatistic, UAStatistic_Base } from "./ua_statistic";
+import type { UAAcceptedStatisticCounter } from "./ua_accepted_statistic_counter.js";
+import type { UARejectedStatisticCounter } from "./ua_rejected_statistic_counter.js";
+import type { UAStatistic, UAStatistic_Base } from "./ua_statistic.js";
 
 // ----- this file has been automatically generated - do not edit
 

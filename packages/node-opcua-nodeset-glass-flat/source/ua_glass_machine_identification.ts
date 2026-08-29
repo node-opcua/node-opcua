@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAMachineIdentification, UAMachineIdentification_Base } from "node-opcua-nodeset-machinery/dist/ua_machine_identification";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTUserProfile } from "./dt_user_profile";
+import type { DTUserProfile } from "./dt_user_profile.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,6 +1,6 @@
 import type { UAObject } from "node-opcua-address-space-base";
 
-import type { UALockingServices } from "./ua_locking_services";
+import type { UALockingServices } from "./ua_locking_services.js";
 
 // ----- this file has been automatically generated - do not edit
 

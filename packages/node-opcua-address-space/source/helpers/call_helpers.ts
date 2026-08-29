@@ -11,8 +11,8 @@ import { StatusCodes } from "node-opcua-status-code";
 import type { CallMethodResultOptions } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
 
-import { getMethodDeclaration_ArgumentList, verifyArguments_ArgumentList } from "./argument_list";
-import { resolveOpaqueOnAddressSpace } from "./resolve_opaque_on_address_space";
+import { getMethodDeclaration_ArgumentList, verifyArguments_ArgumentList } from "./argument_list.js";
+import { resolveOpaqueOnAddressSpace } from "./resolve_opaque_on_address_space.js";
 
 // Symbolic Id                   Description
 // ----------------------------  -----------------------------------------------------------------------------

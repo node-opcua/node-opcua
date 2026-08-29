@@ -9,7 +9,7 @@ import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "n
 import { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { UAVariableImpl } from "./ua_variable_impl";
+import { UAVariableImpl } from "./ua_variable_impl.js";
 
 const _doDebug = checkDebugFlag("extension_object_array_node");
 const _debugLog = make_debugLog("extension_object_array_node");

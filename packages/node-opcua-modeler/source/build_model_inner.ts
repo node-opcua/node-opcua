@@ -1,6 +1,6 @@
 import { AddressSpace, generateAddressSpaceRaw, type NodeIdManager, type XmlLoaderAsyncFunc } from "node-opcua-address-space";
-import { buildDocumentationToString } from "./generate_markdown_doc";
-import type { Symbols } from "./symbol";
+import { buildDocumentationToString } from "./generate_markdown_doc.js";
+import type { Symbols } from "./symbol.js";
 
 export interface BuildModelOptionsBase {
     version: string;

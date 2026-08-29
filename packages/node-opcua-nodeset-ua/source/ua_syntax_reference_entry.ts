@@ -2,7 +2,7 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { DataType } from "node-opcua-variant";
 
-import type { UADictionaryEntry, UADictionaryEntry_Base } from "./ua_dictionary_entry";
+import type { UADictionaryEntry, UADictionaryEntry_Base } from "./ua_dictionary_entry.js";
 
 // ----- this file has been automatically generated - do not edit
 

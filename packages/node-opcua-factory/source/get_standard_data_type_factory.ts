@@ -2,9 +2,9 @@
  * @module node-opcua-factory
  */
 
-import { DataTypeFactory } from "./datatype_factory";
+import { DataTypeFactory } from "./datatype_factory.js";
 
-import type { ConstructorFuncWithSchema } from "./types";
+import type { ConstructorFuncWithSchema } from "./types.js";
 
 let globalFactory: DataTypeFactory;
 

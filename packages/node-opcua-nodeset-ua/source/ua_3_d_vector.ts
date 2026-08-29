@@ -1,8 +1,8 @@
 import type { DataType } from "node-opcua-variant";
 
-import type { DT3DVector } from "./dt_3_d_vector";
-import type { UABaseDataVariable } from "./ua_base_data_variable";
-import type { UAVector, UAVector_Base } from "./ua_vector";
+import type { DT3DVector } from "./dt_3_d_vector.js";
+import type { UABaseDataVariable } from "./ua_base_data_variable.js";
+import type { UAVector, UAVector_Base } from "./ua_vector.js";
 
 // ----- this file has been automatically generated - do not edit
 

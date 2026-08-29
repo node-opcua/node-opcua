@@ -4,7 +4,7 @@ import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-u
 import type { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete";
 import type { DataType } from "node-opcua-variant";
 
-import type { UACalibrationPointSet } from "./ua_calibration_point_set";
+import type { UACalibrationPointSet } from "./ua_calibration_point_set.js";
 
 // ----- this file has been automatically generated - do not edit
 

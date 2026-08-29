@@ -6,11 +6,11 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTWeight } from "./dt_weight";
-import type { EnumTareMode } from "./enum_tare_mode";
-import type { UAMaterial } from "./ua_material";
-import type { UAProduct, UAProduct_Base } from "./ua_product";
-import type { UAWeightItem } from "./ua_weight_item";
+import type { DTWeight } from "./dt_weight.js";
+import type { EnumTareMode } from "./enum_tare_mode.js";
+import type { UAMaterial } from "./ua_material.js";
+import type { UAProduct, UAProduct_Base } from "./ua_product.js";
+import type { UAWeightItem } from "./ua_weight_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

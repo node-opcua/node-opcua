@@ -9,9 +9,9 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { StatusCode } from "node-opcua-status-code";
 import type { TimeZoneDataType } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
-import type { IConditionVariableTypeSetterOptions } from "../i_condition_variable_type_setter_options";
-import type { ISetStateOptions } from "../i_set_state_options";
-import type { UtcTime } from "../state_machine/ua_state_machine_type";
+import type { IConditionVariableTypeSetterOptions } from "../i_condition_variable_type_setter_options.js";
+import type { ISetStateOptions } from "../i_set_state_options.js";
+import type { UtcTime } from "../state_machine/ua_state_machine_type.js";
 
 export interface ConditionSnapshot {
     on(

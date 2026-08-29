@@ -1,15 +1,15 @@
 import type { UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTApplicationIdentity } from "./dt_application_identity";
-import type { DTAuthorizationServiceConfiguration } from "./dt_authorization_service_configuration";
-import type { DTBaseConfiguration } from "./dt_base_configuration";
-import type { DTCertificateGroup } from "./dt_certificate_group";
-import type { DTEndpoint } from "./dt_endpoint";
-import type { DTKeyValuePair } from "./dt_key_value_pair";
-import type { DTSecuritySettings } from "./dt_security_settings";
-import type { DTServerEndpoint } from "./dt_server_endpoint";
-import type { DTUserTokenSettings } from "./dt_user_token_settings";
+import type { DTApplicationIdentity } from "./dt_application_identity.js";
+import type { DTAuthorizationServiceConfiguration } from "./dt_authorization_service_configuration.js";
+import type { DTBaseConfiguration } from "./dt_base_configuration.js";
+import type { DTCertificateGroup } from "./dt_certificate_group.js";
+import type { DTEndpoint } from "./dt_endpoint.js";
+import type { DTKeyValuePair } from "./dt_key_value_pair.js";
+import type { DTSecuritySettings } from "./dt_security_settings.js";
+import type { DTServerEndpoint } from "./dt_server_endpoint.js";
+import type { DTUserTokenSettings } from "./dt_user_token_settings.js";
 
 // ----- this file has been automatically generated - do not edit
 

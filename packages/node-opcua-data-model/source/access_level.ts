@@ -2,7 +2,7 @@
  * @module node-opcua-data-model
  */
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { _make_flag } from "./_make_flag";
+import { _make_flag } from "./_make_flag.js";
 
 export enum AccessLevelFlag {
     CurrentRead = 0x01, // bit 0 : Indicate if the current value is readable (0 means not readable, 1 means readable).

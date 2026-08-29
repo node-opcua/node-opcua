@@ -3,7 +3,7 @@ import type { UInt32 } from "node-opcua-basic-types";
 import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
 import type { DataType } from "node-opcua-variant";
 
-import type { UAPackageLoading, UAPackageLoading_Base } from "./ua_package_loading";
+import type { UAPackageLoading, UAPackageLoading_Base } from "./ua_package_loading.js";
 
 // ----- this file has been automatically generated - do not edit
 

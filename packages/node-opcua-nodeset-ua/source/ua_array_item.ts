@@ -3,9 +3,9 @@ import type { EUInformation } from "node-opcua-data-access";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { DTRange } from "./dt_range";
-import type { EnumAxisScale } from "./enum_axis_scale";
-import type { UADataItem, UADataItem_Base } from "./ua_data_item";
+import type { DTRange } from "./dt_range.js";
+import type { EnumAxisScale } from "./enum_axis_scale.js";
+import type { UADataItem, UADataItem_Base } from "./ua_data_item.js";
 
 // ----- this file has been automatically generated - do not edit
 

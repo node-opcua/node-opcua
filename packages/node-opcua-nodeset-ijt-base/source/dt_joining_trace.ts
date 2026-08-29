@@ -1,8 +1,8 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 
-import type { DTStepTrace } from "./dt_step_trace";
-import type { DTTrace } from "./dt_trace";
+import type { DTStepTrace } from "./dt_step_trace.js";
+import type { DTTrace } from "./dt_trace.js";
 
 // ----- this file has been automatically generated - do not edit
 

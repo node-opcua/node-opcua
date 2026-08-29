@@ -2,9 +2,9 @@ import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
 
-import type { DTApplicationDescription } from "./dt_application_description";
-import type { DTServiceCounter } from "./dt_service_counter";
-import type { DTStructure } from "./dt_structure";
+import type { DTApplicationDescription } from "./dt_application_description.js";
+import type { DTServiceCounter } from "./dt_service_counter.js";
+import type { DTStructure } from "./dt_structure.js";
 
 // ----- this file has been automatically generated - do not edit
 

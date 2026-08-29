@@ -3,7 +3,7 @@
  */
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
-import { decodeUAString, encodeUAString, type UAString } from "./string";
+import { decodeUAString, encodeUAString, type UAString } from "./string.js";
 
 export function validateLocaleId(_value: unknown): boolean {
     // TODO : check that localeID is well-formed

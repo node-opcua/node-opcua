@@ -23,8 +23,8 @@ import fs from "node:fs";
 import { PrivateKeyUnavailableError, readCertificateChain } from "node-opcua-crypto";
 import type { Certificate, IKeyOperations, KeyMetadata, PrivateKey } from "node-opcua-crypto/web";
 
-import type { ICertificateChainProvider } from "./certificate_chain_provider";
-import type { ICertificateKeyPairProvider2, ICertificateKeyPairProviderWithLocation } from "./opcua_secure_object";
+import type { ICertificateChainProvider } from "./certificate_chain_provider.js";
+import type { ICertificateKeyPairProvider2, ICertificateKeyPairProviderWithLocation } from "./opcua_secure_object.js";
 
 export interface OpaqueCertificateKeyPairProviderOptions {
     certificateFile: string;

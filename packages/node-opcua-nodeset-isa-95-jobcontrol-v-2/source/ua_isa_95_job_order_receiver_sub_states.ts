@@ -1,10 +1,10 @@
 import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
 import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
 
-import type { UAISA95EndedStateMachine } from "./ua_isa_95_ended_state_machine";
-import type { UAISA95InterruptedStateMachine } from "./ua_isa_95_interrupted_state_machine";
-import type { UAISA95JobOrderReceiverObject, UAISA95JobOrderReceiverObject_Base } from "./ua_isa_95_job_order_receiver_object";
-import type { UAISA95PrepareStateMachine } from "./ua_isa_95_prepare_state_machine";
+import type { UAISA95EndedStateMachine } from "./ua_isa_95_ended_state_machine.js";
+import type { UAISA95InterruptedStateMachine } from "./ua_isa_95_interrupted_state_machine.js";
+import type { UAISA95JobOrderReceiverObject, UAISA95JobOrderReceiverObject_Base } from "./ua_isa_95_job_order_receiver_object.js";
+import type { UAISA95PrepareStateMachine } from "./ua_isa_95_prepare_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

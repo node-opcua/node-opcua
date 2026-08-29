@@ -1,14 +1,14 @@
 import type { BaseNode, ListenerSignature, UAVariable } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
 import type { UAAlarmCondition_Base } from "node-opcua-nodeset-ua";
-import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
-import type { UAShelvedStateMachineEx } from "../state_machine/ua_shelved_state_machine_ex";
-import type { ConditionInfo } from "./condition_info_i";
+import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex.js";
+import type { UAShelvedStateMachineEx } from "../state_machine/ua_shelved_state_machine_ex.js";
+import type { ConditionInfo } from "./condition_info_i.js";
 import type {
     UAAcknowledgeableConditionEvents,
     UAAcknowledgeableConditionEx,
     UAAcknowledgeableConditionHelper
-} from "./ua_acknowledgeable_condition_ex";
+} from "./ua_acknowledgeable_condition_ex.js";
 
 export interface UAAlarmConditionHelper extends UAAcknowledgeableConditionHelper {
     activateAlarm(): void;

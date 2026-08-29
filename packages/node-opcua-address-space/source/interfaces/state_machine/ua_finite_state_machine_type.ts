@@ -3,7 +3,7 @@
  */
 import type { InstantiateObjectOptions } from "node-opcua-address-space-base";
 
-import type { UAStateMachineEx, UAStateMachineType } from "./ua_state_machine_type";
+import type { UAStateMachineEx, UAStateMachineType } from "./ua_state_machine_type.js";
 /**
  * Finite State Machine
  *

@@ -3,10 +3,10 @@ import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { DataType } from "node-opcua-variant";
 
-import type { EnumApplication } from "./enum_application";
-import type { UAApplicationConfigurationFile } from "./ua_application_configuration_file";
-import type { UACertificateGroupFolder } from "./ua_certificate_group_folder";
-import type { UATransactionDiagnostics } from "./ua_transaction_diagnostics";
+import type { EnumApplication } from "./enum_application.js";
+import type { UAApplicationConfigurationFile } from "./ua_application_configuration_file.js";
+import type { UACertificateGroupFolder } from "./ua_certificate_group_folder.js";
+import type { UATransactionDiagnostics } from "./ua_transaction_diagnostics.js";
 
 // ----- this file has been automatically generated - do not edit
 
