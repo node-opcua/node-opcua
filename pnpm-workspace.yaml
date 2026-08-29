@@ -36,8 +36,8 @@ minimumReleaseAgeExclude:
   - '@biomejs/cli-linux-x64@2.4.16'
   - '@biomejs/cli-win32-arm64@2.4.16'
   - '@biomejs/cli-win32-x64@2.4.16'
-  - node-opcua-pki@6.18.0 || 6.19.0 || 6.19.1 || 6.20.0 || 6.21.0
-  - node-opcua-crypto@5.4.0 || 5.5.0 || 5.9.0
+  - node-opcua-pki@6.18.0 || 6.19.0 || 6.19.1 || 6.20.0 || 6.21.0 || 6.22.0
+  - node-opcua-crypto@5.4.0 || 5.5.0 || 5.9.0 || 5.10.1
   - '@inquirer/checkbox@5.2.3'
   - '@inquirer/confirm@6.3.0'
   - '@inquirer/core@12.0.1'
@@ -54,6 +54,9 @@ minimumReleaseAgeExclude:
 
 # Override transitive dependencies to fix Dependabot vulnerabilities
 overrides:
+  # two copies of asn1-schema split the ASN.1 schema registry ('Cannot get
+  # schema for ... target' at runtime): force a single instance tree-wide
+  '@peculiar/asn1-schema': '>=2.9.4'
   js-yaml: ">=4.1.2"
   brace-expansion: ">=5.0.6"
   picomatch: ">=4.0.4"
