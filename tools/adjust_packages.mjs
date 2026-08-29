@@ -27,19 +27,12 @@ if (DRY_RUN) {
 }
 
 // ── Reference test/tsconfig.json ───────────────────────────────
+// The shared compiler options live in packages/tsconfig.test.json;
+// include/exclude stay per-package because TypeScript resolves them
+// relative to the file that declares them.
 const TEST_TSCONFIG_TEMPLATE = JSON.stringify(
     {
-        extends: "../../tsconfig.common.json",
-        compilerOptions: {
-            rootDir: "..",
-            outDir: "../dist-test",
-            noEmit: true,
-            composite: false,
-            incremental: false,
-            declaration: false,
-            sourceMap: false,
-            skipLibCheck: true
-        },
+        extends: "../../tsconfig.test.json",
         include: ["../source/**/*.ts", "./**/*.ts"],
         exclude: ["../node_modules", "../dist"]
     },

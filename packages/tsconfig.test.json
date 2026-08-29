@@ -1,0 +1,18 @@
+{
+    // Shared base for every package's test/tsconfig.json (used by the
+    // per-package `test:check` script and the check:testtypes CI gate).
+    // Test files are type-checked, never emitted, so rootDir/outDir are
+    // deliberately absent. `include`/`exclude` cannot live here: TypeScript
+    // resolves them relative to the file that declares them, so each
+    // test/tsconfig.json keeps its own.
+    "extends": "./tsconfig.common.json",
+    "compilerOptions": {
+        "noEmit": true,
+        "composite": false,
+        "incremental": false,
+        "declaration": false,
+        "sourceMap": false,
+        "skipLibCheck": true,
+        "types": ["node", "mocha"]
+    }
+}
