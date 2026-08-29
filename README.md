@@ -69,6 +69,17 @@ $ ./node_modules/.bin/simple_client -e "opc.tcp://opcuademo.sterfive.com:26543"
 
 - [API Documentation](https://node-opcua.github.io/api_doc/index.html)
 
+#### API surface
+
+The supported, semver-protected API is what the generated documentation
+above describes. Symbols tagged `@internal` in the source (secure-channel
+plumbing such as `MessageBuilder`, `ClientSecureChannelLayer`,
+`ServerSecureChannelLayer`, and `OPCUAServerEndPoint` construction options)
+are node-opcua internals: they are reachable through re-exports for
+historical reasons, but they may change in a minor release. Applications
+configure security and keys exclusively through `OPCUAClient`,
+`OPCUAServer`, and `OPCUACertificateManager` options.
+
 ---
 
 ## 🏢 Professional Support
