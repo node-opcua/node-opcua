@@ -3,6 +3,7 @@
  */
 import type { ByteString } from "node-opcua-basic-types";
 import { VariableIds } from "node-opcua-constants";
+import type { IKeyOperations } from "node-opcua-crypto/web";
 import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
 import { type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
@@ -327,7 +328,19 @@ export interface UserIdentityInfoUserName {
 export interface UserIdentityInfoX509 extends X509IdentityTokenOptions {
     type: UserTokenType.Certificate;
     certificateData: ByteString;
-    privateKey: PrivateKeyPEM;
+    /**
+     * The user's private key as a raw PEM string. Prefer {@link keyOperations}:
+     * a raw PEM in application code is exactly what the opaque key work is
+     * moving away from. Exactly one of `privateKey` / `keyOperations` must be
+     * set (checked at ActivateSession time).
+     */
+    privateKey?: PrivateKeyPEM;
+    /**
+     * The user's key as an opaque sign-capable object (`IKeyOperations`
+     * from node-opcua-crypto) — the user token signature is produced by the
+     * provider, and the key itself may live in an HSM/KMS/smartcard.
+     */
+    keyOperations?: IKeyOperations;
 }
 export interface AnonymousIdentity {
     type: UserTokenType.Anonymous;

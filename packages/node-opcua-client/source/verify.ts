@@ -1,12 +1,50 @@
+import { createPublicKey } from "node:crypto";
 import type { ICertificateStore, OPCUASecureObject } from "node-opcua-common";
 
-import { type Certificate, exploreCertificate, explorePrivateKey, publicKeyAndPrivateKeyMatches } from "node-opcua-crypto/web";
+import { PrivateKeyUnavailableError } from "node-opcua-crypto";
+import {
+    type Certificate,
+    exploreCertificate,
+    explorePrivateKey,
+    extractPublicKeyFromCertificateSync,
+    type PrivateKey,
+    publicKeyAndPrivateKeyMatches
+} from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 
 const _doDebug = checkDebugFlag("verify");
 const _debugLog = make_debugLog("verify");
 const errorLog = make_errorLog("verify");
 const warningLog = make_warningLog("verify");
+
+/**
+ * The opaque-key variant of the certificate/key match check: compares the
+ * certificate's SPKI against the one the key-operations provider reports.
+ * A provider without `getPublicKey` cannot be checked — that is worth a
+ * warning, not a refusal to start (the first real handshake will tell).
+ */
+async function verifyOpaqueKeyMatchesCertificate(secureObject: OPCUASecureObject, certificate: Certificate): Promise<void> {
+    const keyOperations = secureObject.getKeyOperations();
+    if (!keyOperations.getPublicKey) {
+        warningLog(
+            "[NODE-OPCUA-W36] the key-operations provider does not implement getPublicKey():" +
+                " cannot verify that the certificate matches the (opaque) private key"
+        );
+        return;
+    }
+    const providerSpki = Buffer.from(await keyOperations.getPublicKey());
+    const certificateSpki = createPublicKey(extractPublicKeyFromCertificateSync(certificate)).export({
+        type: "spki",
+        format: "der"
+    });
+    if (!providerSpki.equals(certificateSpki)) {
+        errorLog("[NODE-OPCUA-E01] Configuration error : the certificate and the (opaque) private key do not match !");
+        errorLog("               certificateFile= ", secureObject.certificateFile);
+        throw new Error(
+            "[NODE-OPCUA-E01] Configuration error : the certificate does not carry the key-operations provider's public key ! please fix your configuration"
+        );
+    }
+}
 
 export function verifyIsOPCUAValidCertificate(
     certificate: Certificate,
@@ -120,26 +158,39 @@ export async function performCertificateSanityCheck(
 ): Promise<void> {
     // verify that certificate is matching private key, and inform the developer if not
     const certificate = secureObject.getCertificate();
-    const privateKey = secureObject.getPrivateKey();
-    //
-    if (!publicKeyAndPrivateKeyMatches(certificate, privateKey)) {
-        errorLog("[NODE-OPCUA-E01] Configuration error : the certificate and the private key do not match !");
-        errorLog("                  please check the configuration of the OPCUA Server");
-        errorLog("                    privateKey= ", secureObject.privateKeyFile);
-        errorLog("               certificateFile= ", secureObject.certificateFile);
-        throw new Error(
-            "[NODE-OPCUA-E01] Configuration error : the certificate and the private key do not match ! please fix your configuration"
-        );
+    let privateKey: PrivateKey | undefined;
+    try {
+        privateKey = secureObject.getPrivateKey();
+    } catch (err) {
+        if (!(err instanceof PrivateKeyUnavailableError)) {
+            throw err;
+        }
+        // The key is opaque (HSM/KMS-held): no material to compare or
+        // measure. Check what can be checked without it — that the
+        // certificate carries the provider's public key — and warn (not
+        // fail) when the provider cannot even produce that.
+        await verifyOpaqueKeyMatchesCertificate(secureObject, certificate);
     }
-    // verify that the certificate provided has the right key length ( at least 2048)
-    const privateKeyInfo = explorePrivateKey(privateKey);
-    const keyLengthInBits = privateKeyInfo.modulus.length * 8;
-    if (keyLengthInBits <= 1024) {
-        warningLog(
-            `[NODE-OPCUA-W04] The public/private key pair uses a key length which is equal or lower than 1024 bits. ( key length was ${keyLengthInBits} )\n` +
-                `OPCUA version 1.04 requires that security key length are greater or equal to 2048 bits.\n` +
-                `The ${serverOrClient} is operating at risk.                                             `
-        );
+    if (privateKey) {
+        if (!publicKeyAndPrivateKeyMatches(certificate, privateKey)) {
+            errorLog("[NODE-OPCUA-E01] Configuration error : the certificate and the private key do not match !");
+            errorLog("                  please check the configuration of the OPCUA Server");
+            errorLog("                    privateKey= ", secureObject.privateKeyFile);
+            errorLog("               certificateFile= ", secureObject.certificateFile);
+            throw new Error(
+                "[NODE-OPCUA-E01] Configuration error : the certificate and the private key do not match ! please fix your configuration"
+            );
+        }
+        // verify that the certificate provided has the right key length ( at least 2048)
+        const privateKeyInfo = explorePrivateKey(privateKey);
+        const keyLengthInBits = privateKeyInfo.modulus.length * 8;
+        if (keyLengthInBits <= 1024) {
+            warningLog(
+                `[NODE-OPCUA-W04] The public/private key pair uses a key length which is equal or lower than 1024 bits. ( key length was ${keyLengthInBits} )\n` +
+                    `OPCUA version 1.04 requires that security key length are greater or equal to 2048 bits.\n` +
+                    `The ${serverOrClient} is operating at risk.                                             `
+            );
+        }
     }
 
     const options = {
