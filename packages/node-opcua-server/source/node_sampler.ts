@@ -6,8 +6,8 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { MonitoringMode } from "node-opcua-types";
 import { hrtime } from "node-opcua-utils";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("node_sampler");
+const doDebug = checkDebugFlag("node_sampler");
 
 import type { MonitoredItem } from "./monitored_item";
 

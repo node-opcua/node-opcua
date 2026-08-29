@@ -16,8 +16,8 @@ import { PublishRequest, PublishResponse, ServiceFault, type SubscriptionAcknowl
 import type { IClosedOrTransferredSubscription, IServerSidePublishEngine } from "./i_server_side_publish_engine";
 import { Subscription, SubscriptionState } from "./server_subscription";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("server_publish_engine");
+const doDebug = checkDebugFlag("server_publish_engine");
 
 function traceLog(...args: [unknown?, ...unknown[]]) {
     if (!doDebug) {

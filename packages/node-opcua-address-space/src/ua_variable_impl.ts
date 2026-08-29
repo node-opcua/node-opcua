@@ -91,10 +91,10 @@ import {
 } from "./ua_variable_impl_ext_obj";
 import { validateDataTypeCorrectness } from "./validate_data_type_correctness";
 
-const debugLog = make_debugLog(__filename);
-const warningLog = make_warningLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const errorLog = make_errorLog(__filename);
+const debugLog = make_debugLog("ua_variable_impl");
+const warningLog = make_warningLog("ua_variable_impl");
+const doDebug = checkDebugFlag("ua_variable_impl");
+const errorLog = make_errorLog("ua_variable_impl");
 
 const plainChalk = new Proxy(chalk, { get: () => (s: string) => s }) as typeof chalk;
 

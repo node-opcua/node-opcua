@@ -21,8 +21,8 @@ import { EventData } from "../event_data";
 import { UATwoStateVariableImpl } from "../state_machine/ua_two_state_variable";
 import { UAConditionImpl } from "./ua_condition_impl";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("condition_snapshot_impl");
+const doDebug = checkDebugFlag("condition_snapshot_impl");
 
 function normalizeName(str: string): string {
     // return str.split(".").map(utils.lowerFirstLetter).join(".");

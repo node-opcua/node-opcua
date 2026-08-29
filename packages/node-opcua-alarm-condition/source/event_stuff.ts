@@ -3,7 +3,7 @@ import type { NodeId } from "node-opcua-nodeid";
 import { lowerFirstLetter } from "node-opcua-utils";
 import type { Variant } from "node-opcua-variant";
 
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("event_stuff");
 
 export interface TVariant<T> extends Variant {
     value: T;

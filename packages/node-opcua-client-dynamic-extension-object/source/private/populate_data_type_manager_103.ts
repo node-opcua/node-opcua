@@ -35,10 +35,10 @@ import {
 } from "../convert_data_type_definition_to_structuretype_schema";
 import type { ExtraDataTypeManager } from "../extra_data_type_manager";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
-const warningLog = make_warningLog(__filename);
+const doDebug = checkDebugFlag("populate_data_type_manager_103");
+const debugLog = make_debugLog("populate_data_type_manager_103");
+const errorLog = make_errorLog("populate_data_type_manager_103");
+const warningLog = make_warningLog("populate_data_type_manager_103");
 
 // DataType
 //    | 1

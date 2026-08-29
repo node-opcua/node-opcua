@@ -11,10 +11,10 @@ import type { NodeId } from "node-opcua-nodeid";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { UAVariableImpl } from "./ua_variable_impl";
 
-const _doDebug = checkDebugFlag(__filename);
-const _debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
-const warningLog = make_warningLog(__filename);
+const _doDebug = checkDebugFlag("extension_object_array_node");
+const _debugLog = make_debugLog("extension_object_array_node");
+const errorLog = make_errorLog("extension_object_array_node");
+const warningLog = make_warningLog("extension_object_array_node");
 
 /*
  * define a complex Variable containing a array of extension objects

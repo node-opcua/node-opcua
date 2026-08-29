@@ -42,7 +42,7 @@ import { VariantArrayType } from "./VariantArrayType_enum";
 
 export { VariantArrayType };
 
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("variant");
 
 const schemaVariant = buildStructuredType({
     baseType: "BaseUAObject",

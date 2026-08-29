@@ -10,7 +10,7 @@ import { DataType, Variant } from "node-opcua-variant";
 import { addArrayVariable, addMultiDimensionalArrayVariable, addScalarVariable } from "./helpers";
 import { typeAndDefaultValue } from "./type_defaults";
 
-const errorLog = make_errorLog(__filename);
+const errorLog = make_errorLog("static_variables");
 
 export async function addStaticVariables(namespace: Namespace, scalarFolder: UAObject): Promise<void> {
     const staticScalarFolder = namespace.addObject({

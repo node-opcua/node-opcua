@@ -11,10 +11,10 @@ import { assert } from "node-opcua-assert";
 import { BrowseDirection } from "node-opcua-data-model";
 import { checkDebugFlag, make_errorLog, make_warningLog } from "node-opcua-debug";
 
-// const debugLog = make_debugLog(__filename);
-const _doDebug = checkDebugFlag(__filename);
-const warningLog = make_warningLog(__filename);
-const errorLog = make_errorLog(__filename);
+// const debugLog = make_debugLog("_mandatory_child_or_requested_optional_filter");
+const _doDebug = checkDebugFlag("_mandatory_child_or_requested_optional_filter");
+const warningLog = make_warningLog("_mandatory_child_or_requested_optional_filter");
+const errorLog = make_errorLog("_mandatory_child_or_requested_optional_filter");
 const doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = errorLog;
 

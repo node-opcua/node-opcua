@@ -14,9 +14,9 @@ import type { ClientSubscription } from "../client_subscription";
 import type { ClientSessionImpl } from "../private/client_session_impl";
 import type { ClientSubscriptionImpl } from "./client_subscription_impl";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog("client_publish_engine");
+const doDebug = checkDebugFlag("client_publish_engine");
+const warningLog = make_warningLog("client_publish_engine");
 /**
  * A client side implementation to deal with publish service.
  *

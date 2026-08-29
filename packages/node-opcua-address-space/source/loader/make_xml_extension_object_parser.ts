@@ -29,9 +29,9 @@ import { localizedText_parser } from "./parsers/localized_text_parser";
 import { makeQualifiedNameParser } from "./parsers/qualified_name_parser";
 import { makeVariantReader } from "./parsers/variant_parser";
 
-const warningLog = make_warningLog(__filename);
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const warningLog = make_warningLog("make_xml_extension_object_parser");
+const debugLog = make_debugLog("make_xml_extension_object_parser");
+const doDebug = checkDebugFlag("make_xml_extension_object_parser");
 
 // textual form of an ExpandedNodeId, as found in <ExpandedNodeId><Identifier>...</Identifier></ExpandedNodeId>:
 // an optional server index, an optional namespace uri, then a plain nodeId. see OPC UA part 6.

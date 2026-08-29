@@ -80,6 +80,13 @@ jobs:
       - run: pnpm run check:tla
       - name: Unit tests for the top-level-await detector
         run: node tools/check-no-tla/test/test_detector.js
+      # The logger factories take a module-name literal, never __filename. Those globals
+      # do not exist in ESM or in a browser bundle, and the value was only ever reduced
+      # to a basename anyway - so the literal is what the DEBUG env var already matches
+      # on. Gated because 207 call sites drifted into the old shape once already.
+      - run: pnpm run check:debugname
+      - name: Unit tests for the debug-name rule
+        run: node tools/check-debug-name/test/test_rule.js
 
   # A gate rather than a lint step, because what it guards is not style. Two test files
   # holding one fixed port collide as soon as the runner schedules them together, and the

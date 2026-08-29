@@ -6,8 +6,8 @@ import { makeNodeId, NodeId, type NodeIdLike, NodeIdType, resolveNodeId, sameNod
 import { BaseNodeImpl } from "./base_node_impl";
 import { type ReferenceImpl, resolveReferenceType } from "./reference_impl";
 
-const _debugLog = make_debugLog(__filename);
-const _warningLog = make_warningLog(__filename);
+const _debugLog = make_debugLog("nodeid_manager");
+const _warningLog = make_warningLog("nodeid_manager");
 
 export const NamespaceOptions = {
     nodeIdNameSeparator: "-"

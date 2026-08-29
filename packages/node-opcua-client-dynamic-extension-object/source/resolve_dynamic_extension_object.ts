@@ -7,7 +7,7 @@ import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 //
 import type { ExtraDataTypeManager } from "./extra_data_type_manager";
 
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("resolve_dynamic_extension_object");
 
 export async function resolveOpaqueStructureInExtensionObject(
     session: IBasicSessionAsync2,

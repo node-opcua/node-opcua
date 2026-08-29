@@ -29,10 +29,10 @@ import { BaseNodeImpl } from "../base_node_impl";
 import { UAObjectImpl } from "../ua_object_impl";
 import { UAObjectTypeImpl } from "../ua_object_type_impl";
 
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("finite_state_machine");
 
 const doDebug = false;
-const debugLog = make_debugLog(__filename);
+const debugLog = make_debugLog("finite_state_machine");
 
 export class UATransitionImplBase extends BaseNodeImpl {
     /* intentionnaly empty */

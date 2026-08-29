@@ -15,8 +15,8 @@ import ts from "typescript";
 
 import { get_class_TScript_filename, produce_TScript_code } from "./factory_code_generator";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("generator");
+const doDebug = checkDebugFlag("generator");
 doDebug;
 
 /**

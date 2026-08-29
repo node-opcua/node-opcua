@@ -29,8 +29,8 @@ import { writeStructuredType } from "./factory_code_generator";
 import { LineFile1 } from "./utils/line_file";
 import { makeWrite } from "./utils/write_func";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag("generate_extension_object_code");
+const debugLog = make_debugLog("generate_extension_object_code");
 
 const f = new LineFile1();
 

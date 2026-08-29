@@ -44,10 +44,10 @@ import type { IChannelData } from "./i_channel_data";
 import type { ISocketData } from "./i_socket_data";
 import type { OPCUAServerEndPoint } from "./server_end_point";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
-const warningLog = make_warningLog(__filename);
+const doDebug = checkDebugFlag("base_server");
+const debugLog = make_debugLog("base_server");
+const errorLog = make_errorLog("base_server");
+const warningLog = make_warningLog("base_server");
 
 const default_server_info = {
     // The globally unique identifier for the application instance. This URI is used as

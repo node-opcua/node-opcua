@@ -10,7 +10,7 @@ import { type OPCUAServer, ServerEngine } from "node-opcua-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("vendor_diagnostic_nodes");
 
 const humanize = require("humanize");
 

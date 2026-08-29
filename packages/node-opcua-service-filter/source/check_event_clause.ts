@@ -9,8 +9,8 @@ import { constructBrowsePathFromQualifiedName } from "node-opcua-service-transla
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { SimpleAttributeOperand } from "node-opcua-types";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("check_event_clause");
+const doDebug = checkDebugFlag("check_event_clause");
 
 /**
 

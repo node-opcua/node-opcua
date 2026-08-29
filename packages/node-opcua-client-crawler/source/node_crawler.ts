@@ -10,7 +10,7 @@ import { type CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cach
 import { NodeCrawlerBase, type NodeCrawlerClientSession, type ObjectMap, type Pojo, type UserData } from "./node_crawler_base";
 import { type EmptyCallback, removeCycle, type TaskReconstruction } from "./private";
 
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("node_crawler");
 
 type Queue = async.QueueObject<TaskReconstruction>;
 

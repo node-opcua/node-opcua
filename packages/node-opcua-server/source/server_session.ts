@@ -45,9 +45,9 @@ import type { ServerEngine } from "./server_engine";
 import { ServerSidePublishEngine } from "./server_publish_engine";
 import { type Subscription, SubscriptionState } from "./server_subscription";
 
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("server_session");
+const errorLog = make_errorLog("server_session");
+const doDebug = checkDebugFlag("server_session");
 
 const theWatchDog = new WatchDog();
 

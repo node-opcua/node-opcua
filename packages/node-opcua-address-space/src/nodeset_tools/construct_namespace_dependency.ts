@@ -11,8 +11,8 @@ import { type BaseNodeImpl, getReferenceType } from "../base_node_impl";
 import type { NamespacePrivate } from "../namespace_private";
 import type { UAVariableImpl } from "../ua_variable_impl";
 
-const warningLog = make_warningLog(__filename);
-const _debugLog = make_debugLog(__filename);
+const warningLog = make_warningLog("construct_namespace_dependency");
+const _debugLog = make_debugLog("construct_namespace_dependency");
 
 interface RequiredModel {
     requiredNamespaceIndexes: number[];

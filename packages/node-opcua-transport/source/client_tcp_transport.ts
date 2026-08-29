@@ -16,9 +16,9 @@ import type { TransportSettingsOptions } from "./i_client_transport";
 import { getFakeTransport, type ISocketLike } from "./tcp_transport";
 import { parseEndpointUrl } from "./tools";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
+const doDebug = checkDebugFlag("client_tcp_transport");
+const debugLog = make_debugLog("client_tcp_transport");
+const errorLog = make_errorLog("client_tcp_transport");
 const gHostname = os.hostname();
 
 // Re-exported for source-level backwards compatibility: this type used to live in this file.

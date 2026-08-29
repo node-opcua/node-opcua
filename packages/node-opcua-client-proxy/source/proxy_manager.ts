@@ -27,8 +27,8 @@ interface ProxyObjectWithDynamicFields extends ProxyObject {
     [dynamicChildName: string]: unknown;
 }
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("proxy_manager");
+const doDebug = checkDebugFlag("proxy_manager");
 
 export interface IProxy1 {
     nodeId: NodeId;

@@ -20,9 +20,9 @@ import { type StatusCode, type StatusCodeCallback, StatusCodes } from "node-opcu
 
 const paths = envPaths("node-opcua-default");
 
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("certificate_manager");
+const errorLog = make_errorLog("certificate_manager");
+const doDebug = checkDebugFlag("certificate_manager");
 
 export interface ICertificateManager {
     getTrustStatus(certificate: Certificate): Promise<StatusCode>;

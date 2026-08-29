@@ -14,9 +14,9 @@ import {
 } from "node-opcua-factory";
 import { makeNodeId, type NodeId } from "node-opcua-nodeid";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog("extension_object");
+const doDebug = checkDebugFlag("extension_object");
+const warningLog = make_warningLog("extension_object");
 
 import chalk from "chalk";
 

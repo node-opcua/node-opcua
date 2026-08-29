@@ -56,9 +56,9 @@ import type { ServerSession } from "./server_session";
 import type { ITransferSessionIdentity } from "./sessions_compatible_for_transfer";
 import { validateFilter } from "./validate_filter";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog("server_subscription");
+const doDebug = checkDebugFlag("server_subscription");
+const warningLog = make_warningLog("server_subscription");
 const maxNotificationMessagesInQueue = 100;
 
 export interface SubscriptionDiagnosticsDataTypePriv extends SubscriptionDiagnosticsDataType {

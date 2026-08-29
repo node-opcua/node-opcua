@@ -40,10 +40,10 @@ import { checkValueRankCompatibility } from "./check_value_rank_compatibility";
 import { _getBasicDataType } from "./get_basic_datatype";
 import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const warningLog = make_warningLog(__filename);
-const errorLog = make_errorLog(__filename);
+const debugLog = make_debugLog("ua_variable_type_impl");
+const doDebug = checkDebugFlag("ua_variable_type_impl");
+const warningLog = make_warningLog("ua_variable_type_impl");
+const errorLog = make_errorLog("ua_variable_type_impl");
 
 interface InstantiateS {
     propertyOf?: NodeIdLike | UAObject | UAObjectType | UAVariable | UAVariableType | UAMethod;

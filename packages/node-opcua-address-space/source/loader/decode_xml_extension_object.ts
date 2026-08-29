@@ -7,9 +7,9 @@ import { Xml2Json } from "node-opcua-xml2json";
 
 import { type DefinitionMap2, makeXmlExtensionObjectReader, type TypeInfo } from "./make_xml_extension_object_parser";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
-const _errorLog = make_errorLog(__filename);
+const doDebug = checkDebugFlag("decode_xml_extension_object");
+const debugLog = make_debugLog("decode_xml_extension_object");
+const _errorLog = make_errorLog("decode_xml_extension_object");
 
 function encodingNodeIdToDataTypeNode(addressSpace: IAddressSpace, encodingNodeId: NodeId): UADataType {
     const encodingNode = addressSpace.findNode(encodingNodeId);

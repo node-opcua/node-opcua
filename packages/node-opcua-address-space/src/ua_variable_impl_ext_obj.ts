@@ -15,10 +15,10 @@ import { IndexIterator } from "./idx_iterator";
 import type { UADataTypeImpl } from "./ua_data_type_impl";
 import { UAVariableImpl } from "./ua_variable_impl";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
-const warningLog = make_warningLog(__filename);
-const errorLog = make_errorLog(__filename);
+const doDebug = checkDebugFlag("ua_variable_impl_ext_obj");
+const debugLog = make_debugLog("ua_variable_impl_ext_obj");
+const warningLog = make_warningLog("ua_variable_impl_ext_obj");
+const errorLog = make_errorLog("ua_variable_impl_ext_obj");
 
 function _w(str: string, n: number): string {
     return str.padEnd(n).substring(n);

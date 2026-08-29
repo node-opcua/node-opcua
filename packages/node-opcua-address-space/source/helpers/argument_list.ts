@@ -15,9 +15,9 @@ import type { Argument } from "node-opcua-service-call";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 
-const debugLog = make_debugLog(__filename);
-const warningLog = make_warningLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("argument_list");
+const warningLog = make_warningLog("argument_list");
+const doDebug = checkDebugFlag("argument_list");
 
 function myfindBuiltInType(dataType: DataType): BasicTypeDefinition {
     return findBuiltInType(DataType[dataType]);

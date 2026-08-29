@@ -5,8 +5,8 @@ import { DataType } from "node-opcua-basic-types";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import type { NodeId } from "node-opcua-nodeid";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("validate_data_type_correctness");
+const doDebug = checkDebugFlag("validate_data_type_correctness");
 
 function _dataType_toUADataType(addressSpace: IAddressSpace, dataType: DataType): UADataType {
     assert(addressSpace);

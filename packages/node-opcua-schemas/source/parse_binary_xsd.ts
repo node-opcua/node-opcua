@@ -17,8 +17,8 @@ import { type ReaderStateParser, Xml2Json, type XmlAttributes } from "node-opcua
 
 import { getOrCreateStructuredTypeSchema } from "./tools";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag("parse_binary_xsd");
+const debugLog = make_debugLog("parse_binary_xsd");
 
 function w(s: string, l: number): string {
     return s.padEnd(l).substring(0, l);

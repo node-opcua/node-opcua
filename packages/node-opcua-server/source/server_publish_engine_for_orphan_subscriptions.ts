@@ -9,8 +9,8 @@ import { ServerSidePublishEngine } from "./server_publish_engine";
 import type { Subscription } from "./server_subscription";
 import { getTransferSessionIdentity } from "./sessions_compatible_for_transfer";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("server_publish_engine_for_orphan_subscriptions");
+const doDebug = checkDebugFlag("server_publish_engine_for_orphan_subscriptions");
 
 interface ISubscriptionWithExpiredFunc {
     _expired_func?: (this: Subscription) => void;

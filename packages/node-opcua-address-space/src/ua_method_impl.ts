@@ -36,10 +36,10 @@ import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone } from "./base_node_private";
 import { _handle_hierarchy_parent } from "./namespace_impl";
 
-const warningLog = make_warningLog(__filename);
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const errorLog = make_errorLog(__filename);
+const warningLog = make_warningLog("ua_method_impl");
+const debugLog = make_debugLog("ua_method_impl");
+const doDebug = checkDebugFlag("ua_method_impl");
+const errorLog = make_errorLog("ua_method_impl");
 
 function default_check_valid_argument(arg: unknown): boolean {
     return (arg as object) instanceof Argument;

@@ -143,10 +143,10 @@ import type { IClientBase } from "./i_private_client";
 import { repair_client_session } from "./reconnection/reconnection";
 
 const helpAPIChange = process.env.DEBUG?.match(/API/);
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const warningLog = make_warningLog(__filename);
-const _errorLog = make_errorLog(__filename);
+const debugLog = make_debugLog("client_session_impl");
+const doDebug = checkDebugFlag("client_session_impl");
+const warningLog = make_warningLog("client_session_impl");
+const _errorLog = make_errorLog("client_session_impl");
 
 let pendingTransactionMessageDisplayed = false;
 

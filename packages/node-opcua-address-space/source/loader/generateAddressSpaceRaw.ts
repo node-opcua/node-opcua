@@ -8,9 +8,9 @@ import { adjustNamespaceArray } from "../../src/nodeset_tools/adjust_namespace_a
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
 import { NodeSetLoader } from "./load_nodeset2";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
+const doDebug = checkDebugFlag("generateAddressSpaceRaw");
+const debugLog = make_debugLog("generateAddressSpaceRaw");
+const errorLog = make_errorLog("generateAddressSpaceRaw");
 
 interface Model extends RequiredModel {
     requiredModel: RequiredModel[];

@@ -33,8 +33,8 @@ import {
 import { Variant } from "node-opcua-variant";
 import type { IAddressSpaceAccessor } from "./i_address_space_accessor";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag("addressSpace_accessor");
+const debugLog = make_debugLog("addressSpace_accessor");
 
 function checkReadProcessedDetails(historyReadDetails: ReadProcessedDetails): StatusCode {
     if (!historyReadDetails.aggregateConfiguration) {

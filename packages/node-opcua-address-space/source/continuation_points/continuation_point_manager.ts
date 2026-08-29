@@ -13,7 +13,7 @@ import { make_warningLog } from "node-opcua-debug";
 import { StatusCodes } from "node-opcua-status-code";
 import type { ReferenceDescription } from "node-opcua-types";
 
-const _warningLog = make_warningLog(__filename);
+const _warningLog = make_warningLog("continuation_point_manager");
 
 let counter = 0;
 
