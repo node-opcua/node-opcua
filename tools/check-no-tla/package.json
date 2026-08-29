@@ -1,0 +1,17 @@
+{
+    "name": "@sterfive/check-no-tla",
+    "version": "1.0.0",
+    "private": true,
+    "description": "fail the build on module-scope await, which would make a package unloadable from require()",
+    "bin": {
+        "check-no-tla": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "test": "node test/test_detector.js"
+    },
+    "devDependencies": {
+        "typescript": "5.9.3"
+    }
+}

@@ -73,6 +73,13 @@ jobs:
       # relative path into `require`. Cheap to check here, and the alternative is
       # finding out from a package that will not start - which is how the last one went.
       - run: pnpm run check:mocharc
+      # Module-scope await anywhere in the graph makes `require("node-opcua")` throw
+      # ERR_REQUIRE_ASYNC_MODULE, which is how every CommonJS consumer loads us. The test
+      # suite would not notice: it loads packages with `import`, where top-level await is
+      # legal. Only a consumer's application finds out. Checked here so it cannot happen.
+      - run: pnpm run check:tla
+      - name: Unit tests for the top-level-await detector
+        run: node tools/check-no-tla/test/test_detector.js
 
   # A gate rather than a lint step, because what it guards is not style. Two test files
   # holding one fixed port collide as soon as the runner schedules them together, and the

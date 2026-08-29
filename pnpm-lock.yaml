@@ -4204,6 +4204,12 @@ importers:
 
   tools/check-mocharc: {}
 
+  tools/check-no-tla:
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   tools/check-test-ports: {}
 
   tools/fix-tsconfigs:

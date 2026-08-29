@@ -18,6 +18,7 @@
     "check:ports:ai": "node tools/check-test-ports.mjs --ai",
     "check:mocharc": "node tools/check-mocharc.js",
     "check:mocharc:fix": "node tools/check-mocharc.js --fix",
+    "check:tla": "node tools/check-no-tla.mjs",
     "preinstall": "node prevent_npm_install.js",
     "lint": "biome check --reporter=summary --no-errors-on-unmatched .",
     "build": "tsc -b packages",
