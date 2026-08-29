@@ -77,6 +77,19 @@ const debugLog = make_debugLog("opcua_client_impl");
 const errorLog = make_errorLog("opcua_client_impl");
 const warningLog = make_warningLog("opcua_client_impl");
 
+let x509PemPrivateKeyWarningEmitted = false;
+function warnOnceAboutX509PemPrivateKey() {
+    if (x509PemPrivateKeyWarningEmitted) {
+        return;
+    }
+    x509PemPrivateKeyWarningEmitted = true;
+    warningLog(
+        "[NODE-OPCUA-W37] UserIdentityInfoX509.privateKey (raw PEM) is deprecated: pass keyOperations instead" +
+            " — keyOperationsFromPrivateKey(readPrivateKey(file)) from node-opcua-crypto is a one-line migration," +
+            " and an HSM/smartcard-held user key becomes possible."
+    );
+}
+
 function validateServerNonce(serverNonce: Nonce | null): boolean {
     return !(serverNonce && serverNonce.length < 32) || (serverNonce && serverNonce.length === 0);
 }
@@ -1314,6 +1327,9 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
                         return callback(
                             new Error("CLIENT: a X509 user identity requires exactly one of 'privateKey' (PEM) or 'keyOperations'")
                         );
+                    }
+                    if (userIdentityInfo.privateKey) {
+                        warnOnceAboutX509PemPrivateKey();
                     }
                     const userKey: PrivateKey | IKeyOperations = userIdentityInfo.keyOperations
                         ? userIdentityInfo.keyOperations

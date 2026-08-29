@@ -329,10 +329,12 @@ export interface UserIdentityInfoX509 extends X509IdentityTokenOptions {
     type: UserTokenType.Certificate;
     certificateData: ByteString;
     /**
-     * The user's private key as a raw PEM string. Prefer {@link keyOperations}:
-     * a raw PEM in application code is exactly what the opaque key work is
-     * moving away from. Exactly one of `privateKey` / `keyOperations` must be
-     * set (checked at ActivateSession time).
+     * The user's private key as a raw PEM string.
+     * @deprecated prefer {@link keyOperations}: a raw PEM in application
+     * code is exactly what the opaque key work is moving away from (a
+     * one-line migration: `keyOperationsFromPrivateKey(readPrivateKey(file))`
+     * from node-opcua-crypto). Exactly one of `privateKey` / `keyOperations`
+     * must be set (checked at ActivateSession time).
      */
     privateKey?: PrivateKeyPEM;
     /**

@@ -35,6 +35,13 @@ await client.disconnect();
 | {@link node-opcua-variant!Variant | Variant} | Container for typed OPC UA values |
 | {@link node-opcua-data-value!DataValue | DataValue} | Value + status code + timestamps |
 
+## Security Guides
+
+- 🔐 [**Using an HSM/KMS-held application key**](https://github.com/node-opcua/node-opcua/blob/master/documentation/using_hsm_kms_keys.md) —
+  Run node-opcua with a non-exportable private key held in an HSM, cloud KMS, or TPM.
+- 🧭 [**Migrating to key operations**](https://github.com/node-opcua/node-opcua/blob/master/documentation/migrating_to_key_operations.md) —
+  Before/after mapping for every deprecated or removed raw-private-key pattern.
+
 ## Learn More
 
 - 📘 [**NodeOPCUA by Example**](https://leanpub.com/node-opcuabyexample-edition2024) —

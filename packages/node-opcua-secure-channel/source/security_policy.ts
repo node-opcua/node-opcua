@@ -435,10 +435,22 @@ export interface CryptoFactory {
         chunk: Buffer,
         certificate: Certificate
     ) => { signatureIsOK: boolean; signatureLength: number };
+    /**
+     * @deprecated raw-key signing is superseded by the opaque key-operations
+     * path: declare {@link signParams} and sign through an `IKeyOperations`
+     * (see `computeSignatureAsync` / the OPN builders). Still populated and
+     * functional; a removal candidate for the next major.
+     */
     asymmetricSign: (buffer: Buffer, privateKey: PrivateKey) => Buffer;
     asymmetricVerify: (buffer: Buffer, signature: Signature, certificate: Certificate) => boolean;
 
     asymmetricEncrypt: (buffer: Buffer, publicKey: PublicKey) => Buffer;
+    /**
+     * @deprecated raw-key decryption is superseded by the opaque
+     * key-operations path: declare {@link decryptParams} and decrypt through
+     * `asymmetricDecryptWithKeyOps(+Sync)`. Still populated and functional;
+     * a removal candidate for the next major.
+     */
     asymmetricDecrypt: (buffer: Buffer, privateKey: PrivateKey) => Buffer;
 
     /**
@@ -673,6 +685,12 @@ export function getCryptoFactory(securityPolicy: SecurityPolicy): CryptoFactory 
     }
 }
 
+/**
+ * @deprecated prefer {@link computeSignatureAsync}: it accepts either a raw
+ * `PrivateKey` (byte-identical result) or an opaque `IKeyOperations`
+ * (HSM/KMS-held key). This synchronous form requires raw key material and
+ * is a removal candidate for the next major.
+ */
 export function computeSignature(
     senderCertificate: Buffer | null,
     senderNonce: Nonce | null,

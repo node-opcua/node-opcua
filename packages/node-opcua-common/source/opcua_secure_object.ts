@@ -192,9 +192,12 @@ export class OPCUASecureObject<T extends Record<string | symbol, any> = any>
     }
 
     /**
-     * The raw private key. Prefer {@link getKeyOperations} in new code: it
-     * works whether the key is local or HSM/KMS-held, while this throws
+     * The raw private key.
+     * @deprecated prefer {@link getKeyOperations}: it works whether the key
+     * is local or HSM/KMS-held, while this throws
      * `PrivateKeyUnavailableError` when the installed provider is opaque.
+     * Kept for compatibility with code that genuinely needs key material
+     * (e.g. push certificate management).
      */
     public getPrivateKey(): PrivateKey {
         return this.#provider.getPrivateKey();
