@@ -1,0 +1,18 @@
+{
+    "name": "@sterfive/check-import-extension",
+    "version": "1.0.0",
+    "private": true,
+    "description": "relative module specifiers must carry the extension ESM will need",
+    "bin": {
+        "check-import-extension": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "fix": "node src/index.js --fix",
+        "test": "node test/test_rule.js"
+    },
+    "devDependencies": {
+        "typescript": "5.9.3"
+    }
+}
