@@ -1,0 +1,8 @@
+{
+    "node-opcua-client": 3,
+    "node-opcua-common": 8,
+    "node-opcua-secure-channel": 6,
+    "node-opcua-server": 4,
+    "node-opcua-server-configuration": 4,
+    "node-opcua-server-discovery": 1
+}
