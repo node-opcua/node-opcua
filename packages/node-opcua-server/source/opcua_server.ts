@@ -4093,22 +4093,6 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
 
         const port = Number(endpointOptions.port || 0);
 
-        // STARTUP GUARD (until the secure-channel OPN paths speak key
-        // operations): an opaque application key can only serve
-        // MessageSecurityMode.None endpoints — fail now, clearly, rather
-        // than deep inside the first secure handshake.
-        if (this.getProvider() instanceof OpaqueCertificateKeyPairProvider) {
-            const securityModes = endpointOptions.securityModes;
-            const requestsSecureMode = !securityModes || securityModes.some((mode) => mode !== MessageSecurityMode.None);
-            if (requestsSecureMode) {
-                throw new Error(
-                    "[NODE-OPCUA-E32] the server's private key is opaque (HSM/KMS-held via keyOperations), which is" +
-                        " not yet supported for secure endpoints: set securityModes: [MessageSecurityMode.None]" +
-                        " on every endpoint, or use a local private key"
-                );
-            }
-        }
-
         const endPoint = this.createEndpoint(port, serverOption);
 
         endpointOptions.alternateHostname = endpointOptions.alternateHostname || [];

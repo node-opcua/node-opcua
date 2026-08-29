@@ -52,6 +52,10 @@ export type WriteHeaderFunc = (this: ChunkManager, chunk: Buffer, isLast: boolea
 export type WriteSequenceHeaderFunc = (this: ChunkManager, chunk: Buffer) => void;
 export type SignBufferFunc = (this: ChunkManager, buffer: Buffer) => Buffer;
 export type EncryptBufferFunc = (this: ChunkManager, buffer: Buffer) => Buffer;
+/** asynchronous {@link SignBufferFunc} — for a key held by a remote provider (HSM/KMS). */
+export type SignBufferAsyncFunc = (this: ChunkManager, buffer: Buffer) => Promise<Buffer>;
+/** asynchronous {@link EncryptBufferFunc}. */
+export type EncryptBufferAsyncFunc = (this: ChunkManager, buffer: Buffer) => Promise<Buffer>;
 
 export interface IChunkManagerOptions {
     chunkSize: number;
@@ -62,6 +66,16 @@ export interface IChunkManagerOptions {
 
     signBufferFunc?: SignBufferFunc;
     encryptBufferFunc?: EncryptBufferFunc;
+    /**
+     * Asynchronous signing (mutually exclusive with `signBufferFunc`).
+     * When any async func is configured, completed chunks flow through a
+     * serialized task chain — "chunk" events keep their order — and the
+     * caller must finish with {@link ChunkManager.endAsync} instead of
+     * `end()` to observe completion and errors.
+     */
+    signBufferAsyncFunc?: SignBufferAsyncFunc;
+    /** Asynchronous encryption (mutually exclusive with `encryptBufferFunc`). */
+    encryptBufferAsyncFunc?: EncryptBufferAsyncFunc;
     writeSequenceHeaderFunc?: WriteSequenceHeaderFunc;
 
     headerSize: number;
@@ -77,6 +91,11 @@ export enum Mode {
 export class ChunkManager extends EventEmitter {
     #signBufferFunc?: SignBufferFunc;
     #encryptBufferFunc?: EncryptBufferFunc;
+    #signBufferAsyncFunc?: SignBufferAsyncFunc;
+    #encryptBufferAsyncFunc?: EncryptBufferAsyncFunc;
+    /** serialized task chain for the async mode, so chunk events keep their order. */
+    #asyncTail: Promise<void> = Promise.resolve();
+    #asyncError: Error | null = null;
     #writeSequenceHeaderFunc?: WriteSequenceHeaderFunc;
     #writeHeaderFunc?: WriteHeaderFunc;
 
@@ -121,6 +140,16 @@ export class ChunkManager extends EventEmitter {
 
         this.signatureLength = options.signatureLength || 0;
         this.#signBufferFunc = options.signBufferFunc;
+        this.#signBufferAsyncFunc = options.signBufferAsyncFunc;
+        this.#encryptBufferAsyncFunc = options.encryptBufferAsyncFunc;
+        assert(
+            !(this.#signBufferFunc && this.#signBufferAsyncFunc),
+            "signBufferFunc and signBufferAsyncFunc are mutually exclusive"
+        );
+        assert(
+            !(options.encryptBufferFunc && options.encryptBufferAsyncFunc),
+            "encryptBufferFunc and encryptBufferAsyncFunc are mutually exclusive"
+        );
 
         this.plainBlockSize = options.plainBlockSize || 0; // 256-14;
         this.cipherBlockSize = options.cipherBlockSize || 0; // 256;
@@ -141,7 +170,10 @@ export class ChunkManager extends EventEmitter {
             // be the same.
 
             this.#encryptBufferFunc = options.encryptBufferFunc;
-            assert(typeof this.#encryptBufferFunc === "function", "an encryptBufferFunc is required");
+            assert(
+                typeof this.#encryptBufferFunc === "function" || typeof this.#encryptBufferAsyncFunc === "function",
+                "an encryptBufferFunc (or encryptBufferAsyncFunc) is required"
+            );
 
             // this is the formula proposed  by OPCUA
             this.maxBodySize =
@@ -218,13 +250,32 @@ export class ChunkManager extends EventEmitter {
     }
 
     /**
+     * `end()` for the asynchronous mode: resolves once every chunk has been
+     * signed/encrypted and emitted, rejecting with the first task error.
+     * (Plain `end()` in async mode enqueues the remaining work and returns
+     * immediately — chunks are emitted as their tasks settle.)
+     */
+    public async endAsync(): Promise<void> {
+        this.end();
+        await this.#asyncTail;
+        if (this.#asyncError) {
+            throw this.#asyncError;
+        }
+    }
+
+    /** true when any asynchronous sign/encrypt function is configured. */
+    get isAsync(): boolean {
+        return !!(this.#signBufferAsyncFunc || this.#encryptBufferAsyncFunc);
+    }
+
+    /**
      * compute the signature of the chunk and append it at the end
      * of the data block.
      *
 
      * @private
      */
-    #_write_signature(chunk: Buffer) {
+    #_write_signature(chunk: Buffer, dataEnd: number) {
         if (this.securityMode === Mode.None) {
             assert(this.signatureLength === 0, "expecting NO SIGN");
             return;
@@ -233,7 +284,7 @@ export class ChunkManager extends EventEmitter {
             assert(typeof this.#signBufferFunc === "function");
             assert(this.signatureLength !== 0);
 
-            const signatureStart = this.#dataEnd;
+            const signatureStart = dataEnd;
             const sectionToSign = chunk.subarray(0, signatureStart);
 
             const signature = this.#signBufferFunc.call(this, sectionToSign);
@@ -244,15 +295,15 @@ export class ChunkManager extends EventEmitter {
         }
     }
 
-    #_encrypt(chunk: Buffer) {
+    #_encrypt(chunk: Buffer, dataEnd: number) {
         if (this.securityMode === Mode.None) {
             // nothing todo
             return;
         }
         if (this.plainBlockSize > 0 && this.#encryptBufferFunc) {
-            assert(this.#dataEnd !== undefined);
+            assert(dataEnd !== undefined);
             const startEncryptionPos = this.headerSize;
-            const endEncryptionPos = this.#dataEnd + this.signatureLength;
+            const endEncryptionPos = dataEnd + this.signatureLength;
 
             const areaToEncrypt = chunk.subarray(startEncryptionPos, endEncryptionPos);
 
@@ -269,8 +320,13 @@ export class ChunkManager extends EventEmitter {
 
     #_push_pending_chunk(isLast: boolean) {
         if (this.#pendingChunk) {
-            const expectedLength = this.#pendingChunk.length;
+            const pendingChunk = this.#pendingChunk;
+            this.#pendingChunk = null;
+            const expectedLength = pendingChunk.length;
 
+            // Headers are written NOW, synchronously, in both modes: sequence
+            // numbers must be allocated in chunk order, and the abort flag is
+            // read at this instant — only the crypto may be deferred.
             if (this.headerSize > 0) {
                 if (!this.#writeHeaderFunc) {
                     throw new Error("ChunkManager: writeHeaderFunc is required when headerSize > 0");
@@ -278,7 +334,7 @@ export class ChunkManager extends EventEmitter {
                 // Release 1.02  39  OPC Unified Architecture, Part 6:
                 // The sequence header ensures that the first  encrypted block of every  Message  sent over
                 // a channel will start with different data.
-                this.#writeHeaderFunc.call(this, this.#pendingChunk.subarray(0, this.headerSize), isLast, expectedLength);
+                this.#writeHeaderFunc.call(this, pendingChunk.subarray(0, this.headerSize), isLast, expectedLength);
             }
             if (this.sequenceHeaderSize > 0) {
                 if (!this.#writeSequenceHeaderFunc) {
@@ -286,21 +342,61 @@ export class ChunkManager extends EventEmitter {
                 }
                 this.#writeSequenceHeaderFunc.call(
                     this,
-                    this.#pendingChunk.subarray(this.headerSize, this.headerSize + this.sequenceHeaderSize)
+                    pendingChunk.subarray(this.headerSize, this.headerSize + this.sequenceHeaderSize)
                 );
             }
 
-            this.#_write_signature(this.#pendingChunk);
+            if (this.isAsync) {
+                // #dataEnd is per-chunk state that the next #_post_process
+                // overwrites — capture it for the deferred task
+                const dataEnd = this.#dataEnd;
+                this.#asyncTail = this.#asyncTail.then(() => this.#_sign_encrypt_emit_async(pendingChunk, isLast, dataEnd));
+                return;
+            }
 
-            this.#_encrypt(this.#pendingChunk);
+            this.#_write_signature(pendingChunk, this.#dataEnd);
+
+            this.#_encrypt(pendingChunk, this.#dataEnd);
 
             /**
              * @event chunk
              * @param chunk {Buffer}
              * @param isLast {Boolean} , true if final chunk
              */
-            this.emit("chunk", this.#pendingChunk, isLast);
-            this.#pendingChunk = null;
+            this.emit("chunk", pendingChunk, isLast);
+        }
+    }
+
+    /** the deferred half of {@link #_push_pending_chunk} for the asynchronous mode. */
+    async #_sign_encrypt_emit_async(pendingChunk: Buffer, isLast: boolean, dataEnd: number): Promise<void> {
+        if (this.#asyncError) {
+            // a previous chunk failed: emit nothing further
+            return;
+        }
+        try {
+            if (this.securityMode !== Mode.None) {
+                if (this.#signBufferAsyncFunc) {
+                    const sectionToSign = pendingChunk.subarray(0, dataEnd);
+                    const signature = await this.#signBufferAsyncFunc.call(this, sectionToSign);
+                    assert(signature.length === this.signatureLength, "expecting signature length to match");
+                    signature.copy(pendingChunk, dataEnd);
+                } else {
+                    this.#_write_signature(pendingChunk, dataEnd);
+                }
+                if (this.plainBlockSize > 0) {
+                    if (this.#encryptBufferAsyncFunc) {
+                        const areaToEncrypt = pendingChunk.subarray(this.headerSize, dataEnd + this.signatureLength);
+                        const encryptedBuffer = await this.#encryptBufferAsyncFunc.call(this, areaToEncrypt);
+                        assert(encryptedBuffer.length % this.cipherBlockSize === 0);
+                        encryptedBuffer.copy(pendingChunk, this.headerSize, 0);
+                    } else {
+                        this.#_encrypt(pendingChunk, dataEnd);
+                    }
+                }
+            }
+            this.emit("chunk", pendingChunk, isLast);
+        } catch (err) {
+            this.#asyncError = this.#asyncError || (err as Error);
         }
     }
 

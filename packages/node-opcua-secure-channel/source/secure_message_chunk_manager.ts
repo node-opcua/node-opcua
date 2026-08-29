@@ -10,6 +10,7 @@ import {
     type IChunkManagerOptions,
     type Mode,
     SequenceHeader,
+    type SignBufferAsyncFunc,
     type SignBufferFunc
 } from "node-opcua-chunkmanager";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
@@ -33,6 +34,8 @@ export interface SecureMessageChunkManagerOptions {
     cipherBlockSize: number;
     encryptBufferFunc?: EncryptBufferFunc;
     signBufferFunc?: SignBufferFunc;
+    /** asynchronous signing (remote HSM/KMS key) — finish with {@link SecureMessageChunkManager.endAsync}. */
+    signBufferAsyncFunc?: SignBufferAsyncFunc;
     verifyBufferFunc?: VerifyBufferFunc;
 }
 
@@ -92,6 +95,7 @@ export class SecureMessageChunkManager extends EventEmitter {
 
             // ---------------------------------------- Signing stuff
             signBufferFunc: options.signBufferFunc,
+            signBufferAsyncFunc: options.signBufferAsyncFunc,
             signatureLength: options.signatureLength,
 
             // ---------------------------------------- Encrypting stuff
@@ -162,6 +166,16 @@ export class SecureMessageChunkManager extends EventEmitter {
 
     public end(): void {
         this.#chunkManager.end();
+        this.emit("finished");
+    }
+
+    /**
+     * `end()` for the asynchronous signing mode: "finished" is emitted only
+     * once every chunk has been signed and emitted; rejects with the first
+     * signing error.
+     */
+    public async endAsync(): Promise<void> {
+        await this.#chunkManager.endAsync();
         this.emit("finished");
     }
 }

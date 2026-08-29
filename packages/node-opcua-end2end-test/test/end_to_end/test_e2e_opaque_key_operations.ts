@@ -28,7 +28,7 @@ fs.existsSync(certificateFolder).should.eql(true, `expecting certificate store a
 
 const tmpFolder = path.join(__dirname, "../../tmp");
 const port = 5794;
-const portSecureGuard = 5795;
+const portSecure = 5795;
 
 interface CountingOps {
     ops: IKeyOperations;
@@ -38,20 +38,25 @@ interface CountingOps {
 
 /**
  * A KMS-style provider: async-only (no sync fast path), counts operations,
- * backed by an in-memory key so everything stays verifiable.
+ * optionally answers with a simulated round-trip latency, and is backed by
+ * an in-memory key so everything stays verifiable.
  */
-function makeCountingOpaqueOps(): CountingOps {
+function makeCountingOpaqueOps(latencyMilliseconds = 0): CountingOps {
     const { privateKey } = nodeCrypto.generateKeyPairSync("rsa", { modulusLength: 2048 });
     const local = keyOperationsFromPrivateKey({ hidden: privateKey.export({ type: "pkcs8", format: "pem" }).toString() });
+    const simulateRoundTrip = () =>
+        latencyMilliseconds > 0 ? new Promise<void>((resolve) => setTimeout(resolve, latencyMilliseconds)) : Promise.resolve();
     let signs = 0;
     let decrypts = 0;
     const ops: IKeyOperations = {
-        sign: (data, params) => {
+        sign: async (data, params) => {
             signs += 1;
+            await simulateRoundTrip();
             return local.sign(data, params);
         },
-        decryptBlock: (block, params) => {
+        decryptBlock: async (block, params) => {
             decrypts += 1;
+            await simulateRoundTrip();
             return local.decryptBlock(block, params);
         },
         getKeyMetadata: () => local.getKeyMetadata(),
@@ -222,48 +227,6 @@ describe("end-to-end: opaque (HSM/KMS-style) key operations", function (this: Mo
         }
     });
 
-    it("OKO-6 GUARD: a server with an opaque key refuses secure endpoints with a clear error", async () => {
-        const { ops } = makeCountingOpaqueOps();
-        const { certificateManager, certificateFile } = await makeOpaqueCertificateManager(
-            `serverOpaqueSecurePKI${port}`,
-            ops,
-            "urn:opaque-e2e-secure-server"
-        );
-        const secureServer = new OPCUAServer({
-            port: portSecureGuard,
-            nodeset_filename: empty_nodeset_filename,
-            serverCertificateManager: certificateManager,
-            certificateFile,
-            privateKeyFile: certificateManager.privateKey,
-            securityModes: [MessageSecurityMode.SignAndEncrypt]
-        });
-        try {
-            await secureServer.start().should.be.rejectedWith(/NODE-OPCUA-E32/);
-        } finally {
-            await secureServer.shutdown(1).catch(() => {
-                /* the server never started */
-            });
-        }
-    });
-
-    it("OKO-7 GUARD: a client with an opaque key refuses a secure connection with a clear error", async () => {
-        const { ops } = makeCountingOpaqueOps();
-        const { certificateManager, certificateFile } = await makeOpaqueCertificateManager(
-            `clientOpaquePKI${port}`,
-            ops,
-            "urn:opaque-e2e-client"
-        );
-        const client = OPCUAClient.create({
-            clientCertificateManager: certificateManager,
-            certificateFile,
-            privateKeyFile: certificateManager.privateKey,
-            securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256Sha256,
-            connectionStrategy: { maxRetry: 0 }
-        });
-        await client.connect(endpointUrl).should.be.rejectedWith(/NODE-OPCUA-E33/);
-    });
-
     it("OKO-8 a client with an opaque key connects fine with securityMode None", async () => {
         const { ops } = makeCountingOpaqueOps();
         const { certificateManager, certificateFile } = await makeOpaqueCertificateManager(
@@ -284,5 +247,120 @@ describe("end-to-end: opaque (HSM/KMS-style) key operations", function (this: Mo
         } finally {
             await client.disconnect();
         }
+    });
+});
+
+describe("end-to-end: opaque key operations over SECURE channels (async OPN pipeline)", function (this: Mocha.Suite) {
+    this.timeout(120000);
+
+    // 30 ms simulated KMS round trip: the async chunk pipeline is genuinely exercised
+    const serverKey = makeCountingOpaqueOps(30);
+    let secureServer: OPCUAServer;
+    let secureEndpointUrl: string;
+
+    async function makeLocalKeyClient(securityPolicy: SecurityPolicy) {
+        const clientCertificateManager = new OPCUACertificateManager({
+            rootFolder: path.join(tmpFolder, `localClientPKI${portSecure}`),
+            automaticallyAcceptUnknownCertificate: true
+        });
+        await clientCertificateManager.initialize();
+        return OPCUAClient.create({
+            clientCertificateManager,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy,
+            connectionStrategy: { maxRetry: 0 }
+        });
+    }
+
+    before(async () => {
+        const { certificateManager, certificateFile } = await makeOpaqueCertificateManager(
+            `serverOpaqueSecurePKI${portSecure}`,
+            serverKey.ops,
+            "urn:opaque-e2e-secure-server"
+        );
+        secureServer = new OPCUAServer({
+            port: portSecure,
+            nodeset_filename: empty_nodeset_filename,
+            serverInfo: { applicationUri: "urn:opaque-e2e-secure-server" },
+            serverCertificateManager: certificateManager,
+            certificateFile,
+            privateKeyFile: certificateManager.privateKey,
+            securityModes: [MessageSecurityMode.SignAndEncrypt]
+        });
+        await secureServer.start();
+        secureEndpointUrl = secureServer.getEndpointUrl();
+    });
+
+    after(async () => {
+        if (secureServer) {
+            await secureServer.shutdown(1);
+        }
+    });
+
+    for (const securityPolicy of [SecurityPolicy.Basic256Sha256, SecurityPolicy.Aes256_Sha256_RsaPss]) {
+        it(`OKS-1 SignAndEncrypt ${securityPolicy.split("#")[1]}: the server's opaque provider signs and decrypts the OPN`, async () => {
+            const signsBefore = serverKey.signCount();
+            const decryptsBefore = serverKey.decryptCount();
+
+            const client = await makeLocalKeyClient(securityPolicy);
+            await client.connect(secureEndpointUrl);
+            try {
+                const session = await client.createSession();
+                await session.close();
+            } finally {
+                await client.disconnect();
+            }
+
+            // the OPN response was signed, and the encrypted OPN request decrypted, inside the provider
+            serverKey.signCount().should.be.greaterThan(signsBefore, "the provider must have signed the OPN response");
+            serverKey.decryptCount().should.be.greaterThan(decryptsBefore, "the provider must have decrypted the OPN request");
+        });
+    }
+
+    it("OKS-2 an OPAQUE client opens a SignAndEncrypt channel: its provider signs the OPN and the session works", async () => {
+        const clientKey = makeCountingOpaqueOps(30);
+        const { certificateManager, certificateFile } = await makeOpaqueCertificateManager(
+            `clientOpaqueSecurePKI${portSecure}`,
+            clientKey.ops,
+            "urn:opaque-e2e-secure-client"
+        );
+        const client = OPCUAClient.create({
+            clientCertificateManager: certificateManager,
+            certificateFile,
+            privateKeyFile: certificateManager.privateKey,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic256Sha256,
+            connectionStrategy: { maxRetry: 0 }
+        });
+        await client.connect(secureEndpointUrl);
+        try {
+            const session = await client.createSession();
+            await session.close();
+        } finally {
+            await client.disconnect();
+        }
+        clientKey.signCount().should.be.greaterThan(0, "the client's provider must have signed (OPN request + clientSignature)");
+        clientKey.decryptCount().should.be.greaterThan(0, "the client's provider must have decrypted the OPN response");
+    });
+
+    it("OKS-3 token renewal goes through the provider again", async () => {
+        const signsBefore = serverKey.signCount();
+        const client = await makeLocalKeyClient(SecurityPolicy.Basic256Sha256);
+        // very short token lifetime: at least one renewal within the wait below
+        (client as unknown as { defaultSecureTokenLifetime: number }).defaultSecureTokenLifetime = 2000;
+        await client.connect(secureEndpointUrl);
+        let signsAfterConnect: number;
+        try {
+            const session = await client.createSession();
+            signsAfterConnect = serverKey.signCount();
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+            await session.close();
+        } finally {
+            await client.disconnect();
+        }
+        serverKey.signCount().should.be.greaterThan(signsBefore, "connect must have used the provider");
+        serverKey
+            .signCount()
+            .should.be.greaterThan(signsAfterConnect, "each token renewal must have signed through the provider again");
     });
 });

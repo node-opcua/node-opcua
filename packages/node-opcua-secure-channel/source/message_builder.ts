@@ -32,8 +32,10 @@ import { timestamp } from "node-opcua-utils";
 import { SymmetricAlgorithmSecurityHeader } from "./secure_channel_service";
 import { chooseSecurityHeader, type SecurityHeader } from "./secure_message_chunk_manager";
 import {
+    asymmetricDecryptWithKeyOps,
     asymmetricDecryptWithKeyOpsSync,
     asymmetricVerifyChunk,
+    type CryptoFactory,
     coerceSecurityPolicy,
     getCryptoFactory,
     SecurityPolicy
@@ -68,8 +70,9 @@ export interface MessageBuilderOptions extends MessageBuilderBaseOptions {
     /**
      * The receiver's key as an opaque sign/decrypt object, used to decrypt
      * encrypted OpenSecureChannel chunks. The MessageBuilder never sees raw
-     * key material. Synchronous decryption (the local-key fast path) is
-     * required until the chunk pipeline learns to await a remote provider.
+     * key material. A provider with the synchronous fast path (local keys)
+     * decrypts inline; an asynchronous-only provider (HSM/KMS) is awaited
+     * through the chunk pump, later chunks queuing in arrival order.
      */
     keyOperations?: IKeyOperations;
     objectFactory?: ObjectFactory;
@@ -246,7 +249,7 @@ export class MessageBuilder extends MessageBuilderBase {
         this.#keyOperations = null;
     }
 
-    protected _read_headers(binaryStream: BinaryStream): boolean {
+    protected override _read_headersEx(binaryStream: BinaryStream): boolean | Promise<boolean> {
         if (!super._read_headers(binaryStream)) {
             return false;
         }
@@ -307,35 +310,62 @@ export class MessageBuilder extends MessageBuilderBase {
                     }
                 }
 
-                if (!this.#_decrypt(binaryStream)) {
-                    return false;
-                }
-                this.sequenceHeader = new SequenceHeader();
-                this.sequenceHeader.decode(binaryStream);
-
-                /* c8 ignore next */
-                if (doDebug) {
-                    debugLog(" Sequence Header", this.sequenceHeader);
-                }
-                /* c8 ignore next */
-                if (doTraceChunk) {
-                    console.log(
-                        chalk.cyan(timestamp()),
-                        chalk.green("   >$$ "),
-                        chalk.green(this.messageHeader.msgType),
-                        chalk.green(`nbChunk = ${this.messageChunks.length.toString().padStart(3)}`),
-                        chalk.green(`totalLength = ${this.totalMessageSize.toString().padStart(8)}`),
-                        "l=",
-                        this.messageHeader.length.toString().padStart(6),
-                        "s=",
-                        this.sequenceHeader.sequenceNumber.toString().padEnd(4),
-                        "r=",
-                        this.sequenceHeader.requestId.toString().padEnd(4)
+                const decrypted = this.#_decrypt(binaryStream);
+                if (decrypted instanceof Promise) {
+                    // remote (async-only) key-operations provider: finish the
+                    // header processing once the OPN payload is decrypted
+                    return decrypted.then(
+                        (ok) => (ok ? this.#_after_decrypt(binaryStream) : false),
+                        (err: Error) => {
+                            warningLog(chalk.red("Error"), err.message);
+                            return this._report_error(StatusCodes2.BadTcpInternalError, `Internal Error ${err.message}`);
+                        }
                     );
                 }
-                if (!this.#_validateSequenceNumber(this.sequenceHeader.sequenceNumber)) {
+                if (!decrypted) {
                     return false;
                 }
+                return this.#_after_decrypt(binaryStream);
+            }
+            return true;
+        } catch (err) {
+            warningLog(chalk.red("Error"), (err as Error).message);
+            return this._report_error(StatusCodes2.BadTcpInternalError, `Internal Error ${(err as Error).message}`);
+        }
+    }
+
+    /** the tail of header processing, once the (possibly awaited) decryption is done. */
+    #_after_decrypt(binaryStream: BinaryStream): boolean {
+        try {
+            // c8 ignore next
+            if (!this.messageHeader) {
+                throw new Error("internal error");
+            }
+            this.sequenceHeader = new SequenceHeader();
+            this.sequenceHeader.decode(binaryStream);
+
+            /* c8 ignore next */
+            if (doDebug) {
+                debugLog(" Sequence Header", this.sequenceHeader);
+            }
+            /* c8 ignore next */
+            if (doTraceChunk) {
+                console.log(
+                    chalk.cyan(timestamp()),
+                    chalk.green("   >$$ "),
+                    chalk.green(this.messageHeader.msgType),
+                    chalk.green(`nbChunk = ${this.messageChunks.length.toString().padStart(3)}`),
+                    chalk.green(`totalLength = ${this.totalMessageSize.toString().padStart(8)}`),
+                    "l=",
+                    this.messageHeader.length.toString().padStart(6),
+                    "s=",
+                    this.sequenceHeader.sequenceNumber.toString().padEnd(4),
+                    "r=",
+                    this.sequenceHeader.requestId.toString().padEnd(4)
+                );
+            }
+            if (!this.#_validateSequenceNumber(this.sequenceHeader.sequenceNumber)) {
+                return false;
             }
             return true;
         } catch (err) {
@@ -502,7 +532,7 @@ export class MessageBuilder extends MessageBuilderBase {
         return true;
     }
 
-    #_decrypt_OPN(binaryStream: BinaryStream): boolean {
+    #_decrypt_OPN(binaryStream: BinaryStream): boolean | Promise<boolean> {
         assert(this.securityPolicy !== SecurityPolicy.None);
         assert(this.securityPolicy !== SecurityPolicy.Invalid);
         assert(this.securityMode !== MessageSecurityMode.None);
@@ -565,42 +595,70 @@ export class MessageBuilder extends MessageBuilderBase {
             }
             // this mean that the message has been encrypted ....
 
-            if (!this.#keyOperations) {
+            const keyOperations = this.#keyOperations;
+            if (!keyOperations) {
                 return this._report_error(
                     StatusCodes2.BadTcpInternalError,
                     "expecting key operations to decrypt an encrypted OpenSecureChannel message"
                 );
             }
 
-            try {
-                const decryptedBuffer = asymmetricDecryptWithKeyOpsSync(cryptoFactory, buf, this.#keyOperations);
+            const applyDecryptedBuffer = (decryptedBuffer: Buffer): boolean => {
                 // replace decrypted buffer in initial buffer
                 decryptedBuffer.copy(binaryStream.buffer, binaryStream.length);
                 // adjust length
                 binaryStream.buffer = binaryStream.buffer.subarray(0, binaryStream.length + decryptedBuffer.length);
+
+                /* c8 ignore next */
+                if (doDebug) {
+                    debugLog(chalk.cyan("DE-----------------------------"));
+                    // debugLog(hexDump(binaryStream.buffer));
+                    debugLog(chalk.cyan("-------------------------------"));
+                    const thumbprint = makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate);
+                    debugLog("Certificate thumbprint:", thumbprint.toString("hex"));
+                }
+                return this.#_decrypt_OPN_tail(binaryStream, asymmetricAlgorithmSecurityHeader, cryptoFactory, true);
+            };
+
+            if (typeof keyOperations.decryptBlockSync !== "function" || typeof keyOperations.getKeyMetadataSync !== "function") {
+                // remote (async-only) key-operations provider: decrypt through
+                // its asynchronous interface — the chunk pump holds later
+                // chunks in order while this settles
+                return asymmetricDecryptWithKeyOps(cryptoFactory, buf, keyOperations).then(
+                    (decryptedBuffer) => applyDecryptedBuffer(decryptedBuffer),
+                    (err: Error) =>
+                        // Cannot asymmetrically decrypt, may be the certificate used by the other party to encrypt
+                        // this package is wrong
+                        this._report_error(StatusCodes2.BadTcpInternalError, `Cannot decrypt OPN package ${err.message}`)
+                );
+            }
+
+            try {
+                const decryptedBuffer = asymmetricDecryptWithKeyOpsSync(cryptoFactory, buf, keyOperations);
+                return applyDecryptedBuffer(decryptedBuffer);
             } catch (err) {
                 // Cannot asymmetrically decrypt, may be the certificate used by the other party to encrypt
                 // this package is wrong
                 return this._report_error(StatusCodes2.BadTcpInternalError, `Cannot decrypt OPN package ${(err as Error).message}`);
             }
-
-            /* c8 ignore next */
-            if (doDebug) {
-                debugLog(chalk.cyan("DE-----------------------------"));
-                // debugLog(hexDump(binaryStream.buffer));
-                debugLog(chalk.cyan("-------------------------------"));
-                const thumbprint = makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate);
-                debugLog("Certificate thumbprint:", thumbprint.toString("hex"));
-            }
-        } else {
-            if (this.securityMode !== MessageSecurityMode.None) {
-                return this._report_error(
-                    StatusCodes2.BadTcpInternalError,
-                    "Expecting a encrypted OpenSecureChannel message as securityMode is not None"
-                );
-            }
+        }
+        if (this.securityMode !== MessageSecurityMode.None) {
+            return this._report_error(
+                StatusCodes2.BadTcpInternalError,
+                "Expecting a encrypted OpenSecureChannel message as securityMode is not None"
+            );
         }
 
+        return this.#_decrypt_OPN_tail(binaryStream, asymmetricAlgorithmSecurityHeader, cryptoFactory, false);
+    }
+
+    /** signature verification and padding removal — the tail of OPN decryption, shared by the sync and async paths. */
+    #_decrypt_OPN_tail(
+        binaryStream: BinaryStream,
+        asymmetricAlgorithmSecurityHeader: AsymmetricAlgorithmSecurityHeader,
+        cryptoFactory: CryptoFactory,
+        wasEncrypted: boolean
+    ): boolean {
         const chunk = binaryStream.buffer;
 
         const { signatureLength, signatureIsOK } = asymmetricVerifyChunk(
@@ -624,7 +682,7 @@ export class MessageBuilder extends MessageBuilderBase {
         binaryStream.buffer = reduceLength(binaryStream.buffer, signatureLength);
 
         // remove padding
-        if (asymmetricAlgorithmSecurityHeader.receiverCertificateThumbprint) {
+        if (wasEncrypted) {
             binaryStream.buffer = removePadding(binaryStream.buffer);
         }
 

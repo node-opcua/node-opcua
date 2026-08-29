@@ -114,12 +114,24 @@ export class MessageChunker {
             return { statusCode: StatusCodes.BadTcpInternalError, chunkManager: null };
         }
     }
-    public chunkSecureMessage(
+    /**
+     * Encode the message and prepare the chunk manager, wired to the chunk
+     * callback — the part {@link chunkSecureMessage} and
+     * {@link chunkSecureMessageAsync} share.
+     */
+    #_encode_and_prepare(
         msgType: string,
         params: ChunkMessageParameters,
         message: BaseUAObject,
         messageChunkCallback: MessageCallbackFunc
-    ): StatusCode {
+    ): { statusCode: StatusCode; chunkManager: SecureMessageChunkManager | null; stream: BinaryStream; messageLength: number } {
+        const failed = (statusCode: StatusCode) => ({
+            statusCode,
+            chunkManager: null,
+            stream: null as unknown as BinaryStream,
+            messageLength: 0
+        });
+
         const encodingDefaultBinary = message.schema.encodingDefaultBinary;
         if (!encodingDefaultBinary) {
             throw new Error(`message schema ${message.schema.name} has no encodingDefaultBinary`);
@@ -140,7 +152,7 @@ export class MessageChunker {
         } catch (err) {
             if (err instanceof BinaryStreamMaxSizeExceededError) {
                 errorLog(`[NODE-OPCUA-E11] ${message.schema.name}: ${err.message}`);
-                return StatusCodes.BadTcpMessageTooLarge;
+                return failed(StatusCodes.BadTcpMessageTooLarge);
             }
             throw err;
         }
@@ -150,10 +162,10 @@ export class MessageChunker {
 
         const { statusCode, chunkManager } = this.prepareChunk(msgType, params, messageLength);
         if (statusCode !== StatusCodes.Good) {
-            return statusCode;
+            return failed(statusCode);
         }
         if (!chunkManager) {
-            return StatusCodes.BadInternalError;
+            return failed(StatusCodes.BadInternalError);
         }
 
         let nbChunks = 0;
@@ -183,11 +195,56 @@ export class MessageChunker {
                 messageChunkCallback(null);
             });
 
+        return { statusCode: StatusCodes.Good, chunkManager, stream, messageLength };
+    }
+
+    public chunkSecureMessage(
+        msgType: string,
+        params: ChunkMessageParameters,
+        message: BaseUAObject,
+        messageChunkCallback: MessageCallbackFunc
+    ): StatusCode {
+        const { statusCode, chunkManager, stream, messageLength } = this.#_encode_and_prepare(
+            msgType,
+            params,
+            message,
+            messageChunkCallback
+        );
+        if (statusCode !== StatusCodes.Good || !chunkManager) {
+            return statusCode;
+        }
         // inject buffer to chunk manager.
         // note: the growable buffer is usually larger than the message, so the length must
         // come from the cursor - stream.buffer.length would ship uninitialised tail bytes
         chunkManager.write(stream.buffer, messageLength);
         chunkManager.end();
+        return StatusCodes.Good;
+    }
+
+    /**
+     * {@link chunkSecureMessage} for an asynchronously-signing chunk manager
+     * (the OPN signature produced by a remote HSM/KMS provider): chunks are
+     * delivered to the callback as each one's signing settles, in order, and
+     * the returned promise settles after the final `null` callback. A
+     * provider failure rejects.
+     */
+    public async chunkSecureMessageAsync(
+        msgType: string,
+        params: ChunkMessageParameters,
+        message: BaseUAObject,
+        messageChunkCallback: MessageCallbackFunc
+    ): Promise<StatusCode> {
+        const { statusCode, chunkManager, stream, messageLength } = this.#_encode_and_prepare(
+            msgType,
+            params,
+            message,
+            messageChunkCallback
+        );
+        if (statusCode !== StatusCodes.Good || !chunkManager) {
+            return statusCode;
+        }
+        chunkManager.write(stream.buffer, messageLength);
+        await chunkManager.endAsync();
         return StatusCodes.Good;
     }
 }
