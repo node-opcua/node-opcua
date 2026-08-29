@@ -1,19 +1,5 @@
 {
-    "extends": "../../tsconfig.common.json",
-    "compilerOptions": {
-        "rootDir": "..",
-        "outDir": "../dist-test",
-        "noEmit": true,
-        "composite": false,
-        "incremental": false,
-        "declaration": false,
-        "sourceMap": false,
-        "skipLibCheck": true,
-        "types": [
-            "node",
-            "mocha"
-        ]
-    },
+    "extends": "../../tsconfig.test.json",
     "include": [
         "../bin/**/*.ts",
         "./**/*.ts"
