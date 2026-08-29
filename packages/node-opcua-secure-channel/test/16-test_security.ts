@@ -20,15 +20,20 @@ import type { ErrorCallback } from "node-opcua-status-code";
 import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 import { FindServersRequest, FindServersResponse } from "node-opcua-types";
 import "should";
+import { type IKeyOperations, keyOperationsFromPrivateKey } from "node-opcua-crypto";
 import { type Message, type Response, ServerSecureChannelLayer, type ServerSecureChannelParent } from "../dist/source";
 import {
     ClientSecureChannelLayer,
     type ClientSecureChannelParent,
     getThumbprint,
-    invalidPrivateKey,
     MessageSecurityMode,
     SecurityPolicy
 } from "../source";
+
+// None/None cases carry no usable key: the channels must tolerate that
+const invalidTestPrivateKey = null as unknown as PrivateKey;
+const keyOperationsOf = (privateKey: PrivateKey): IKeyOperations =>
+    privateKey ? keyOperationsFromPrivateKey(privateKey) : (null as unknown as IKeyOperations);
 
 const doDebug = false;
 
@@ -116,8 +121,8 @@ describe("Testing secure client and server connection", function (this: Mocha.Co
                 return new EndpointDescription({});
             },
 
-            getPrivateKey: (): PrivateKey => {
-                return param.serverPrivateKey;
+            getKeyOperations: (): IKeyOperations => {
+                return keyOperationsOf(param.serverPrivateKey);
             }
         };
 
@@ -345,8 +350,8 @@ describe("Testing secure client and server connection", function (this: Mocha.Co
             securityMode: MessageSecurityMode.None,
             securityPolicy: SecurityPolicy.None,
             serverCertificate: undefined,
-            serverPrivateKey: invalidPrivateKey,
-            clientPrivateKey: invalidPrivateKey
+            serverPrivateKey: invalidTestPrivateKey,
+            clientPrivateKey: invalidTestPrivateKey
         });
     });
     it("RR-002 client & server channel  - with security ", async () => {

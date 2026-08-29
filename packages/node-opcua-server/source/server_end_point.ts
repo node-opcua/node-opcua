@@ -7,8 +7,13 @@ import net, { type Server, type Socket } from "node:net";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { type ICertificateChainProvider, type ICertificateStore, StaticCertificateChainProvider } from "node-opcua-common";
-import { type Certificate, combine_der, makeSHA1Thumbprint, type PrivateKey } from "node-opcua-crypto/web";
+import {
+    getKeyOperationsFromProvider,
+    type ICertificateChainProvider,
+    type ICertificateStore,
+    StaticCertificateChainProvider
+} from "node-opcua-common";
+import { type Certificate, combine_der, type IKeyOperations, makeSHA1Thumbprint, type PrivateKey } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
@@ -104,6 +109,10 @@ const emptyPrivateKey = null as any as PrivateKey;
 
 let OPCUAServerEndPointCounter = 0;
 
+/**
+ * @internal node-opcua plumbing: may change in a minor release. Endpoints
+ * are created and configured through OPCUAServer options.
+ */
 export interface OPCUAServerEndPointOptions {
     /**
      * the tcp port
@@ -114,14 +123,12 @@ export interface OPCUAServerEndPointOptions {
      */
     host?: string;
     /**
-     * the DER certificate chain
+     * The certificate chain and key of this endpoint, as a provider — the
+     * endpoint never holds raw private-key material. For an in-memory
+     * chain/key pair use a {@link StaticCertificateChainProvider}; the
+     * server passes its own resolved/opaque/disk provider.
      */
-    certificateChain: Certificate[];
-
-    /**
-     * privateKey
-     */
-    privateKey: PrivateKey;
+    certificateKeyPairProvider: ICertificateChainProvider;
 
     certificateManager: ICertificateStore;
 
@@ -387,9 +394,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     constructor(options: OPCUAServerEndPointOptions) {
         super();
 
-        assert(!Object.hasOwn(options, "certificate"), "expecting a certificateChain instead");
-        assert(Object.hasOwn(options, "certificateChain"), "expecting a certificateChain");
-        assert(Object.hasOwn(options, "privateKey"));
+        assert(!Object.hasOwn(options, "certificate"), "expecting a certificateKeyPairProvider instead");
+        assert(!Object.hasOwn(options, "privateKey"), "raw privateKey is gone: pass a certificateKeyPairProvider");
+        assert(Object.hasOwn(options, "certificateKeyPairProvider"), "expecting a certificateKeyPairProvider");
 
         this.certificateManager = options.certificateManager;
 
@@ -399,7 +406,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this.host = options.host;
         assert(typeof this.port === "number");
 
-        this.#certProvider = new StaticCertificateChainProvider(options.certificateChain, options.privateKey);
+        this.#certProvider = options.certificateKeyPairProvider;
 
         this._channels = {};
 
@@ -558,10 +565,11 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     /**
-     * the private key
+     * The endpoint's key as an opaque sign/decrypt object — the endpoint's
+     * ONLY key access: raw private-key material never enters the endpoint.
      */
-    public getPrivateKey(): PrivateKey {
-        return this.#certProvider.getPrivateKey();
+    public getKeyOperations(): IKeyOperations {
+        return getKeyOperationsFromProvider(this.#certProvider);
     }
 
     /**
