@@ -34,6 +34,7 @@ import { NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { BrowseDescription, EnumDefinition, StructureDefinition, StructureType } from "node-opcua-types";
 import { isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import XMLWriter from "xml-writer";
 import { makeDefinitionMap } from "../../source/loader/decode_xml_extension_object";
 import type { DefinitionMap2 } from "../../source/loader/make_xml_extension_object_parser";
 import type { XmlWriter } from "../../source/xml_writer";
@@ -54,8 +55,6 @@ import {
     constructNamespaceDependency,
     constructNamespacePriorityTable
 } from "./construct_namespace_dependency";
-
-const XMLWriter = require("xml-writer");
 
 const debugLog = make_debugLog("nodeset_to_xml");
 const warningLog = make_warningLog("nodeset_to_xml");

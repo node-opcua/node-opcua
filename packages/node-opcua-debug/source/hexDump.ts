@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-debug
  */
-const hexy = require("hexy");
+import * as hexy from "hexy";
 export function hexDump(buffer: Buffer | null, width = 32, maxSize = 1024): string {
     if (!buffer) {
         return "<>";

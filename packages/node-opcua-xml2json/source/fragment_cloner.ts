@@ -11,7 +11,8 @@ interface XmlWriter {
 
     text(str: string): this;
 }
-const XMLWriter = require("xml-writer");
+
+import XMLWriter from "xml-writer";
 
 export class InternalFragmentClonerReaderState implements IReaderState {
     private _xw: XmlWriter = new XMLWriter(true);

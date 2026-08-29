@@ -12,7 +12,7 @@ import { DataType, Variant } from "node-opcua-variant";
 
 const warningLog = make_warningLog("vendor_diagnostic_nodes");
 
-const humanize = require("humanize");
+import humanize from "humanize";
 
 interface UsageResult {
     memory: number;

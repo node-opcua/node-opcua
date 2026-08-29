@@ -1,4 +1,5 @@
-const Table = require("cli-table3");
+import type { Cell, Table as CliTable } from "cli-table3";
+import Table from "cli-table3";
 
 function toMarkdownTable(table: { head: string[]; rows: string[][] }): string {
     const t = [];
@@ -24,7 +25,9 @@ function extractContent(c: unknown): string {
 
 export class TableHelper {
     private readonly rows: string[][] = [];
-    private readonly table: typeof Table;
+    // the instance type, not `typeof Table` which is the constructor. The old
+    // `require()` produced `any`, so the mistake type-checked.
+    private readonly table: CliTable;
     private readonly head: string[];
     constructor(head: string[]) {
         this.rows = [];
@@ -35,7 +38,9 @@ export class TableHelper {
         this.head = head;
     }
     public push(row: unknown[]): void {
-        this.table.push(row);
+        // the public signature stays `unknown[]` so callers are unaffected; cli-table3
+        // types a row as Cell[], which is what this always was in practice.
+        this.table.push(row as Cell[]);
         const row2 = row.map(extractContent);
         this.rows.push(row2);
     }

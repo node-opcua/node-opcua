@@ -3,6 +3,7 @@
  */
 
 import chalk from "chalk";
+import DequeueCtor from "dequeue";
 import type {
     ContinuationData,
     IAddressSpace,
@@ -39,6 +40,9 @@ interface DequeueItem<T> {
     next: DequeueItem<T>;
     prev: DequeueItem<T>;
 }
+// The local interface is the type; the imported binding is only the constructor. They
+// need distinct names now: `const Dequeue = require(...)` declared a value that could
+// coexist with a same-named interface, but an import declares both a value and a type.
 interface Dequeue<T> {
     push(value: T): void;
     shift(): T | undefined;
@@ -46,7 +50,6 @@ interface Dequeue<T> {
     length: number;
     head: DequeueItem<T>;
 }
-const Dequeue = require("dequeue");
 
 /* interface Historian  */
 // {
@@ -130,7 +133,7 @@ export class VariableHistorian implements IVariableHistorian {
     private lastDatePicoSeconds: number;
 
     constructor(node: UAVariable, options: IVariableHistorianOptions) {
-        this._timeline = new Dequeue(); // is is ordered here ??????
+        this._timeline = new DequeueCtor(); // is is ordered here ??????
         this._maxOnlineValues = options.maxOnlineValues || 1000;
         this.lastDate = new Date(1600, 0, 1, 0, 0, 0);
         this.lastDatePicoSeconds = 0;
