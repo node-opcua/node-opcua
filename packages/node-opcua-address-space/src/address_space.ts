@@ -77,7 +77,7 @@ const errorLog = make_errorLog("address_space");
 const debugLog = make_debugLog("address_space");
 const warningLog = make_warningLog("address_space");
 
-const Dequeue = require("dequeue");
+import Dequeue from "dequeue";
 
 const regexNumberColumnString = /^([0-9]+):(.*)/;
 const enumerationTypeNodeId = coerceNodeId(DataTypeIds.Enumeration);

@@ -111,10 +111,12 @@ export { StatusCode, StatusCodes } from "node-opcua-status-code";
 export * from "node-opcua-utils";
 export { buildVariantArray, DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
-export const utils = require("node-opcua-utils");
+// `import * as` rather than require(): node-opcua-utils is compiled TypeScript and so
+// carries __esModule, which means __importStar returns the module object untouched. The
+// exported shape is therefore identical to what require() produced.
+import * as utils from "node-opcua-utils";
 
 export * from "node-opcua-aggregates";
-
 // ----------------------------------------------------------------------------------------------------------
 // client services
 // ----------------------------------------------------------------------------------------------------------
@@ -129,3 +131,4 @@ export { is_valid_endpointUrl, parseEndpointUrl } from "node-opcua-transport";
 // server management
 // ----------------------------------------------------------------------------------------------------------
 export * from "./server-stuff";
+export { utils };

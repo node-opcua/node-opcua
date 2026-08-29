@@ -100,7 +100,7 @@ const doDebug1 = false;
 // set checkTimeout to true to enable timeout trace checking
 const checkTimeout = !!process.env.NODEOPCUACHECKTIMEOUT || false;
 
-const backoff = require("backoff");
+import backoff from "backoff";
 
 interface Backoff extends EventEmitter {
     _cancelBackoff?: boolean;

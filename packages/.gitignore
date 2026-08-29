@@ -1,6 +1,10 @@
 */source/**/*.js
 */source/**/*.js.map
 */source/**/*.d.ts
+# ... except hand-written ambient declarations. The rule above exists to ignore build
+# output that lands in source/; vendor.d.ts is source, declaring third-party modules
+# that ship no types of their own.
+!*/source/vendor.d.ts
 dist*/*.d.ts
 *.js.map
 package-lock.json

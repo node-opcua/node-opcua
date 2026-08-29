@@ -2,12 +2,11 @@ import type { IAddressSpace, INamespace, UADataType } from "node-opcua-address-s
 import { assert } from "node-opcua-assert";
 import { type INodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { EnumDefinition, StructureDefinition } from "node-opcua-types";
+import XMLWriter from "xml-writer";
 import type { XmlWriter } from "../../source/xml_writer";
 import type { AddressSpacePrivate } from "../address_space_private";
 import type { NamespacePrivate } from "../namespace_private";
 import { constructNamespaceDependency } from "./construct_namespace_dependency";
-
-const XMLWriter = require("xml-writer");
 
 function dumpEnumeratedType(xw: XmlWriter, e: EnumDefinition, name: string): void {
     xw.startElement("opc:EnumeratedType");

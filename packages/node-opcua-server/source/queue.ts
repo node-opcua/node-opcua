@@ -1,4 +1,4 @@
-const Dequeue = require("dequeue");
+import Dequeue from "dequeue";
 export class Queue<T> {
     private _d = new Dequeue();
     size: number;
