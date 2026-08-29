@@ -285,6 +285,12 @@ jobs:
       # exercises `require("node-opcua")` and `import ... from "node-opcua"`.
       - run: pnpm run check:consumers
       - run: pnpm run pretest
+      # Test files run untranspiled (mocha + a TypeScript loader), so `tsc -b`
+      # never sees them and a type-invalid test only surfaces at runtime, deep
+      # into the 30-minute suite below. Gate them here instead, while the build
+      # is fresh. Packages that were already red are grandfathered in
+      # tools/test-types-baseline.json; the baseline only ever tightens.
+      - run: pnpm run check:testtypes
       # Leak detection stays ON everywhere, and MEM_LEAK_DETECTION_DISABLED is
       # deliberately not set on any job. The detector is not only a measurement: its
       # afterEach clears the timers and closes the handles a block left behind, and
