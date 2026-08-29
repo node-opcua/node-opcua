@@ -156,7 +156,7 @@ export function checkDebugFlag(scriptFullPath: string): boolean {
     let doDebug: boolean = debugFlags[filename];
     if (sTraceFlag && !Object.hasOwn(debugFlags, filename)) {
         doDebug = sTraceFlag.indexOf(filename) >= 0 || sTraceFlag.indexOf("ALL") >= 0;
-        setDebugFlag(filename, doDebug);
+        setDebugFlag(filename, doDebug); // check-debug-name: ok - already a basename
     }
     return doDebug;
 }

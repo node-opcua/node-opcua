@@ -1,0 +1,15 @@
+{
+    "name": "@sterfive/check-debug-name",
+    "version": "1.0.0",
+    "private": true,
+    "description": "logger factories must take a module name literal, not __filename",
+    "bin": {
+        "check-debug-name": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "fix": "node src/index.js --fix",
+        "test": "node test/test_rule.js"
+    }
+}
