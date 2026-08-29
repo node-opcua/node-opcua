@@ -12,7 +12,7 @@ import {
     publicEncrypt as publicEncrypt_native
 } from "node:crypto";
 import { assert } from "node-opcua-assert";
-import type { EncryptBufferFunc, SignBufferFunc } from "node-opcua-chunkmanager";
+import type { EncryptBufferFunc, SignBufferAsyncFunc, SignBufferFunc } from "node-opcua-chunkmanager";
 import {
     type AsymmetricDecryptParams,
     type AsymmetricSignParams,
@@ -846,8 +846,10 @@ export interface SecureMessageData {
     encryptBufferFunc: EncryptBufferFunc;
     plainBlockSize: number;
 
-    // for signing
-    signBufferFunc: SignBufferFunc;
+    // for signing: exactly one of the two — the async form when the key
+    // lives in a remote (HSM/KMS) provider without a synchronous fast path
+    signBufferFunc?: SignBufferFunc;
+    signBufferAsyncFunc?: SignBufferAsyncFunc;
     signatureLength: number;
 }
 export function getOptionsForSymmetricSignAndEncrypt(

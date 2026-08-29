@@ -129,7 +129,7 @@ export class MessageBuilderBase extends EventEmitter {
             readChunkFunc: readRawMessageHeader
         });
 
-        this.#_packetAssembler.on("chunk", (messageChunk) => this.#_feed_messageChunk(messageChunk));
+        this.#_packetAssembler.on("chunk", (messageChunk) => this.#_enqueue_messageChunk(messageChunk));
 
         this.#_packetAssembler.on("startChunk", (info, data) => {
             if (doPerfMonitoring) {
@@ -192,6 +192,21 @@ export class MessageBuilderBase extends EventEmitter {
         }
     }
 
+    /**
+     * The possibly-asynchronous seam over {@link _read_headers}: a subclass
+     * whose header processing may need to await something (an OPN chunk
+     * decrypted by a remote key-operations provider) overrides THIS method
+     * and returns a promise for that one case; every synchronous case keeps
+     * returning a plain boolean, and the surrounding chunk processing stays
+     * fully synchronous for it. While a returned promise is pending, later
+     * chunks queue in arrival order (see the chunk pump), so ordering is
+     * preserved.
+     * @internal node-opcua plumbing: may change in a minor release.
+     */
+    protected _read_headersEx(binaryStream: BinaryStream): boolean | Promise<boolean> {
+        return this._read_headers(binaryStream);
+    }
+
     protected _report_abandon(_channelId: number, _tokenId: number, sequenceHeader: SequenceHeader): false {
         // the server has not been able to send a complete message and has abandoned the request
         // the connection can probably continue
@@ -223,7 +238,7 @@ export class MessageBuilderBase extends EventEmitter {
      * @param chunk
      * @private
      */
-    #_append(chunk: Buffer): boolean {
+    #_append(chunk: Buffer): boolean | Promise<boolean> {
         if (this.#_hasReceivedError) {
             // the message builder is in error mode and further message chunks should be discarded.
             return false;
@@ -245,10 +260,18 @@ export class MessageBuilderBase extends EventEmitter {
 
         const binaryStream = new BinaryStream(chunk);
 
-        if (!this._read_headers(binaryStream)) {
-            return false; // error already reported
+        const headersOk = this._read_headersEx(binaryStream);
+        if (typeof headersOk === "boolean") {
+            if (!headersOk) {
+                return false; // error already reported
+            }
+            return this.#_append_after_headers(chunk, binaryStream);
         }
+        return headersOk.then((ok) => (ok ? this.#_append_after_headers(chunk, binaryStream) : false));
+    }
 
+    /** the second half of {@link #_append}, run after the (possibly awaited) header processing. */
+    #_append_after_headers(chunk: Buffer, binaryStream: BinaryStream): boolean {
         assert(binaryStream.length >= 12);
 
         // verify message chunk length
@@ -279,7 +302,55 @@ export class MessageBuilderBase extends EventEmitter {
         return true;
     }
 
-    #_feed_messageChunk(chunk: Buffer): boolean {
+    /**
+     * The chunk pump: chunks flow straight through while processing is
+     * synchronous (the overwhelmingly common case — zero behavioral change),
+     * and queue in arrival order while one chunk's processing is awaiting
+     * (an OPN decrypted by a remote key-operations provider).
+     */
+    #chunkFifo: Buffer[] = [];
+    #pumpBusy = false;
+
+    #_enqueue_messageChunk(chunk: Buffer): void {
+        if (this.#pumpBusy) {
+            this.#chunkFifo.push(chunk);
+            return;
+        }
+        const outcome = this.#_feed_messageChunk(chunk);
+        if (outcome instanceof Promise) {
+            this.#pumpBusy = true;
+            outcome.then(
+                () => this.#_drain_chunkFifo(),
+                (err: Error) => {
+                    this._report_error(StatusCodes2.BadTcpInternalError, `asynchronous chunk processing failed: ${err.message}`);
+                    this.#_drain_chunkFifo();
+                }
+            );
+        }
+    }
+
+    #_drain_chunkFifo(): void {
+        while (this.#chunkFifo.length > 0) {
+            const chunk = this.#chunkFifo.shift() as Buffer;
+            const outcome = this.#_feed_messageChunk(chunk);
+            if (outcome instanceof Promise) {
+                outcome.then(
+                    () => this.#_drain_chunkFifo(),
+                    (err: Error) => {
+                        this._report_error(
+                            StatusCodes2.BadTcpInternalError,
+                            `asynchronous chunk processing failed: ${err.message}`
+                        );
+                        this.#_drain_chunkFifo();
+                    }
+                );
+                return;
+            }
+        }
+        this.#pumpBusy = false;
+    }
+
+    #_feed_messageChunk(chunk: Buffer): boolean | Promise<boolean> {
         assert(chunk);
         const messageHeader = readMessageHeader(new BinaryStream(chunk));
         this.emit("chunk", chunk);
@@ -293,24 +364,11 @@ export class MessageBuilderBase extends EventEmitter {
                 this._report_error(errorCode, message || "Error message not specified");
                 return true;
             } else {
-                this.#_append(chunk);
-                // last message
-                if (this.#_hasReceivedError) {
-                    return false;
+                const appended = this.#_append(chunk);
+                if (appended instanceof Promise) {
+                    return appended.then(() => this.#_finalize_message());
                 }
-
-                const fullMessageBody: Buffer = this.#blocks.length === 1 ? this.#blocks[0] : Buffer.concat(this.#blocks);
-
-                if (doPerfMonitoring) {
-                    // record tick 1: when a complete message has been received ( all chunks assembled)
-                    this._tick1 = get_clock_tick();
-                }
-                this.emit("full_message_body", fullMessageBody);
-
-                const messageOk = this._decodeMessageBody(fullMessageBody);
-                // be ready for next block
-                this.#_init_new();
-                return messageOk;
+                return this.#_finalize_message();
             }
         } else if (messageHeader.isFinal === "A") {
             try {
@@ -339,5 +397,25 @@ export class MessageBuilderBase extends EventEmitter {
             return this.#_append(chunk);
         }
         return false;
+    }
+
+    /** last-chunk processing: assemble, emit, decode, reset — extracted so it can run after an awaited append. */
+    #_finalize_message(): boolean {
+        if (this.#_hasReceivedError) {
+            return false;
+        }
+
+        const fullMessageBody: Buffer = this.#blocks.length === 1 ? this.#blocks[0] : Buffer.concat(this.#blocks);
+
+        if (doPerfMonitoring) {
+            // record tick 1: when a complete message has been received ( all chunks assembled)
+            this._tick1 = get_clock_tick();
+        }
+        this.emit("full_message_body", fullMessageBody);
+
+        const messageOk = this._decodeMessageBody(fullMessageBody);
+        // be ready for next block
+        this.#_init_new();
+        return messageOk;
     }
 }

@@ -16,6 +16,7 @@ import {
     extractPublicKeyFromCertificate,
     hexDump,
     type IKeyOperations,
+    type KeyMetadata,
     makeSHA1Thumbprint,
     type PublicKey,
     type PublicKeyLength,
@@ -535,6 +536,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     /** The key-operations object this channel is bound to (same pinning rule as `#boundCertificateChain`). */
     #boundKeyOperations: IKeyOperations | null = null;
+    /** resolved before the OPN response when the provider is asynchronous-only (HSM/KMS). */
+    #cachedKeyMetadata: KeyMetadata | null = null;
 
     /**
      * The channel's key as an opaque sign/decrypt object, pinned on first
@@ -664,6 +667,23 @@ export class ServerSecureChannelLayer extends EventEmitter {
             return;
         }
 
+        // an asynchronous-only key-operations provider (HSM/KMS) must have
+        // its key facts resolved before the OPN response is built — the
+        // chunker needs the signature length up front
+        if (msgType === "OPN" && this.securityMode !== MessageSecurityMode.None && !this.#cachedKeyMetadata) {
+            const keyOperations = this.#parent ? this.getKeyOperations() : null;
+            if (keyOperations && typeof keyOperations.getKeyMetadataSync !== "function") {
+                keyOperations.getKeyMetadata().then(
+                    (keyMetadata) => {
+                        this.#cachedKeyMetadata = keyMetadata;
+                        this.send_response(msgType, response, message, callback);
+                    },
+                    (err: Error) => callback?.(err)
+                );
+                return;
+            }
+        }
+
         // c8 ignore next
         if (doDebug) {
             assert(request.schema);
@@ -730,7 +750,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         this.#messageChunker.securityMode = this.securityMode;
 
-        const statusCode = this.#messageChunker.chunkSecureMessage(msgType, options, response as BaseUAObject, (chunk) => {
+        const chunkCallback = (chunk: Buffer | null) => {
             if (chunk) {
                 this.#_send_chunk(chunk);
             } else {
@@ -745,32 +765,61 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 callback?.();
                 this.emit("transaction_done");
             }
-        });
-        if (statusCode.isNotGood()) {
-            if (response instanceof ServiceFault) {
-                // We are already trying to send a ServiceFault and
-                // it failed again (e.g. security layer error or
-                // message size exceeded). Do NOT recurse — that would
-                // cause infinite recursion and a stack overflow.
-                errorLog(
-                    "send_response: failed to send ServiceFault, " + "aborting to prevent infinite recursion. " + "statusCode =",
-                    statusCode.toString()
-                );
-                callback?.(new Error(`Failed to send ServiceFault: ${statusCode.toString()}`));
-                return;
-            }
-            // The original response could not be chunked.
-            // Try sending a ServiceFault instead.
-            this.send_response(
-                msgType,
-                new ServiceFault({
-                    responseHeader: { serviceResult: statusCode }
-                }),
-                message,
-                callback
+        };
+
+        if (options.securityOptions.signBufferAsyncFunc) {
+            // the OPN signature is produced by a remote (HSM/KMS) provider:
+            // chunks go out as each one's signing settles, in order
+            this.#messageChunker.chunkSecureMessageAsync(msgType, options, response as BaseUAObject, chunkCallback).then(
+                (statusCode) => {
+                    if (statusCode.isNotGood()) {
+                        this.#_handle_send_response_failure(msgType, response, message, statusCode, callback);
+                    }
+                },
+                (err: Error) => {
+                    errorLog("asynchronous signing of the outgoing response failed: ", err.message);
+                    this.#_handle_send_response_failure(msgType, response, message, StatusCodes.BadSecurityChecksFailed, callback);
+                }
             );
             return;
         }
+
+        const statusCode = this.#messageChunker.chunkSecureMessage(msgType, options, response as BaseUAObject, chunkCallback);
+        if (statusCode.isNotGood()) {
+            this.#_handle_send_response_failure(msgType, response, message, statusCode, callback);
+        }
+    }
+
+    /** ServiceFault fallback when a response could not be chunked/signed (never recurses on a ServiceFault). */
+    #_handle_send_response_failure(
+        msgType: string,
+        response: Response,
+        message: Message,
+        statusCode: StatusCode,
+        callback?: ErrorCallback
+    ): void {
+        if (response instanceof ServiceFault) {
+            // We are already trying to send a ServiceFault and
+            // it failed again (e.g. security layer error or
+            // message size exceeded). Do NOT recurse — that would
+            // cause infinite recursion and a stack overflow.
+            errorLog(
+                "send_response: failed to send ServiceFault, " + "aborting to prevent infinite recursion. " + "statusCode =",
+                statusCode.toString()
+            );
+            callback?.(new Error(`Failed to send ServiceFault: ${statusCode.toString()}`));
+            return;
+        }
+        // The original response could not be chunked.
+        // Try sending a ServiceFault instead.
+        this.send_response(
+            msgType,
+            new ServiceFault({
+                responseHeader: { serviceResult: statusCode }
+            }),
+            message,
+            callback
+        );
     }
 
     public getRemoteIPAddress(): string {
@@ -1219,16 +1268,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
         if (!keyOperations) {
             throw new Error("invalid or missing key operations : necessary to sign");
         }
-        const signSync = keyOperations.signSync;
-        const getKeyMetadataSync = keyOperations.getKeyMetadataSync;
-        if (typeof signSync !== "function" || typeof getKeyMetadataSync !== "function") {
-            // the async chunk pipeline is the remaining Phase-2 work; until
-            // then a secure channel needs the local-key synchronous fast path
-            throw new Error(
-                "the server's key operations provider is asynchronous-only (opaque/HSM), which is not yet supported" +
-                    " for secure endpoints: use MessageSecurityMode.None or a local private key"
-            );
-        }
         const cryptoFactory = getCryptoFactory(this.#messageBuilder.securityPolicy);
         /* c8 ignore next */
         if (!cryptoFactory) {
@@ -1245,12 +1284,26 @@ export class ServerSecureChannelLayer extends EventEmitter {
             return null;
         }
         const keyLength = rsaLengthPublicKey(receiverPublicKey);
+
+        const signSync = keyOperations.signSync;
+        const getKeyMetadataSync = keyOperations.getKeyMetadataSync;
+        const hasSyncFastPath = typeof signSync === "function" && typeof getKeyMetadataSync === "function";
+
         // for RSA the modulus length IS the signature length, under both paddings
-        const signatureLength = getKeyMetadataSync.call(keyOperations).modulusLength;
+        const keyMetadata = hasSyncFastPath ? getKeyMetadataSync.call(keyOperations) : this.#cachedKeyMetadata;
+        /* c8 ignore next */
+        if (!keyMetadata) {
+            // send_response resolves the metadata of an asynchronous-only provider before building the OPN response
+            throw new Error("Internal Error: key metadata not resolved yet for the asynchronous key-operations provider");
+        }
+        const signatureLength = keyMetadata.modulusLength;
+
         const options: SecureMessageData = {
-            // for signing
+            // for signing — asynchronously, when the key is held by a remote (HSM/KMS) provider
             signatureLength,
-            signBufferFunc: (chunk) => signSync.call(keyOperations, chunk, signParams),
+            ...(hasSyncFastPath
+                ? { signBufferFunc: (chunk: Buffer) => signSync.call(keyOperations, chunk, signParams) }
+                : { signBufferAsyncFunc: (chunk: Buffer) => keyOperations.sign(chunk, signParams) }),
             // for encrypting
             cipherBlockSize: keyLength,
             plainBlockSize: keyLength - cryptoFactory.blockPaddingSize,
