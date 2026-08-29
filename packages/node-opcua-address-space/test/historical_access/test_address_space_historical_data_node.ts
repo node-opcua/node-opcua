@@ -24,7 +24,9 @@ import { date_add } from "../../testHelpers";
 const sleep = promisify(setTimeout);
 
 interface WithHAConfiguration {
-    "hA Configuration": UAHistoricalDataConfiguration;
+    // startOfOnlineArchive is optional on UAHistoricalDataConfiguration but is
+    // always present once installHistoricalDataNode has run
+    "hA Configuration": UAHistoricalDataConfiguration & Required<Pick<UAHistoricalDataConfiguration, "startOfOnlineArchive">>;
 }
 
 describe("Testing Historical Data Node", () => {

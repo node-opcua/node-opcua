@@ -29,6 +29,8 @@ import {
     SubscriptionState
 } from "../source";
 
+import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine";
+
 import { add_mock_monitored_item } from "./helper";
 
 import { getFakePublishEngine } from "./helper_fake_publish_engine";
@@ -463,8 +465,8 @@ describe("Subscriptions", function (this: Mocha.Suite) {
 
         let publishEngine: ServerSidePublishEngine;
 
-        function simulate_client_adding_publish_request(publishEngine?: ServerSidePublishEngine, callback?: () => void) {
-            if (!publishEngine) throw new Error("Internal Error");
+        function simulate_client_adding_publish_request(publishEngine?: IServerSidePublishEngine, callback?: () => void) {
+            if (!(publishEngine instanceof ServerSidePublishEngine)) throw new Error("Internal Error");
             callback = callback || (() => {});
 
             const publishRequest = new PublishRequest({});

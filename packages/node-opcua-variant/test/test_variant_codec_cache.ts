@@ -21,6 +21,9 @@ describe("Variant codec cache invalidation", () => {
     const stock = findBuiltInType("Double");
     const stockEncode = stock.encode;
     const stockDecode = stock.decode;
+    if (!stockDecode) {
+        throw new Error("the built-in Double type is expected to expose a decode function");
+    }
 
     function restoreDouble() {
         registerType({

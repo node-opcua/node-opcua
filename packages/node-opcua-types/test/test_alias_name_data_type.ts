@@ -138,7 +138,7 @@ describe("OPC 10000-17: AliasName DataTypes", () => {
                 serverUris: [null],
                 aliasNameCategoryId: resolveNodeId("i=23488")
             });
-            const json = value.toJSON();
+            const json = value.toJSON() as Record<string, unknown>;
             Object.keys(json).should.eql(["aliasName", "referencedNodes", "serverUris", "aliasNameCategoryId"]);
         });
 

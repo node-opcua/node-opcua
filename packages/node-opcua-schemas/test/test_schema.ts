@@ -4,7 +4,7 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { hexDump } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
-import { DataTypeFactory, parameters } from "node-opcua-factory";
+import { DataTypeFactory, type IBaseUAObject, parameters } from "node-opcua-factory";
 import { encode_decode_round_trip_test, type IExtensionObject } from "node-opcua-packet-analyzer/test_helpers";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
@@ -16,6 +16,25 @@ import { MockProvider } from "./mock_id_provider";
 const doDebug = false;
 
 const idProvider = new MockProvider();
+
+// The constructors used in these tests are built at runtime from the .xsd fixtures:
+// describe, for the type checker only, the fields that the tests access.
+interface WorkOrderLike extends IBaseUAObject {
+    assetID: string;
+}
+interface StructureWithOptionalFieldsLike extends IBaseUAObject {
+    optionalInt32?: number;
+    optionalStringArray?: string[];
+    toJSON(): Record<string, unknown>;
+}
+interface SystemStateDescriptionLike extends IBaseUAObject {
+    state: number;
+    toJSON(): Record<string, unknown>;
+}
+interface ConfigurationLike extends IBaseUAObject {
+    internalId: { description: LocalizedText };
+}
+
 // ts-lint:disable:no-string-literal
 describe("BSHA - Binary Schemas Helper 1", () => {
     let dataTypeFactory: DataTypeFactory;
@@ -56,7 +75,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
                     timestamp: new Date()
                 }
             ]
-        });
+        }) as WorkOrderLike;
 
         workOrderType.assetID.should.eql("AssetId1234");
         if (doDebug) {
@@ -76,7 +95,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
         const structureWithOptionalFields1 = new StructureWithOptionalFields({
             mandatoryInt32: 42,
             mandatoryStringArray: ["a"]
-        });
+        }) as StructureWithOptionalFieldsLike;
 
         should(structureWithOptionalFields1.optionalInt32).eql(undefined);
         should(structureWithOptionalFields1.optionalStringArray).eql(undefined);
@@ -113,7 +132,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
             mandatoryStringArray: ["h"],
             optionalInt32: 43,
             optionalStringArray: ["a", "b"]
-        });
+        }) as StructureWithOptionalFieldsLike;
 
         encode_decode_round_trip_test(structureWithOptionalFields2, (buffer: Buffer) => {
             if (doDebug) {
@@ -190,7 +209,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
             mandatoryStringArray: [null],
             optionalInt32: 43,
             optionalStringArray: [null, null]
-        });
+        }) as StructureWithOptionalFieldsLike;
 
         structureWithOptionalFields2.toJSON().should.eql({
             mandatoryInt32: 42,
@@ -206,7 +225,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
             value: [null, structureWithOptionalFields2]
         });
 
-        v.toJSON().should.eql({
+        (v.toJSON() as Record<string, unknown>).should.eql({
             dataType: "ExtensionObject",
             arrayType: "Array",
             value: [
@@ -264,7 +283,7 @@ describe("BSHB - Binary Schemas Helper 2", () => {
         const systemStateDescription = new SystemStateDescriptionDataType({
             state: SystemStateEnum2.ENG_3,
             stateDescription: "Hello"
-        });
+        }) as SystemStateDescriptionLike;
         systemStateDescription.state.should.eql(SystemStateEnum2.ENG_3);
 
         encode_decode_round_trip_test(systemStateDescription, (buffer: Buffer) => {
@@ -327,6 +346,7 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
             endTime: Date;
             acquisitionDuration?: number;
             processingDuration?: number;
+            toJSON(): Record<string, unknown>;
         }
 
         const ProcessingTimesDataType = getOrCreateConstructor("ProcessingTimesDataType", dataTypeFactory);
@@ -336,7 +356,8 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
             endTime: new Date(refDate - 110),
             startTime: new Date(refDate - 150)
         };
-        const processingTimes: ProcessingTimes = new ProcessingTimesDataType(pojo);
+        // the constructor is produced at runtime from the schema: only IBaseUAObject is known statically
+        const processingTimes = new ProcessingTimesDataType(pojo) as unknown as ProcessingTimes;
 
         encode_decode_round_trip_test(processingTimes as unknown as IExtensionObject, (buffer: Buffer) => {
             if (doDebug) {
@@ -392,7 +413,7 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
             lastModified: new Date(Date.now() - 1000),
 
             hasTransferableDataOnFile: undefined
-        });
+        }) as ConfigurationLike;
         configuration.internalId.description.should.eql(coerceLocalizedText("Some description"));
 
         const reloaded = encode_decode_round_trip_test(configuration, (buffer: Buffer) => {

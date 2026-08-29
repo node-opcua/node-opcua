@@ -3,6 +3,7 @@ import { PermissionFlag } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
+import { PermissionType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type IServerBase, makeRoles, type UAMethod, type UAVariable, WellKnownRoles } from "..";
@@ -35,7 +36,7 @@ describe("SessionContext - the Anonymous Role is the baseline every Session stan
             userName: "ivan",
             server: serverFor(makeRoles([WellKnownRoles.Observer]))
         });
-        context.checkPermission(roleSet, PermissionFlag.Browse).should.eql(true);
+        context.checkPermission(roleSet, PermissionType.Browse).should.eql(true);
         context.isBrowseAccessRestricted(roleSet).should.eql(false);
     });
 
@@ -48,7 +49,7 @@ describe("SessionContext - the Anonymous Role is the baseline every Session stan
             userName: "kim",
             server: serverFor(makeRoles([WellKnownRoles.Observer]))
         });
-        context.checkPermission(changePassword, PermissionFlag.Call).should.eql(true);
+        context.checkPermission(changePassword, PermissionType.Call).should.eql(true);
     });
 
     it("SCAB-3 should give an authenticated user at least what an anonymous one gets", () => {
@@ -82,7 +83,7 @@ describe("SessionContext - the Anonymous Role is the baseline every Session stan
         // add nothing there, otherwise hardening would leak
         const namespace = addressSpace.getOwnNamespace();
         const secret = namespace.addVariable({ browseName: "Secret", dataType: DataType.Double });
-        secret.setRolePermissions([{ roleId: WellKnownRoles.SecurityAdmin, permissions: PermissionFlag.Read }]);
+        secret.setRolePermissions([{ roleId: WellKnownRoles.SecurityAdmin, permissions: PermissionType.Read }]);
 
         const context = makeMockSessionContext({
             userName: "ivan",

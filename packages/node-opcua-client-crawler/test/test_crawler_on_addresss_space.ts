@@ -87,7 +87,7 @@ async function makeAddressSpace() {
     }
     return { addressSpace, groupNodeId, massVariablesNodeId, strangeObjectNodeId };
 }
-describe("NodeCrawlerBase", function (this: Mocha.Context) {
+describe("NodeCrawlerBase", function (this: Mocha.Suite) {
     this.timeout(200000);
 
     let $: { addressSpace: AddressSpace; groupNodeId: NodeId; massVariablesNodeId: NodeId; strangeObjectNodeId: NodeId };

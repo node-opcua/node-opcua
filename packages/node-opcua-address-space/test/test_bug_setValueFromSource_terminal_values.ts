@@ -1,3 +1,4 @@
+import type { EventEmitter } from "node:events";
 import path from "node:path";
 import { DiagnosticInfo, LocalizedText, QualifiedName } from "node-opcua-data-model";
 import { coerceNodeId, NodeId } from "node-opcua-nodeid";
@@ -192,7 +193,9 @@ describe("Bug - setValueFromSource should correctly update terminal value types 
         const newExtObj = constructNewExtObj({ fieldNodeId: updatedNodeId });
         uaVar.setValueFromSource(new Variant({ dataType: DataType.ExtensionObject, value: newExtObj }));
 
-        fieldNodeIdVar.removeAllListeners("value_changed");
+        // BaseNode's typed emitter declares removeAllListeners() without an event
+        // argument; the runtime is a plain node EventEmitter which accepts one
+        (fieldNodeIdVar as unknown as EventEmitter).removeAllListeners("value_changed");
         notified.should.eql(true, "value_changed should have been emitted on fieldNodeId child variable");
     });
 
@@ -210,7 +213,7 @@ describe("Bug - setValueFromSource should correctly update terminal value types 
         const newExtObj = constructNewExtObj({ fieldQualifiedName: updatedQN });
         uaVar.setValueFromSource(new Variant({ dataType: DataType.ExtensionObject, value: newExtObj }));
 
-        fieldQNVar.removeAllListeners("value_changed");
+        (fieldQNVar as unknown as EventEmitter).removeAllListeners("value_changed");
         notified.should.eql(true, "value_changed should have been emitted on fieldQualifiedName child variable");
     });
 
@@ -227,7 +230,7 @@ describe("Bug - setValueFromSource should correctly update terminal value types 
         const newExtObj = constructNewExtObj({ fieldInt32: 42 });
         uaVar.setValueFromSource(new Variant({ dataType: DataType.ExtensionObject, value: newExtObj }));
 
-        fieldInt32Var.removeAllListeners("value_changed");
+        (fieldInt32Var as unknown as EventEmitter).removeAllListeners("value_changed");
         notified.should.eql(true, "value_changed should have been emitted on fieldInt32 child variable (control)");
     });
 
@@ -245,7 +248,7 @@ describe("Bug - setValueFromSource should correctly update terminal value types 
         const newExtObj = constructNewExtObj({ fieldLocalizedText: updatedLT });
         uaVar.setValueFromSource(new Variant({ dataType: DataType.ExtensionObject, value: newExtObj }));
 
-        fieldLTVar.removeAllListeners("value_changed");
+        (fieldLTVar as unknown as EventEmitter).removeAllListeners("value_changed");
         notified.should.eql(true, "value_changed should have been emitted on fieldLocalizedText child variable");
     });
 });

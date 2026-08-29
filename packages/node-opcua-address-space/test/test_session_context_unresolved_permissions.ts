@@ -1,6 +1,7 @@
 import { allPermissions, PermissionFlag } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { NodeId } from "node-opcua-nodeid";
+import { PermissionType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import {
@@ -74,7 +75,7 @@ describe("SessionContext - unresolved permissions", () => {
     it("SCUP-5 should let a declared policy win over the deny default", () => {
         // "deny" only decides the *unresolved* case; a node that declares permissions is
         // resolved, and its declaration applies unchanged
-        variable.setRolePermissions([{ roleId: WellKnownRoles.Operator, permissions: PermissionFlag.Read }]);
+        variable.setRolePermissions([{ roleId: WellKnownRoles.Operator, permissions: PermissionType.Read }]);
         const roles = makeRoles([WellKnownRoles.Operator]);
 
         makeMockSessionContext({ userName: "u", server: makeServer("deny", roles) })

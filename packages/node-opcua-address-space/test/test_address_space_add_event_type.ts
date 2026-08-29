@@ -4,7 +4,7 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { checkSelectClause, constructEventFilter } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
-import type { AddressSpace, Namespace } from "..";
+import type { AddressSpace, InstantiateConditionOptions, Namespace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 
 describe("AddressSpace : add event type ", () => {
@@ -166,12 +166,15 @@ describe("AddressSpace : add event type ", () => {
         await bench
             .add("test", () => {
                 try {
-                    const condition = namespace.instantiateCondition(eventType, {
+                    // receiveTime is an extra event-field value, not a declared option:
+                    // widen the literal so the excess-property check accepts it
+                    const options = {
                         browseName: `MyCondition${counter}`,
                         conditionSource: undefined,
                         receiveTime: { dataType: "DateTime", value: new Date(1789, 6, 14) },
                         sourceName: { dataType: "String", value: "HelloWorld" }
-                    });
+                    } as InstantiateConditionOptions;
+                    const condition = namespace.instantiateCondition(eventType, options);
                     condition.browseName.toString().should.eql(`1:MyCondition${counter}`);
                 } catch (err) {
                     console.log((err as Error).message);

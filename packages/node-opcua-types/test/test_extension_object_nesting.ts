@@ -90,7 +90,7 @@ describe("ExtensionObject nesting - body length prefix", () => {
         const reloaded = new UABinaryFileDataType();
         reloaded.decode(stream);
 
-        reloaded.toJSON().should.eql(nested.toJSON());
+        (reloaded.toJSON() as Record<string, unknown>).should.eql(nested.toJSON());
     });
 
     it("should produce a body that decodes standalone from its declared length", () => {
@@ -108,7 +108,7 @@ describe("ExtensionObject nesting - body length prefix", () => {
         const reloaded = decodeExtensionObject(new BinaryStream(wire));
 
         should.exist(reloaded);
-        (reloaded as PubSubConfigurationDataType).toJSON().should.eql(inner.toJSON());
+        ((reloaded as PubSubConfigurationDataType).toJSON() as Record<string, unknown>).should.eql(inner.toJSON());
     });
 
     it("should encode identically whether or not the size was computed first", () => {

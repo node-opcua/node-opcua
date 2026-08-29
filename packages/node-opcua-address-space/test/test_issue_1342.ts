@@ -51,7 +51,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1
         const dataValue3 = uaVariable.readValue();
         console.log(dataValue1.toString(), dataValue2.toString());
 
-        should(dataValue1.sourceTimestamp?.getTime()).be.below(dataValue2.sourceTimestamp?.getTime());
-        should(dataValue2.sourceTimestamp?.getTime()).be.below(dataValue3.sourceTimestamp?.getTime());
+        should(dataValue1.sourceTimestamp?.getTime()).be.below(dataValue2.sourceTimestamp!.getTime());
+        should(dataValue2.sourceTimestamp?.getTime()).be.below(dataValue3.sourceTimestamp!.getTime());
     });
 });

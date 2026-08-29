@@ -69,7 +69,7 @@ describe("GUID", () => {
                 console.log(message);
             })
             .on("complete", function (this: Benchmarker) {
-                console.log(` Fastest is ${this.fastest.name}`);
+                console.log(` Fastest is ${this.fastest?.name}`);
                 console.log(" Speed Up : x", this.speedUp);
             })
             .run({ max_time: 0.5 });
@@ -96,7 +96,7 @@ describe("Map vs Object", () => {
                 console.log(message);
             })
             .on("complete", function (this: Benchmarker) {
-                console.log(` Fastest is ${this.fastest.name}`);
+                console.log(` Fastest is ${this.fastest?.name}`);
                 console.log(" Speed Up : x", this.speedUp);
             })
             .run({ max_time: 0.25, min_count: 1000 });
@@ -127,7 +127,7 @@ describe("Map vs Object", () => {
                 console.log(message);
             })
             .on("complete", function (this: Benchmarker) {
-                console.log(` Fastest is ${this.fastest.name}`);
+                console.log(` Fastest is ${this.fastest?.name}`);
                 console.log(" Speed Up : x", this.speedUp);
             })
             .run({ max_time: 0.25, min_count: 1000 });
@@ -157,7 +157,7 @@ describe("Map vs Object", () => {
                 console.log(message);
             })
             .on("complete", function (this: Benchmarker) {
-                console.log(` Fastest is ${this.fastest.name}`);
+                console.log(` Fastest is ${this.fastest?.name}`);
                 console.log(" Speed Up : x", this.speedUp);
             })
             .run({ max_time: 0.25, min_count: 1000 });

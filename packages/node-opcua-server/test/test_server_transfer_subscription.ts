@@ -143,7 +143,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: ITestContext) {
         session1 = engine.createSession({ sessionTimeout: 10000, server });
         const publishSpy = sinon.spy();
 
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(test, async (test) => {
             if (!session1) return;
 
             const subscription = session1.createSubscription({
@@ -201,7 +201,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: ITestContext) {
         session1 = engine.createSession({ sessionTimeout: 10000, server });
         const publishSpy = sinon.spy();
 
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(test, async (test) => {
             if (!engine) return;
             if (!session1) return;
             const subscription = session1.createSubscription({
@@ -315,7 +315,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: ITestContext) {
         session1 = engine.createSession({ sessionTimeout: 10000, server });
         session2 = engine.createSession({ sessionTimeout: 10000, server });
 
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(test, async (test) => {
             if (!session1 || !engine) throw new Error("internal error");
 
             // A/ Create a subscription
@@ -419,7 +419,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: ITestContext) {
     });
 
     it("ZDZ-ST06 - CTT 007 republish5105002 - republish after the subscriptions had been transferred to a different session", async () => {
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(test, async (test) => {
             if (!engine) throw new Error("internal error");
 
             // create session1
@@ -521,7 +521,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: ITestContext) {
             G/ call republish(). 
          */
 
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(test, async (test) => {
             if (!engine) throw new Error("internal error");
 
             session1 = engine.createSession({ sessionTimeout: 100000, server });
@@ -644,7 +644,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: ITestContext) {
     });
 
     it("ZDZ-ST08 - Err-004.js (transferSubscription5106Err009)  delete multiple sessions where some have been transferred to other sessions", async () => {
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(test, async (test) => {
             if (!engine) throw new Error("internal error");
             // create session1
             session1 = engine.createSession({ sessionTimeout: 100000, server });
@@ -738,7 +738,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: ITestContext) {
                 Publish #3 yields the initial data change.
                 Note: We assume that the server purges the prior StatusChange notification message that was in the queue.
          */
-        await with_fake_timer.call(test, async () => {
+        await with_fake_timer.call(test, async (test) => {
             // Create 2 sessions.
             if (!engine) throw new Error("internal error");
 

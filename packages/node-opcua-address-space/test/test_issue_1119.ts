@@ -111,8 +111,8 @@ describe("historization and status code Bad #1119", function () {
                 continuationPoint: null
             }
         );
-        console.log(adapt(r).toString());
-        return adapt(r).map((x) => x.toString());
+        console.log(adapt(r)!.toString());
+        return adapt(r)!.map((x) => x.toString());
     }
     it("should create a historical node with a status code  - form 1", async () => {
         let setPoint = 50;

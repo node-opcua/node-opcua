@@ -280,7 +280,7 @@ describe("makeRelativePath", () => {
     });
 
     it("MRP-17 should construct simple RelativePath for '<Organizes>Server.ServerStatus.CurrentTime'", () => {
-        const relativePath = makeRelativePath("<Organizes>Server.ServerStatus.CurrentTime", null);
+        const relativePath = makeRelativePath("<Organizes>Server.ServerStatus.CurrentTime", undefined);
 
         relativePath.elements.length.should.eql(3);
 
@@ -311,7 +311,7 @@ describe("makeRelativePath", () => {
     });
 
     it("MRP-18 should construct simple RelativePath for '<Organizes>Server2.ServerStatus.1.2'", () => {
-        const relativePath = makeRelativePath("<Organizes>Server2.ServerStatus.100.200", null);
+        const relativePath = makeRelativePath("<Organizes>Server2.ServerStatus.100.200", undefined);
 
         relativePath.elements.length.should.eql(4);
 
@@ -342,7 +342,7 @@ describe("makeRelativePath", () => {
     });
     it("MRP-19 should construct simple RelativePath for '/3:TOTO/1:Channel#1/2:TOTO'", () => {
         // note : # is a reserved char and must be prepended with &
-        const relativePath = makeRelativePath("/3:Tag1/1:Channel&#1/2:Tag2", null);
+        const relativePath = makeRelativePath("/3:Tag1/1:Channel&#1/2:Tag2", undefined);
 
         relativePath.elements[0].should.eql(
             new RelativePathElement({
@@ -371,7 +371,7 @@ describe("makeRelativePath", () => {
     });
     it("MRP-20 (issue#344) should construct simple RelativePath for '/0:Objects/2:test-path'", () => {
         // note : # is a reserved char and must be prepended with &
-        const relativePath = makeRelativePath("/0:Objects/2:test-path", null);
+        const relativePath = makeRelativePath("/0:Objects/2:test-path", undefined);
 
         relativePath.elements[0].should.eql(
             new RelativePathElement({
@@ -391,7 +391,7 @@ describe("makeRelativePath", () => {
         );
     });
     it("MRP-21 should construct simple RelativePath for SessionDiagnostics.TotalRequestsCount.TotalCount", () => {
-        const relativePath = makeRelativePath(".SessionDiagnostics.TotalRequestsCount.TotalCount", null);
+        const relativePath = makeRelativePath(".SessionDiagnostics.TotalRequestsCount.TotalCount", undefined);
 
         relativePath.elements[0].should.eql(
             new RelativePathElement({
@@ -419,7 +419,7 @@ describe("makeRelativePath", () => {
         );
     });
     it("MRP-22 should construct simple RelativePath for /1:Browse& Name.2:Hello World", () => {
-        const relativePath = makeRelativePath("/1:Browse Name.2:Hello World", null);
+        const relativePath = makeRelativePath("/1:Browse Name.2:Hello World", undefined);
         relativePath.elements[0].should.eql(
             new RelativePathElement({
                 referenceTypeId: hierarchicalReferenceTypeNodeId,
@@ -438,7 +438,7 @@ describe("makeRelativePath", () => {
         );
     });
     it("MRP-23 should construct simple RelativePath for /1:Browse& Name.2:Hello&.World", () => {
-        const relativePath = makeRelativePath("/1:Browse&.Name.2:Hello&.World", null);
+        const relativePath = makeRelativePath("/1:Browse&.Name.2:Hello&.World", undefined);
         relativePath.elements[0].should.eql(
             new RelativePathElement({
                 referenceTypeId: hierarchicalReferenceTypeNodeId,
@@ -457,7 +457,7 @@ describe("makeRelativePath", () => {
         );
     });
     it("MRP-24 should construct simple RelativePath for /1:Browse& Name.2:Hello&.World", () => {
-        const relativePath = makeRelativePath("/1:Browse&:Name.2:Hello&:&/World", null);
+        const relativePath = makeRelativePath("/1:Browse&:Name.2:Hello&:&/World", undefined);
         relativePath.elements[0].should.eql(
             new RelativePathElement({
                 referenceTypeId: hierarchicalReferenceTypeNodeId,
@@ -480,7 +480,7 @@ describe("makeRelativePath", () => {
     const reservedChars = "/.<>:#!&";
     reservedChars.split("").forEach((char, index) => {
         it(`MRP-${index + 100} should construct simple RelativePath with reserved characters "${char}"`, () => {
-            const relativePath = makeRelativePath(`/1:Name_&${char}_.2:&${char}Special`, null);
+            const relativePath = makeRelativePath(`/1:Name_&${char}_.2:&${char}Special`, undefined);
             relativePath.elements[0].should.eql(
                 new RelativePathElement({
                     referenceTypeId: hierarchicalReferenceTypeNodeId,
@@ -503,7 +503,7 @@ describe("makeRelativePath", () => {
     const otherSpecialCharacters = " $£%@[د字";
     otherSpecialCharacters.split("").forEach((char, index) => {
         it(`MRP-${index + 200} should construct simple RelativePath with all sorts of special characters "${char}"`, () => {
-            const relativePath = makeRelativePath(`/1:Name_${char}_.2:${char}Special`, null);
+            const relativePath = makeRelativePath(`/1:Name_${char}_.2:${char}Special`, undefined);
             relativePath.elements[0].should.eql(
                 new RelativePathElement({
                     referenceTypeId: hierarchicalReferenceTypeNodeId,

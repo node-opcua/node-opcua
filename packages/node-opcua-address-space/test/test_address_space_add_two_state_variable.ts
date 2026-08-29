@@ -105,14 +105,20 @@ describe("testing add TwoStateVariable ", function (this: Mocha.Suite) {
             },
             setValueFromSource: sinon.spy()
         };
-        const node = Object.create(UATwoStateVariableImpl.prototype) as UATwoStateVariableImpl & {
-            _falseState?: string;
+        // a plain intersection with UATwoStateVariableImpl collapses to never
+        // (private _falseState), so describe just the members the test touches
+        interface TwoStateVariableStub {
+            _falseState: string;
             _postInitialize: sinon.SinonSpy;
             addReference: sinon.SinonSpy;
             falseState?: undefined;
             id: { setValueFromSource: sinon.SinonSpy };
             trueState: typeof trueStateNode;
-        };
+            initialize: UATwoStateVariableImpl["initialize"];
+            getTrueState: UATwoStateVariableImpl["getTrueState"];
+            getFalseState: UATwoStateVariableImpl["getFalseState"];
+        }
+        const node = Object.create(UATwoStateVariableImpl.prototype) as TwoStateVariableStub;
         node.trueState = trueStateNode;
         node.falseState = undefined;
         node.addReference = sinon.spy();

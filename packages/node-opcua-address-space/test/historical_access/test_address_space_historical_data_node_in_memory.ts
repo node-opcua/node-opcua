@@ -10,7 +10,9 @@ import { generateAddressSpace } from "../../nodeJS";
 import { date_add } from "../../testHelpers";
 
 interface WithHAConfiguration {
-    "hA Configuration": UAHistoricalDataConfiguration;
+    // startOfOnlineArchive is optional on UAHistoricalDataConfiguration but is
+    // always present once installHistoricalDataNode has run
+    "hA Configuration": UAHistoricalDataConfiguration & Required<Pick<UAHistoricalDataConfiguration, "startOfOnlineArchive">>;
 }
 
 describe("Testing Historical Data Node", () => {

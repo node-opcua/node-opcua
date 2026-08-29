@@ -20,7 +20,7 @@ describe("Testing encoding/decoding of complex ExtensionObjects", () => {
 
         reloaded.decode(stream);
 
-        const a = binaryFile.toJSON();
+        const a = binaryFile.toJSON() as Record<string, unknown>;
         const b = reloaded.toJSON();
 
         a.should.eql(b);

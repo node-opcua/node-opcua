@@ -20,7 +20,7 @@ import { SAMPLE_USERS, type SampleServerHandle, startSampleServer } from "../bin
 
 const port = 5005;
 
-describe("Sample server: Variables gated by per-Role RolePermissions (§4)", function () {
+describe("Sample server: Variables gated by per-Role RolePermissions (§4)", function (this: Mocha.Suite) {
     this.timeout(60000);
 
     let handle: SampleServerHandle;

@@ -45,10 +45,16 @@ import {
     type SubscriptionOptions,
     SubscriptionState
 } from "../source";
+import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine";
 import { getFakePublishEngine } from "./helper_fake_publish_engine";
 
 interface ITestContext extends Mocha.Suite {
     clock: sinon.SinonFakeTimers;
+}
+
+// mutable view used to uninstall the fake clock between tests
+interface ITestContextRelaxed {
+    clock?: sinon.SinonFakeTimers | null;
 }
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
@@ -113,7 +119,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: ITestContext)
     let engine: ServerEngine;
     const test = this;
 
-    function simulate_client_adding_publish_request(publishEngine: ServerSidePublishEngine, callback?: () => void) {
+    function simulate_client_adding_publish_request(publishEngine?: IServerSidePublishEngine, callback?: () => void) {
+        if (!(publishEngine instanceof ServerSidePublishEngine)) throw new Error("Internal Error");
         _simulate_client_adding_publish_request(test, publishEngine, callback);
     }
 
@@ -222,7 +229,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: ITestContext)
     afterEach(() => {
         test.clock.tick(1000);
         test.clock.restore();
-        test.clock = undefined;
+        (test as ITestContextRelaxed).clock = undefined;
     });
 
     it("SM1-1 a subscription should accept monitored item", async () => {
@@ -876,7 +883,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: ITestContext)
 
             should(monitoredItem.$subscription).eql(subscription);
             should(monitoredItem.itemToMonitor).not.be.null;
-            monitoredItem.itemToMonitor.nodeId.should.eql(someVariableNode);
+            should(monitoredItem.itemToMonitor.nodeId).eql(someVariableNode);
         });
         subscription.on("removeMonitoredItem", removeMonitoredItemStub);
 
@@ -1577,7 +1584,7 @@ describe("SM2 - MonitoredItem advanced", function (this: ITestContext) {
         }
         test.clock.tick(1000);
         test.clock.restore();
-        test.clock = null;
+        (test as ITestContextRelaxed).clock = null;
     });
 
     describe("SM2A - #maxNotificationsPerPublish", () => {

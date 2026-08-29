@@ -14,7 +14,7 @@ describe("decodeArray length guard", () => {
         encodeArray([10, 20, 30, 40], out, (v, s) => s.writeUInt8(v));
 
         const input = new BinaryStream(out.buffer.subarray(0, out.length));
-        decodeArray(input, (s) => s.readUInt8()).should.eql([10, 20, 30, 40]);
+        should(decodeArray(input, (s) => s.readUInt8())).eql([10, 20, 30, 40]);
     });
 
     it("preserves the null-array sentinel (length 0xffffffff)", () => {

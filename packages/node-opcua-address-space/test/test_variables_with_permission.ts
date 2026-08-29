@@ -126,6 +126,7 @@ describe("AddressSpace : Variable.setPermissions", () => {
 describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
+    let variable: UAVariable;
     let _uaVariable: UAVariable;
     let _uaVariable2: UAVariable;
     let _uaDefaultVariable: UAVariable;

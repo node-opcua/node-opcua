@@ -4,7 +4,9 @@ import { StatusCodes } from "node-opcua-status-code";
 import { ReadResponse, ResponseHeader } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
-import { type ChunkMessageParameters, MessageChunker } from "../source";
+import { MessageChunker } from "../source";
+// ChunkMessageParameters is not re-exported by the source barrel; import it from its defining module
+import type { ChunkMessageParameters } from "../source/message_chunker";
 
 //
 // chunkSecureMessage used to size the message with a BinaryStreamSizeCalculator and then
@@ -31,7 +33,6 @@ function makeOptions(chunkSize: number): ChunkMessageParameters {
         securityHeader: new SymmetricAlgorithmSecurityHeader({ tokenId: 1 }),
         securityOptions: {
             requestId: 7,
-            tokenId: 1,
             cipherBlockSize: 0,
             plainBlockSize: 0,
             sequenceHeaderSize: 0,

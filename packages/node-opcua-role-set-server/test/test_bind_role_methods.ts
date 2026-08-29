@@ -1,12 +1,10 @@
-import "should";
-
 import type { ISessionContext, UAMethod } from "node-opcua-address-space-base";
 import { type NodeId, sameNodeId } from "node-opcua-nodeid";
-
 import { InMemoryIdentityMappingStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType, MessageSecurityMode } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
 import {
     makeAddIdentityHandler,
     makeRemoveIdentityHandler,
@@ -122,7 +120,7 @@ describe("bind_role_methods — makeAddIdentityHandler", () => {
 
             const identities = store.getIdentitiesForRole(roleNodeId);
             identities.should.have.length(1);
-            identities[0].criteria.should.equal("*");
+            should(identities[0].criteria).equal("*");
             identities[0].criteriaType.should.equal(IdentityCriteriaType.Anonymous);
         });
     });

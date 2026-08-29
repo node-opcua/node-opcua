@@ -264,7 +264,7 @@ describe("Testing AutoID custom types", async function (this: Mocha.Suite) {
         const _extraDataTypeManager = await getExtraDataTypeManager(session);
         await promoteOpaqueStructure(
             session,
-            callbackResult2.outputArguments?.map((a) => ({ value: a }))
+            callbackResult2.outputArguments!.map((a) => ({ value: a }))
         );
 
         callbackResult2.outputArguments?.[0].value[0].should.not.be.instanceOf(OpaqueStructure);

@@ -11,6 +11,10 @@ interface ISubscriptionWithMonitoredItems {
     monitoredItems: Map<number, MonitoredItem>;
 }
 
+interface IWithDefineGetter {
+    __defineGetter__(name: string, getter: (this: { queue: unknown[] }) => unknown): void;
+}
+
 export function add_mock_monitored_item(subscription: Subscription) {
     // pretend we have a monitored item
     const monitoredItem = {
@@ -34,7 +38,8 @@ export function add_mock_monitored_item(subscription: Subscription) {
         },
         simulateMonitoredItemAddingNotification() {}
     };
-    (monitoredItem as unknown as Record<string, unknown>).__defineGetter__(
+    // as unknown as: __defineGetter__ comes from Object.prototype but is absent from the object literal's type
+    (monitoredItem as unknown as IWithDefineGetter).__defineGetter__(
         "hasMonitoredItemNotifications",
         function (this: { queue: unknown[] }) {
             return this.queue.length > 0;

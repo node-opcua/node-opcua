@@ -6,6 +6,7 @@ import {
     type AddressSpace,
     type BaseNode,
     EventData,
+    type IEventData,
     type Namespace,
     SessionContext,
     type UAEventType,
@@ -42,13 +43,13 @@ describe("testing Events  ", () => {
         eventType.browseName.toString().should.eql("1:SomeEventType");
     });
 
-    interface ITestEventData {
+    interface ITestEventData extends IEventData {
         sourceName: Variant;
     }
 
     class Observer {
         /* empty */
-        public onEvent: (evtData: ITestEventData) => void = () => {
+        public onEvent: (evtData: IEventData) => void = () => {
             /* empty */
         };
     }
@@ -63,9 +64,10 @@ describe("testing Events  ", () => {
 
         const observer = new Observer();
 
-        observer.onEvent = (evtData: ITestEventData) => {
-            debugLog(" EVENT RECEIVED :", evtData.sourceName.value);
-            evtData.sourceName.dataType.should.eql(DataType.String);
+        observer.onEvent = (evtData: IEventData) => {
+            const testEventData = evtData as ITestEventData;
+            debugLog(" EVENT RECEIVED :", testEventData.sourceName.value);
+            testEventData.sourceName.dataType.should.eql(DataType.String);
 
             done();
         };
@@ -251,7 +253,7 @@ describe("testing Events  ", () => {
 
         const receivers: (string | undefined)[] = [];
 
-        function spyFunc(this: BaseNode, _object: unknown, _data: unknown): void {
+        function spyFunc(this: BaseNode, _eventData: IEventData): void {
             debugLog("object ", this.browseName.toString(), " received Event");
             receivers.push(this.browseName.name?.toString());
         }

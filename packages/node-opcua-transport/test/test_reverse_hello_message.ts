@@ -1,5 +1,6 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import type { ConstantStatusCode } from "node-opcua-status-code";
+import should from "should";
 import {
     decodeMessage,
     decodeReverseHello,
@@ -13,6 +14,12 @@ import {
 // decodeReverseHello throws an Error tagged with a transport-level statusCode (see
 // ReverseHelloMessage.ts#makeTaggedError) instead of a dedicated error class.
 type TaggedError = Error & { statusCode: ConstantStatusCode };
+
+// same runtime check as should.exist, but with an assertion signature so that
+// TypeScript narrows `caught` from `TaggedError | undefined` to `TaggedError`
+function shouldExist(caught: TaggedError | undefined): asserts caught is TaggedError {
+    should.exist(caught);
+}
 
 describe("testing ReverseHello (RHE) message encoding and decoding", () => {
     it("RHE-1 should encode and decode a ReverseHelloMessage via packTcpMessage/decodeMessage", () => {
@@ -55,7 +62,7 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         } catch (err) {
             caught = err as TaggedError;
         }
-        should.exist(caught);
+        shouldExist(caught);
         caught.message.should.match(/RHE/);
         should.exist(caught.statusCode);
     });
@@ -74,7 +81,7 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         } catch (err) {
             caught = err as TaggedError;
         }
-        should.exist(caught);
+        shouldExist(caught);
         caught.statusCode.name.should.match(/BadTcpEndpointUrlInvalid/);
     });
 
@@ -102,7 +109,7 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         } catch (err) {
             caught = err as TaggedError;
         }
-        should.exist(caught);
+        shouldExist(caught);
         caught.statusCode.name.should.match(/BadTcpMessageTypeInvalid/);
     });
 
@@ -116,7 +123,7 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         } catch (err) {
             caught = err as TaggedError;
         }
-        should.exist(caught);
+        shouldExist(caught);
         caught.message.should.match(/final/);
         caught.statusCode.name.should.match(/BadTcpMessageTypeInvalid/);
     });
@@ -131,7 +138,7 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         } catch (err) {
             caught = err as TaggedError;
         }
-        should.exist(caught);
+        shouldExist(caught);
         caught.statusCode.name.should.match(/BadTcpMessageTooLarge/);
     });
 
@@ -149,7 +156,7 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         } catch (err) {
             caught = err as TaggedError;
         }
-        should.exist(caught);
+        shouldExist(caught);
         caught.statusCode.name.should.match(/BadTcpEndpointUrlInvalid/);
     });
 
