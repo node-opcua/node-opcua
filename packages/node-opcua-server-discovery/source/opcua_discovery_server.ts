@@ -151,11 +151,10 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
             const endPoint = new OPCUAServerEndPoint({
                 port,
 
-                certificateChain: this.getCertificateChain(),
+                certificateKeyPairProvider: this.getCertificateChainProvider(),
 
                 certificateManager: this.serverCertificateManager,
 
-                privateKey: this.getPrivateKey(),
                 serverInfo: this.serverInfo
             });
 

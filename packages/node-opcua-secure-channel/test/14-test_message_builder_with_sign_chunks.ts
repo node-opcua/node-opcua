@@ -6,6 +6,7 @@ import {
     computeDerivedKeys,
     type DerivedKeys,
     encryptBufferWithDerivedKeys,
+    keyOperationsFromPrivateKey,
     makeMessageChunkSignature,
     makeMessageChunkSignatureWithDerivedKeys,
     makeSHA1Thumbprint,
@@ -182,7 +183,7 @@ describe("MessageBuilder with SIGN support", () => {
             maxChunkCount: 10,
             maxMessageSize: someBuffer.length * 10,
             maxChunkSize: someBuffer.length + 1000,
-            privateKey: readPrivateRsaKey(private_key_filename)
+            keyOperations: keyOperationsFromPrivateKey(readPrivateRsaKey(private_key_filename))
         });
 
         messageBuilder.setSecurity(MessageSecurityMode.Sign, SecurityPolicy.Basic256);
@@ -281,7 +282,7 @@ describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", () => {
     xit("MSE-1 should not emit an error event with valid SIGN & ENCRYPT chunks", (done) => {
         const options = {
             name: "MessageBuilder",
-            privateKey: readPrivateRsaKey(private_key_filename)
+            keyOperations: keyOperationsFromPrivateKey(readPrivateRsaKey(private_key_filename))
         };
 
         const messageBuilder = new MessageBuilder(tokenStack.clientKeyProvider(), options);
@@ -323,7 +324,7 @@ describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", () => {
             maxMessageSize: 1000000,
             maxChunkSize: 2048,
             maxChunkCount: 5,
-            privateKey: readPrivateRsaKey(private_key_filename)
+            keyOperations: keyOperationsFromPrivateKey(readPrivateRsaKey(private_key_filename))
             // securityMode: MessageSecurityMode.SignAndEncrypt
         });
         // simulate reception of OpenSecureChannelRequest with SignAndEncrypt/Basic256

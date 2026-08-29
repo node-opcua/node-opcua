@@ -15,11 +15,10 @@ import {
     exploreCertificateInfo,
     extractPublicKeyFromCertificate,
     hexDump,
+    type IKeyOperations,
     makeSHA1Thumbprint,
-    type PrivateKey,
     type PublicKey,
     type PublicKeyLength,
-    rsaLengthPrivateKey,
     rsaLengthPublicKey,
     split_der
 } from "node-opcua-crypto/web";
@@ -42,8 +41,8 @@ import {
     StatusCodes2
 } from "node-opcua-transport";
 import { get_clock_tick, randomBytes } from "node-opcua-utils";
-import { getThumbprint, type ICertificateKeyPairProvider, type Request, type Response } from "../common";
-import { invalidPrivateKey, MessageBuilder, type ObjectFactory } from "../message_builder";
+import { getThumbprint, type Request, type Response } from "../common";
+import { MessageBuilder, type ObjectFactory } from "../message_builder";
 import { type ChunkMessageParameters, MessageChunker } from "../message_chunker";
 import type { SecurityHeader } from "../secure_message_chunk_manager";
 import {
@@ -53,6 +52,7 @@ import {
     fromURI,
     getCryptoFactory,
     getOptionsForSymmetricSignAndEncrypt,
+    getSignParams,
     type SecureMessageData,
     SecurityPolicy
 } from "../security_policy";
@@ -86,14 +86,20 @@ function getNextChannelId() {
     return gLastChannelId;
 }
 
-export interface ServerSecureChannelParent extends ICertificateKeyPairProvider {
+/**
+ * @internal node-opcua plumbing: may change in a minor release. The parent
+ * hands out its key ONLY as opaque key operations — the channel layer never
+ * sees raw private-key material. A local key is exposed by wrapping it with
+ * `keyOperationsFromPrivateKey` / `getKeyOperationsFromProvider`.
+ */
+export interface ServerSecureChannelParent {
     certificateManager: ICertificateStore;
 
     getCertificate(): Certificate;
 
     getCertificateChain(): Certificate[];
 
-    getPrivateKey(): PrivateKey;
+    getKeyOperations(): IKeyOperations;
 
     getEndpointDescription(
         securityMode: MessageSecurityMode,
@@ -306,7 +312,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * consistent with it.)
      */
     #boundCertificateChain: Certificate[] | null = null;
-    #boundPrivateKey: PrivateKey | null = null;
     readonly #protocolVersion: number;
     #lastTokenId: number;
     readonly #defaultSecureTokenLifetime: number;
@@ -445,10 +450,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         this.#parent = null;
         this.#objectFactory = undefined;
-        // release the bound certificate/key material (may be a pair the
-        // server has already rotated away from)
+        // release the bound certificate/key-operations pair (may be a pair
+        // the server has already rotated away from)
         this.#boundCertificateChain = null;
-        this.#boundPrivateKey = null;
+        this.#boundKeyOperations = null;
 
         if (this.#messageBuilder) {
             this.#messageBuilder.dispose();
@@ -528,18 +533,25 @@ export class ServerSecureChannelLayer extends EventEmitter {
         return cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes
     }
 
+    /** The key-operations object this channel is bound to (same pinning rule as `#boundCertificateChain`). */
+    #boundKeyOperations: IKeyOperations | null = null;
+
     /**
-     * The private key this channel is bound to (captured from the parent on
-     * first access — see the note on `#boundCertificateChain`).
+     * The channel's key as an opaque sign/decrypt object, pinned on first
+     * access for the channel's whole lifetime (Part 6 §6.7.2/§6.7.4 — see
+     * the note on `#boundCertificateChain`): a key rotation on the parent
+     * changes what NEW channels bind, never what this one uses. This is the
+     * channel's ONLY key access: raw private-key material never enters the
+     * channel layer.
      */
-    public getPrivateKey(): PrivateKey {
-        if (!this.#boundPrivateKey) {
+    public getKeyOperations(): IKeyOperations {
+        if (!this.#boundKeyOperations) {
             if (!this.#parent) {
-                return invalidPrivateKey;
+                throw new Error("ServerSecureChannelLayer has no parent to obtain key operations from");
             }
-            this.#boundPrivateKey = this.#parent.getPrivateKey();
+            this.#boundKeyOperations = this.#parent.getKeyOperations();
         }
-        return this.#boundPrivateKey;
+        return this.#boundKeyOperations;
     }
 
     /**
@@ -830,7 +842,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.#messageBuilder = new MessageBuilder(this.#tokenStack.clientKeyProvider(), {
             name: "server",
             objectFactory: this.#objectFactory,
-            privateKey: this.getPrivateKey(),
+            // the channel-pinned key operations: the decrypt key must stay
+            // the pair this channel was created with, across rotation
+            // (parent-less channels — some tests — get none, like before)
+            keyOperations: this.#parent ? this.getKeyOperations() : undefined,
             maxChunkSize: this.#transport.receiveBufferSize,
             maxChunkCount: this.#transport.maxChunkCount,
             maxMessageSize: this.#transport.maxMessageSize
@@ -1196,16 +1211,30 @@ export class ServerSecureChannelLayer extends EventEmitter {
             return null;
         }
 
-        const senderPrivateKey = this.getPrivateKey();
+        const keyOperations = this.getKeyOperations();
         /* c8 ignore next */
-        if (!senderPrivateKey || !this.#messageBuilder) {
-            throw new Error("invalid or missing senderPrivateKey : necessary to sign");
+        if (!this.#messageBuilder) {
+            throw new Error("invalid or missing message builder : necessary to sign");
+        }
+        if (!keyOperations) {
+            throw new Error("invalid or missing key operations : necessary to sign");
+        }
+        const signSync = keyOperations.signSync;
+        const getKeyMetadataSync = keyOperations.getKeyMetadataSync;
+        if (typeof signSync !== "function" || typeof getKeyMetadataSync !== "function") {
+            // the async chunk pipeline is the remaining Phase-2 work; until
+            // then a secure channel needs the local-key synchronous fast path
+            throw new Error(
+                "the server's key operations provider is asynchronous-only (opaque/HSM), which is not yet supported" +
+                    " for secure endpoints: use MessageSecurityMode.None or a local private key"
+            );
         }
         const cryptoFactory = getCryptoFactory(this.#messageBuilder.securityPolicy);
         /* c8 ignore next */
         if (!cryptoFactory) {
             throw new Error("Internal Error: ServerSecureChannelLayer must have a crypto strategy");
         }
+        const signParams = getSignParams(cryptoFactory);
 
         assert(this.#clientPublicKeyLength >= 0);
 
@@ -1216,11 +1245,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
             return null;
         }
         const keyLength = rsaLengthPublicKey(receiverPublicKey);
-        const signatureLength = rsaLengthPrivateKey(senderPrivateKey);
+        // for RSA the modulus length IS the signature length, under both paddings
+        const signatureLength = getKeyMetadataSync.call(keyOperations).modulusLength;
         const options: SecureMessageData = {
             // for signing
             signatureLength,
-            signBufferFunc: (chunk) => cryptoFactory.asymmetricSign(chunk, senderPrivateKey),
+            signBufferFunc: (chunk) => signSync.call(keyOperations, chunk, signParams),
             // for encrypting
             cipherBlockSize: keyLength,
             plainBlockSize: keyLength - cryptoFactory.blockPaddingSize,

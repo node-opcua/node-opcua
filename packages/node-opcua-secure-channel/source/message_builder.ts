@@ -10,8 +10,8 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { SequenceHeader } from "node-opcua-chunkmanager";
 import {
     decryptBufferWithDerivedKeys,
+    type IKeyOperations,
     makeSHA1Thumbprint,
-    type PrivateKey,
     verifyChunkSignatureWithDerivedKeys
 } from "node-opcua-crypto/web";
 import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
@@ -31,7 +31,13 @@ import { timestamp } from "node-opcua-utils";
 
 import { SymmetricAlgorithmSecurityHeader } from "./secure_channel_service";
 import { chooseSecurityHeader, type SecurityHeader } from "./secure_message_chunk_manager";
-import { asymmetricVerifyChunk, coerceSecurityPolicy, getCryptoFactory, SecurityPolicy } from "./security_policy";
+import {
+    asymmetricDecryptWithKeyOpsSync,
+    asymmetricVerifyChunk,
+    coerceSecurityPolicy,
+    getCryptoFactory,
+    SecurityPolicy
+} from "./security_policy";
 import type { IDerivedKeyProvider } from "./token_stack";
 import { reduceLength, removePadding } from "./utils";
 
@@ -53,15 +59,23 @@ export interface ObjectFactory {
     hasConstructor: (binaryEncodingNodeId: ExpandedNodeId) => boolean;
 }
 
+/**
+ * @internal node-opcua plumbing: may change in a minor release. Applications
+ * configure security through OPCUAClient/OPCUAServer options, not here.
+ */
 export interface MessageBuilderOptions extends MessageBuilderBaseOptions {
     securityMode?: MessageSecurityMode;
-    privateKey?: PrivateKey;
+    /**
+     * The receiver's key as an opaque sign/decrypt object, used to decrypt
+     * encrypted OpenSecureChannel chunks. The MessageBuilder never sees raw
+     * key material. Synchronous decryption (the local-key fast path) is
+     * required until the chunk pipeline learns to await a remote provider.
+     */
+    keyOperations?: IKeyOperations;
     objectFactory?: ObjectFactory;
     signatureLength?: number;
     name: string;
 }
-
-export const invalidPrivateKey = null as unknown as PrivateKey;
 
 let counter = 0;
 
@@ -177,6 +191,7 @@ export interface MessageBuilder extends MessageBuilderBase {
 }
 
 /**
+ * @internal node-opcua plumbing: may change in a minor release.
  */
 // biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
 export class MessageBuilder extends MessageBuilderBase {
@@ -188,7 +203,7 @@ export class MessageBuilder extends MessageBuilderBase {
     readonly #objectFactory: ObjectFactory;
     #previousSequenceNumber: number;
     readonly #derivedKeyProvider: IDerivedKeyProvider;
-    #privateKey: PrivateKey;
+    #keyOperations: IKeyOperations | null;
 
     /**
      *
@@ -204,7 +219,7 @@ export class MessageBuilder extends MessageBuilderBase {
 
         this.id = (options.name ? options.name : "Id") + counter++;
 
-        this.#privateKey = options.privateKey || invalidPrivateKey;
+        this.#keyOperations = options.keyOperations || null;
         this.securityPolicy = SecurityPolicy.Invalid; // not known yet, we will need to call setSecurity
         this.securityMode = options.securityMode || MessageSecurityMode.Invalid; // not known yet
         this.#objectFactory = options.objectFactory || defaultObjectFactory;
@@ -228,7 +243,7 @@ export class MessageBuilder extends MessageBuilderBase {
     public dispose(): void {
         super.dispose();
         this.securityHeader = undefined;
-        this.#privateKey = invalidPrivateKey;
+        this.#keyOperations = null;
     }
 
     protected _read_headers(binaryStream: BinaryStream): boolean {
@@ -550,10 +565,15 @@ export class MessageBuilder extends MessageBuilderBase {
             }
             // this mean that the message has been encrypted ....
 
-            assert(this.#privateKey !== invalidPrivateKey, "expecting a valid private key");
+            if (!this.#keyOperations) {
+                return this._report_error(
+                    StatusCodes2.BadTcpInternalError,
+                    "expecting key operations to decrypt an encrypted OpenSecureChannel message"
+                );
+            }
 
             try {
-                const decryptedBuffer = cryptoFactory.asymmetricDecrypt(buf, this.#privateKey);
+                const decryptedBuffer = asymmetricDecryptWithKeyOpsSync(cryptoFactory, buf, this.#keyOperations);
                 // replace decrypted buffer in initial buffer
                 decryptedBuffer.copy(binaryStream.buffer, binaryStream.length);
                 // adjust length

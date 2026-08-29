@@ -3,15 +3,19 @@ import path from "node:path";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { StaticCertificateChainProvider } from "node-opcua-common";
 import { combine_der, readCertificateChain } from "node-opcua-crypto";
-import type { Certificate } from "node-opcua-crypto/web";
+import type { Certificate, PrivateKey } from "node-opcua-crypto/web";
 import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { invalidPrivateKey, MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
+import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
 import should from "should";
 import { OPCUABaseServer, OPCUAServerEndPoint } from "..";
 
 const it_with_crypto = it;
+
+// endpoint tests never exercise the key: a null-cast placeholder inside a provider is enough
+const invalidTestKey = null as unknown as PrivateKey;
+const makeTestProvider = (chain: Certificate[]) => new StaticCertificateChainProvider(chain, invalidTestKey);
 
 const port = 2042;
 
@@ -41,8 +45,7 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function (this: Mocha.Sui
         server_endpoint = new OPCUAServerEndPoint({
             port: port,
             serverInfo: new ApplicationDescription({}),
-            certificateChain,
-            privateKey: invalidPrivateKey,
+            certificateKeyPairProvider: makeTestProvider(certificateChain),
             certificateManager
         });
     });
@@ -96,8 +99,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function (this: 
             port: port,
             serverInfo: new ApplicationDescription({}),
             certificateManager,
-            certificateChain,
-            privateKey: invalidPrivateKey
+            certificateKeyPairProvider: makeTestProvider(certificateChain)
         });
         server_endpoint.addStandardEndpointDescriptions();
     });
@@ -136,8 +138,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
             port: port,
             serverInfo: new ApplicationDescription({}),
             certificateManager,
-            certificateChain,
-            privateKey: invalidPrivateKey
+            certificateKeyPairProvider: makeTestProvider(certificateChain)
         });
         server_endpoint.addStandardEndpointDescriptions({
             securityModes: [MessageSecurityMode.SignAndEncrypt],
@@ -181,8 +182,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
             port: port,
             serverInfo: new ApplicationDescription({}),
             certificateManager,
-            certificateChain,
-            privateKey: invalidPrivateKey
+            certificateKeyPairProvider: makeTestProvider(certificateChain)
         });
         server_endpoint.addStandardEndpointDescriptions({
             securityModes: [MessageSecurityMode.SignAndEncrypt],
@@ -218,8 +218,7 @@ describe("OPCUAServerEndpoint#getEndpointDescription", function (this: Mocha.Sui
             port: port,
             serverInfo: new ApplicationDescription({}),
             certificateManager,
-            certificateChain,
-            privateKey: invalidPrivateKey
+            certificateKeyPairProvider: makeTestProvider(certificateChain)
         });
     });
 
@@ -283,8 +282,7 @@ describe("OPCUAServerEndPoint certificate provider", function (this: Mocha.Suite
             port: port,
             serverInfo: new ApplicationDescription({}),
             certificateManager,
-            certificateChain: cert1024Chain,
-            privateKey: invalidPrivateKey
+            certificateKeyPairProvider: makeTestProvider(cert1024Chain)
         });
     });
 
@@ -304,7 +302,7 @@ describe("OPCUAServerEndPoint certificate provider", function (this: Mocha.Suite
     });
 
     it("should reflect a new chain after setCertificateProvider()", () => {
-        const newProvider = new StaticCertificateChainProvider(cert2048Chain, invalidPrivateKey);
+        const newProvider = new StaticCertificateChainProvider(cert2048Chain, invalidTestKey);
         server_endpoint.setCertificateProvider(newProvider);
 
         Buffer.compare(server_endpoint.getCertificate(), cert2048Chain[0]).should.eql(0);

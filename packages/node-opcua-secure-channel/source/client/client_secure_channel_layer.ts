@@ -10,15 +10,15 @@ import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { readMessageHeader, verify_message_chunk } from "node-opcua-chunkmanager";
-import { getPartialCertificateChain } from "node-opcua-common";
+import { getKeyOperationsFromProvider, getPartialCertificateChain } from "node-opcua-common";
 import {
     type Certificate,
     combine_der,
     extractPublicKeyFromCertificate,
+    type IKeyOperations,
     type PrivateKey,
     type PublicKey,
     type PublicKeyPEM,
-    rsaLengthPrivateKey,
     rsaLengthPublicKey
 } from "node-opcua-crypto/web";
 import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -57,6 +57,7 @@ import {
     type DerivedKeys1,
     getCryptoFactory,
     getOptionsForSymmetricSignAndEncrypt,
+    getSignParams,
     type SecureMessageData,
     SecurityPolicy,
     toURI
@@ -204,6 +205,12 @@ export function coerceConnectionStrategy(options?: ConnectionStrategyOptions | n
     };
 }
 
+/**
+ * @internal node-opcua plumbing: may change in a minor release. The channel
+ * obtains the application key exclusively as key operations
+ * (getKeyOperationsFromProvider over this provider) — implementations that
+ * only offer getPrivateKey() keep working through the local wrap.
+ */
 export interface ClientSecureChannelParent extends ICertificateKeyPairProvider {
     applicationName?: string;
     clientName?: string;
@@ -331,6 +338,9 @@ export interface ClientSecureChannelLayerEvents {
 
 /**
  * a ClientSecureChannelLayer represents the client side of the OPCUA secure channel.
+ * @internal node-opcua plumbing: may change in a minor release. Applications
+ * use OPCUAClient; this class holds no raw private-key material (key
+ * operations only).
  */
 export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLayerEvents> {
     private static g_counter = 0;
@@ -483,8 +493,23 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
         return this.#transportTimeout;
     }
 
-    public getPrivateKey(): PrivateKey | null {
-        return this.#parent ? this.#parent.getPrivateKey() : null;
+    /**
+     * The client application's key as an opaque sign/decrypt object — the
+     * only key access this channel has: raw private-key material never
+     * enters the channel layer.
+     */
+    public getKeyOperations(): IKeyOperations | null {
+        if (!this.#parent) {
+            return null;
+        }
+        try {
+            return getKeyOperationsFromProvider(this.#parent);
+        } catch {
+            // a parent with no usable key (e.g. a placeholder in a
+            // SecurityMode.None setup) simply has no key operations; the
+            // OPN paths fail with their own clear error if one is needed
+            return null;
+        }
     }
 
     public getCertificateChain(): Certificate[] {
@@ -854,7 +879,7 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
         // use to receive Server response
         this.#messageBuilder = new MessageBuilder(this.#tokenStack.serverKeyProvider(), {
             name: "client",
-            privateKey: this.getPrivateKey() || undefined,
+            keyOperations: this.getKeyOperations() || undefined,
             securityMode: this.securityMode,
             maxChunkSize: this.#_transport.receiveBufferSize || 0,
             maxChunkCount: this.#_transport.maxChunkCount || 0,
@@ -1959,10 +1984,20 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
             return null;
         }
 
-        const senderPrivateKey = this.getPrivateKey();
+        const keyOperations = this.getKeyOperations();
         /* c8 ignore next */
-        if (!senderPrivateKey) {
-            throw new Error("invalid or missing senderPrivateKey : necessary to sign");
+        if (!keyOperations) {
+            throw new Error("invalid or missing key operations : necessary to sign");
+        }
+        const signSync = keyOperations.signSync;
+        const getKeyMetadataSync = keyOperations.getKeyMetadataSync;
+        if (typeof signSync !== "function" || typeof getKeyMetadataSync !== "function") {
+            // the async chunk pipeline is the remaining Phase-2 work; until
+            // then a secure channel needs the local-key synchronous fast path
+            throw new Error(
+                "the application's key operations provider is asynchronous-only (opaque/HSM), which is not yet supported" +
+                    " for secure channels: use MessageSecurityMode.None or a local private key"
+            );
         }
 
         const cryptoFactory = getCryptoFactory(this.securityPolicy);
@@ -1970,6 +2005,7 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
         if (!cryptoFactory) {
             throw new Error("Internal Error: ServerSecureChannelLayer must have a crypto strategy");
         }
+        const signParams = getSignParams(cryptoFactory);
 
         /* c8 ignore next */
         if (!this.#receiverPublicKey) {
@@ -1977,11 +2013,12 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
         }
         const receiverPublicKey = this.#receiverPublicKey;
         const keyLength = rsaLengthPublicKey(receiverPublicKey);
-        const signatureLength = rsaLengthPrivateKey(senderPrivateKey);
+        // for RSA the modulus length IS the signature length, under both paddings
+        const signatureLength = getKeyMetadataSync.call(keyOperations).modulusLength;
         const options: SecureMessageData = {
             // for signing
             signatureLength,
-            signBufferFunc: (chunk) => cryptoFactory.asymmetricSign(chunk, senderPrivateKey),
+            signBufferFunc: (chunk) => signSync.call(keyOperations, chunk, signParams),
             // for encrypting
             cipherBlockSize: keyLength,
             plainBlockSize: keyLength - cryptoFactory.blockPaddingSize,

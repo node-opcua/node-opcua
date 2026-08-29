@@ -36,7 +36,12 @@ import {
 import { assert } from "node-opcua-assert";
 import type { ByteString, UAString } from "node-opcua-basic-types";
 import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { DiskCertificateKeyPairProvider, ResolvedCertificateKeyPairProvider, ServerState } from "node-opcua-common";
+import {
+    DiskCertificateKeyPairProvider,
+    OpaqueCertificateKeyPairProvider,
+    ResolvedCertificateKeyPairProvider,
+    ServerState
+} from "node-opcua-common";
 import { type Certificate, combine_der, exploreCertificate, type Nonce } from "node-opcua-crypto/web";
 import {
     AttributeIds,
@@ -52,8 +57,10 @@ import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName, isIPAddre
 import type { NodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import {
+    asymmetricDecryptWithKeyOps,
     coerceSecurityPolicy,
     computeSignature,
+    computeSignatureAsync,
     fromURI,
     getCryptoFactory,
     type Message,
@@ -1845,6 +1852,26 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
     }
 
     /**
+     * {@link computeServerSignature} through the opaque key-operations path,
+     * so the server's application instance key may be HSM/KMS-held. Default
+     * implementation delegates to a subclass's `computeServerSignature`
+     * override when one exists (so existing subclasses keep their behavior),
+     * and signs through the channel-pinned key operations otherwise.
+     * @private
+     */
+    protected async computeServerSignatureAsync(
+        channel: ServerSecureChannelLayer,
+        clientCertificate: Certificate,
+        clientNonce: Nonce
+    ): Promise<SignatureData | undefined> {
+        const isOverridden = Object.getPrototypeOf(this).computeServerSignature !== OPCUAServer.prototype.computeServerSignature;
+        if (isOverridden) {
+            return this.computeServerSignature(channel, clientCertificate, clientNonce);
+        }
+        return await computeSignatureAsync(clientCertificate, clientNonce, channel.getKeyOperations(), channel.securityPolicy);
+    }
+
+    /**
      *
      * @param session
      * @param channel
@@ -2068,42 +2095,54 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             callback(new Error(" expecting a no null username"));
             return;
         }
-        let password: ByteString | string = userIdentityToken.password;
+        const initialPassword: ByteString = userIdentityToken.password;
+
+        const validateUser = (password: string) => {
+            this.userManager
+                .isValidUser(session, userName, password)
+                .then((isValid) => callback(null, isValid))
+                .catch((err) => callback(err));
+        };
 
         // decrypt password if necessary
         if (securityPolicy === SecurityPolicy.None) {
             // not good, password was sent in clear text ...
-            password = password.toString();
-        } else {
-            const serverPrivateKey = this.getPrivateKey();
-
-            const serverNonce = session.nonce;
-            if (!serverNonce) {
-                callback(new Error(" expecting a no null nonce"));
-                return;
-            }
-
-            const cryptoFactory = getCryptoFactory(securityPolicy);
-            /* c8 ignore next */
-            if (!cryptoFactory) {
-                callback(new Error(" Unsupported security Policy"));
-                return;
-            }
-
-            const buff = cryptoFactory.asymmetricDecrypt(password, serverPrivateKey);
-
-            const result = extractPasswordFromDecryptedBlob(buff, serverNonce);
-            if (!result.valid) {
-                setImmediate(() => callback(null, false));
-                return;
-            }
-            password = result.password;
+            validateUser(initialPassword.toString());
+            return;
         }
 
-        this.userManager
-            .isValidUser(session, userName, password)
-            .then((isValid) => callback(null, isValid))
-            .catch((err) => callback(err));
+        const serverNonce = session.nonce;
+        if (!serverNonce) {
+            callback(new Error(" expecting a no null nonce"));
+            return;
+        }
+
+        const cryptoFactory = getCryptoFactory(securityPolicy);
+        /* c8 ignore next */
+        if (!cryptoFactory) {
+            callback(new Error(" Unsupported security Policy"));
+            return;
+        }
+
+        // decrypt through the CHANNEL-PINNED key operations: the password was
+        // encrypted against the certificate this session's channel presented,
+        // so a server-level key rotation must not change the key used here —
+        // and the key itself may be HSM/KMS-held.
+        asymmetricDecryptWithKeyOps(cryptoFactory, initialPassword, channel.getKeyOperations()).then(
+            (buff) => {
+                const result = extractPasswordFromDecryptedBlob(buff, serverNonce);
+                if (!result.valid) {
+                    return callback(null, false);
+                }
+                validateUser(result.password);
+            },
+            () => {
+                // an undecryptable password blob is an authentication failure,
+                // not a server error (same observable outcome as the legacy
+                // decrypt-to-garbage-then-fail-validation path)
+                callback(null, false);
+            }
+        );
     }
 
     /**
@@ -2316,6 +2355,10 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             // and set hasEncryption = false under this condition
         }
 
+        // asynchronous (the server's key may be HSM/KMS-held), so it is
+        // computed before the response object is assembled
+        const serverSignature = await this.computeServerSignatureAsync(channel, request.clientCertificate, request.clientNonce);
+
         const response = new CreateSessionResponse({
             // A identifier which uniquely identifies the session.
             sessionId: session.nodeId,
@@ -2359,7 +2402,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             // The SignatureAlgorithm shall be the AsymmetricSignatureAlgorithm specified in the
             // SecurityPolicy for the Endpoint.
             // The SignatureData type is defined in 7.30.
-            serverSignature: this.computeServerSignature(channel, request.clientCertificate, request.clientNonce),
+            serverSignature,
 
             // The maximum message size accepted by the server
             // The Client Communication Stack should return a Bad_RequestTooLarge error to the
@@ -3984,14 +4027,26 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             transportSettings?: IServerTransportSettings;
         }
     ): OPCUAServerEndPoint {
+        const serverProvider = this.getProvider();
+        const hasOpaqueKey = serverProvider instanceof OpaqueCertificateKeyPairProvider;
+
+        // Give the endpoint its own DiskCertificateKeyPairProvider — a
+        // separate instance from the server's own provider (see the
+        // invalidation-semantics note below). A resolved provider
+        // (passphrase-encrypted key) or an opaque one (HSM/KMS-held key) is
+        // reused instead: neither can be rebuilt from files.
+        const endpointProvider =
+            serverProvider instanceof ResolvedCertificateKeyPairProvider || hasOpaqueKey
+                ? serverProvider
+                : new DiskCertificateKeyPairProvider(this.certificateFile, this.privateKeyFile);
+
         // add the tcp/ip endpoint with no security
         const endPoint = new OPCUAServerEndPoint({
             port: port1,
             host: serverOptions.host,
             certificateManager: this.serverCertificateManager,
 
-            certificateChain: this.getCertificateChain(),
-            privateKey: this.getPrivateKey(),
+            certificateKeyPairProvider: endpointProvider,
 
             defaultSecureTokenLifetime: serverOptions.defaultSecureTokenLifetime || 600000,
             timeout: serverOptions.timeout || 3 * 60 * 1000,
@@ -4002,30 +4057,14 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             transportSettings: serverOptions.transportSettings
         });
 
-        // Give the endpoint its own DiskCertificateKeyPairProvider — a
-        // separate instance from the server's own provider, same as before
-        // this feature existed. This matters: OPCUASecureObject#invalidateCachedCertificates()
+        // Invalidation-semantics note: the fresh per-endpoint disk provider
+        // matters because OPCUASecureObject#invalidateCachedCertificates()
         // (called directly, e.g. after a manual on-disk cert/key swap) only
-        // invalidates the server's own provider, not any endpoint's — so a
-        // *shared* provider instance would still leave the endpoint's own
-        // OPCUAServerEndPoint#getCombinedCertificate() cache stale, which
-        // would be a regression, not a fix.
-        //
-        // The one case a fresh disk provider cannot handle is a
-        // passphrase-encrypted key: reading it synchronously throws. In that
-        // case (and only that case) initializeCM() has already swapped the
-        // server's own provider to a ResolvedCertificateKeyPairProvider —
-        // reuse that one instead, since there is no synchronous way to build
-        // an equivalent one from scratch here. Push certificate management
-        // replaces this provider via endpoint.setCertificateProvider() when
-        // installing new cert paths, in both cases.
-        const serverProvider = this.getProvider();
-        endPoint.setCertificateProvider(
-            serverProvider instanceof ResolvedCertificateKeyPairProvider
-                ? serverProvider
-                : new DiskCertificateKeyPairProvider(this.certificateFile, this.privateKeyFile)
-        );
-
+        // invalidates the server's own provider, not any endpoint's — a
+        // *shared* disk provider instance would leave the endpoint's own
+        // OPCUAServerEndPoint#getCombinedCertificate() cache stale. Push
+        // certificate management replaces the endpoint's provider via
+        // endpoint.setCertificateProvider() when installing new cert paths.
         return endPoint;
     }
 
@@ -4053,6 +4092,22 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         }
 
         const port = Number(endpointOptions.port || 0);
+
+        // STARTUP GUARD (until the secure-channel OPN paths speak key
+        // operations): an opaque application key can only serve
+        // MessageSecurityMode.None endpoints — fail now, clearly, rather
+        // than deep inside the first secure handshake.
+        if (this.getProvider() instanceof OpaqueCertificateKeyPairProvider) {
+            const securityModes = endpointOptions.securityModes;
+            const requestsSecureMode = !securityModes || securityModes.some((mode) => mode !== MessageSecurityMode.None);
+            if (requestsSecureMode) {
+                throw new Error(
+                    "[NODE-OPCUA-E32] the server's private key is opaque (HSM/KMS-held via keyOperations), which is" +
+                        " not yet supported for secure endpoints: set securityModes: [MessageSecurityMode.None]" +
+                        " on every endpoint, or use a local private key"
+                );
+            }
+        }
 
         const endPoint = this.createEndpoint(port, serverOption);
 
