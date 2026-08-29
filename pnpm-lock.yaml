@@ -4214,6 +4214,8 @@ importers:
 
   tools/check-debug-log: {}
 
+  tools/check-debug-name: {}
+
   tools/check-mocharc: {}
 
   tools/check-no-tla:
