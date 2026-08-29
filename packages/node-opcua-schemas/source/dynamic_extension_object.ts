@@ -21,9 +21,9 @@ import {
 import { coerceNodeId, ExpandedNodeId, type NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("dynamic_extension_object");
+const errorLog = make_errorLog("dynamic_extension_object");
+const doDebug = checkDebugFlag("dynamic_extension_object");
 
 function associateEncoding(
     dataTypeFactory: DataTypeFactory,

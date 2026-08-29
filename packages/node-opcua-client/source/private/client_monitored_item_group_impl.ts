@@ -16,7 +16,7 @@ import type { ClientSubscription } from "../client_subscription";
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
 import type { ClientSubscriptionImpl } from "./client_subscription_impl";
 
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("client_monitored_item_group_impl");
 
 /**
  * ClientMonitoredItemGroup

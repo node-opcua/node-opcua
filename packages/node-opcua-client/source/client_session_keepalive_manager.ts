@@ -18,9 +18,9 @@ import type { IClientBase } from "./private/i_private_client";
 
 const serverStatusStateNodeId = coerceNodeId(VariableIds.Server_ServerStatus_State);
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog("client_session_keepalive_manager");
+const doDebug = checkDebugFlag("client_session_keepalive_manager");
+const warningLog = make_warningLog("client_session_keepalive_manager");
 
 export interface ClientSessionKeepAliveManagerEvents {
     on(event: "keepalive", eventHandler: (lastKnownServerState: ServerState, count: number) => void): this;

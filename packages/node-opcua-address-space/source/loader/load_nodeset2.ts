@@ -46,9 +46,9 @@ import { makeSemverCompatible } from "./make_semver_compatible";
 import { promoteObjectsAndVariables } from "./namespace_post_step";
 import { makeVariantReader } from "./parsers/variant_parser";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
+const doDebug = checkDebugFlag("load_nodeset2");
+const debugLog = make_debugLog("load_nodeset2");
+const errorLog = make_errorLog("load_nodeset2");
 
 function __make_back_references(namespace: INamespace) {
     const namespaceP = namespace as NamespacePrivate;

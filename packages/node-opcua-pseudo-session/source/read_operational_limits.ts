@@ -11,7 +11,7 @@ import { AttributeIds } from "node-opcua-service-read";
 import type { SignedSoftwareCertificate } from "node-opcua-types";
 import type { IBasicSessionReadAsyncMultiple } from "./basic_session_interface";
 
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("read_operational_limits");
 
 export interface IOperationLimits2 {
     maxNodesPerRead?: number;

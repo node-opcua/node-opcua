@@ -13,7 +13,7 @@ import { ExpandedNodeId } from "node-opcua-nodeid";
 import { createDynamicObjectConstructor } from "./dynamic_extension_object";
 import type { InternalTypeDictionary, MapDataTypeAndEncodingIdProvider, StructureTypeRaw } from "./parse_binary_xsd";
 
-const errorLog = make_errorLog(__filename);
+const errorLog = make_errorLog("tools");
 const _doDebug = false; // process.env.DEBUG && process.env.DEBUG.includes("node-opcua-schemas");
 
 function _removeNamespacePart(str?: string): string {

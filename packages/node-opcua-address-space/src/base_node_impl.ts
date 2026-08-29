@@ -87,9 +87,9 @@ import { coerceRolePermissions } from "./role_permissions";
 type ApplyFunc = { apply: (...args: unknown[]) => void };
 
 const doDebug = false;
-const warningLog = make_warningLog(__filename);
-const errorLog = make_errorLog(__filename);
-const debugLog = make_debugLog(__filename);
+const warningLog = make_warningLog("base_node_impl");
+const errorLog = make_errorLog("base_node_impl");
+const debugLog = make_debugLog("base_node_impl");
 
 const HasEventSourceReferenceType = resolveNodeId("HasEventSource");
 const HasNotifierReferenceType = resolveNodeId("HasNotifier");

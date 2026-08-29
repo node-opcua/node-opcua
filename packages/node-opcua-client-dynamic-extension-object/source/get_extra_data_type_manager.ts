@@ -6,9 +6,9 @@ import { clearSessionCache, type IBasicSessionAsync2, readNamespaceArray } from 
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
 import { DataTypeExtractStrategy, populateDataTypeManager } from "./populate_data_type_manager";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
+const doDebug = checkDebugFlag("get_extra_data_type_manager");
+const debugLog = make_debugLog("get_extra_data_type_manager");
+const errorLog = make_errorLog("get_extra_data_type_manager");
 const warningLog = errorLog;
 
 export interface IBasicSessionAsync2Private extends IBasicSessionAsync2 {

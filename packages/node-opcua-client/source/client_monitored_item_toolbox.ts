@@ -25,8 +25,8 @@ import type { ClientSubscription } from "./client_subscription";
 import type { ClientMonitoredItemImpl } from "./private/client_monitored_item_impl";
 import type { ClientSessionImpl } from "./private/client_session_impl";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("client_monitored_item_toolbox");
+const doDebug = checkDebugFlag("client_monitored_item_toolbox");
 
 export interface ClientMonitoredItemBaseEx extends ClientMonitoredItemBase {
     internalSetMonitoringMode(monitoringMode: MonitoringMode): void;

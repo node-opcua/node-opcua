@@ -5,7 +5,7 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { IdentityMappingRuleType } from "node-opcua-types";
 import type { ServerSession } from "./server_session";
 
-const errorLog = make_errorLog(__filename);
+const errorLog = make_errorLog("user_manager");
 
 export type ValidUserFunc = (this: ServerSession, username: string, password: string) => boolean;
 export type ValidUserAsyncFunc = (

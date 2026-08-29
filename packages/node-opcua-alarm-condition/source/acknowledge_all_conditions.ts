@@ -11,9 +11,9 @@ import { acknowledgeCondition, confirmCondition } from "./call_method_condition"
 import { type EventStuff, fieldsToJson } from "./event_stuff";
 import { extractConditionFields } from "./extract_condition_fields";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
+const doDebug = checkDebugFlag("acknowledge_all_conditions");
+const debugLog = make_debugLog("acknowledge_all_conditions");
+const errorLog = make_errorLog("acknowledge_all_conditions");
 
 /**
  *

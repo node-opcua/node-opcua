@@ -20,7 +20,7 @@ import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_sta
 import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
 import { type UAConditionImpl, UAConditionImplBase } from "./ua_condition_impl";
 
-const debugLog = make_debugLog(__filename);
+const debugLog = make_debugLog("ua_acknowledgeable_condition_impl");
 const doDebug = false;
 
 const $ = (a: UAAcknowledgeableConditionImplBase): UAAcknowledgeableConditionEx => a as unknown as UAAcknowledgeableConditionEx;

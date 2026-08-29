@@ -58,10 +58,10 @@ import {
     type TaskProcessBrowseResponse
 } from "./private";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("node_crawler_base");
+const doDebug = checkDebugFlag("node_crawler_base");
 const doDebug1 = doDebug && false;
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("node_crawler_base");
 
 console.log("+-------------------------------------------------------------------------------------+");
 console.log("| Warning:                                                                            |");

@@ -7,7 +7,7 @@ import type { QualifiedName } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
 import type { SignedSoftwareCertificate } from "node-opcua-types";
 
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("server_capabilities");
 
 /**
  */

@@ -88,10 +88,10 @@ import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
 import { getTransferSessionIdentity, sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer";
 
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
-const warningLog = make_warningLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("server_engine");
+const errorLog = make_errorLog("server_engine");
+const warningLog = make_warningLog("server_engine");
+const doDebug = checkDebugFlag("server_engine");
 
 function upperCaseFirst(str: string) {
     return str.slice(0, 1).toUpperCase() + str.slice(1);

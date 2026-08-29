@@ -7,8 +7,8 @@ import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } fro
 import { type BrowseResult, type DataTypeDefinition, ReferenceDescription } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("utils");
+const doDebug = checkDebugFlag("utils");
 
 export async function getDefinition(session: IBasicSessionReadAsyncSimple, nodeId: NodeId): Promise<DataTypeDefinition | null> {
     const dataValue = await session.read({ nodeId, attributeId: AttributeIds.DataTypeDefinition });

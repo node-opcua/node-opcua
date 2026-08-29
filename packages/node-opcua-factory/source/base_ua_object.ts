@@ -25,7 +25,7 @@ import {
     type StructuredTypeField
 } from "./types";
 
-const errorLog = make_errorLog(__filename);
+const errorLog = make_errorLog("base_ua_object");
 
 function r(str: string, length = 30) {
     return `${str}                                `.substring(0, length);

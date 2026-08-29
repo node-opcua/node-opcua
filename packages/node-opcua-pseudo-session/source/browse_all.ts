@@ -15,8 +15,8 @@ import type {
     IBasicSessionReadAsyncMultiple
 } from "./basic_session_interface";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("browse_all");
+const doDebug = checkDebugFlag("browse_all");
 
 async function readLimits(session: IBasicSessionReadAsyncMultiple) {
     const dataValues = await session.read([

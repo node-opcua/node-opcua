@@ -42,7 +42,7 @@ import {
 import { DataValueEncodingByte } from "./DataValueEncodingByte_enum";
 import { TimestampsToReturn } from "./TimestampsToReturn_enum";
 
-const errorLog = make_errorLog(__filename);
+const errorLog = make_errorLog("datavalue");
 
 type NumericalRange = NumericRange;
 

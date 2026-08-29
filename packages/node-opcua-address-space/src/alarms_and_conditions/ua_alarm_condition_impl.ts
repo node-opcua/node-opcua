@@ -23,8 +23,8 @@ import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_sta
 import { ConditionInfoImpl } from "./condition_info_impl";
 import { UAAcknowledgeableConditionImpl, UAAcknowledgeableConditionImplBase } from "./ua_acknowledgeable_condition_impl";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("ua_alarm_condition_impl");
+const doDebug = checkDebugFlag("ua_alarm_condition_impl");
 
 function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
     alarmNode.suppressedOrShelved.setValueFromSource({

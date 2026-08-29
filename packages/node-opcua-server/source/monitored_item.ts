@@ -59,7 +59,7 @@ import type { SamplingFunc } from "./sampling_func";
 import type { MonitoredItemBase } from "./server_subscription";
 import { validateFilter } from "./validate_filter";
 
-const errorLog = make_errorLog(__filename);
+const errorLog = make_errorLog("monitored_item");
 
 export type QueueItem = MonitoredItemNotification | EventFieldList;
 
@@ -68,10 +68,10 @@ const defaultItemToMonitor: ReadValueIdOptions = new ReadValueId({
     indexRange: undefined
 });
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("monitored_item");
+const doDebug = checkDebugFlag("monitored_item");
 const doDebug2 = doDebug && false;
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("monitored_item");
 
 function _adjust_sampling_interval(samplingInterval: number, node_minimumSamplingInterval: number): number {
     assert(typeof node_minimumSamplingInterval === "number", "expecting a number");

@@ -12,9 +12,9 @@ import { getBuiltInType, hasBuiltInType } from "./builtin_types";
 import { type EnumerationDefinitionSchema, getBuiltInEnumeration, hasBuiltInEnumeration } from "./enumerations";
 import type { CommonInterface, ConstructorFunc, ConstructorFuncWithSchema, IBaseUAObject, IStructuredTypeSchema } from "./types";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog("datatype_factory");
+const doDebug = checkDebugFlag("datatype_factory");
+const warningLog = make_warningLog("datatype_factory");
 
 export interface StructureInfo {
     constructor: ConstructorFuncWithSchema | null; // null if abstract

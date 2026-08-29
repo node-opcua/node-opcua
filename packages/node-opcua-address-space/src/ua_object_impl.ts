@@ -36,7 +36,7 @@ import { apply_condition_refresh, type ConditionRefreshCache } from "./apply_con
 import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone, ToStringBuilder, UAObject_toString } from "./base_node_private";
 
-const errorLog = make_errorLog(__filename);
+const errorLog = make_errorLog("ua_object_impl");
 
 export class UAObjectImpl<T extends UAObjectEvents & ListenerSignature<T> = UAObjectEvents>
     extends BaseNodeImpl<T>

@@ -29,10 +29,10 @@ import type { UserTokenPolicyOptions } from "node-opcua-types";
 import type { IChannelData } from "./i_channel_data";
 import type { ISocketData } from "./i_socket_data";
 
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
-const warningLog = make_warningLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("server_end_point");
+const errorLog = make_errorLog("server_end_point");
+const warningLog = make_warningLog("server_end_point");
+const doDebug = checkDebugFlag("server_end_point");
 
 const UATCP_UASC_UABINARY = "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary";
 

@@ -45,10 +45,10 @@ import type { UAVariableImpl } from "../ua_variable_impl";
 import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
 import { UABaseEventImplBase } from "./ua_base_event_impl";
 
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog("ua_condition_impl");
+const errorLog = make_errorLog("ua_condition_impl");
+const doDebug = checkDebugFlag("ua_condition_impl");
+const warningLog = make_warningLog("ua_condition_impl");
 
 /**
  *

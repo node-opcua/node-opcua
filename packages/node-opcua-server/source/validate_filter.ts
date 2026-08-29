@@ -14,7 +14,7 @@ import { DeadbandType } from "node-opcua-service-subscription";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { ReadValueIdOptions } from "node-opcua-types";
 
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("validate_filter");
 
 function isNumberDataType(node: UAVariable): boolean {
     const n = node.dataType as INodeId;

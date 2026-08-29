@@ -8,8 +8,8 @@ import { BaseUAObject } from "./base_ua_object";
 import type { DataTypeFactory } from "./datatype_factory";
 import { FieldCategory, type FieldType, type IStructuredTypeSchema, type StructuredTypeField } from "./types";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("schema_helpers");
+const doDebug = checkDebugFlag("schema_helpers");
 
 /**
  * ensure correctness of a schema object.

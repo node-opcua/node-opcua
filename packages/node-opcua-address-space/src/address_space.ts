@@ -73,9 +73,9 @@ import { UAReferenceTypeImpl } from "./ua_reference_type_impl";
 import type { UAVariableImpl } from "./ua_variable_impl";
 
 const doDebug = false;
-const errorLog = make_errorLog(__filename);
-const debugLog = make_debugLog(__filename);
-const warningLog = make_warningLog(__filename);
+const errorLog = make_errorLog("address_space");
+const debugLog = make_debugLog("address_space");
+const warningLog = make_warningLog("address_space");
 
 const Dequeue = require("dequeue");
 

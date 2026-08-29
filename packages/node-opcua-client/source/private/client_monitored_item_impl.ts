@@ -25,9 +25,9 @@ import { type ClientMonitoredItemBaseEx, ClientMonitoredItemToolbox } from "../c
 import type { ClientSubscription } from "../client_subscription";
 import { ClientMonitoredItem_create, type ClientSubscriptionImpl } from "./client_subscription_impl";
 
-const _debugLog = make_debugLog(__filename);
-const warningLog = make_warningLog(__filename);
-const _doDebug = checkDebugFlag(__filename);
+const _debugLog = make_debugLog("client_monitored_item_impl");
+const warningLog = make_warningLog("client_monitored_item_impl");
+const _doDebug = checkDebugFlag("client_monitored_item_impl");
 
 export type PrepareForMonitoringResult =
     | { error: string }

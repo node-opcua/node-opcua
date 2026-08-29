@@ -10,7 +10,7 @@ import type {
 } from "./basic_session_interface";
 
 const doDebug = false;
-const debugLog = make_debugLog(__filename);
+const debugLog = make_debugLog("extract_fields");
 
 export type ISessionForExtractField = IBasicSessionBrowseAsyncSimple &
     IBasicSessionBrowseAsyncMultiple &

@@ -16,8 +16,8 @@ import {
 } from "../../src/nodeset_tools/construct_namespace_dependency";
 import { PseudoSession } from "../pseudo_session";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("ensure_datatype_extracted");
+const doDebug = checkDebugFlag("ensure_datatype_extracted");
 
 interface UADataTypePriv extends UADataType {
     $partialDefinition?: StructureField[];

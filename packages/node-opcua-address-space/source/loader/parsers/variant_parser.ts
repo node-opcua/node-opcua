@@ -22,8 +22,8 @@ import { type LocalizedTextParserLikeL1, localizedText_parser } from "./localize
 import { makeNodeIdParser } from "./nodeid_parser";
 import { makeQualifiedNameParser, type QualifiedNameParserL1 } from "./qualified_name_parser";
 
-const debugLog = make_debugLog(__dirname);
-const doDebug = checkDebugFlag(__dirname);
+const debugLog = make_debugLog("variant_parser");
+const doDebug = checkDebugFlag("variant_parser");
 
 export type Task = (addressSpace2: IAddressSpace) => Promise<void>;
 

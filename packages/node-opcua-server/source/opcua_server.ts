@@ -179,10 +179,10 @@ function isSubscriptionIdInvalid(subscriptionId: number): boolean {
     return subscriptionId < 0 || subscriptionId >= 0xffffffff;
 }
 const package_info = require("../package.json");
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const errorLog = make_errorLog(__filename);
-const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog("opcua_server");
+const doDebug = checkDebugFlag("opcua_server");
+const errorLog = make_errorLog("opcua_server");
+const warningLog = make_warningLog("opcua_server");
 
 const default_maxConnectionsPerEndpoint = 10;
 

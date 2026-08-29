@@ -1,7 +1,7 @@
 import { make_warningLog } from "node-opcua-debug";
 import type { CallbackT } from "node-opcua-status-code";
 
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("multiform_func");
 
 export type StraightFunc<T, This> = (this: This) => T;
 export type PromiseFunc<T, This> = (this: This) => Promise<T>;

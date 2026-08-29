@@ -22,8 +22,8 @@ import {
     type StructuredTypeOptions
 } from "./types";
 
-const warningLog = make_warningLog(__filename);
-const errorLog = make_errorLog(__filename);
+const warningLog = make_warningLog("structured_type_schema");
+const errorLog = make_errorLog("structured_type_schema");
 
 function figureOutFieldCategory(field: FieldInterfaceOptions, dataTypeFactory: DataTypeFactory): FieldCategory {
     const fieldType = field.fieldType;

@@ -71,10 +71,10 @@ interface TokenAndSignature {
     userTokenSignature: SignatureDataOptions;
 }
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
-const warningLog = make_warningLog(__filename);
+const doDebug = checkDebugFlag("opcua_client_impl");
+const debugLog = make_debugLog("opcua_client_impl");
+const errorLog = make_errorLog("opcua_client_impl");
+const warningLog = make_warningLog("opcua_client_impl");
 
 function validateServerNonce(serverNonce: Nonce | null): boolean {
     return !(serverNonce && serverNonce.length < 32) || (serverNonce && serverNonce.length === 0);

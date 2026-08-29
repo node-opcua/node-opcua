@@ -3,10 +3,10 @@ import type { ICertificateStore, OPCUASecureObject } from "node-opcua-common";
 import { type Certificate, exploreCertificate, explorePrivateKey, publicKeyAndPrivateKeyMatches } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 
-const _doDebug = checkDebugFlag(__filename);
-const _debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
-const warningLog = make_warningLog(__filename);
+const _doDebug = checkDebugFlag("verify");
+const _debugLog = make_debugLog("verify");
+const errorLog = make_errorLog("verify");
+const warningLog = make_warningLog("verify");
 
 export function verifyIsOPCUAValidCertificate(
     certificate: Certificate,

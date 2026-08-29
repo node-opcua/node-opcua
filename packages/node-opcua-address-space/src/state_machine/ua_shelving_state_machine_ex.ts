@@ -20,8 +20,8 @@ import { UAAlarmConditionImpl, UAAlarmConditionImplBase } from "../alarms_and_co
 
 import { promoteToStateMachine, UAStateMachineImpl } from "./finite_state_machine";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog("ua_shelving_state_machine_ex");
+const doDebug = checkDebugFlag("ua_shelving_state_machine_ex");
 
 export interface UAShelvedStateMachineHelper {
     _timer: NodeJS.Timeout | null;

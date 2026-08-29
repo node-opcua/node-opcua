@@ -10,9 +10,9 @@ import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug
 import { findBuiltInType } from "node-opcua-factory";
 import { buildVariantArray, DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog("helpers");
+const doDebug = checkDebugFlag("helpers");
+const warningLog = make_warningLog("helpers");
 
 // ─── Validators & Random Generators ─────────────────────────────────────
 

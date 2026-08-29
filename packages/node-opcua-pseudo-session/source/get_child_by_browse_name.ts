@@ -4,7 +4,7 @@ import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import type { ReferenceDescription } from "node-opcua-types";
 import type { IBasicSessionBrowseAsyncSimple } from "./basic_session_interface";
 
-const warningLog = make_warningLog(__dirname);
+const warningLog = make_warningLog("get_child_by_browse_name");
 
 export async function getChildByBrowseName(
     session: IBasicSessionBrowseAsyncSimple,

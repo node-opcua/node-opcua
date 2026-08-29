@@ -57,9 +57,9 @@ import {
 
 const XMLWriter = require("xml-writer");
 
-const debugLog = make_debugLog(__filename);
-const warningLog = make_warningLog(__filename);
-const errorLog = make_errorLog(__filename);
+const debugLog = make_debugLog("nodeset_to_xml");
+const warningLog = make_warningLog("nodeset_to_xml");
+const errorLog = make_errorLog("nodeset_to_xml");
 const doDebug = false;
 
 function _hash(node: BaseNode | UAReference): string {

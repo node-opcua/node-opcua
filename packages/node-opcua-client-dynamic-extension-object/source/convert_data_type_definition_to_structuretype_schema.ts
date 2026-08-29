@@ -46,9 +46,9 @@ import { DataType } from "node-opcua-variant";
 import type { ExtraDataTypeManager } from "./extra_data_type_manager";
 import { _findEncodings } from "./private/find_encodings";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const errorLog = make_errorLog(__filename);
+const debugLog = make_debugLog("convert_data_type_definition_to_structuretype_schema");
+const doDebug = checkDebugFlag("convert_data_type_definition_to_structuretype_schema");
+const errorLog = make_errorLog("convert_data_type_definition_to_structuretype_schema");
 
 export interface CacheForFieldResolution {
     fieldTypeName: string;

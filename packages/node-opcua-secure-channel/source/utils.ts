@@ -42,7 +42,7 @@ import {
 import { timestamp } from "node-opcua-utils";
 import type { Request, Response } from "./common";
 
-const traceLog = make_traceLog(__filename);
+const traceLog = make_traceLog("utils");
 
 const clientFlag = (process.env?.NODEOPCUADEBUG?.match(/CLIENT{([^}]*)}/) || [])[1] || "";
 const serverFlag = (process.env?.NODEOPCUADEBUG?.match(/SERVER{([^}]*)}/) || [])[1] || "";

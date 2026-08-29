@@ -78,10 +78,10 @@ import { performCertificateSanityCheck } from "../verify";
 import type { ClientSessionImpl } from "./client_session_impl";
 import type { IClientBase } from "./i_private_client";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const errorLog = make_errorLog(__filename);
-const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog("client_base_impl");
+const doDebug = checkDebugFlag("client_base_impl");
+const errorLog = make_errorLog("client_base_impl");
+const warningLog = make_warningLog("client_base_impl");
 
 function makeCertificateThumbPrint(certificate: Certificate | Certificate[] | null | undefined): Buffer | null {
     if (!certificate) return null;

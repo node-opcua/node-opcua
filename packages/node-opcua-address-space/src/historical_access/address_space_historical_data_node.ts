@@ -32,7 +32,7 @@ import { AddressSpace } from "../../source/address_space_ts";
 import type { AddressSpacePrivate } from "../address_space_private";
 import { UAVariableImpl } from "../ua_variable_impl";
 
-const warningLog = make_warningLog(__filename);
+const warningLog = make_warningLog("address_space_historical_data_node");
 
 interface DequeueItem<T> {
     data: T | null;
