@@ -195,7 +195,7 @@ async function _output_index_ts_file(info: Info): Promise<void> {
         if (file.match(/^enum_eration/)) {
             continue;
         }
-        content.push(`export * from "./${file.replace(".ts", "")}";`);
+        content.push(`export * from "./${file.replace(".ts", "")}.js";`);
     }
     fs.writeFileSync(index, content.join("\n"));
     // create package.json
