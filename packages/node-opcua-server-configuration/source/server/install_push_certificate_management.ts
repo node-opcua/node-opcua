@@ -113,7 +113,15 @@ async function resolvePrivateKeyAfterRotation(certificateManager: OPCUACertifica
  */
 async function reresolveServerCertificateProvider(server: OPCUAServer): Promise<void> {
     const certificateManager = server.serverCertificateManager;
-    const isManaged = certificateManager instanceof OPCUACertificateManager && certificateManager.isPrivateKeyManaged();
+    // An opaque (HSM/KMS-held) key counts as "managed" in pki, but there is no
+    // key material to re-resolve here - the key itself never rotates through
+    // push-certificate-management (regeneratePrivateKey and key installation
+    // both answer BadNotSupported). The OpaqueCertificateKeyPairProvider
+    // re-reads its certificate chain from disk on invalidate(), so the plain
+    // invalidate path below is exactly what a certificate-only rotation needs.
+    const isOpaque = certificateManager instanceof OPCUACertificateManager && certificateManager.isPrivateKeyOpaque();
+    const isManaged =
+        !isOpaque && certificateManager instanceof OPCUACertificateManager && certificateManager.isPrivateKeyManaged();
     if (isManaged) {
         const privateKey = await resolvePrivateKeyAfterRotation(certificateManager, server.privateKeyFile);
         server.setProvider(new ResolvedCertificateKeyPairProvider(server.certificateFile, server.privateKeyFile, privateKey));

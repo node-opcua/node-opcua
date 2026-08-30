@@ -91,6 +91,17 @@ export async function executeCreateSigningRequest(
 
     // Regenerate Private Key Logic
     if (regeneratePrivateKey) {
+        if (certificateManager.isPrivateKeyOpaque()) {
+            // The key lives in an HSM/KMS behind IKeyOperations: the server can
+            // neither generate nor install private-key material. Certificate
+            // renewal over the EXISTING key (regeneratePrivateKey=false) stays
+            // supported; key rotation belongs to the key store itself.
+            warningLog(
+                "createSigningRequest: regeneratePrivateKey is not supported when the private key is opaque (HSM/KMS-held);" +
+                    " renew the certificate over the existing key instead"
+            );
+            return { statusCode: StatusCodes.BadNotSupported };
+        }
         if (!nonce || nonce.length < 32) {
             warningLog("nonce should be provided when regeneratePrivateKey is set, and length shall be at least 32 bytes");
             return { statusCode: StatusCodes.BadInvalidArgument };

@@ -1,3 +1,4 @@
+import { createPublicKey } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { assert } from "node-opcua-assert";
@@ -10,6 +11,7 @@ import {
     coercePEMorDerToPrivateKey,
     coercePrivateKeyPem,
     combine_der,
+    extractPublicKeyFromCertificateSync,
     makeSHA1Thumbprint,
     type PrivateKey,
     toPem
@@ -191,6 +193,38 @@ export async function executeUpdateCertificate(
         }
 
         if (!hasPrivateKeyFormat && !hasPrivateKey) {
+            if (!serverImpl.tmpCertificateManager && certificateManager.isPrivateKeyOpaque()) {
+                // Opaque (HSM/KMS-held) key: there is no material to compare, so the
+                // certificate is checked against the provider's public half (SPKI)
+                // instead. A provider without getPublicKey could not have produced
+                // the CSR in the first place (the opaque CSR path needs the public
+                // key), so an unverifiable certificate is refused rather than
+                // installed blind - a mismatched pair would break every handshake.
+                const keyOperations = certificateManager.getKeyOperations();
+                if (!keyOperations.getPublicKey) {
+                    warningLog(
+                        "updateCertificate: the key-operations provider does not implement getPublicKey():" +
+                            " cannot verify that the certificate matches the (opaque) private key"
+                    );
+                    await serverImpl.fileTransactionManager.abortTransaction();
+                    return { statusCode: StatusCodes.BadNotSupported, applyChangesRequired: false };
+                }
+                const providerSpki = Buffer.from(await keyOperations.getPublicKey());
+                const certificateSpki = createPublicKey(extractPublicKeyFromCertificateSync(certificate)).export({
+                    type: "spki",
+                    format: "der"
+                });
+                if (!providerSpki.equals(certificateSpki)) {
+                    warningLog("certificate doesn't match the (opaque) private key");
+                    await serverImpl.fileTransactionManager.abortTransaction();
+                    return { statusCode: StatusCodes.BadSecurityChecksFailed, applyChangesRequired: false };
+                }
+
+                await preInstallIssuerCertificates(serverImpl, certificateManager, issuerCertificates);
+                await preInstallCertificate(serverImpl, certificateManager, certificate, issuerCertificates);
+                serverImpl.emit("certificateUpdated", certificateGroupId, certificate);
+                return { statusCode: StatusCodes.Good, applyChangesRequired: true };
+            }
             // Resolve via getPrivateKey(), for two independent reasons:
             // - CertificateManager.getPrivateKey() caches the decoded key for the lifetime of the
             //   instance (see node-opcua-pki). createCertificateRequest()/createSelfSignedCertificate()
@@ -214,6 +248,13 @@ export async function executeUpdateCertificate(
             serverImpl.emit("certificateUpdated", certificateGroupId, certificate);
             return { statusCode: StatusCodes.Good, applyChangesRequired: true };
         } else {
+            if (certificateManager.isPrivateKeyOpaque()) {
+                // The server's key is inside an HSM/KMS: private-key material
+                // cannot be installed, only certificates over the existing key.
+                warningLog("updateCertificate: cannot install a private key when the server's key is opaque (HSM/KMS-held)");
+                await serverImpl.fileTransactionManager.abortTransaction();
+                return { statusCode: StatusCodes.BadNotSupported, applyChangesRequired: false };
+            }
             if (privateKeyFormat !== "PEM" && privateKeyFormat !== "PFX") {
                 warningLog(` the private key format is invalid privateKeyFormat =${privateKeyFormat}`);
                 await serverImpl.fileTransactionManager.abortTransaction();
