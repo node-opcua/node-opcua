@@ -1,11 +1,10 @@
-const { BrowseDescription } = require("node-opcua-service-browse");
-const { ReferenceTypeIds } = require("node-opcua-constants");
-const { BrowseDirection, NodeClassMask } = require("node-opcua-data-model");
-const { DataType } = require("node-opcua-variant");
-const { AddressSpace } = require("..");
-const { getMiniAddressSpace } = require("../distHelpers");
+import { ReferenceTypeIds } from "node-opcua-constants";
+import { BrowseDirection } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { BrowseDescription } from "node-opcua-service-browse";
+import { DataType } from "node-opcua-variant";
+import { getMiniAddressSpace } from "../distHelpers";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing issue 1045", () => {
     it("should browse a node with referenceTypeId: ReferenceTypeIds.References", async () => {
         const addressSpace = await getMiniAddressSpace();

@@ -1,8 +1,8 @@
-const should = require("should");
-const sinon = require("sinon");
-const { PacketAssembler } = require("..");
+import "should";
+import sinon from "sinon";
+import { PacketAssembler, type PacketInfo } from "..";
 
-function makeChunk(msgType, length) {
+function makeChunk(msgType: string, length: number) {
     const total_length = length + 4 + 1;
 
     total_length.should.be.greaterThan(0);
@@ -19,40 +19,33 @@ function makeChunk(msgType, length) {
     return buf;
 }
 
-function readChunkHeader(data) {
+function readChunkHeader(data: Buffer): PacketInfo {
     const msgType = String.fromCharCode(data.readUInt8(0));
     const length = data.readUInt32LE(1);
-    return { length: length, extra: msgType };
+    return { length, extra: msgType, messageHeader: { msgType, isFinal: "F", length } };
 }
 
-describe("PacketAssembler", function () {
-    
+describe("PacketAssembler", () => {
     it("should assemble a single packet", (done) => {
         const packetAssembler = new PacketAssembler({ readChunkFunc: readChunkHeader, minimumSizeInBytes: 5 });
-        packetAssembler.on(
-            "chunk",
-            (chunk) => {
-                const info = readChunkHeader(chunk);
-                info.length.should.equal(chunk.length);
+        packetAssembler.on("chunk", (chunk) => {
+            const info = readChunkHeader(chunk);
+            info.length.should.equal(chunk.length);
 
-                done();
-            }
-        );
+            done();
+        });
 
         packetAssembler.feed(makeChunk("A", 200));
     });
 
     it("should assemble a chunk sent over several packets", (done) => {
         const packetAssembler = new PacketAssembler({ readChunkFunc: readChunkHeader, minimumSizeInBytes: 5 });
-        packetAssembler.on(
-            "chunk",
-            (chunk) => {
-                const info = readChunkHeader(chunk);
-                info.length.should.equal(chunk.length);
-                info.length.should.equal(2000 + 5);
-                done();
-            }
-        );
+        packetAssembler.on("chunk", (chunk) => {
+            const info = readChunkHeader(chunk);
+            info.length.should.equal(chunk.length);
+            info.length.should.equal(2000 + 5);
+            done();
+        });
 
         const chunk1 = makeChunk("A", 2000);
 
@@ -66,23 +59,18 @@ describe("PacketAssembler", function () {
     });
 
     it("should assemble a chunk sent one byte at a time", () => {
-        const packetAssembler = new PacketAssembler({ 
-            readChunkFunc: readChunkHeader, 
-            minimumSizeInBytes: 5,
-            maxChunkCount: 10000
+        const packetAssembler = new PacketAssembler({
+            readChunkFunc: readChunkHeader,
+            minimumSizeInBytes: 5
         });
-        packetAssembler.on(
-            "chunk",
-            (chunk) => {
-                const info = readChunkHeader(chunk);
-                info.length.should.equal(chunk.length);
-            }
-        );
+        packetAssembler.on("chunk", (chunk) => {
+            const info = readChunkHeader(chunk);
+            info.length.should.equal(chunk.length);
+        });
         const onChunkSpy = sinon.spy();
         const errorSpy = sinon.spy();
         packetAssembler.on("chunk", onChunkSpy);
         packetAssembler.on("error", errorSpy);
-
 
         const chunk = makeChunk("A", 200);
 
@@ -93,38 +81,33 @@ describe("PacketAssembler", function () {
 
         errorSpy.callCount.should.equal(0);
         onChunkSpy.callCount.should.equal(1);
-
     });
 
     it("should deal with packets containing data from 2 different chunks", () => {
         let counter = 0;
-        
-        const packetAssembler = new PacketAssembler({ 
-            readChunkFunc: readChunkHeader, 
-            minimumSizeInBytes: 5 
+
+        const packetAssembler = new PacketAssembler({
+            readChunkFunc: readChunkHeader,
+            minimumSizeInBytes: 5
         });
-        
-        packetAssembler.on(
-            "chunk",
-            (chunk) => {
-                const info = readChunkHeader(chunk);
-                info.length.should.equal(chunk.length);
-                info.length.should.equal(200 + 5);
-                counter += 1;
-                if (counter === 1) {
-                    info.extra.should.equal("A");
-                }
-                if (counter === 2) {
-                    info.extra.should.equal("B");
-                }
+
+        packetAssembler.on("chunk", (chunk) => {
+            const info = readChunkHeader(chunk);
+            info.length.should.equal(chunk.length);
+            info.length.should.equal(200 + 5);
+            counter += 1;
+            if (counter === 1) {
+                info.extra.should.equal("A");
             }
-        );
+            if (counter === 2) {
+                info.extra.should.equal("B");
+            }
+        });
 
         const onChunkSpy = sinon.spy();
         const errorSpy = sinon.spy();
         packetAssembler.on("chunk", onChunkSpy);
         packetAssembler.on("error", errorSpy);
-
 
         const chunk1 = makeChunk("A", 200);
         const chunk2 = makeChunk("B", 200);
@@ -141,7 +124,6 @@ describe("PacketAssembler", function () {
 
         errorSpy.callCount.should.equal(0);
         onChunkSpy.callCount.should.equal(2);
-
     });
 
     it("limits: max chunk size exceeded", () => {
@@ -184,5 +166,4 @@ describe("PacketAssembler", function () {
         onChunkSpy.callCount.should.eql(0);
         errorSpy.callCount.should.eql(2);
     });
-
 });

@@ -45,8 +45,14 @@ export interface PacketAssemblerOptions {
     readChunkFunc: ReadChunkFuncType;
     /** Minimum bytes required before readChunkFunc can be called (typically header size) */
     minimumSizeInBytes: number;
-    /** Maximum allowed chunk size in bytes (chunks exceeding this will trigger an error) */
-    maxChunkSize: number;
+    /**
+     * Maximum allowed chunk size in bytes (chunks exceeding this will trigger an error).
+     *
+     * Optional: the constructor falls back to PacketAssembler.defaultMaxMessageSize, and
+     * its assert explicitly allows undefined. The jsdoc on the constructor has always
+     * documented a default.
+     */
+    maxChunkSize?: number;
 }
 
 /**

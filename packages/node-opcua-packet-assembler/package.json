@@ -8,7 +8,8 @@
         "build": "tsc -b",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "test": "mocha",
-        "test:check:not-ready": "tsc --noEmit -p test/tsconfig.json"
+        "test:check:not-ready": "tsc --noEmit -p test/tsconfig.json",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
@@ -33,5 +34,9 @@
     "files": [
         "dist",
         "source"
-    ]
+    ],
+    "devDependencies": {
+        "node-opcua-binary-stream": "2.180.0",
+        "node-opcua-variant": "2.180.0"
+    }
 }

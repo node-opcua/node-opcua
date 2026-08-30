@@ -2905,6 +2905,13 @@ importers:
       node-opcua-debug:
         specifier: 2.179.0
         version: link:../node-opcua-debug
+    devDependencies:
+      node-opcua-binary-stream:
+        specifier: 2.180.0
+        version: link:../node-opcua-binary-stream
+      node-opcua-variant:
+        specifier: 2.180.0
+        version: link:../node-opcua-variant
 
   packages/node-opcua-pseudo-session:
     dependencies:
