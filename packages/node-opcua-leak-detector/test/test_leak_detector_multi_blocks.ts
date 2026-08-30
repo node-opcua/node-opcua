@@ -21,26 +21,36 @@
  * This test proves we handle all these cases correctly without hanging.
  */
 
-const assert = require("node:assert");
+import assert from "node:assert";
+import { describeWithLeakDetector } from "..";
 
-// These tests intentionally leak timers that only the detector
-// cleans up. Without it the process hangs — skip entirely.
-if (process.env.MEM_LEAK_DETECTION_DISABLED === "true") {
+// These tests intentionally leak timers that only the detector cleans up. Without it the
+// process hangs, so nothing below is registered.
+//
+// This used to be a module-level `return`, which CommonJS allows (the module body is
+// wrapped in a function) and ES modules do not - and the import below it would have been
+// hoisted above it in any case.
+const leakDetectionDisabled = process.env.MEM_LEAK_DETECTION_DISABLED === "true";
+
+if (leakDetectionDisabled) {
     describe("T11 - Multi-block tests (skipped — leak detection disabled)", () => {});
-    return;
 }
 
-const { describeWithLeakDetector } = require("../src/resource_leak_detector");
+const describeBlock = leakDetectionDisabled
+    ? (_name: string, _fn: () => void) => {
+          /* leak detection disabled: the block is not registered */
+      }
+    : describeWithLeakDetector;
 
 // ─────────────────────────────────────────────────────────
 // T11.A - First block: creates and cleans a timer
 // ─────────────────────────────────────────────────────────
 
-describeWithLeakDetector("T11.A - First block", () => {
-    let timer;
+describeBlock("T11.A - First block", () => {
+    let timer: NodeJS.Timeout | undefined;
 
     before(() => {
-        timer = setTimeout(() => { }, 60000);
+        timer = setTimeout(() => {}, 60000);
     });
 
     after(() => {
@@ -57,10 +67,10 @@ describeWithLeakDetector("T11.A - First block", () => {
 //         (not cleared in after)
 // ─────────────────────────────────────────────────────────
 
-describeWithLeakDetector("T11.B - Second block (leaked timer)", () => {
+describeBlock("T11.B - Second block (leaked timer)", () => {
     before(() => {
         // This timer is intentionally leaked
-        setTimeout(() => { }, 60000);
+        setTimeout(() => {}, 60000);
     });
 
     it("test in second block", () => {
@@ -73,7 +83,7 @@ describeWithLeakDetector("T11.B - Second block (leaked timer)", () => {
 //         doesn't hang from the leak in block B
 // ─────────────────────────────────────────────────────────
 
-describeWithLeakDetector("T11.C - Third block (no timers)", () => {
+describeBlock("T11.C - Third block (no timers)", () => {
     it("test in third block - should still exit cleanly", () => {
         assert.ok(true);
     });
@@ -93,10 +103,10 @@ describeWithLeakDetector("T11.C - Third block (no timers)", () => {
 // between block stop/start).
 // ─────────────────────────────────────────────────────────
 
-describeWithLeakDetector("T11.D - Gap timer simulation", () => {
+describeBlock("T11.D - Gap timer simulation", () => {
     before(() => {
         // Timer that fires quickly during the test (not leaked)
-        const _t = setTimeout(() => { }, 1);
+        const _t = setTimeout(() => {}, 1);
         // Don't clear — it fires fast and auto-removes from tracking
     });
 
@@ -109,7 +119,7 @@ describeWithLeakDetector("T11.D - Gap timer simulation", () => {
 // T11.E - Final block verifies clean state
 // ─────────────────────────────────────────────────────────
 
-describeWithLeakDetector("T11.E - Final block (clean state)", () => {
+describeBlock("T11.E - Final block (clean state)", () => {
     it("process can still exit cleanly after all prior blocks", () => {
         assert.strictEqual(1 + 1, 2);
     });
