@@ -119,7 +119,12 @@ export abstract class StatusCode {
     /**
      *  returns a status code that can be modified
      */
-    public static makeStatusCode(statusCode: StatusCode | string, optionalBits: string | number): StatusCode {
+    // `optionalBits` is optional in fact, and always was: the body below skips `set` when
+    // it is absent, and callers have been omitting it. It returns a ModifiableStatusCode,
+    // never a plain StatusCode, which is what makes `.set`/`.unset` valid on the result.
+    // Both were only mis-declared; the test suite was reaching them through require()'s
+    // `any` and so never checked.
+    public static makeStatusCode(statusCode: StatusCode | string, optionalBits?: string | number): ModifiableStatusCode {
         // The instanceof case is handled here rather than deferred to the injected
         // coerce, because the generated table calls this during its own evaluation
         // (`static GoodWithOverflowBit = StatusCode.makeStatusCode(StatusCodes.Good, ...)`),

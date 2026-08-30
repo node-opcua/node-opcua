@@ -1,8 +1,15 @@
-"use strict";
-const should = require("should");
-const { BinaryStream } = require("node-opcua-binary-stream");
+import { BinaryStream } from "node-opcua-binary-stream";
+import should from "should";
 
-const { StatusCodes, StatusCode, encodeStatusCode, decodeStatusCode, getStatusCodeFromCode, coerceStatusCode } = require("..");
+import {
+    coerceStatusCode,
+    decodeStatusCode,
+    encodeStatusCode,
+    getStatusCodeFromCode,
+    type ModifiableStatusCode,
+    StatusCode,
+    StatusCodes
+} from "..";
 
 describe("testing status code manipulation", () => {
     it("should create BadNodeIdExists", () => {
@@ -88,7 +95,10 @@ describe("testing status code manipulation", () => {
 
     it("should fail to set a extra information bit on a standard StatusCode", () => {
         should(() => {
-            const statusCode = StatusCodes.Good;
+            // deliberately reaching for a method ConstantStatusCode does not have: that it
+            // is absent at runtime is the whole assertion, so the cast states the intent
+            // rather than hiding a mistake
+            const statusCode = StatusCodes.Good as unknown as ModifiableStatusCode;
 
             statusCode.set("Overflow"); // << set is not defined !!!
         }).throwError();
