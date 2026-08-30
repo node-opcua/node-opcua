@@ -97,7 +97,7 @@ export function coerceExpandedNodeId(value: unknown): ExpandedNodeId {
 /**
  * create an expanded nodeId
  */
-export function makeExpandedNodeId(value: unknown, namespace?: number): ExpandedNodeId {
+export function makeExpandedNodeId(value?: unknown, namespace?: number): ExpandedNodeId {
     if (value === undefined && namespace === undefined) {
         return new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0, null, 0);
     }

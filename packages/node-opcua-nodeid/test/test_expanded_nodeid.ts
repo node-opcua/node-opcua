@@ -1,18 +1,9 @@
-const should = require("should");
+import should from "should";
 
-const {
-    coerceNodeId,
-    makeExpandedNodeId,
-    coerceExpandedNodeId,
-    ExpandedNodeId,
-    makeNodeId,
-    NodeIdType
-} = require("..");
+import { coerceExpandedNodeId, coerceNodeId, ExpandedNodeId, makeExpandedNodeId, makeNodeId, NodeIdType } from "..";
 
-
-describe("testing ExpandedNodeId", function() {
-
-    it("should create a ExpandedNodeId from a integer", function() {
+describe("testing ExpandedNodeId", () => {
+    it("should create a ExpandedNodeId from a integer", () => {
         const exnodeId = makeExpandedNodeId(1);
         exnodeId.identifierType.should.eql(NodeIdType.NUMERIC);
         exnodeId.value.should.eql(1);
@@ -22,25 +13,21 @@ describe("testing ExpandedNodeId", function() {
         exnodeId.toString().should.eql("ns=0;i=1");
     });
 
-    it("should create a ExpandedNodeId from a integer", function() {
-
+    it("should create a ExpandedNodeId from a integer", () => {
         const exnodeId = makeExpandedNodeId(1);
         should(exnodeId.value).eql(1);
     });
-    it("should create a ExpandedNodeId from a ExpandedNodeId", function() {
-
+    it("should create a ExpandedNodeId from a ExpandedNodeId", () => {
         const exnodeId1 = new ExpandedNodeId(NodeIdType.NUMERIC, 1, 2, "namespaceURI", 3);
         const exnodeId2 = makeExpandedNodeId(exnodeId1);
         should(exnodeId2.value).eql(1);
     });
-    it("should throw when calling makeExpandedNodeId with bad argument", function() {
-
-        should(function() {
-            const exnodeId2 = makeExpandedNodeId("BAD");
+    it("should throw when calling makeExpandedNodeId with bad argument", () => {
+        should(() => {
+            const _exnodeId2 = makeExpandedNodeId("BAD");
         }).throw();
     });
-    it("ExpandedNodeId#toString", function() {
-
+    it("ExpandedNodeId#toString", () => {
         const exnodeId = new ExpandedNodeId(NodeIdType.NUMERIC, 1, 2, "namespaceURI", 3);
         should(exnodeId.value).eql(1);
         should(exnodeId.namespace).eql(2);
@@ -49,9 +36,7 @@ describe("testing ExpandedNodeId", function() {
         should(exnodeId.toString()).eql("ns=2;i=1;namespaceUri:namespaceURI;serverIndex:3");
     });
 
-
-    it("should create a ExpandedNodeId from a NodeId", function() {
-
+    it("should create a ExpandedNodeId from a NodeId", () => {
         const nodeId = makeNodeId("some_text", 2);
         nodeId.identifierType.should.eql(NodeIdType.STRING);
 
@@ -64,32 +49,24 @@ describe("testing ExpandedNodeId", function() {
         exnodeId.toString().should.eql("ns=2;s=some_text");
     });
 
-
-    it("coerceExpandedNodeId should coerce 'i=10'", function() {
-
+    it("coerceExpandedNodeId should coerce 'i=10'", () => {
         const exNodeId = coerceExpandedNodeId("ns=0;i=10");
         exNodeId.toString().should.eql("ns=0;i=10");
-
     });
-    it("coerceExpandedNodeId should coerce an ExpandedNodeId", function() {
-
+    it("coerceExpandedNodeId should coerce an ExpandedNodeId", () => {
         const exNodeId = coerceExpandedNodeId("ns=0;i=10");
         const exNodeId2 = coerceExpandedNodeId(exNodeId);
         exNodeId2.toString().should.eql("ns=0;i=10");
-
     });
-    it("coerceExpandedNodeId should preserve namespaceUri and serverIndex of an ExpandedNodeId", function() {
-
+    it("coerceExpandedNodeId should preserve namespaceUri and serverIndex of an ExpandedNodeId", () => {
         const exNodeId = new ExpandedNodeId(NodeIdType.STRING, "Temp1", 2, "urn:some:namespace", 3);
         const exNodeId2 = coerceExpandedNodeId(exNodeId);
         exNodeId2.should.not.equal(exNodeId);
         should(exNodeId2.namespaceUri).eql("urn:some:namespace");
         should(exNodeId2.serverIndex).eql(3);
         exNodeId2.toString().should.eql("ns=2;s=Temp1;namespaceUri:urn:some:namespace;serverIndex:3");
-
     });
-    it("coerceExpandedNodeId should preserve namespaceUri and serverIndex of a NodeId-like literal", function() {
-
+    it("coerceExpandedNodeId should preserve namespaceUri and serverIndex of a NodeId-like literal", () => {
         const exNodeId = coerceExpandedNodeId({
             identifierType: NodeIdType.STRING,
             value: "Temp1",
@@ -98,13 +75,9 @@ describe("testing ExpandedNodeId", function() {
             serverIndex: 3
         });
         exNodeId.toString().should.eql("ns=2;s=Temp1;namespaceUri:urn:some:namespace;serverIndex:3");
-
     });
 
-
     it("ExpandedNodeId.fromNodeId", () => {
-
-
         const serverIndex = 3;
         const nodeId = coerceNodeId("ns=1;s=ABC");
         const expandedNodeId = ExpandedNodeId.fromNodeId(nodeId, "URI", serverIndex);
@@ -116,5 +89,5 @@ describe("testing ExpandedNodeId", function() {
     });
     it("makeExpandedNodeId()", () => {
         makeExpandedNodeId().toString().should.eql("ns=0;i=0");
-    })
+    });
 });

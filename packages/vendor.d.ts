@@ -21,3 +21,4 @@ declare module "xml-writer";
 declare module "dequeue";
 declare module "humanize";
 declare module "backoff";
+declare module "enum";

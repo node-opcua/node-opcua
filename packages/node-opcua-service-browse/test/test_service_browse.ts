@@ -1,26 +1,23 @@
-"use strict";
-const util = require("util");
-const should = require("should");
-const { redirectToFile } = require("node-opcua-debug/nodeJS");
-const { makeNodeId } = require("node-opcua-nodeid");
-const { BrowseDirection } = require("node-opcua-data-model");
-const { StatusCodes } = require("node-opcua-status-code");
-const { NodeClass } = require("node-opcua-data-model");
-const { bn_dateToHundredNanoSecondFrom1601 } = require("node-opcua-date-time");
-
-const { checkDebugFlag, make_debugLog } = require("node-opcua-debug");
-const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
-const { BrowseRequest, BrowseResponse, ReferenceDescription, BrowseDescription } = require("..");
+import util from "node:util";
+import "should";
+import { BrowseDirection, NodeClass } from "node-opcua-data-model";
+import { bn_dateToHundredNanoSecondFrom1601 } from "node-opcua-date-time";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { redirectToFile } from "node-opcua-debug/nodeJS";
+import { makeNodeId } from "node-opcua-nodeid";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import { StatusCodes } from "node-opcua-status-code";
+import { BrowseDescription, BrowseRequest, BrowseResponse, ReferenceDescription } from "..";
 
 const doDebug = checkDebugFlag("TEST");
 const debugLog = make_debugLog("TEST");
 
-describe("Testing Browse Service", function () {
-    it("should create a BrowseRequest", function () {
+describe("Testing Browse Service", () => {
+    it("should create a BrowseRequest", () => {
         const browseRequest = new BrowseRequest({});
         browseRequest.should.have.property("requestHeader");
     });
-    it("should create a BrowseResponse", function () {
+    it("should create a BrowseResponse", () => {
         const browseResponse = new BrowseResponse({});
         browseResponse.should.have.property("responseHeader");
         if (doDebug) {
@@ -29,9 +26,8 @@ describe("Testing Browse Service", function () {
     });
 });
 
-describe("Browse Service", function () {
- 
-    it("should construct a BrowseDescription", function () {
+describe("Browse Service", () => {
+    it("should construct a BrowseDescription", () => {
         const browseDescription = new BrowseDescription({
             browseDirection: BrowseDirection.Both,
             referenceTypeId: makeNodeId(12),
@@ -45,7 +41,7 @@ describe("Browse Service", function () {
         encode_decode_round_trip_test(browseDescription);
     });
 
-    it("should create a BrowseRequest", function () {
+    it("should create a BrowseRequest", () => {
         const browseRequest = new BrowseRequest({
             view: {},
             requestedMaxReferencesPerNode: 1,
@@ -54,7 +50,7 @@ describe("Browse Service", function () {
         encode_decode_round_trip_test(browseRequest);
     });
 
-    it("should create a BrowseRequest with correct default value in  viewDescription", function () {
+    it("should create a BrowseRequest with correct default value in  viewDescription", () => {
         const browseRequest = new BrowseRequest({
             view: {},
             requestedMaxReferencesPerNode: 1,
@@ -66,16 +62,20 @@ describe("Browse Service", function () {
 
         // timestamp shall be min Opcua Date( 01/01/1601) to satisfy the .NET server
         // implementation.
-        bn_dateToHundredNanoSecondFrom1601(browseRequest.view.timestamp).should.eql([0, 0]);
+        const timestamp = browseRequest.view.timestamp;
+        if (!timestamp) {
+            throw new Error("expecting the default view to carry a timestamp");
+        }
+        bn_dateToHundredNanoSecondFrom1601(timestamp).should.eql([0, 0]);
     });
 
-    it("should create a BrowseResponse", function () {
+    it("should create a BrowseResponse", () => {
         const browseResponse = new BrowseResponse({});
         encode_decode_round_trip_test(browseResponse);
     });
 
-    it("should jsonify a ReferenceDescription", function () {
-        redirectToFile("ReferenceDescription_to_json.log", function () {
+    it("should jsonify a ReferenceDescription", () => {
+        redirectToFile("ReferenceDescription_to_json.log", () => {
             const ref = new ReferenceDescription({
                 referenceTypeId: "ns=1;i=10",
                 isForward: true,
@@ -96,8 +96,8 @@ describe("Browse Service", function () {
         });
     });
 
-    it("should jsonify a BrowseResponse", function () {
-        redirectToFile("BrowseResponse_to_json.log", function () {
+    it("should jsonify a BrowseResponse", () => {
+        redirectToFile("BrowseResponse_to_json.log", () => {
             const ref = new ReferenceDescription({
                 referenceTypeId: "ns=1;i=10",
                 isForward: true,
