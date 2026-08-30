@@ -1,5 +1,5 @@
-const should = require("should");
-const { BinaryStream } = require("..");
+import should from "should";
+import { BinaryStream } from "..";
 
 describe("test buffer overflow prevention", function () {
     this.timeout(10000);
@@ -28,7 +28,7 @@ describe("test buffer overflow prevention", function () {
         binaryStream.rewind();
 
         const reloadedBuf = binaryStream.readString();
-        reloadedBuf.length.should.eql(str.length);
+        should(reloadedBuf?.length).eql(str.length);
     });
 
     it("readByteStream - should raise an exception if array buffer is too large", () => {
@@ -54,21 +54,21 @@ describe("test buffer overflow prevention", function () {
 
         binaryStream.rewind();
 
-        const reloadedBuf = binaryStream.readByteStream();
+        const _reloadedBuf = binaryStream.readByteStream();
     });
 
     it("readArrayBuffer - should raise an exception if array buffer is too large", () => {
         const arrayBuffer = new Int32Array(BinaryStream.maxByteStringLength / 4 + 1);
         const byteLength = arrayBuffer.byteLength;
-        byteLength.should.eql(BinaryStream.maxByteStringLength+4);
+        byteLength.should.eql(BinaryStream.maxByteStringLength + 4);
         const binaryStream = new BinaryStream(byteLength);
 
-        binaryStream.writeArrayBuffer(arrayBuffer);
+        binaryStream.writeArrayBuffer(arrayBuffer.buffer);
 
         binaryStream.rewind();
 
         should.throws(() => {
-            const arrayBuffer2 = binaryStream.readArrayBuffer(byteLength);
+            const _arrayBuffer2 = binaryStream.readArrayBuffer(byteLength);
         }, "expecting Binary.readArrayBuffer to raise an exception if array is too large");
     });
 
@@ -77,10 +77,10 @@ describe("test buffer overflow prevention", function () {
         const byteLength = arrayBuffer.byteLength;
         const binaryStream = new BinaryStream(byteLength);
 
-        binaryStream.writeArrayBuffer(arrayBuffer);
+        binaryStream.writeArrayBuffer(arrayBuffer.buffer);
 
         binaryStream.rewind();
 
-        const arrayBuffer2 = binaryStream.readArrayBuffer(byteLength);
+        const _arrayBuffer2 = binaryStream.readArrayBuffer(byteLength);
     });
 });

@@ -63,7 +63,7 @@ describe("Testing growable BinaryStream", () => {
         stream.writeString(text);
 
         stream.rewind();
-        stream.readString().should.eql(text);
+        should(stream.readString()).eql(text);
     });
 
     it("should grow for a byte stream longer than the current buffer", () => {

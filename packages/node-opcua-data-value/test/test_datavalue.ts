@@ -1,24 +1,25 @@
-"use strict";
 Error.stackTraceLimit = 1000;
-const util = require("util");
-const should = require("should");
-const { Variant, DataType, VariantArrayType } = require("node-opcua-variant");
-const { NumericRange } = require("node-opcua-numeric-range");
-const { StatusCodes } = require("node-opcua-status-code");
-const { ExtensionObject } = require("node-opcua-extension-object");
-const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
 
-const { DataValue, extractRange } = require("..");
+import "node:util";
+import { ExtensionObject } from "node-opcua-extension-object";
+import { NumericRange } from "node-opcua-numeric-range";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import { StatusCodes } from "node-opcua-status-code";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import should from "should";
 
-require("should");
+import { DataValue, type DataValueOptions, extractRange } from "..";
+
+import "should";
+
 const doDebug = process.env.DEBUG;
-const debugLog = doDebug ? console.log : function () { };
+const debugLog = doDebug ? console.log : () => {};
 
 describe("DataValue", () => {
     it("should create a empty DataValue and encode it as a 1-Byte length block", () => {
         const dataValue = new DataValue();
 
-        encode_decode_round_trip_test(dataValue, function (buffer /*, id*/) {
+        encode_decode_round_trip_test(dataValue, (buffer /*, id*/) => {
             buffer.length.should.equal(1);
         });
     });
@@ -27,7 +28,7 @@ describe("DataValue", () => {
         const dataValue = new DataValue({
             value: new Variant({ dataType: DataType.String, value: "Hello" })
         });
-        encode_decode_round_trip_test(dataValue, function (buffer /*, id*/) {
+        encode_decode_round_trip_test(dataValue, (buffer /*, id*/) => {
             buffer.length.should.equal(1 + 1 + 4 + 5);
         });
     });
@@ -41,7 +42,7 @@ describe("DataValue", () => {
             sourcePicoseconds: 25000 // 25 nano
         });
         //xx var str = dataValue.toString();
-        encode_decode_round_trip_test(dataValue, function (/*buffer, id*/) {
+        encode_decode_round_trip_test(dataValue, (/*buffer, id*/) => {
             /** */
         });
     });
@@ -55,7 +56,7 @@ describe("DataValue", () => {
             sourceTimestamp: new Date(Date.UTC(2018, 1, 23, 18, 54, 12, 345)),
             sourcePicoseconds: 12345670
         });
-        encode_decode_round_trip_test(dataValue, function (/*buffer, id*/) {
+        encode_decode_round_trip_test(dataValue, (/*buffer, id*/) => {
             /** */
         });
     });
@@ -246,7 +247,7 @@ describe("DataValue", () => {
         dataValue1.value.value[1].toString().should.eql("33");
         dataValue1.value.dataType.should.eql(DataType.ByteString);
         dataValue1.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValue1.value.dimensions.should.eql([1, 2]);
+        should(dataValue1.value.dimensions).eql([1, 2]);
     });
 
     it("DataValue - extractRange on invalid range - edge case", () => {
@@ -265,25 +266,27 @@ describe("DataValue", () => {
     });
 
     describe("Cloning a DataValue", () => {
-
         class SomeExtensionObject extends ExtensionObject {
-            constructor(options) {
+            public a: number;
+            constructor(options: { a: number }) {
                 super();
                 this.a = options.a;
             }
-            toString() { return `a=${this.a}`}
+            toString() {
+                return `a=${this.a}`;
+            }
         }
 
-        function copy_construct(v) {
+        function copy_construct(v: DataValue) {
             return new DataValue(v);
         }
 
-        function clone(v) {
+        function clone(v: DataValue) {
             return v.clone();
         }
 
-        function install_test(copy_construct_or_clone, copy_construct_or_clone_func) {
-            it("should " + copy_construct_or_clone + " a DataValue with a simple Variant", () => {
+        function install_test(copy_construct_or_clone: string, copy_construct_or_clone_func: (v: DataValue) => DataValue) {
+            it(`should ${copy_construct_or_clone} a DataValue with a simple Variant`, () => {
                 const dv = new DataValue({
                     value: {
                         dataType: DataType.UInt32,
@@ -295,7 +298,7 @@ describe("DataValue", () => {
                 cloned.value.dataType.should.eql(dv.value.dataType);
                 cloned.value.value.should.eql(dv.value.value);
             });
-            it("should " + copy_construct_or_clone + " a DataValue with a variant array", () => {
+            it(`should ${copy_construct_or_clone} a DataValue with a variant array`, () => {
                 const dv = new DataValue({
                     value: {
                         dataType: DataType.UInt32,
@@ -316,7 +319,7 @@ describe("DataValue", () => {
                 cloned.value.value[0].should.eql(36);
                 cloned.value.value[1].should.eql(37);
             });
-            it("should " + copy_construct_or_clone + " a DataValue with a variant array of ByteString", () => {
+            it(`should ${copy_construct_or_clone} a DataValue with a variant array of ByteString`, () => {
                 const dv = new DataValue({
                     value: new Variant({
                         dataType: DataType.ByteString,
@@ -342,7 +345,7 @@ describe("DataValue", () => {
                 cloned.value.value[1].toString().should.eql("DEF");
             });
 
-            it("should " + copy_construct_or_clone + " a DataValue with a variant containing a extension object", () => {
+            it(`should ${copy_construct_or_clone} a DataValue with a variant containing a extension object`, () => {
                 const extObj = new SomeExtensionObject({ a: 36 });
                 const dv = new DataValue({
                     value: {
@@ -363,7 +366,7 @@ describe("DataValue", () => {
 
                 dv.value.value.a.should.eql(1000);
             });
-            it("should " + copy_construct_or_clone + " a DataValue with a variant containing a extension object array", () => {
+            it(`should ${copy_construct_or_clone} a DataValue with a variant containing a extension object array`, () => {
                 const extObj1 = new SomeExtensionObject({ a: 36 });
                 const extObj2 = new SomeExtensionObject({ a: 37 });
                 const dv = new DataValue({
@@ -390,37 +393,48 @@ describe("DataValue", () => {
                 dv.value.value[0].a.should.eql(1000);
                 dv.value.value[1].a.should.eql(1001);
             });
-            it("should " + copy_construct_or_clone + " a DataValue with a variant containing a extension object array , Extension Object should be diffderence", () => {
-                const extObj1 = new SomeExtensionObject({ a: 36 });
-                const extObj2 = new SomeExtensionObject({ a: 37 });
-                const dv = new DataValue({
-                    value: {
-                        dataType: DataType.ExtensionObject,
-                        arrayType: VariantArrayType.Array,
-                        value: [extObj1, extObj2]
-                    }
-                });
+            it(
+                "should " +
+                    copy_construct_or_clone +
+                    " a DataValue with a variant containing a extension object array , Extension Object should be diffderence",
+                () => {
+                    const extObj1 = new SomeExtensionObject({ a: 36 });
+                    const extObj2 = new SomeExtensionObject({ a: 37 });
+                    const dv = new DataValue({
+                        value: {
+                            dataType: DataType.ExtensionObject,
+                            arrayType: VariantArrayType.Array,
+                            value: [extObj1, extObj2]
+                        }
+                    });
 
-                // copy construct;,
-                const cloned = copy_construct_or_clone_func(dv);
-                cloned.value.dataType.should.eql(dv.value.dataType);
-                cloned.value.value.length.should.eql(dv.value.value.length);
+                    // copy construct;,
+                    const cloned = copy_construct_or_clone_func(dv);
+                    cloned.value.dataType.should.eql(dv.value.dataType);
+                    cloned.value.value.length.should.eql(dv.value.value.length);
 
+                    cloned.value.value[0].should.not.equal(
+                        dv.value.value[0],
+                        "extension object in array must not have the same identity"
+                    );
+                    cloned.value.value[1].should.not.equal(
+                        dv.value.value[1],
+                        "extension object in array must not have the same identity"
+                    );
+                    cloned.value.value[0]
+                        .toString()
+                        .should.equal(dv.value.value[0].toString(), "extension object in array must be similar");
+                    cloned.value.value[1]
+                        .toString()
+                        .should.equal(dv.value.value[1].toString(), "extension object in array must be similar");
 
-                cloned.value.value[0].should.not.equal(dv.value.value[0], "extension object in array must not have the same identity");
-                cloned.value.value[1].should.not.equal(dv.value.value[1], "extension object in array must not have the same identity");
-                cloned.value.value[0].toString().should.equal(dv.value.value[0].toString(), "extension object in array must be similar");
-                cloned.value.value[1].toString().should.equal(dv.value.value[1].toString(), "extension object in array must be similar");
-
-                //
-            });
-
+                    //
+                }
+            );
         }
 
         install_test("copy construct", copy_construct);
         install_test("clone", clone);
-
-
     });
 
     it("toJSON issue#1074", () => {
@@ -436,7 +450,9 @@ describe("DataValue", () => {
         console.log(dataValue.toJSON());
         console.log(JSON.stringify(dataValue.toJSON()));
 
-        console.log(JSON.stringify(dataValue, (k, v) => (ArrayBuffer.isView(v) ? Array.from(v) : v)));
+        // a DataView is a view too, but it is not array-like
+        const isTypedArray = (v: unknown): v is ArrayLike<number> => ArrayBuffer.isView(v) && !(v instanceof DataView);
+        console.log(JSON.stringify(dataValue, (_k, v) => (isTypedArray(v) ? Array.from(v) : v)));
     });
 
     it("should convert a DataValue to a JSON Object", () => {
@@ -453,7 +469,7 @@ describe("DataValue", () => {
         // it should be possible to convert a DataValue to a JSON object
         console.log(dataValue.toJSON());
 
-        const json = dataValue.toJSON();
+        const json = dataValue.toJSON() as DataValueOptions;
         json.should.eql({
             value: {
                 dataType: "UInt16",
@@ -467,7 +483,7 @@ describe("DataValue", () => {
         });
         // it should be possible to reconstruct a dataValue from the json object
         const dataValue1 = new DataValue(json);
-        const json1 = dataValue1.toJSON();
+        const json1 = dataValue1.toJSON() as DataValueOptions;
         json1.should.eql({
             value: {
                 dataType: "UInt16",
@@ -484,9 +500,10 @@ describe("DataValue", () => {
 
     it("should convert a DataValue with ExtensionObject to JSON", () => {
         class SomeExtensionObject extends ExtensionObject {
-            constructor(options /*: { name: string } */) {
+            public name: string;
+            constructor(options: { name: string }) {
                 super();
-                this.name = options.a;
+                this.name = options.name;
             }
             toJSON() {
                 return { name: this.name };

@@ -1,10 +1,9 @@
-"use strict";
-const { BinaryStream } = require("node-opcua-binary-stream");
-require("should");
-const { TimestampsToReturn, decodeTimestampsToReturn } = require("..");
+import { BinaryStream } from "node-opcua-binary-stream";
+import "should";
+import { decodeTimestampsToReturn, TimestampsToReturn } from "..";
 
-describe("TimestampsToReturn", function () {
-    it("should create an invalid timestampsToReturn", function () {
+describe("TimestampsToReturn", () => {
+    it("should create an invalid timestampsToReturn", () => {
         const buffer = Buffer.alloc(10);
         const stream = new BinaryStream(buffer);
         stream.writeUInt32(0x3333);

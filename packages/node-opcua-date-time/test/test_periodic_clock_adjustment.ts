@@ -1,4 +1,4 @@
-const { periodicClockAdjustment, installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } = require("..");
+import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPeriodicClockAdjustment } from "..";
 
 describe("installPeriodicClockAdjustment", () => {
     it("should install and uninstall", () => {

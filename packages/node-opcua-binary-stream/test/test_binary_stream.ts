@@ -1,17 +1,24 @@
-"use strict";
+import { assert } from "node-opcua-assert";
+import { Benchmarker } from "node-opcua-benchmarker";
+import { BinaryStream, BinaryStreamSizeCalculator, calculateByteLength } from ".."; // node-opcua-binary-stream
+import "should";
 
-const { assert } = require("node-opcua-assert");
-const { Benchmarker } = require("node-opcua-benchmarker");
-const { BinaryStream, BinaryStreamSizeCalculator, calculateByteLength } = require(".."); // node-opcua-binary-stream
-const should = require("should");
+// this suite compares the current implementation against earlier ones, which it installs on
+// the prototype under alternative names
+interface BinaryStreamWithBenchmarkVariants extends BinaryStream {
+    writeArrayBuffer_old(arrayBuf: ArrayBuffer, offset?: number, length?: number): void;
+    readArrayBuffer_old(length: number): Uint8Array;
+    readArrayBuffer1(length: number): Buffer;
+    readArrayBuffer2(length: number): Buffer;
+    readArrayBuffer3(length: number): Uint8Array;
+}
+type WriteArrayBufferFn = (this: BinaryStream, arrayBuf: ArrayBuffer, offset?: number, length?: number) => void;
+type ReadArrayBufferFn = (this: BinaryStream, length: number) => Uint8Array;
 
+const benchmarkPrototype = BinaryStream.prototype as BinaryStreamWithBenchmarkVariants;
 
-describe("Testing BinaryStream", function() {
-
-
-    it("should create a binary stream", function() {
-
-
+describe("Testing BinaryStream", () => {
+    it("should create a binary stream", () => {
         const stream = new BinaryStream();
         stream.length.should.equal(0);
 
@@ -31,12 +38,9 @@ describe("Testing BinaryStream", function() {
         const i = stream.readInteger();
         i.should.equal(100000);
         stream.length.should.equal(12);
-
-
     });
 
-    it("readArrayBuffer should not returned a shared buffer", function() {
-
+    it("readArrayBuffer should not returned a shared buffer", () => {
         const stream = new BinaryStream(50);
 
         const arr = new Int16Array(25);
@@ -72,29 +76,21 @@ describe("Testing BinaryStream", function() {
         arr2[3].should.not.eql(33);
         arr2[3].should.eql(512 + 3);
         stream.buffer[2 * 3] = 3;
-
-
     });
-
 });
 
-describe("Testing BinaryStreamSizeCalculator", function() {
-
-    it("should calculate the right size", function() {
-
+describe("Testing BinaryStreamSizeCalculator", () => {
+    it("should calculate the right size", () => {
         const stream = new BinaryStreamSizeCalculator();
         stream.writeFloat(10.00234);
         stream.writeInteger(100000);
         stream.writeDouble(100000.0);
         stream.writeByteStream(Buffer.from("Hello"));
         stream.length.should.equal(4 + 4 + 8 + 4 + 5);
-
     });
 });
 
-
-BinaryStream.prototype.writeArrayBuffer_old = function(arrayBuf, offset, length) {
-
+benchmarkPrototype.writeArrayBuffer_old = function (this: BinaryStream, arrayBuf: ArrayBuffer, offset?: number, length?: number) {
     offset = offset || 0;
 
     //xx assert(arrayBuf instanceof ArrayBuffer);
@@ -105,8 +101,7 @@ BinaryStream.prototype.writeArrayBuffer_old = function(arrayBuf, offset, length)
     }
 };
 
-BinaryStream.prototype.readArrayBuffer_old = function(length) {
-
+benchmarkPrototype.readArrayBuffer_old = function (this: BinaryStream, length: number) {
     assert(this.length + length <= this.buffer.length, "not enough bytes in buffer");
     const slice = this.buffer.slice(this.length, this.length + length);
     assert(slice.length === length);
@@ -115,8 +110,7 @@ BinaryStream.prototype.readArrayBuffer_old = function(length) {
     this.length += length;
     return byteArr;
 };
-BinaryStream.prototype.readArrayBuffer1 = function(length) {
-
+benchmarkPrototype.readArrayBuffer1 = function (this: BinaryStream, length: number) {
     //var result = new Uint8Array(this.buffer, this.length, length);
     // returns a new Buffer that shares the same allocated memory as the given ArrayBuffer.
     const result = Buffer.from(this.buffer.buffer, this.length, length);
@@ -124,13 +118,12 @@ BinaryStream.prototype.readArrayBuffer1 = function(length) {
     return Buffer.from(result);
 };
 
-BinaryStream.prototype.readArrayBuffer2 = function(length) {
+benchmarkPrototype.readArrayBuffer2 = function (this: BinaryStream, length: number) {
     const slice = this.buffer.slice(this.length, this.length + length);
     this.length += length;
     return Buffer.from(slice);
-
 };
-BinaryStream.prototype.readArrayBuffer3 = function(length) {
+benchmarkPrototype.readArrayBuffer3 = function (this: BinaryStream, length: number) {
     //xx assert(this.length + length <= this.buffer.length, "not enough bytes in buffer");
     const slice = this.buffer.slice(this.length, this.length + length);
     //xx  assert(slice.length === length);
@@ -140,18 +133,15 @@ BinaryStream.prototype.readArrayBuffer3 = function(length) {
     return byteArr;
 };
 
-
-describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer", function() {
-
+describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer", function () {
     this.timeout(200000);
 
-
     const n = 1024 * 1024 + 3;
-    let largeArray;
-    beforeEach(function() {
+    let largeArray: Float64Array<ArrayBuffer>;
+    beforeEach(() => {
         largeArray = new Float64Array(n);
         for (let i = 0; i < n; i++) {
-            largeArray[i] = (i * 0.14);
+            largeArray[i] = i * 0.14;
         }
         largeArray[10].should.eql(10 * 0.14);
         largeArray[100].should.eql(100 * 0.14);
@@ -159,8 +149,7 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
         (largeArray.byteLength % 8).should.eql(0);
     });
 
-
-    function isValidBuffer(buf) {
+    function isValidBuffer(buf: Float64Array) {
         if (buf.length !== n) {
             return false;
         }
@@ -172,8 +161,7 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
         return true;
     }
 
-    function perform(binStream_writeArrayBuffer, binStream_readArrayBuffer) {
-
+    function perform(binStream_writeArrayBuffer: WriteArrayBufferFn, binStream_readArrayBuffer: ReadArrayBufferFn) {
         largeArray[10].should.eql(10 * 0.14);
         largeArray[100].should.eql(100 * 0.14);
         const binStream = new BinaryStream(Buffer.alloc(n * 8 + 20));
@@ -193,19 +181,16 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
 
         reloaded[10].should.eql(10 * 0.14);
         reloaded[100].should.eql(100 * 0.14);
-        isValidBuffer(reloaded, largeArray).should.eql(true);
+        isValidBuffer(reloaded).should.eql(true);
     }
 
-    it("should provide a working writeArrayBuffer", function() {
-
+    it("should provide a working writeArrayBuffer", () => {
         perform(BinaryStream.prototype.writeArrayBuffer, BinaryStream.prototype.readArrayBuffer);
     });
-    it("should provide a working writeArrayBuffer_old", function() {
-
-        perform(BinaryStream.prototype.writeArrayBuffer_old, BinaryStream.prototype.readArrayBuffer_old);
-
+    it("should provide a working writeArrayBuffer_old", () => {
+        perform(benchmarkPrototype.writeArrayBuffer_old, benchmarkPrototype.readArrayBuffer_old);
     });
-    it("should provide a efficient calculateByteLength", function() {
+    it("should provide a efficient calculateByteLength", () => {
         const bench = new Benchmarker();
 
         const demoString1 = "&✌☃(｡◕‿◕｡)Ƹ̵̡Ӝ̵̨̄Ʒ  ¯\\_(ツ)_/¯  ٩(⁎❛ᴗ❛⁎)۶   (づ｡◕‿‿◕｡)づ   •*´¨`*•.¸¸.•*´¨`*•.¸¸.•*´¨`*•.¸¸.•*´¨`*•.¸¸.•";
@@ -217,61 +202,55 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
         calculateByteLength(demoString3).should.eql(Buffer.from(demoString3).length);
 
         bench
-            .add("demoString calculateByteLength", function() {
-                const l1 = calculateByteLength(demoString1);
-                const l2 = calculateByteLength(demoString2);
-                const l3 = calculateByteLength(demoString3);
+            .add("demoString calculateByteLength", () => {
+                const _l1 = calculateByteLength(demoString1);
+                const _l2 = calculateByteLength(demoString2);
+                const _l3 = calculateByteLength(demoString3);
             })
-            .add("demoString with buffer from", function() {
-                const l1 = Buffer.from(demoString1).length;
-                const l2 = Buffer.from(demoString2).length;
-                const l3 = Buffer.from(demoString3).length;
+            .add("demoString with buffer from", () => {
+                const _l1 = Buffer.from(demoString1).length;
+                const _l2 = Buffer.from(demoString2).length;
+                const _l3 = Buffer.from(demoString3).length;
             })
 
-            .on('cycle', function(message) {
+            .on("cycle", (message) => {
                 console.log(message);
             })
-            .on('complete', function() {
-                console.log(' Fastest is ' + this.fastest.name);
-                console.log(' Speed Up : x', this.speedUp);
-                //xx this.fastest.name.should.eql("Variant.encode");
-
+            .on("complete", function (this: Benchmarker) {
+                console.log(` Fastest is ${this.fastest?.name}`);
+                console.log(" Speed Up : x", this.speedUp);
+                //xx this.fastest?.name.should.eql("Variant.encode");
             })
             .run({ max_time: 0.5 });
     });
 
-
-    it("should provide a efficient writeArrayBuffer", function() {
-
-        const binStream1 = new BinaryStream(Buffer.alloc(n * 8 + 20));
+    it("should provide a efficient writeArrayBuffer", () => {
+        const binStream1 = new BinaryStream(Buffer.alloc(n * 8 + 20)) as BinaryStreamWithBenchmarkVariants;
         const binStream2 = new BinaryStream(Buffer.alloc(n * 8 + 20));
         largeArray.byteLength.should.eql(n * 8);
         const bench = new Benchmarker();
         bench
-            .add("writeArrayBuffer (old version with byte copy)", function() {
+            .add("writeArrayBuffer (old version with byte copy)", () => {
                 binStream1.rewind();
                 binStream1.writeArrayBuffer_old(largeArray.buffer, 0, largeArray.byteLength);
             })
-            .add("writeArrayBuffer", function() {
+            .add("writeArrayBuffer", () => {
                 binStream2.rewind();
                 binStream2.writeArrayBuffer(largeArray.buffer, 0, largeArray.byteLength);
             })
-            .on('cycle', function(message) {
+            .on("cycle", (message) => {
                 console.log(message);
             })
-            .on('complete', function() {
-
-                console.log(' Fastest is ' + this.fastest.name);
-                console.log(' Speed Up : x', this.speedUp);
-                //xx this.fastest.name.should.eql("Variant.encode");
-
+            .on("complete", function (this: Benchmarker) {
+                console.log(` Fastest is ${this.fastest?.name}`);
+                console.log(" Speed Up : x", this.speedUp);
+                //xx this.fastest?.name.should.eql("Variant.encode");
             })
             .run({ max_time: 0.2 });
     });
 
-    it("should provide a efficient readArrayBuffer", function() {
-
-        const binStream1 = new BinaryStream(Buffer.alloc(n * 8 + 20));
+    it("should provide a efficient readArrayBuffer", () => {
+        const binStream1 = new BinaryStream(Buffer.alloc(n * 8 + 20)) as BinaryStreamWithBenchmarkVariants;
         binStream1.writeArrayBuffer(largeArray.buffer, 0, largeArray.byteLength);
 
         //var binStream2 = new BinaryStream(Buffer.alloc(n * 8 + 20));
@@ -281,61 +260,58 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
 
         const bench = new Benchmarker();
         bench
-            .add("readArrayBuffer_old (old version with byte copy)", function() {
+            .add("readArrayBuffer_old (old version with byte copy)", () => {
                 binStream1.rewind();
                 const arr = binStream1.readArrayBuffer_old(largeArray.byteLength);
-                isValidBuffer(new Float64Array(arr.buffer), largeArray).should.eql(true);
+                isValidBuffer(new Float64Array(arr.buffer)).should.eql(true);
             })
-            .add("readArrayBuffer1", function() {
+            .add("readArrayBuffer1", () => {
                 binStream1.rewind();
                 const arr = binStream1.readArrayBuffer1(largeArray.byteLength);
-                isValidBuffer(new Float64Array(arr.buffer), largeArray).should.eql(true);
+                isValidBuffer(new Float64Array(arr.buffer)).should.eql(true);
             })
-            .add("readArrayBuffer2", function() {
+            .add("readArrayBuffer2", () => {
                 binStream1.rewind();
                 const arr = binStream1.readArrayBuffer2(largeArray.byteLength);
-                isValidBuffer(new Float64Array(arr.buffer), largeArray).should.eql(true);
+                isValidBuffer(new Float64Array(arr.buffer)).should.eql(true);
             })
-            .add("readArrayBuffer3", function() {
+            .add("readArrayBuffer3", () => {
                 binStream1.rewind();
                 const arr = binStream1.readArrayBuffer3(largeArray.byteLength);
-                isValidBuffer(new Float64Array(arr.buffer), largeArray).should.eql(true);
+                isValidBuffer(new Float64Array(arr.buffer)).should.eql(true);
             })
-            .add("readArrayBuffer", function() {
+            .add("readArrayBuffer", () => {
                 binStream1.rewind();
                 const arr = binStream1.readArrayBuffer(largeArray.byteLength);
-                isValidBuffer(new Float64Array(arr.buffer), largeArray).should.eql(true);
+                isValidBuffer(new Float64Array(arr.buffer)).should.eql(true);
             })
-            .on('cycle', function(message) {
+            .on("cycle", (message) => {
                 console.log(message);
             })
-            .on('complete', function() {
-
-                console.log(' Fastest is ' + this.fastest.name);
-                console.log(' Speed Up : x', this.speedUp);
-                //xx this.fastest.name.should.eql("Variant.encode");
-
+            .on("complete", function (this: Benchmarker) {
+                console.log(` Fastest is ${this.fastest?.name}`);
+                console.log(" Speed Up : x", this.speedUp);
+                //xx this.fastest?.name.should.eql("Variant.encode");
             })
             .run({ max_time: 0.2 });
     });
 
-    it("round trip", function() {
-
+    it("round trip", () => {
         largeArray.byteLength.should.eql(n * 8);
 
-        const binStream1 = new BinaryStream(Buffer.alloc(n * 8 + 20));
+        const binStream1 = new BinaryStream(Buffer.alloc(n * 8 + 20)) as BinaryStreamWithBenchmarkVariants;
         binStream1.writeArrayBuffer(largeArray.buffer, 0, largeArray.byteLength);
 
         const bench = new Benchmarker();
         bench
-            .add("writeArrayBuffer_old/readArrayBuffer_old (old version with byte copy)", function() {
+            .add("writeArrayBuffer_old/readArrayBuffer_old (old version with byte copy)", () => {
                 binStream1.rewind();
                 binStream1.writeArrayBuffer_old(largeArray.buffer, 0, largeArray.byteLength);
                 binStream1.rewind();
                 const arr = binStream1.readArrayBuffer_old(largeArray.byteLength);
-                isValidBuffer(new Float64Array(arr.buffer), largeArray).should.eql(true);
+                isValidBuffer(new Float64Array(arr.buffer)).should.eql(true);
             })
-            .add("writeArrayBuffer/readArrayBuffer", function() {
+            .add("writeArrayBuffer/readArrayBuffer", () => {
                 binStream1.rewind();
                 binStream1.writeArrayBuffer(largeArray.buffer, 0, largeArray.byteLength);
                 binStream1.rewind();
@@ -347,18 +323,16 @@ describe("Testing BinaryStream#writeArrayBuffer /  BinaryStream#readArrayBuffer"
                 arr.length.should.eql(largeArray.byteLength, "byteLength should match");
                 (arr.length % 8).should.eql(0, "must be a multiple of 8");
 
-                isValidBuffer(new Float64Array(arr.buffer), largeArray).should.eql(true);
+                isValidBuffer(new Float64Array(arr.buffer)).should.eql(true);
             })
-            .on('cycle', function(message) {
+            .on("cycle", (message) => {
                 console.log(message);
             })
-            .on('complete', function() {
-
-                console.log(' Fastest is ' + this.fastest.name);
-                console.log(' Speed Up : x', this.speedUp);
-                //xx this.fastest.name.should.eql("Variant.encode");
+            .on("complete", function (this: Benchmarker) {
+                console.log(` Fastest is ${this.fastest?.name}`);
+                console.log(" Speed Up : x", this.speedUp);
+                //xx this.fastest?.name.should.eql("Variant.encode");
                 largeArray.byteLength.should.eql(n * 8);
-
             })
             .run({ max_time: 0.2 });
     });

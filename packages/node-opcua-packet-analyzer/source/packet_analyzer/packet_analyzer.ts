@@ -203,8 +203,8 @@ export interface ObjectMessage {
 
 export function analyzePacket(
     buffer: Buffer,
-    objMessage: ObjectMessage,
-    padding: number,
+    objMessage?: ObjectMessage,
+    padding = 0,
     offset?: number,
     customOptions?: AnalyzePacketOptions
 ): void {

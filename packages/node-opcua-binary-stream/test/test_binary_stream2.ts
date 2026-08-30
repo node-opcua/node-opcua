@@ -1,5 +1,13 @@
-const { BinaryStreamSizeCalculator, BinaryStream } = require("..");
-const should = require("should");
+import should from "should";
+import { BinaryStream, BinaryStreamSizeCalculator } from "..";
+
+// the suites below look their codec up by name, so the table's value type has to be named once
+type CodecValue = number | string | Buffer | ArrayBuffer | null;
+type CodecMethod = (...args: CodecValue[]) => CodecValue;
+
+function methodOf(target: object, name: string): CodecMethod {
+    return Reflect.get(target, name) as CodecMethod;
+}
 
 const testCases = [
     { suffix: "Int8", value: 100, expectedLength: 1 },
@@ -19,40 +27,36 @@ const testCases = [
     { suffix: "ArrayBuffer", value: new ArrayBuffer(10), expectedLength: 10 }
     //{ suffix: "Int64", value: [0, 100], expectedLength: 8 },
     //{ suffix: "UInt64", value: [0, 100], expectedLength: 8 },
-]
+];
 describe("BinaryStreamSizeCalculator", () => {
-
     for (const { suffix, value, expectedLength } of testCases) {
         it(`${suffix}`, () => {
             const binarySizeCalculator = new BinaryStreamSizeCalculator();
 
-            const p = binarySizeCalculator["write" + suffix];
+            const p = methodOf(binarySizeCalculator, `write${suffix}`);
 
-            should.exist(p, " BinaryStreamSizeCalculator#write" + suffix + " not found");
+            should.exist(p, ` BinaryStreamSizeCalculator#write${suffix} not found`);
             p.call(binarySizeCalculator, value);
 
             binarySizeCalculator.length.should.eql(expectedLength);
 
             binarySizeCalculator.rewind();
             binarySizeCalculator.length.should.eql(0);
-
-        })
-
+        });
     }
 });
 describe("BinaryStream", () => {
-
     for (const { suffix, value, expectedLength } of testCases) {
         it(`${suffix}`, () => {
             const stream = new BinaryStream();
 
-            const p = stream["write" + suffix];
+            const p = methodOf(stream, `write${suffix}`);
             p.call(stream, value);
 
             stream.length.should.eql(expectedLength);
 
             stream.rewind();
-            const r = stream["read" + suffix];
+            const r = methodOf(stream, `read${suffix}`);
             const value2 = r.call(stream);
 
             if (value === null) {
@@ -60,11 +64,13 @@ describe("BinaryStream", () => {
             } else if (value instanceof ArrayBuffer) {
                 // nothing
             } else if (value instanceof Buffer) {
+                if (!Buffer.isBuffer(value2)) {
+                    throw new Error(`expecting write${suffix}/read${suffix} to round-trip a Buffer`);
+                }
                 value.toString("base64").should.eql(value2.toString("base64"));
             } else {
-
                 value.should.eql(value2);
             }
-        })
+        });
     }
 });

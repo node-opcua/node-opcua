@@ -1,13 +1,16 @@
-"use strict";
+// biome-ignore-all lint/complexity/useLiteralKeys: _timer is private, and bracket access is how a test reaches it
+import { EventEmitter } from "node:events";
+import "node:util";
+import should from "should";
+import sinon from "sinon";
 
-const { EventEmitter } = require("events");
-const util = require("util");
-const should = require("should");
-const sinon = require("sinon");
+import { type ISubscriber, type IWatchdogData2, WatchDog } from "..";
 
-const {WatchDog } = require("..");
+class MyObject extends EventEmitter implements ISubscriber {
+    // both are installed by WatchDog#addSubscriber
+    public _watchDogData!: IWatchdogData2;
+    public keepAlive!: () => void;
 
-class MyObject extends EventEmitter {
     watchdogReset() {
         this.emit("watchdogReset");
     }
@@ -17,26 +20,16 @@ class MyObject extends EventEmitter {
 // http://sinonjs.org/docs/#clock
 describe("watch dog", function () {
     this.timeout(10000);
-    let watchDog = null;
+    let watchDog: WatchDog;
+    let clock: sinon.SinonFakeTimers;
     beforeEach(() => {
-        this.clock = sinon.useFakeTimers();
+        clock = sinon.useFakeTimers();
         watchDog = new WatchDog();
-
-        if (false) {
-            // let's verify that process.hrtime is also affected by sinon.useFakeTimers();
-            should.exist(watchDog.getCurrentSystemTick);
-            const old_getCurrentSystemTick = watchDog.getCurrentSystemTick;
-            watchDog.getCurrentSystemTick = () => {
-                const tick = old_getCurrentSystemTick();
-                console.log("XXXX", tick, process.hrtime());
-                return tick;
-            };
-        }
     });
 
     afterEach(() => {
         watchDog.shutdown();
-        this.clock.restore();
+        clock.restore();
     });
 
     it("should maintain a subscriber count", () => {
@@ -53,22 +46,22 @@ describe("watch dog", function () {
 
     it("should not have a timer running if no subscriber", () => {
         watchDog.subscriberCount.should.eql(0);
-        should(watchDog._timer).equal(null);
+        should(watchDog["_timer"]).equal(null);
     });
 
     it("should have the internal timer running after the first subscriber has registered", () => {
-        should(watchDog._timer).equal(null);
+        should(watchDog["_timer"]).equal(null);
 
         const obj1 = new MyObject();
         watchDog.addSubscriber(obj1, 1000);
 
-        should.exist(watchDog._timer);
+        should.exist(watchDog["_timer"]);
 
         watchDog.removeSubscriber(obj1);
     });
 
     it("should stop the internal timer running after the last subscriber has unregistered", () => {
-        should(watchDog._timer).equal(null);
+        should(watchDog["_timer"]).equal(null);
 
         const obj1 = new MyObject();
         watchDog.addSubscriber(obj1, 1000);
@@ -77,12 +70,13 @@ describe("watch dog", function () {
         watchDog.addSubscriber(obj1, 1000);
         watchDog.removeSubscriber(obj1);
 
-        should.not.exist(watchDog._timer);
+        should.not.exist(watchDog["_timer"]);
     });
 
     it("should fail if the object subscribing to the WatchDog doesn't provide a 'watchdogReset' method", (done) => {
         should(() => {
-            watchDog.addSubscriber({}, 100);
+            // deliberately missing watchdogReset, which is the whole point of this test
+            watchDog.addSubscriber({} as ISubscriber, 100);
         }).throwError();
         done();
     });
@@ -110,7 +104,7 @@ describe("watch dog", function () {
 
         obj.on("watchdogReset", done);
 
-        this.clock.tick(2000);
+        clock.tick(2000);
     });
 
     it("should visit subscribers on a regular basis", (done) => {
@@ -148,16 +142,16 @@ describe("watch dog", function () {
         }, 10000);
 
         setTimeout(done, 15000);
-        this.clock.tick(20000);
+        clock.tick(20000);
     });
     it("should emit an event when it finds that some subscriber has reached the timeout period without sending a keepAlive signal", (done) => {
         const obj1 = new MyObject();
         watchDog.addSubscriber(obj1, 1000);
 
-        watchDog.on("timeout", function (subscribers) {
+        watchDog.on("timeout", (subscribers: ISubscriber[]) => {
             subscribers.length.should.eql(1);
             done();
         });
-        this.clock.tick(20000);
+        clock.tick(20000);
     });
 });

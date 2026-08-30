@@ -1,7 +1,9 @@
 /**
  * @module node-opcua-utils
  */
-export function capitalizeFirstLetter(str: string): string {
+export function capitalizeFirstLetter(str: null): null;
+export function capitalizeFirstLetter(str: string): string;
+export function capitalizeFirstLetter(str: string | null): string | null {
     if (str == null) {
         return str;
     }
@@ -102,7 +104,9 @@ export function countAlpha(str: string): number {
  *  SV_GasOn       => SV_gasOn
  *  DI_VAL_FlowImp => DI_VAL_flowImp
  */
-export function lowerFirstLetter(str: string): string {
+export function lowerFirstLetter(str: null): null;
+export function lowerFirstLetter(str: string): string;
+export function lowerFirstLetter(str: string | null): string | null {
     if (str == null) {
         return str;
     }

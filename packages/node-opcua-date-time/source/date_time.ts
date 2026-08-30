@@ -71,7 +71,7 @@ const factorLong = long.fromNumber(factor, true);
  *
  * @returns {[high,low]}
  */
-export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds: number) {
+export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds?: number) {
     // note : The value returned by the getTime method is the number
     //        of milliseconds since 1 January 1970 00:00:00 UTC.
     //
@@ -86,7 +86,7 @@ export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds: numb
     return high_low;
 }
 
-export function bn_dateToHundredNanoSecondFrom1601Excess(_date: Date, picoseconds: number): number {
+export function bn_dateToHundredNanoSecondFrom1601Excess(_date: Date, picoseconds?: number): number {
     // 100 nano seconds = 100 x 1000 picoseconds
     return (picoseconds || 0) % 100000;
 }
