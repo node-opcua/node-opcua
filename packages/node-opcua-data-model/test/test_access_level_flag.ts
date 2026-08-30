@@ -1,21 +1,19 @@
-const path = require("path");
-const should = require("should");
-const { assert } = require("node-opcua-assert");
-const { BinaryStream } = require("node-opcua-binary-stream");
-const { findBuiltInType } = require("node-opcua-factory");
+import "node:path";
+import "should";
+import { BinaryStream } from "node-opcua-binary-stream";
 
-const {
-    convertAccessLevelFlagToByte,
+import {
     AccessLevelFlag,
-    makeAccessLevelFlag,
     accessLevelFlagToString,
-    randomAccessLevel,
+    convertAccessLevelFlagToByte,
+    decodeAccessLevelFlag,
     encodeAccessLevelFlag,
-    decodeAccessLevelFlag
-} = require("..");
+    makeAccessLevelFlag,
+    randomAccessLevel
+} from "..";
 
-describe("Testing AccessLevelFlag", function () {
-    it("should create a access level flags from a string", function () {
+describe("Testing AccessLevelFlag", () => {
+    it("should create a access level flags from a string", () => {
         makeAccessLevelFlag("CurrentRead").should.equal(0x01);
         makeAccessLevelFlag("CurrentWrite").should.equal(0x02);
         makeAccessLevelFlag("CurrentRead | CurrentWrite").should.equal(0x03);
@@ -28,20 +26,20 @@ describe("Testing AccessLevelFlag", function () {
         makeAccessLevelFlag(makeAccessLevelFlag("CurrentRead")).should.equal(0x01);
     });
 
-    it("should create a flag with no bit set", function () {
+    it("should create a flag with no bit set", () => {
         const accessLevel = makeAccessLevelFlag("");
         accessLevel.should.eql(AccessLevelFlag.NONE);
         (accessLevel & AccessLevelFlag.CurrentRead).should.eql(0);
         (accessLevel & AccessLevelFlag.CurrentWrite).should.eql(0);
     });
-    it("should create a flag with no bit set -> 0", function () {
+    it("should create a flag with no bit set -> 0", () => {
         const accessLevel = makeAccessLevelFlag(0);
         accessLevel.should.eql(AccessLevelFlag.NONE);
         (accessLevel & AccessLevelFlag.CurrentRead).should.eql(0);
         (accessLevel & AccessLevelFlag.CurrentWrite).should.eql(0);
     });
 
-    it("should provide a easy way to check if a flag is set or not", function () {
+    it("should provide a easy way to check if a flag is set or not", () => {
         const accessLevel = makeAccessLevelFlag("CurrentWrite | CurrentRead");
         (accessLevel & AccessLevelFlag.CurrentWrite).should.be.eql(AccessLevelFlag.CurrentWrite);
         (accessLevel & AccessLevelFlag.CurrentRead).should.be.eql(AccessLevelFlag.CurrentRead);
@@ -58,7 +56,9 @@ describe("Testing AccessLevelFlag", function () {
         accessLevelFlagToString(0x3f | AccessLevelFlag.TimestampWrite).should.eql(
             "CurrentRead | CurrentWrite | StatusWrite | TimestampWrite | HistoryRead | HistoryWrite | SemanticChange"
         );
-        accessLevelFlagToString(0).should.eql("None");
+        // 0 is the empty bitmask, which is a legitimate runtime value; the enum has
+        // no 0 member (None is 0x800), so it needs to be said explicitly
+        accessLevelFlagToString(0 as AccessLevelFlag).should.eql("None");
     });
     it("randomAccessLevel", () => {
         const flag = randomAccessLevel();

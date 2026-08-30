@@ -1,15 +1,15 @@
-const should = require("should");
-const { BinaryStream } = require("node-opcua-binary-stream");
-const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
-const { LocalizedText, coerceLocalizedText, decodeLocalizedText, encodeLocalizedText } = require("..");
+import { BinaryStream } from "node-opcua-binary-stream";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import should from "should";
+import { coerceLocalizedText, decodeLocalizedText, encodeLocalizedText, LocalizedText } from "..";
 
 describe("LocalizedText", () => {
     it("should create a LocalizeText", () => {
         const localizedText = new LocalizedText({ text: "HelloWorld", locale: "en-US" });
         localizedText.should.have.property("text");
         localizedText.should.have.property("locale");
-        localizedText.text.should.equal("HelloWorld");
-        localizedText.locale.should.equal("en-US");
+        localizedText.text!.should.equal("HelloWorld");
+        localizedText.locale!.should.equal("en-US");
     });
 
     it("should encode and decode a LocalizeText that have both text and locale", () => {
@@ -28,8 +28,8 @@ describe("LocalizedText", () => {
         localizedText_check.decode(stream);
 
         localizedText_check.should.eql(localizedText);
-        localizedText_check.text.should.equal("HelloWorld");
-        localizedText_check.locale.should.equal("en-US");
+        localizedText_check.text!.should.equal("HelloWorld");
+        localizedText_check.locale!.should.equal("en-US");
     });
 
     it("should encode and decode a LocalizeText that have text but no locale", () => {
@@ -50,7 +50,7 @@ describe("LocalizedText", () => {
         stream.rewind();
         localizedText_check.decode(stream);
 
-        localizedText_check.text.should.equal("HelloWorld");
+        localizedText_check.text!.should.equal("HelloWorld");
         should.not.exist(localizedText_check.locale);
     });
 
@@ -73,7 +73,7 @@ describe("LocalizedText", () => {
         localizedText_check.decode(stream);
 
         localizedText_check.should.eql(localizedText);
-        localizedText_check.locale.should.equal("en-US");
+        localizedText_check.locale!.should.equal("en-US");
         localizedText_check.should.have.property("text");
         should.not.exist(localizedText_check.text);
     });
@@ -97,7 +97,7 @@ describe("LocalizedText", () => {
         LocalizedText.schema.name.should.eql("LocalizedText");
     });
     it("LocalizedText#coerce", () => {
-        LocalizedText.coerce("A").should.eql(new LocalizedText({ text: "A" }));
+        LocalizedText.coerce("A")!.should.eql(new LocalizedText({ text: "A" }));
     });
     it("LocalizedText#encode/decode", () => {
         const stream = new BinaryStream();
@@ -111,7 +111,7 @@ describe("LocalizedText", () => {
     });
     it("LocalizedText#encode/decode", () => {
         const stream = new BinaryStream();
-        const localizedText = new LocalizedText("A");
+        const _localizedText = new LocalizedText("A");
         encodeLocalizedText(null, stream);
 
         // form1
@@ -127,26 +127,26 @@ describe("LocalizedText", () => {
     });
     it("encode/decode 1", () => {
         const localizedText1 = new LocalizedText("A");
-        encode_decode_round_trip_test(localizedText1, (buffer, id) => {
+        encode_decode_round_trip_test(localizedText1, (buffer, _id) => {
             buffer.length.should.equal(6);
         });
     });
     it("encode/decode 2", () => {
         const localizedText2 = new LocalizedText(null);
-        encode_decode_round_trip_test(localizedText2, (buffer, id) => {
+        encode_decode_round_trip_test(localizedText2, (buffer, _id) => {
             buffer.length.should.equal(1);
         });
     });
     it("encode/decode 3", () => {
         const localizedText3 = new LocalizedText({ locale: "a" });
         localizedText3.toString().should.eql("locale=a text=null");
-        encode_decode_round_trip_test(localizedText3, (buffer, id) => {
+        encode_decode_round_trip_test(localizedText3, (buffer, _id) => {
             buffer.length.should.equal(6);
         });
     });
     it("encode/decode 4", () => {
         const localizedText4 = new LocalizedText({ locale: "a", text: "b" });
-        encode_decode_round_trip_test(localizedText4, (buffer, id) => {
+        encode_decode_round_trip_test(localizedText4, (buffer, _id) => {
             buffer.length.should.equal(11);
         });
     });

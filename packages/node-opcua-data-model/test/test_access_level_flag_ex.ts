@@ -1,18 +1,16 @@
-const { findBuiltInType } = require("node-opcua-factory");
-const { BinaryStream } = require("node-opcua-binary-stream");
+import { BinaryStream } from "node-opcua-binary-stream";
 
-const {
-    convertAccessLevelEFlagToByte,
+import {
     AccessLevelExFlag,
-    makeAccessLevelExFlag,
     accessLevelExFlagToString,
-    randomAccessLevelEx,
+    decodeAccessLevelExFlag,
     encodeAccessLevelExFlag,
-    decodeAccessLevelExFlag
-} = require("..");
+    makeAccessLevelExFlag,
+    randomAccessLevelEx
+} from "..";
 
-describe("Testing AccessLevelExFlag", function () {
-    it("should create a access level extended flags from a string", function () {
+describe("Testing AccessLevelExFlag", () => {
+    it("should create a access level extended flags from a string", () => {
         makeAccessLevelExFlag(0).should.eql(AccessLevelExFlag.None);
         makeAccessLevelExFlag("").should.eql(AccessLevelExFlag.None);
 
@@ -39,7 +37,7 @@ describe("Testing AccessLevelExFlag", function () {
         makeAccessLevelExFlag(makeAccessLevelExFlag("NoSubDataTypes")).should.equal(AccessLevelExFlag.NoSubDataTypes);
     });
 
-    it("should provide a easy way to check if a flag is set or not", function () {
+    it("should provide a easy way to check if a flag is set or not", () => {
         const accessLevel = makeAccessLevelExFlag("CurrentWrite | CurrentRead");
         (accessLevel & AccessLevelExFlag.CurrentWrite).should.be.eql(AccessLevelExFlag.CurrentWrite);
         (accessLevel & AccessLevelExFlag.CurrentRead).should.be.eql(AccessLevelExFlag.CurrentRead);
@@ -54,7 +52,8 @@ describe("Testing AccessLevelExFlag", function () {
         accessLevelExFlagToString(0x3f | AccessLevelExFlag.TimestampWrite).should.eql(
             "CurrentRead | CurrentWrite | StatusWrite | TimestampWrite | HistoryRead | HistoryWrite | SemanticChange"
         );
-        accessLevelExFlagToString(0).should.eql("None");
+        // 0 is the empty bitmask, not a declared enum member - see the sibling test
+        accessLevelExFlagToString(0 as AccessLevelExFlag).should.eql("None");
         accessLevelExFlagToString(AccessLevelExFlag.WriteFullArrayOnly).should.eql("WriteFullArrayOnly");
         accessLevelExFlagToString(
             AccessLevelExFlag.NoSubDataTypes | AccessLevelExFlag.NonatomicWrite | AccessLevelExFlag.NonatomicRead

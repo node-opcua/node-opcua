@@ -1,6 +1,6 @@
-const factories = require("node-opcua-factory");
+import * as factories from "node-opcua-factory";
 
-const ObjWithAccessLevel_Schema = {
+export const ObjWithAccessLevel_Schema = {
     id: factories.next_available_id(),
     name: "ObjWithAccessLevel",
     fields: [
@@ -11,4 +11,3 @@ const ObjWithAccessLevel_Schema = {
         }
     ]
 };
-exports.ObjWithAccessLevel_Schema = ObjWithAccessLevel_Schema;

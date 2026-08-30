@@ -230,7 +230,11 @@ export class BinaryStream {
         this.buffer = bigger;
     }
 
-    constructor(data: undefined | Buffer | number) {
+    // optional, not `undefined | Buffer | number` as a required parameter: the body has
+    // always handled the absent case by allocating a default buffer, and callers have
+    // always written `new BinaryStream()`. Only the declaration said otherwise, and the
+    // .js tests reached it through require()'s `any`, so nothing ever checked.
+    constructor(data?: Buffer | number) {
         if (data === undefined) {
             this.buffer = Buffer.allocUnsafe(1024);
         } else if (typeof data === "number") {
