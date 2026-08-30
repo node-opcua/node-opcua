@@ -1,4 +1,4 @@
-const { AttributeIds, isValidAttributeId } = require("..");
+import { AttributeIds, isValidAttributeId } from "..";
 
 describe("AttributeIds", () => {
     it("isValidAttributeId 1", () => {

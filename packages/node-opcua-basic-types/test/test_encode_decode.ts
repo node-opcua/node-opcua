@@ -1,21 +1,21 @@
-"use strict";
-const { randomBytes } = require("node-opcua-utils");
-const should = require("should");
+import { BinaryStream, type OutputBinaryStream } from "node-opcua-binary-stream";
+import { hexDump } from "node-opcua-debug";
+import * as guid from "node-opcua-guid";
+import { randomBytes } from "node-opcua-utils";
+import should from "should";
 
-const { hexDump } = require("node-opcua-debug");
-const { BinaryStream } = require("node-opcua-binary-stream");
-const guid = require("node-opcua-guid");
+import * as ec from "..";
 
-const ec = require("..");
-const {
-    makeNodeId,
-    NodeIdType,
-    NodeId,
-    makeExpandedNodeId,
-    ExpandedNodeId
-} = require("node-opcua-nodeid");
-const { encodeNodeId, decodeNodeId, randomGuid } = require("..");
+// These suites drive the codecs by name ("coerce" + type). A module namespace has no
+// index signature, so the lookup needs a view that does; the shape below is what the
+// tests actually use.
+type CodecValue = number | number[];
+type CodecByName = Record<string, (value?: CodecValue | string | null) => CodecValue>;
+const ecByName = ec as unknown as CodecByName;
 
+import { ExpandedNodeId, makeExpandedNodeId, makeNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
+import type { ByteString } from "..";
+import { decodeNodeId, encodeNodeId, randomGuid } from "..";
 
 /**
  * @method test_encode_decode
@@ -30,7 +30,14 @@ const { encodeNodeId, decodeNodeId, randomGuid } = require("..");
  * @param [verify_buffer_func=null] {Function}
  * @param verify_buffer_func.buffer {Buffer}
  */
-function test_encode_decode(obj, encode_func, decode_func, expectedLength, verify_buffer_func) {
+function test_encode_decode<T>(
+    obj: T,
+    encode_func: (obj: T, stream: OutputBinaryStream) => void,
+    decode_func: (stream: BinaryStream) => T,
+    expectedLength: number,
+    // optional in fact: the body only calls it when it is supplied
+    verify_buffer_func?: (buffer: Buffer) => void
+): void {
     const binaryStream = new BinaryStream();
     binaryStream.length.should.equal(0);
 
@@ -46,7 +53,7 @@ function test_encode_decode(obj, encode_func, decode_func, expectedLength, verif
     binaryStream.length.should.equal(expectedLength);
 
     if (obj !== undefined && obj !== null) {
-        obj_reloaded.should.eql(obj);
+        should(obj_reloaded).eql(obj);
     } else {
         should.not.exists(obj_reloaded);
     }
@@ -151,7 +158,7 @@ describe("testing built-in type encoding", () => {
     });
 
     it("should encode and decode a null string", () => {
-        let value;
+        const value: string | null = null;
 
         test_encode_decode(value, ec.encodeString, ec.decodeString, 4, (buffer) => {
             // should be little endian
@@ -194,16 +201,15 @@ describe("testing built-in type encoding", () => {
         });
     });
 
-
     it("should encode and decode a DateTime - origin", () => {
         const value = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
-        test_encode_decode(value, ec.encodeDateTime, ec.decodeDateTime, 8, (buffer) => {
+        test_encode_decode(value, ec.encodeDateTime, ec.decodeDateTime, 8, (_buffer) => {
             // todo
         });
     });
     it("should encode and decode a DateTime", () => {
         const value = new Date(Date.UTC(2014, 0, 2, 15, 0));
-        test_encode_decode(value, ec.encodeDateTime, ec.decodeDateTime, 8, (buffer) => {
+        test_encode_decode(value, ec.encodeDateTime, ec.decodeDateTime, 8, (_buffer) => {
             // todo
         });
     });
@@ -362,16 +368,13 @@ describe("testing built-in type encoding", () => {
     });
 
     it("should encode and decode a BYTESTRING NodeId", () => {
-
         const nodeId = new NodeId(NodeIdType.BYTESTRING, randomBytes(16));
 
         const expectedLength = 1 + 2 + 4 + 16;
-        test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, expectedLength, (buffer) => {
-        });
+        test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, expectedLength, (_buffer) => {});
     });
 
     it("should use the second form of decodeNodeId", () => {
-
         const nodeId = new NodeId(NodeIdType.GUID, randomGuid());
         const stream = new BinaryStream();
         encodeNodeId(nodeId, stream);
@@ -381,8 +384,6 @@ describe("testing built-in type encoding", () => {
         decodeNodeId(stream, reloadedNodeId);
 
         NodeId.sameNodeId(reloadedNodeId, nodeId).should.eql(true);
-
-
     });
 
     it("should encode and decode a Expanded NodeId  - TwoBytes", () => {
@@ -437,26 +438,23 @@ describe("encoding and decoding string", () => {
     });
 });
 describe("encoding and decoding arrays", () => {
-
     it("should encode and decode a null array of integer", () => {
-
-        function encode_array_float(arr, stream) {
+        function encode_array_float(arr: number[] | null, stream: OutputBinaryStream) {
             ec.encodeArray(arr, stream, ec.encodeFloat);
         }
 
-        function decode_array_float(stream) {
+        function decode_array_float(stream: BinaryStream) {
             return ec.decodeArray(stream, ec.decodeFloat);
         }
         test_encode_decode(null, encode_array_float, decode_array_float, 4);
-
     });
 
     it("should encode and decode an array of integer", () => {
-        function encode_array_float(arr, stream) {
+        function encode_array_float(arr: number[] | null, stream: OutputBinaryStream) {
             ec.encodeArray(arr, stream, ec.encodeFloat);
         }
 
-        function decode_array_float(stream) {
+        function decode_array_float(stream: BinaryStream) {
             return ec.decodeArray(stream, ec.decodeFloat);
         }
 
@@ -464,11 +462,11 @@ describe("encoding and decoding arrays", () => {
     });
 
     it("should encode and decode an array of strings", () => {
-        function encode_array_string(arr, stream) {
+        function encode_array_string(arr: (string | null)[] | null, stream: OutputBinaryStream) {
             ec.encodeArray(arr, stream, ec.encodeString);
         }
 
-        function decode_array_string(stream) {
+        function decode_array_string(stream: BinaryStream) {
             return ec.decodeArray(stream, ec.decodeString);
         }
 
@@ -481,28 +479,27 @@ describe("encoding and decoding arrays", () => {
     });
 
     it("should encode and decode an array of ByteString", () => {
-        function encode_array_string(arr, stream) {
+        function encode_array_bytestring(arr: ByteString[] | null, stream: OutputBinaryStream) {
             ec.encodeArray(arr, stream, ec.encodeByteString);
         }
 
-        function decode_array_string(stream) {
+        function decode_array_bytestring(stream: BinaryStream) {
             return ec.decodeArray(stream, ec.decodeByteString);
         }
 
-        let data = [Buffer.from("ABCD"), null, Buffer.alloc(0), []];
-        data = data.map(ec.coerceByteString);
+        const raw: (Buffer | null | never[])[] = [Buffer.from("ABCD"), null, Buffer.alloc(0), []];
+        const data = raw.map((v) => ec.coerceByteString(v as ByteString)) as ByteString[];
 
-        test_encode_decode(data, encode_array_string, decode_array_string, 24);
+        test_encode_decode(data, encode_array_bytestring, decode_array_bytestring, 24);
     });
 });
 
 describe("check isValid and random for various types", () => {
-
     it("isValidDouble on string shall return false", () => {
-        ec.isValidDouble("Value").should.eql(false);
+        ec.isValidDouble("Value" as unknown as number).should.eql(false);
     });
     it("isValidFloat on string shall return false", () => {
-        ec.isValidFloat("Value").should.eql(false);
+        ec.isValidFloat("Value" as unknown as number).should.eql(false);
     });
 
     it("should test isValid on Int32", () => {
@@ -535,15 +532,15 @@ describe("check isValid and random for various types", () => {
         "UInt64"
     ];
 
-    types.forEach(function(type) {
-        it("should have a random and isValid method for type " + type, () => {
-            const randomFunc = ec["random" + type];
-            const isValidFunc = ec["isValid" + type];
+    types.forEach((type) => {
+        it(`should have a random and isValid method for type ${type}`, () => {
+            const randomFunc = ecByName[`random${type}`];
+            const isValidFunc = ecByName[`isValid${type}`];
 
-            ec.should.have.property("encode" + type);
-            ec.should.have.property("decode" + type);
-            ec.should.have.property("random" + type);
-            ec.should.have.property("isValid" + type);
+            ec.should.have.property(`encode${type}`);
+            ec.should.have.property(`decode${type}`);
+            ec.should.have.property(`random${type}`);
+            ec.should.have.property(`isValid${type}`);
 
             const random_value = randomFunc();
             isValidFunc(random_value).should.eql(true);
@@ -551,11 +548,9 @@ describe("check isValid and random for various types", () => {
     });
 });
 
-
-
 describe("DateTime", () => {
     it("converting 1491684476245", () => {
-        function check_date(t) {
+        function check_date(t: number) {
             const date1 = new Date();
             date1.setTime(t);
 
@@ -612,4 +607,3 @@ describe("Float", () => {
         value.should.eql(0.0);
     });
 });
-
