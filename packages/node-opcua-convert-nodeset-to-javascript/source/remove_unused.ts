@@ -133,7 +133,12 @@ function regroupImports(file: SourceFile) {
         const ga = importGroup(a.moduleSpecifier);
         const gb = importGroup(b.moduleSpecifier);
         if (ga !== gb) return ga - gb;
-        return a.moduleSpecifier.localeCompare(b.moduleSpecifier);
+        // Code point, not localeCompare. Two reasons. localeCompare is locale-dependent,
+        // so generated output committed from one machine could differ on another, and
+        // this output is committed and drift-checked. And its collation ranks "." after
+        // "_", which flips "./x.js" past "./x_y.js" the moment extensions are added,
+        // disagreeing with biome's ordering and taking the lint gate red.
+        return a.moduleSpecifier < b.moduleSpecifier ? -1 : a.moduleSpecifier > b.moduleSpecifier ? 1 : 0;
     });
 
     file.insertImportDeclarations(0, structures);
