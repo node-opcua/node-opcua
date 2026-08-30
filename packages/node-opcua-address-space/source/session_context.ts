@@ -38,7 +38,11 @@ import {
 } from "node-opcua-types";
 import type { NamespacePrivate } from "../src/namespace_private";
 
-export { PermissionType, RolePermissionType, RolePermissionTypeOptions } from "node-opcua-types";
+// export type, not a plain re-export: RolePermissionTypeOptions is an interface,
+// and the value form left an `undefined` export key in Windows-built CJS output
+// (tsc could not prove the name type-only there and kept the runtime binding).
+export type { RolePermissionTypeOptions } from "node-opcua-types";
+export { PermissionType, RolePermissionType } from "node-opcua-types";
 
 export type AnyUserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 

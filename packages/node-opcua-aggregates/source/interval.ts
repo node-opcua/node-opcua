@@ -5,7 +5,7 @@ import { DataValue } from "node-opcua-data-value";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { AggregateConfigurationOptions } from "node-opcua-types";
 
-export { AggregateConfigurationOptions } from "node-opcua-types";
+export type { AggregateConfigurationOptions } from "node-opcua-types";
 
 export interface AggregateConfigurationOptionsEx extends AggregateConfigurationOptions {
     stepped?: boolean;

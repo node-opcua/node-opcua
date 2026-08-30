@@ -1,25 +1,28 @@
 /**
  * @module node-opcua-service-filter
  */
-export {
-    AttributeOperand,
+
+export type {
     AttributeOperandOptions,
-    ContentFilter,
-    ContentFilterElement,
     ContentFilterElementOptions,
     ContentFilterOptions,
+    ElementOperandOptions,
+    EventFilterOptions,
+    FilterOperandOptions,
+    LiteralOperandOptions,
+    MonitoringFilterOptions,
+    SimpleAttributeOperandOptions
+} from "node-opcua-types";
+export {
+    AttributeOperand,
+    ContentFilter,
+    ContentFilterElement,
     DataChangeFilter,
     ElementOperand,
-    ElementOperandOptions,
     EventFilter,
-    EventFilterOptions,
     FilterOperand,
-    FilterOperandOptions,
     FilterOperator,
     LiteralOperand,
-    LiteralOperandOptions,
     MonitoringFilter,
-    MonitoringFilterOptions,
-    SimpleAttributeOperand,
-    SimpleAttributeOperandOptions
+    SimpleAttributeOperand
 } from "node-opcua-types";

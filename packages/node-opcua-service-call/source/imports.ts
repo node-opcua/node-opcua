@@ -6,17 +6,8 @@ import { coerceNodeId, NodeId, type NodeIdLike, resolveNodeId } from "node-opcua
 import { Argument } from "node-opcua-types";
 import { DataType, verifyRankAndDimensions } from "node-opcua-variant";
 
-export {
-    Argument,
-    ArgumentOptions,
-    CallMethodRequest,
-    CallMethodRequestOptions,
-    CallMethodResult,
-    CallMethodResultOptions,
-    CallRequest,
-    CallRequestOptions,
-    CallResponse
-} from "node-opcua-types";
+export type { ArgumentOptions, CallMethodRequestOptions, CallMethodResultOptions, CallRequestOptions } from "node-opcua-types";
+export { Argument, CallMethodRequest, CallMethodResult, CallRequest, CallResponse } from "node-opcua-types";
 
 ///
 interface constructHookArgumentOptions {
