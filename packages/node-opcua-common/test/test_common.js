@@ -1,1 +1,0 @@
-const service = require("..");

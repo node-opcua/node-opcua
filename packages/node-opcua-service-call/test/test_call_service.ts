@@ -1,15 +1,14 @@
-"use strict";
-require("should");
-const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
+import "should";
 
-const { coerceNodeId } = require("node-opcua-nodeid");
-const { DataType } = require("node-opcua-variant");
-const { StatusCodes } = require("node-opcua-status-code");
+import { coerceNodeId } from "node-opcua-nodeid";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import { StatusCodes } from "node-opcua-status-code";
+import { DataType } from "node-opcua-variant";
 
-const call_service = require("..");
+import * as call_service from "..";
 
-describe("testing CallMethodRequest", function () {
-    it("should encode CallMethodRequest (scalar UInt32)", function () {
+describe("testing CallMethodRequest", () => {
+    it("should encode CallMethodRequest (scalar UInt32)", () => {
         const callMethodRequest = new call_service.CallMethodRequest({
             objectId: coerceNodeId("ns=0;i=1"), // Object
             methodId: coerceNodeId("ns=0;i=2"), // Method
@@ -18,7 +17,7 @@ describe("testing CallMethodRequest", function () {
 
         encode_decode_round_trip_test(callMethodRequest);
     });
-    it("should encode CallMethodRequest (array UInt32)", function () {
+    it("should encode CallMethodRequest (array UInt32)", () => {
         const callMethodRequest = new call_service.CallMethodRequest({
             objectId: coerceNodeId("ns=0;i=1"), // Object
             methodId: coerceNodeId("ns=0;i=2"), // Method
@@ -28,7 +27,7 @@ describe("testing CallMethodRequest", function () {
         encode_decode_round_trip_test(callMethodRequest);
     });
 
-    it("Q2 should encode CallMethodResult", function () {
+    it("Q2 should encode CallMethodResult", () => {
         const callMethodResult = new call_service.CallMethodResult({
             statusCode: StatusCodes.Good,
             inputArgumentResults: [StatusCodes.Good, StatusCodes.Good],
