@@ -1,13 +1,13 @@
 /**
  * @module node-opcua-service-endpoints
  */
+
+export type { ApplicationDescriptionOptions, GetEndpointsRequestOptions } from "node-opcua-types";
 export {
     ApplicationDescription,
-    ApplicationDescriptionOptions,
     ApplicationType,
     EndpointDescription,
     GetEndpointsRequest,
-    GetEndpointsRequestOptions,
     GetEndpointsResponse,
     UserIdentityToken,
     UserTokenPolicy,

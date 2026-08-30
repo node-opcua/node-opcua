@@ -3,13 +3,13 @@
  */
 import { TimestampsToReturn } from "node-opcua-data-value";
 
+export type { HistoryReadRequestOptions } from "node-opcua-types";
 export {
     AggregateConfiguration,
     HistoryData,
     HistoryModifiedData,
     HistoryReadDetails,
     HistoryReadRequest,
-    HistoryReadRequestOptions,
     HistoryReadResponse,
     HistoryReadResult,
     HistoryReadValueId,

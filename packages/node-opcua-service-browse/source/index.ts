@@ -14,15 +14,12 @@ import {
 } from "node-opcua-types";
 
 export { BrowseDirection } from "node-opcua-data-model";
-
+export type { BrowseDescriptionOptions, BrowseNextRequestOptions, BrowseRequestOptions } from "node-opcua-types";
 export {
     BrowseDescription,
-    BrowseDescriptionOptions,
     BrowseNextRequest,
-    BrowseNextRequestOptions,
     BrowseNextResponse,
     BrowseRequest,
-    BrowseRequestOptions,
     BrowseResponse,
     BrowseResult,
     ReferenceDescription,

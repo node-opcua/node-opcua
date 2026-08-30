@@ -24,15 +24,9 @@ export {
     RequestHeader,
     ResponseHeader
 } from "node-opcua-service-secure-channel";
+export type { ReadRequestOptions, ReadResponseOptions, ReadValueIdOptions } from "node-opcua-types";
 // --------------------------------------------------------------------------------
 // OPCUA Part 4 $5.10 : Attribute Service Set
 // This Service Set provides Service sto access Attributes that are part of Nodes.
 //  --------------------------------------------------------------------------------
-export {
-    ReadRequest,
-    ReadRequestOptions,
-    ReadResponse,
-    ReadResponseOptions,
-    ReadValueId,
-    ReadValueIdOptions
-} from "node-opcua-types";
+export { ReadRequest, ReadResponse, ReadValueId } from "node-opcua-types";
