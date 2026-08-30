@@ -1,4 +1,5 @@
-const { isValidDataEncoding, isDataEncoding } = require("..");
+import { isDataEncoding, isValidDataEncoding } from "..";
+
 describe("DataEncoding", () => {
     it("isDataEncoding", () => {
         isDataEncoding({ name: "DefaultBinary" }).should.eql(true);

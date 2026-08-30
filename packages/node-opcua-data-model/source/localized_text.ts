@@ -182,7 +182,9 @@ function getLocalizeText_EncodingByte(localizedText: LocalizedText): number {
 
 const emptyLocalizedText = new LocalizedText({});
 
-export function encodeLocalizedText(value: LocalizedText, stream: OutputBinaryStream): void {
+// null is supported and always has been - the body falls back to emptyLocalizedText -
+// but the parameter did not say so
+export function encodeLocalizedText(value: LocalizedText | null, stream: OutputBinaryStream): void {
     if (value) {
         value.encode(stream);
     } else {

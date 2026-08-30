@@ -1,7 +1,7 @@
-const { BinaryStream } = require("node-opcua-binary-stream");
-const should = require("should");
+import { BinaryStream } from "node-opcua-binary-stream";
+import should from "should";
 
-const { QualifiedName, coerceQualifiedName, encodeQualifiedName, decodeQualifiedName } = require("..");
+import { coerceQualifiedName, decodeQualifiedName, encodeQualifiedName, QualifiedName } from "..";
 
 describe("QualifiedName", () => {
     it("should construct a qualified name", () => {
@@ -31,7 +31,7 @@ describe("QualifiedName", () => {
     it("should construct a qualified name - from string", () => {
         const qn = new QualifiedName("some-name");
         qn.namespaceIndex.should.eql(0);
-        qn.name.should.eql("some-name");
+        qn.name!.should.eql("some-name");
         qn.isEmpty().should.eql(false);
     });
 
@@ -72,12 +72,12 @@ describe("QualifiedName", () => {
         // first form
         stream.rewind();
         const reloaded = decodeQualifiedName(stream);
-        reloaded.name.should.eql("Hello");
+        reloaded.name!.should.eql("Hello");
 
         // second form
         stream.rewind();
         const reloaded2 = new QualifiedName(null);
         decodeQualifiedName(stream, reloaded2);
-        reloaded2.name.should.eql("Hello");
+        reloaded2.name!.should.eql("Hello");
     });
 });

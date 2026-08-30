@@ -142,10 +142,13 @@ export function stringToQualifiedName(value: string): QualifiedName {
     return new QualifiedName({ namespaceIndex, name: value });
 }
 
+// the no-argument form has always worked - the body returns null for anything falsy, and
+// callers rely on it - but there was no overload saying so
+export function coerceQualifiedName(): null;
 export function coerceQualifiedName(value: null): null;
 export function coerceQualifiedName(value: QualifiedNameLike): QualifiedName;
 export function coerceQualifiedName(value: string): QualifiedName;
-export function coerceQualifiedName(value: null | QualifiedNameLike): QualifiedName | null {
+export function coerceQualifiedName(value?: null | QualifiedNameLike): QualifiedName | null {
     if (!value) {
         return null;
     } else if (value instanceof QualifiedName) {

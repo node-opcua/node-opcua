@@ -1,7 +1,7 @@
-const { makeAccessRestrictionsFlag, accessRestrictionsFlagToString, AccessRestrictionsFlag } = require("..");
+import { AccessRestrictionsFlag, accessRestrictionsFlagToString, makeAccessRestrictionsFlag } from "..";
 
-describe("Testing AccessRestrictionsFlag", function () {
-    it("should create a access restrictions flags from a string", function () {
+describe("Testing AccessRestrictionsFlag", () => {
+    it("should create a access restrictions flags from a string", () => {
         makeAccessRestrictionsFlag("SigningRequired").should.equal(0x01);
         makeAccessRestrictionsFlag("EncryptionRequired").should.equal(0x02);
         makeAccessRestrictionsFlag("SessionRequired | ApplyRestrictionsToBrowse").should.equal(0x0c);

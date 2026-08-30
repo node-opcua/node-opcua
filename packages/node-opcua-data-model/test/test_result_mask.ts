@@ -1,4 +1,5 @@
-const { makeResultMask, ResultMask } = require("..");
+import { makeResultMask, ResultMask } from "..";
+
 describe("ResultMask", () => {
     it("makeResultMask", () => {
         makeResultMask("NodeClass").should.eql(ResultMask.NodeClass);
