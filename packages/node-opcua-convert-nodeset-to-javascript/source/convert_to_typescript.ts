@@ -807,7 +807,10 @@ function dumpUsedExport(currentType: string, namespaceIndex: number, cache: Cach
             )) {
                 const filename = toFilename(symbol);
                 const subSymbolList = getSubSymbolList(s);
-                f.write(`import { ${subSymbolList.join(", ")} } from "./${filename}"`);
+                // ".js": ESM has no extension search, and the generated files are shipped
+                // source. Without it every regeneration would undo the extensions across
+                // ~1000 nodeset files and fail the drift check.
+                f.write(`import { ${subSymbolList.join(", ")} } from "./${filename}.js"`);
             }
         } else {
             if (cache.requestedSymbols.namespace[ns]) {

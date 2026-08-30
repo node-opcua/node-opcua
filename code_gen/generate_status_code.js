@@ -90,7 +90,7 @@ function parseStatusCodeXML2() {
  * @module node-opcua-status-codes
  */
 // this file has been automatically generated
-import { ConstantStatusCode, StatusCode } from "./opcua_status_code";\n`);
+import { ConstantStatusCode, StatusCode } from "./opcua_status_code.js";\n`);
 
     outFile.write(" export class StatusCodes  { \n");
 
