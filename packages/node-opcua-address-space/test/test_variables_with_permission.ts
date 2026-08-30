@@ -30,8 +30,8 @@ import {
     type UAVariable,
     WellKnownRoles
 } from "..";
-import { generateAddressSpace } from "../distNodeJS";
-import { getMiniAddressSpace, makeMockSessionContext, mockSession } from "../testHelpers";
+import { generateAddressSpace } from "../distNodeJS/index.js";
+import { getMiniAddressSpace, makeMockSessionContext, mockSession } from "../testHelpers.js";
 
 describe("AddressSpace : Variable.setPermissions", () => {
     let addressSpace: AddressSpace;

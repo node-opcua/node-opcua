@@ -4,7 +4,7 @@ import should from "should";
 
 import { getInterval, interpolatedValue } from "..";
 
-import { makeDataValue, makeDate } from "./helpers/helpers";
+import { makeDataValue, makeDate } from "./helpers/helpers.js";
 
 const _should = should;
 

@@ -17,8 +17,8 @@
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
-import type { DerivedKeys1 } from "../source/security_policy";
-import { TokenStack } from "../source/token_stack";
+import type { DerivedKeys1 } from "../source/security_policy.js";
+import { TokenStack } from "../source/token_stack.js";
 
 /**
  * Create a minimal mock DerivedKeys1 that can be told apart

@@ -4,7 +4,7 @@ import { DataTypeFactory, parameters } from "node-opcua-factory";
 import { encode_decode_round_trip_test, type IExtensionObject } from "node-opcua-packet-analyzer/dist/test_helpers";
 
 import { parseBinaryXSD } from "..";
-import { MockProvider } from "./mock_id_provider";
+import { MockProvider } from "./mock_id_provider.js";
 
 class MockProvider2 extends MockProvider {
     public getDataTypeAndEncodingId(key: string) {

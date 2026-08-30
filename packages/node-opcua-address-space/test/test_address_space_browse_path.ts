@@ -6,8 +6,8 @@ import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 
 import { AddressSpace, type Namespace } from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { add_eventGeneratorObject, getMiniAddressSpace } from "../testHelpers";
+import { generateAddressSpace } from "../nodeJS.js";
+import { add_eventGeneratorObject, getMiniAddressSpace } from "../testHelpers.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

@@ -2,7 +2,7 @@ import "should";
 import { get_empty_nodeset_filename, OPCUAClient, OPCUAServer, parseEndpointUrl, type ServerSecureChannelLayer } from "node-opcua";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 
 const empty_nodeset_filename = get_empty_nodeset_filename();
 const port = 6789;

@@ -7,7 +7,7 @@ import should from "should";
 import sinon from "sinon";
 
 import type { AddressSpace, UAObject, UAVariable } from "../..";
-import type { MochaSuiteEx } from "./test_alarms_and_conditions";
+import type { MochaSuiteEx } from "./test_alarms_and_conditions.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

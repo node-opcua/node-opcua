@@ -3,7 +3,7 @@ import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 
 import { AddressSpace, type Namespace, type UAObjectType } from "..";
-import { generateAddressSpace } from "../distNodeJS";
+import { generateAddressSpace } from "../distNodeJS/index.js";
 
 describe("Object Instantiate with various nested properties defined at different subType level", () => {
     /**

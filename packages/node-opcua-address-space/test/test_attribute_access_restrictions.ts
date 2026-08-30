@@ -5,7 +5,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import type { AddressSpace, Namespace } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("testing AccessRestrictions ", () => {
     let addressSpace: AddressSpace;

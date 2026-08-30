@@ -13,8 +13,8 @@ import {
     type UAEventType,
     type UAObject
 } from "../..";
-import { mockSession } from "../../testHelpers";
-import type { MochaSuiteEx } from "./test_alarms_and_conditions";
+import { mockSession } from "../../testHelpers.js";
+import type { MochaSuiteEx } from "./test_alarms_and_conditions.js";
 
 export function utest_condition(test: MochaSuiteEx): void {
     describe("AddressSpace : Conditions 2", () => {

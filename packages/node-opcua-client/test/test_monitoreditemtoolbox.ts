@@ -4,8 +4,8 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon, { type SinonSandbox } from "sinon";
 
 import { ClientMonitoredItemGroup, ClientSidePublishEngine } from "..";
-import { ClientSessionImpl } from "../dist/private/client_session_impl";
-import { ClientSubscriptionImpl } from "../dist/private/client_subscription_impl";
+import { ClientSessionImpl } from "../dist/private/client_session_impl.js";
+import { ClientSubscriptionImpl } from "../dist/private/client_subscription_impl.js";
 
 describe("Testing the Monitored Items Group", () => {
     let sandbox: SinonSandbox;

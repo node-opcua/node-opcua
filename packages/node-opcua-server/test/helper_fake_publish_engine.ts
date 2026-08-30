@@ -1,6 +1,6 @@
 import type { PublishResponseOptions } from "node-opcua-types";
-import type { Subscription } from "../source";
-import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine";
+import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine.js";
+import type { Subscription } from "../source/index.js";
 
 export function getFakePublishEngine_bad() {
     return {

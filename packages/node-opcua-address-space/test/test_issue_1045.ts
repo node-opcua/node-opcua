@@ -3,7 +3,7 @@ import { BrowseDirection } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { BrowseDescription } from "node-opcua-service-browse";
 import { DataType } from "node-opcua-variant";
-import { getMiniAddressSpace } from "../distHelpers";
+import { getMiniAddressSpace } from "../distHelpers/index.js";
 
 describe("Testing issue 1045", () => {
     it("should browse a node with referenceTypeId: ReferenceTypeIds.References", async () => {

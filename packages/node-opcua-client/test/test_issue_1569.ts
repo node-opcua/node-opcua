@@ -23,9 +23,9 @@ import { ServiceFault } from "node-opcua-service-secure-channel";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import should from "should";
 import sinon from "sinon";
-import { ClientSessionKeepAliveManager } from "../source/client_session_keepalive_manager";
-import { ClientSessionImpl } from "../source/private/client_session_impl";
-import type { IClientBase } from "../source/private/i_private_client";
+import { ClientSessionKeepAliveManager } from "../source/client_session_keepalive_manager.js";
+import { ClientSessionImpl } from "../source/private/client_session_impl.js";
+import type { IClientBase } from "../source/private/i_private_client.js";
 
 type TransactionImpl = IClientBase["performMessageTransaction"];
 

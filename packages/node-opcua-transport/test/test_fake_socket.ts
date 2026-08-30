@@ -1,9 +1,9 @@
 import { assert } from "node-opcua-assert";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
-import type { ISocketLike } from "../source";
-import { TransportPairDirect, TransportPairSocket } from "../test_helpers";
-import type { ITransportPair } from "../test_helpers/ITransportPair";
+import type { ISocketLike } from "../source/index.js";
+import type { ITransportPair } from "../test_helpers/ITransportPair.js";
+import { TransportPairDirect, TransportPairSocket } from "../test_helpers/index.js";
 
 const doDebug = false;
 

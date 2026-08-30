@@ -4,7 +4,7 @@ import type { DataType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
 import { type AddObjectOptions, AddressSpace, type Namespace, type UAObject, type UAProperty, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 interface UAObjectWithVersion extends UAObject {
     nodeVersion: UAProperty<string, DataType.String>;

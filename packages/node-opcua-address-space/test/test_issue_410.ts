@@ -9,7 +9,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, SessionContext, type UAAnalogItem } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("AnalogDataItem ValuePrecision issue #410", () => {
     const nodesetFilename = nodesets.standard;

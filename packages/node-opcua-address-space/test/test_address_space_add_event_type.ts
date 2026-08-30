@@ -5,7 +5,7 @@ import { checkSelectClause, constructEventFilter } from "node-opcua-service-filt
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 import type { AddressSpace, InstantiateConditionOptions, Namespace } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("AddressSpace : add event type ", () => {
     let addressSpace: AddressSpace;

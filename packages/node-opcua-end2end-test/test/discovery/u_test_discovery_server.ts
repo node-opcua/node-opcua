@@ -16,7 +16,7 @@ import { exploreCertificate } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import { stepLog, waitUntilCondition } from "../../test_helpers/utils";
+import { stepLog, waitUntilCondition } from "../../test_helpers/utils.js";
 import {
     addServerCertificateToTrustedCertificateInDiscoveryServer,
     cleanUpmDNSandSanityCheck,
@@ -28,7 +28,7 @@ import {
     startDiscovery,
     type TestHarness,
     tweak_registerServerManager_timeout
-} from "./helpers/index";
+} from "./helpers/index.js";
 
 // RegisterServer is sent over the client's secure channel directly, without a session,
 // so performMessageTransaction here is deliberately outside the public OPCUAClient surface.

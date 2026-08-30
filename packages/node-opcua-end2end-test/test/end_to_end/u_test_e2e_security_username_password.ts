@@ -1,8 +1,8 @@
 import "should";
 import { type ClientSession, OPCUAClient, UserTokenType } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { assertThrow } from "../../test_helpers/assert_throw";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { assertThrow } from "../../test_helpers/assert_throw.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 export function t(test: UmbrellaTestContext) {
     describe("testing basic Client-Server communication", () => {

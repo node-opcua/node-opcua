@@ -3,7 +3,7 @@ import type { DataValue } from "node-opcua-data-value";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import { type AggregateConfigurationOptionsEx, installAggregateConfigurationOptions } from "../..";
-import { makeDataValue } from "./helpers";
+import { makeDataValue } from "./helpers.js";
 
 interface UAVariableWithHistoryPush extends UAVariable {
     _historyPush(dataValue: DataValue): unknown;

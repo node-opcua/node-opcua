@@ -7,7 +7,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 
 import { AddressSpace, PseudoSession } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("BrowseNext", function () {
     let addressSpace: AddressSpace;

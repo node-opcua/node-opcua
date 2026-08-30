@@ -7,7 +7,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { AddressSpace, type Namespace, PseudoSession, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("testing github issue #1038", () => {
     let addressSpace: AddressSpace;

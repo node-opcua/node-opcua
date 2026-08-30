@@ -14,7 +14,7 @@ import {
     getSignParams,
     SecurityPolicy,
     verifySignature
-} from "../source/security_policy";
+} from "../source/security_policy.js";
 
 const senderCertificate = readCertificateChain(getFixture("certs/server_cert_2048.pem"))[0];
 const receiverPrivateKey = readPrivateKey(getFixture("certs/client_key_1024.pem"));

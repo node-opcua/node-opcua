@@ -4,9 +4,9 @@
 import { assert } from "node-opcua-assert";
 
 import { AddressSpace } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
-import { getAddressSpaceFixture } from "./get_address_space_fixture";
+import { getAddressSpaceFixture } from "./get_address_space_fixture.js";
 
 export const mini_nodeset = "mini.Nodeset2.xml";
 export const empty_nodeset = "fixture_empty_nodeset2.xml";

@@ -10,7 +10,7 @@ import {
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import { assertThrow } from "../../test_helpers/assert_throw";
+import { assertThrow } from "../../test_helpers/assert_throw.js";
 
 // _createSession/_activateSession are private OPCUAClient implementation methods
 // (their session parameter is the internal ClientSessionImpl, not publicly exported),

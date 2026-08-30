@@ -3,7 +3,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { sameNodeId } from "node-opcua-nodeid";
 import should from "should";
 import type { AddressSpace, UAObject, UAObjectType, UAReferenceType, UAVariable } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("testing add new ObjectType ", () => {
     let addressSpace: AddressSpace;

@@ -20,8 +20,8 @@ import {
     getPercentGoodData,
     installAggregateConfigurationOptions
 } from "..";
-import { createHistorian1, createHistorian2, createHistorian3, createHistorian4 } from "./helpers/create_historizing_variables";
-import { makeDate } from "./helpers/helpers";
+import { createHistorian1, createHistorian2, createHistorian3, createHistorian4 } from "./helpers/create_historizing_variables.js";
+import { makeDate } from "./helpers/helpers.js";
 
 describe("Aggregates ", () => {
     let addressSpace: AddressSpace;

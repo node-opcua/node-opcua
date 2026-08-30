@@ -31,7 +31,7 @@ import { DataType, Variant, type VariantOptions } from "node-opcua-variant";
 import should from "should";
 import "mocha";
 
-import { checkWhereClauseOnAdressSpace } from "../source/filter/check_where_clause_on_address_space";
+import { checkWhereClauseOnAdressSpace } from "../source/filter/check_where_clause_on_address_space.js";
 
 interface This extends Mocha.Suite {
     variableWithAlarm: UAVariable;

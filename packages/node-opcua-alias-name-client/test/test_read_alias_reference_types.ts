@@ -7,7 +7,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { type NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { ClientAliasSet, type ClientAliasVerboseEntry, readAliasReferenceTypes, TAG_VARIABLES } from "../source";
+import { ClientAliasSet, type ClientAliasVerboseEntry, readAliasReferenceTypes, TAG_VARIABLES } from "../source/index.js";
 
 const ALIAS_FOR: NodeId = resolveNodeId(ReferenceTypeIds.AliasFor);
 

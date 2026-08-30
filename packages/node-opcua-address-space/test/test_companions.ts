@@ -1,7 +1,7 @@
 import "should";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("Companion ", () => {
     it("Kitchen", async () => {

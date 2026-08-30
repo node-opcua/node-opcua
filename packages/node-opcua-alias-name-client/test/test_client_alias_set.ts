@@ -9,7 +9,13 @@ import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import { ALIASES_ROOT, AliasNameCallError, AliasNameMethodNotSupportedError, ClientAliasSet, TAG_VARIABLES } from "../source";
+import {
+    ALIASES_ROOT,
+    AliasNameCallError,
+    AliasNameMethodNotSupportedError,
+    ClientAliasSet,
+    TAG_VARIABLES
+} from "../source/index.js";
 
 /**
  * The Client is driven by a `PseudoSession` over an in-process address space, so

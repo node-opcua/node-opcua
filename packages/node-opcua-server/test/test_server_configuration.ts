@@ -3,7 +3,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { ApplicationType } from "node-opcua-types";
 import should from "should";
-import { OPCUAServer, RegisterServerMethod } from "../source";
+import { OPCUAServer, RegisterServerMethod } from "../source/index.js";
 
 const port = 2022;
 

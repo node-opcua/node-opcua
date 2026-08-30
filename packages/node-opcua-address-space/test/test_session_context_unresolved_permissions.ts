@@ -13,7 +13,7 @@ import {
     type UnresolvedPermissionPolicy,
     WellKnownRoles
 } from "..";
-import { getMiniAddressSpace, makeMockSessionContext } from "../testHelpers";
+import { getMiniAddressSpace, makeMockSessionContext } from "../testHelpers.js";
 
 describe("SessionContext - unresolved permissions", () => {
     let addressSpace: AddressSpace;

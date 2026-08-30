@@ -6,8 +6,8 @@ import {
     type SecureMessageChunkManagerOptions,
     SequenceNumberGenerator,
     SymmetricAlgorithmSecurityHeader
-} from "../dist/source";
-import { makeMessageChunkSignatureForTest, verifyMessageChunkSignatureForTest } from "../dist/test_helpers";
+} from "../dist/source/index.js";
+import { makeMessageChunkSignatureForTest, verifyMessageChunkSignatureForTest } from "../dist/test_helpers/index.js";
 
 function performMessageChunkManagerTest(securityMode: MessageSecurityMode, options: Partial<SecureMessageChunkManagerOptions>) {
     const securityHeader = new SymmetricAlgorithmSecurityHeader();

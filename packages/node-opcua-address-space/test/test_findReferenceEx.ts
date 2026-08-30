@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, type UAReference } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("testing findReferencesEx", () => {
     const _nodesetFilename = nodesets.standard;

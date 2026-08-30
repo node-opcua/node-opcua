@@ -2,8 +2,8 @@ import fs from "node:fs";
 import { LocalizedText } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { AddressSpace, type Namespace } from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { get_mini_nodeset_filename } from "../testHelpers";
+import { generateAddressSpace } from "../nodeJS.js";
+import { get_mini_nodeset_filename } from "../testHelpers.js";
 
 describe("Testing display name in ObjectType and VariableType & Method #469 #466", () => {
     let addressSpace: AddressSpace;

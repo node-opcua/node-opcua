@@ -5,7 +5,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { AddressSpace, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 const _debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");

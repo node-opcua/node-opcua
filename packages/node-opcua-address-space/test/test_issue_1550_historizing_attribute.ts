@@ -8,8 +8,8 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, type Namespace, type UAVariable, type UAVariableType } from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { getMiniAddressSpace } from "../testHelpers";
+import { generateAddressSpace } from "../nodeJS.js";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 // see https://github.com/node-opcua/node-opcua/issues/1550
 //

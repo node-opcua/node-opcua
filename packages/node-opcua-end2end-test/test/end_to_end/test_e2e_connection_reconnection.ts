@@ -24,7 +24,7 @@ import "mocha";
 import { readCertificateChain } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
 
 // biome-ignore lint/suspicious/noExplicitAny: reaching into private client/server/subscription implementation internals for test-only fault injection
 type InternalAny = any;
@@ -68,7 +68,7 @@ const infinite_connectivity_strategy = {
     randomisationFactor: 0
 };
 
-import { fAsync } from "../../test_helpers/display_function_name";
+import { fAsync } from "../../test_helpers/display_function_name.js";
 
 const f = fAsync.bind(null, doDebug);
 

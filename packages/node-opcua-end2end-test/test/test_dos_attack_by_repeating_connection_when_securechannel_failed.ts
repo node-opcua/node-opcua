@@ -16,7 +16,7 @@ import { exploreCertificateInfo, readCertificateChainAsync, readCertificateRevoc
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

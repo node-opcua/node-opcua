@@ -4,9 +4,9 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { PublishResponseOptions } from "node-opcua-types";
 import should from "should";
 import sinon from "sinon";
-import { type ServerSession, Subscription, type SubscriptionOptions, SubscriptionState } from "../source";
-import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine";
-import type { Subscription as SubscriptionType } from "../source/server_subscription";
+import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine.js";
+import { type ServerSession, Subscription, type SubscriptionOptions, SubscriptionState } from "../source/index.js";
+import type { Subscription as SubscriptionType } from "../source/server_subscription.js";
 
 const doDebug = false;
 

@@ -5,7 +5,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type UAObject, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 interface MyCustomObject extends UAObject {
     customProperty: UAVariable;

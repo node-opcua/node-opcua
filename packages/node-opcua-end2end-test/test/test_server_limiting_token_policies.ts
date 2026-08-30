@@ -8,7 +8,7 @@ import {
 } from "node-opcua";
 import "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
 
 const port = 1979;
 

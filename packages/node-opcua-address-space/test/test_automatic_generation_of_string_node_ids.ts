@@ -2,8 +2,8 @@ import chalk from "chalk";
 import should from "should";
 
 import type { AddressSpace, DTServerStatus, UAObjectType, UAServerStatus } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
-import { createCameraType, type FakeCamera } from "./fixture_camera_type";
+import { getMiniAddressSpace } from "../testHelpers.js";
+import { createCameraType, type FakeCamera } from "./fixture_camera_type.js";
 
 describe("Automatic Generation of  string nodeId", () => {
     let addressSpace: AddressSpace;

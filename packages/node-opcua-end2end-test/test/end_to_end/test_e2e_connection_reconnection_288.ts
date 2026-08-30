@@ -17,7 +17,7 @@ import {
 } from "node-opcua";
 import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { crash_simple_server, type ServerHandle, start_simple_server } from "../../test_helpers/external_server_fixture";
+import { crash_simple_server, type ServerHandle, start_simple_server } from "../../test_helpers/external_server_fixture.js";
 import "should";
 
 const doDebug = false;

@@ -1,7 +1,7 @@
 import "should";
 import { DataType } from "node-opcua-variant";
 import type { AddressSpace, UAObject } from "../..";
-import type { MochaSuiteEx } from "./test_alarms_and_conditions";
+import type { MochaSuiteEx } from "./test_alarms_and_conditions.js";
 
 export function utest_issue_316(test: MochaSuiteEx): void {
     describe("Alarm&Condition ConditionClassName and ConditionName ", () => {

@@ -18,7 +18,7 @@ import os from "node:os";
 import path from "node:path";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import should from "should";
-import { OPCUAClient } from "../source";
+import { OPCUAClient } from "../source/index.js";
 
 const passphrase = "client-side-passphrase";
 

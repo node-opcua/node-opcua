@@ -19,8 +19,8 @@
 import "mocha";
 import "should";
 
-import type { ClientSessionImpl } from "../source/private/client_session_impl";
-import { _shouldNotContinue } from "../source/private/reconnection/reconnection";
+import type { ClientSessionImpl } from "../source/private/client_session_impl.js";
+import { _shouldNotContinue } from "../source/private/reconnection/reconnection.js";
 
 /**
  * Simulates what the secure channel's `modified_callback` / `process_request_callback`

@@ -23,7 +23,7 @@ import {
     Subscription,
     type SubscriptionOptions,
     SubscriptionState
-} from "../source";
+} from "../source/index.js";
 
 function makeSubscription(options: SubscriptionOptions) {
     const subscription1 = new Subscription(options);

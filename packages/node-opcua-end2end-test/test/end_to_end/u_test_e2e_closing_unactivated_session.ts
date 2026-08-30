@@ -2,7 +2,7 @@ import "should"; // should assertions side-effect
 import { type ClientSession, type ConnectionStrategyOptions, OPCUAClient } from "node-opcua";
 import { assert } from "node-opcua-assert";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 // _createSession creates a not-yet-activated session; deliberately not part of the public
 // OPCUAClient surface (activation is normally implicit in createSession/withSessionAsync).

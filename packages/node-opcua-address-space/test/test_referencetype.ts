@@ -18,7 +18,7 @@ import {
     type UAReferenceType,
     type UARootFolder
 } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 const context = SessionContext.defaultContext;
 

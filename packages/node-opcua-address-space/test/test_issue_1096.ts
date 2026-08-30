@@ -4,7 +4,7 @@ import "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("Loading custom ExtensionObject from nodeset.xml", () => {
     it("should load a custom ExtensionObject", async () => {

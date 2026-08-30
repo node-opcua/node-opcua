@@ -13,7 +13,7 @@ import {
     encode_ArgumentList,
     verifyArguments_ArgumentList
 } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");

@@ -12,7 +12,7 @@ import type { ClientSession } from "node-opcua";
 import { getAddressSpaceFixture } from "node-opcua-address-space/testHelpers";
 import { UAProxyManager } from "node-opcua-client-proxy";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { build_client_server_session, type ClientServerSession } from "../../test_helpers/build_client_server_session";
+import { build_client_server_session, type ClientServerSession } from "../../test_helpers/build_client_server_session.js";
 
 // _client is a private ClientSessionImpl field, reached here only to log low-level perf counters.
 // biome-ignore lint/suspicious/noExplicitAny: see comment above

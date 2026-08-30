@@ -8,7 +8,7 @@ import {
     SecurityPolicy
 } from "node-opcua";
 import should from "should";
-import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
 
 // performMessageTransaction is public on the client implementation but not exposed on
 // the public OPCUAClient interface; reached here to inject a malformed ActivateSessionRequest.

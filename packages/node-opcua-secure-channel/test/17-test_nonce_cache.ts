@@ -1,5 +1,5 @@
 import { randomBytes } from "node-opcua-utils";
-import { _getNonceStore, _setNonceCacheParameters, isEmptyNonce, nonceAlreadyBeenUsed } from "../source/server/nonce_cache";
+import { _getNonceStore, _setNonceCacheParameters, isEmptyNonce, nonceAlreadyBeenUsed } from "../source/server/nonce_cache.js";
 
 describe("NonceCache – replay detection with TTL eviction", () => {
     beforeEach(() => {

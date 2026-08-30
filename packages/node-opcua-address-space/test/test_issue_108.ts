@@ -8,7 +8,7 @@ import { constructNodesetFilename, nodesets } from "node-opcua-nodesets";
 import type { DataType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type UAAnalogItem, type UAObject, type UAObjectType, type UARootFolder } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 interface MyCustomType extends UAObjectType {
     temperature: UAAnalogItem<number, DataType.Double>;

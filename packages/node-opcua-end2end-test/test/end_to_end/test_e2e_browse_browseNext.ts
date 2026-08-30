@@ -14,7 +14,7 @@ import {
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import { spy } from "sinon";
-import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
+import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager.js";
 
 const _doDebug = false;
 

@@ -11,8 +11,8 @@ import {
     Variant
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { wait, waitUntilCondition } from "../../test_helpers/utils";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { wait, waitUntilCondition } from "../../test_helpers/utils.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 export function t(test: UmbrellaTestContext) {
     describe("Testing bug #119 - monitored item reports only real value changes", () => {

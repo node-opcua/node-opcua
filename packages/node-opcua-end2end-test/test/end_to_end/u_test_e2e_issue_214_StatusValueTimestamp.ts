@@ -13,8 +13,8 @@ import {
 } from "node-opcua";
 import type { UAVariableImpl } from "node-opcua-address-space/src/ua_variable_impl";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 export function t(test: UmbrellaTestContext) {
     describe("NXX1 Testing issue #214 - DataChangeTrigger.StatusValueTimestamp", () => {

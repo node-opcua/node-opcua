@@ -5,7 +5,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { StructureDefinition } from "node-opcua-types";
 import should from "should";
 import { AddressSpace, SessionContext } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 const _context = SessionContext.defaultContext;
 

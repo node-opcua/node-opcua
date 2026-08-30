@@ -4,7 +4,7 @@ import "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("Loading nodeset.xml with recursive DataType", () => {
     it("should load a custom ExtensionObject", async () => {

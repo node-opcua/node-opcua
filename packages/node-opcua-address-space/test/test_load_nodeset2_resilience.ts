@@ -7,7 +7,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 interface AddressSpaceWithExtraDataTypeManager {
     $$extraDataTypeManager: ExtraDataTypeManager | undefined;

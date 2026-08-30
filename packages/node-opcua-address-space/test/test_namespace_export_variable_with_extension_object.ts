@@ -7,8 +7,8 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import type { Variant } from "node-opcua-variant";
 import { AddressSpace } from "..";
-import type { UAVariableImpl } from "../dist/src/ua_variable_impl";
-import { generateAddressSpace } from "../distNodeJS";
+import type { UAVariableImpl } from "../dist/src/ua_variable_impl.js";
+import { generateAddressSpace } from "../distNodeJS/index.js";
 
 describe("Advanced nodeset to XML", () => {
     const nodesetFilename = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_extensionObjects_datatype.xml");

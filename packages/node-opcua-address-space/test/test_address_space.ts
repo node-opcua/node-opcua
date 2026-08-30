@@ -6,7 +6,7 @@ import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import type { AddressSpace, Namespace, UAReference } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 function findReference(references: UAReference[], nodeId: NodeId): UAReference[] {
     assert(nodeId instanceof NodeId);

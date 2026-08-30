@@ -6,7 +6,7 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import type { BrowseDescriptionOptions } from "node-opcua-types";
 import should from "should";
 import { type AddressSpace, dumpBrowseDescription, dumpReferences } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("testing address space", () => {
     let addressSpace: AddressSpace;

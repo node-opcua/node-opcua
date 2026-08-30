@@ -4,7 +4,7 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { DataType, Variant } from "node-opcua-variant";
 
 import { type AddressSpace, SessionContext } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 const doDebug = false;
 

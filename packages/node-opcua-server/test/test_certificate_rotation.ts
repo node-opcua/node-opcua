@@ -13,7 +13,7 @@ import { MessageSecurityMode, OPCUAClient, SecurityPolicy } from "node-opcua-cli
 import { makeSHA1Thumbprint } from "node-opcua-crypto/web";
 import { extractFullyQualifiedDomainName } from "node-opcua-hostname";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { invalidateServerCertificateCache, OPCUAServer } from "../source";
+import { invalidateServerCertificateCache, OPCUAServer } from "../source/index.js";
 
 const serverPort = 5011;
 

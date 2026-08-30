@@ -6,7 +6,7 @@ import { decodeVariant, encodeVariant } from "node-opcua-variant";
 import should from "should";
 import type { UAVariable } from "..";
 import { AddressSpace } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("Testing loadNodeSet - edge cases", async function (this: Mocha.Suite) {
     this.timeout(200000); // could be slow on appveyor !

@@ -6,7 +6,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { PermissionType } from "node-opcua-types";
 import should from "should";
 import { AddressSpace, generateAddressSpaceRaw, type UAMethod, type UAObject, type UAObjectType, type UAVariable } from "..";
-import { generateAddressSpace, readNodeSet2XmlFile } from "../nodeJS";
+import { generateAddressSpace, readNodeSet2XmlFile } from "../nodeJS.js";
 
 const fixture = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_role_permissions.xml");
 

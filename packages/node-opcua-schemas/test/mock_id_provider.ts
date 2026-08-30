@@ -1,5 +1,5 @@
 import { NodeId } from "node-opcua-nodeid";
-import type { DataTypeAndEncodingId, MapDataTypeAndEncodingIdProvider } from "../source";
+import type { DataTypeAndEncodingId, MapDataTypeAndEncodingIdProvider } from "../source/index.js";
 
 export class MockProvider implements MapDataTypeAndEncodingIdProvider {
     private _map: { [key: string]: DataTypeAndEncodingId } = {};

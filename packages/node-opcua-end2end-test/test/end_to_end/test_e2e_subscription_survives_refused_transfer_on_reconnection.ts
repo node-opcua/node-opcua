@@ -16,7 +16,7 @@ import {
 import type { OPCUAClientImpl } from "node-opcua-client/source/private/opcua_client_impl";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

@@ -27,10 +27,26 @@ export const IGNORE_MARKER = "check-import-extension: ok";
 export const SOURCE_ROOTS = ["packages", "packages_extra"];
 export const SOURCE_DIRS = ["source", "src"];
 
+/**
+ * Test trees are not published, but they still have to run, and a file inside a
+ * `"type": "module"` package is an ES module whether or not it ships. A package that flips
+ * with an extensionless specifier in its own suite breaks its own tests.
+ */
+export const TEST_DIRS = ["test", "test_helpers", "test_fixtures"];
+
+export const SCOPES = {
+    source: SOURCE_DIRS,
+    tests: TEST_DIRS,
+    all: [...SOURCE_DIRS, ...TEST_DIRS]
+};
+
 const SKIP_DIRS = new Set(["node_modules", "dist", "dist-esm", "coverage", "build"]);
 
 /** extensions a specifier may already end with, in which case it is left alone */
 const SETTLED = /\.(js|mjs|cjs|json|node|css)$/;
+
+/** pure traversal with no filename: ".", "..", "../..", "../../.." */
+const PACKAGE_ROOT = /^\.{1,2}(\/\.\.)*\/?$/;
 
 const SCRIPT_KIND = { ".ts": ts.ScriptKind.TS, ".tsx": ts.ScriptKind.TSX, ".mts": ts.ScriptKind.TS, ".cts": ts.ScriptKind.TS };
 
@@ -99,6 +115,24 @@ export function findViolations(text, filePath) {
 
     for (const node of specifierNodes(sourceFile)) {
         const specifier = node.text;
+        // A specifier made only of traversal - ".", "..", "../.." - names a directory and
+        // carries no filename, so it resolves only through that directory's package.json,
+        // which NodeNext does not do for a relative specifier. There is no extension to
+        // add, so this rule cannot fix them; they are counted and reported rather than
+        // passed over in silence, because a gate that quietly ignores a case reads as if
+        // it had checked it.
+        if (PACKAGE_ROOT.test(specifier)) {
+            const { line } = ts.getLineAndCharacterOfPosition(sourceFile, node.getStart(sourceFile));
+            out.push({
+                line: line + 1,
+                specifier,
+                kind: "package-root",
+                suggestion: null,
+                fixable: false,
+                text: (lines[line] ?? "").trim().slice(0, 100)
+            });
+            continue;
+        }
         if (!specifier.startsWith("./") && !specifier.startsWith("../")) {
             continue;
         }
@@ -161,7 +195,7 @@ export function fixText(text, filePath) {
     return { text: out, fixed: edits.length };
 }
 
-export function findSourceFiles(repoRoot = ".", packageFilter) {
+export function findSourceFiles(repoRoot = ".", packageFilter, dirs = SOURCE_DIRS) {
     const files = [];
     for (const root of SOURCE_ROOTS) {
         const full = path.join(repoRoot, root);
@@ -175,7 +209,7 @@ export function findSourceFiles(repoRoot = ".", packageFilter) {
             if (packageFilter && pkg.name !== packageFilter) {
                 continue;
             }
-            for (const dir of SOURCE_DIRS) {
+            for (const dir of dirs) {
                 walk(path.join(full, pkg.name, dir), files);
             }
         }
@@ -199,8 +233,11 @@ function walk(dir, out) {
     }
 }
 
-export function analyze({ repoRoot = ".", packageFilter, write = false } = {}) {
-    const files = findSourceFiles(repoRoot, packageFilter);
+export function analyze({ repoRoot = ".", packageFilter, write = false, scope = "source" } = {}) {
+    // note: the CLI defaults to "all"; the library default stays "source" so existing callers
+    // and the unit tests keep their narrow scope unless they ask for more.
+    const dirs = SCOPES[scope] ?? SOURCE_DIRS;
+    const files = findSourceFiles(repoRoot, packageFilter, dirs);
     const findings = [];
     let fixedCount = 0;
     let fixedFiles = 0;
@@ -221,11 +258,18 @@ export function analyze({ repoRoot = ".", packageFilter, write = false } = {}) {
             findings.push({ file: file.replace(/\\/g, "/"), ...v });
         }
     }
-    return { scanned: files.length, findings, fixedCount, fixedFiles };
+    return { scanned: files.length, findings, fixedCount, fixedFiles, scope };
 }
 
+/**
+ * A package-root specifier is a real problem for ESM, but not one this rule can express a
+ * fix for, and it is tracked separately. Failing on it here would mean the gate could never
+ * go green, so it is reported and excluded from the exit code.
+ */
+export const isGating = (finding) => finding.kind !== "package-root";
+
 export function exitCode(result) {
-    return result.findings.length > 0 ? 1 : 0;
+    return result.findings.some(isGating) ? 1 : 0;
 }
 
 export function formatReport(result) {
@@ -233,14 +277,26 @@ export function formatReport(result) {
     if (result.fixedFiles > 0) {
         lines.push(`check-import-extension: rewrote ${result.fixedCount} specifiers in ${result.fixedFiles} files`, "");
     }
-    if (result.findings.length === 0) {
-        lines.push(`check-import-extension: ${result.scanned} files scanned, every relative specifier carries its extension.`);
+    const scope = result.scope ?? "source";
+    const roots = result.findings.filter((f) => f.kind === "package-root");
+    const gating = result.findings.filter(isGating);
+
+    // always say what was covered: a count with no scope reads as if it covered everything
+    const covered = { source: "source files", tests: "test files", all: "files scanned across source and test trees" };
+    const scanned = `${result.scanned} ${covered[scope] ?? `${scope} files`}${scope === "all" ? "" : " scanned"}`;
+
+    if (gating.length === 0) {
+        lines.push(`check-import-extension: ${scanned}, every relative specifier carries its extension.`);
+        if (roots.length) {
+            lines.push(`  (${roots.length} import(s) of "." or ".." are reported below but do not fail this gate)`);
+            lines.push(...rootSection(roots));
+        }
         return lines.join("\n");
     }
-    const fixable = result.findings.filter((f) => f.fixable);
-    const manual = result.findings.filter((f) => !f.fixable);
+    const fixable = gating.filter((f) => f.fixable);
+    const manual = gating.filter((f) => !f.fixable);
 
-    lines.push(`check-import-extension: ${result.findings.length} specifiers without an extension, in ${result.scanned} files scanned`, "");
+    lines.push(`check-import-extension: ${gating.length} specifiers without an extension, in ${scanned}`, "");
     if (fixable.length) {
         const dirs = fixable.filter((f) => f.kind === "directory").length;
         lines.push(`  ${fixable.length} fixable with --fix (${fixable.length - dirs} to a file, ${dirs} to a directory index):`);
@@ -259,9 +315,33 @@ export function formatReport(result) {
         }
         lines.push("");
     }
+    if (roots.length) {
+        lines.push(...rootSection(roots));
+    }
     lines.push("ESM has no extension search and no directory resolution, so a relative");
     lines.push('specifier must name the emitted file: "./x.js", or "./x/index.js" when the');
     lines.push("target is a directory. CommonJS tolerates both forms, so this can be fixed");
     lines.push("now, before any package flips.");
     return lines.join("\n");
+}
+
+/** the `.` / `..` specifiers, listed by package so the scale is visible */
+function rootSection(roots) {
+    const byPackage = new Map();
+    for (const f of roots) {
+        const pkg = f.file.split("/").slice(0, 2).join("/");
+        byPackage.set(pkg, (byPackage.get(pkg) ?? 0) + 1);
+    }
+    const out = ["", `  ${roots.length} import(s) of "." or "..", which name a directory:`];
+    for (const [pkg, n] of [...byPackage].sort((a, b) => b[1] - a[1]).slice(0, 10)) {
+        out.push(`    ${String(n).padStart(4)}  ${pkg}`);
+    }
+    if (byPackage.size > 10) {
+        out.push(`    ... and ${byPackage.size - 10} more package(s)`);
+    }
+    out.push("  A directory resolves only through its package.json, which NodeNext does not do");
+    out.push("  for a relative specifier. There is no extension to add, so --fix cannot help:");
+    out.push("  these need an explicit entry point, tracked separately.");
+    out.push("");
+    return out;
 }

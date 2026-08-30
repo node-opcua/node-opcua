@@ -17,7 +17,7 @@ import {
 } from "node-opcua";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import type { TestHarness } from "./u_test_e2e_modifyMonitoredItem_onEvent";
+import type { TestHarness } from "./u_test_e2e_modifyMonitoredItem_onEvent.js";
 
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");

@@ -5,7 +5,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, SessionContext, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 // Probes whether writing to a SUB-PORTION (a child / grand-child Variable) of a bound high level
 // ExtensionObject keeps the parent aggregate and the JavaScript Proxy structure consistent.

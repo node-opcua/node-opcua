@@ -6,8 +6,8 @@ import * as fixture from "node-opcua-transport/dist/test-fixtures";
 import { openSecureChannelResponse1 } from "node-opcua-transport/dist/test-fixtures";
 import sinon from "sinon";
 
-import { ClientSecureChannelLayer } from "../dist/source";
-import { fakeAcknowledgeMessage, MockServerTransport } from "../dist/test_helpers";
+import { ClientSecureChannelLayer } from "../dist/source/index.js";
+import { fakeAcknowledgeMessage, MockServerTransport } from "../dist/test_helpers/index.js";
 
 const _debugLog = make_debugLog(__filename);
 

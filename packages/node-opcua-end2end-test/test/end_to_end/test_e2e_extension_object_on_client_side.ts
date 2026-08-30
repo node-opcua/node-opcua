@@ -2,8 +2,8 @@ import "should";
 import fs from "node:fs";
 import path from "node:path";
 import { AttributeIds, NumericRange, OPCUAClient, ReadValueId, StatusCodes } from "node-opcua";
-import { type ServerHandle, start_simple_server, stop_simple_server } from "../../test_helpers/external_server_fixture";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
+import { type ServerHandle, start_simple_server, stop_simple_server } from "../../test_helpers/external_server_fixture.js";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 
 const port = 2018;
 

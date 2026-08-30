@@ -17,7 +17,7 @@ import {
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
-import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
 
 // _secureChannel (private impl field) and its transport's underlying raw socket (not part of
 // the public IClientTransport surface) are reached here only to simulate an abrupt connection

@@ -1,6 +1,6 @@
 import { OPCUAClient, OPCUAClientBase, OPCUAServer } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { assertThrow } from "../../test_helpers/assert_throw";
+import { assertThrow } from "../../test_helpers/assert_throw.js";
 
 const port = 2010;
 

@@ -5,7 +5,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import type { ReadValueIdOptions } from "node-opcua-types";
 import { type AddressSpace, PseudoSession } from "..";
 
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("PseudoSession", () => {
     let addressSpace: AddressSpace;

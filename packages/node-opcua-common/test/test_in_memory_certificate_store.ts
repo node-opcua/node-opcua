@@ -1,7 +1,7 @@
 import "mocha";
 import { StatusCodes } from "node-opcua-status-code";
 import "should";
-import { InMemoryCertificateStore } from "../source/in_memory_certificate_store";
+import { InMemoryCertificateStore } from "../source/in_memory_certificate_store.js";
 
 describe("InMemoryCertificateStore", () => {
     // Use simple buffers as fake certificates

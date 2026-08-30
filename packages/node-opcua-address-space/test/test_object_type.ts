@@ -6,7 +6,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, SessionContext } from "..";
-import { create_minimalist_address_space_nodeset } from "../testHelpers";
+import { create_minimalist_address_space_nodeset } from "../testHelpers.js";
 
 const context = SessionContext.defaultContext;
 

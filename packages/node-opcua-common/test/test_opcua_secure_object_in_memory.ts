@@ -4,7 +4,7 @@ import {
     type ICertificateKeyPairProvider,
     type ICertificateKeyPairProviderWithLocation,
     OPCUASecureObject
-} from "../source/opcua_secure_object";
+} from "../source/opcua_secure_object.js";
 
 describe("OPCUASecureObject + injected ICertificateKeyPairProvider", () => {
     const cert = Buffer.from("FAKE-CERT");

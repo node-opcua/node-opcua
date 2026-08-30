@@ -11,7 +11,7 @@ import { CallMethodResult, type DataTypeDefinition, StructureDefinition } from "
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, ensureDatatypeExtracted, PseudoSession, resolveOpaqueOnAddressSpace, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

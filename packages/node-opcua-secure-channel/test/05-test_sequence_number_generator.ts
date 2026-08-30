@@ -1,5 +1,5 @@
 import "should";
-import { SequenceNumberGenerator } from "../dist/source";
+import { SequenceNumberGenerator } from "../dist/source/index.js";
 
 describe("SequenceNumberGenerator", () => {
     it("the first sequence number shall be one ", () => {

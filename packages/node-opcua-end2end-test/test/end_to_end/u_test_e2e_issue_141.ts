@@ -11,8 +11,8 @@ import {
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import Sinon from "sinon";
-import { assertThrow } from "../../test_helpers/assert_throw";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
+import { assertThrow } from "../../test_helpers/assert_throw.js";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 
 interface TestHarness {
     endpointUrl: string;

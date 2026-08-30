@@ -2,8 +2,8 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { AddressSpace, type BaseNode } from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { type BoilerType, createBoilerType } from "../testHelpers";
+import { generateAddressSpace } from "../nodeJS.js";
+import { type BoilerType, createBoilerType } from "../testHelpers.js";
 
 interface AddressSpaceWithPrivateNamespaceIndex {
     _private_namespaceIndex: number;

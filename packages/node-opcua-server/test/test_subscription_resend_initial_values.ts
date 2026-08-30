@@ -3,9 +3,9 @@ import { SessionContext } from "node-opcua-address-space";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
 
-import { type ServerSession, Subscription, type SubscriptionOptions } from "../source";
-import { add_mock_monitored_item } from "./helper";
-import { getFakePublishEngine, type IServerSidePublishEngine2 } from "./helper_fake_publish_engine";
+import { type ServerSession, Subscription, type SubscriptionOptions } from "../source/index.js";
+import { add_mock_monitored_item } from "./helper.js";
+import { getFakePublishEngine, type IServerSidePublishEngine2 } from "./helper_fake_publish_engine.js";
 
 let fake_publish_engine: IServerSidePublishEngine2 = {
     pendingPublishRequestCount: 0

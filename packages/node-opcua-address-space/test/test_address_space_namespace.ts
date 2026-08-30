@@ -5,7 +5,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { getFixture } from "node-opcua-test-fixtures";
 import should from "should";
 import { AddressSpace } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("testing address space namespace", () => {
     it("#getNamespaceUri : should have namespace 0", () => {

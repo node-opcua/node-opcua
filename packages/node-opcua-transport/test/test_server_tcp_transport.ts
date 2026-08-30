@@ -10,9 +10,9 @@ import sinon from "sinon";
 
 import { AcknowledgeMessage, decodeMessage, HelloMessage, packTcpMessage, ServerTCP_transport, TCPErrorMessage } from "..";
 
-import { TransportPairDirect, TransportPairSocket } from "../dist/test_helpers";
+import { TransportPairDirect, TransportPairSocket } from "../dist/test_helpers/index.js";
 
-import * as packets from "../test-fixtures";
+import * as packets from "../test-fixtures/index.js";
 
 const debugLog = make_debugLog("TEST");
 

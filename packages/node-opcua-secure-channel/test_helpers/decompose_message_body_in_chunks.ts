@@ -6,7 +6,7 @@ import {
     SecurityPolicy,
     SequenceNumberGenerator,
     SymmetricAlgorithmSecurityHeader
-} from "../source";
+} from "../source/index.js";
 
 /**
 

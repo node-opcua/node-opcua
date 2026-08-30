@@ -19,8 +19,8 @@ import {
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
-import { itemsToMonitor1 } from "./_helpers_items_to_monitor";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
+import { itemsToMonitor1 } from "./_helpers_items_to_monitor.js";
 
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");

@@ -7,7 +7,7 @@ import {
 import { coerceNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, PseudoSession } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("Testing loadNodeSet - Union DataType", async function (this: Mocha.Suite) {
     this.timeout(200000); // could be slow on appveyor !

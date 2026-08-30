@@ -1,5 +1,5 @@
 import should from "should";
-import { checkValueRankCompatibility } from "../src/check_value_rank_compatibility";
+import { checkValueRankCompatibility } from "../src/check_value_rank_compatibility.js";
 
 const ScalarOrOneDimension = -3;
 const OneOrMoreDimensions = 0;

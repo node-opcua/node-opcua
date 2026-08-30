@@ -3,7 +3,7 @@ import path from "node:path";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { getFixture } from "node-opcua-test-fixtures";
 import { AddressSpace } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("Issue 132", function (this: Mocha.Context) {
     this.timeout(Math.max(40000, this.timeout()));

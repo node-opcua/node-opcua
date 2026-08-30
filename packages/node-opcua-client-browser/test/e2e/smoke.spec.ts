@@ -6,7 +6,7 @@
 
 import { expect, test } from "@playwright/test";
 
-import { type HarnessContext, startHarness } from "./harness";
+import { type HarnessContext, startHarness } from "./harness.js";
 
 let harness: HarnessContext;
 

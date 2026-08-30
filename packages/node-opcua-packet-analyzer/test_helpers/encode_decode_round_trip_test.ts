@@ -7,7 +7,7 @@ import type { ExpandedNodeId } from "node-opcua-nodeid";
 import { assert_arrays_are_equal } from "node-opcua-test-helpers";
 import should from "should";
 
-import { analyze_object_binary_encoding, analyzePacket, type ObjectMessage } from "../source";
+import { analyze_object_binary_encoding, analyzePacket, type ObjectMessage } from "../source/index.js";
 
 export interface IExtensionObject extends IBaseUAObject {
     encodingDefaultBinary?: ExpandedNodeId;

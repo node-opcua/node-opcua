@@ -12,7 +12,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { PermissionType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { ServerEngine } from "../source";
+import { ServerEngine } from "../source/index.js";
 
 /**
  * A namespace default configured with Namespace.setDefaultRolePermissions() must reach the

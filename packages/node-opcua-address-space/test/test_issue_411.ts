@@ -4,7 +4,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type Namespace } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 interface AddressSpaceWithPrivateNamespaceIndex {
     _private_namespaceIndex: number;

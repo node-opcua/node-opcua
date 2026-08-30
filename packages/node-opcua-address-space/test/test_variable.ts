@@ -22,9 +22,9 @@ import {
     type UARootFolder,
     type UAVariable
 } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
-import { create_minimalist_address_space_nodeset } from "../testHelpers";
+import { create_minimalist_address_space_nodeset } from "../testHelpers.js";
 
 const context = SessionContext.defaultContext;
 

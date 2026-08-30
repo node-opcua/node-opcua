@@ -10,8 +10,8 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataChangeFilter, DataChangeTrigger, MonitoredItemCreateRequest, MonitoringMode } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import sinon from "sinon";
-import { ServerEngine } from "../source/server_engine";
-import { Subscription } from "../source/server_subscription";
+import { ServerEngine } from "../source/server_engine.js";
+import { Subscription } from "../source/server_subscription.js";
 
 const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 

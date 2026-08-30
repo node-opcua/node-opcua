@@ -5,7 +5,7 @@ import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory"
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
-import { ExtraDataTypeManager } from "../source/extra_data_type_manager";
+import { ExtraDataTypeManager } from "../source/extra_data_type_manager.js";
 
 const { StructureDefinition } = require("node-opcua-types");
 

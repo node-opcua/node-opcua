@@ -10,7 +10,7 @@ import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { DataTypeDefinition } from "node-opcua-types";
 import should from "should";
 import { extractClassDefinition, extractClassMemberDef } from "..";
-import { type Cache2, constructCache, makeTypeNameNew } from "../dist/private-stuff";
+import { type Cache2, constructCache, makeTypeNameNew } from "../dist/private-stuff.js";
 
 const debugLog = make_debugLog("TEST");
 

@@ -2,8 +2,8 @@ import "should";
 import { AttributeIds, ClientMonitoredItem, type DataValue, OPCUAClient, resolveNodeId, type UAVariable } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
-import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 // Collect a fixed number of monitored item change notifications using a spy.
 // Returns the spy once the desired count has been reached or rejects on timeout.

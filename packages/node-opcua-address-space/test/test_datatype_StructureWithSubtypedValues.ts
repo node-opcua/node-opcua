@@ -13,7 +13,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { type StructureDefinition, StructureType } from "node-opcua-types";
 import { Variant, VariantArrayType } from "node-opcua-variant";
 import { AddressSpace, PseudoSession } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 const debugLog = make_debugLog("TEST");
 

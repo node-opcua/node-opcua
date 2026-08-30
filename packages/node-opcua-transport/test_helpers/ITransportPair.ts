@@ -1,4 +1,4 @@
-import type { ISocketLike } from "../source";
+import type { ISocketLike } from "../source/index.js";
 
 export interface ITransportPair {
     initialize(callback: (err?: Error) => void): void;

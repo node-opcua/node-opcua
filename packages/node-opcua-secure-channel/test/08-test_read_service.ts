@@ -2,7 +2,7 @@ import { makeBuffer } from "node-opcua-buffer-utils";
 import { redirectToFile } from "node-opcua-debug/nodeJS";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
 import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
-import { verify_multi_chunk_message } from "../dist/test_helpers";
+import { verify_multi_chunk_message } from "../dist/test_helpers/index.js";
 
 /* a real readRequest (with two nodeIds) captured with ws*/
 const fixture_ws_readRequest_message = makeBuffer(

@@ -4,7 +4,7 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { AddressSpace, makeRoles, WellKnownRoles } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 const GDS_NAMESPACE_URI = "http://opcfoundation.org/UA/GDS/";
 

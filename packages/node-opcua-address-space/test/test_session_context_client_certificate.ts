@@ -4,7 +4,7 @@ import { CertificatePurpose, convertPEMtoDER, createSelfSignedCertificate, gener
 import { MessageSecurityMode } from "node-opcua-types";
 
 import { SessionContext } from "..";
-import { makeMockSessionContext } from "../testHelpers";
+import { makeMockSessionContext } from "../testHelpers.js";
 
 describe("US-035: ISessionContext.clientCertificate / clientApplicationUri", () => {
     it("should return null clientCertificate when no session", () => {

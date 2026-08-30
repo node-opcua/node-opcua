@@ -12,8 +12,8 @@ import {
     type UAObjectType,
     type UAVariable
 } from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { getMiniAddressSpace } from "../testHelpers";
+import { generateAddressSpace } from "../nodeJS.js";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("AddressSpace#delete", () => {
     let addressSpace: AddressSpace;

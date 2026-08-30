@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace } from "../..";
-import { generateAddressSpace } from "../../nodeJS";
+import { generateAddressSpace } from "../../nodeJS.js";
 
 describe("Testing Historical Data Node Enumeration", () => {
     let addressSpace: AddressSpace;

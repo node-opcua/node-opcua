@@ -6,7 +6,7 @@ import should from "should";
 import sinon from "sinon";
 
 import { type ClientSession, ClientSidePublishEngine, type ClientSubscription, ExtensionObject } from "..";
-import type { ClientSessionImpl } from "../dist/private/client_session_impl";
+import type { ClientSessionImpl } from "../dist/private/client_session_impl.js";
 
 function makeSubscription(subscriptionId: number, timeoutHint: number, callback: (...args: unknown[]) => void): ClientSubscription {
     return {

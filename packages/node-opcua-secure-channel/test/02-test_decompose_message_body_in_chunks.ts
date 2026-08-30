@@ -1,5 +1,5 @@
 import "should";
-import { decompose_message_body_in_chunks } from "../dist/test_helpers";
+import { decompose_message_body_in_chunks } from "../dist/test_helpers/index.js";
 
 describe("decompose message body in chunks", () => {
     it("should decompose a message body in at least one chunk ", () => {

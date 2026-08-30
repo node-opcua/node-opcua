@@ -15,8 +15,8 @@ import {
 } from "node-opcua-crypto/web";
 import should from "should";
 
-import { DiskCertificateKeyPairProvider } from "../source/disk_certificate_key_pair_provider";
-import { ResolvedCertificateKeyPairProvider } from "../source/resolved_certificate_key_pair_provider";
+import { DiskCertificateKeyPairProvider } from "../source/disk_certificate_key_pair_provider.js";
+import { ResolvedCertificateKeyPairProvider } from "../source/resolved_certificate_key_pair_provider.js";
 
 describe("DiskCertificateKeyPairProvider & ResolvedCertificateKeyPairProvider", function (this: Mocha.Suite) {
     this.timeout(Math.max(30000, this.timeout()));

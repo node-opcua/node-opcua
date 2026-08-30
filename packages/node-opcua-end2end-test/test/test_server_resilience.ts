@@ -4,9 +4,9 @@ import { type ClientSession, OPCUAClient } from "node-opcua-client";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { OPCUAServer } from "node-opcua-server";
-import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
-import { ServerSideUnimplementedRequest } from "../test_helpers/unimplementedRequest";
-import { wait } from "../test_helpers/utils";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
+import { ServerSideUnimplementedRequest } from "../test_helpers/unimplementedRequest.js";
+import { wait } from "../test_helpers/utils.js";
 
 // performMessageTransaction() is public on the session implementation but deliberately
 // excluded from the public ClientSession interface; reached here to send a raw

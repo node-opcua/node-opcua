@@ -4,7 +4,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { AddressSpace } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 const _debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

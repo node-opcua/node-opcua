@@ -11,7 +11,7 @@ import should from "should";
 
 import { getOrCreateConstructor, parseBinaryXSD } from "..";
 
-import { MockProvider } from "./mock_id_provider";
+import { MockProvider } from "./mock_id_provider.js";
 
 const doDebug = false;
 

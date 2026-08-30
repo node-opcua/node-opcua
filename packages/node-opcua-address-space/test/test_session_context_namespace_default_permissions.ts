@@ -4,7 +4,7 @@ import { PermissionType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import { type AddressSpace, makeRoles, type Namespace, type UAVariable, WellKnownRoles } from "..";
-import { getMiniAddressSpace, makeMockSessionContext } from "../testHelpers";
+import { getMiniAddressSpace, makeMockSessionContext } from "../testHelpers.js";
 
 /**
  * A namespace default set through Namespace.setDefaultRolePermissions() must be honoured by the

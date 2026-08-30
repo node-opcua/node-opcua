@@ -33,7 +33,7 @@ import { assert_arrays_are_equal } from "node-opcua-test-helpers";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import sinon, { type SinonFakeTimers } from "sinon";
-import { ServerEngine } from "../source";
+import { ServerEngine } from "../source/index.js";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 

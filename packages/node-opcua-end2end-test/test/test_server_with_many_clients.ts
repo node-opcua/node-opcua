@@ -19,8 +19,8 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import {
     build_server_with_temperature_device,
     type ExtraServerProperties
-} from "../test_helpers/build_server_with_temperature_device";
-import { wait } from "../test_helpers/utils";
+} from "../test_helpers/build_server_with_temperature_device.js";
+import { wait } from "../test_helpers/utils.js";
 
 const debugLog = make_debugLog("TEST");
 

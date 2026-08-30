@@ -11,7 +11,7 @@ import {
     TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 
 interface TestHarness {
     endpointUrl: string;

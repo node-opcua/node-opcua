@@ -1,7 +1,7 @@
 import { type DataValue, OPCUAClient, TimestampsToReturn } from "node-opcua-client";
 import { messageLogger } from "node-opcua-debug";
 import sinon from "sinon";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 const doDebug = false;
 export function t(test: UmbrellaTestContext) {

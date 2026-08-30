@@ -4,7 +4,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { Variant } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type Namespace } from "..";
-import { generateAddressSpace } from "../distNodeJS";
+import { generateAddressSpace } from "../distNodeJS/index.js";
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1342", function (this: Mocha.Suite) {
     this.timeout(Math.max(this.timeout(), 20000));

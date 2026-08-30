@@ -3,7 +3,7 @@ import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers"
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId } from "node-opcua-nodeid";
 import should from "should";
-import { ServerEngine } from "../source";
+import { ServerEngine } from "../source/index.js";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 

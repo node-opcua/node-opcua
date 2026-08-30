@@ -10,7 +10,7 @@ import {
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
 
 const port = 2238;
 

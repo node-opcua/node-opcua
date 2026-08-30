@@ -2,7 +2,7 @@ import os from "node:os";
 import "should";
 import { makeApplicationUrn, OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 /**
  * Bug #596 - ClientSession#getNamespaceIndex

@@ -1,6 +1,6 @@
 import { MonitoredItemNotification } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
-import type { MonitoredItem, Subscription } from "../source";
+import type { MonitoredItem, Subscription } from "../source/index.js";
 
 interface M2 {
     simulateMonitoredItemAddingNotification: () => void;

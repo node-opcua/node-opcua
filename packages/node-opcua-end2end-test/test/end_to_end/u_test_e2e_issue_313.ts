@@ -1,8 +1,8 @@
 import "should";
 import { AttributeIds, ClientMonitoredItem, coerceNodeId, OPCUAClient, TimestampsToReturn } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 export function t(test: UmbrellaTestContext) {
     describe("Issue #313 - monitoring invalid nodeId twice shouldn't crash", () => {

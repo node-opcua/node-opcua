@@ -19,9 +19,9 @@ import {
     VariableIds
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { assertThrow } from "../test_helpers/assert_throw";
-import { build_client_server_session, type ClientServerSession } from "../test_helpers/build_client_server_session";
-import { wait } from "../test_helpers/utils";
+import { assertThrow } from "../test_helpers/assert_throw.js";
+import { build_client_server_session, type ClientServerSession } from "../test_helpers/build_client_server_session.js";
+import { wait } from "../test_helpers/utils.js";
 
 const port = 2020;
 

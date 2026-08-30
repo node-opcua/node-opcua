@@ -1,4 +1,4 @@
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 export type TestHarness = UmbrellaTestContext;
 

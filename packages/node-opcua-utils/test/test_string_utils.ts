@@ -1,6 +1,6 @@
 import should from "should";
 import * as utils from "..";
-import { countUpperCase, countUpperCaseSlow } from "../dist/string_utils";
+import { countUpperCase, countUpperCaseSlow } from "../dist/string_utils.js";
 
 describe("string_utils", () => {
     describe("capitalizeFirstLetter", () => {

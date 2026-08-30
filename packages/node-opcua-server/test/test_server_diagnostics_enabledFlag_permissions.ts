@@ -12,7 +12,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { PermissionType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { ServerEngine } from "../source";
+import { ServerEngine } from "../source/index.js";
 
 // const mini_nodeset_filename = get_mini_nodeset_filename();
 

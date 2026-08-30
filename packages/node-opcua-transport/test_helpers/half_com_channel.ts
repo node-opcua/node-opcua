@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
 import { assert } from "node-opcua-assert";
-import type { ISocketLike } from "../source";
+import type { ISocketLike } from "../source/index.js";
 
 export class HalfComChannel extends EventEmitter implements ISocketLike {
     private _hasEnded: boolean;

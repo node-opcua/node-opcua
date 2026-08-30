@@ -10,7 +10,7 @@ import { ThreeDCartesianCoordinates } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type BaseNode, type INamespace, PseudoSession, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 async function simulateExternalWriteEx(node: BaseNode, value: ExtensionObject, sourceTimestamp: DateTime) {
     const addressSpace = node.addressSpace;

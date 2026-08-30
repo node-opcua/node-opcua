@@ -13,8 +13,8 @@ import {
     getOrCreateStructuredTypeSchema,
     InternalTypeDictionary,
     type StructureTypeRaw
-} from "../source";
-import { MockProvider } from "./mock_id_provider";
+} from "../source/index.js";
+import { MockProvider } from "./mock_id_provider.js";
 
 const _a = BaseUAObject;
 

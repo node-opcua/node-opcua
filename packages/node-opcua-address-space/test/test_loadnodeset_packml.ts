@@ -5,7 +5,7 @@ import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 
 import { AddressSpace, ensureDatatypeExtracted, resolveOpaqueOnAddressSpace } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");

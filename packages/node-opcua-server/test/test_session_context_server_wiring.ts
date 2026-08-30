@@ -20,7 +20,7 @@ import { type IServerBase, makeRoles, WellKnownRoles } from "node-opcua-address-
 import { type NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { UserNameIdentityToken } from "node-opcua-types";
 import "should";
-import { ServerEngine } from "../source";
+import { ServerEngine } from "../source/index.js";
 
 const securityAdmin = resolveNodeId(WellKnownRoles.SecurityAdmin);
 const hasRole = (roles: NodeId[], role: NodeId) => roles.some((r) => sameNodeId(r, role));

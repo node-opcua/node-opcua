@@ -4,7 +4,7 @@ import { getFixture } from "node-opcua-test-fixtures";
 // import fs from "fs";
 import should from "should";
 import { AddressSpace, findOrder, generateAddressSpaceRaw, preLoad } from "..";
-import { readNodeSet2XmlFile } from "../nodeJS";
+import { readNodeSet2XmlFile } from "../nodeJS.js";
 
 // const fixtureFolder = path.join(__dirname, "../../test_fixtures");
 const doDebug = false;

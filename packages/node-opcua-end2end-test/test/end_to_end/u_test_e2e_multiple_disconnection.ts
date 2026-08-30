@@ -3,7 +3,7 @@ import { OPCUAClient } from "node-opcua";
 import { messageLogger } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 export function t(test: UmbrellaTestContext) {
     describe("CDC multiple disconnection", () => {

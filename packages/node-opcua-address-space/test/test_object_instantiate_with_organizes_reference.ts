@@ -4,7 +4,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { AddressSpace, SessionContext } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 const _context = SessionContext.defaultContext;
 

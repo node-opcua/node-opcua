@@ -2,8 +2,8 @@ import "should";
 import os from "node:os";
 import { MessageSecurityMode, OPCUAClient, SecurityPolicy, type UserIdentityInfo } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { assertThrow } from "../../test_helpers/assert_throw";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import { assertThrow } from "../../test_helpers/assert_throw.js";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
 
 interface ConnectionOptions {
     securityMode?: MessageSecurityMode;

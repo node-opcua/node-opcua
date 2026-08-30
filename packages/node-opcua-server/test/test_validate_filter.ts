@@ -12,7 +12,7 @@ import {
 import { StatusCodes } from "node-opcua-status-code";
 import type { ReadValueIdOptions } from "node-opcua-types";
 
-import { validateFilter } from "../source/validate_filter";
+import { validateFilter } from "../source/validate_filter.js";
 
 // The EventFilter branch of validateFilter does not dereference the node, so a stub is sufficient.
 const dummyNode = {} as BaseNode;

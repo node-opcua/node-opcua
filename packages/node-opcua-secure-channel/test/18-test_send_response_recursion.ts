@@ -18,6 +18,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 import * as fixtures from "node-opcua-transport/dist/test-fixtures";
 import should from "should";
+import type { Response } from "../dist/source/common.js";
 import {
     type Message,
     MessageChunker,
@@ -25,8 +26,7 @@ import {
     SecurityPolicy,
     ServerSecureChannelLayer,
     type ServerSecureChannelParent
-} from "../dist/source";
-import type { Response } from "../dist/source/common";
+} from "../dist/source/index.js";
 
 const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 

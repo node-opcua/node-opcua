@@ -24,7 +24,7 @@ import {
     startDiscovery,
     type TestHarness,
     tweak_registerServerManager_timeout
-} from "./helpers/index";
+} from "./helpers/index.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

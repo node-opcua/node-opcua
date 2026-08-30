@@ -9,7 +9,7 @@ import {
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 interface SessionWithTransaction {
     performMessageTransaction(request: BrowseRequest): Promise<BrowseResponse>;

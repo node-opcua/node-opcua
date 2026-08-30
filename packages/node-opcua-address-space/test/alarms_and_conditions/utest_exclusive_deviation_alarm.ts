@@ -2,7 +2,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { type DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import type { AddressSpace, UAExclusiveDeviationAlarmEx, UAObject, UAVariable, UAVariableT } from "../..";
-import type { MochaSuiteEx } from "./test_alarms_and_conditions";
+import type { MochaSuiteEx } from "./test_alarms_and_conditions.js";
 
 export function utest_exclusive_deviation_alarm(test: MochaSuiteEx): void {
     describe("Deviation Alarms : ExclusiveDeviation Alarms ", () => {

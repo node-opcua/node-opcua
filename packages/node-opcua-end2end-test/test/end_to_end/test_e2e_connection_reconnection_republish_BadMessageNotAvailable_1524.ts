@@ -33,7 +33,7 @@ import {
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import "should";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
 
 // 2027: free in this package's port map (2025 is taken by test_issue_1442.ts;
 // 2024/2025 used, next free slot before 2030)
