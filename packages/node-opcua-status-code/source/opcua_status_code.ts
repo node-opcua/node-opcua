@@ -120,7 +120,20 @@ export abstract class StatusCode {
      *  returns a status code that can be modified
      */
     public static makeStatusCode(statusCode: StatusCode | string, optionalBits: string | number): StatusCode {
-        const _base = coerceStatusCode(statusCode);
+        // The instanceof case is handled here rather than deferred to the injected
+        // coerce, because the generated table calls this during its own evaluation
+        // (`static GoodWithOverflowBit = StatusCode.makeStatusCode(StatusCodes.Good, ...)`),
+        // which is before the registry has installed anything. That call passes a
+        // StatusCode, so it needs no table; only the string and number forms do.
+        let _base: StatusCode;
+        if (statusCode instanceof StatusCode) {
+            _base = statusCode;
+        } else {
+            if (!coerce) {
+                throw new Error("node-opcua-status-code: the status code table has not been installed yet");
+            }
+            _base = coerce(statusCode);
+        }
         const tmp = new ModifiableStatusCode({ _base });
         if (optionalBits || typeof optionalBits === "number") {
             tmp.set(optionalBits);
@@ -254,14 +267,44 @@ export function encodeStatusCode(statusCode: StatusCode | ConstantStatusCode, st
     stream.writeUInt32(statusCode.value);
 }
 
-// StatusCodes (in the generated _generated_status_codes.ts) is a class with one static
-// ConstantStatusCode field per named status, plus makeStatusCode monkey-patched onto it below.
-// These types capture that dynamic shape for the casts that index/extend it by string key.
-type IndexedStatusCodes = Record<string, ConstantStatusCode>;
-type StatusCodesWithMakeStatusCode = typeof StatusCodes & { makeStatusCode: typeof StatusCode.makeStatusCode };
-
 /** @internal construct status codes fast search indexes */
 const statusCodesReversedMap: Record<string, StatusCode> = {};
+
+/**
+ * The status code returned for a code that is not in the table. It is StatusCodes.Bad,
+ * but this module must not import the generated table to get it.
+ *
+ * _generated_status_codes.ts builds its ConstantStatusCode instances while its own module
+ * body runs, using the classes declared here. Under ESM an import is hoisted and the
+ * imported module is evaluated first, so importing the generated table from this file
+ * would evaluate it before these class declarations were initialised, and every one of
+ * those 280 constructions would throw a TDZ ReferenceError. It only works under CommonJS
+ * because `require()` runs where it is written, which used to be at the foot of this file.
+ *
+ * So the dependency is inverted: status_codes_registry.ts imports both and injects.
+ */
+let unknownStatusCodeFallback: StatusCode | undefined;
+
+/** injected for the same reason as the fallback: coerceStatusCode needs the table */
+let coerce: ((statusCode: StatusCode | number | string | { value: number }) => StatusCode) | undefined;
+
+/**
+ * @internal Called once by status_codes_registry, which is the only module that may
+ * import the generated table. Populates the reverse lookup and supplies the two things
+ * this module needs from that table.
+ */
+export function _installStatusCodes(
+    codes: Record<string, StatusCode>,
+    fallback: StatusCode,
+    coerceStatusCode: (statusCode: StatusCode | number | string | { value: number }) => StatusCode
+): void {
+    for (const name of Object.keys(codes)) {
+        const code = codes[name];
+        statusCodesReversedMap[code.value.toString()] = code;
+    }
+    unknownStatusCodeFallback = fallback;
+    coerce = coerceStatusCode;
+}
 
 /**
  * returns the StatusCode corresponding to the provided value, if any
@@ -275,7 +318,10 @@ export function getStatusCodeFromCode(code: number): StatusCode {
 
     /* c8 ignore next */
     if (!sc) {
-        sc = StatusCodes.Bad;
+        if (!unknownStatusCodeFallback) {
+            throw new Error("node-opcua-status-code: the status code table has not been installed yet");
+        }
+        sc = unknownStatusCodeFallback;
         warnLog(`expecting a known StatusCode but got 0x${codeWithoutInfoBits.toString(16)}`, ` code was 0x${code.toString(16)}`);
     }
     if (infoBits) {
@@ -377,30 +423,6 @@ export class ModifiableStatusCode extends StatusCode {
 Object.defineProperty(ModifiableStatusCode.prototype, "_base", { enumerable: false, writable: true });
 Object.defineProperty(ModifiableStatusCode.prototype, "_extraBits", { enumerable: false, writable: true });
 
-import { StatusCodes } from "./_generated_status_codes.js";
-
-export { StatusCodes } from "./_generated_status_codes.js";
-
-export function coerceStatusCode(statusCode: StatusCode | number | string | { value: number }): StatusCode {
-    if (statusCode instanceof StatusCode) {
-        return statusCode;
-    }
-    if (typeof statusCode === "object" && Object.hasOwn(statusCode, "value")) {
-        return getStatusCodeFromCode(statusCode.value);
-    }
-    if (typeof statusCode === "number") {
-        return getStatusCodeFromCode(statusCode);
-    }
-    const _StatusCodes = StatusCodes as unknown as IndexedStatusCodes;
-    if (!_StatusCodes[statusCode as string]) {
-        throw new Error(`Cannot find StatusCode ${statusCode}`);
-    }
-    return _StatusCodes[statusCode as string];
-}
-
-for (const name of Object.keys(StatusCodes)) {
-    const code = (StatusCodes as unknown as IndexedStatusCodes)[name];
-    statusCodesReversedMap[code.value.toString()] = code;
-}
-
-(StatusCodes as StatusCodesWithMakeStatusCode).makeStatusCode = StatusCode.makeStatusCode;
+// StatusCodes, coerceStatusCode and the table installation now live in
+// status_codes_registry.ts, which is the only module allowed to import the generated
+// table. See the note on unknownStatusCodeFallback above for why.
