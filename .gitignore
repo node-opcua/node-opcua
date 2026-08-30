@@ -82,7 +82,6 @@ schemas/ServiceCounter.js
 schemas/SessionDiagnostics_schema.js
 schemas/SessionDiagnostics.js
 specs/
-test_fixtures/
 test_support/
 tmp/
 tmptmp/

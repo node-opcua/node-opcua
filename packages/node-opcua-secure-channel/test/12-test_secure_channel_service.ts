@@ -12,7 +12,7 @@ import {
 const debugLog = make_debugLog("TEST");
 
 import { type IDerivedKeyProvider, MessageBuilder, MessageChunker, SecurityPolicy } from "../dist/source";
-import * as fixture from "../test_fixtures/fixture_GetEndPointResponse";
+import * as fixture from "../test_fixtures/fixture_GetEndPointResponse.js";
 
 const derivedKeyProvider: IDerivedKeyProvider = {
     getDerivedKey(_tokenId: number) {

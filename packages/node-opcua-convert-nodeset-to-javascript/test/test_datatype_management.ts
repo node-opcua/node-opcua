@@ -6,7 +6,7 @@ import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/t
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 
-import { getFixture } from "../test_fixtures/helper";
+import { getFixture } from "../test_fixtures/helper.js";
 
 describe("ComplexType read from XML NodeSET file shall be binary encode-able", function () {
     this.timeout(Math.max(40000, this.timeout()));
