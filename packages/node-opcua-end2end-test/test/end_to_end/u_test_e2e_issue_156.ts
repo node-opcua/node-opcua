@@ -9,8 +9,8 @@ import {
     OPCUAClient
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
-import { waitForChange } from "./_helpers_monitoring";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
+import { waitForChange } from "./_helpers_monitoring.js";
 
 /**
  * Bug #156 - Monitoring a variable with sampling rate faster than

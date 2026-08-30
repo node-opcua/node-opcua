@@ -33,7 +33,7 @@ import {
 // let's make sure should don't get removed by typescript optimizer
 const _keep_should = should;
 
-import { date_add, getMiniAddressSpace, makeMockSessionContext } from "../testHelpers";
+import { date_add, getMiniAddressSpace, makeMockSessionContext } from "../testHelpers.js";
 
 // canUserXXXHistory methods are implemented on UAVariableImpl but are not part of the public UAVariable interface
 interface UAVariableWithHistoryPermissions {

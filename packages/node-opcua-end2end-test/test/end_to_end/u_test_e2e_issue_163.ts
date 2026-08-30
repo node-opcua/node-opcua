@@ -1,7 +1,7 @@
 import "should";
 import { AttributeIds, ClientMonitoredItem, ClientSubscription, DataType, OPCUAClient, StatusCodes, Variant } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 /**
  * Bug #163 - Variable alternating between Good values and Bad status should not cause internal errors.

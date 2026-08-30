@@ -15,7 +15,7 @@ import {
 } from "..";
 import "mocha";
 
-import { removeDecoration } from "./test_helpers";
+import { removeDecoration } from "./test_helpers.js";
 
 const namespaceUri = "urn:some";
 

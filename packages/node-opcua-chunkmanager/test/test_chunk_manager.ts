@@ -1,7 +1,7 @@
 import { assert } from "node-opcua-assert";
 import { hexDump } from "node-opcua-debug";
 import should from "should";
-import { ChunkManager, Mode } from "../dist";
+import { ChunkManager, Mode } from "../dist/index.js";
 
 function make_packet(packet_length: number) {
     const buf = Buffer.allocUnsafe(packet_length);

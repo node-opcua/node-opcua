@@ -2,7 +2,7 @@ import { BrowseDirection } from "node-opcua-data-model";
 import { sameNodeId } from "node-opcua-nodeid";
 import should from "should";
 import type { AddressSpace, BaseNode, UARootFolder } from "..";
-import { getMiniAddressSpace } from "../distHelpers";
+import { getMiniAddressSpace } from "../distHelpers/index.js";
 
 describe("AddressSpace : removeReference", () => {
     let addressSpace: AddressSpace;

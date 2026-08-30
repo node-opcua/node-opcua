@@ -12,7 +12,7 @@ import {
     type UAVariable,
     validateIsNumericDataType
 } from "../..";
-import { generateAddressSpace } from "../../nodeJS";
+import { generateAddressSpace } from "../../nodeJS.js";
 
 describe("MultiStateValueDiscreteType - 2", () => {
     let addressSpace: AddressSpace;

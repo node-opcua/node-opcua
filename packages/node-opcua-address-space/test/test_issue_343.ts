@@ -2,8 +2,8 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, NamespaceOptions } from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { type BoilerType, createBoilerType } from "../testHelpers";
+import { generateAddressSpace } from "../nodeJS.js";
+import { type BoilerType, createBoilerType } from "../testHelpers.js";
 
 describe("Testing automatic string nodeid assignment", () => {
     const nodesetFilename = nodesets.standard;

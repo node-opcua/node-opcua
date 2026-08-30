@@ -39,7 +39,7 @@ import { PublishRequest, type PublishResponse } from "node-opcua-service-subscri
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 import sinon from "sinon";
-import { ServerSidePublishEngine, Subscription, type SubscriptionOptions, SubscriptionState } from "../source";
+import { ServerSidePublishEngine, Subscription, type SubscriptionOptions, SubscriptionState } from "../source/index.js";
 
 const property =
     <K extends string>(key: K) =>

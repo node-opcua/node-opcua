@@ -1,7 +1,7 @@
 import path from "node:path";
 import { OPCUACertificateManager, OPCUAClientBase, OPCUAServer } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import type { TestHarness } from "./helpers/harness";
+import type { TestHarness } from "./helpers/harness.js";
 
 describe("testing DiscoveryServer - Umbrella ", function (this: Mocha.Runnable & TestHarness) {
     before(async () => {

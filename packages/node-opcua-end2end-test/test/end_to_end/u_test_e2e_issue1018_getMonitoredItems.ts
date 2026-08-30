@@ -8,7 +8,7 @@ import {
     TimestampsToReturn,
     VariableIds
 } from "node-opcua";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 export function t(test: UmbrellaTestContext) {
     describe("getMonitoredItem issue #1018", () => {
         it("getMonitoredItems with more than 25 variables", async () => {

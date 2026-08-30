@@ -13,7 +13,7 @@ import {
     SecurityPolicy,
     ServerSecureChannelLayer,
     type ServerSecureChannelParent
-} from "../dist/source";
+} from "../dist/source/index.js";
 
 describe("T73-1 Reproduction: Sequence Number Reset on Renewal", () => {
     it("should strictly increase sequence numbers across secure channel renewal", async () => {

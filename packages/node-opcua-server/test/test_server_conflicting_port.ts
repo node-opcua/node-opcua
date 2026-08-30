@@ -3,7 +3,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 
-import { OPCUAServer } from "../source";
+import { OPCUAServer } from "../source/index.js";
 
 const testPort1 = 12345;
 

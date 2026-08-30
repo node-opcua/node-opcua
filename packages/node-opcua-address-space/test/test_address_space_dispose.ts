@@ -3,7 +3,7 @@ import path from "node:path";
 import "should";
 
 import { AddressSpace } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 function dumpMemoryUse() {
     if (process.memoryUsage) {

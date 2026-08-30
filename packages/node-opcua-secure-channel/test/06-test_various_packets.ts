@@ -4,7 +4,7 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
 import * as packets from "node-opcua-transport/dist/test-fixtures";
 import should from "should";
-import { type IDerivedKeyProvider, MessageBuilder, MessageSecurityMode, SecurityPolicy } from "../dist/source";
+import { type IDerivedKeyProvider, MessageBuilder, MessageSecurityMode, SecurityPolicy } from "../dist/source/index.js";
 import { packet_ReadResponse } from "../test_fixtures/fixture_problematic_ReadResponse.js";
 
 const full_message_body = packet_ReadResponse;

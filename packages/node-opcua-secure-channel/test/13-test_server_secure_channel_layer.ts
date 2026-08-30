@@ -21,7 +21,7 @@ import {
     ServerSecureChannelLayer,
     type ServerSecureChannelParent,
     SymmetricAlgorithmSecurityHeader
-} from "../dist/source";
+} from "../dist/source/index.js";
 
 const assertThrow = async (func: () => Promise<void>, errRegEx: RegExp) => {
     let hasThrown = false;

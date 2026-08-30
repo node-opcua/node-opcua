@@ -12,8 +12,8 @@ import {
     type UAObjectType,
     type UAVariable
 } from "../..";
-import { generateAddressSpace } from "../../nodeJS";
-import { date_add } from "../../testHelpers";
+import { generateAddressSpace } from "../../nodeJS.js";
+import { date_add } from "../../testHelpers.js";
 
 // The user question: for a COMPLEX (bound) ExtensionObject variable that exposes its fields as
 // child Variables through a JavaScript Proxy, does a single setValueFromSource on the PARENT

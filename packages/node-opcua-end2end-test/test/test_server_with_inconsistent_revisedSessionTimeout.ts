@@ -4,7 +4,7 @@ import chalk from "chalk";
 import { type ClientSession, CreateSessionResponse, OPCUAClient, OPCUAServer, type OPCUAServerOptions } from "node-opcua";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
 
 const debugLog = make_debugLog("TEST");
 const _warningLog = make_warningLog("TEST");

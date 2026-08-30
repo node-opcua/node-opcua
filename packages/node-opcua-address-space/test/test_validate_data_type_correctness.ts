@@ -4,7 +4,7 @@ import { DataType } from "node-opcua-variant";
 import should from "should";
 
 import { AddressSpace, validateDataTypeCorrectness } from "..";
-import { generateAddressSpace } from "../distNodeJS";
+import { generateAddressSpace } from "../distNodeJS/index.js";
 
 describe("testing validateDataTypeCorrectness", () => {
     let addressSpace: AddressSpace;

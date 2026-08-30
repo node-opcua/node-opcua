@@ -7,7 +7,7 @@ import { DataType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
 import { AddressSpace, SessionContext } from "..";
-import { create_minimalist_address_space_nodeset } from "../testHelpers";
+import { create_minimalist_address_space_nodeset } from "../testHelpers.js";
 
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");

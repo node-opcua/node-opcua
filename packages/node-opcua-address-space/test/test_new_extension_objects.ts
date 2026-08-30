@@ -9,7 +9,7 @@ import should from "should";
 import { spy } from "sinon";
 //
 import { AddressSpace, adjustNamespaceArray, PseudoSession } from "..";
-import { generateAddressSpace } from "../distNodeJS";
+import { generateAddressSpace } from "../distNodeJS/index.js";
 
 describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition available)", () => {
     let addressSpace: AddressSpace;

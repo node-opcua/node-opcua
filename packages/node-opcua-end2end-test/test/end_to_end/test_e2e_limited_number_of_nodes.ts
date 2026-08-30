@@ -18,7 +18,7 @@ import {
 import { NodeCrawler } from "node-opcua-client-crawler";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import * as should from "should"; // explicit import to silence TS UMD global warning
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 
 assert(typeof makeBrowsePath === "function");
 

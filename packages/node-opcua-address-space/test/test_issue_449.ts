@@ -10,7 +10,7 @@ import {
     SessionContext,
     type UAVariable
 } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/449", () => {
     let addressSpace: AddressSpace;

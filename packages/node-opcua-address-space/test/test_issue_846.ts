@@ -9,7 +9,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { EndpointConfiguration, ServerDiagnosticsSummaryDataType, ServiceCounterDataType } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { AddressSpace, SessionContext, type UAObject, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("#899 Variable with NodeId Value in nodeset2.xml", () => {
     let addressSpace: AddressSpace;

@@ -4,7 +4,7 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { AnonymousIdentityToken, UserNameIdentityToken } from "node-opcua-types";
 
 import { type IRolePolicyOverride, type IServerBase, type IUserManager, WellKnownRoles } from "..";
-import { makeMockSessionContext } from "../testHelpers";
+import { makeMockSessionContext } from "../testHelpers.js";
 
 describe("US-028: IRolePolicyOverride", () => {
     const securityAdminRole = resolveNodeId(WellKnownRoles.SecurityAdmin);

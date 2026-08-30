@@ -1,8 +1,8 @@
 import "should";
 import { BrowseDirection, NodeId, NodeIdType, OPCUAClient, StatusCodes } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 export function t(test: UmbrellaTestContext) {
     describe("Issue #377 - string nodeId that looks like a guid", () => {

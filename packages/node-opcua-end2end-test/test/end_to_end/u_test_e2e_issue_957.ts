@@ -2,8 +2,8 @@ import "should";
 import type { EventEmitter } from "node:events";
 import { type ClientSession, OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { waitForEvent } from "../../test_helpers/utils";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { waitForEvent } from "../../test_helpers/utils.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 export function t(test: UmbrellaTestContext) {
     describe("Testing bug #957 - ServerCertificate is an empty buffer", () => {

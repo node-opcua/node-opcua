@@ -4,7 +4,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("testing loading ExtensionObject value from NodeSet XML file", function (this: Mocha.Context) {
     this.timeout(Math.max(this.timeout(), 30000)); // could be slow on appveyor !

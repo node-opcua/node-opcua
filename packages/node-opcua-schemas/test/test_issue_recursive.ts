@@ -3,8 +3,8 @@ import path from "node:path";
 import { DataTypeFactory, parameters } from "node-opcua-factory";
 import { encode_decode_round_trip_test, type IExtensionObject } from "node-opcua-packet-analyzer/dist/test_helpers";
 import { Variant } from "node-opcua-variant";
-import { parseBinaryXSD } from "../dist/source";
-import { MockProvider } from "./mock_id_provider";
+import { parseBinaryXSD } from "../dist/source/index.js";
+import { MockProvider } from "./mock_id_provider.js";
 
 class MockProvider2 extends MockProvider {
     public getDataTypeAndEncodingId(key: string) {

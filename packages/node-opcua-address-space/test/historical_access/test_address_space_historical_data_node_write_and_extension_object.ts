@@ -6,8 +6,8 @@ import { type HistoryData, ReadRawModifiedDetails } from "node-opcua-service-his
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, type ContinuationPoint, ContinuationPointManager, SessionContext, type UAVariable } from "../..";
-import { generateAddressSpace } from "../../nodeJS";
-import { date_add } from "../../testHelpers";
+import { generateAddressSpace } from "../../nodeJS.js";
+import { date_add } from "../../testHelpers.js";
 
 // This test locks in that BOTH ways of feeding a value into a historized variable end up
 // recorded in the historian:

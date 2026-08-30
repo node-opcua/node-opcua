@@ -1,7 +1,7 @@
 import net from "node:net";
 import os from "node:os";
 import should from "should";
-import { OPCUAServer } from "../source";
+import { OPCUAServer } from "../source/index.js";
 
 async function findAvailablePort(): Promise<number> {
     return new Promise((resolve) => {

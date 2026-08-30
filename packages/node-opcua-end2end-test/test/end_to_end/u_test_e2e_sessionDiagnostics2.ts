@@ -10,7 +10,7 @@ import {
 } from "node-opcua";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import should from "should";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 const doDebug = checkDebugFlag("TEST");
 const debugLog = make_debugLog("TEST");

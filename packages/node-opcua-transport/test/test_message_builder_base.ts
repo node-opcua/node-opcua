@@ -3,7 +3,7 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { compare_buffers } from "node-opcua-utils";
 import sinon from "sinon";
-import { MessageBuilderBase, writeTCPMessageHeader } from "../source";
+import { MessageBuilderBase, writeTCPMessageHeader } from "../source/index.js";
 
 function wrap_message_in_chunk(subarray: Buffer, chunkType: "A" | "F" | "C") {
     const total_length = subarray.length + 12;

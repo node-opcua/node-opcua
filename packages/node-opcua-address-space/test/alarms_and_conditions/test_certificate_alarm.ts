@@ -7,7 +7,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, instantiateCertificateExpirationAlarm, type UACertificateExpirationAlarmEx } from "../..";
-import { generateAddressSpace } from "../../distNodeJS";
+import { generateAddressSpace } from "../../distNodeJS/index.js";
 
 export const OneDayDuration = 1000 * 60 * 60 * 24;
 export const TwoWeeksDuration = OneDayDuration * 2 * 7;

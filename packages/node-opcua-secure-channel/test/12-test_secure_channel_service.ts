@@ -11,7 +11,7 @@ import {
 
 const debugLog = make_debugLog("TEST");
 
-import { type IDerivedKeyProvider, MessageBuilder, MessageChunker, SecurityPolicy } from "../dist/source";
+import { type IDerivedKeyProvider, MessageBuilder, MessageChunker, SecurityPolicy } from "../dist/source/index.js";
 import * as fixture from "../test_fixtures/fixture_GetEndPointResponse.js";
 
 const derivedKeyProvider: IDerivedKeyProvider = {

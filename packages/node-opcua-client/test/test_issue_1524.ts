@@ -15,8 +15,8 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { StatusCodes } from "node-opcua-status-code";
 import { type RepublishRequest, RepublishResponse } from "node-opcua-types";
 import "should";
-import type { ClientSidePublishEngine } from "../source/private/client_publish_engine";
-import { republish } from "../source/private/reconnection/client_publish_engine_reconnection";
+import type { ClientSidePublishEngine } from "../source/private/client_publish_engine.js";
+import { republish } from "../source/private/reconnection/client_publish_engine_reconnection.js";
 
 describe("issue #1524 - client must resume publishing after Republish returns BadMessageNotAvailable", function (this: Mocha.Suite) {
     this.timeout(10 * 1000);

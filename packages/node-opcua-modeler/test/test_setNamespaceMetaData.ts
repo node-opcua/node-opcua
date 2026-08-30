@@ -3,7 +3,7 @@ import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { displayNodeElement, setNamespaceMetaData } from "..";
-import { removeDecoration } from "./test_helpers";
+import { removeDecoration } from "./test_helpers.js";
 
 describe("displayNodeElement", () => {
     let addressSpace: AddressSpace;

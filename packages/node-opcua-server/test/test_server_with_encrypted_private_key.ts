@@ -15,7 +15,7 @@ import { MessageSecurityMode, OPCUAClient, SecurityPolicy } from "node-opcua-cli
 import { extractFullyQualifiedDomainName } from "node-opcua-hostname";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import { OPCUAServer } from "../source";
+import { OPCUAServer } from "../source/index.js";
 
 const testPort1 = 12066;
 const testPort2 = 12067;

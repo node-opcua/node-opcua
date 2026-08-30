@@ -17,7 +17,7 @@ import {
 import type { ClientSessionImpl } from "node-opcua-client/source/private/client_session_impl";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector } from "node-opcua-leak-detector";
-import { crash_simple_server, type ServerHandle, start_simple_server } from "../../test_helpers/external_server_fixture";
+import { crash_simple_server, type ServerHandle, start_simple_server } from "../../test_helpers/external_server_fixture.js";
 
 // -------------------------------------------------------------------------------------------------
 // This test covers reconnection logic when the server either fails to republish or doesn't implement

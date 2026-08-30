@@ -4,8 +4,8 @@ import type { ClientSessionKeepAliveManager } from "node-opcua-client/dist/clien
 import { make_warningLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
-import { waitUntilCondition } from "../../test_helpers/utils";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { waitUntilCondition } from "../../test_helpers/utils.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 const warningLog = make_warningLog("TEST");
 

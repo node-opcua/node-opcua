@@ -5,7 +5,7 @@ import type { CallMethodResultOptions } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type ISessionContext, SessionContext, type UAMethod, type UAObject, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("Testing loading nodeset with extension objects containing DateTime values", function (this: Mocha.Suite) {
     this.timeout(200000);

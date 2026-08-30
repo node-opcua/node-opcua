@@ -10,8 +10,8 @@ import {
     SessionContext,
     type UAProgramStateMachineEx
 } from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { createBoilerType, makeBoiler } from "../testHelpers";
+import { generateAddressSpace } from "../nodeJS.js";
+import { createBoilerType, makeBoiler } from "../testHelpers.js";
 
 const doDebug = false;
 

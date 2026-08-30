@@ -15,9 +15,9 @@ import {
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
-import { pause } from "../discovery/helpers/_helper";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session.js";
+import { pause } from "../discovery/helpers/_helper.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

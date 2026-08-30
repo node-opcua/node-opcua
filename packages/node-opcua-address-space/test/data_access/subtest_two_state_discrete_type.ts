@@ -11,7 +11,7 @@ import should from "should";
 import sinon from "sinon";
 
 import { AddressSpace, SessionContext, type UAObject, type UAObjectType, type UATwoStateDiscreteEx } from "../..";
-import { generateAddressSpace } from "../../distNodeJS";
+import { generateAddressSpace } from "../../distNodeJS/index.js";
 
 const doDebug = false;
 

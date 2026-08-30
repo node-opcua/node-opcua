@@ -1,6 +1,6 @@
 import { AddressSpace } from "..";
-import { generateAddressSpace } from "../distNodeJS";
-import { get_mini_nodeset_filename } from "../testHelpers";
+import { generateAddressSpace } from "../distNodeJS/index.js";
+import { get_mini_nodeset_filename } from "../testHelpers.js";
 import "should";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();

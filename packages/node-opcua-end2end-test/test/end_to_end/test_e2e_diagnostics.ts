@@ -1,8 +1,8 @@
 import "should";
 import { OPCUAClient, type ServerSecureChannelLayer, type UAVariable } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 
 // redirectToFile retained for potential future use
 // import { redirectToFile } from "node-opcua-debug/nodeJS";

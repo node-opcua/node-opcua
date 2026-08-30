@@ -4,7 +4,7 @@ import "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("#1132 Variable  ExtensionObject containing NodeId in nodeset2.xml", () => {
     let addressSpace: AddressSpace;

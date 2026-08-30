@@ -4,8 +4,8 @@ import type { ReadValueIdOptions } from "node-opcua-service-read";
 import { StatusCodes } from "node-opcua-status-code";
 import sinon from "sinon";
 
-import { ClientSessionKeepAliveManager } from "../dist/client_session_keepalive_manager";
-import type { ClientSessionImpl } from "../dist/private/client_session_impl";
+import { ClientSessionKeepAliveManager } from "../dist/client_session_keepalive_manager.js";
+import type { ClientSessionImpl } from "../dist/private/client_session_impl.js";
 
 type ReadCallback = (err: Error | null, dataValue?: DataValue) => void;
 

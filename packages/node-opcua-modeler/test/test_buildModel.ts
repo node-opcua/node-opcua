@@ -1,6 +1,6 @@
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { AddressSpace } from "..";
-import { buildModel } from "../nodeJS";
+import { buildModel } from "../nodeJS.js";
 
 describe("buildModel", () => {
     it("should build a empty model", async () => {

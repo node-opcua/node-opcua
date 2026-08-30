@@ -11,7 +11,7 @@ import sinon from "sinon";
 const debugLog = make_debugLog("TEST");
 const errorLog = make_errorLog("TEST");
 
-import { FakeServer } from "../dist/test_helpers";
+import { FakeServer } from "../dist/test_helpers/index.js";
 
 // One port per test. The server is rebuilt in beforeEach, and re-binding a single
 // fixed port that many times loses a race under load: close() resolves only once
@@ -36,7 +36,7 @@ const port12 = 5711;
 const ports = [port1, port2, port3, port4, port5, port6, port7, port8, port9, port10, port11, port12];
 let portIndex = 0;
 
-import { BinaryStream } from "../../node-opcua/dist";
+import { BinaryStream } from "../../node-opcua/dist/index.js";
 import { AcknowledgeMessage, ClientTCP_transport, packTcpMessage, TCP_transport, TCPErrorMessage, writeTCPMessageHeader } from "..";
 
 describe("testing ClientTCP_transport", function (this: Mocha.Suite) {

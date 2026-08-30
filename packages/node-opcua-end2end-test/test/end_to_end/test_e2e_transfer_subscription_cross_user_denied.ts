@@ -14,7 +14,7 @@ import {
     UserTokenType
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
 
 // transferSubscriptions() is declared on the raw subscription service, deliberately
 // excluded from the public ClientSession interface. Its optional-callback overload

@@ -1,7 +1,7 @@
 import "should";
 import { type ClientSession, OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 // _nextSessionName is a private OPCUAClient implementation method, hijacked here
 // to force a null sessionName that the public API cannot otherwise produce.

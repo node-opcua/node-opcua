@@ -3,7 +3,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 function git1277(addressSpace: AddressSpace) {
     const namespace = addressSpace.getOwnNamespace();

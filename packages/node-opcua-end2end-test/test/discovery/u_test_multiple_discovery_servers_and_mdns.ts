@@ -6,7 +6,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { OPCUADiscoveryServer } from "node-opcua-server-discovery";
 
-import { createAndStartServer, ep, pause, startDiscovery, type TestHarness } from "./helpers/index";
+import { createAndStartServer, ep, pause, startDiscovery, type TestHarness } from "./helpers/index.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

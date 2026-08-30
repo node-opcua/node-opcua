@@ -16,8 +16,8 @@ import chalk from "chalk";
 import { type ClientSession, DataType, makeNodeId, OPCUAClient, VariableIds, Variant } from "node-opcua";
 import { UAProxyManager } from "node-opcua-client-proxy";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
-import { createHVACSystem } from "../../test_helpers/hvac_system";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
+import { createHVACSystem } from "../../test_helpers/hvac_system.js";
 
 // biome-ignore lint/suspicious/noExplicitAny: UAProxyManager builds proxy objects dynamically at runtime; shape isn't statically knowable
 type DynamicProxyValue = any;

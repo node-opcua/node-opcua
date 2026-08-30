@@ -6,7 +6,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import { type AddressSpace, type Namespace, SessionContext } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("AddressSpace : testing add enumeration type", () => {
     let addressSpace: AddressSpace;

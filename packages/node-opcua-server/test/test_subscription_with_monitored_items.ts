@@ -34,7 +34,7 @@ import { type MonitoredItemNotification, type PublishResponse, Range, WriteValue
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
-
+import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine.js";
 import {
     MonitoredItem,
     type QueueItem,
@@ -44,9 +44,8 @@ import {
     Subscription,
     type SubscriptionOptions,
     SubscriptionState
-} from "../source";
-import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine";
-import { getFakePublishEngine } from "./helper_fake_publish_engine";
+} from "../source/index.js";
+import { getFakePublishEngine } from "./helper_fake_publish_engine.js";
 
 interface ITestContext extends Mocha.Suite {
     clock: sinon.SinonFakeTimers;

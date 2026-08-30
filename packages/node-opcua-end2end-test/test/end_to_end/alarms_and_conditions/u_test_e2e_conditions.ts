@@ -25,10 +25,10 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { constructEventFilter, ofType } from "node-opcua-service-filter";
 import should from "should";
 import sinon from "sinon";
-import { perform_operation_on_subscription } from "../../../test_helpers/perform_operation_on_client_session";
-import { wait, waitUntilCondition } from "../../../test_helpers/utils";
-import { f } from "../../discovery/helpers/_helper";
-import type { UmbrellaTestContext } from "../_helper_umbrella";
+import { perform_operation_on_subscription } from "../../../test_helpers/perform_operation_on_client_session.js";
+import { wait, waitUntilCondition } from "../../../test_helpers/utils.js";
+import { f } from "../../discovery/helpers/_helper.js";
+import type { UmbrellaTestContext } from "../_helper_umbrella.js";
 
 // the fixture attaches these fields dynamically once the event monitored item is installed
 // (see given_an_installed_event_monitored_item below); they're not part of UmbrellaTestContext

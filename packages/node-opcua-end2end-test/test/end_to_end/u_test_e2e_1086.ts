@@ -1,5 +1,5 @@
 import { coerceLocalizedText, DataType, MethodIds, ObjectIds, OPCUAClient, ServerState, StatusCodes } from "node-opcua-client";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 export function t(test: UmbrellaTestContext) {
     describe("issue#1086 calling method with enumeration in arguments", () => {
         it("should handle Enumeration in input arguments", async () => {

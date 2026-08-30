@@ -11,7 +11,7 @@ import {
     removeElement,
     type UASubscriptionDiagnostics
 } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("Extension Object Array Node (or Complex Variable)", () => {
     let addressSpace: AddressSpace;

@@ -15,7 +15,7 @@ import { BrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import { ServerEngine } from "../source";
+import { ServerEngine } from "../source/index.js";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 

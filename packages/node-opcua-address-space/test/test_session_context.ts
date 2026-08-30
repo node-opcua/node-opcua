@@ -10,7 +10,7 @@ import "should";
 
 import { type AddressSpace, makeRoles, SessionContext } from "..";
 
-import { getMiniAddressSpace, makeMockSessionContext } from "../testHelpers";
+import { getMiniAddressSpace, makeMockSessionContext } from "../testHelpers.js";
 
 const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
 

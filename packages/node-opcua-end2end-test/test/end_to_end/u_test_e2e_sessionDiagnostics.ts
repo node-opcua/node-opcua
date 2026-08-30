@@ -14,8 +14,8 @@ import {
     Variant
 } from "node-opcua";
 import sinon from "sinon";
-import { waitUntilCondition } from "../../test_helpers/utils";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { waitUntilCondition } from "../../test_helpers/utils.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 const doDebug = false;
 

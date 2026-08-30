@@ -1,4 +1,4 @@
-import { Queue } from "../source/queue";
+import { Queue } from "../source/queue.js";
 
 const doDebug = false;
 

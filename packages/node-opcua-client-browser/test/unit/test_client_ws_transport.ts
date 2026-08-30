@@ -3,7 +3,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { IClientTransport, IClientTransportFactory } from "node-opcua-transport";
 import should from "should";
 import { WebSocket, WebSocketServer } from "ws";
-import { browserWsTransportFactory, ClientWS_transport, parseWsEndpointUrl, type WebSocketConstructor } from "../../dist";
+import { browserWsTransportFactory, ClientWS_transport, parseWsEndpointUrl, type WebSocketConstructor } from "../../dist/index.js";
 
 // One port per test. beforeEach builds a fresh WebSocketServer and afterEach closes
 // it, but close() completes only once every connection has ended, so re-binding a

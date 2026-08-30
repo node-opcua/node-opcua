@@ -8,7 +8,7 @@ import {
     resolveNodeId,
     type TVariant,
     Variant
-} from "../source/index";
+} from "../source/index.js";
 import "should";
 
 class VariantId extends Variant {

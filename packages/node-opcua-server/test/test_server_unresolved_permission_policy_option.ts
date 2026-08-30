@@ -1,5 +1,5 @@
 import "should";
-import { OPCUAServer } from "../source";
+import { OPCUAServer } from "../source/index.js";
 
 /**
  * unresolvedPermissionPolicy is settable as a first-class OPCUAServer option and lands on the

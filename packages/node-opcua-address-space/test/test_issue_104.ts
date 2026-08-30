@@ -5,8 +5,8 @@ import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type Namespace } from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { assertHasMatchingReference } from "../testHelpers";
+import { generateAddressSpace } from "../nodeJS.js";
+import { assertHasMatchingReference } from "../testHelpers.js";
 
 const nodesetFilename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 

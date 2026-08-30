@@ -5,9 +5,9 @@ import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { UserTokenType } from "node-opcua-service-endpoints";
 import "should";
 
-import { OPCUAServer } from "../source";
-import { type AdvertisedEndpointConfig, normalizeAdvertisedEndpoints, parseOpcTcpUrl } from "../source/server_end_point";
-import { createServerCertificateManager } from "./create_server_certificate_manager";
+import { OPCUAServer } from "../source/index.js";
+import { type AdvertisedEndpointConfig, normalizeAdvertisedEndpoints, parseOpcTcpUrl } from "../source/server_end_point.js";
+import { createServerCertificateManager } from "./create_server_certificate_manager.js";
 
 const testPort1 = 12061;
 const testPort2 = 12062;

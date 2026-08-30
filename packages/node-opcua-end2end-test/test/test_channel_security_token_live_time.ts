@@ -9,7 +9,7 @@ import {
     ServerSecureChannelLayer
 } from "node-opcua";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
 
 // _secureChannel is public on the client implementation but not exposed on the public
 // OPCUAClient interface; reached here to observe secure-channel lifetime events.

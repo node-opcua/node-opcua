@@ -1,7 +1,7 @@
 import "should";
 import { OPCUAClient, StatusCodes, UserTokenType } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 // Reproduces bug #146: reopen (i.e. continue using) an anonymous session then change identity to Username/Password
 // Original JS steps:

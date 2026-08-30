@@ -8,7 +8,7 @@ import {
 import should from "should";
 import sinon from "sinon";
 
-import { ClientSecureChannelLayer } from "../dist/source";
+import { ClientSecureChannelLayer } from "../dist/source/index.js";
 
 /**
  * Minimal IClientTransport stub whose sole purpose is to prove that

@@ -8,8 +8,34 @@ node tools/check-import-extension.mjs                       # report, exit 1 on 
 node tools/check-import-extension.mjs --fix                 # rewrite, then report what is left
 node tools/check-import-extension.mjs --package node-opcua-client
 node tools/check-import-extension.mjs --root ../my-project
+node tools/check-import-extension.mjs --scope source        # published source only
+node tools/check-import-extension.mjs --scope tests         # test trees only
 pnpm run check:importext                                    # same, via the root script
 ```
+
+## Scope
+
+The default covers **both** `source`/`src` and the test trees
+(`test`, `test_helpers`, `test_fixtures`). Narrow it with `--scope`.
+
+A test tree is not published, but that does not exempt it: a `.ts` or `.js` file inside a
+`"type": "module"` package **is** an ES module whether it ships or not. A package that flips
+with an extensionless specifier in its own suite breaks its own tests, and would do so at
+the least convenient moment.
+
+The report always names the scope it covered. A bare count reads as if it had covered
+everything, which is exactly the mistake this tool made while it silently scanned
+`source`/`src` alone.
+
+## What `--fix` cannot do: `.`, `..`, `../..`
+
+A specifier made only of traversal names a *directory* and carries no filename, so it
+resolves only through that directory's `package.json` - a resolution NodeNext does not
+perform for a relative specifier. There is no extension to add.
+
+These are counted and listed, but they do not fail the gate: the rule cannot express a fix,
+and failing on them would mean the gate could never go green. Reporting rather than skipping
+them is deliberate - a gate that quietly ignores a case reads as if it had checked it.
 
 ## Why
 

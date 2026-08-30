@@ -1,6 +1,6 @@
-import { setFakeTransport } from "../source";
-import { HalfComChannel } from "./half_com_channel";
-import type { ITransportPair } from "./ITransportPair";
+import { setFakeTransport } from "../source/index.js";
+import { HalfComChannel } from "./half_com_channel.js";
+import type { ITransportPair } from "./ITransportPair.js";
 
 export class TransportPairDirect implements ITransportPair {
     public client: HalfComChannel;

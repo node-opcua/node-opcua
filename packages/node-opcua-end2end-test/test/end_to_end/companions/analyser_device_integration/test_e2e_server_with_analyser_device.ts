@@ -3,7 +3,7 @@ import { BrowseDescription, BrowseDirection, type IAddressSpace, makeResultMask,
 import { makeRefId, UAProxyManager } from "node-opcua-client-proxy";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-import { build_server_with_temperature_device } from "../../../../test_helpers/build_server_with_temperature_device";
+import { build_server_with_temperature_device } from "../../../../test_helpers/build_server_with_temperature_device.js";
 
 // Note: original JS test converted to TypeScript (async/await style, ES imports)
 

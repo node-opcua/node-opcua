@@ -18,9 +18,9 @@ import { readCertificateChain } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import "should";
 
-import { createServerCertificateManager } from "../../../test_helpers/createServerCertificateManager";
-import { stepLog, wait } from "../../../test_helpers/utils";
-import type { TestHarness } from "./harness";
+import { createServerCertificateManager } from "../../../test_helpers/createServerCertificateManager.js";
+import { stepLog, wait } from "../../../test_helpers/utils.js";
+import type { TestHarness } from "./harness.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

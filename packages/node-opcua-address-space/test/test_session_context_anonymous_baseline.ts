@@ -7,8 +7,8 @@ import { PermissionType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type IServerBase, makeRoles, type UAMethod, type UAVariable, WellKnownRoles } from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { makeMockSessionContext } from "../testHelpers";
+import { generateAddressSpace } from "../nodeJS.js";
+import { makeMockSessionContext } from "../testHelpers.js";
 
 const serverFor = (roles: NodeId[]): IServerBase => ({ userManager: { getUserRoles: () => roles } });
 

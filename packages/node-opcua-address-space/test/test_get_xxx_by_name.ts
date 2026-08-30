@@ -1,6 +1,6 @@
 import should from "should";
 import type { AddressSpace, UAObject } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("test component/property/method and method accessors", () => {
     let addressSpace: AddressSpace;

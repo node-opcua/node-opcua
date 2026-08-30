@@ -67,16 +67,16 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
-import { assertThrow } from "../../test_helpers/assert_throw";
-import { fAsync } from "../../test_helpers/display_function_name";
+import { assertThrow } from "../../test_helpers/assert_throw.js";
+import { fAsync } from "../../test_helpers/display_function_name.js";
 import {
     perform_operation_on_client_session,
     perform_operation_on_monitoredItem,
     perform_operation_on_subscription,
     perform_operation_on_subscription_async,
     perform_operation_on_subscription_with_parameters
-} from "../../test_helpers/perform_operation_on_client_session";
-import { stepLog, tracelog, wait } from "../../test_helpers/utils";
+} from "../../test_helpers/perform_operation_on_client_session.js";
+import { stepLog, tracelog, wait } from "../../test_helpers/utils.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

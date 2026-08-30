@@ -7,7 +7,7 @@ import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, type UADataType, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("Enum with negative values #937", () => {
     it("should load a nodeset.xml file containing enums with negative values", async () => {

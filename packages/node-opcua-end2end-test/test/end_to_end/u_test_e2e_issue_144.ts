@@ -10,8 +10,8 @@ import {
     VariableIds
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 // _secureChannel (private client impl field) and its transport's underlying raw socket (not
 // part of the public IClientTransport surface) are reached here only to simulate an abrupt

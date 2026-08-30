@@ -2,8 +2,8 @@ import "should"; // assertion side effects
 import { type ApplicationDescription, type FindServersRequestLike, OPCUAClient, type OPCUAServer } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 // declare function build_server_with_temperature_device(...args: any[]): void;
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
-import type { TestHarness } from "./helpers/index";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
+import type { TestHarness } from "./helpers/index.js";
 
 const port = 2005;
 

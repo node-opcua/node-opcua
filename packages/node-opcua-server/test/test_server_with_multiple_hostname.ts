@@ -3,8 +3,8 @@ import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { SecurityPolicy } from "node-opcua-secure-channel";
-import { OPCUAServer } from "../source";
-import { createServerCertificateManager } from "./create_server_certificate_manager";
+import { OPCUAServer } from "../source/index.js";
+import { createServerCertificateManager } from "./create_server_certificate_manager.js";
 
 const port = 2011;
 

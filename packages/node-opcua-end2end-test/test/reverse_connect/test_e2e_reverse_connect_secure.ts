@@ -11,8 +11,8 @@ import {
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
-import { wait } from "../../test_helpers/utils";
+import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager.js";
+import { wait } from "../../test_helpers/utils.js";
 
 // RC-E2E-3 — secured reverse connect (SignAndEncrypt / Basic256Sha256).
 //

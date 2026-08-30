@@ -7,7 +7,7 @@
  * OPC UA session.
  */
 
-import * as browserModule from "../../source/index";
+import * as browserModule from "../../source/index.js";
 
 declare global {
     interface Window {

@@ -4,9 +4,13 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import type { AddressSpace, InstantiateObjectOptions, Namespace, UAObject, UAObjectType, UAVariable } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
-import { createCameraType, type FakeCameraType } from "./fixture_camera_type";
-import { createTemperatureSensorType, type TemperatureSensor, type TemperatureSensorType } from "./fixture_temperature_sensor_type";
+import { getMiniAddressSpace } from "../testHelpers.js";
+import { createCameraType, type FakeCameraType } from "./fixture_camera_type.js";
+import {
+    createTemperatureSensorType,
+    type TemperatureSensor,
+    type TemperatureSensorType
+} from "./fixture_temperature_sensor_type.js";
 
 interface MockMachine extends UAObject {
     temperatureSensor: UAVariable;

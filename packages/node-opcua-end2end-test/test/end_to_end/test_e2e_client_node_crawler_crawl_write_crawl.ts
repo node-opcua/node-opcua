@@ -6,8 +6,8 @@ import { build_address_space_for_conformance_testing } from "node-opcua-address-
 import { NodeCrawler } from "node-opcua-client-crawler";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 
 const _debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");

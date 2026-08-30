@@ -2,7 +2,7 @@ import { readCertificateChain, readPrivateKey } from "node-opcua-crypto";
 import { getFixture } from "node-opcua-test-fixtures";
 import { randomBytes } from "node-opcua-utils";
 import should from "should";
-import { computeSignature, fromURI, SecurityPolicy, toURI, verifySignature } from "../dist/source";
+import { computeSignature, fromURI, SecurityPolicy, toURI, verifySignature } from "../dist/source/index.js";
 
 describe("Security Policy", () => {
     it("should convert a security policy uri to an enum value", () => {

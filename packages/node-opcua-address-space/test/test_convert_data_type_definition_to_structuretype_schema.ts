@@ -8,9 +8,9 @@ import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import type { StructureDefinition } from "node-opcua-types";
 import should from "should";
-import { DataTypeIds } from "../../node-opcua-constants/dist";
+import { DataTypeIds } from "../../node-opcua-constants/dist/index.js";
 import { AddressSpace, PseudoSession } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
     let addressSpace: AddressSpace;

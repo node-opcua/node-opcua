@@ -4,7 +4,7 @@ import { NodeClass } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { DataType } from "node-opcua-variant";
-import { FilterContextMock } from "./filter_context_mock";
+import { FilterContextMock } from "./filter_context_mock.js";
 
 describe("Test FilterContext Mock", () => {
     const filterContext = new FilterContextMock();

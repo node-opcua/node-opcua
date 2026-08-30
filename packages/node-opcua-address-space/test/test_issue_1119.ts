@@ -7,7 +7,7 @@ import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type HistoryData, type HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import { AddressSpace, type BindVariableOptions, type ISessionBase, PseudoSession, SessionContext, type UAVariable } from "..";
-import { generateAddressSpace } from "../distNodeJS";
+import { generateAddressSpace } from "../distNodeJS/index.js";
 
 describe("historization and status code Bad #1119", function () {
     this.timeout(Math.max(300000, this.timeout()));

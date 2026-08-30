@@ -1,7 +1,7 @@
 import { AttributeIds, DataType, DataValue, makeNodeId, OPCUAClient, StatusCodes, WriteRequest } from "node-opcua";
-import { assertThrow } from "../../test_helpers/assert_throw";
-import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { assertThrow } from "../../test_helpers/assert_throw.js";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 // performMessageTransaction() is public on the session implementation but excluded
 // from the public ClientSession interface; reached here to send a raw WriteRequest

@@ -3,7 +3,7 @@ import { AccessLevelFlag } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import type { AddressSpace, Namespace } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("testing Variables ", () => {
     let addressSpace: AddressSpace;

@@ -5,8 +5,8 @@ import { DataType } from "node-opcua-variant";
 import should from "should";
 
 import type { AddressSpace, UAObject } from "../..";
-import type { UAAcknowledgeableConditionEx } from "../../dist/source/interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex";
-import type { MochaSuiteEx } from "./test_alarms_and_conditions";
+import type { UAAcknowledgeableConditionEx } from "../../dist/source/interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex.js";
+import type { MochaSuiteEx } from "./test_alarms_and_conditions.js";
 
 export function utest_acknowledgeable_condition(test: MochaSuiteEx): void {
     describe("AddressSpace : Acknowledgeable Conditions ", () => {

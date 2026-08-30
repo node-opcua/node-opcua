@@ -4,7 +4,7 @@ import "should";
 import { AttributeIds, ClientReverseConnect, get_mini_nodeset_filename, OPCUAClient, OPCUAServer, StatusCodes } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-import { wait } from "../../test_helpers/utils";
+import { wait } from "../../test_helpers/utils.js";
 
 // RC-E2E-2 — reverse-connect reconnection.
 //

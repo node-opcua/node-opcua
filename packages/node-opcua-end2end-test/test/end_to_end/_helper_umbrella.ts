@@ -15,13 +15,13 @@ import {
 import { build_address_space_for_conformance_testing } from "node-opcua-address-space-for-conformance-testing";
 import { assert } from "node-opcua-assert";
 import should from "should";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
 import {
     type IStartServerOptions,
     type ServerHandle,
     start_simple_server,
     stop_simple_server
-} from "../../test_helpers/external_server_fixture";
+} from "../../test_helpers/external_server_fixture.js";
 
 // Shape used by umbrella tests (they pass 'this' mocha context)
 export interface UmbrellaTestContext extends Mocha.Context {

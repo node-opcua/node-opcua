@@ -1,8 +1,8 @@
 import "should"; // extends Object with should assertions
 import { OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { assertThrow } from "../../test_helpers/assert_throw";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { assertThrow } from "../../test_helpers/assert_throw.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 // protocolVersion is readonly on the public OPCUAClient interface; bypassed here
 // via a narrow structural cast to simulate a different client protocol version.

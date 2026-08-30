@@ -16,8 +16,8 @@ import {
     type UAObject,
     type UAVariable
 } from "..";
-import { create_minimalist_address_space_nodeset } from "../distHelpers";
-import { generateAddressSpace } from "../nodeJS";
+import { create_minimalist_address_space_nodeset } from "../distHelpers/index.js";
+import { generateAddressSpace } from "../nodeJS.js";
 
 const doDebug = false;
 

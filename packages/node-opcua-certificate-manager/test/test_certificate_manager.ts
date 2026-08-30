@@ -14,7 +14,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { CertificateAuthority } from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
-import { CertificateManager, OPCUACertificateManager, type OPCUACertificateManagerOptions } from "../source";
+import { CertificateManager, OPCUACertificateManager, type OPCUACertificateManagerOptions } from "../source/index.js";
 
 // const _tmpFolder = os.tmpdir();
 const _tmpFolder = path.join(__dirname, "../temp");

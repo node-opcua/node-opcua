@@ -5,8 +5,8 @@ import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 import sinon from "sinon";
 import { AddressSpace, type BaseNode, type Namespace } from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { UATwoStateVariableImpl } from "../src/state_machine/ua_two_state_variable";
+import { generateAddressSpace } from "../nodeJS.js";
+import { UATwoStateVariableImpl } from "../src/state_machine/ua_two_state_variable.js";
 
 let clock: sinon.SinonFakeTimers | null = null;
 

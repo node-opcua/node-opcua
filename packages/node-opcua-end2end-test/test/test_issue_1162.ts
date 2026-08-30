@@ -11,7 +11,7 @@ import {
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import { wait, waitUntilCondition } from "../test_helpers/utils";
+import { wait, waitUntilCondition } from "../test_helpers/utils.js";
 
 const port = 2511;
 

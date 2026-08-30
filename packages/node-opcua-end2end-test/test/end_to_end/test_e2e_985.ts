@@ -26,7 +26,7 @@ import {
 import { coercePrivateKeyPem, readCertificateChain, readPrivateKey } from "node-opcua-crypto";
 import { make_warningLog } from "node-opcua-debug";
 import should from "should";
-import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
+import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager.js";
 
 const warningLog = make_warningLog("TEST");
 

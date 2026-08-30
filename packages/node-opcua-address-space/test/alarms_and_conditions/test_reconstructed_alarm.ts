@@ -8,7 +8,7 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 
 import { AddressSpace, instantiateCertificateExpirationAlarm } from "../..";
-import { generateAddressSpace } from "../../nodeJS";
+import { generateAddressSpace } from "../../nodeJS.js";
 
 const fakeCertificate = Buffer.from(
     `

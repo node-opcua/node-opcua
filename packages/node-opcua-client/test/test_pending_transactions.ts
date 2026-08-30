@@ -12,8 +12,8 @@ import { NodeId } from "node-opcua-nodeid";
 import { ReadRequest, ReadResponse } from "node-opcua-service-read";
 import "should";
 import sinon from "sinon";
-import { ClientSessionImpl } from "../source/private/client_session_impl";
-import type { IClientBase } from "../source/private/i_private_client";
+import { ClientSessionImpl } from "../source/private/client_session_impl.js";
+import type { IClientBase } from "../source/private/i_private_client.js";
 
 type TransactionImpl = IClientBase["performMessageTransaction"];
 

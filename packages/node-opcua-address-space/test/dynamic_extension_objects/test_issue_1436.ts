@@ -8,7 +8,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { AddressSpace, type Namespace, PseudoSession } from "../..";
-import { generateAddressSpace } from "../../distNodeJS";
+import { generateAddressSpace } from "../../distNodeJS/index.js";
 
 describe("issue_1436", function (this: Mocha.Suite) {
     const fixtureFolder = path.join(__dirname, "../../test_helpers/test_fixtures/fixtures-for-1436");

@@ -12,8 +12,8 @@ import {
     constructNamespacePriorityTable,
     type IAddressSpace
 } from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { makeBoiler } from "../testHelpers";
+import { generateAddressSpace } from "../nodeJS.js";
+import { makeBoiler } from "../testHelpers.js";
 
 const tmpFolder = path.join(__dirname, "../tmp");
 

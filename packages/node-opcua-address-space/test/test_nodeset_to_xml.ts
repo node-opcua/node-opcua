@@ -11,8 +11,8 @@ import { nodesets } from "node-opcua-nodesets";
 import { ThreeDCartesianCoordinates } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { AddressSpace, type BaseNode, type Namespace, type UARootFolder, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
-import { createBoilerType, getMiniAddressSpace } from "../testHelpers";
+import { generateAddressSpace } from "../nodeJS.js";
+import { createBoilerType, getMiniAddressSpace } from "../testHelpers.js";
 
 const XMLWriter = require("xml-writer");
 const { createTemperatureSensorType } = require("./fixture_temperature_sensor_type");

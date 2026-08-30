@@ -4,7 +4,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import { type AddressSpace, SessionContext, type UAVariable } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("Multi-Dimensional Array", () => {
     let addressSpace: AddressSpace;

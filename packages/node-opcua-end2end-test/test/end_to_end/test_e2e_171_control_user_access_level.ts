@@ -15,7 +15,7 @@ import {
     UserTokenType,
     WellKnownRoles
 } from "node-opcua";
-import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
 
 interface TestUser {
     username: string;
@@ -48,7 +48,7 @@ const userManager = {
 };
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
+import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager.js";
 
 describe("issue171- testing Client-Server with UserName/Password identity token", function (this: Mocha.Context) {
     let server: Awaited<ReturnType<typeof build_server_with_temperature_device>>;

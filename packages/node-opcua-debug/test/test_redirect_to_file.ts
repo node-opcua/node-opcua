@@ -2,7 +2,7 @@
 import "should";
 import fs from "node:fs";
 
-import { getTempFilename, redirectToFile } from "../nodeJS";
+import { getTempFilename, redirectToFile } from "../nodeJS.js";
 
 describe("testing redirectToFile", () => {
     it("should redirectToFile with a sync function", () => {

@@ -4,16 +4,16 @@ import { nodesets } from "node-opcua-nodesets";
 import "should";
 
 import { AddressSpace, type UAObject, type UAVariable } from "../..";
-import { generateAddressSpace } from "../../distNodeJS";
+import { generateAddressSpace } from "../../distNodeJS/index.js";
 
-import { utest_acknowledgeable_condition } from "./utest_acknowledgeable_condition";
-import { utest_alarm_condition } from "./utest_alarm_condition";
-import { utest_condition } from "./utest_condition";
-import { utest_exclusive_deviation_alarm } from "./utest_exclusive_deviation_alarm";
-import { utest_issue_316 } from "./utest_issue_316";
-import { utest_limit_alarm } from "./utest_limit_alarm";
-import { utest_non_exclusive_deviation_alarm } from "./utest_non_exclusive_deviation_alarm";
-import { utest_off_normal_alarm } from "./utest_off_normal_alarm";
+import { utest_acknowledgeable_condition } from "./utest_acknowledgeable_condition.js";
+import { utest_alarm_condition } from "./utest_alarm_condition.js";
+import { utest_condition } from "./utest_condition.js";
+import { utest_exclusive_deviation_alarm } from "./utest_exclusive_deviation_alarm.js";
+import { utest_issue_316 } from "./utest_issue_316.js";
+import { utest_limit_alarm } from "./utest_limit_alarm.js";
+import { utest_non_exclusive_deviation_alarm } from "./utest_non_exclusive_deviation_alarm.js";
+import { utest_off_normal_alarm } from "./utest_off_normal_alarm.js";
 
 export type MochaSuiteEx = Mocha.Suite & {
     addressSpace: AddressSpace;

@@ -1,5 +1,5 @@
-import type { XmlAttributes } from "../dist/source";
-import { SaxLtx } from "../dist/source/thirdparties/parser/lts";
+import type { XmlAttributes } from "../dist/source/index.js";
+import { SaxLtx } from "../dist/source/thirdparties/parser/lts.js";
 
 function testString(xml_text: string) {
     const parser = new SaxLtx();

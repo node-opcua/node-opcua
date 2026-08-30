@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { crash_simple_server, start_simple_server, stop_simple_server } from "../test_helpers/external_server_fixture";
+import { crash_simple_server, start_simple_server, stop_simple_server } from "../test_helpers/external_server_fixture.js";
 
 const port = 4891;
 describe("testing external fixture server", () => {

@@ -11,10 +11,16 @@ import { UserNameIdentityToken } from "node-opcua-types";
 import should from "should";
 import sinon from "sinon";
 
-import { installSessionLoggingOnEngine, ServerEngine, type ServerSession, type Subscription, SubscriptionState } from "../source";
+import {
+    installSessionLoggingOnEngine,
+    ServerEngine,
+    type ServerSession,
+    type Subscription,
+    SubscriptionState
+} from "../source/index.js";
 
-import { add_mock_monitored_item } from "./helper";
-import { with_fake_timer } from "./helper_with_fake_timer";
+import { add_mock_monitored_item } from "./helper.js";
+import { with_fake_timer } from "./helper_with_fake_timer.js";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 

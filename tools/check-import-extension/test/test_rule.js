@@ -208,3 +208,91 @@ test("--package narrows the scan", () => {
         }
     );
 });
+
+
+// ── scope: test trees ───────────────────────────────────────────────────────────
+//
+// A test tree is not published, but a file inside a `"type": "module"` package is an ES
+// module whether it ships or not, so a package that flips breaks its own suite.
+
+test("the default scope leaves test trees alone", () => {
+    withTree({ "packages/p/test/a.ts": 'import x from "./b";\n', "packages/p/test/b.ts": "" }, (root) => {
+        const result = analyze({ repoRoot: root });
+        assert.equal(result.scanned, 0);
+        assert.equal(result.findings.length, 0);
+    });
+});
+
+test("--scope tests covers test, test_helpers and test_fixtures", () => {
+    withTree(
+        {
+            "packages/p/source/a.ts": 'import x from "./b";\n',
+            "packages/p/source/b.ts": "",
+            "packages/p/test/c.ts": 'import x from "./d";\n',
+            "packages/p/test/d.ts": "",
+            "packages/p/test_helpers/e.ts": 'import x from "./f";\n',
+            "packages/p/test_helpers/f.ts": "",
+            "packages/p/test_fixtures/g.ts": 'import x from "./h";\n',
+            "packages/p/test_fixtures/h.ts": ""
+        },
+        (root) => {
+            const result = analyze({ repoRoot: root, scope: "tests" });
+            assert.equal(result.findings.length, 3, JSON.stringify(result.findings));
+            assert.equal(analyze({ repoRoot: root, scope: "all" }).findings.length, 4);
+        }
+    );
+});
+
+test("--scope tests fixes the same way as source", () => {
+    withTree({ "packages/p/test/a.ts": 'import x from "./b";\n', "packages/p/test/b.ts": "" }, (root) => {
+        const result = analyze({ repoRoot: root, scope: "tests", write: true });
+        assert.equal(result.fixedCount, 1);
+        assert.equal(exitCode(result), 0);
+        assert.match(fs.readFileSync(path.join(root, "packages/p/test/a.ts"), "utf8"), /"\.\/b\.js"/);
+    });
+});
+
+// ── package-root specifiers ─────────────────────────────────────────────────────
+
+test('".", ".." and "../.." are reported as package-root, not as unresolvable', () => {
+    withTree(
+        {
+            "packages/p/test/a.ts": 'import x from "..";\nimport y from ".";\n',
+            "packages/p/test/deep/b.ts": 'import z from "../..";\n'
+        },
+        (root) => {
+            const result = analyze({ repoRoot: root, scope: "tests" });
+            assert.equal(result.findings.length, 3, JSON.stringify(result.findings));
+            for (const f of result.findings) {
+                assert.equal(f.kind, "package-root");
+                assert.equal(f.fixable, false);
+                assert.equal(f.suggestion, null);
+            }
+        }
+    );
+});
+
+test("package-root specifiers are reported but do not fail the gate", () => {
+    withTree({ "packages/p/test/a.ts": 'import x from "..";\n' }, (root) => {
+        const result = analyze({ repoRoot: root, scope: "tests" });
+        assert.equal(exitCode(result), 0, "a case the rule cannot fix must not block the gate");
+        const report = formatReport(result);
+        assert.match(report, /1 import\(s\) of "\." or "\.\."/);
+        assert.match(report, /do not fail this gate/);
+    });
+});
+
+test("a package-root specifier is never rewritten", () => {
+    withTree({ "packages/p/test/a.ts": 'import x from "..";\n' }, (root) => {
+        const result = analyze({ repoRoot: root, scope: "tests", write: true });
+        assert.equal(result.fixedCount, 0);
+        assert.equal(fs.readFileSync(path.join(root, "packages/p/test/a.ts"), "utf8"), 'import x from "..";\n');
+    });
+});
+
+test("the report always names the scope it covered", () => {
+    withTree({ "packages/p/source/a.ts": 'import x from "./b.js";\n', "packages/p/source/b.ts": "" }, (root) => {
+        assert.match(formatReport(analyze({ repoRoot: root })), /source files scanned/);
+        assert.match(formatReport(analyze({ repoRoot: root, scope: "tests" })), /test files scanned/);
+    });
+});

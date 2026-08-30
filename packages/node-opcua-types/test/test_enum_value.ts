@@ -1,7 +1,7 @@
 import "should";
 import type { Int64 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { EnumValueType } from "../dist"; // node-opcua-types"
+import { EnumValueType } from "../dist/index.js"; // node-opcua-types"
 
 function doTest(r: EnumValueType) {
     const binaryStream = new BinaryStream();

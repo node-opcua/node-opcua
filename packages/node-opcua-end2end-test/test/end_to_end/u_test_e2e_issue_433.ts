@@ -1,7 +1,7 @@
 import "should";
 import { type ClientSession, OPCUAClient, type UserIdentityInfo } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 export function t(test: UmbrellaTestContext) {
     describe("Bug #433 - ActivateSession with null userIdentityToken", () => {

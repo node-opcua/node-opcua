@@ -9,9 +9,9 @@ import {
 } from "node-opcua";
 import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { stepLog } from "../../test_helpers/utils";
-import { createDiscovery, createServerThatRegistersItselfToTheDiscoveryServer, fa, pause } from "./helpers/_helper";
-import type { TestHarness } from "./helpers/harness";
+import { stepLog } from "../../test_helpers/utils.js";
+import { createDiscovery, createServerThatRegistersItselfToTheDiscoveryServer, fa, pause } from "./helpers/_helper.js";
+import type { TestHarness } from "./helpers/harness.js";
 
 // registerServerManager?: IRegisterServerManager doesn't declare .timeout (only the concrete
 // RegisterServerManager subclass does), so this narrows the cast instead of using any.

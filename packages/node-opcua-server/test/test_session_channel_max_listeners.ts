@@ -4,7 +4,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { ServerSecureChannelLayer } from "node-opcua-secure-channel";
 import "should";
 
-import { ServerEngine } from "../source";
+import { ServerEngine } from "../source/index.js";
 
 /**
  * A secure channel can carry many sessions, and each attached session registers

@@ -1,6 +1,6 @@
 import { makeBuffer } from "node-opcua-buffer-utils";
 import { redirectToFile } from "node-opcua-debug/nodeJS";
-import { verify_multi_chunk_message } from "../dist/test_helpers";
+import { verify_multi_chunk_message } from "../dist/test_helpers/index.js";
 
 const fixture_ws_browseRequest_message = makeBuffer(
     "4d 53 47 46 85 00 00 00 08 00 00 00 01 00 00 00 07 00 00 00 07 00 00 00 01 00 0f 02 05 00 00 20 " +

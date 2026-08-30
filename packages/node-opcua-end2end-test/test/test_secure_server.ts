@@ -7,8 +7,8 @@ import {
     SecurityPolicy
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { assertThrow } from "../test_helpers/assert_throw";
-import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
+import { assertThrow } from "../test_helpers/assert_throw.js";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
 
 // _serverEndpoints is a protected OPCUAClient implementation field, reached here to
 // inject a fake unsecure endpoint and exercise server-side rejection.

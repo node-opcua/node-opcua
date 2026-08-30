@@ -6,7 +6,7 @@ import {
     toVersionTime,
     VERSION_TIME_EPOCH_MS,
     VERSION_TIME_WRAP_DATE
-} from "../source";
+} from "../source/index.js";
 
 /**
  * OPC 10000-4 clause 7.43 (`VersionTime`), as used by OPC 10000-17

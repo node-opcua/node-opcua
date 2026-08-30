@@ -17,7 +17,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
-
+import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine.js";
 import {
     installSubscriptionMonitoring,
     MonitoredItem,
@@ -27,13 +27,11 @@ import {
     Subscription,
     type SubscriptionOptions,
     SubscriptionState
-} from "../source";
+} from "../source/index.js";
 
-import type { IServerSidePublishEngine } from "../source/i_server_side_publish_engine";
+import { add_mock_monitored_item } from "./helper.js";
 
-import { add_mock_monitored_item } from "./helper";
-
-import { getFakePublishEngine } from "./helper_fake_publish_engine";
+import { getFakePublishEngine } from "./helper_fake_publish_engine.js";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 

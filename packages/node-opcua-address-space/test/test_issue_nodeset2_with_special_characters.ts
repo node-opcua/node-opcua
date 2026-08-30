@@ -4,7 +4,7 @@ import "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, type UAVariable } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 describe("Loading nodeset.xml with special char", () => {
     it("should load a node with special characters in the nodeId ", async () => {

@@ -4,7 +4,7 @@ import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import should from "should";
 import sinon from "sinon";
 import type { AddressSpace, Namespace, UAObject, UAObjectType, UAReferenceType, UARootFolder } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 interface UAObjectWithInternals extends UAObject {
     _clear_caches(): void;

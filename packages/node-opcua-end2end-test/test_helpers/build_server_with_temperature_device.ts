@@ -23,7 +23,7 @@ import {
 import { build_address_space_for_conformance_testing } from "node-opcua-address-space-for-conformance-testing";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { prepareFQDN } from "node-opcua-hostname";
-import { createServerCertificateManager } from "./createServerCertificateManager";
+import { createServerCertificateManager } from "./createServerCertificateManager.js";
 
 const _doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);

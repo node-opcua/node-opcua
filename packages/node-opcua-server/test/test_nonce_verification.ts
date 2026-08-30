@@ -1,7 +1,7 @@
 import "should";
 import { randomBytes } from "node-opcua-utils";
 
-import { extractPasswordFromDecryptedBlob } from "../dist/extract_password_from_blob";
+import { extractPasswordFromDecryptedBlob } from "../dist/extract_password_from_blob.js";
 
 /**
  * Build a valid password blob as OPC UA clients produce it:

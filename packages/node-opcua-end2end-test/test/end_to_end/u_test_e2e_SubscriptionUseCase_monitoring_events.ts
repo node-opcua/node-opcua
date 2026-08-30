@@ -30,9 +30,9 @@ import {
     Variant
 } from "node-opcua";
 import should from "should";
-import { assertThrow } from "../../test_helpers/assert_throw";
-import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { assertThrow } from "../../test_helpers/assert_throw.js";
+import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 // createMonitoredItems/modifyMonitoredItems are deliberately excluded from the public
 // ClientSession type (superseded by subscription.monitor/monitorItems), but these tests

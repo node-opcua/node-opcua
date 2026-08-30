@@ -26,7 +26,7 @@ import {
     type UAVariable
 } from "..";
 
-import type { UAStateMachineImpl } from "../src/state_machine/finite_state_machine";
+import type { UAStateMachineImpl } from "../src/state_machine/finite_state_machine.js";
 
 export interface FlowToReference extends UAReferenceType {}
 

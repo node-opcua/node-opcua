@@ -2,9 +2,9 @@ import "should";
 import { AttributeIds, DataType, OPCUAClient, TimestampsToReturn, type UAVariable, Variant } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import Sinon from "sinon";
-import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session";
-import { waitUntilCondition } from "../../test_helpers/utils";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import { perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session.js";
+import { waitUntilCondition } from "../../test_helpers/utils.js";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 export function t(test: UmbrellaTestContext) {
     describe("Issue #355 - client monitoredItem handler throwing errors shouldn't crash", () => {

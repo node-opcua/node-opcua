@@ -3,7 +3,7 @@ import { Argument, type ArgumentOptions } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 
-import "../source/imports";
+import "../source/imports.js";
 
 // constructHook is typed as returning unknown: this is the shape of the
 // coerced argument options that the tests below inspect.

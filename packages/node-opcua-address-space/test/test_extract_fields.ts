@@ -5,7 +5,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { extractFields, simpleBrowsePathsToString } from "node-opcua-pseudo-session";
 import should from "should";
 import { AddressSpace, PseudoSession } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 const _debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");

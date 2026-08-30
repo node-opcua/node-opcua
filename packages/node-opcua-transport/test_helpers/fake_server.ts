@@ -1,7 +1,7 @@
 import { EventEmitter } from "node:events";
 import net from "node:net";
 import { assert } from "node-opcua-assert";
-import type { ISocketLike } from "../source";
+import type { ISocketLike } from "../source/index.js";
 
 export class FakeServer extends EventEmitter {
     public port: number;

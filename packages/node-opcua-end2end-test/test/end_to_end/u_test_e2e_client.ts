@@ -11,7 +11,7 @@ import {
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
-import type { UmbrellaTestContext } from "./_helper_umbrella";
+import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 export function t(test: UmbrellaTestContext) {
     describe("Testing Client Connection ", function (this: Mocha.Suite) {
         it("TCC1 - it should raise an error if connect is called with an empty endpoint", async () => {

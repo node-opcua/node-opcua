@@ -4,9 +4,9 @@ import { StatusCodes } from "node-opcua-status-code";
 import { ReadResponse, ResponseHeader } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
-import { MessageChunker } from "../source";
+import { MessageChunker } from "../source/index.js";
 // ChunkMessageParameters is not re-exported by the source barrel; import it from its defining module
-import type { ChunkMessageParameters } from "../source/message_chunker";
+import type { ChunkMessageParameters } from "../source/message_chunker.js";
 
 //
 // chunkSecureMessage used to size the message with a BinaryStreamSizeCalculator and then

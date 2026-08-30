@@ -2,7 +2,7 @@ import { DiagnosticInfo, DiagnosticInfo_OperationLevelMask, DiagnosticInfo_Servi
 import { CallResponse } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
-import { filterDiagnosticInfo } from "../source";
+import { filterDiagnosticInfo } from "../source/index.js";
 
 describe("filterDiagnosticInfo", () => {
     let response: CallResponse;

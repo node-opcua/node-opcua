@@ -19,7 +19,7 @@ import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type MonitoredItemNotification, Range } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 
-import { MonitoredItem, type MonitoredItemOptions } from "../source";
+import { MonitoredItem, type MonitoredItemOptions } from "../source/index.js";
 
 function q(monitoredItem: IMonitoredItem) {
     return monitoredItem.queue.map((a) => a.value.value.value);

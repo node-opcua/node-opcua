@@ -9,7 +9,7 @@ import { makeNodeId } from "node-opcua-nodeid";
 import { CallRequest } from "node-opcua-service-call";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, type UAObject } from "..";
-import { generateAddressSpace } from "../nodeJS";
+import { generateAddressSpace } from "../nodeJS.js";
 
 const doDebug = false;
 

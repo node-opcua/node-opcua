@@ -5,7 +5,7 @@ import { TimestampsToReturn } from "node-opcua-service-read";
 import type { ServiceCounterDataType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { MonitoredItem, type MonitoredItemOptions, ServerEngine } from "../source";
+import { MonitoredItem, type MonitoredItemOptions, ServerEngine } from "../source/index.js";
 
 //
 // The end-to-end version of the clone contract.

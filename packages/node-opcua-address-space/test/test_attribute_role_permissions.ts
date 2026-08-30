@@ -7,7 +7,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { PermissionType, type RolePermissionType } from "node-opcua-types";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import { type AddressSpace, type Namespace, WellKnownRoles } from "..";
-import { getMiniAddressSpace } from "../testHelpers";
+import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("testing RolePermission Attribute ", () => {
     let addressSpace: AddressSpace;

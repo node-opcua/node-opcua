@@ -9,8 +9,8 @@ import { type PublishResponse, ServiceFault } from "node-opcua-types";
 import should from "should";
 import sinon from "sinon";
 
-import { ServerEngine, type ServerSession, SubscriptionState } from "../source";
-import { with_fake_timer } from "./helper_with_fake_timer";
+import { ServerEngine, type ServerSession, SubscriptionState } from "../source/index.js";
+import { with_fake_timer } from "./helper_with_fake_timer.js";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 

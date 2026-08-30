@@ -8,12 +8,12 @@ import {
 } from "node-opcua-types";
 import should from "should";
 
-import type { ServerSession } from "../source/server_session";
+import type { ServerSession } from "../source/server_session.js";
 import {
     getTransferSessionIdentity,
     type ITransferSessionIdentity,
     sessionsCompatibleForTransfer
-} from "../source/sessions_compatible_for_transfer";
+} from "../source/sessions_compatible_for_transfer.js";
 
 // The destination argument is read for its user identity token, its clientDescription.applicationUri
 // and its channel.securityMode, so a minimal stand-in providing those is enough.

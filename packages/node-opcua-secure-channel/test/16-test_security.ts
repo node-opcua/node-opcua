@@ -21,14 +21,14 @@ import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 import { FindServersRequest, FindServersResponse } from "node-opcua-types";
 import "should";
 import { type IKeyOperations, keyOperationsFromPrivateKey } from "node-opcua-crypto";
-import { type Message, type Response, ServerSecureChannelLayer, type ServerSecureChannelParent } from "../dist/source";
+import { type Message, type Response, ServerSecureChannelLayer, type ServerSecureChannelParent } from "../dist/source/index.js";
 import {
     ClientSecureChannelLayer,
     type ClientSecureChannelParent,
     getThumbprint,
     MessageSecurityMode,
     SecurityPolicy
-} from "../source";
+} from "../source/index.js";
 
 // None/None cases carry no usable key: the channels must tolerate that
 const invalidTestPrivateKey = null as unknown as PrivateKey;
