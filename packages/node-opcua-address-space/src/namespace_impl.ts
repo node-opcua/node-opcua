@@ -112,6 +112,7 @@ import { add_dataItem_stuff } from "./data_access/add_dataItem_stuff.js";
 import { _addMultiStateDiscrete, type UAMultiStateDiscreteImpl } from "./data_access/ua_multistate_discrete_impl.js";
 import { _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete_impl.js";
 import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete_impl.js";
+import { _coerce_parent, _handle_hierarchy_parent } from "./handle_hierarchy_parent.js";
 //
 import { type NamespacePrivate, UANamespace_process_modelling_rule } from "./namespace_private.js";
 
@@ -2191,32 +2192,6 @@ const _constructors_map: Record<keyof Omit<typeof NodeClass, "Unspecified">, new
     View: UAViewImpl
 };
 
-/**
-
- * convert a 'string' , NodeId or Object into a valid and existing object
- * @param addressSpace  {IAddressSpace}
- * @param value
- * @param coerceFunc
- * @private
- */
-function _coerce_parent(
-    addressSpace: AddressSpacePrivate,
-    value: null | string | BaseNode | undefined | NodeIdLike,
-    coerceFunc: (data: string | NodeId | BaseNode) => BaseNode | null
-): BaseNode | null {
-    assert(typeof coerceFunc === "function");
-    if (value) {
-        if (typeof value === "string") {
-            value = coerceFunc.call(addressSpace, value);
-        }
-        if (value instanceof NodeId) {
-            value = addressSpace.findNode(value) as BaseNode;
-        }
-    }
-    assert(!value || value instanceof BaseNodeImpl);
-    return value as BaseNode;
-}
-
 function _handle_event_hierarchy_parent(
     addressSpace: AddressSpacePrivate,
     references: AddReferenceOpts[],
@@ -2242,92 +2217,6 @@ function _handle_event_hierarchy_parent(
         });
     }
 }
-interface HandleHierarchyParentOptions {
-    addInOf?: NodeIdLike | BaseNode | null | undefined;
-    componentOf?: NodeIdLike | BaseNode | null | undefined;
-    propertyOf?: NodeIdLike | BaseNode | null | undefined;
-    organizedBy?: NodeIdLike | BaseNode | null | undefined;
-    encodingOf?: NodeIdLike | BaseNode | null | undefined;
-}
-export function _handle_hierarchy_parent(
-    addressSpace: AddressSpacePrivate,
-    references: AddReferenceOpts[],
-    options: HandleHierarchyParentOptions
-): void {
-    options.addInOf = _coerce_parent(addressSpace, options.addInOf, addressSpace._coerceNode);
-    options.componentOf = _coerce_parent(addressSpace, options.componentOf, addressSpace._coerceNode);
-    options.propertyOf = _coerce_parent(addressSpace, options.propertyOf, addressSpace._coerceNode);
-    options.organizedBy = _coerce_parent(addressSpace, options.organizedBy, addressSpace._coerceFolder);
-    options.encodingOf = _coerce_parent(addressSpace, options.encodingOf, addressSpace._coerceNode);
-
-    if (options.addInOf) {
-        assert(!options.componentOf);
-        assert(!options.propertyOf);
-        assert(!options.organizedBy);
-        assert(
-            options.addInOf.nodeClass === NodeClass.Object || options.addInOf.nodeClass === NodeClass.ObjectType,
-            "addInOf must be of nodeClass Object or ObjectType"
-        );
-        references.push({
-            isForward: false,
-            nodeId: options.addInOf.nodeId,
-            referenceType: "HasAddIn"
-        });
-    }
-
-    if (options.componentOf) {
-        assert(!options.addInOf);
-        assert(!options.propertyOf);
-        assert(!options.organizedBy);
-        assert(addressSpace.rootFolder.objects, "addressSpace must have a rootFolder.objects folder");
-        assert(
-            options.componentOf.nodeId !== addressSpace.rootFolder.objects.nodeId,
-            "Only Organizes References are used to relate Objects to the 'Objects' standard Object."
-        );
-        references.push({
-            isForward: false,
-            nodeId: options.componentOf.nodeId,
-            referenceType: "HasComponent"
-        });
-    }
-
-    if (options.propertyOf) {
-        assert(!options.addInOf);
-        assert(!options.componentOf);
-        assert(!options.organizedBy);
-        assert(
-            options.propertyOf.nodeId !== addressSpace.rootFolder.objects.nodeId,
-            "Only Organizes References are used to relate Objects to the 'Objects' standard Object."
-        );
-        references.push({
-            isForward: false,
-            nodeId: options.propertyOf.nodeId,
-            referenceType: "HasProperty"
-        });
-    }
-
-    if (options.organizedBy) {
-        assert(!options.addInOf);
-        assert(!options.propertyOf);
-        assert(!options.componentOf);
-        references.push({
-            isForward: false,
-            nodeId: options.organizedBy.nodeId,
-            referenceType: "Organizes"
-        });
-    }
-
-    if (options.encodingOf) {
-        // parent must be a DataType
-        assert(options.encodingOf.nodeClass === NodeClass.DataType, "encodingOf must be toward a DataType");
-        references.push({
-            isForward: false,
-            nodeId: options.encodingOf.nodeId,
-            referenceType: "HasEncoding"
-        });
-    }
-}
-
 function _copy_reference(reference: UAReference | AddReferenceOpts): AddReferenceOpts {
     assert(Object.hasOwn(reference, "referenceType"));
     assert(Object.hasOwn(reference, "isForward"));

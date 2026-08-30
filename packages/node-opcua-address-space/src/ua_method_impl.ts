@@ -34,7 +34,7 @@ import type { SessionContext } from "../source/session_context.js";
 import type { AddressSpacePrivate } from "./address_space_private.js";
 import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl.js";
 import { _clone } from "./base_node_private.js";
-import { _handle_hierarchy_parent } from "./namespace_impl.js";
+import { _handle_hierarchy_parent } from "./handle_hierarchy_parent.js";
 
 const warningLog = make_warningLog("ua_method_impl");
 const debugLog = make_debugLog("ua_method_impl");
