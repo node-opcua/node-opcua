@@ -7,7 +7,8 @@
         "build": "tsc -b",
         "lint": "biome check --no-errors-on-unmatched .",
         "format": "biome check --write --no-errors-on-unmatched .",
-        "clean": "npx rimraf -g node_modules dist *.tsbuildinfo"
+        "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
+        "test": "mocha"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
