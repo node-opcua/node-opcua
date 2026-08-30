@@ -347,6 +347,14 @@ jobs:
           cache: 'pnpm'
       - run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
       - run: pnpm run build:all
+      # Ask npm what it would actually publish, and check that every path a manifest
+      # names in main/types/exports is in that tarball. The consumer fixtures cannot see
+      # this: they resolve through a pnpm workspace symlink, which exposes the whole
+      # working tree whether or not a file would ship. Runs here rather than in lint
+      # because it needs dist to exist, and this job has already built it.
+      - run: pnpm run check:pack
+      - name: Unit tests for the packaging rule
+        run: node tools/check-pack/test/test_rule.js
       - run: pnpm run pretest
       # Dry run first. It loads every package's .mocharc and every test file but runs no
       # test body, so a config that cannot resolve fails here in seconds instead of

@@ -4234,6 +4234,8 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  tools/check-pack: {}
+
   tools/check-test-ports: {}
 
   tools/fix-tsconfigs:

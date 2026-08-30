@@ -1,0 +1,14 @@
+{
+    "name": "@sterfive/check-pack",
+    "version": "1.0.0",
+    "private": true,
+    "description": "every entry point a package declares must be in the tarball npm would publish",
+    "bin": {
+        "check-pack": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "test": "node test/test_rule.js"
+    }
+}
