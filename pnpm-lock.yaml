@@ -3811,6 +3811,9 @@ importers:
         specifier: 2.180.0
         version: link:../node-opcua-types
     devDependencies:
+      node-opcua-numeric-range:
+        specifier: 2.180.0
+        version: link:../node-opcua-numeric-range
       node-opcua-packet-analyzer:
         specifier: 2.180.0
         version: link:../node-opcua-packet-analyzer

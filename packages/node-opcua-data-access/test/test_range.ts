@@ -1,8 +1,8 @@
-"use strict";
-const should = require("should");
-const { assert } = require("node-opcua-assert");
+import "should";
+import { assert } from "node-opcua-assert";
 
-const { Range } = require("..");
+import { Range } from "..";
+
 // DeadbandType = PercentDeadband
 // For this type of deadband the  deadbandValue  is defined  as the percentage of the  EURange.   That is,
 // it applies only to  AnalogItems   with  an  EURange  Property  that define s  the   typical value   range for
@@ -17,33 +17,33 @@ const { Range } = require("..");
 // each element of the array. If an element that requires a DataChange is found, then no further
 // deadband checking is necessary and the  entire array shall be returned
 
-function get_deadband_percent(euRange, deadBandValue) {
+function get_deadband_percent(euRange: Range, deadBandValue: number) {
     assert(euRange instanceof Range);
-    assert(isFinite(euRange.low));
-    assert(isFinite(euRange.high));
+    assert(Number.isFinite(euRange.low));
+    assert(Number.isFinite(euRange.high));
     //xx console.log(euRange.toString());
     return ((euRange.high - euRange.low) * deadBandValue) / 100.0;
 }
 
-function check_change_deadband(euRange, deadBandValue, delta) {
+function check_change_deadband(euRange: Range, deadBandValue: number, delta: number) {
     assert(deadBandValue >= 0 && deadBandValue <= 100); // return { statusCode: StatusCodes.BadDeadbandFilterInvalid };
     return Math.abs(delta) > get_deadband_percent(euRange, deadBandValue);
 }
-describe("PercentDeadband with EURange", function () {
-    it("detect a change when range is [0,100], deadband 10% ", function () {
+describe("PercentDeadband with EURange", () => {
+    it("detect a change when range is [0,100], deadband 10% ", () => {
         const range = new Range({ low: 0, high: 100 });
         get_deadband_percent(range, 10).should.eql(10);
 
         check_change_deadband(range, 10 /*%*/, 5).should.eql(false);
         check_change_deadband(range, 10 /*%*/, 11).should.eql(true);
     });
-    it("detect a change when range is [-100,100], deadband 10% ", function () {
+    it("detect a change when range is [-100,100], deadband 10% ", () => {
         const range = new Range({ low: -100, high: 100 });
         check_change_deadband(range, 10 /*%*/, 5).should.eql(false);
         check_change_deadband(range, 10 /*%*/, 11).should.eql(false);
         check_change_deadband(range, 10 /*%*/, 21).should.eql(true);
     });
-    it("detect a change when range is [-100,100], deadband 50% ", function () {
+    it("detect a change when range is [-100,100], deadband 50% ", () => {
         const range = new Range({ low: -100, high: 100 });
         check_change_deadband(range, 50 /*%*/, 5).should.eql(false);
         check_change_deadband(range, 50 /*%*/, 11).should.eql(false);
