@@ -1,10 +1,10 @@
-import should from "should";
+import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 import { BaseUAObject, buildStructuredType, type IStructuredTypeSchema } from "node-opcua-factory";
-import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { encode_decode_round_trip_test, json_encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import should from "should";
 
-import { NumericRange, encodeNumericRange, decodeNumericRange } from "..";
+import { decodeNumericRange, encodeNumericRange, NumericRange } from "..";
 
 const schemaObjWithNumericRange: IStructuredTypeSchema = buildStructuredType({
     name: "ObjWithNumericRange",
@@ -30,9 +30,9 @@ class ObjWithNumericRange extends BaseUAObject {
 }
 ObjWithNumericRange.prototype.schema = schemaObjWithNumericRange;
 
-describe(" encoding / decoding", function () {
+describe(" encoding / decoding", () => {
     function _encode_decode_test(prefix: string, roundTrip: (o: ObjWithNumericRange) => unknown) {
-        it(prefix + "should persist an object with a numeric range - empty", function () {
+        it(`${prefix}should persist an object with a numeric range - empty`, () => {
             const o = new ObjWithNumericRange({});
             o.numericRange.type.should.equal(NumericRange.NumericRangeType.Empty);
             should(o.numericRange.isValid()).eql(true);
@@ -40,7 +40,7 @@ describe(" encoding / decoding", function () {
             roundTrip(o);
         });
 
-        it(prefix + "should persist an object with a numeric range - value pair", function () {
+        it(`${prefix}should persist an object with a numeric range - value pair`, () => {
             const o = new ObjWithNumericRange({
                 numericRange: "2:3"
             });
@@ -50,7 +50,7 @@ describe(" encoding / decoding", function () {
             roundTrip(o);
         });
 
-        it(prefix + "should persist an object with a numeric range - single value", function () {
+        it(`${prefix}should persist an object with a numeric range - single value`, () => {
             const o = new ObjWithNumericRange({
                 numericRange: "100"
             });
@@ -60,7 +60,7 @@ describe(" encoding / decoding", function () {
             roundTrip(o);
         });
 
-        it(prefix + "should persist an object with a numeric range - Invalid", function () {
+        it(`${prefix}should persist an object with a numeric range - Invalid`, () => {
             const o = new ObjWithNumericRange({
                 numericRange: "-4,-8"
             });
@@ -70,7 +70,7 @@ describe(" encoding / decoding", function () {
             roundTrip(o);
         });
 
-        it(prefix + "should persist an object with a numeric range - MatrixRange - type 1", function () {
+        it(`${prefix}should persist an object with a numeric range - MatrixRange - type 1`, () => {
             const o = new ObjWithNumericRange({
                 numericRange: "1:2,3:4"
             });
@@ -80,7 +80,7 @@ describe(" encoding / decoding", function () {
             roundTrip(o);
         });
 
-        it(prefix + "should persist an object with a numeric range - MatrixRange - type 2", function () {
+        it(`${prefix}should persist an object with a numeric range - MatrixRange - type 2`, () => {
             const o = new ObjWithNumericRange({
                 numericRange: "1,3"
             });
@@ -90,7 +90,7 @@ describe(" encoding / decoding", function () {
             roundTrip(o);
         });
 
-        it(prefix + "should persist an object with a numeric range - MatrixRange - type 2", function () {
+        it(`${prefix}should persist an object with a numeric range - MatrixRange - type 2`, () => {
             const o = new ObjWithNumericRange({
                 numericRange: "<invalid_range>"
             });
