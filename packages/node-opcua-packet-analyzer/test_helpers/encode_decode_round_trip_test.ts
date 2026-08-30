@@ -126,7 +126,7 @@ export function encode_decode_round_trip_test(
 }
 
 export function json_encode_decode_round_trip_test(
-    obj: Record<string, unknown>,
+    obj: object,
     options?: Record<string, unknown> | BufferInspectionCallback,
     callbackBuffer?: BufferInspectionCallback
 ): Record<string, unknown> {
@@ -142,7 +142,7 @@ export function json_encode_decode_round_trip_test(
 
     const objReloaded = JSON.parse(json) as Record<string, unknown>;
 
-    compare(objReloaded, obj);
+    compare(objReloaded, obj as Record<string, unknown>);
 
     return objReloaded;
 }

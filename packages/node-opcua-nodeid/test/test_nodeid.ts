@@ -1,12 +1,19 @@
-const should = require("should");
-const { assert } = require("node-opcua-assert");
-const { Benchmarker } = require("node-opcua-benchmarker");
-const { removeDecoration } = require("node-opcua-debug");
+import { assert } from "node-opcua-assert";
+import { Benchmarker } from "node-opcua-benchmarker";
+import { removeDecoration } from "node-opcua-debug";
+import should from "should";
 
-const { coerceNodeId, resolveNodeId, makeNodeId, NodeIdType, NodeId, sameNodeId } = require("..");
+function asBuffer(value: NodeId["value"]): Buffer {
+    if (!Buffer.isBuffer(value)) {
+        throw new Error(`expecting a BYTESTRING NodeId, got ${typeof value}`);
+    }
+    return value;
+}
 
-describe("testing NodeIds", function() {
-    it("should create a NUMERIC nodeID", function() {
+import { coerceNodeId, makeNodeId, NodeId, NodeIdType, resolveNodeId, sameNodeId } from "..";
+
+describe("testing NodeIds", () => {
+    it("should create a NUMERIC nodeID", () => {
         const nodeId = new NodeId(NodeIdType.NUMERIC, 23, 2);
         nodeId.value.should.equal(23);
         nodeId.namespace.should.equal(2);
@@ -14,7 +21,7 @@ describe("testing NodeIds", function() {
         nodeId.toString().should.eql("ns=2;i=23");
     });
 
-    it("should create a NUMERIC nodeID with the largest possible values", function() {
+    it("should create a NUMERIC nodeID with the largest possible values", () => {
         const nodeId = new NodeId(NodeIdType.NUMERIC, 0xffffffff, 0xffff);
         nodeId.value.should.equal(0xffffffff);
         nodeId.namespace.should.equal(0xffff);
@@ -22,13 +29,13 @@ describe("testing NodeIds", function() {
         nodeId.toString().should.eql("ns=65535;i=4294967295");
     });
 
-    it("should raise an error for  NUMERIC nodeID with invalid  values", function() {
-        should(function() {
-            const nodeId = new NodeId(NodeIdType.NUMERIC, -1, -1);
+    it("should raise an error for  NUMERIC nodeID with invalid  values", () => {
+        should(() => {
+            const _nodeId = new NodeId(NodeIdType.NUMERIC, -1, -1);
         }).throwError();
     });
 
-    it("should create a STRING nodeID", function() {
+    it("should create a STRING nodeID", () => {
         const nodeId = new NodeId(NodeIdType.STRING, "TemperatureSensor", 4);
         nodeId.value.should.equal("TemperatureSensor");
         nodeId.namespace.should.equal(4);
@@ -36,24 +43,24 @@ describe("testing NodeIds", function() {
         nodeId.toString().should.eql("ns=4;s=TemperatureSensor");
     });
 
-    it("should create a OPAQUE nodeID", function() {
+    it("should create a OPAQUE nodeID", () => {
         const buffer = Buffer.alloc(4);
         buffer.writeUInt32BE(0xdeadbeef, 0);
 
         const nodeId = new NodeId(NodeIdType.BYTESTRING, buffer, 4);
-        nodeId.value.toString("hex").should.equal("deadbeef");
+        asBuffer(nodeId.value).toString("hex").should.equal("deadbeef");
         nodeId.namespace.should.equal(4);
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
         nodeId.toString().should.eql("ns=4;b=3q2+7w==");
     });
-    it("should create a OPAQUE nodeID with null buffer", function() {
+    it("should create a OPAQUE nodeID with null buffer", () => {
         const nodeId = new NodeId(NodeIdType.BYTESTRING, null, 4);
         nodeId.toString().should.eql("ns=4;b=<null>");
     });
 
     it("NodeId#toString with addressSpace object (standard Nodes) 0", () => {
         const nodeId = new NodeId(NodeIdType.NUMERIC, 2254, 0);
-        removeDecoration(nodeId.toString({ addressSpace: "Hello" })).should.eql("ns=0;i=2254 Server_ServerArray");
+        removeDecoration(nodeId.toString({ addressSpace: { findNode: () => null } })).should.eql("ns=0;i=2254 Server_ServerArray");
         nodeId.displayText().should.eql("Server_ServerArray (ns=0;i=2254)");
     });
     it("NodeId#toString with addressSpace object (findNode) 2", () => {
@@ -73,34 +80,34 @@ describe("testing NodeIds", function() {
     });
 });
 
-describe("testing coerceNodeId", function() {
-    it("should coerce a string of a form 'i=1234'", function() {
+describe("testing coerceNodeId", () => {
+    it("should coerce a string of a form 'i=1234'", () => {
         coerceNodeId("i=1234").should.eql(makeNodeId(1234));
     });
 
-    it("should coerce a string of a form 'ns=2;i=1234'", function() {
+    it("should coerce a string of a form 'ns=2;i=1234'", () => {
         coerceNodeId("ns=2;i=1234").should.eql(makeNodeId(1234, 2));
     });
 
-    it("should coerce a string of a form 's=TemperatureSensor' ", function() {
+    it("should coerce a string of a form 's=TemperatureSensor' ", () => {
         const ref_nodeId = new NodeId(NodeIdType.STRING, "TemperatureSensor", 0);
         coerceNodeId("s=TemperatureSensor").should.eql(ref_nodeId);
     });
 
-    it("should coerce a string of a form 'ns=2;s=TemperatureSensor' ", function() {
+    it("should coerce a string of a form 'ns=2;s=TemperatureSensor' ", () => {
         const ref_nodeId = new NodeId(NodeIdType.STRING, "TemperatureSensor", 2);
         coerceNodeId("ns=2;s=TemperatureSensor").should.eql(ref_nodeId);
     });
-    it("should coerce a string of a form '1E14849E-3744-470d-8C7B-5F9110C2FA32' ", function() {
+    it("should coerce a string of a form '1E14849E-3744-470d-8C7B-5F9110C2FA32' ", () => {
         const ref_nodeId = new NodeId(NodeIdType.GUID, "1E14849E-3744-470d-8C7B-5F9110C2FA32", 0);
         coerceNodeId("1E14849E-3744-470d-8C7B-5F9110C2FA32").should.eql(ref_nodeId);
     });
-    it("should coerce a NodeId from a NodeIdOptions", function() {
+    it("should coerce a NodeId from a NodeIdOptions", () => {
         const ref_nodeId = new NodeId(NodeIdType.STRING, "Hello", 3);
         coerceNodeId({ namespace: 3, identifierType: 2, value: "Hello" }).should.eql(ref_nodeId);
     });
 
-    it("should coerce a string of a form 'ns=4;s=Test32;datatype=Int32'  (Mika)", function() {
+    it("should coerce a string of a form 'ns=4;s=Test32;datatype=Int32'  (Mika)", () => {
         const ref_nodeId = new NodeId(NodeIdType.STRING, "Test32;datatype=Int32", 4);
         coerceNodeId("ns=4;s=Test32;datatype=Int32").should.eql(ref_nodeId);
         try {
@@ -109,7 +116,7 @@ describe("testing coerceNodeId", function() {
             should.exist(err);
         }
     });
-    it("should coerce a string of a form 'ns=4;s=||)))AA(((||'", function() {
+    it("should coerce a string of a form 'ns=4;s=||)))AA(((||'", () => {
         const ref_nodeId = new NodeId(NodeIdType.STRING, "||)))AA(((||", 4);
         coerceNodeId("ns=4;s=||)))AA(((||").should.eql(ref_nodeId);
         try {
@@ -119,7 +126,7 @@ describe("testing coerceNodeId", function() {
         }
     });
 
-    it("should coerce a string of a form `ns=2;s=45QAZE2323||XC86@5`", function() {
+    it("should coerce a string of a form `ns=2;s=45QAZE2323||XC86@5`", () => {
         const ref_nodeId = new NodeId(NodeIdType.STRING, "45QAZE2323||XC86@5", 2);
         coerceNodeId("ns=2;s=45QAZE2323||XC86@5").should.eql(ref_nodeId);
         try {
@@ -129,7 +136,7 @@ describe("testing coerceNodeId", function() {
         }
     });
 
-    it("should coerce a integer", function() {
+    it("should coerce a integer", () => {
         coerceNodeId(1234).should.eql(makeNodeId(1234));
     });
 
@@ -157,63 +164,63 @@ describe("testing coerceNodeId", function() {
         resolveNodeId("i=12");
         resolveNodeId(Buffer.from([1, 2, 3]));
     });
-    it("should coerce a OPAQUE buffer as a BYTESTRING", function() {
+    it("should coerce a OPAQUE buffer as a BYTESTRING", () => {
         const buffer = Buffer.alloc(8);
         buffer.writeUInt32BE(0xb1dedada, 0);
         buffer.writeUInt32BE(0xb0b0abba, 4);
         const nodeId = coerceNodeId(buffer);
         nodeId.toString().should.eql("ns=0;b=sd7a2rCwq7o=");
-        nodeId.value.toString("base64").should.eql("sd7a2rCwq7o=");
+        asBuffer(nodeId.value).toString("base64").should.eql("sd7a2rCwq7o=");
     });
 
-    it("should coerce a OPAQUE buffer in a string ( with namespace ) ", function() {
+    it("should coerce a OPAQUE buffer in a string ( with namespace ) ", () => {
         const nodeId = coerceNodeId("ns=0;b=sd7a2rCwq7o=");
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
         nodeId.toString().should.eql("ns=0;b=sd7a2rCwq7o=");
-        nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
+        asBuffer(nodeId.value).toString("hex").should.eql("b1dedadab0b0abba");
     });
-    it("should coerce a OPAQUE buffer in a string ( without namespace ) ", function() {
+    it("should coerce a OPAQUE buffer in a string ( without namespace ) ", () => {
         const nodeId = coerceNodeId("b=sd7a2rCwq7o=");
         nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
         nodeId.toString().should.eql("ns=0;b=sd7a2rCwq7o=");
-        nodeId.value.toString("hex").should.eql("b1dedadab0b0abba");
+        asBuffer(nodeId.value).toString("hex").should.eql("b1dedadab0b0abba");
     });
-    it("should coerce a GUID node id (without namespace)", function() {
+    it("should coerce a GUID node id (without namespace)", () => {
         const nodeId = coerceNodeId("g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
         nodeId.identifierType.should.eql(NodeIdType.GUID);
         nodeId.toString().should.eql("ns=0;g=1E14849E-3744-470D-8C7B-5F9110C2FA32");
         nodeId.value.should.eql("1E14849E-3744-470D-8C7B-5F9110C2FA32");
     });
-    it("should coerce a GUID node id (with namespace)", function() {
+    it("should coerce a GUID node id (with namespace)", () => {
         const nodeId = coerceNodeId("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
         nodeId.identifierType.should.eql(NodeIdType.GUID);
         nodeId.toString().should.eql("ns=0;g=1E14849E-3744-470D-8C7B-5F9110C2FA32");
         nodeId.value.should.eql("1E14849E-3744-470D-8C7B-5F9110C2FA32");
     });
-    it("should coerce a GUID node id (with lower case)", function() {
+    it("should coerce a GUID node id (with lower case)", () => {
         const nodeId = coerceNodeId("ns=0;g=1e14849e-3744-470d-8c7b-5f9110c2fa32");
         nodeId.identifierType.should.eql(NodeIdType.GUID);
         nodeId.toString().should.eql("ns=0;g=1E14849E-3744-470D-8C7B-5F9110C2FA32");
         nodeId.value.should.eql("1E14849E-3744-470D-8C7B-5F9110C2FA32");
     });
-    it("should not coerce a malformed string to a nodeid", function() {
-        let nodeId;
+    it("should not coerce a malformed string to a nodeid", () => {
+        let nodeId: NodeId;
 
-        (function() {
+        (() => {
             nodeId = coerceNodeId("ThisIsNotANodeId");
-        }.should.throw());
+        }).should.throw();
 
-        (function() {
+        (() => {
             nodeId = coerceNodeId("HierarchicalReferences");
-        }.should.throw());
+        }).should.throw();
 
-        (function() {
+        (() => {
             nodeId = coerceNodeId("ns=0;s=HierarchicalReferences");
             assert(nodeId !== null);
-        }.should.not.throw());
+        }).should.not.throw();
     });
 
-    it("should detect empty Numeric NodeIds", function() {
+    it("should detect empty Numeric NodeIds", () => {
         const empty_nodeId = makeNodeId(0, 0);
         empty_nodeId.identifierType.should.eql(NodeIdType.NUMERIC);
         empty_nodeId.isEmpty().should.be.eql(true);
@@ -221,7 +228,7 @@ describe("testing coerceNodeId", function() {
         const non_empty_nodeId = makeNodeId(1, 0);
         non_empty_nodeId.isEmpty().should.be.eql(false);
     });
-    it("should detect empty String NodeIds", function() {
+    it("should detect empty String NodeIds", () => {
         // empty string nodeId
         const empty_nodeId = coerceNodeId("ns=0;s=");
         empty_nodeId.identifierType.should.eql(NodeIdType.STRING);
@@ -231,7 +238,7 @@ describe("testing coerceNodeId", function() {
         non_empty_nodeId.identifierType.should.eql(NodeIdType.STRING);
         non_empty_nodeId.isEmpty().should.be.eql(false);
     });
-    it("should detect empty Opaque NodeIds", function() {
+    it("should detect empty Opaque NodeIds", () => {
         // empty opaque nodeId
         const empty_nodeId = coerceNodeId(Buffer.alloc(0));
         empty_nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
@@ -241,7 +248,7 @@ describe("testing coerceNodeId", function() {
         empty_nodeId.identifierType.should.eql(NodeIdType.BYTESTRING);
         non_empty_nodeId.isEmpty().should.be.eql(false);
     });
-    it("should detect empty GUID NodeIds", function() {
+    it("should detect empty GUID NodeIds", () => {
         // empty GUID nodeId
         const empty_nodeId = coerceNodeId("g=00000000-0000-0000-0000-000000000000");
         empty_nodeId.identifierType.should.eql(NodeIdType.GUID);
@@ -252,18 +259,18 @@ describe("testing coerceNodeId", function() {
         non_empty_nodeId.isEmpty().should.be.eql(false);
     });
 
-    it("should convert an empty NodeId to  <empty nodeid> string", function() {
+    it("should convert an empty NodeId to  <empty nodeid> string", () => {
         const empty_nodeId = makeNodeId(0, 0);
         empty_nodeId.toString().should.eql("ns=0;i=0");
     });
 
-    it("should coerce a string nodeid containing special characters", function() {
+    it("should coerce a string nodeid containing special characters", () => {
         // see issue#
-        const nodeId = coerceNodeId("ns=3;s={360273AA-F2B9-4A7F-A5E3-37B7074E2529}.MechanicalDomain");
+        const _nodeId = coerceNodeId("ns=3;s={360273AA-F2B9-4A7F-A5E3-37B7074E2529}.MechanicalDomain");
     });
 });
 
-describe("#sameNodeId", function() {
+describe("#sameNodeId", () => {
     const nodeIds = [
         makeNodeId(2, 3),
         makeNodeId(2, 4),
@@ -279,25 +286,25 @@ describe("#sameNodeId", function() {
         for (let j = 0; j < nodeIds.length; j++) {
             const nodeId2 = nodeIds[j];
             if (i === j) {
-                it("should be true  : #sameNodeId('" + nodeId1.toString() + "','" + nodeId2.toString() + "');", function() {
+                it(`should be true  : #sameNodeId('${nodeId1.toString()}','${nodeId2.toString()}');`, () => {
                     sameNodeId(nodeId1, nodeId2).should.eql(true);
                 });
             } else {
-                it("should be false : #sameNodeId('" + nodeId1.toString() + "','" + nodeId2.toString() + "');", function() {
+                it(`should be false : #sameNodeId('${nodeId1.toString()}','${nodeId2.toString()}');`, () => {
                     sameNodeId(nodeId1, nodeId2).should.eql(false);
                 });
             }
         }
     }
 
-    function sameNodeIdOld(n1, n2) {
+    function sameNodeIdOld(n1: NodeId, n2: NodeId) {
         return n1.toString() === n2.toString();
     }
-    it("should implement a efficient sameNodeId ", function(done) {
+    it("should implement a efficient sameNodeId ", (done) => {
         const bench = new Benchmarker();
 
         bench
-            .add("sameNodeIdOld", function() {
+            .add("sameNodeIdOld", () => {
                 for (let i = 0; i < nodeIds.length; i++) {
                     const nodeId1 = nodeIds[i];
                     for (let j = 0; j < nodeIds.length; j++) {
@@ -306,7 +313,7 @@ describe("#sameNodeId", function() {
                     }
                 }
             })
-            .add("sameNodeId", function() {
+            .add("sameNodeId", () => {
                 for (let i = 0; i < nodeIds.length; i++) {
                     const nodeId1 = nodeIds[i];
                     for (let j = 0; j < nodeIds.length; j++) {
@@ -315,15 +322,15 @@ describe("#sameNodeId", function() {
                     }
                 }
             })
-            .on("cycle", function(message) {
+            .on("cycle", (message) => {
                 console.log(message);
             })
 
-            .on("complete", function() {
-                console.log(" Fastest is " + this.fastest.name);
+            .on("complete", function (this: Benchmarker) {
+                console.log(` Fastest is ${this.fastest?.name}`);
 
                 // the following line is commented out as test may fail due to gc taking place randomly
-                // this.fastest.name.should.eql("sameNodeId");
+                // this.fastest?.name.should.eql("sameNodeId");
                 done();
             })
 
@@ -338,63 +345,63 @@ describe("#sameNodeId", function() {
     });
 });
 
-describe("testing resolveNodeId", function() {
+describe("testing resolveNodeId", () => {
     // some objects
-    it("should resolve RootFolder to 'ns=0;i=84' ", function() {
+    it("should resolve RootFolder to 'ns=0;i=84' ", () => {
         const ref_nodeId = new NodeId(NodeIdType.NUMERIC, 84, 0);
         resolveNodeId("RootFolder").should.eql(ref_nodeId);
         resolveNodeId("RootFolder").toString().should.equal("ns=0;i=84");
     });
 
-    it("should resolve ObjectsFolder to 'ns=0;i=85' ", function() {
+    it("should resolve ObjectsFolder to 'ns=0;i=85' ", () => {
         const ref_nodeId = new NodeId(NodeIdType.NUMERIC, 85, 0);
         resolveNodeId("ObjectsFolder").should.eql(ref_nodeId);
         resolveNodeId("ObjectsFolder").toString().should.equal("ns=0;i=85");
     });
 
     // Variable
-    it("should resolve ServerType_GetMonitoredItems to 'ns=0;i=11489' ", function() {
+    it("should resolve ServerType_GetMonitoredItems to 'ns=0;i=11489' ", () => {
         // ServerType_GetMonitoredItems=   ,
         resolveNodeId("ServerType_GetMonitoredItems").toString().should.equal("ns=0;i=11489");
     });
 
     // ObjectType
-    it("should resolve FolderType to 'ns=0;i=61' ", function() {
+    it("should resolve FolderType to 'ns=0;i=61' ", () => {
         resolveNodeId("FolderType").toString().should.equal("ns=0;i=61");
     });
 
     // VariableType
-    it("should resolve AnalogItemType to 'ns=0;i=2368' ", function() {
+    it("should resolve AnalogItemType to 'ns=0;i=2368' ", () => {
         resolveNodeId("AnalogItemType").toString().should.equal("ns=0;i=2368");
     });
 
     //ReferenceType
-    it("should resolve HierarchicalReferences to 'ns=0;i=33' ", function() {
+    it("should resolve HierarchicalReferences to 'ns=0;i=33' ", () => {
         resolveNodeId("HierarchicalReferences").toString().should.equal("ns=0;i=33");
     });
 });
 
-describe("testing NodeId coercing bug ", function() {
-    it("should handle strange string nodeId ", function() {
+describe("testing NodeId coercing bug ", () => {
+    it("should handle strange string nodeId ", () => {
         coerceNodeId("ns=2;s=S7_Connection_1.db1.0,x0").should.eql(makeNodeId("S7_Connection_1.db1.0,x0", 2));
     });
 });
 
-describe("testing NodeId.displayText", function() {
-    it("should provide a richer display text when nodeid is known", function() {
+describe("testing NodeId.displayText", () => {
+    it("should provide a richer display text when nodeid is known", () => {
         const ref_nodeId = new NodeId(NodeIdType.NUMERIC, 85, 0);
         ref_nodeId.displayText().should.equal("ObjectsFolder (ns=0;i=85)");
     });
 });
 
-describe("issue#372 coercing & making nodeid string containing semi-column", function() {
-    it("should coerce a nodeid string containing a semi-column", function() {
+describe("issue#372 coercing & making nodeid string containing semi-column", () => {
+    it("should coerce a nodeid string containing a semi-column", () => {
         const nodeId = coerceNodeId("ns=0;s=my;nodeid;with;semicolum");
         nodeId.identifierType.should.eql(NodeIdType.STRING);
         nodeId.value.should.be.eql("my;nodeid;with;semicolum");
     });
 
-    it("should make a nodeid as a string containing semi-column", function() {
+    it("should make a nodeid as a string containing semi-column", () => {
         const nodeId = makeNodeId("my;nodeid;with;semicolum");
         nodeId.identifierType.should.eql(NodeIdType.STRING);
         nodeId.value.should.be.eql("my;nodeid;with;semicolum");
@@ -422,58 +429,42 @@ describe("nullId const-ness", () => {
     });
 });
 
+describe("testing NodeId#toString with namespace arrays", () => {
+    const namespaceArray = ["http://opcfoundation.org/UA/", "http://opcfoundation.org/UA/DI/", "http://opcfoundation.org/UA/ADI/"];
 
-describe("testing NodeId#toString with namespace arrays", function() {
-
-    const namespaceArray = [
-        "http://opcfoundation.org/UA/",
-        "http://opcfoundation.org/UA/DI/",
-        "http://opcfoundation.org/UA/ADI/",
-    ];
-
-    it("should provide a nsu portion instead of a ns=index when namespaceArray is provided", function() {
+    it("should provide a nsu portion instead of a ns=index when namespaceArray is provided", () => {
         const ref_nodeId = new NodeId(NodeIdType.NUMERIC, 85, 1);
         ref_nodeId.toString({ namespaceArray }).should.equal("nsu=http://opcfoundation.org/UA/DI/;i=85");
     });
-    it("should not provide a nsu portion instead of a ns=index when namespaceArray is provided and namespaceIndex=0 (standard UA namespace)", function() {
+    it("should not provide a nsu portion instead of a ns=index when namespaceArray is provided and namespaceIndex=0 (standard UA namespace)", () => {
         const ref_nodeId = new NodeId(NodeIdType.NUMERIC, 85, 0);
         // namespace portion is not needed for namespace 0 which is implied
         ref_nodeId.toString({ namespaceArray }).should.equal("i=85");
-
     });
-    it("should issue a default namespace uri in nsu portion instead of a ns=index when namespaceArray is provided and namespaceIndex doesn't exist in the namespace array", function() {
+    it("should issue a default namespace uri in nsu portion instead of a ns=index when namespaceArray is provided and namespaceIndex doesn't exist in the namespace array", () => {
         const ref_nodeId = new NodeId(NodeIdType.NUMERIC, 85, 100);
         // namespace portion is not needed for namespace 0 which is implied
         ref_nodeId.toString({ namespaceArray }).should.equal("nsu=<unknown namespace with index 100>;i=85");
-
     });
 });
 
+describe("testing coerceNodeId with namespace arrays", () => {
+    const namespaceArray = ["http://opcfoundation.org/UA/", "http://opcfoundation.org/UA/DI/", "http://opcfoundation.org/UA/ADI/"];
 
-describe("testing coerceNodeId with namespace arrays", function() {
-
-    const namespaceArray = [
-        "http://opcfoundation.org/UA/",
-        "http://opcfoundation.org/UA/DI/",
-        "http://opcfoundation.org/UA/ADI/",
-    ];
-
-    it("should coerce nodeId string that has a nsu portion when namespaceArray is provided", function() {
+    it("should coerce nodeId string that has a nsu portion when namespaceArray is provided", () => {
         const ref_nodeId = coerceNodeId("nsu=http://opcfoundation.org/UA/DI/;i=85", { namespaceArray });
         ref_nodeId.toString().should.equal("ns=1;i=85");
         ref_nodeId.toString({ namespaceArray }).should.equal("nsu=http://opcfoundation.org/UA/DI/;i=85");
     });
-    it("should coerce nodeId string that has no nsu portion when namespaceArray is provided and n=0 (assuming standard UA namespace)", function() {
+    it("should coerce nodeId string that has no nsu portion when namespaceArray is provided and n=0 (assuming standard UA namespace)", () => {
         const ref_nodeId = coerceNodeId("i=85", { namespaceArray });
         ref_nodeId.toString().should.equal("ns=0;i=85");
         ref_nodeId.toString({ namespaceArray }).should.equal("i=85");
-
     });
-    it("should fail to coerce a nodeId string with a nsu namespace that doesn't exists in the namespace array", function() {
-        should.throws(()=>{
-            const ref_nodeId = coerceNodeId("nsu=<unknown namespace with index 100>;i=85");
+    it("should fail to coerce a nodeId string with a nsu namespace that doesn't exists in the namespace array", () => {
+        should.throws(() => {
+            const _ref_nodeId = coerceNodeId("nsu=<unknown namespace with index 100>;i=85");
         });
- 
     });
     it("should resolve NodeID with optional namespace array", () => {
         const ref_nodeId = resolveNodeId("nsu=http://opcfoundation.org/UA/DI/;i=85", { namespaceArray });

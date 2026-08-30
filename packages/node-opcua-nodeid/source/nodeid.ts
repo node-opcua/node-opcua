@@ -124,7 +124,7 @@ export class NodeId {
      * const nodeId = new NodeId(NodeIdType.NUMERIC,123,1);
      * ```
      */
-    constructor(identifierType?: NodeIdType | null, value?: number | string | Buffer | Guid, namespace?: number) {
+    constructor(identifierType?: NodeIdType | null, value?: number | string | Buffer | Guid | null, namespace?: number) {
         if (identifierType === null || identifierType === undefined) {
             this.identifierType = NodeIdType.NUMERIC;
             this.value = 0;
@@ -499,7 +499,7 @@ function reverse_map(nodeId: string) {
  * ```
  *
  */
-export function resolveNodeId(nodeIdOrString: NodeIdLike, options?: ResolveNodeIdOptions): NodeId {
+export function resolveNodeId(nodeIdOrString: NodeIdLike | Buffer, options?: ResolveNodeIdOptions): NodeId {
     let nodeId: NodeId;
 
     const rawId = typeof nodeIdOrString === "string" ? _nameToNodeIdIndex[nodeIdOrString] : undefined;

@@ -291,9 +291,9 @@ export class NumericRange implements NumericalRange1 {
 
     public static readonly empty = new NumericRange() as NumericalRange0;
 
-    public static overlap(nr1?: NumericalRange0, nr2?: NumericalRange0): boolean {
-        nr1 = nr1 || NumericRange.empty;
-        nr2 = nr2 || NumericRange.empty;
+    public static overlap(nr1_?: NumericRange | NumericalRange0, nr2_?: NumericRange | NumericalRange0): boolean {
+        const nr1 = (nr1_ || NumericRange.empty) as NumericalRange0;
+        const nr2 = (nr2_ || NumericRange.empty) as NumericalRange0;
 
         if (NumericRangeType.Empty === nr1.type || NumericRangeType.Empty === nr2.type) {
             return true;
@@ -442,7 +442,7 @@ export class NumericRange implements NumericalRange1 {
      * @param dimensions: of the matrix if data is a matrix
      * @return {*}
      */
-    public extract_values<U, T extends ArrayLike<U>>(array: T, dimensions?: number[] | null): ExtractResult<T> {
+    public extract_values<U, T extends ArrayLike<U>>(array: T | null | undefined, dimensions?: number[] | null): ExtractResult<T> {
         const self = this as NumericalRange0;
 
         if (!array) {
@@ -481,9 +481,9 @@ export class NumericRange implements NumericalRange1 {
     }
 
     public set_values_matrix(
-        sourceToAlter: { matrix: Buffer | []; dimensions: number[] },
-        newMatrix: Buffer | []
-    ): { matrix: Buffer | []; statusCode: StatusCode } {
+        sourceToAlter: { matrix: AlterableArray; dimensions: number[] },
+        newMatrix: AlterableArray
+    ): { matrix: AlterableArray; statusCode: StatusCode } {
         const { matrix, dimensions } = sourceToAlter;
         const self = this as NumericalRange0;
         assert(dimensions, "expecting valid dimensions here");
@@ -521,7 +521,10 @@ export class NumericRange implements NumericalRange1 {
             statusCode: StatusCodes.Good
         };
     }
-    public set_values(arrayToAlter: Buffer | [], newValues: Buffer | []): { array: Buffer | [] | null; statusCode: StatusCode } {
+    public set_values(
+        arrayToAlter: AlterableArray,
+        newValues: AlterableArray
+    ): { array: AlterableArray | null; statusCode: StatusCode } {
         assert_array_or_buffer(arrayToAlter);
         assert_array_or_buffer(newValues);
 
@@ -600,6 +603,9 @@ function slice<U, T extends ArrayLike<U>>(arr: T, start: number, end: number): T
     }
     return res as T;
 }
+
+/** what set_values operates on: a plain array, a Buffer, or a TypedArray */
+export type AlterableArray = Buffer | unknown[] | { [index: number]: unknown; length: number };
 
 export interface ExtractResult<T> {
     array?: T | null;

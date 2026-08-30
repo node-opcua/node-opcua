@@ -1,8 +1,8 @@
-require("should");
-const { ObjectRegistry } = require("..");
+import "should";
+import { ObjectRegistry } from "..";
 
 describe("testing ObjectRegistry", () => {
-    let oldValue = null;
+    let oldValue: boolean;
 
     const registry = new ObjectRegistry();
     before(() => {
