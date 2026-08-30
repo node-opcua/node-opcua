@@ -12,7 +12,11 @@ function coerceQualifiedName2(a: string | QualifiedNameOptions) {
     return coerceQualifiedName(a);
 }
 
-export function constructSimpleBrowsePath(a: string | string[] | (QualifiedNameOptions | string)[]): QualifiedName[] {
+// A bare QualifiedNameOptions is accepted, and always was: the last line coerces a
+// single non-array value. Only the signature said otherwise.
+export function constructSimpleBrowsePath(
+    a: string | string[] | QualifiedNameOptions | (QualifiedNameOptions | string)[]
+): QualifiedName[] {
     if (typeof a === "string") {
         return constructSimpleBrowsePath(a.split("."));
     }
@@ -20,7 +24,7 @@ export function constructSimpleBrowsePath(a: string | string[] | (QualifiedNameO
     return [coerceQualifiedName2(a)];
 }
 export function constructSelectClause(
-    arrayOfNames: string | string[] | (QualifiedNameOptions | string)[][]
+    arrayOfNames: string | string[] | QualifiedNameOptions | (QualifiedNameOptions | string)[] | (QualifiedNameOptions | string)[][]
 ): SimpleAttributeOperand[] {
     if (!Array.isArray(arrayOfNames)) {
         return constructSelectClause([arrayOfNames]);
@@ -85,7 +89,12 @@ export function constructSelectClause(
  *
  */
 export function constructEventFilter(
-    arrayOfNames: (QualifiedNameOptions | string)[][] | string[] | string,
+    arrayOfNames:
+        | (QualifiedNameOptions | string)[][]
+        | (QualifiedNameOptions | string)[]
+        | QualifiedNameOptions
+        | string[]
+        | string,
     whereClause?: ContentFilterOptions | ContentFilterElement
 ): EventFilter {
     const selectClauses = constructSelectClause(arrayOfNames);
