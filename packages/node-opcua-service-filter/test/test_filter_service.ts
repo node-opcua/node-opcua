@@ -1,16 +1,15 @@
-const { MonitoringParameters } = require("node-opcua-types");
-const { AttributeIds } = require("node-opcua-data-model");
-const { NumericRange } = require("node-opcua-numeric-range");
-const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
-const { EventFilter, FilterOperator, ElementOperand, AttributeOperand } = require("..");
+import { AttributeIds } from "node-opcua-data-model";
+import { NumericRange } from "node-opcua-numeric-range";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import { MonitoringParameters } from "node-opcua-types";
+import should from "should";
+import { AttributeOperand, ElementOperand, EventFilter, FilterOperator } from "..";
 
-
-
-describe("Filter Service", function () {
-    it("should create a EventFilter", function () {
+describe("Filter Service", () => {
+    it("should create a EventFilter", () => {
         new EventFilter({});
     });
-    it("should encode and decode a MonitoringParameters with EventFilter filter", function (done) {
+    it("should encode and decode a MonitoringParameters with EventFilter filter", (done) => {
         const obj = new MonitoringParameters({
             samplingInterval: 10,
             discardOldest: true,
@@ -65,12 +64,15 @@ describe("Filter Service", function () {
                 }
             })
         });
-        const obj_reloaded = encode_decode_round_trip_test(obj);
+        // the round-trip helper returns the base type; this test built a MonitoringParameters
+        const obj_reloaded = encode_decode_round_trip_test(obj) as MonitoringParameters;
 
-        obj_reloaded.filter.selectClauses.length.should.eql(3);
-        obj_reloaded.filter.whereClause.elements.length.should.eql(1);
+        const filter = obj_reloaded.filter as EventFilter;
+        should(filter.selectClauses?.length).eql(3);
+        should(filter.whereClause?.elements?.length).eql(1);
 
-        obj_reloaded.filter.whereClause.elements[0].filterOperands[1].attributeId.should.eql(AttributeIds.Value);
+        const operand = filter.whereClause?.elements?.[0]?.filterOperands?.[1] as AttributeOperand | undefined;
+        should(operand?.attributeId).eql(AttributeIds.Value);
 
         done();
     });
