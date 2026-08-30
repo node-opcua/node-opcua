@@ -16,7 +16,7 @@ import { getTempFilename } from "./get_temp_filename";
 export function redirectToFile(
     tmpFile: string,
     actionFct: (() => void) | ((callback: (err?: Error) => void) => void),
-    callback: ((err?: Error) => void) | null
+    callback?: ((err?: Error) => void) | null
 ): void {
     let oldConsoleLog: typeof console.log;
 
