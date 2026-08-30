@@ -1,4 +1,11 @@
 {
+    // Ambient declarations for third-party modules that ship no types. Inherited by every
+    // package and every test/tsconfig.json, because an ambient declaration is only visible
+    // to compilations that include the file, and a package cannot include another
+    // package's - node-opcua-end2end-test type-checks across into
+    // node-opcua-address-space/src, so a per-package declaration was invisible to it.
+    // Not emitted, so it does not need to sit under any package's rootDir.
+    "files": ["packages/vendor.d.ts"],
     "compilerOptions": {
         "moduleResolution": "NodeNext",
         "strictFunctionTypes": true,
