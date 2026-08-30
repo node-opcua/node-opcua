@@ -4220,6 +4220,12 @@ importers:
 
   tools/check-debug-name: {}
 
+  tools/check-import-cycles:
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   tools/check-import-extension:
     devDependencies:
       typescript:

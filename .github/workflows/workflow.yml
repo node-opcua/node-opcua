@@ -94,6 +94,13 @@ jobs:
       - run: pnpm run check:importext
       - name: Unit tests for the import-extension rule
         run: node tools/check-import-extension/test/test_rule.js
+      # Circular imports that would throw under ESM. It classifies rather than counts: a
+      # cycle only fails here when a member uses a cyclic binding while its own body runs
+      # (a class heritage clause, a module-scope initializer). Of the 14 cycles this repo
+      # had, 11 were harmless and flagging those would have made the gate noise.
+      - run: pnpm run check:cycles
+      - name: Unit tests for the cycle rule
+        run: node tools/check-import-cycles/test/test_rule.js
       # Raw private-key access is being migrated to the opaque key-operations
       # path (HSM/KMS capable); the baseline ratchet only ever tightens, so a
       # new .getPrivateKey( call site fails here instead of slipping in.
