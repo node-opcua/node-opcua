@@ -1,6 +1,7 @@
-const { BinaryStream } = require("node-opcua-binary-stream");
-const { isValidDateTime, encodeDateTime, getMinOPCUADate, decodeDateTime, isMinDate, coerceDateTime } = require("..");
-const should = require("should");
+import { BinaryStream } from "node-opcua-binary-stream";
+import { coerceDateTime, decodeDateTime, encodeDateTime, getMinOPCUADate, isMinDate, isValidDateTime } from "..";
+import "should";
+
 describe("encode/decode DateTime", () => {
     it("should encode and decode min date", () => {
         const stream = new BinaryStream();

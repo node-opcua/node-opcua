@@ -1,37 +1,36 @@
-const { performance, PerformanceObserver } = require("perf_hooks");
-const should = require("should");
-const { countUpperCase, countUpperCaseSlow } = require("../dist/string_utils");
-const utils = require("..");
+import should from "should";
+import * as utils from "..";
+import { countUpperCase, countUpperCaseSlow } from "../dist/string_utils";
 
-describe("string_utils", function () {
-    describe("capitalizeFirstLetter", function () {
+describe("string_utils", () => {
+    describe("capitalizeFirstLetter", () => {
         const capitalizeFirstLetter = utils.capitalizeFirstLetter;
 
-        it("should capitalize a lowercased first letter", function () {
+        it("should capitalize a lowercased first letter", () => {
             capitalizeFirstLetter("foo").should.eql("Foo");
         });
 
-        it("should keep a capitalized first letter capitalized", function () {
+        it("should keep a capitalized first letter capitalized", () => {
             capitalizeFirstLetter("Foo").should.eql("Foo");
         });
 
-        it("should handle nulls", function () {
+        it("should handle nulls", () => {
             should.equal(capitalizeFirstLetter(null), null);
         });
     });
 
-    describe("lowerFirstLetter", function () {
+    describe("lowerFirstLetter", () => {
         const lowerFirstLetter = utils.lowerFirstLetter;
 
-        it("should lowercase a capitalized first letter", function () {
+        it("should lowercase a capitalized first letter", () => {
             lowerFirstLetter("Foo").should.eql("foo");
         });
 
-        it("should keep a lower-cased first letter lower-cased", function () {
+        it("should keep a lower-cased first letter lower-cased", () => {
             lowerFirstLetter("foo").should.eql("foo");
         });
 
-        it("should handle nulls", function () {
+        it("should handle nulls", () => {
             should.equal(lowerFirstLetter(null), null);
         });
 
@@ -52,7 +51,7 @@ describe("string_utils", function () {
         ];
         for (const c of cases) {
             const a = c;
-            it("should lowerFirstLetter " + a[0] + " -> " + a[1], () => {
+            it(`should lowerFirstLetter ${a[0]} -> ${a[1]}`, () => {
                 lowerFirstLetter(a[0]).should.eql(a[1]);
             });
         }
@@ -72,7 +71,7 @@ describe("string_utils", function () {
  */
 function isInstrumented() {
     return (
-        typeof global.__coverage__ !== "undefined" ||
+        typeof (globalThis as { __coverage__?: unknown }).__coverage__ !== "undefined" ||
         !!process.env.NYC_CONFIG ||
         !!process.env.NYC_PROCESS_ID ||
         !!process.env.NYC_CWD
@@ -80,7 +79,7 @@ function isInstrumented() {
 }
 
 describe("benchmark", () => {
-    it("countUpperCase agrees with countUpperCaseSlow (timings reported, never asserted)", function () {
+    it("countUpperCase agrees with countUpperCaseSlow (timings reported, never asserted)", () => {
         const LONG = "qkldjqsld lqskdjql skdjlqksd azoirjapzoeazpx oqskQPDKQSD¨QSDPQS¨D kLAEAZJ EL121232";
         const SHORT = "qkldjqsld";
         const ITERATIONS = 200000;
@@ -104,7 +103,7 @@ describe("benchmark", () => {
         // elapsed milliseconds — hrtime() returns [seconds, nanoseconds] and the seconds field must be
         // folded in: the previous version used only [1], so any run longer than 1s was reported modulo
         // 1000ms, which on a slow machine silently corrupted the comparison.
-        function measure(fn) {
+        function measure(fn: (str: string) => number) {
             const t0 = process.hrtime.bigint();
             for (let n = 0; n < ITERATIONS; n++) {
                 fn(LONG);

@@ -1,8 +1,8 @@
-require("should");
-const { MessageSecurityMode, coerceMessageSecurityMode } = require("..");
+import "should";
+import { coerceMessageSecurityMode, MessageSecurityMode } from "..";
 
-describe("MessageSecurityMode", function () {
-    it("should coerce a string into MessageSecurityMode", function () {
+describe("MessageSecurityMode", () => {
+    it("should coerce a string into MessageSecurityMode", () => {
         coerceMessageSecurityMode("None").should.eql(MessageSecurityMode.None);
         coerceMessageSecurityMode("NONE").should.eql(MessageSecurityMode.Invalid);
         coerceMessageSecurityMode("Sign").should.eql(MessageSecurityMode.Sign);

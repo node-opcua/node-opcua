@@ -249,9 +249,9 @@ export interface DataValueOptions {
     value?: VariantOptions;
     statusCode?: StatusCode;
     sourceTimestamp?: DateTime;
-    sourcePicoseconds?: UInt16;
+    sourcePicoseconds?: UInt16 | null;
     serverTimestamp?: DateTime;
-    serverPicoseconds?: UInt16;
+    serverPicoseconds?: UInt16 | null;
 }
 
 function toMicroNanoPico(picoseconds: number): string {
