@@ -1,5 +1,5 @@
+import should from "should";
 import * as service from "..";
-import "should";
 import { ChannelSecurityToken, hasTokenExpired } from "..";
 
 describe("SecureChannel Service - ChannelSecurityToken", () => {
@@ -12,14 +12,14 @@ describe("SecureChannel Service - ChannelSecurityToken", () => {
         const now = Date.now();
         const channelSecurityToken = new service.ChannelSecurityToken({});
         channelSecurityToken.revisedLifetime.should.eql(30000);
-        channelSecurityToken.createdAt?.getTime().should.be.aboveOrEqual(now);
+        should(channelSecurityToken.createdAt?.getTime()).be.aboveOrEqual(now);
     });
 
     it("testing hasTokenExpired", () => {
         const channelSecurityToken = new ChannelSecurityToken({});
 
         channelSecurityToken.revisedLifetime.should.equal(30000);
-        channelSecurityToken.createdAt?.getTime().should.be.lessThan(Date.now() + 1);
+        should(channelSecurityToken.createdAt?.getTime()).be.lessThan(Date.now() + 1);
         hasTokenExpired(channelSecurityToken).should.equal(false);
     });
     it("a ChannelSecurityToken should expired after the revisedLifetime", (done) => {

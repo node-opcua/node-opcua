@@ -30,7 +30,7 @@ describe("test constructEventFilter", () => {
         should(ef.selectClauses?.[0]?.browsePath?.[0]?.namespaceIndex).eql(0);
 
         should(ef.selectClauses?.[0]?.attributeId).eql(AttributeIds.Value);
-        ef.selectClauses?.[0]?.typeDefinitionId.toString().should.eql("ns=0;i=2041"); // BaseEventType
+        should(ef.selectClauses?.[0]?.typeDefinitionId.toString()).eql("ns=0;i=2041"); // BaseEventType
     });
 
     it("should construct a simple event filter", () => {
@@ -38,8 +38,8 @@ describe("test constructEventFilter", () => {
 
         should(ef.selectClauses?.length).eql(1);
 
-        ef.selectClauses?.[0]?.should.be.instanceOf(SimpleAttributeOperand);
-        ef.selectClauses?.[0]?.typeDefinitionId.toString().should.eql("ns=0;i=2782"); // ConditionType
+        should(ef.selectClauses?.[0]).be.instanceOf(SimpleAttributeOperand);
+        should(ef.selectClauses?.[0]?.typeDefinitionId.toString()).eql("ns=0;i=2782"); // ConditionType
         should(ef.selectClauses?.[0]?.attributeId).eql(AttributeIds.NodeId);
         should(ef.selectClauses?.[0]?.browsePath?.length).eql(0);
     });
@@ -54,17 +54,17 @@ describe("test constructEventFilter", () => {
         should(ef.selectClauses?.[0]?.browsePath?.[0]?.namespaceIndex).eql(0);
 
         should(ef.selectClauses?.[0]?.attributeId).eql(AttributeIds.Value);
-        ef.selectClauses?.[0]?.typeDefinitionId.toString().should.eql("ns=0;i=2041"); // BaseEventType
+        should(ef.selectClauses?.[0]?.typeDefinitionId.toString()).eql("ns=0;i=2041"); // BaseEventType
 
         should(ef.selectClauses?.[1].browsePath?.length).eql(1);
         should(ef.selectClauses?.[1].browsePath?.[0]?.name).eql("Time");
         should(ef.selectClauses?.[1].browsePath?.[0]?.namespaceIndex).eql(0);
 
         should(ef.selectClauses?.[1].attributeId).eql(AttributeIds.Value);
-        ef.selectClauses?.[1].typeDefinitionId.toString().should.eql("ns=0;i=2041"); // BaseEventType
+        should(ef.selectClauses?.[1].typeDefinitionId.toString()).eql("ns=0;i=2041"); // BaseEventType
 
-        ef.selectClauses?.[2].should.be.instanceOf(SimpleAttributeOperand);
-        ef.selectClauses?.[2].typeDefinitionId.toString().should.eql("ns=0;i=2782"); // ConditionType
+        should(ef.selectClauses?.[2]).be.instanceOf(SimpleAttributeOperand);
+        should(ef.selectClauses?.[2].typeDefinitionId.toString()).eql("ns=0;i=2782"); // ConditionType
         should(ef.selectClauses?.[2].attributeId).eql(AttributeIds.NodeId);
         should(ef.selectClauses?.[2].browsePath?.length).eql(0);
     });
@@ -78,10 +78,10 @@ describe("test constructEventFilter", () => {
         should(ef.selectClauses?.[0]?.browsePath?.[0]?.namespaceIndex).eql(2);
 
         should(ef.selectClauses?.[0]?.attributeId).eql(AttributeIds.Value);
-        ef.selectClauses?.[0]?.typeDefinitionId.toString().should.eql("ns=0;i=2041"); // BaseEventType
+        should(ef.selectClauses?.[0]?.typeDefinitionId.toString()).eql("ns=0;i=2041"); // BaseEventType
 
-        ef.selectClauses?.[1].should.be.instanceOf(SimpleAttributeOperand);
-        ef.selectClauses?.[1].typeDefinitionId.toString().should.eql("ns=0;i=2782"); // ConditionType
+        should(ef.selectClauses?.[1]).be.instanceOf(SimpleAttributeOperand);
+        should(ef.selectClauses?.[1].typeDefinitionId.toString()).eql("ns=0;i=2782"); // ConditionType
         should(ef.selectClauses?.[1].attributeId).eql(AttributeIds.NodeId);
         should(ef.selectClauses?.[1].browsePath?.length).eql(0);
     });
@@ -96,7 +96,7 @@ describe("test constructEventFilter", () => {
         should(ef.selectClauses?.[0]?.browsePath?.[0]?.namespaceIndex).eql(2);
 
         should(ef.selectClauses?.[0]?.attributeId).eql(AttributeIds.Value);
-        ef.selectClauses?.[0]?.typeDefinitionId.toString().should.eql("ns=0;i=2041"); // BaseEventType
+        should(ef.selectClauses?.[0]?.typeDefinitionId.toString()).eql("ns=0;i=2041"); // BaseEventType
     });
 
     it("should construct a simple event filter with a qualified name", () => {
@@ -108,7 +108,7 @@ describe("test constructEventFilter", () => {
         should(ef.selectClauses?.[0]?.browsePath?.[0]?.namespaceIndex).eql(2);
 
         should(ef.selectClauses?.[0]?.attributeId).eql(AttributeIds.Value);
-        ef.selectClauses?.[0]?.typeDefinitionId.toString().should.eql("ns=0;i=2041"); // BaseEventType
+        should(ef.selectClauses?.[0]?.typeDefinitionId.toString()).eql("ns=0;i=2041"); // BaseEventType
     });
 
     it("should construct a event filter with a 2 level browse path (form 1)", () => {
@@ -121,7 +121,7 @@ describe("test constructEventFilter", () => {
         should(ef.selectClauses?.[0]?.browsePath?.[1].name).eql("Property1");
         should(ef.selectClauses?.[0]?.browsePath?.[1].namespaceIndex).eql(3);
         should(ef.selectClauses?.[0]?.attributeId).eql(AttributeIds.Value);
-        ef.selectClauses?.[0]?.typeDefinitionId.toString().should.eql("ns=0;i=2041"); // BaseEventType
+        should(ef.selectClauses?.[0]?.typeDefinitionId.toString()).eql("ns=0;i=2041"); // BaseEventType
     });
     it("should construct a event filter with a 2 level browse path (form 2)", () => {
         const ef = constructEventFilter([["2:Component1", "3:Property1"]]);
@@ -138,7 +138,7 @@ describe("test constructEventFilter", () => {
         should(ef.selectClauses?.[0]?.browsePath?.[1].namespaceIndex).eql(3);
 
         should(ef.selectClauses?.[0]?.attributeId).eql(AttributeIds.Value);
-        ef.selectClauses?.[0]?.typeDefinitionId.toString().should.eql("ns=0;i=2041"); // BaseEventType
+        should(ef.selectClauses?.[0]?.typeDefinitionId.toString()).eql("ns=0;i=2041"); // BaseEventType
 
         should.exist(ef.whereClause.elements);
         should(ef.whereClause?.elements?.length).eql(0);

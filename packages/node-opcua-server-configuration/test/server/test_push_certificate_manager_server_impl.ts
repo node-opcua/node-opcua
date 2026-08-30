@@ -109,7 +109,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
         );
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(result.certificateSigningRequest).be.instanceOf(Buffer);
     });
 
     it("should provide rejected list", async () => {
@@ -563,7 +563,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then the result should be Good
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(result.certificateSigningRequest).be.instanceOf(Buffer);
 
         // And a temporary certificate manager should be created
         // biome-ignore lint/suspicious/noExplicitAny: accessing private _context property for test verification
@@ -953,7 +953,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then the result should be Good
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(result.certificateSigningRequest).be.instanceOf(Buffer);
 
         // And I should be able to update the certificate
         const certificateFullChain = await produceCertificate(_folder, result.certificateSigningRequest ?? Buffer.alloc(0));
@@ -1399,7 +1399,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then the result should be Good
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(result.certificateSigningRequest).be.instanceOf(Buffer);
     });
 
     it("createSigningRequest should accept RsaSha256 certificateTypeId", async () => {
@@ -1412,7 +1412,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then the result should be Good
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(result.certificateSigningRequest).be.instanceOf(Buffer);
     });
 
     it("createSigningRequest should accept certificateTypeId as NodeId object", async () => {
@@ -1426,7 +1426,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then the result should be Good
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(result.certificateSigningRequest).be.instanceOf(Buffer);
     });
 
     it("createSigningRequest should accept null NodeId as certificateTypeId", async () => {
@@ -1448,7 +1448,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // Then the result should be Good (null NodeId means no type validation)
         // This is consistent with updateCertificate behavior and allows flexibility
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(result.certificateSigningRequest).be.instanceOf(Buffer);
     });
 
     it("createSigningRequest should accept empty string as certificateTypeId for backward compatibility", async () => {
@@ -1462,7 +1462,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // Then the result should be Good (backward compatibility - validation is skipped)
         // Both empty string and null NodeId skip type validation
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(result.certificateSigningRequest).be.instanceOf(Buffer);
     });
 
     it("createSigningRequest should return BadInvalidArgument for invalid certificateTypeId string", async () => {
@@ -1568,7 +1568,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
             // Then it should succeed for all RSA types
             result.statusCode.should.eql(StatusCodes.Good, `${rsaType.name} should succeed with regeneratePrivateKey=true`);
-            result.certificateSigningRequest?.should.be.instanceOf(Buffer);
+            should(result.certificateSigningRequest).be.instanceOf(Buffer);
         }
     });
 

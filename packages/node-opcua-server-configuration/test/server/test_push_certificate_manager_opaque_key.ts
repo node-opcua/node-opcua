@@ -2,12 +2,11 @@ Error.stackTraceLimit = Infinity;
 
 import crypto from "node:crypto";
 import path from "node:path";
-import "should";
-
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { type IKeyOperations, keyOperationsFromPrivateKey } from "node-opcua-crypto";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { StatusCodes } from "node-opcua-status-code";
+import should from "should";
 import { PushCertificateManagerServerImpl, type UpdateCertificateResult } from "../../dist/index.js";
 import { _getFakeAuthorityCertificate, initializeHelpers, produceCertificate } from "../helpers/fake_certificate_authority.js";
 import { getCertificateDER } from "../helpers/tools.js";
@@ -95,7 +94,7 @@ describe("Testing Server Side PushCertificateManager with an OPAQUE (HSM/KMS-hel
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-Opaque"
         );
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(result.certificateSigningRequest).be.instanceOf(Buffer);
         serverKey.signCount().should.be.greaterThan(signsBefore, "the CSR must have been signed by the opaque provider");
     });
 
@@ -121,7 +120,7 @@ describe("Testing Server Side PushCertificateManager with an OPAQUE (HSM/KMS-hel
             issuerCertificates
         );
         result.statusCode.should.eql(StatusCodes.Good);
-        result.applyChangesRequired?.should.eql(true);
+        should(result.applyChangesRequired).eql(true);
 
         // and When I apply the changes
         await pushManager.applyChanges();

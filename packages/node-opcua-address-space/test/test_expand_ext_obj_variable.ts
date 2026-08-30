@@ -192,27 +192,48 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
                 zDataValue.value.dataType.should.eql(DataType.Double);
                 zDataValue.value.value.should.eql(z);
 
-                //s dataValue.sourceTimestamp?.toISOString().should.eql("2023-01-02T06:47:55.065Z");
-                xDataValue.sourceTimestamp
-                    ?.getTime()
-                    .should.lessThanOrEqual(
-                        dataValue.sourceTimestamp!.getTime(),
-                        `x ${xDataValue.sourceTimestamp.toISOString()} ext =${dataValue.sourceTimestamp?.toISOString()}`
+                // A freshly built variable has never been written, so there is no timestamp to
+                // order yet. Once the parent carries one, every component must carry one too and
+                // be at or before it. Written as a guard rather than `a?.b.should...`, which
+                // short-circuits the assertion away instead of running it - all three comparisons
+                // here were silently skipped for exactly that reason.
+                const parentTimestamp = dataValue.sourceTimestamp;
+                let compared = 0;
+                for (const [name, componentDataValue] of [
+                    ["X", xDataValue],
+                    ["Y", yDataValue],
+                    ["Z", zDataValue]
+                ] as const) {
+                    const componentTimestamp = componentDataValue.sourceTimestamp;
+                    // A component is stamped only when it is itself written: on a freshly built
+                    // variable nothing carries a timestamp, and writing Z leaves X and Y without
+                    // one. There is only an ordering to check when both sides have a timestamp.
+                    if (!parentTimestamp || !componentTimestamp) {
+                        continue;
+                    }
+                    should(componentTimestamp.getTime()).lessThanOrEqual(
+                        parentTimestamp.getTime(),
+                        `${name} ${componentTimestamp.toISOString()} ext=${parentTimestamp.toISOString()}`
                     );
-                yDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp!.getTime());
-                zDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp!.getTime());
+                    compared++;
+                }
+                return compared;
             };
-            verify({ x: 1, y: 2, z: 3 });
+            let timestampsCompared = verify({ x: 1, y: 2, z: 3 });
 
             //
             //
             await simulateExternalWrite(uaZ, 33, new Date(Date.UTC(nextYear, 0, 2, 0, 0, 0)));
-            verify({ x: 1, y: 2, z: 33 });
+            timestampsCompared += verify({ x: 1, y: 2, z: 33 });
             //
 
             await simulateExternalWriteEx(uaVariable, p2.clone(), new Date(Date.UTC(nextYear, 0, 3, 0, 0, 0)));
 
-            verify({ x: 4, y: 5, z: 6 });
+            timestampsCompared += verify({ x: 4, y: 5, z: 6 });
+
+            // guard against the ordering check quietly going dead again, which is how it spent
+            // its whole life until now: it was written as `a?.b.should...` and never ran
+            timestampsCompared.should.be.greaterThan(0, "expecting at least one timestamp ordering to be checked");
         });
     });
     [addVariable_setValueFromSource_installExtensionObjectVariable_array, addVariable_bindExtensionObject_array].forEach(

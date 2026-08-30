@@ -21,7 +21,7 @@ describe("testing AddressSpace#findReferenceType and findReferenceTypeFromInvers
         should.not.exist(addressSpace.findReferenceTypeFromInverseName("Organizes"));
 
         should.exist(n1);
-        n1?.should.equal(n2);
+        should(n1).equal(n2);
     });
 
     it("should normalize a {referenceType/isForward} combination", () => {

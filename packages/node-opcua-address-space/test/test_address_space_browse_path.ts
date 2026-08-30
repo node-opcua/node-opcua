@@ -87,7 +87,7 @@ describe("AddressSpace#browsePath", () => {
             debugLog("result", result.toString(opts));
         }
 
-        const _node = addressSpace.findNode(result.targets![0].targetId)?.browseName.toString().should.eql("1:MyEventType");
+        should(addressSpace.findNode(result.targets![0].targetId)?.browseName.toString()).eql("1:MyEventType");
 
         browsePath = makeBrowsePath("RootFolder", "/Types/EventTypes/BaseEventType<!HasSubtype>1:MyEventType");
         result = addressSpace.browsePath(browsePath);
@@ -103,7 +103,7 @@ describe("AddressSpace#browsePath", () => {
         browsePath = makeBrowsePath(evType, "<!HasSubtype>BaseEventType<!Organizes>EventTypes<!Organizes>Types<!Organizes>Root");
         result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.Good);
-        addressSpace.findNode(result.targets![0].targetId)?.browseName.toString().should.eql("Root");
+        should(addressSpace.findNode(result.targets![0].targetId)?.browseName.toString()).eql("Root");
     });
     it("should browse an empty path", () => {
         const rootFolder = addressSpace.rootFolder;

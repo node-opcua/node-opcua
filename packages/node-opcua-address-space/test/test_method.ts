@@ -226,7 +226,7 @@ describe("testing Method binding", () => {
         should.exist(outputArguments[1]);
         (outputArguments[0] as Variant).dataType.should.eql(DataType.UInt32);
         (outputArguments[1] as Variant).dataType.should.eql(DataType.UInt32);
-        result!.statusCode?.should.eql(StatusCodes.BadBoundNotFound);
+        should(result!.statusCode).eql(StatusCodes.BadBoundNotFound);
     });
 });
 
