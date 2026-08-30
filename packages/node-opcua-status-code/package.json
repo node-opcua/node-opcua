@@ -9,7 +9,8 @@
         "lint": "biome check --no-errors-on-unmatched .",
         "format": "biome check --write --no-errors-on-unmatched .",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "test": "mocha"
+        "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
     },
     "dependencies": {
         "node-opcua-assert": "2.179.0",
