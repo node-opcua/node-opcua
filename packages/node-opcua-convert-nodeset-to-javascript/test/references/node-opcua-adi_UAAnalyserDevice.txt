@@ -13,9 +13,9 @@ import { UAFile } from "node-opcua-nodeset-ua/dist/ua_file"
 import { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health"
 import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
 import { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device"
-import { EnumExecutionCycle } from "./enum_execution_cycle"
-import { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status"
-import { UAAnalyserDeviceStateMachine } from "./ua_analyser_device_state_machine"
+import { EnumExecutionCycle } from "./enum_execution_cycle.js"
+import { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status.js"
+import { UAAnalyserDeviceStateMachine } from "./ua_analyser_device_state_machine.js"
 export interface UAAnalyserDevice_parameterSet extends UAObject { // Object
       /**
        * diagnosticStatus

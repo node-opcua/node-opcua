@@ -8,9 +8,9 @@ import { DTArgument } from "node-opcua-nodeset-ua/dist/dt_argument"
 import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
 import { DTNumberRange } from "node-opcua-nodeset-ua/dist/dt_number_range"
 import { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health"
-import { EnumExecutionCycle } from "./enum_execution_cycle"
-import { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status"
-import { UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device"
+import { EnumExecutionCycle } from "./enum_execution_cycle.js"
+import { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status.js"
+import { UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device.js"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

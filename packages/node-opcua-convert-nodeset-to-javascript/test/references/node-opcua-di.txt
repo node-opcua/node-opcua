@@ -6,8 +6,8 @@ import { Int32, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "node-opcua-nodeset-ua/dist/dt_argument"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
-import { EnumDeviceHealth } from "./enum_device_health"
-import { UAComponent, UAComponent_Base } from "./ua_component"
+import { EnumDeviceHealth } from "./enum_device_health.js"
+import { UAComponent, UAComponent_Base } from "./ua_component.js"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
