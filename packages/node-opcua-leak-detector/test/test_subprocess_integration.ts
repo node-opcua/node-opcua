@@ -13,21 +13,16 @@
  * works correctly in real mocha scenarios.
  */
 
-const assert = require("node:assert");
-const { execSync } = require("node:child_process");
-const path = require("node:path");
+import assert from "node:assert";
+import { execSync } from "node:child_process";
+import path from "node:path";
 
 const FIXTURES = path.join(__dirname, "fixtures");
 
 // Helper: run mocha on fixture file(s) and return { exitCode, stdout }
-function runMocha(fixtureFiles, extraArgs = []) {
+function runMocha(fixtureFiles: string | string[], extraArgs: string[] = []) {
     const files = Array.isArray(fixtureFiles) ? fixtureFiles : [fixtureFiles];
-    const args = [
-        "--no-config",
-        "--timeout", "10000",
-        ...extraArgs,
-        ...files.map((f) => path.join(FIXTURES, f)),
-    ];
+    const args = ["--no-config", "--timeout", "10000", ...extraArgs, ...files.map((f) => path.join(FIXTURES, f))];
     const cmd = `npx mocha ${args.join(" ")}`;
     // Build a clean env so parent settings like
     // MEM_LEAK_DETECTION_DISABLED don't leak into the fixtures
@@ -41,13 +36,14 @@ function runMocha(fixtureFiles, extraArgs = []) {
             timeout: 15000,
             encoding: "utf8",
             stdio: ["pipe", "pipe", "pipe"],
-            env,
+            env
         });
         return { exitCode: 0, stdout };
     } catch (err) {
+        const failure = err as { status?: number; stdout?: string; stderr?: string };
         return {
-            exitCode: err.status || 1,
-            stdout: (err.stdout || "") + (err.stderr || ""),
+            exitCode: failure.status || 1,
+            stdout: (failure.stdout || "") + (failure.stderr || "")
         };
     }
 }
@@ -76,10 +72,7 @@ describe("Subprocess integration tests", function () {
         const { exitCode, stdout } = runMocha("fixture_leaked_timer.js");
         assert.strictEqual(exitCode, 0, `Expected exit 0, got ${exitCode}\n${stdout}`);
         assert.ok(stdout.includes("1 passing"), `Expected '1 passing' in output:\n${stdout}`);
-        assert.ok(
-            stdout.includes("setTimeout handle(s) were not cleared"),
-            `Expected leak warning in output:\n${stdout}`,
-        );
+        assert.ok(stdout.includes("setTimeout handle(s) were not cleared"), `Expected leak warning in output:\n${stdout}`);
     });
 
     it("S3b - leaked setInterval is reported (no hang)", () => {
@@ -93,10 +86,7 @@ describe("Subprocess integration tests", function () {
     // ── Multi-file ──────────────────────────────────────
 
     it("S4 - multi-file run completes ALL files", () => {
-        const { exitCode, stdout } = runMocha([
-            "fixture_multi_a.js",
-            "fixture_multi_b.js",
-        ]);
+        const { exitCode, stdout } = runMocha(["fixture_multi_a.js", "fixture_multi_b.js"]);
         assert.strictEqual(exitCode, 0, `Expected exit 0, got ${exitCode}\n${stdout}`);
         assert.ok(stdout.includes("fixture-multi-A"), `Missing block A:\n${stdout}`);
         assert.ok(stdout.includes("fixture-multi-B"), `Missing block B:\n${stdout}`);
@@ -104,25 +94,16 @@ describe("Subprocess integration tests", function () {
     });
 
     it("S6 - multi-file with failure in first file still runs second", () => {
-        const { exitCode, stdout } = runMocha([
-            "fixture_fail.js",
-            "fixture_pass.js",
-        ]);
+        const { exitCode, stdout } = runMocha(["fixture_fail.js", "fixture_pass.js"]);
         assert.notStrictEqual(exitCode, 0, "Expected non-zero exit due to failure");
         assert.ok(stdout.includes("fixture-fail"), `Missing fixture-fail:\n${stdout}`);
         assert.ok(stdout.includes("fixture-pass"), `Missing fixture-pass (2nd file wasn't run!):\n${stdout}`);
     });
 
     it("S7 - leaked timer + failure: correct exit code and leak report", () => {
-        const { exitCode, stdout } = runMocha([
-            "fixture_leaked_timer.js",
-            "fixture_fail.js",
-        ]);
+        const { exitCode, stdout } = runMocha(["fixture_leaked_timer.js", "fixture_fail.js"]);
         assert.notStrictEqual(exitCode, 0, "Expected non-zero exit due to failure");
-        assert.ok(
-            stdout.includes("setTimeout handle(s) were not cleared"),
-            `Expected leak warning:\n${stdout}`,
-        );
+        assert.ok(stdout.includes("setTimeout handle(s) were not cleared"), `Expected leak warning:\n${stdout}`);
         assert.ok(stdout.includes("1 failing"), `Expected failure report:\n${stdout}`);
     });
 
@@ -160,31 +141,21 @@ describe("Subprocess integration tests", function () {
     // ── tsx (TypeScript) ────────────────────────────────
 
     it("S5 - tsx TypeScript fixture exits cleanly", () => {
-        const { exitCode, stdout } = runMocha("fixture_tsx.ts", [
-            "--require", "tsx",
-        ]);
+        const { exitCode, stdout } = runMocha("fixture_tsx.ts", ["--require", "tsx"]);
         assert.strictEqual(exitCode, 0, `Expected exit 0, got ${exitCode}\n${stdout}`);
         assert.ok(stdout.includes("2 passing"), `Expected '2 passing' in output:\n${stdout}`);
     });
 
     it("S11 - tsx with leaked timer + multi-block exits cleanly", () => {
-        const { exitCode, stdout } = runMocha("fixture_tsx_leaked.ts", [
-            "--require", "tsx",
-        ]);
+        const { exitCode, stdout } = runMocha("fixture_tsx_leaked.ts", ["--require", "tsx"]);
         assert.strictEqual(exitCode, 0, `Expected exit 0, got ${exitCode}\n${stdout}`);
         assert.ok(stdout.includes("fixture-tsx-leaked"), `Missing first block:\n${stdout}`);
         assert.ok(stdout.includes("fixture-tsx-second-block"), `Missing second block:\n${stdout}`);
-        assert.ok(
-            stdout.includes("setTimeout handle(s) were not cleared"),
-            `Expected leak warning:\n${stdout}`,
-        );
+        assert.ok(stdout.includes("setTimeout handle(s) were not cleared"), `Expected leak warning:\n${stdout}`);
     });
 
     it("S12 - tsx multi-file runs all files", () => {
-        const { exitCode, stdout } = runMocha(
-            ["fixture_tsx.ts", "fixture_tsx_leaked.ts"],
-            ["--require", "tsx"],
-        );
+        const { exitCode, stdout } = runMocha(["fixture_tsx.ts", "fixture_tsx_leaked.ts"], ["--require", "tsx"]);
         assert.strictEqual(exitCode, 0, `Expected exit 0, got ${exitCode}\n${stdout}`);
         assert.ok(stdout.includes("fixture-tsx"), `Missing fixture-tsx:\n${stdout}`);
         assert.ok(stdout.includes("fixture-tsx-leaked"), `Missing fixture-tsx-leaked:\n${stdout}`);

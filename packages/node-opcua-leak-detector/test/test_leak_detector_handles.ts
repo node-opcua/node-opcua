@@ -6,20 +6,20 @@
  * T7 - Net server handle lifecycle
  */
 
-const assert = require("node:assert");
-const { execSync } = require("node:child_process");
-const fs = require("node:fs");
-const path = require("node:path");
-const os = require("node:os");
-const net = require("node:net");
-const { describeWithLeakDetector } = require("../src/resource_leak_detector");
+import assert from "node:assert";
+import { execSync } from "node:child_process";
+import fs from "node:fs";
+import net from "node:net";
+import os from "node:os";
+import path from "node:path";
+import { describeWithLeakDetector } from "..";
 
 // ─────────────────────────────────────────────────────────
 // T3. Nested describe blocks (3 levels deep)
 // ─────────────────────────────────────────────────────────
 
 describeWithLeakDetector("T3 - Nested describes", () => {
-    let outerTimer;
+    let outerTimer: NodeJS.Timeout | undefined;
 
     before(() => {
         outerTimer = setTimeout(() => {}, 60000);
@@ -30,7 +30,7 @@ describeWithLeakDetector("T3 - Nested describes", () => {
     });
 
     describe("T3.1 - Level 2", () => {
-        let middleTimer;
+        let middleTimer: NodeJS.Timeout | undefined;
 
         before(() => {
             middleTimer = setTimeout(() => {}, 60000);
@@ -69,7 +69,6 @@ describeWithLeakDetector("T3 - Nested describes", () => {
 // ─────────────────────────────────────────────────────────
 
 describeWithLeakDetector("T4 - Child process with stdout pipe", () => {
-
     it("T4.1 - execSync should not leak handles", () => {
         const result = execSync("node -e \"console.log('hello')\"", {
             encoding: "utf8"
@@ -87,10 +86,7 @@ describeWithLeakDetector("T4 - Child process with stdout pipe", () => {
     });
 
     it("T4.3 - execSync with stderr", () => {
-        const result = execSync(
-            "node -e \"process.stderr.write('err'); console.log('out')\"",
-            { encoding: "utf8" }
-        );
+        const result = execSync("node -e \"process.stderr.write('err'); console.log('out')\"", { encoding: "utf8" });
         assert.strictEqual(result.trim(), "out");
     });
 });
@@ -100,7 +96,7 @@ describeWithLeakDetector("T4 - Child process with stdout pipe", () => {
 // ─────────────────────────────────────────────────────────
 
 describeWithLeakDetector("T5 - Timers in beforeEach/afterEach", () => {
-    let eachTimer;
+    let eachTimer: NodeJS.Timeout | undefined;
 
     beforeEach(() => {
         eachTimer = setTimeout(() => {}, 60000);
@@ -129,13 +125,16 @@ describeWithLeakDetector("T5 - Timers in beforeEach/afterEach", () => {
 // ─────────────────────────────────────────────────────────
 
 describeWithLeakDetector("T6 - File descriptor handle leaks", () => {
-
     it("T6.1 - leaked fd does not hang", () => {
         const tmpFile = path.join(os.tmpdir(), `leak_test_${Date.now()}.txt`);
         fs.writeFileSync(tmpFile, "test data");
         const fd = fs.openSync(tmpFile, "r");
         assert.ok(fd > 0);
-        try { fs.unlinkSync(tmpFile); } catch (_e) { /* may fail on Windows */ }
+        try {
+            fs.unlinkSync(tmpFile);
+        } catch (_e) {
+            /* may fail on Windows */
+        }
     });
 
     it("T6.2 - multiple leaked fds", () => {
@@ -146,7 +145,11 @@ describeWithLeakDetector("T6 - File descriptor handle leaks", () => {
             fds.push(fs.openSync(tmpFile, "r"));
         }
         assert.strictEqual(fds.length, 5);
-        try { fs.unlinkSync(tmpFile); } catch (_e) { /* may fail on Windows */ }
+        try {
+            fs.unlinkSync(tmpFile);
+        } catch (_e) {
+            /* may fail on Windows */
+        }
     });
 
     it("T6.3 - readable stream opened and destroyed", (done) => {
@@ -157,7 +160,11 @@ describeWithLeakDetector("T6 - File descriptor handle leaks", () => {
             stream.destroy();
         });
         stream.on("close", () => {
-            try { fs.unlinkSync(tmpFile); } catch (_e) { /* ignore */ }
+            try {
+                fs.unlinkSync(tmpFile);
+            } catch (_e) {
+                /* ignore */
+            }
             done();
         });
     });
@@ -168,7 +175,7 @@ describeWithLeakDetector("T6 - File descriptor handle leaks", () => {
 // ─────────────────────────────────────────────────────────
 
 describeWithLeakDetector("T7 - Net server handle lifecycle", () => {
-    let server;
+    let server: net.Server;
 
     before((done) => {
         server = net.createServer();
@@ -186,6 +193,7 @@ describeWithLeakDetector("T7 - Net server handle lifecycle", () => {
 
     it("T7.2 - server address is available", () => {
         const addr = server.address();
+        assert.ok(addr && typeof addr === "object", "expecting an AddressInfo from a listening tcp server");
         assert.ok(addr.port > 0);
     });
 });

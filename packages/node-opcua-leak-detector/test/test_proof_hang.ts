@@ -6,24 +6,33 @@
  *   - Without the fix, Proof-3 would hang indefinitely
  */
 
-// These tests intentionally leak timers that only the detector
-// cleans up. Without it the process hangs — skip entirely.
-if (process.env.MEM_LEAK_DETECTION_DISABLED === "true") {
+import assert from "node:assert";
+import { describeWithLeakDetector } from "..";
+
+// These tests intentionally leak timers that only the detector cleans up. Without it the
+// process hangs, so nothing below is registered.
+//
+// This used to be a module-level `return`, which CommonJS allows and ES modules do not.
+const leakDetectionDisabled = process.env.MEM_LEAK_DETECTION_DISABLED === "true";
+
+if (leakDetectionDisabled) {
     describe("Proof tests (skipped — leak detection disabled)", () => {});
-    return;
 }
 
-const assert = require("node:assert");
-const { describeWithLeakDetector } = require("../src/resource_leak_detector");
+const describeBlock = leakDetectionDisabled
+    ? (_name: string, _fn: () => void) => {
+          /* leak detection disabled: the block is not registered */
+      }
+    : describeWithLeakDetector;
 
-describeWithLeakDetector("Proof-1: no-timers", () => {
+describeBlock("Proof-1: no-timers", () => {
     it("exits normally", () => {
         assert.strictEqual(1 + 1, 2);
     });
 });
 
-describeWithLeakDetector("Proof-2: ref-timer-cleaned", () => {
-    let timer;
+describeBlock("Proof-2: ref-timer-cleaned", () => {
+    let timer: NodeJS.Timeout | undefined;
 
     before(() => {
         timer = setTimeout(() => {}, 30 * 60 * 1000);
@@ -38,7 +47,7 @@ describeWithLeakDetector("Proof-2: ref-timer-cleaned", () => {
     });
 });
 
-describeWithLeakDetector("Proof-3: ref-timer-leaked", () => {
+describeBlock("Proof-3: ref-timer-leaked", () => {
     before(() => {
         // This timer is NEVER cleared — simulates a leaked timer.
         // The leak detector catches it in stop() and clears it.
@@ -50,7 +59,7 @@ describeWithLeakDetector("Proof-3: ref-timer-leaked", () => {
     });
 });
 
-describeWithLeakDetector("Proof-4: unref-timer", () => {
+describeBlock("Proof-4: unref-timer", () => {
     before(() => {
         const t = setTimeout(() => {}, 30 * 60 * 1000);
         t.unref();

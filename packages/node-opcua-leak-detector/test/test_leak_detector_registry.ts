@@ -5,16 +5,19 @@
  * leaked ObjectRegistry entries and does NOT hang.
  */
 
-const assert = require("node:assert");
-const { ObjectRegistry } = require("node-opcua-object-registry");
-const { describeWithLeakDetector } = require("../src/resource_leak_detector");
+import assert from "node:assert";
+import { ObjectRegistry } from "node-opcua-object-registry";
+import { describeWithLeakDetector } from "..";
 
 // ─────────────────────────────────────────────────────────
 // T8. ObjectRegistry — properly registered and unregistered
 // ─────────────────────────────────────────────────────────
 
 class FakeResource {
-    constructor(name) {
+    public static registry = new ObjectRegistry();
+    public name: string;
+
+    constructor(name: string) {
         this.name = name;
         FakeResource.registry.register(this);
     }
@@ -27,10 +30,12 @@ class FakeResource {
         return `FakeResource(${this.name})`;
     }
 }
-FakeResource.registry = new ObjectRegistry();
 
 class AnotherResource {
-    constructor(id) {
+    public static registry = new ObjectRegistry();
+    public id: number;
+
+    constructor(id: number) {
         this.id = id;
         AnotherResource.registry.register(this);
     }
@@ -43,12 +48,11 @@ class AnotherResource {
         return `AnotherResource(${this.id})`;
     }
 }
-AnotherResource.registry = new ObjectRegistry();
 
 describeWithLeakDetector("T8 - ObjectRegistry: proper lifecycle", () => {
-    let res1;
-    let res2;
-    let res3;
+    let res1: FakeResource;
+    let res2: FakeResource;
+    let res3: AnotherResource;
 
     before(() => {
         res1 = new FakeResource("alpha");
@@ -68,14 +72,8 @@ describeWithLeakDetector("T8 - ObjectRegistry: proper lifecycle", () => {
     });
 
     it("T8.2 - registry class name is inferred", () => {
-        assert.strictEqual(
-            FakeResource.registry.getClassName(),
-            "FakeResource"
-        );
-        assert.strictEqual(
-            AnotherResource.registry.getClassName(),
-            "AnotherResource"
-        );
+        assert.strictEqual(FakeResource.registry.getClassName(), "FakeResource");
+        assert.strictEqual(AnotherResource.registry.getClassName(), "AnotherResource");
     });
 
     it("T8.3 - unregister decrements count", () => {
@@ -91,7 +89,10 @@ describeWithLeakDetector("T8 - ObjectRegistry: proper lifecycle", () => {
 // ─────────────────────────────────────────────────────────
 
 class CycledResource {
-    constructor(n) {
+    public static registry = new ObjectRegistry();
+    public n: string | number;
+
+    constructor(n: string | number) {
         this.n = n;
         CycledResource.registry.register(this);
     }
@@ -104,10 +105,8 @@ class CycledResource {
         return `CycledResource(${this.n})`;
     }
 }
-CycledResource.registry = new ObjectRegistry();
 
 describeWithLeakDetector("T9 - ObjectRegistry: create/dispose cycles", () => {
-
     it("T9.1 - create and dispose in sequence", () => {
         for (let i = 0; i < 10; i++) {
             const r = new CycledResource(i);
@@ -118,7 +117,7 @@ describeWithLeakDetector("T9 - ObjectRegistry: create/dispose cycles", () => {
     });
 
     it("T9.2 - batch create then batch dispose", () => {
-        const batch = [];
+        const batch: CycledResource[] = [];
         for (let i = 0; i < 5; i++) {
             batch.push(new CycledResource(i));
         }
@@ -150,7 +149,11 @@ describeWithLeakDetector("T9 - ObjectRegistry: create/dispose cycles", () => {
 // ─────────────────────────────────────────────────────────
 
 class TimedResource {
-    constructor(name) {
+    public static registry = new ObjectRegistry();
+    public name: string;
+    public timer: NodeJS.Timeout | null;
+
+    constructor(name: string) {
         this.name = name;
         this.timer = setTimeout(() => {
             this._onTimer();
@@ -163,7 +166,9 @@ class TimedResource {
     }
 
     dispose() {
-        clearTimeout(this.timer);
+        if (this.timer) {
+            clearTimeout(this.timer);
+        }
         this.timer = null;
         TimedResource.registry.unregister(this);
     }
@@ -172,10 +177,9 @@ class TimedResource {
         return `TimedResource(${this.name})`;
     }
 }
-TimedResource.registry = new ObjectRegistry();
 
 describeWithLeakDetector("T10 - ObjectRegistry with timers", () => {
-    const resources = [];
+    const resources: TimedResource[] = [];
 
     before(() => {
         for (let i = 0; i < 3; i++) {

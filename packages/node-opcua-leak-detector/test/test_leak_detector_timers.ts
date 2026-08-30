@@ -3,15 +3,14 @@
  * T2 - Test style variations: done, async, sync
  */
 
-const assert = require("node:assert");
-const { describeWithLeakDetector } = require("../src/resource_leak_detector");
+import assert from "node:assert";
+import { describeWithLeakDetector } from "..";
 
 // ─────────────────────────────────────────────────────────
 // T1. Timer lifecycle
 // ─────────────────────────────────────────────────────────
 
 describeWithLeakDetector("T1 - Timer lifecycle", () => {
-
     describe("T1.1 - No timers", () => {
         it("should exit normally (sync)", () => {
             assert.strictEqual(1 + 1, 2);
@@ -19,10 +18,10 @@ describeWithLeakDetector("T1 - Timer lifecycle", () => {
     });
 
     describe("T1.2 - Cleaned timer", () => {
-        let timer;
+        let timer: NodeJS.Timeout | undefined;
 
         before(() => {
-            timer = setTimeout(() => { }, 5 * 1000);
+            timer = setTimeout(() => {}, 5 * 1000);
         });
 
         after(() => {
@@ -42,7 +41,7 @@ describeWithLeakDetector("T1 - Timer lifecycle", () => {
             // the mocha worker hangs for exactly this long (mocha 12 does not
             // process.exit() without --exit), so a regression costs seconds
             // in CI instead of half an hour.
-            setTimeout(() => { }, 5 * 1000);
+            setTimeout(() => {}, 5 * 1000);
         });
 
         it("should pass and leak detector cleans the timer", () => {
@@ -52,7 +51,7 @@ describeWithLeakDetector("T1 - Timer lifecycle", () => {
 
     describe("T1.4 - Unref'd timer", () => {
         before(() => {
-            const t = setTimeout(() => { }, 5 * 1000);
+            const t = setTimeout(() => {}, 5 * 1000);
             t.unref();
         });
 
@@ -67,14 +66,13 @@ describeWithLeakDetector("T1 - Timer lifecycle", () => {
 // ─────────────────────────────────────────────────────────
 
 describeWithLeakDetector("T2 - Test style variations", () => {
-
     describe("T2.1 - Sync tests", () => {
         it("sync pass", () => {
             assert.strictEqual(42, 42);
         });
 
         it("sync with timer started and cleared", () => {
-            const t = setTimeout(() => { }, 100);
+            const t = setTimeout(() => {}, 100);
             clearTimeout(t);
         });
     });
