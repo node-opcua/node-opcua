@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  A miniature binary schema, in the same shape as Opc.Ua.Types.bsd but small enough to
+  assert on.
+
+  AxisInformation and SimpleAttributeOperand are not here by choice: generate() names both
+  of them outright before walking the dictionary, so any input it is given has to define
+  them and everything they reach. They bring in Range, EUInformation, the
+  AxisScaleEnumeration enumeration and the empty FilterOperand base type, which between them
+  cover the emitter's branches - a scalar, a field typed by another structured type, an
+  array with its LengthField, an enumeration, an empty type, and a base type from this
+  dictionary rather than ExtensionObject.
+
+  The Sample* types at the end are the ones the assertions are written against, kept
+  deliberately trivial so a change in the emitter shows up as a change in them.
+-->
+<opc:TypeDictionary
+  xmlns:opc="http://opcfoundation.org/BinarySchema/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:ua="http://opcfoundation.org/UA/"
+  xmlns:tns="http://opcfoundation.org/UA/"
+  DefaultByteOrder="LittleEndian"
+  TargetNamespace="http://opcfoundation.org/UA/"
+>
+
+  <opc:Import Namespace="http://opcfoundation.org/BinarySchema/" />
+
+  <!-- required by generate(), which names it explicitly -->
+  <opc:StructuredType Name="Range" BaseType="ua:ExtensionObject">
+    <opc:Field Name="Low" TypeName="opc:Double" />
+    <opc:Field Name="High" TypeName="opc:Double" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="EUInformation" BaseType="ua:ExtensionObject">
+    <opc:Field Name="NamespaceUri" TypeName="opc:String" />
+    <opc:Field Name="UnitId" TypeName="opc:Int32" />
+    <opc:Field Name="DisplayName" TypeName="ua:LocalizedText" />
+    <opc:Field Name="Description" TypeName="ua:LocalizedText" />
+  </opc:StructuredType>
+
+  <opc:EnumeratedType Name="AxisScaleEnumeration" LengthInBits="32">
+    <opc:EnumeratedValue Name="Linear" Value="0" />
+    <opc:EnumeratedValue Name="Log" Value="1" />
+    <opc:EnumeratedValue Name="Ln" Value="2" />
+  </opc:EnumeratedType>
+
+  <opc:StructuredType Name="AxisInformation" BaseType="ua:ExtensionObject">
+    <opc:Field Name="EngineeringUnits" TypeName="tns:EUInformation" />
+    <opc:Field Name="EURange" TypeName="tns:Range" />
+    <opc:Field Name="Title" TypeName="ua:LocalizedText" />
+    <opc:Field Name="AxisScaleType" TypeName="tns:AxisScaleEnumeration" />
+    <opc:Field Name="NoOfAxisSteps" TypeName="opc:Int32" />
+    <opc:Field Name="AxisSteps" TypeName="opc:Double" LengthField="NoOfAxisSteps" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="FilterOperand" BaseType="ua:ExtensionObject">
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="SimpleAttributeOperand" BaseType="tns:FilterOperand">
+    <opc:Field Name="TypeDefinitionId" TypeName="ua:NodeId" />
+    <opc:Field Name="NoOfBrowsePath" TypeName="opc:Int32" />
+    <opc:Field Name="BrowsePath" TypeName="ua:QualifiedName" LengthField="NoOfBrowsePath" />
+    <opc:Field Name="AttributeId" TypeName="opc:UInt32" />
+    <opc:Field Name="IndexRange" TypeName="opc:String" />
+  </opc:StructuredType>
+
+  <!-- what the assertions are written against -->
+  <opc:StructuredType Name="SampleLeaf" BaseType="ua:ExtensionObject">
+    <opc:Field Name="Name" TypeName="opc:String" />
+    <opc:Field Name="Weight" TypeName="opc:Double" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="SampleHolder" BaseType="ua:ExtensionObject">
+    <opc:Field Name="Title" TypeName="opc:String" />
+    <opc:Field Name="Leaf" TypeName="tns:SampleLeaf" />
+    <opc:Field Name="NoOfLeaves" TypeName="opc:Int32" />
+    <opc:Field Name="Leaves" TypeName="tns:SampleLeaf" LengthField="NoOfLeaves" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="SampleDerivedHolder" BaseType="tns:SampleHolder">
+    <opc:Field Name="Extra" TypeName="opc:UInt32" />
+  </opc:StructuredType>
+
+</opc:TypeDictionary>
