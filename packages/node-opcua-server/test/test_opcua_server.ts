@@ -151,7 +151,7 @@ describe("OPCUAServer-4", () => {
     before(async () => {
         client = OPCUAClient.create({
             endpointMustExist: false,
-            clientName: __filename
+            clientName: "test_opcua_server"
         });
         const options = {
             port

@@ -117,7 +117,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function (this:
     });
 
     beforeEach(() => {
-        client = OPCUAClient.create({ clientName: __filename });
+        client = OPCUAClient.create({ clientName: "test_e2e_server_with_analyser_device" });
     });
 
     afterEach(() => {

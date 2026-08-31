@@ -62,7 +62,7 @@ describe("Testing Historical Data Node historyRead with continuation points", ()
         const endpointUrl = server.getEndpointUrl();
         const client = OPCUAClient.create({
             endpointMustExist: false,
-            clientName: __filename
+            clientName: "test_historical_data_node_with_continuation_points"
         });
 
         await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {

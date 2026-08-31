@@ -17,6 +17,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
+import { certificateFolder } from "../test_helpers/paths.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -25,7 +26,6 @@ const doDebug = checkDebugFlag("TEST");
 // Constants & Shared Helpers
 // -----------------------------------------------------------------------------
 const fail_fast_connectionStrategy = { maxRetry: 0 }; // disable automatic retry to simulate aggressive clients
-const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
 const port = 2019;
 
 function delay(ms: number) {

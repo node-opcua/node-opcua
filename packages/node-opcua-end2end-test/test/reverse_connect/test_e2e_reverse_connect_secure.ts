@@ -76,7 +76,7 @@ describe("ReverseConnect - secured end-to-end (RC-E2E-3)", function (this: Mocha
         const clientCertificateManager = await createServerCertificateManager(clientPkiAPort);
         try {
             const client = OPCUAClient.create({
-                clientName: `reverse-secure ${__filename}`,
+                clientName: `reverse-secure test_e2e_reverse_connect_secure`,
                 endpointMustExist: false,
                 securityMode: MessageSecurityMode.SignAndEncrypt,
                 securityPolicy: SecurityPolicy.Basic256Sha256,
@@ -105,7 +105,7 @@ describe("ReverseConnect - secured end-to-end (RC-E2E-3)", function (this: Mocha
         const clientCertificateManager = await createServerCertificateManager(clientPkiBPort);
         try {
             const client = OPCUAClient.create({
-                clientName: `reverse-secure-nocert ${__filename}`,
+                clientName: `reverse-secure-nocert test_e2e_reverse_connect_secure`,
                 endpointMustExist: false,
                 securityMode: MessageSecurityMode.SignAndEncrypt,
                 securityPolicy: SecurityPolicy.Basic256Sha256,

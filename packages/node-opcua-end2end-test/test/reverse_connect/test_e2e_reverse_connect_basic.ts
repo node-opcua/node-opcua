@@ -49,7 +49,7 @@ describe("ReverseConnect - basic end-to-end", function (this: Mocha.Suite) {
 
     it("RC-E2E-1 the server dials into the client and a session can read a value", async () => {
         const client = OPCUAClient.create({
-            clientName: `reverse ${__filename}`,
+            clientName: `reverse test_e2e_reverse_connect_basic`,
             endpointMustExist: false
         });
 

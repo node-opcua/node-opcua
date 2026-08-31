@@ -1,13 +1,12 @@
 import fs from "node:fs";
 import os from "node:os";
-import path from "node:path";
 import "should";
 import { AttributeIds, nodesets, OPCUAClient, OPCUAServer, type UAVariable } from "node-opcua";
 
 const port = 4893;
 const nodeId = "ns=3;i=6009";
 async function startServer(): Promise<OPCUAServer> {
-    const nodeset = path.join(__dirname, "../../fixtures/nodeset-with-nested_datastructure-1.04.NodeSet.xml");
+    const nodeset = testFixture("nodeset-with-nested_datastructure-1.04.NodeSet.xml");
     fs.existsSync(nodeset).should.eql(true);
     const server = new OPCUAServer({
         port,
@@ -28,6 +27,7 @@ async function startServer(): Promise<OPCUAServer> {
 }
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { testFixture } from "../../test_helpers/paths.js";
 
 describe("testing github issue", () => {
     let server: OPCUAServer;

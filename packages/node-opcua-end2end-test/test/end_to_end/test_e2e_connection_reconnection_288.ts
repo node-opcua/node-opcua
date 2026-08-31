@@ -1,4 +1,3 @@
-import path from "node:path";
 import chalk from "chalk";
 import {
     AttributeIds,
@@ -19,6 +18,7 @@ import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { crash_simple_server, type ServerHandle, start_simple_server } from "../../test_helpers/external_server_fixture.js";
 import "should";
+import { serverScript } from "../../test_helpers/paths.js";
 
 const doDebug = false;
 const debugLog = make_debugLog("TEST");
@@ -32,7 +32,7 @@ const port = 2016;
 async function start_external_opcua_server() {
     const options = {
         silent: !doDebug,
-        server_sourcefile: path.join(__dirname, "../../test_helpers/bin/simple_server_with_custom_extension_objects.js"),
+        server_sourcefile: serverScript("simple_server_with_custom_extension_objects.js"),
         port
     };
     server_data = await start_simple_server(options);

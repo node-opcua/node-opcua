@@ -1,6 +1,6 @@
-import path from "node:path";
 import { OPCUACertificateManager, OPCUAClientBase, OPCUAServer } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { tmpFolderFor } from "../../test_helpers/paths.js";
 import type { TestHarness } from "./helpers/harness.js";
 import { t as tDiscoveryServer } from "./u_test_discovery_server.js";
 import { t as tFrequentServerRestart } from "./u_test_frequent_server_restart.js";
@@ -11,13 +11,13 @@ import { t as tRegistrationServerManager } from "./u_test_registration_server_ma
 describe("testing DiscoveryServer - Umbrella ", function (this: Mocha.Runnable & TestHarness) {
     before(async () => {
         this.serverCertificateManager = new OPCUACertificateManager({
-            rootFolder: path.join(__dirname, "../../tmp/PKI-DiscoveryCommon")
+            rootFolder: tmpFolderFor("PKI-DiscoveryCommon")
         });
         this.serverCertificateManager.referenceCounter++;
         await this.serverCertificateManager.initialize();
 
         this.discoveryServerCertificateManager = new OPCUACertificateManager({
-            rootFolder: path.join(__dirname, "../../tmp", "PKI-Discovery")
+            rootFolder: tmpFolderFor("PKI-Discovery")
         });
         this.discoveryServerCertificateManager.referenceCounter++;
         await this.discoveryServerCertificateManager.initialize();

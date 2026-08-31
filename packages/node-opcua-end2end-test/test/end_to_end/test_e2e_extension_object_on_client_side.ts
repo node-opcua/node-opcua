@@ -1,6 +1,5 @@
 import "should";
 import fs from "node:fs";
-import path from "node:path";
 import { AttributeIds, NumericRange, OPCUAClient, ReadValueId, StatusCodes } from "node-opcua";
 import { type ServerHandle, start_simple_server, stop_simple_server } from "../../test_helpers/external_server_fixture.js";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
@@ -8,6 +7,7 @@ import { perform_operation_on_client_session } from "../../test_helpers/perform_
 const port = 2018;
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { serverScript } from "../../test_helpers/paths.js";
 
 describe("testing extension object with client residing on a different process than the server process", function (this: Mocha.Context) {
     this.timeout(Math.max(600_000, this.timeout()));
@@ -16,14 +16,11 @@ describe("testing extension object with client residing on a different process t
 
     const options = {
         silent: true,
-        server_sourcefile: path.join(__dirname, "../../test_helpers/bin/simple_server_with_custom_extension_objects.js"),
+        server_sourcefile: serverScript("simple_server_with_custom_extension_objects.js"),
         port
     };
     if (!fs.existsSync(options.server_sourcefile)) {
-        options.server_sourcefile = path.join(
-            __dirname,
-            "../../../test_helpers/bin/simple_server_with_custom_extension_objects.js"
-        );
+        options.server_sourcefile = serverScript("simple_server_with_custom_extension_objects.js");
     }
     fs.existsSync(options.server_sourcefile).should.eql(true, "cannot find simple_server_with_custom_extension_objects script");
 

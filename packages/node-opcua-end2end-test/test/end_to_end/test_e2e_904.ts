@@ -74,7 +74,7 @@ describe("#904 - Client should connect to server that do not provide ServerNonce
     let serverNonceWasNullOrEmptyBuffer: undefined | boolean;
     beforeEach(async () => {
         serverNonceWasNullOrEmptyBuffer = undefined;
-        client = OPCUAClient.create({ endpointMustExist: false, clientName: `1 ${__filename}` });
+        client = OPCUAClient.create({ endpointMustExist: false, clientName: `1 test_e2e_904` });
         client.on("backoff", () => console.log("keep trying", endpointUri));
 
         const endpointUri = geEndpoint(server);

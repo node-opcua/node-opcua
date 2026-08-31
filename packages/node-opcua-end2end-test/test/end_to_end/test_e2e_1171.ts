@@ -1,5 +1,4 @@
 import "should";
-import path from "node:path";
 import {
     AccessRestrictionsFlag,
     AttributeIds,
@@ -14,6 +13,7 @@ import {
     TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { tmpFolderFor } from "../../test_helpers/paths.js";
 
 describe("Testing bug #1171- Subscription with Variable with restricted access", () => {
     const port = 1171;
@@ -21,7 +21,7 @@ describe("Testing bug #1171- Subscription with Variable with restricted access",
     let _endpointUrl: string;
     let certificateManager: OPCUACertificateManager;
     before(async () => {
-        const tmpFolder = path.join(__dirname, "../../tmp/1171");
+        const tmpFolder = tmpFolderFor("1171");
         certificateManager = new OPCUACertificateManager({
             automaticallyAcceptUnknownCertificate: true,
             rootFolder: tmpFolder

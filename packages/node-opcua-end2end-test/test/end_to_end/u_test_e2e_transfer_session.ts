@@ -24,8 +24,8 @@ import { readCertificateChain, readCertificateRevocationList } from "node-opcua-
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
+import { certificateFolder } from "../../test_helpers/paths.js";
 
-const certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
 fs.existsSync(certificateFolder).should.eql(true, `expecting certificate store at ${certificateFolder}`);
 
 async function sendPublishRequest(

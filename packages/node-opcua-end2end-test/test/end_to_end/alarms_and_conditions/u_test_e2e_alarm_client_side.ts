@@ -116,7 +116,7 @@ export function t(umbrellaTest: UmbrellaTestContext) {
             construct_demo_alarm_in_address_space(test, addressSpace);
             client = OPCUAClient.create({
                 keepSessionAlive: false,
-                clientName: __filename
+                clientName: "u_test_e2e_alarm_client_side"
             });
 
             resetConditions(test);

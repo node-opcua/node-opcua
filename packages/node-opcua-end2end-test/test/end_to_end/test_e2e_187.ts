@@ -59,7 +59,7 @@ describe("testing monitoring Executable flags on methods", function (this: Mocha
     });
 
     beforeEach(async () => {
-        client = OPCUAClient.create({ clientName: `1 ${__filename}` });
+        client = OPCUAClient.create({ clientName: `1 test_e2e_187` });
     });
 
     afterEach(async () => {

@@ -21,7 +21,7 @@ export function t(_test: TestHarness) {
         });
 
         async function withConnectedClient(fn: (client: OPCUAClient) => Promise<void>): Promise<void> {
-            const client = OPCUAClient.create({ clientName: __filename });
+            const client = OPCUAClient.create({ clientName: "u_test_opcua_ClientServer_findservers" });
             await client.connect(endpointUrl);
             try {
                 await fn(client);

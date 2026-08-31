@@ -25,7 +25,7 @@ describe("Testing bug #1170", () => {
 
     it("server createSession should expose endpoints with correct productURI", async () => {
         const client = OPCUAClient.create({
-            clientName: `1 ${__filename}`
+            clientName: `1 test_e2e_1170`
         });
         const serverEndpoints = await client.withSessionAsync(endpointUrl, async (session) => {
             return session.serverEndpoints;

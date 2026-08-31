@@ -54,11 +54,6 @@ const users = [
     },
     { username: "user2", password: (() => "2")(), role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) }
 ];
-
-let certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
-if (!fs.existsSync(certificateFolder)) {
-    certificateFolder = path.join(__dirname, "../../../../node-opcua-samples/certificates");
-}
 fs.existsSync(certificateFolder).should.eql(true, `expecting certificate store at ${certificateFolder}`);
 
 // simplistic user manager for test purpose only ( do not use in production !)
@@ -174,6 +169,7 @@ async function createClient(
 }
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { certificateFolder } from "../../test_helpers/paths.js";
 
 describe("test reconnection when server stops and change it privateKey and certificate then restart #985", function (this: Mocha.Suite) {
     this.timeout(120 * 1000);
