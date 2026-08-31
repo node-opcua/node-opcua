@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { hexDump } from "node-opcua-debug";
@@ -12,6 +11,7 @@ import should from "should";
 import { getOrCreateConstructor, parseBinaryXSD } from "..";
 
 import { MockProvider } from "./mock_id_provider.js";
+import { testFixture } from "./paths.js";
 
 const doDebug = false;
 
@@ -40,7 +40,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
     let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     before(async () => {
-        const sample_file = path.join(__dirname, "fixtures/sample_type.xsd");
+        const sample_file = testFixture("sample_type.xsd");
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
@@ -245,7 +245,7 @@ describe("BSHB - Binary Schemas Helper 2", () => {
     let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     before(async () => {
-        const sample_file = path.join(__dirname, "fixtures/sample_type1.xsd");
+        const sample_file = testFixture("sample_type1.xsd");
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
@@ -321,7 +321,7 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
     let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     before(async () => {
-        const sample_file = path.join(__dirname, "fixtures/sample_type2.xsd");
+        const sample_file = testFixture("sample_type2.xsd");
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
@@ -441,7 +441,7 @@ describe("BSHD - Binary Schemas Helper 4", () => {
     let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     before(async () => {
-        const sample_file = path.join(__dirname, "fixtures/sample_type3.xsd");
+        const sample_file = testFixture("sample_type3.xsd");
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
@@ -467,7 +467,7 @@ describe("BSHE - Binary Schemas Helper 5 (Union)", () => {
     let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     before(async () => {
-        const sample_file = path.join(__dirname, "fixtures/sample_type4.xsd");
+        const sample_file = testFixture("sample_type4.xsd");
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
@@ -549,7 +549,7 @@ describe("BSSGF - Binary Schemas Helper 5 (DerivedType -1)", () => {
     let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     before(async () => {
-        const sample_file = path.join(__dirname, "fixtures/sample_type5.xsd");
+        const sample_file = testFixture("sample_type5.xsd");
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
@@ -577,7 +577,7 @@ describe("BSHG - Binary Schema Helper 6 - Milo", () => {
     let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     before(async () => {
-        const sample_file = path.join(__dirname, "fixtures/sample_milo.xsd");
+        const sample_file = testFixture("sample_milo.xsd");
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;

@@ -1,10 +1,10 @@
 import fs from "node:fs";
-import path from "node:path";
 import { DataTypeFactory, parameters } from "node-opcua-factory";
 import { encode_decode_round_trip_test, type IExtensionObject } from "node-opcua-packet-analyzer/dist/test_helpers";
 import { Variant } from "node-opcua-variant";
 import { parseBinaryXSD } from "../dist/source/index.js";
 import { MockProvider } from "./mock_id_provider.js";
+import { testFixture } from "./paths.js";
 
 class MockProvider2 extends MockProvider {
     public getDataTypeAndEncodingId(key: string) {
@@ -22,16 +22,16 @@ describe("Binary schema with recursive", () => {
     let sample: string;
     let sample2: string;
     before(async () => {
-        const base_file = path.join(__dirname, "fixtures/sample_ua_base.xsd");
+        const base_file = testFixture("sample_ua_base.xsd");
         const base = fs.readFileSync(base_file, "utf-8");
 
-        const sample_file = path.join(__dirname, "fixtures/sample_recursive.xsd");
+        const sample_file = testFixture("sample_recursive.xsd");
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
         sample = fs.readFileSync(sample_file, "utf-8");
 
-        const sample2_file = path.join(__dirname, "fixtures/sample_recursive2.xsd");
+        const sample2_file = testFixture("sample_recursive2.xsd");
         sample2 = fs.readFileSync(sample2_file, "utf-8");
 
         dataTypeFactory = new DataTypeFactory([]);
