@@ -12,7 +12,7 @@ import {
     ofType,
     or,
     s
-} from "../source/make_content_filter.js";
+} from "../dist/make_content_filter.js";
 
 describe("make where clause", () => {
     it("should createa  simple OfType clause", () => {

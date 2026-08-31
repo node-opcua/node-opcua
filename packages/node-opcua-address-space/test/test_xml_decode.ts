@@ -7,8 +7,8 @@ import { DataType } from "node-opcua-variant";
 import { Xml2Json } from "node-opcua-xml2json";
 
 import { AddressSpace } from "..";
+import { makeXmlExtensionObjectReader } from "../dist/source/loader/make_xml_extension_object_parser.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
-import { makeXmlExtensionObjectReader } from "../source/loader/make_xml_extension_object_parser.js";
 
 describe("test xml decode", () => {
     let addressSpace: AddressSpace;

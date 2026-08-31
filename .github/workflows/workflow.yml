@@ -99,6 +99,7 @@ jobs:
       # (a class heritage clause, a module-scope initializer). Of the 14 cycles this repo
       # had, 11 were harmless and flagging those would have made the gate noise.
       - run: pnpm run check:cycles
+      - run: pnpm run check:identity
       - name: Unit tests for the cycle rule
         run: node tools/check-import-cycles/test/test_rule.js
       # Raw private-key access is being migrated to the opaque key-operations

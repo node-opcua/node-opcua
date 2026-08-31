@@ -27,6 +27,7 @@
     "check:importext:fix": "node tools/check-import-extension.mjs --fix",
     "check:pack": "node tools/check-pack.mjs",
     "check:cycles": "node tools/check-import-cycles.mjs",
+    "check:identity": "node tools/check-module-identity.mjs",
     "check:cycles:all": "node tools/check-import-cycles.mjs --all",
     "check:consumers": "node fixtures/consumer-cjs/index.cjs && node fixtures/consumer-esm/index.mjs",
     "preinstall": "node prevent_npm_install.js",

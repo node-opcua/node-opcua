@@ -1,4 +1,4 @@
-import { Benchmarker } from "../../node-opcua-benchmarker/source/benchmarker";
+import { Benchmarker } from "node-opcua-benchmarker";
 import { MessageBuilderBase } from "../source/message_builder_base";
 
 const bench = new Benchmarker();
