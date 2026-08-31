@@ -35,6 +35,7 @@ import {
     UserNameIdentityToken
 } from "node-opcua-types";
 import { bootstrapArchive, makeSessionContext } from "./helpers.js";
+import { scratch } from "./paths.js";
 
 type TestServer = IServerForRoleSet & IServerForUserManagement & IServerBase;
 const { SignAndEncrypt, None } = MessageSecurityMode;
@@ -42,7 +43,7 @@ const { SignAndEncrypt, None } = MessageSecurityMode;
 describe("Browse / channel hardening of RoleSet & UserManagement (§4.4.1)", function (this: Mocha.Suite) {
     this.timeout(30000);
 
-    const tmpDir = path.join(__dirname, "..", "_tmp_hardening");
+    const tmpDir = scratch("_tmp_hardening");
     const persistencePath = path.join(tmpDir, "roles.bin");
     const securityAdminRole = WellKnownRoleIds.SecurityAdmin;
     const roleSetNodeId = resolveNodeId("ns=0;i=15606"); // Server_ServerCapabilities_RoleSet

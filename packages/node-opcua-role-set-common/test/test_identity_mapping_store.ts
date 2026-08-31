@@ -2,6 +2,7 @@ import "should";
 import path from "node:path";
 import { exploreCertificate, makeSHA1Thumbprint, readCertificate } from "node-opcua-crypto";
 import { makeNodeId, sameNodeId } from "node-opcua-nodeid";
+import { samplesCertificateFolder } from "node-opcua-test-helpers";
 import {
     AnonymousIdentityToken,
     IdentityCriteriaType,
@@ -9,7 +10,6 @@ import {
     UserNameIdentityToken,
     X509IdentityToken
 } from "node-opcua-types";
-
 import { InMemoryIdentityMappingStore } from "../source/in_memory_store.js";
 import { WellKnownRoleIds } from "../source/well_known_role_ids.js";
 
@@ -124,7 +124,7 @@ describe("InMemoryIdentityMappingStore", () => {
 
         before(async () => {
             // Use a real test certificate from the monorepo
-            const certPath = path.join(__dirname, "..", "..", "node-opcua-samples", "certificates", "client_cert_2048.pem");
+            const certPath = path.join(samplesCertificateFolder, "client_cert_2048.pem");
             try {
                 certBuffer = await readCertificate(certPath);
                 thumbprintHex = makeSHA1Thumbprint(certBuffer).toString("hex").toUpperCase();
@@ -219,7 +219,7 @@ describe("InMemoryIdentityMappingStore", () => {
         let subjectCN: string;
 
         before(async () => {
-            const certPath = path.join(__dirname, "..", "..", "node-opcua-samples", "certificates", "client_cert_2048.pem");
+            const certPath = path.join(samplesCertificateFolder, "client_cert_2048.pem");
             try {
                 certBuffer = await readCertificate(certPath);
                 const info = exploreCertificate(certBuffer);

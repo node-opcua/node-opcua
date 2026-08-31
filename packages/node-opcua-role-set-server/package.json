@@ -30,7 +30,8 @@
     },
     "devDependencies": {
         "node-opcua-leak-detector": "2.179.0",
-        "node-opcua-nodesets": "2.179.0"
+        "node-opcua-nodesets": "2.179.0",
+        "node-opcua-test-helpers": "2.179.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

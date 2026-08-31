@@ -34,6 +34,7 @@ import {
 } from "node-opcua-types";
 import should from "should";
 import { anonymousSession, bootstrapArchive, makeSessionContext, userSession } from "./helpers.js";
+import { scratch } from "./paths.js";
 
 /** The server-like object understood by both installRoleSet and SessionContext. */
 type TestServer = IServerForRoleSet & IServerBase;
@@ -45,7 +46,7 @@ function makeRule(criteriaType: IdentityCriteriaType, criteria: string): Identit
 describe("RoleSet Integration: server aggregator + role-set client over PseudoSession", function (this: Mocha.Suite) {
     this.timeout(30000);
 
-    const tmpDir = path.join(__dirname, "..", "_tmp_integration");
+    const tmpDir = scratch("_tmp_integration");
     const persistencePath = path.join(tmpDir, "roles.bin");
 
     let addressSpace: AddressSpace;

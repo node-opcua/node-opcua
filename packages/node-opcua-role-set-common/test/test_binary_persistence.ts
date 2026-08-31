@@ -7,6 +7,7 @@ import { IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types"
 import { decodeIdentityStore, encodeIdentityStore, loadFromBinaryFile, saveToBinaryFile } from "../source/binary_persistence.js";
 import { InMemoryIdentityMappingStore } from "../source/in_memory_store.js";
 import { WellKnownRoleIds } from "../source/well_known_role_ids.js";
+import { scratch } from "./paths.js";
 
 const SecurityAdmin = WellKnownRoleIds.SecurityAdmin;
 const Observer = WellKnownRoleIds.Observer;
@@ -94,7 +95,7 @@ describe("Binary Persistence", () => {
     });
 
     describe("saveToBinaryFile / loadFromBinaryFile", () => {
-        const tmpDir = path.join(__dirname, "..", "_tmp_test_persistence");
+        const tmpDir = scratch("_tmp_test_persistence");
         const filePath = path.join(tmpDir, "test_roles.bin");
 
         afterEach(async () => {

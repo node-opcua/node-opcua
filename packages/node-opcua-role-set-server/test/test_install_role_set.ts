@@ -21,6 +21,7 @@ import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { type IServerForRoleSet, installRoleSet } from "../source/install_role_set.js";
 import { RoleSetResolver } from "../source/role_set_resolver.js";
+import { scratch } from "./paths.js";
 
 // --- Tests ---
 
@@ -119,7 +120,7 @@ describe("installRoleSet", () => {
 
         // Cleanup
         try {
-            fs.rm(path.join(__dirname, "..", "_tmp_test_identities"), { recursive: true, force: true });
+            fs.rm(scratch("_tmp_test_identities"), { recursive: true, force: true });
         } catch {
             /* */
         }
@@ -181,7 +182,7 @@ describe("installRoleSet", () => {
     });
 
     describe("persistence", () => {
-        const tmpDir = path.join(__dirname, "..", "_tmp_test_install");
+        const tmpDir = scratch("_tmp_test_install");
         const filePath = path.join(tmpDir, "test_roles.bin");
 
         afterEach(async () => {

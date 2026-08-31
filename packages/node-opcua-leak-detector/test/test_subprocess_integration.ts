@@ -16,8 +16,9 @@
 import assert from "node:assert";
 import { execSync } from "node:child_process";
 import path from "node:path";
+import { packageRoot, testPath } from "./paths.js";
 
-const FIXTURES = path.join(__dirname, "fixtures");
+const FIXTURES = testPath("fixtures");
 
 // Helper: run mocha on fixture file(s) and return { exitCode, stdout }
 function runMocha(fixtureFiles: string | string[], extraArgs: string[] = []) {
@@ -32,7 +33,7 @@ function runMocha(fixtureFiles: string | string[], extraArgs: string[] = []) {
     delete env.MEM_LEAK_DETECTION_DISABLED;
     try {
         const stdout = execSync(cmd, {
-            cwd: path.join(__dirname, ".."),
+            cwd: packageRoot,
             timeout: 15000,
             encoding: "utf8",
             stdio: ["pipe", "pipe", "pipe"],

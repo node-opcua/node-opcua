@@ -20,7 +20,8 @@
     "author": "Etienne Rossignon",
     "license": "MIT",
     "devDependencies": {
-        "node-opcua-debug": "2.179.0"
+        "node-opcua-debug": "2.179.0",
+        "node-opcua-test-helpers": "2.179.0"
     },
     "repository": {
         "type": "git",

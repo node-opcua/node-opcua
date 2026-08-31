@@ -3,16 +3,17 @@
  * against the sample server and verify it administers Roles/Users over OPC UA.
  */
 import { execFile } from "node:child_process";
-import path from "node:path";
 import { promisify } from "node:util";
 import "should";
+import { packagePath } from "node-opcua-test-helpers";
 import { type SampleServerHandle, startSampleServer } from "../bin/sample_server_with_role_set.js";
+import { packageRoot } from "./paths.js";
 
 const port = 5006;
 
 const execFileAsync = promisify(execFile);
 // the shipped CLI now lives in its own package; drive its source via tsx
-const CLI = path.join(__dirname, "..", "..", "node-opcua-role-set-admin", "source", "cli.ts");
+const CLI = packagePath("node-opcua-role-set-admin", "source", "cli.ts");
 
 describe("role-set-admin CLI (e2e against the sample server)", function () {
     this.timeout(120000);
@@ -33,7 +34,7 @@ describe("role-set-admin CLI (e2e against the sample server)", function () {
         const { stdout } = await execFileAsync(
             process.execPath,
             ["--import", "tsx", CLI, "-e", endpoint, "-u", "admin", "-p", "admin-pw1", ...args],
-            { cwd: path.join(__dirname, ".."), timeout: 60000 }
+            { cwd: packageRoot, timeout: 60000 }
         );
         return stdout;
     }

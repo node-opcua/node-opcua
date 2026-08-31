@@ -30,13 +30,14 @@ import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask } from "node-opcua-types";
 import "should";
 import { bootstrapArchive, userSession } from "./helpers.js";
+import { scratch } from "./paths.js";
 
 type TestServer = IServerForRoleSet & IServerForUserManagement & IServerBase;
 
 describe("User Management persistence across restart (shared archive, §5)", function (this: Mocha.Suite) {
     this.timeout(30000);
 
-    const tmpDir = path.join(__dirname, "..", "_tmp_user_restart");
+    const tmpDir = scratch("_tmp_user_restart");
     const persistencePath = path.join(tmpDir, "role-set.json");
     const secret: string | undefined = undefined; // plaintext archive for this case
 

@@ -929,6 +929,9 @@ importers:
       node-opcua-leak-detector:
         specifier: 2.179.0
         version: link:../node-opcua-leak-detector
+      node-opcua-test-helpers:
+        specifier: 2.179.0
+        version: link:../node-opcua-test-helpers
 
   packages/node-opcua-chunkmanager:
     dependencies:
@@ -1111,6 +1114,9 @@ importers:
       node-opcua-nodesets:
         specifier: 2.179.0
         version: link:../node-opcua-nodesets
+      node-opcua-test-helpers:
+        specifier: 2.179.0
+        version: link:../node-opcua-test-helpers
 
   packages/node-opcua-client-browser:
     dependencies:
@@ -1389,6 +1395,9 @@ importers:
       node-opcua-service-translate-browse-path:
         specifier: 2.180.0
         version: link:../node-opcua-service-translate-browse-path
+      node-opcua-test-helpers:
+        specifier: 2.179.0
+        version: link:../node-opcua-test-helpers
 
   packages/node-opcua-data-access:
     dependencies:
@@ -1834,6 +1843,10 @@ importers:
       wtfnode:
         specifier: ^0.10.1
         version: 0.10.1
+    devDependencies:
+      node-opcua-test-helpers:
+        specifier: 2.179.0
+        version: link:../node-opcua-test-helpers
 
   packages/node-opcua-like-matcher: {}
 
@@ -3074,6 +3087,9 @@ importers:
       node-opcua-leak-detector:
         specifier: 2.179.0
         version: link:../node-opcua-leak-detector
+      node-opcua-test-helpers:
+        specifier: 2.179.0
+        version: link:../node-opcua-test-helpers
 
   packages/node-opcua-role-set-server:
     dependencies:
@@ -3117,6 +3133,9 @@ importers:
       node-opcua-nodesets:
         specifier: 2.179.0
         version: link:../node-opcua-nodesets
+      node-opcua-test-helpers:
+        specifier: 2.179.0
+        version: link:../node-opcua-test-helpers
 
   packages/node-opcua-role-set-test:
     devDependencies:
@@ -3162,6 +3181,9 @@ importers:
       node-opcua-status-code:
         specifier: 2.180.0
         version: link:../node-opcua-status-code
+      node-opcua-test-helpers:
+        specifier: 2.179.0
+        version: link:../node-opcua-test-helpers
       node-opcua-types:
         specifier: 2.180.0
         version: link:../node-opcua-types
@@ -4204,6 +4226,9 @@ importers:
       node-opcua-debug:
         specifier: 2.179.0
         version: link:../node-opcua-debug
+      node-opcua-test-helpers:
+        specifier: 2.179.0
+        version: link:../node-opcua-test-helpers
 
   packages/playground:
     dependencies:
