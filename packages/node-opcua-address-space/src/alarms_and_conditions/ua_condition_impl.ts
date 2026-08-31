@@ -75,6 +75,7 @@ const warningLog = make_warningLog("ua_condition_impl");
 
 const $ = (a: UAConditionImplBase): UAConditionEx => a as unknown as UAConditionEx;
 
+/** @internal */
 export class UAConditionImplBase<
     T extends UAConditionEvents & ListenerSignature<T> = UAConditionEvents
 > extends UABaseEventImplBase<T> {
@@ -644,7 +645,9 @@ export class UAConditionImplBase<
         throw new Error("Unimplemented , please override");
     }
 }
+/** @internal */
 export type UAConditionImpl = UAConditionImplBase & UAConditionEx;
+/** @internal */
 export const UAConditionImpl = UAConditionImplBase as unknown as new () => UAConditionImpl;
 
 /**²

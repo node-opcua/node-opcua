@@ -56,6 +56,7 @@ const _varTable = {
 };
 
 type FullBrowsePath = string;
+/** @internal */
 export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnapshot {
     public static normalizeName = normalizeName;
 

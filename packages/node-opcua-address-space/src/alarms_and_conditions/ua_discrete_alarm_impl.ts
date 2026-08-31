@@ -14,6 +14,7 @@ import { UAAlarmConditionImplBase } from "./ua_alarm_condition_impl.js";
  * The DiscreteAlarmType is used to classify Types into Alarm Conditions where the input for the
  * Alarm may take on only a certain number of possible values (e.g. true/false,
  * running/stopped/terminating).
+ * @internal
  */
 export class UADiscreteAlarmImplBase extends UAAlarmConditionImplBase {
     public static instantiate(
@@ -53,5 +54,7 @@ export class UADiscreteAlarmImplBase extends UAAlarmConditionImplBase {
         return alarmNode as unknown as UADiscreteAlarmImpl;
     }
 }
+/** @internal */
 export type UADiscreteAlarmImpl = UADiscreteAlarmImplBase & UADiscreteAlarmEx;
+/** @internal */
 export const UADiscreteAlarmImpl = UADiscreteAlarmImplBase as unknown as UADiscreteAlarmImpl;

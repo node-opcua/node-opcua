@@ -8,6 +8,7 @@ import type { ConditionInfo, ConditionInfoOptions } from "../../source/interface
 
 /**
  * @private
+ * @internal
  */
 export class ConditionInfoImpl implements ConditionInfo {
     public message: LocalizedText | null = null;

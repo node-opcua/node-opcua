@@ -24,6 +24,7 @@ const uaLimitAlarmInputSupportedDataType: DataType[] = [
     DataType.UInt32
 ];
 
+/** @internal */
 export class UALimitAlarmImplBase extends UAAlarmConditionImplBase {
     public static instantiate(
         namespace: NamespacePrivate,
@@ -240,5 +241,7 @@ export class UALimitAlarmImplBase extends UAAlarmConditionImplBase {
     }
 }
 
+/** @internal */
 export const UALimitAlarmImpl = UALimitAlarmImplBase as unknown as new () => UALimitAlarmImpl;
+/** @internal */
 export type UALimitAlarmImpl = UALimitAlarmImplBase & UALimitAlarmEx;

@@ -10,6 +10,7 @@ import { UALimitAlarmImpl, UALimitAlarmImplBase } from "./ua_limit_alarm_impl.js
 
 const validState = ["HighHigh", "High", "Low", "LowLow", null];
 
+/** @internal */
 export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl {
     /***
      *
@@ -105,5 +106,7 @@ export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl {
     }
 }
 
+/** @internal */
 export type UAExclusiveLimitAlarmImpl = UAExclusiveLimitAlarmImplBase & UAExclusiveLimitAlarmEx;
+/** @internal */
 export const UAExclusiveLimitAlarmImpl = UAExclusiveLimitAlarmImplBase as unknown as new () => UAExclusiveLimitAlarmImpl;

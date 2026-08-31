@@ -23,6 +23,7 @@ interface IState {
     lowLow: boolean | "unset";
 }
 
+/** @internal */
 export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implements UANonExclusiveLimitAlarmEx {
     public static instantiate(
         namespace: NamespacePrivate,
@@ -219,5 +220,7 @@ export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implement
     }
 }
 
+/** @internal */
 export type UANonExclusiveLimitAlarmImpl = UANonExclusiveLimitAlarmImplBase & UANonExclusiveLimitAlarmEx;
+/** @internal */
 export const UANonExclusiveLimitAlarmImpl = UANonExclusiveLimitAlarmImplBase as unknown as new () => UANonExclusiveLimitAlarmImpl;
