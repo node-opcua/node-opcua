@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
@@ -13,6 +12,7 @@ import {
     validateIsNumericDataType
 } from "../..";
 import { generateAddressSpace } from "../../nodeJS.js";
+import { getAddressSpaceFixture } from "../../test_helpers/get_address_space_fixture.js";
 
 describe("MultiStateValueDiscreteType - 2", () => {
     let addressSpace: AddressSpace;
@@ -22,10 +22,7 @@ describe("MultiStateValueDiscreteType - 2", () => {
 
         addressSpace.registerNamespace("MyPrivateNamespace");
         data.addressSpace = addressSpace;
-        const xmlFiles = [
-            nodesets.standard,
-            path.join(__dirname, "../../test_helpers/test_fixtures/mini.nodeset.withVariousVariables.xml")
-        ];
+        const xmlFiles = [nodesets.standard, getAddressSpaceFixture("mini.nodeset.withVariousVariables.xml")];
         fs.existsSync(xmlFiles[0]).should.eql(true);
         await generateAddressSpace(addressSpace, xmlFiles);
     });

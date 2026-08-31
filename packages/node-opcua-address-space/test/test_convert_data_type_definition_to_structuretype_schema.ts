@@ -1,4 +1,3 @@
-import path from "node:path";
 import { convertDataTypeDefinitionToStructureTypeSchema, ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
@@ -11,6 +10,7 @@ import should from "should";
 import { DataTypeIds } from "../../node-opcua-constants/dist/index.js";
 import { AddressSpace, PseudoSession } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
     let addressSpace: AddressSpace;
@@ -234,7 +234,7 @@ describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
     it("ZZZ should load a enum referenced twice", async () => {
         addressSpace.registerNamespace("PRIVATE");
 
-        const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/datatype_enum2.xml");
+        const xml_file2 = getAddressSpaceFixture("datatype_enum2.xml");
         const xml_files = [nodesets.standard, xml_file2];
 
         await generateAddressSpace(addressSpace, xml_files);

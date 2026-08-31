@@ -1,4 +1,3 @@
-import path from "node:path";
 import { assert } from "node-opcua-assert";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
@@ -6,9 +5,10 @@ import { DataType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 import { assertHasMatchingReference } from "../testHelpers.js";
 
-const nodesetFilename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
+const nodesetFilename = getAddressSpaceFixture("mini.Nodeset2.xml");
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/104", () => {
     let addressSpace: AddressSpace;

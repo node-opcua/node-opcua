@@ -1,6 +1,5 @@
 /* global: describe it before after beforeEach afterEach require*/
 import fs from "node:fs";
-import path from "node:path";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { NodeClass } from "node-opcua-data-model";
 import { hexDump } from "node-opcua-debug";
@@ -10,6 +9,7 @@ import { CallRequest } from "node-opcua-service-call";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, type UAObject } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 const doDebug = false;
 
@@ -17,7 +17,7 @@ describe("CallRequest on custom method", () => {
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/fixuture_nodeset_objects_with_some_methods.xml");
+        const xml_file = getAddressSpaceFixture("fixuture_nodeset_objects_with_some_methods.xml");
         fs.existsSync(xml_file).should.be.eql(true);
         await generateAddressSpace(addressSpace, xml_file);
     });

@@ -1,4 +1,3 @@
-import path from "node:path";
 import { DataTypeIds, VariableTypeIds } from "node-opcua-constants";
 import { AttributeIds, makeAccessLevelFlag, NodeClass } from "node-opcua-data-model";
 import { DataValue, sameDataValue } from "node-opcua-data-value";
@@ -12,7 +11,7 @@ import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
 
-const nodeset_filename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
+const nodeset_filename = getAddressSpaceFixture("mini.Nodeset2.xml");
 
 import {
     AddressSpace,
@@ -23,7 +22,7 @@ import {
     type UAVariable
 } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
-
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 import { create_minimalist_address_space_nodeset } from "../testHelpers.js";
 
 const context = SessionContext.defaultContext;

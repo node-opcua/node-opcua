@@ -1,10 +1,10 @@
-import path from "node:path";
 import { nodesets } from "node-opcua-nodesets";
 import { getFixture } from "node-opcua-test-fixtures";
 // import fs from "fs";
 import should from "should";
 import { AddressSpace, findOrder, generateAddressSpaceRaw, preLoad } from "..";
 import { readNodeSet2XmlFile } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 // const fixtureFolder = path.join(__dirname, "../../test_fixtures");
 const doDebug = false;
@@ -31,18 +31,14 @@ describe("Ordering NodeSet2 files", () => {
         // await addressSpace.shutdown();
     });
     it("NSO-2 should order nodeset containing multiple namespace", async () => {
-        const xmlFiles = [path.join(__dirname, "../nodesets/mini.Nodeset2.xml"), getFixture("fixture_custom_nodeset.xml")];
+        const xmlFiles = [getAddressSpaceFixture("mini.Nodeset2.xml"), getFixture("fixture_custom_nodeset.xml")];
 
         const addressSpace = AddressSpace.create();
         await generateAddressSpaceRaw(addressSpace, xmlFiles, readNodeSet2XmlFile, {});
         addressSpace.dispose();
     });
     it("NSO-3 should load ill-formed nodeset containing multiple namespace", async () => {
-        const xmlFiles = [
-            nodesets.standard,
-            nodesets.di,
-            path.join(__dirname, "../test_helpers/test_fixtures/issue_1132_variable_with_nodeid_value.xml")
-        ];
+        const xmlFiles = [nodesets.standard, nodesets.di, getAddressSpaceFixture("issue_1132_variable_with_nodeid_value.xml")];
         const addressSpace = AddressSpace.create();
         await generateAddressSpaceRaw(addressSpace, xmlFiles, readNodeSet2XmlFile, {});
 
@@ -57,7 +53,7 @@ describe("Ordering NodeSet2 files", () => {
         addressSpace.dispose();
     });
     it("NSO-4 should load ill-formed nodeset containing multiple namespace", async () => {
-        const xmlFile = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_isOptionSet.xml");
+        const xmlFile = getAddressSpaceFixture("dataType_with_isOptionSet.xml");
 
         const xmlFiles = [nodesets.standard, xmlFile];
 

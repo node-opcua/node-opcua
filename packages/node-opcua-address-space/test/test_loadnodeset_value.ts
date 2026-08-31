@@ -18,16 +18,17 @@ import {
 } from "..";
 import { create_minimalist_address_space_nodeset } from "../distHelpers/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 const doDebug = false;
 
 describe("Testing loading nodeset with extension objects values in types", () => {
     let addressSpace: AddressSpace;
 
-    const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/variabletype_with_value.xml");
+    const xml_file1 = getAddressSpaceFixture("variabletype_with_value.xml");
     fs.existsSync(xml_file1).should.be.eql(true, ` should find ${xml_file1}`);
 
-    const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/variable_with_value.xml");
+    const xml_file2 = getAddressSpaceFixture("variable_with_value.xml");
     fs.existsSync(xml_file2).should.be.eql(true, ` should find ${xml_file2}`);
 
     const context = SessionContext.defaultContext;
@@ -39,7 +40,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         addressSpace.dispose();
     });
     it("LNEX1- should load nodeset with extension objects", async () => {
-        // const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/plc_demo.xml");
+        // const xml_file = getAddressSpaceFixture("plc_demo.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file1]);
 
         const nsSterfive = addressSpace.getNamespaceIndex("http://sterfive.com/Small_model/");
@@ -59,7 +60,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
     });
 
     it("LNEX2- should load nodeset with array extension objects", async () => {
-        // const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/plc_demo.xml");
+        // const xml_file = getAddressSpaceFixture("plc_demo.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file1, xml_file2]);
 
         const nsSterfive = addressSpace.getNamespaceIndex("http://sterfive.com/Small_model/");
@@ -549,7 +550,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
 
     it("LNEX6- should load nodeset with extension objects and GUID elements", async () => {
         const doDebug = false;
-        const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_guid.xml");
+        const xml_file = getAddressSpaceFixture("nodeset_with_guid.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file]);
         const urlVariable = addressSpace.findNode("ns=1;i=6129")! as UAVariable;
         const dataValue = urlVariable.readValue();
@@ -561,7 +562,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
     it("LNEX7- should load nodeset with extension objects and Int64/UInt64 elements", async () => {
         const doDebug = false;
 
-        const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_int64_values.xml");
+        const xml_file = getAddressSpaceFixture("nodeset_with_int64_values.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file]);
 
         const uint64Variable = addressSpace.findNode("ns=1;i=1000")! as UAVariable;

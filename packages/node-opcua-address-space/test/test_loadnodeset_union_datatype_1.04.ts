@@ -1,4 +1,3 @@
-import path from "node:path";
 import {
     ExtraDataTypeManager,
     getExtensionObjectConstructor,
@@ -8,6 +7,7 @@ import { coerceNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, PseudoSession } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 describe("Testing loadNodeSet - Union DataType", async function (this: Mocha.Suite) {
     this.timeout(200000); // could be slow on appveyor !
@@ -21,7 +21,7 @@ describe("Testing loadNodeSet - Union DataType", async function (this: Mocha.Sui
     });
 
     it("should handle union ", async () => {
-        const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_union.xml");
+        const xml_file = getAddressSpaceFixture("dataType_with_union.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file]);
         const a = addressSpace.constructExtensionObject(coerceNodeId("ns=1;i=1000"), {});
         a.schema.name.should.eql("CustomUnion");

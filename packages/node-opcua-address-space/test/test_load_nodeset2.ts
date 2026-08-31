@@ -23,6 +23,7 @@ import {
     type UAVariableType
 } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -65,7 +66,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
     });
 
     it("VU00 should load a nodeset xml file", async () => {
-        const xml_file = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
+        const xml_file = getAddressSpaceFixture("mini.Nodeset2.xml");
 
         fs.existsSync(xml_file).should.be.eql(true);
 
@@ -178,7 +179,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
     });
 
     it("VU05 should read a VariableType with a default value", async () => {
-        const xml_file1 = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
+        const xml_file1 = getAddressSpaceFixture("mini.Nodeset2.xml");
         const xml_file2 = getFixture("fixture_variable_type_with_default_value.xml");
 
         const xml_files = [xml_file1, xml_file2];
@@ -219,7 +220,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
     });
 
     it("VU07 should provide appropriate error when nodeset file doesn't exist", async () => {
-        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/minimalist_nodeset_with_models.xml");
+        const xml_file1 = getAddressSpaceFixture("minimalist_nodeset_with_models.xml");
         const xml_files = [xml_file1, "./missing_xml_file.xml"];
 
         let _err: Error | undefined;
@@ -232,19 +233,19 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         _err?.message.should.match(/.*NODE-OPCUA-E.*/);
     });
     it("VU08 should load a nodeset file with a Models section", async () => {
-        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/minimalist_nodeset_with_models.xml");
+        const xml_file1 = getAddressSpaceFixture("minimalist_nodeset_with_models.xml");
         const xml_files = [xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
     });
 
     it("VU09 should load a nodeset file with hierarchy of Models", async () => {
-        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/minimalist_nodeset_with_models_more_complex.xml");
+        const xml_file1 = getAddressSpaceFixture("minimalist_nodeset_with_models_more_complex.xml");
         const xml_files = [xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
     });
 
     it("VU10 should load a nodeset from UAModeler", async () => {
-        const xml_file1 = nodesets.standard; // path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
+        const xml_file1 = nodesets.standard; // getAddressSpaceFixture("mini.Nodeset2.xml");
         const xml_file2 = path.join(__dirname, "../../../modeling/my_data_type.xml");
         const xml_files = [xml_file1, xml_file2];
         await generateAddressSpace(addressSpace, xml_files);
@@ -269,7 +270,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
          * 
 </UADataType>
          */
-        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_isOptionSet.xml");
+        const xml_file1 = getAddressSpaceFixture("dataType_with_isOptionSet.xml");
         const xml_files = [nodesets.standard, xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
 
@@ -282,7 +283,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
     });
 
     it("VU12 read datatype ", async () => {
-        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_withEnumeration.xml");
+        const xml_file1 = getAddressSpaceFixture("dataType_withEnumeration.xml");
         const xml_files = [nodesets.standard, xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
 
@@ -387,7 +388,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
     });
 
     it("VU13 Coordinates 3DFrame (which is from namespace 0)", async () => {
-        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_structures.xml");
+        const xml_file1 = getAddressSpaceFixture("dataType_with_structures.xml");
         const xml_files = [xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
 
@@ -408,8 +409,8 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         debugLog("frame", frame.toString());
     });
     it("VU14 ----------", async () => {
-        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_structures.xml");
-        const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_in_separateNamespace.xml");
+        const xml_file1 = getAddressSpaceFixture("dataType_with_structures.xml");
+        const xml_file2 = getAddressSpaceFixture("dataType_in_separateNamespace.xml");
         const xml_files = [xml_file1, xml_file2];
         await generateAddressSpace(addressSpace, xml_files);
         const dataType = addressSpace.findDataType("3DFrame", 0) as UADataType;
@@ -422,7 +423,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
     it("VU15 ----------", async () => {
         addressSpace.registerNamespace("PRIVATE");
 
-        const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_in_separateNamespace_basic.xml");
+        const xml_file2 = getAddressSpaceFixture("dataType_in_separateNamespace_basic.xml");
         const xml_files = [nodesets.standard, xml_file2];
         await generateAddressSpace(addressSpace, xml_files);
 
@@ -456,7 +457,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
     it("VU16 ----------", async () => {
         addressSpace.registerNamespace("PRIVATE");
 
-        const xml_file2 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_in_separateNamespace_mix.xml");
+        const xml_file2 = getAddressSpaceFixture("dataType_in_separateNamespace_mix.xml");
         const xml_files = [nodesets.standard, xml_file2];
         await generateAddressSpace(addressSpace, xml_files);
 
@@ -516,7 +517,7 @@ describe("VVA", () => {
     beforeEach(async () => {
         addressSpace = AddressSpace.create();
         addressSpace.registerNamespace("PRIVATE");
-        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/datatype_with_allow_subtype.xml");
+        const xml_file1 = getAddressSpaceFixture("datatype_with_allow_subtype.xml");
         const xml_files = [nodesets.standard, xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
 
@@ -643,9 +644,9 @@ describe("Testing variables loading ", function (this: Mocha.Context) {
         namespace0._dataTypeCount().should.equal(0);
         namespace0._objectTypeCount().should.equal(0);
 
-        const xml_file1 = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
+        const xml_file1 = getAddressSpaceFixture("mini.Nodeset2.xml");
 
-        const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/mini.nodeset.withVariousVariables.xml");
+        const xml_file = getAddressSpaceFixture("mini.nodeset.withVariousVariables.xml");
         fs.existsSync(xml_file).should.be.eql(true);
 
         await generateAddressSpace(addressSpace, [xml_file1, xml_file]);
@@ -741,8 +742,8 @@ describe("@A@ Testing loading nodeset with custom basic types", function (this: 
 //         addressSpace.dispose();
 //     });
 //     it("should load plc_demo.xml", async () => {
-//        // const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/plc_demo.xml");
-//        const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/PLC_1.xml");
+//        // const xml_file = getAddressSpaceFixture("plc_demo.xml");
+//        const xml_file = getAddressSpaceFixture("PLC_1.xml");
 //        fs.existsSync(xml_file).should.be.eql(true, " should find " + xml_file);
 //         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file]);
 //     });

@@ -1,4 +1,3 @@
-import path from "node:path";
 import { AccessLevelFlag, AccessRestrictionsFlag } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId } from "node-opcua-nodeid";
@@ -7,8 +6,9 @@ import { PermissionType } from "node-opcua-types";
 import should from "should";
 import { AddressSpace, generateAddressSpaceRaw, type UAMethod, type UAObject, type UAObjectType, type UAVariable } from "..";
 import { generateAddressSpace, readNodeSet2XmlFile } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
-const fixture = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_role_permissions.xml");
+const fixture = getAddressSpaceFixture("nodeset_with_role_permissions.xml");
 
 const securityAdmin = resolveNodeId("WellKnownRole_SecurityAdmin").toString();
 const anonymous = resolveNodeId("WellKnownRole_Anonymous").toString();

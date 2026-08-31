@@ -1,10 +1,10 @@
-import path from "node:path";
 import "should";
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 describe("Loading nodeset.xml with special char", () => {
     it("should load a node with special characters in the nodeId ", async () => {
@@ -12,7 +12,7 @@ describe("Loading nodeset.xml with special char", () => {
 
         addressSpace.registerNamespace("http://own.company.com/my_own_namespace");
 
-        const example = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_special_char.xml");
+        const example = getAddressSpaceFixture("nodeset_with_special_char.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, example]);
 
         {

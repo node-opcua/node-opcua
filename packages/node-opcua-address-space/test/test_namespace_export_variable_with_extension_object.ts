@@ -9,9 +9,10 @@ import type { Variant } from "node-opcua-variant";
 import { AddressSpace } from "..";
 import type { UAVariableImpl } from "../dist/src/ua_variable_impl.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 describe("Advanced nodeset to XML", () => {
-    const nodesetFilename = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_extensionObjects_datatype.xml");
+    const nodesetFilename = getAddressSpaceFixture("nodeset_with_extensionObjects_datatype.xml");
     const tmpFolder = path.join(__dirname, "../tmp");
     before(() => {
         if (!fs.existsSync(tmpFolder)) {

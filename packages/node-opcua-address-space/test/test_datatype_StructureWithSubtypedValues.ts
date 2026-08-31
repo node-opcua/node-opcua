@@ -1,6 +1,5 @@
 import "should";
 import fs from "node:fs";
-import path from "node:path";
 import { DataType, randomGuid } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { getExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object/dist/get_extra_data_type_manager";
@@ -14,6 +13,7 @@ import { type StructureDefinition, StructureType } from "node-opcua-types";
 import { Variant, VariantArrayType } from "node-opcua-variant";
 import { AddressSpace, PseudoSession } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 const debugLog = make_debugLog("TEST");
 
@@ -28,7 +28,7 @@ interface DynamicExtensionObjectWithPets extends IBaseUAObject {
 describe("Testing ExtensionObject 2017", function (this: Mocha.Suite) {
     this.timeout(20000);
 
-    const xml = path.join(__dirname, "../test_helpers/test_fixtures/datatype_StructureWithSubtypedValues.xml");
+    const xml = getAddressSpaceFixture("datatype_StructureWithSubtypedValues.xml");
 
     let addressSpace: AddressSpace;
     before(async () => {

@@ -1,4 +1,3 @@
-import path from "node:path";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { getExtensionObjectConstructor } from "node-opcua-client-dynamic-extension-object";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
@@ -10,15 +9,13 @@ import { spy } from "sinon";
 //
 import { AddressSpace, adjustNamespaceArray, PseudoSession } from "..";
 import { generateAddressSpace } from "../distNodeJS/index.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition available)", () => {
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        await generateAddressSpace(addressSpace, [
-            nodesets.standard,
-            path.join(__dirname, "../test_helpers/test_fixtures/datatype_as_per_1.04.xml")
-        ]);
+        await generateAddressSpace(addressSpace, [nodesets.standard, getAddressSpaceFixture("datatype_as_per_1.04.xml")]);
         adjustNamespaceArray(addressSpace);
     });
     after(() => {
@@ -98,10 +95,7 @@ describe("Test Extension Object in pure 1.04 version - DataType deriving from Da
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        await generateAddressSpace(addressSpace, [
-            nodesets.standard,
-            path.join(__dirname, "../test_helpers/test_fixtures/dataType_issue.xml")
-        ]);
+        await generateAddressSpace(addressSpace, [nodesets.standard, getAddressSpaceFixture("dataType_issue.xml")]);
     });
     after(() => {
         addressSpace.dispose();

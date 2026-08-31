@@ -1,10 +1,10 @@
-import path from "node:path";
 import { AttributeIds } from "node-opcua-basic-types";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 const _debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -16,7 +16,7 @@ describe("Testing EURange Issue", async function (this: Mocha.Suite) {
     before(async () => {
         addressSpace = AddressSpace.create();
         const _namespace0 = addressSpace.getDefaultNamespace();
-        const mynodeset = path.join(__dirname, "../test_helpers/test_fixtures/eurange_issue.xml");
+        const mynodeset = getAddressSpaceFixture("eurange_issue.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, mynodeset]);
     });
     after(() => {

@@ -1,5 +1,4 @@
 import type { EventEmitter } from "node:events";
-import path from "node:path";
 import { DiagnosticInfo, LocalizedText, QualifiedName } from "node-opcua-data-model";
 import { coerceNodeId, NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
@@ -8,6 +7,7 @@ import should from "should";
 
 import { AddressSpace, SessionContext, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 /**
  * Bug: setValueFromSource on a bound extension object fails to update
@@ -26,7 +26,7 @@ describe("Bug - setValueFromSource should correctly update terminal value types 
     let addressSpace: AddressSpace;
     const context = SessionContext.defaultContext;
 
-    const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/all_terminal_value_types.xml");
+    const xml_file = getAddressSpaceFixture("all_terminal_value_types.xml");
 
     before(async () => {
         addressSpace = AddressSpace.create();

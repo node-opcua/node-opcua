@@ -1,4 +1,3 @@
-import path from "node:path";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-types";
@@ -7,8 +6,9 @@ import should from "should";
 import { AddressSpace, type Namespace } from "..";
 import { isArgumentValid } from "../dist/source/helpers/argument_list.js";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
-const nodesetFilename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
+const nodesetFilename = getAddressSpaceFixture("mini.Nodeset2.xml");
 
 interface TestCase {
     name: string;
