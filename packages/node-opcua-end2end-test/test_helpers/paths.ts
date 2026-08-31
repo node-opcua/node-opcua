@@ -73,3 +73,12 @@ export function tmpFolderFor(...segments: string[]): string {
 export function serverScript(name: string): string {
     return path.join(packageRoot, "test_helpers", "bin", name);
 }
+
+/**
+ * A helper spawned from its compiled form under dist/, rather than from source the way
+ * serverScript's targets are. Kept separate so the two are not confused: this one only
+ * exists after a build.
+ */
+export function compiledHelper(name: string): string {
+    return path.join(packageRoot, "dist", "test_helpers", name);
+}

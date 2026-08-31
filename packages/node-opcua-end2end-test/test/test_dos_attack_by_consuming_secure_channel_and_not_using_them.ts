@@ -3,7 +3,6 @@
  */
 import "should";
 import { spawn } from "node:child_process";
-import path from "node:path";
 import chalk from "chalk";
 import {
     ClientSecureChannelLayer,
@@ -18,6 +17,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
+import { compiledHelper } from "../test_helpers/paths.js";
 
 // _secureChannel (private impl field) and its transport's underlying raw socket (not part of
 // the public IClientTransport surface) are reached here only to simulate an abrupt connection
@@ -234,7 +234,7 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
         let launches = 0;
         async function launchCrashingClient() {
             launches++;
-            const server_script = path.join(__dirname, "../dist/test_helpers/crashing_client");
+            const server_script = compiledHelper("crashing_client");
             await new Promise<void>((resolve) => {
                 const child = spawn("node", [server_script, String(port)], {});
                 child.on("close", () => resolve());

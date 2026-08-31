@@ -23,6 +23,11 @@ export function scratch(...segments: string[]): string {
     return path.join(packageRoot, ...segments);
 }
 
+/** a fixture under test_fixtures/, where this package's sample nodesets live */
+export function testFixture(...segments: string[]): string {
+    return path.join(packageRoot, "test_fixtures", ...segments);
+}
+
 /** somewhere under test/, where a suite's inputs live */
 export function testPath(...segments: string[]): string {
     return path.join(packageRoot, "test", ...segments);
