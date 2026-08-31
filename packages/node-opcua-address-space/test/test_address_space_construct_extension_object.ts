@@ -10,7 +10,6 @@
 //
 
 import fs from "node:fs";
-import path from "node:path";
 import { assert } from "node-opcua-assert";
 import { VariableIds } from "node-opcua-constants";
 import { AccessLevelFlag, AttributeIds, accessLevelFlagToString, makeAccessLevelFlag, NodeClass } from "node-opcua-data-model";
@@ -20,6 +19,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { WriteValue } from "node-opcua-service-write";
 import { StatusCodes } from "node-opcua-status-code";
+import { modelingFile } from "node-opcua-test-helpers";
 import { ServerState } from "node-opcua-types";
 import { get_clock_tick } from "node-opcua-utils";
 import { DataType, Variant } from "node-opcua-variant";
@@ -44,7 +44,7 @@ describe("testing address space namespace loading", function (this: Mocha.Suite)
     let namespace: Namespace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        const xml_files = [nodesets.standard, path.join(__dirname, "../../../", "modeling/my_data_type.xml")];
+        const xml_files = [nodesets.standard, modelingFile("my_data_type.xml")];
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
 

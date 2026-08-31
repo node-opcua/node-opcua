@@ -8,11 +8,11 @@ import { PermissionType, X509IdentityToken } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import "should";
 
+import { samplesCertificateFolder } from "node-opcua-test-helpers";
 import { type AddressSpace, makeRoles, SessionContext } from "..";
-
 import { getMiniAddressSpace, makeMockSessionContext } from "../testHelpers.js";
 
-const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
+const certificateFolder = samplesCertificateFolder;
 
 describe("SessionContext", () => {
     let addressSpace: AddressSpace;

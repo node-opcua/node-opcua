@@ -8,6 +8,7 @@ import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "no
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
+import { samplesCertificateFolder } from "node-opcua-test-helpers";
 import should from "should";
 import { OPCUABaseServer, OPCUAServerEndPoint } from "..";
 
@@ -248,7 +249,7 @@ describe("OPCUAServerEndpoint#getEndpointDescription", function (this: Mocha.Sui
     });
 });
 
-const samplesCertFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
+const samplesCertFolder = samplesCertificateFolder;
 const certFile2048 = path.join(samplesCertFolder, "server_cert_2048.pem");
 const certFile1024 = path.join(samplesCertFolder, "server_cert_1024.pem");
 

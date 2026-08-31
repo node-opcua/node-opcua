@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { type ExtraDataTypeManager, resolveOpaqueStructureInExtensionObject } from "node-opcua-client-dynamic-extension-object";
 import { AccessLevelFlag, AttributeIds } from "node-opcua-data-model";
@@ -10,6 +9,7 @@ import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import { getFixture } from "node-opcua-test-fixtures";
+import { modelingFile } from "node-opcua-test-helpers";
 import { EnumDefinition } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
@@ -246,7 +246,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
 
     it("VU10 should load a nodeset from UAModeler", async () => {
         const xml_file1 = nodesets.standard; // getAddressSpaceFixture("mini.Nodeset2.xml");
-        const xml_file2 = path.join(__dirname, "../../../modeling/my_data_type.xml");
+        const xml_file2 = modelingFile("my_data_type.xml");
         const xml_files = [xml_file1, xml_file2];
         await generateAddressSpace(addressSpace, xml_files);
 
@@ -708,7 +708,7 @@ describe("@A@ Testing loading nodeset with custom basic types", function (this: 
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        const xml_file = path.join(__dirname, "../../../modeling/model_with_custom_datatype.xml");
+        const xml_file = modelingFile("model_with_custom_datatype.xml");
         fs.existsSync(xml_file).should.be.eql(true, ` should find ${xml_file}`);
 
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file]);

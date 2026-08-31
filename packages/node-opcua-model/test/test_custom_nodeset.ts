@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
 import { AddressSpace, adjustNamespaceArray, PseudoSession } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { nodesets } from "node-opcua-nodesets";
@@ -22,12 +21,13 @@ async function test_parse_opcua_common(nodesets: string[]) {
 }
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { modelingFile } from "node-opcua-test-helpers";
 
 describe("testing custom nodeset", function (this: Mocha.Suite) {
     this.timeout(Math.max(30000, this.timeout()));
 
     it("should parse a custom nodeset", async () => {
-        const nodeset_files = [nodesets.standard, path.join(__dirname, "../../../modeling/my_data_type.xml")];
+        const nodeset_files = [nodesets.standard, modelingFile("my_data_type.xml")];
         fs.existsSync(nodeset_files[0]).should.eql(true);
         fs.existsSync(nodeset_files[1]).should.eql(true);
 

@@ -6,6 +6,7 @@ import { exploreCertificate } from "node-opcua-crypto/web";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
+import { samplesCertificateFolder } from "node-opcua-test-helpers";
 import { AddressSpace, instantiateCertificateExpirationAlarm, type UACertificateExpirationAlarmEx } from "../..";
 import { generateAddressSpace } from "../../distNodeJS/index.js";
 
@@ -38,7 +39,7 @@ describe("Test Certificate alarm", function (this: Mocha.Suite) {
     let addressSpace: AddressSpace;
     this.timeout(Math.max(this.timeout(), 100000));
 
-    const demo = path.join(__dirname, "../../../node-opcua-samples/certificates");
+    const demo = samplesCertificateFolder;
     let _not_active_yet: Buffer;
     let out_of_date: Buffer;
     let _revoked: Buffer;
