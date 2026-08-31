@@ -228,8 +228,16 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
  * @return {UAVariable}
  *
  */
+/**
+ * Takes the published UAVariable rather than UAVariableImpl.
+ *
+ * This function is exported from the package entry while UAVariableImpl is not, so naming the
+ * implementation class here made the first overload uncallable from outside - and from the
+ * package's own tests, which hold public types. The `instanceof UAVariableImpl` below still
+ * narrows it at run time; that check is what decides the branch, not the declared type.
+ */
 export function addElement<T extends ExtensionObject>(
-    options: UAVariableImpl | ExtensionObject | Record<string, unknown>,
+    options: UAVariable | ExtensionObject | Record<string, unknown>,
     uaArrayVariableNode: UADynamicVariableArray<T>
 ): UAVariable {
     assert(uaArrayVariableNode, " must provide an UAVariable containing the array");
@@ -268,7 +276,11 @@ export function addElement<T extends ExtensionObject>(
             // extension object has already been created
             extensionObject = options as T;
         } else {
-            extensionObject = addressSpace.constructExtensionObject(uaArrayVariableNode.$$dataType, options) as T;
+            // `instanceof UAVariableImpl` above narrows the class out of the union but not the
+            // UAVariable interface, since a UAVariable need not be that class. Whatever is left
+            // here is the plain options record that constructExtensionObject takes.
+            const optionsRecord = options as Record<string, unknown>;
+            extensionObject = addressSpace.constructExtensionObject(uaArrayVariableNode.$$dataType, optionsRecord) as T;
         }
         const index = uaArrayVariableNode.$$extensionObjectArray?.length || 0;
         browseName = uaArrayVariableNode.$$getElementBrowseName(extensionObject, index);

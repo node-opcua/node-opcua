@@ -5,7 +5,7 @@ import { WriteValue } from "node-opcua-service-write";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
-import { AddressSpace, SessionContext, type UAAnalogItem } from "../..";
+import { type AddressSpace, SessionContext, type UAAnalogItem } from "../..";
 
 const context = SessionContext.defaultContext;
 
@@ -40,7 +40,9 @@ export function subtest_analog_item_semantic_changed(maintest: MainTest): void {
         let analogItem: UAAnalogItem<number, DataType.Double>;
         beforeEach(() => {
             addressSpace = maintest.addressSpace;
-            should(addressSpace).be.instanceof(AddressSpace);
+            // AddressSpace is published as an interface and a factory, with no constructor to
+            // check against, so this asserts that there is one rather than which class it is
+            should.exist(addressSpace);
 
             const objectsFolder = addressSpace.rootFolder.objects;
             objectsFolder.browseName.toString().should.eql("Objects");

@@ -4,7 +4,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 
-import { AddressSpace, type Namespace, SessionContext } from "../..";
+import { type AddressSpace, type Namespace, SessionContext } from "../..";
 
 interface MainTest {
     addressSpace: AddressSpace;
@@ -17,7 +17,9 @@ export function subtest_data_item_PercentDeadband(maintest: MainTest): void {
         before(() => {
             addressSpace = maintest.addressSpace;
             namespace = addressSpace.getOwnNamespace();
-            should(addressSpace).be.instanceof(AddressSpace);
+            // AddressSpace is published as an interface and a factory, with no constructor to
+            // check against, so this asserts that there is one rather than which class it is
+            should.exist(addressSpace);
         });
 
         it("should provide a mechanism to operate PercentDeadband ", async () => {

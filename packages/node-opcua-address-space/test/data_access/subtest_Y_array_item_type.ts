@@ -4,7 +4,7 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 
-import { AddressSpace, type Namespace, type UAFolder } from "../..";
+import type { AddressSpace, Namespace, UAFolder } from "../..";
 
 interface MainTest {
     addressSpace: AddressSpace;
@@ -18,7 +18,9 @@ export function subtest_Y_array_item_type(maintest: MainTest): void {
         before(() => {
             addressSpace = maintest.addressSpace;
             namespace = addressSpace.getOwnNamespace();
-            should(addressSpace).be.instanceof(AddressSpace);
+            // AddressSpace is published as an interface and a factory, with no constructor to
+            // check against, so this asserts that there is one rather than which class it is
+            should.exist(addressSpace);
         });
 
         let objectsFolder: UAFolder;

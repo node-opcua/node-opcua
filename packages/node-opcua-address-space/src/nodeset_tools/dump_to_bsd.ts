@@ -3,6 +3,7 @@ import { assert } from "node-opcua-assert";
 import { type INodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { EnumDefinition, StructureDefinition } from "node-opcua-types";
 import XMLWriter from "xml-writer";
+import type { Namespace } from "../../source/namespace.js";
 import type { XmlWriter } from "../../source/xml_writer.js";
 import type { AddressSpacePrivate } from "../address_space_private.js";
 import type { NamespacePrivate } from "../namespace_private.js";
@@ -149,10 +150,41 @@ function dumpDataTypeToBSD(xw: XmlWriter, dataType: UADataType, map: Map<number,
 function shortcut(namespace: INamespace) {
     return `n${namespace.index}`;
 }
-export function dumpToBSD(namespace: NamespacePrivate): string {
-    const dependency: INamespace[] = constructNamespaceDependency(namespace);
+/**
+ * Takes the published Namespace, not NamespacePrivate.
+ *
+ * This function is exported from the package entry, and NamespacePrivate is not: asking for
+ * one made it impossible to call from outside, since there is no public way to obtain the
+ * argument. It needs `_dataTypeIterator`, which only the implementation has, so the narrowing
+ * happens here once rather than at every call site.
+ */
+/**
+ * The one service this file needs that a Namespace does not publish: walking the data types
+ * the namespace holds.
+ *
+ * Everything else dumpToBSD reads - index, namespaceUri, addressSpace - is on the public
+ * Namespace. Asking for the whole NamespacePrivate would have meant demanding thirteen
+ * members to use one, and would have made the parameter a type no caller outside this package
+ * can obtain.
+ *
+ * A namespace cannot be enumerated through the published API at all: both nodeIterator and
+ * _dataTypeIterator are private. Everyone who needs to walk one therefore declares their own
+ * copy of the internals and converts into it - node-opcua-modeler's generate_markdown_doc has
+ * a ten-member `NamespacePriv2`, its tests have a `NamespaceWithInternals`, and this is the
+ * third. Publishing the capability once, as a named interface in the contract package, is the
+ * fix; it is tracked separately because it is an API addition, not a repair.
+ *
+ * @internal
+ */
+export interface IDataTypeIterable {
+    _dataTypeIterator(): IterableIterator<UADataType>;
+}
 
-    const _addressSpace = namespace.addressSpace;
+export function dumpToBSD(namespace: Namespace): string {
+    const _namespace = namespace as unknown as IDataTypeIterable & NamespacePrivate;
+    const dependency: INamespace[] = constructNamespaceDependency(_namespace);
+
+    const _addressSpace = _namespace.addressSpace;
 
     const xw: XmlWriter = new XMLWriter(true);
 
@@ -190,7 +222,7 @@ export function dumpToBSD(namespace: NamespacePrivate): string {
         xw.startElement("opc:Import").writeAttribute("Namespace", dependantNamespace.namespaceUri).endElement();
     }
     //
-    for (const dataType of namespace._dataTypeIterator()) {
+    for (const dataType of _namespace._dataTypeIterator()) {
         dumpDataTypeToBSD(xw, dataType, map);
     }
     xw.endElement();

@@ -1,6 +1,5 @@
 import chalk from "chalk";
 import {
-    AddressSpace,
     AttributeIds,
     makeBrowsePath,
     type NodeId,
@@ -63,7 +62,8 @@ async function start_external_server(test: UmbrellaTestContext, options: IStartS
 async function start_internal_server(test: UmbrellaTestContext, options: OPCUAServerOptions) {
     test.server = await build_server_with_temperature_device(options);
 
-    should(test.server.engine.addressSpace).instanceOf(AddressSpace);
+    // asserts that there is one, not which class it is: AddressSpace is published as an
+    // interface plus a factory, and does not expose a constructor to check against
     if (!test.server.engine.addressSpace) {
         throw new Error("AddressSpace not found");
     }

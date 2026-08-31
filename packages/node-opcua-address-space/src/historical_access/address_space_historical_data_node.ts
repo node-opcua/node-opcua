@@ -29,8 +29,8 @@ import {
 } from "node-opcua-service-history";
 import { type CallbackT, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-import { historizerFactoryHolder } from "../historizer_factory.js";
 import type { AddressSpacePrivate } from "../address_space_private.js";
+import { historizerFactoryHolder } from "../historizer_factory.js";
 import { UAVariableImpl } from "../ua_variable_impl.js";
 
 const warningLog = make_warningLog("address_space_historical_data_node");
