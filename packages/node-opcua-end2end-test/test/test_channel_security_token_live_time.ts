@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
 import "should";
 import {
     type ClientSecureChannelLayer,
@@ -18,7 +17,7 @@ interface ClientWithSecureChannel extends OPCUAClient {
 }
 
 function getFixture(file: string) {
-    file = path.join(__dirname, "../../node-opcua-address-space/test_helpers/test_fixtures", file);
+    file = packagePath("node-opcua-address-space", "test_helpers", "test_fixtures", file);
     fs.existsSync(file).should.be.eql(true);
     return file;
 }
@@ -30,6 +29,7 @@ const _doDebug = checkDebugFlag("TEST");
 const port = 2041;
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { packagePath } from "node-opcua-test-helpers";
 
 describe("Testing ChannelSecurityToken lifetime", function (this: Mocha.Runnable) {
     this.timeout(Math.max(100000, this.timeout()));

@@ -14,13 +14,14 @@ import { MessageSecurityMode, OPCUACertificateManager, OPCUAClient, OPCUAServer,
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import "mocha";
+import { scratch } from "../../test_helpers/paths.js";
 
 const port = 20913;
 
 describe("End-to-End: encrypted-at-rest private key on both server and client", function (this: Mocha.Suite) {
     this.timeout(60000);
 
-    const tmpFolder = path.join(__dirname, "../../tmp_encrypted_private_key_test");
+    const tmpFolder = scratch("tmp_encrypted_private_key_test");
 
     before(() => {
         if (fs.existsSync(tmpFolder)) {

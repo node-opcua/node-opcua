@@ -13,6 +13,7 @@ import {
 } from "node-opcua";
 import { OpaqueStructure } from "node-opcua-extension-object";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { packagePath } from "node-opcua-test-helpers";
 
 const port = 2024; // use a unit port number to allow test serialization
 describe("issue_1436", function (this: Mocha.Suite) {
@@ -20,10 +21,7 @@ describe("issue_1436", function (this: Mocha.Suite) {
 
     let server: OPCUAServer;
     before(async () => {
-        const fixtureFolder = path.join(
-            __dirname,
-            "../../../node-opcua-address-space/test_helpers/test_fixtures/fixtures-for-1436"
-        );
+        const fixtureFolder = packagePath("node-opcua-address-space", "test_helpers", "test_fixtures", "fixtures-for-1436");
         const serverOptions: OPCUAServerOptions = {
             port,
             nodeset_filename: [

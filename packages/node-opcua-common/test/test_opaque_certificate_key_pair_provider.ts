@@ -1,6 +1,5 @@
 import "mocha";
 import nodeCrypto from "node:crypto";
-import path from "node:path";
 import { type IKeyOperations, keyOperationsFromPrivateKey, PrivateKeyUnavailableError } from "node-opcua-crypto";
 import type { KeyMetadata, PrivateKey } from "node-opcua-crypto/web";
 import "should";
@@ -8,9 +7,10 @@ import { getKeyOperationsFromProvider } from "../source/local_key_operations_pro
 import { OpaqueCertificateKeyPairProvider } from "../source/opaque_certificate_key_pair_provider.js";
 import { type ICertificateKeyPairProvider, OPCUASecureObject } from "../source/opcua_secure_object.js";
 import { resolvePrivateKeyProviderIfNeeded } from "../source/resolve_private_key_provider.js";
+import { testPath } from "./paths.js";
 
 // a pre-generated self-signed certificate: only its parseability matters here
-const fixtureCertificateFile = path.join(__dirname, "fixture_certificate.pem");
+const fixtureCertificateFile = testPath("fixture_certificate.pem");
 
 function makeLocalOps(): { ops: IKeyOperations; privateKey: PrivateKey } {
     const { privateKey } = nodeCrypto.generateKeyPairSync("rsa", { modulusLength: 2048 });

@@ -14,7 +14,6 @@ import { nodesets } from "node-opcua-nodesets";
 import { randomBytes } from "node-opcua-utils";
 import should from "should";
 import sinon from "sinon";
-
 import {
     type AbstractFs,
     ClientFile,
@@ -26,6 +25,7 @@ import {
     readOPCUAFile,
     writeOPCUAFile
 } from "..";
+import { testPath } from "./paths.js";
 
 ["with File object methods", "with FileType methods", "with memory file system"].forEach((message) => {
     const useGlobalMethod = !!message.match(/FileType/);
@@ -438,7 +438,7 @@ import {
             const clientFile = new ClientFile(session, opcuaFile2.nodeId) as unknown as IClientFilePriv;
             await clientFile.ensureInitialized();
 
-            const filepath = path.join(__dirname, "foo.txt");
+            const filepath = testPath("foo.txt");
 
             const callSpy = sinon.spy(session, "call");
             await writeOPCUAFile(clientFile, filepath, { chunkSize: 102 });

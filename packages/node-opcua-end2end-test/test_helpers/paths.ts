@@ -37,6 +37,14 @@ export { modelingFile };
 // The three that call sites already had a local name for are exported as plain paths, so
 // adopting them is a deletion at the call site rather than a rename.
 
+/**
+ * Somewhere under the package root that a test writes into. A plain path: these suites
+ * create and remove the directory themselves.
+ */
+export function scratch(...segments: string[]): string {
+    return path.join(packageRoot, ...segments);
+}
+
 /** where a test writes files it generates */
 export const tmpFolder = path.join(packageRoot, "tmp");
 

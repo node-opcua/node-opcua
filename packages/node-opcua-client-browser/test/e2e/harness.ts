@@ -13,6 +13,7 @@ import { readFileSync, statSync } from "node:fs";
 import { createServer as createHttpServer, type Server as HttpServer } from "node:http";
 import { extname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { findUp } from "node-opcua-test-helpers";
 
 export interface StaticServer {
     url: string;
@@ -29,7 +30,7 @@ export interface HarnessContext {
     stopAll: () => Promise<void>;
 }
 
-const packageDir = resolve(__dirname, "..", "..");
+const packageDir = findUp(__dirname, "package.json");
 const pageDistDir = resolve(packageDir, "test", "page", "dist");
 
 const MIME_BY_EXT: Record<string, string> = {

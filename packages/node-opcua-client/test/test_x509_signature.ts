@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
 import { promisify } from "node:util";
 import "mocha";
 import { assert } from "node-opcua-assert";
@@ -37,7 +36,7 @@ interface FakeUserTokenPolicy {
 }
 
 function readMessage(name: string): Buffer {
-    const filename = path.join(__dirname, "./fixtures", name);
+    const filename = testPath("fixtures", name);
     const text = fs.readFileSync(filename, "utf-8");
     const message = makeBufferFromTrace(text);
     return message;
