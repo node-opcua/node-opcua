@@ -12,8 +12,7 @@ import { DataType } from "node-opcua-variant";
 import sinon from "sinon";
 import { ServerEngine } from "../source/server_engine.js";
 import { Subscription } from "../source/server_subscription.js";
-
-const { getFakePublishEngine } = require("./helper_fake_publish_engine");
+import { getFakePublishEngine } from "./helper_fake_publish_engine.js";
 
 const fake_publish_engine = getFakePublishEngine();
 

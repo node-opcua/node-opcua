@@ -1,7 +1,7 @@
 // Fixture: TypeScript with leaked timer — proves tsx + leak combo exits
 import assert from "node:assert";
 
-const { describeWithLeakDetector } = require("../../src/resource_leak_detector");
+import { describeWithLeakDetector } from "../../index.js";
 
 describeWithLeakDetector("fixture-tsx-leaked", () => {
     it("TypeScript test with leaked timer", () => {

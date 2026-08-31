@@ -1,5 +1,5 @@
-const { getBuiltInType, hasBuiltInType, findBuiltInType } = require("..");
-require("should");
+import { findBuiltInType, getBuiltInType, hasBuiltInType } from "..";
+import "should";
 
 describe("basic types: hasBuiltInType", () => {
     it("hasBuiltInType ", () => {

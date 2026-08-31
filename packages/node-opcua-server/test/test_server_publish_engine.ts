@@ -40,13 +40,12 @@ import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 import sinon from "sinon";
 import { ServerSidePublishEngine, Subscription, type SubscriptionOptions, SubscriptionState } from "../source/index.js";
+import { add_mock_monitored_item } from "./helper.js";
 
 const property =
     <K extends string>(key: K) =>
     <T extends { [P in K]: unknown }>(obj: T): T[K] =>
         obj[key];
-
-const { add_mock_monitored_item } = require("./helper");
 
 function makeSubscription(options: SubscriptionOptions) {
     const subscription1 = new Subscription(options);

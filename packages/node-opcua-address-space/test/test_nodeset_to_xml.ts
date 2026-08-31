@@ -10,13 +10,12 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { ThreeDCartesianCoordinates } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import XMLWriter from "xml-writer";
 import { AddressSpace, type BaseNode, type Namespace, type UARootFolder, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
 import { createBoilerType, getMiniAddressSpace } from "../testHelpers.js";
-
-const XMLWriter = require("xml-writer");
-const { createTemperatureSensorType } = require("./fixture_temperature_sensor_type");
-const { createCameraType } = require("./fixture_camera_type");
+import { createCameraType } from "./fixture_camera_type.js";
+import { createTemperatureSensorType } from "./fixture_temperature_sensor_type.js";
 
 interface BaseNodeWithDumpXML {
     dumpXML(xw: unknown): void;

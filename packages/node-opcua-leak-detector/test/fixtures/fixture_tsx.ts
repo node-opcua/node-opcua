@@ -1,7 +1,7 @@
 // Fixture: TypeScript test — requires tsx to load
 import assert from "node:assert";
 
-const { describeWithLeakDetector } = require("../../src/resource_leak_detector");
+import { describeWithLeakDetector } from "../../index.js";
 
 describeWithLeakDetector("fixture-tsx", () => {
     it("runs TypeScript syntax", () => {

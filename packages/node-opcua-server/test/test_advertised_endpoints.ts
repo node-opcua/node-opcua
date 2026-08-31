@@ -5,6 +5,7 @@ import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { UserTokenType } from "node-opcua-service-endpoints";
 import "should";
 
+import { getIpAddresses } from "node-opcua-hostname";
 import { OPCUAServer } from "../source/index.js";
 import { type AdvertisedEndpointConfig, normalizeAdvertisedEndpoints, parseOpcTcpUrl } from "../source/server_end_point.js";
 import { createServerCertificateManager } from "./create_server_certificate_manager.js";
@@ -610,7 +611,6 @@ describe("US-AE-18: IP/hostname segregation in cert SAN", () => {
 
 describe("getIpAddresses", () => {
     it("should return valid non-internal IPv4 addresses (if any)", () => {
-        const { getIpAddresses } = require("node-opcua-hostname");
         const ips: string[] = getIpAddresses();
         // In CI/container environments there may be no non-loopback interfaces
         for (const ip of ips) {

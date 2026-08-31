@@ -3,8 +3,7 @@ import "should";
 import { assert } from "node-opcua-assert";
 import { readPrivateKey } from "node-opcua-crypto";
 import { makeMessageChunkSignature, verifyChunkSignature } from "node-opcua-crypto/web";
-
-const { getFixture } = require("node-opcua-test-fixtures");
+import { getFixture } from "node-opcua-test-fixtures";
 
 function construct_makeMessageChunkSignatureForTest() {
     const privateKey = readPrivateKey(getFixture("certs/server_key_1024.pem"));

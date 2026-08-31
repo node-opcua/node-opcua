@@ -2,6 +2,11 @@ import path from "node:path";
 import { OPCUACertificateManager, OPCUAClientBase, OPCUAServer } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { TestHarness } from "./helpers/harness.js";
+import { t as tDiscoveryServer } from "./u_test_discovery_server.js";
+import { t as tFrequentServerRestart } from "./u_test_frequent_server_restart.js";
+import { t as tMultipleDiscoveryServersAndMdns } from "./u_test_multiple_discovery_servers_and_mdns.js";
+import { t as tOpcuaClientServerFindservers } from "./u_test_opcua_ClientServer_findservers.js";
+import { t as tRegistrationServerManager } from "./u_test_registration_server_manager.js";
 
 describe("testing DiscoveryServer - Umbrella ", function (this: Mocha.Runnable & TestHarness) {
     before(async () => {
@@ -35,9 +40,9 @@ describe("testing DiscoveryServer - Umbrella ", function (this: Mocha.Runnable &
     });
 
     // typescripts tests starts here...
-    require("./u_test_discovery_server").t(this);
-    require("./u_test_frequent_server_restart").t(this);
-    require("./u_test_multiple_discovery_servers_and_mdns").t(this);
-    require("./u_test_opcua_ClientServer_findservers").t(this);
-    require("./u_test_registration_server_manager").t(this);
+    tDiscoveryServer(this);
+    tFrequentServerRestart(this);
+    tMultipleDiscoveryServersAndMdns(this);
+    tOpcuaClientServerFindservers(this);
+    tRegistrationServerManager(this);
 });

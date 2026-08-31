@@ -52,7 +52,12 @@ const stepInfo = (str: string) => {
         console.log(chalk.yellow("   --> ") + chalk.cyan(str));
     }
 };
-export function t(test: AlarmConditionsTestContext) {
+export function t(umbrellaTest: UmbrellaTestContext) {
+    // given_an_installed_event_monitored_item attaches monitoredItem1 and the spy, and the
+    // demo alarm fixture attaches the IAlarmTestData fields. Both belong to this module, so
+    // the widening happens here rather than at the caller: t() can only ask for what an
+    // umbrella is able to hand it.
+    const test = umbrellaTest as AlarmConditionsTestContext;
     describe("A&C monitoring conditions", () => {
         let client: OPCUAClient;
 

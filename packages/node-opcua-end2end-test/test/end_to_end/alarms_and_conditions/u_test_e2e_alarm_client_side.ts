@@ -82,7 +82,10 @@ function displayAlarms(alarms: ClientAlarmList) {
     console.log("-----");
 }
 
-export function t(test: AlarmTestContext) {
+export function t(umbrellaTest: UmbrellaTestContext) {
+    // construct_demo_alarm_in_address_space attaches the IAlarmTestData fields, and it is
+    // this module that calls it, so the widening belongs here and not at the caller.
+    const test = umbrellaTest as AlarmTestContext;
     describe("A&C3 client side alarm monitoring", () => {
         let client: OPCUAClient;
         function resetConditions(test: AlarmTestContext) {
