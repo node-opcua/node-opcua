@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
 import type { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
@@ -8,6 +7,7 @@ import { DataType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 interface AddressSpaceWithExtraDataTypeManager {
     $$extraDataTypeManager: ExtraDataTypeManager | undefined;
@@ -29,7 +29,7 @@ interface UADataTypeWithExtensionObjectConstructor {
  *   "Cannot read properties of undefined (reading 'getExtensionObjectConstructorFromDataType')".
  */
 describe("generateAddressSpace resilience to malformed <Value> in a nodeset", () => {
-    const xmlFile = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_mismatched_value_datatype.xml");
+    const xmlFile = getAddressSpaceFixture("nodeset_with_mismatched_value_datatype.xml");
     fs.existsSync(xmlFile).should.eql(true, `should find ${xmlFile}`);
 
     let addressSpace: AddressSpace;

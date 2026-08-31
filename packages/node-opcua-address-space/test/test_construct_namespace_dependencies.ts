@@ -13,6 +13,7 @@ import {
     type IAddressSpace
 } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 import { makeBoiler } from "../testHelpers.js";
 
 const tmpFolder = path.join(__dirname, "../tmp");
@@ -207,7 +208,7 @@ describe("constructNamespaceDependency with self referencing structures", functi
         addressSpace = AddressSpace.create();
         addressSpace.registerNamespace("Private");
         // WwMessageArgumentValueDataType owns a field of its own type
-        const recursiveNodeset = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_recursive_structure.xml");
+        const recursiveNodeset = getAddressSpaceFixture("dataType_with_recursive_structure.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, recursiveNodeset]);
     });
     after(() => {

@@ -1,4 +1,3 @@
-import path from "node:path";
 import "should";
 
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -10,6 +9,7 @@ import { EndpointConfiguration, ServerDiagnosticsSummaryDataType, ServiceCounter
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { AddressSpace, SessionContext, type UAObject, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 describe("#899 Variable with NodeId Value in nodeset2.xml", () => {
     let addressSpace: AddressSpace;
@@ -19,7 +19,7 @@ describe("#899 Variable with NodeId Value in nodeset2.xml", () => {
         await generateAddressSpace(addressSpace, [
             nodesets.standard,
             nodesets.di,
-            path.join(__dirname, "../test_helpers/test_fixtures/issue_899_variable_with_nodeid_value.xml")
+            getAddressSpaceFixture("issue_899_variable_with_nodeid_value.xml")
         ]);
     });
 
@@ -59,10 +59,7 @@ describe("#846 Various Variable Value in nodeset2.xml", () => {
     before(async () => {
         addressSpace = AddressSpace.create();
 
-        await generateAddressSpace(addressSpace, [
-            nodesets.standard,
-            path.join(__dirname, "../test_helpers/test_fixtures/issue_846.xml")
-        ]);
+        await generateAddressSpace(addressSpace, [nodesets.standard, getAddressSpaceFixture("issue_846.xml")]);
 
         iotChannelSet = addressSpace.findNode("ns=1;i=5003") as UAObject;
         propertySet = addressSpace.findNode("ns=1;i=5004") as UAObject;

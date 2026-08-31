@@ -1,11 +1,11 @@
 import fs from "node:fs";
-import path from "node:path";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { getFixture } from "node-opcua-test-fixtures";
 import should from "should";
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 describe("testing address space namespace", () => {
     it("#getNamespaceUri : should have namespace 0", () => {
@@ -30,7 +30,7 @@ describe("testing address space namespace", () => {
 describe("testing address space namespace loading", function (this: Mocha.Suite) {
     it("PIO1 should process namespaces and translate namespace index when loading node set xml files", async () => {
         const addressSpace = AddressSpace.create();
-        const xml_files = [path.join(__dirname, "../nodesets/mini.Nodeset2.xml"), getFixture("fixture_custom_nodeset.xml")];
+        const xml_files = [getAddressSpaceFixture("mini.Nodeset2.xml"), getFixture("fixture_custom_nodeset.xml")];
         fs.existsSync(xml_files[0]).should.be.eql(true);
         fs.existsSync(xml_files[1]).should.be.eql(true);
         // xx fs.existsSync(xml_files[2]).should.be.eql(true,"invalid file : "+ xml_files[2]);
@@ -67,7 +67,7 @@ describe("testing address space namespace loading", function (this: Mocha.Suite)
     it("should process multiple xml files that reference each other", async () => {
         const addressSpace = AddressSpace.create();
         const xml_files = [
-            path.join(__dirname, "../nodesets/mini.Nodeset2.xml"),
+            getAddressSpaceFixture("mini.Nodeset2.xml"),
             getFixture("fixture_custom_nodeset.xml"),
             getFixture("fixture_custom_nodeset_extension.xml")
         ];

@@ -1,4 +1,3 @@
-import path from "node:path";
 import "should";
 import { LocalizedText, type QualifiedName } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -20,6 +19,7 @@ import {
     type UAVariable
 } from "../..";
 import { generateAddressSpace } from "../../nodeJS.js";
+import { getAddressSpaceFixture } from "../../test_helpers/get_address_space_fixture.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -34,7 +34,7 @@ describe("FSM1 - Finite State Machine - general tests", () => {
 
         const xml_files = [
             // opcua.mini_nodeset_filename,
-            path.join(__dirname, "../../test_helpers/test_fixtures/fixture_simple_statemachine_nodeset2.xml")
+            getAddressSpaceFixture("fixture_simple_statemachine_nodeset2.xml")
         ];
         await generateAddressSpace(addressSpace, xml_files);
     });

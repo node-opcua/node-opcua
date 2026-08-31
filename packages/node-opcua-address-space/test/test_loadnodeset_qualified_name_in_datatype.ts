@@ -1,11 +1,11 @@
 import fs from "node:fs";
-import path from "node:path";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { AddressSpace, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 const _debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
@@ -22,7 +22,7 @@ describe("testing NodeSet XML file loading special data structure", function (th
     });
 
     it("should load a nodeset xml file", async () => {
-        const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_qualifiedname.xml");
+        const xml_file = getAddressSpaceFixture("dataType_with_qualifiedname.xml");
 
         fs.existsSync(xml_file).should.be.eql(true);
 

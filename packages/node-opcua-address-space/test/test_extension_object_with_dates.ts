@@ -1,4 +1,3 @@
-import path from "node:path";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import type { CallMethodResultOptions } from "node-opcua-types";
@@ -6,6 +5,7 @@ import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type ISessionContext, SessionContext, type UAMethod, type UAObject, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 describe("Testing loading nodeset with extension objects containing DateTime values", function (this: Mocha.Suite) {
     this.timeout(200000);
@@ -13,7 +13,7 @@ describe("Testing loading nodeset with extension objects containing DateTime val
     let addressSpace: AddressSpace;
     const context = SessionContext.defaultContext;
 
-    const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/extension_object_with_dates.xml");
+    const xml_file = getAddressSpaceFixture("extension_object_with_dates.xml");
 
     beforeEach(async () => {
         addressSpace = AddressSpace.create();

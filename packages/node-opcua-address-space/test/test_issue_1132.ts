@@ -1,10 +1,10 @@
-import path from "node:path";
 import "should";
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 describe("#1132 Variable  ExtensionObject containing NodeId in nodeset2.xml", () => {
     let addressSpace: AddressSpace;
@@ -14,7 +14,7 @@ describe("#1132 Variable  ExtensionObject containing NodeId in nodeset2.xml", ()
         await generateAddressSpace(addressSpace, [
             nodesets.standard,
             nodesets.di,
-            path.join(__dirname, "../test_helpers/test_fixtures/issue_1132_variable_with_nodeid_value.xml")
+            getAddressSpaceFixture("issue_1132_variable_with_nodeid_value.xml")
         ]);
     });
 

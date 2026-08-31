@@ -1,4 +1,3 @@
-import path from "node:path";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
@@ -7,6 +6,7 @@ import should from "should";
 import type { UAVariable } from "..";
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 describe("Testing loadNodeSet - edge cases", async function (this: Mocha.Suite) {
     this.timeout(200000); // could be slow on appveyor !
@@ -35,10 +35,7 @@ describe("Testing loadNodeSet - edge cases", async function (this: Mocha.Suite) 
     });
 
     it("LNSEC-2 should load a nodeset containing special encoded characters such as ö ë ñ ü", async () => {
-        const nodeset_with_special_characters = path.join(
-            __dirname,
-            "../test_helpers/test_fixtures/nodeset_with_utf8_special_characters.xml"
-        );
+        const nodeset_with_special_characters = getAddressSpaceFixture("nodeset_with_utf8_special_characters.xml");
 
         await generateAddressSpace(addressSpace, [nodesets.standard, nodeset_with_special_characters]);
 
@@ -62,18 +59,18 @@ describe("Testing loadNodeSet - edge cases", async function (this: Mocha.Suite) 
     });
 
     it("LNSEC-3 -  should load a nodeset2.xml that has no Aliases section", async () => {
-        const nodeset = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_no_aliases.xml");
+        const nodeset = getAddressSpaceFixture("nodeset_no_aliases.xml");
 
         await generateAddressSpace(addressSpace, [nodesets.standard, nodeset]);
     });
     it("LNSEC-4 -  should load a nodeset2.xml that has no Aliases section", async () => {
-        const nodeset = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_no_aliases_with_aliases.xml");
+        const nodeset = getAddressSpaceFixture("nodeset_no_aliases_with_aliases.xml");
 
         await generateAddressSpace(addressSpace, [nodesets.standard, nodeset]);
     });
 
     it("LNSEC-5 -  should load a nodeset2.xml  has Maxtrix variable with missing values", async () => {
-        const nodeset = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_matrix_variable_and_missing_values.xml");
+        const nodeset = getAddressSpaceFixture("nodeset_with_matrix_variable_and_missing_values.xml");
 
         await generateAddressSpace(addressSpace, [nodesets.standard, nodeset]);
     });
@@ -85,7 +82,7 @@ describe("Testing loadNodeSet - edge cases", async function (this: Mocha.Suite) 
         //   encodingByte 0xcc | ArraySize 0 | ArrayDimensions [11,1]
         // which violates the OPC UA spec (ArrayLength must equal product(dimensions)). node-opcua's
         // own decoder rejects it with "inconsistent matrix", and strict clients stall on it.
-        const nodeset = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_matrix_variable_and_missing_values.xml");
+        const nodeset = getAddressSpaceFixture("nodeset_with_matrix_variable_and_missing_values.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, nodeset]);
 
         const uaVariable = addressSpace.findNode("ns=1;i=1250") as UAVariable;
@@ -109,12 +106,12 @@ describe("Testing loadNodeSet - edge cases", async function (this: Mocha.Suite) 
         }).should.not.throw();
     });
     it("LNSEC-6-  should load a nodeset2.xml  with recursive DataType", async () => {
-        const nodeset = path.join(__dirname, "../test_helpers/test_fixtures/datatype_recursive.xml");
+        const nodeset = getAddressSpaceFixture("datatype_recursive.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, /* makesure not in second position*/ nodeset]);
     });
     it("LNSEC-7-  should load a nodeset2.xml  with recursive DataType", async () => {
-        const nodeset2 = path.join(__dirname, "../test_helpers/test_fixtures/datatype_recursive2.xml");
-        const nodeset1 = path.join(__dirname, "../test_helpers/test_fixtures/datatype_recursive.xml");
+        const nodeset2 = getAddressSpaceFixture("datatype_recursive2.xml");
+        const nodeset1 = getAddressSpaceFixture("datatype_recursive.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodeset1, nodeset2]);
     });
 });

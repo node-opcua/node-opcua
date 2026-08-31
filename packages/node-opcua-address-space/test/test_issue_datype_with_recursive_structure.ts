@@ -1,16 +1,16 @@
-import path from "node:path";
 import "should";
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 describe("Loading nodeset.xml with recursive DataType", () => {
     it("should load a custom ExtensionObject", async () => {
         const addressSpace = AddressSpace.create();
 
-        const example = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_recursive_structure.xml");
+        const example = getAddressSpaceFixture("dataType_with_recursive_structure.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, example]);
         const nsAcme = addressSpace.getNamespaceIndex("http://acme");
         const dataType = addressSpace.findDataType("WwMessageArgumentValueDataType", nsAcme)!;

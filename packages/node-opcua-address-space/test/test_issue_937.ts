@@ -1,4 +1,3 @@
-import path from "node:path";
 import "should";
 
 import { AttributeIds, coerceInt64toInt32 } from "node-opcua-basic-types";
@@ -8,6 +7,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, type UADataType, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 describe("Enum with negative values #937", () => {
     it("should load a nodeset.xml file containing enums with negative values", async () => {
@@ -16,7 +16,7 @@ describe("Enum with negative values #937", () => {
         await generateAddressSpace(addressSpace, [
             nodesets.standard,
             nodesets.di,
-            path.join(__dirname, "../test_helpers/test_fixtures/issue937_min_enum.nodeset2.xml")
+            getAddressSpaceFixture("issue937_min_enum.nodeset2.xml")
         ]);
         addressSpace.dispose();
     });
@@ -26,7 +26,7 @@ describe("Enum with negative values #937", () => {
         await generateAddressSpace(addressSpace, [
             nodesets.standard,
             nodesets.di,
-            path.join(__dirname, "../test_helpers/test_fixtures/issue937_max_enum.nodeset2.xml")
+            getAddressSpaceFixture("issue937_max_enum.nodeset2.xml")
         ]);
         addressSpace.dispose();
     });
@@ -38,7 +38,7 @@ describe("Enum with negative values #937", () => {
 
         await generateAddressSpace(addressSpace, [
             nodesets.standard,
-            path.join(__dirname, "../test_helpers/test_fixtures/issue937_negative_enum_values.nodeset2.xml")
+            getAddressSpaceFixture("issue937_negative_enum_values.nodeset2.xml")
         ]);
         // console.log(addressSpace.getNamespaceArray().map((a) => a.namespaceUri));
 

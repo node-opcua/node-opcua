@@ -9,9 +9,10 @@ import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { AddressSpace, type Namespace, PseudoSession } from "../..";
 import { generateAddressSpace } from "../../distNodeJS/index.js";
+import { getAddressSpaceFixture } from "../../test_helpers/get_address_space_fixture.js";
 
 describe("issue_1436", function (this: Mocha.Suite) {
-    const fixtureFolder = path.join(__dirname, "../../test_helpers/test_fixtures/fixtures-for-1436");
+    const fixtureFolder = getAddressSpaceFixture("fixtures-for-1436");
     const nodesetFilename = [
         nodesets.standard,
         path.join(fixtureFolder, "test_issue_1436_base.xml"),

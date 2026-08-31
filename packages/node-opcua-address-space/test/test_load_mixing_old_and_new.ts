@@ -6,6 +6,7 @@ import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { AddressSpace, PseudoSession, type UADataType } from "..";
 import { generateAddressSpace } from "../distNodeJS/index.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 describe("Testing address space with old and new nodeset", () => {
     let addressSpace: AddressSpace;
@@ -19,7 +20,7 @@ describe("Testing address space with old and new nodeset", () => {
 
     it("should create a server with old and new nodeset - A", async () => {
         const new_opcua = nodesets.standard;
-        const old = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_102_datatype.xml");
+        const old = getAddressSpaceFixture("nodeset_with_102_datatype.xml");
 
         await generateAddressSpace(addressSpace, [new_opcua, old]);
         addressSpace.registerNamespace("urn:OWN");

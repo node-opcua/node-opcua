@@ -1,10 +1,10 @@
 import fs from "node:fs";
-import path from "node:path";
 import "should";
 
 import h from "humanize";
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
+import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
 function dumpMemoryUse() {
     if (process.memoryUsage) {
@@ -34,7 +34,7 @@ function callGarbageCollector() {
 describe("Testing AddressSpace memory Leaks", function (this: Mocha.Suite) {
     this.timeout(Math.max(120 * 1000, this.timeout()));
 
-    const xml_file = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
+    const xml_file = getAddressSpaceFixture("mini.Nodeset2.xml");
     fs.existsSync(xml_file).should.be.eql(true, "cannot find mini node set");
 
     it("It should dispose an address_space", async () => {
