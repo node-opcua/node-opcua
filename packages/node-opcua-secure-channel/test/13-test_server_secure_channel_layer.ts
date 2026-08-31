@@ -70,7 +70,7 @@ async function terminiateSecureChannelLayer(serverSecureChannel: ServerSecureCha
 
 const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-const _debugLog = make_debugLog(__filename);
+const _debugLog = make_debugLog("13-test_server_secure_channel_layer");
 
 describe("testing ServerSecureChannelLayer ", function (this: Mocha.Context) {
     this.timeout(Math.max(10000, this.timeout()));

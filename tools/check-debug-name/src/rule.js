@@ -25,6 +25,19 @@ export const IGNORE_MARKER = "check-debug-name: ok";
 export const SOURCE_ROOTS = ["packages", "packages_extra"];
 export const SOURCE_DIRS = ["source", "src"];
 
+/**
+ * Test trees are not published, but they run, and `__filename` does not exist in an ES
+ * module. A package that flips takes its own suite down with it, so the rule has to reach
+ * here too.
+ */
+export const TEST_DIRS = ["test", "test_helpers", "test_fixtures"];
+
+export const SCOPES = {
+    source: SOURCE_DIRS,
+    tests: TEST_DIRS,
+    all: [...SOURCE_DIRS, ...TEST_DIRS]
+};
+
 const SKIP_DIRS = new Set(["node_modules", "dist", "dist-esm", "coverage", "build"]);
 
 /**
@@ -102,7 +115,7 @@ export function fixText(text, filePath) {
 }
 
 /** every shipped source file under the given roots */
-export function findSourceFiles(repoRoot = ".", packageFilter) {
+export function findSourceFiles(repoRoot = ".", packageFilter, dirs = SOURCE_DIRS) {
     const files = [];
     for (const root of SOURCE_ROOTS) {
         const full = path.join(repoRoot, root);
@@ -116,7 +129,7 @@ export function findSourceFiles(repoRoot = ".", packageFilter) {
             if (packageFilter && pkg.name !== packageFilter) {
                 continue;
             }
-            for (const dir of SOURCE_DIRS) {
+            for (const dir of dirs) {
                 walk(path.join(full, pkg.name, dir), files);
             }
         }
@@ -141,8 +154,8 @@ function walk(dir, out) {
 }
 
 /** scan; with { write: true } the fixable violations are rewritten in place */
-export function analyze({ repoRoot = ".", packageFilter, write = false } = {}) {
-    const files = findSourceFiles(repoRoot, packageFilter);
+export function analyze({ repoRoot = ".", packageFilter, write = false, scope = "source" } = {}) {
+    const files = findSourceFiles(repoRoot, packageFilter, SCOPES[scope] ?? SOURCE_DIRS);
     const findings = [];
     let fixedCount = 0;
     let fixedFiles = 0;
