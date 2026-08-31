@@ -18,6 +18,7 @@ export { ConstructNodeIdOptions, NodeIdManager } from "../src/nodeid_manager.js"
 export * from "../src/nodeset_tools/construct_namespace_dependency.js";
 export * from "../src/private_namespace.js";
 export { validateDataTypeCorrectness } from "../src/validate_data_type_correctness.js";
+export * from "./address_space_public.js";
 export * from "./address_space_ts.js";
 export { ContinuationPointManager } from "./continuation_points/continuation_point_manager.js";
 export { adjustBrowseDirection } from "./helpers/adjust_browse_direction.js";

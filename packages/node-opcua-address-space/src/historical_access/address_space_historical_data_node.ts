@@ -29,7 +29,7 @@ import {
 } from "node-opcua-service-history";
 import { type CallbackT, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace } from "../../source/address_space_ts.js";
+import { historizerFactoryHolder } from "../historizer_factory.js";
 import type { AddressSpacePrivate } from "../address_space_private.js";
 import { UAVariableImpl } from "../ua_variable_impl.js";
 
@@ -710,7 +710,11 @@ export function AddressSpace_installHistoricalDataNode(
     node: UAVariableImpl,
     options?: IVariableHistorianOptions
 ): void {
-    AddressSpace.historizerFactory = AddressSpace.historizerFactory || {
+    // install the default historian on first use. This used to read and write the static of
+    // the stub AddressSpace declared in the type surface, which is not the class consumers
+    // reach through the package entry: assigning AddressSpace.historizerFactory had no effect
+    // on what actually ran.
+    historizerFactoryHolder.factory = historizerFactoryHolder.factory || {
         create(node1: UAVariable, options1: IVariableHistorianOptions) {
             return new VariableHistorian(node1, options1);
         }
@@ -730,7 +734,7 @@ export function AddressSpace_installHistoricalDataNode(
     node._historyReadRaw = _historyReadRaw;
     node._historyReadRawAsync = _historyReadRawAsync;
 
-    node.varHistorian = historianOptions.historian || AddressSpace.historizerFactory.create(node, historianOptions);
+    node.varHistorian = historianOptions.historian || historizerFactoryHolder.factory.create(node, historianOptions);
 
     const historicalDataConfigurationType = addressSpace.findObjectType("HistoricalDataConfigurationType");
     if (!historicalDataConfigurationType) {

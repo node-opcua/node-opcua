@@ -55,10 +55,12 @@ import type {
 import { BrowsePath, BrowsePathResult } from "node-opcua-types";
 import { isNullOrUndefined, lowerFirstLetter, randomBytes } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, type VariantOptions, type VariantT } from "node-opcua-variant";
+import type { IHistorizerFactory } from "../source/address_space_ts.js";
 import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction.js";
 import type { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor.js";
 import type { UARootFolder } from "../source/ua_root_folder.js";
 import type { AddressSpacePrivate } from "./address_space_private.js";
+import { historizerFactoryHolder } from "./historizer_factory.js";
 import { UAAcknowledgeableConditionImplBase, UAConditionImplBase } from "./alarms_and_conditions/index.js";
 import { BaseNodeImpl } from "./base_node_impl.js";
 import { EventData } from "./event_data.js";
@@ -90,7 +92,7 @@ const enumerationTypeNodeId = coerceNodeId(DataTypeIds.Enumeration);
  * @returns A tuple containing the NamespacePrivate and the browse name as a string.
  */
 function _extract_namespace_and_browse_name_as_string(
-    addressSpace: AddressSpace,
+    addressSpace: AddressSpaceImpl,
     browseNameOrNodeId: NodeIdLike | QualifiedName,
     namespaceIndex?: number
 ): [NamespacePrivate, string] {
@@ -149,15 +151,14 @@ function isNodeIdString(str: unknown): boolean {
 }
 
 /**
- * `AddressSpace` is a collection of UA nodes.
+ * The implementation behind `AddressSpace`.
  *
- *     const addressSpace = AddressSpace.create();
+ * Consumers reach it as {@link AddressSpace}, whose type shows `create` and
+ * `historizerFactory` and nothing else. Everything here beyond those two is machinery.
+ *
+ * @internal
  */
-export interface IHistorizerFactory {
-    create(node: UAVariable, options: IVariableHistorianOptions): IVariableHistorian;
-}
-
-export class AddressSpace implements AddressSpacePrivate {
+export class AddressSpaceImpl implements AddressSpacePrivate {
     public get rootFolder(): UARootFolder {
         const rootFolder = this.findNode(this.resolveNodeId("RootFolder"));
         if (!rootFolder) {
@@ -168,10 +169,21 @@ export class AddressSpace implements AddressSpacePrivate {
     }
 
     public static isNonEmptyQualifiedName = isNonEmptyQualifiedName;
-    public static historizerFactory?: IHistorizerFactory;
 
-    public static create(): AddressSpace {
-        return new AddressSpace();
+    /**
+     * Reads and writes reach the module that the historical-access code also reads, so
+     * assigning here actually takes effect. It used to be a plain static, while the code that
+     * consumed it read the static of a different AddressSpace class altogether.
+     */
+    public static get historizerFactory(): IHistorizerFactory | undefined {
+        return historizerFactoryHolder.factory;
+    }
+    public static set historizerFactory(factory: IHistorizerFactory | undefined) {
+        historizerFactoryHolder.factory = factory;
+    }
+
+    public static create(): AddressSpaceImpl {
+        return new AddressSpaceImpl();
     }
 
     private static registry = new ObjectRegistry();
@@ -200,7 +212,7 @@ export class AddressSpace implements AddressSpacePrivate {
         this._namespaceArray = [];
         // special namespace 0 is reserved for the UA namespace
         this.registerNamespace("http://opcfoundation.org/UA/");
-        AddressSpace.registry.register(this);
+        AddressSpaceImpl.registry.register(this);
     }
 
     public toJSON(): Record<string, string | number | undefined> {
@@ -1083,7 +1095,7 @@ export class AddressSpace implements AddressSpacePrivate {
      */
     public dispose(): void {
         this._namespaceArray.map((namespace: NamespacePrivate) => namespace.dispose());
-        AddressSpace.registry.unregister(this);
+        AddressSpaceImpl.registry.unregister(this);
         /* c8 ignore next */
         if (this._shutdownTask && this._shutdownTask.length > 0) {
             throw new Error("AddressSpace#dispose : shutdown has not been called");
@@ -1268,13 +1280,13 @@ export class AddressSpace implements AddressSpacePrivate {
     public modelChangeTransaction(func: () => void): void {
         this._modelChangeTransactionCounter = this._modelChangeTransactionCounter || 0;
 
-        function beginModelChange(this: AddressSpace) {
+        function beginModelChange(this: AddressSpaceImpl) {
             this._modelChanges = this._modelChanges || [];
             assert(this._modelChangeTransactionCounter >= 0);
             this._modelChangeTransactionCounter += 1;
         }
 
-        function endModelChange(this: AddressSpace) {
+        function endModelChange(this: AddressSpaceImpl) {
             this._modelChangeTransactionCounter -= 1;
 
             if (this._modelChangeTransactionCounter === 0) {
@@ -1434,7 +1446,7 @@ export class AddressSpace implements AddressSpacePrivate {
         if (dataType === 0) {
             return NodeId.nullNodeId;
         }
-        return this._coerce_Type(dataType, DataTypeIds, "DataTypeIds", AddressSpace.prototype.findDataType);
+        return this._coerce_Type(dataType, DataTypeIds, "DataTypeIds", AddressSpaceImpl.prototype.findDataType);
     }
 
     public _coerceTypeDefinition(typeDefinition: string | NodeId): NodeId {
@@ -1490,7 +1502,7 @@ export class AddressSpace implements AddressSpacePrivate {
     }
 
     public _coerce_VariableTypeIds(dataType: NodeId | string | BaseNode): NodeId {
-        return this._coerce_Type(dataType, VariableTypeIds, "VariableTypeIds", AddressSpace.prototype.findVariableType);
+        return this._coerce_Type(dataType, VariableTypeIds, "VariableTypeIds", AddressSpaceImpl.prototype.findVariableType);
     }
 
     public _register(node: BaseNode): void {
@@ -1521,7 +1533,7 @@ export class AddressSpace implements AddressSpacePrivate {
         dataType: BaseNode | string | NodeId | number,
         typeMap: Record<string, number | string>,
         typeMapName: string,
-        finderMethod: (this: AddressSpace, nodeId: NodeId) => BaseNode | null
+        finderMethod: (this: AddressSpaceImpl, nodeId: NodeId) => BaseNode | null
     ): NodeId {
         if (typeof dataType === "number") {
             return this._coerce_Type(coerceNodeId(dataType), typeMap, typeMapName, finderMethod);
@@ -1590,12 +1602,12 @@ export class AddressSpace implements AddressSpacePrivate {
     }
 }
 
-function _getNamespace(addressSpace: AddressSpace, nodeOrNodId: BaseNode | NodeId): NamespacePrivate {
+function _getNamespace(addressSpace: AddressSpaceImpl, nodeOrNodId: BaseNode | NodeId): NamespacePrivate {
     const nodeId: NodeId = nodeOrNodId instanceof BaseNodeImpl ? nodeOrNodId.nodeId : (nodeOrNodId as NodeId);
     return addressSpace.getNamespace(nodeId.namespace);
 }
 
-function _find_by_node_id<T extends BaseNode>(addressSpace: AddressSpace, nodeId: NodeId, _namespaceIndex?: number): T {
+function _find_by_node_id<T extends BaseNode>(addressSpace: AddressSpaceImpl, nodeId: NodeId, _namespaceIndex?: number): T {
     const obj = addressSpace.findNode(nodeId);
     return obj as T;
 }
@@ -1607,7 +1619,7 @@ function _find_by_node_id<T extends BaseNode>(addressSpace: AddressSpace, nodeId
  * @return {Boolean}
  * @private
  */
-function _isFolder(addressSpace: AddressSpace, folder: UAObject): boolean {
+function _isFolder(addressSpace: AddressSpaceImpl, folder: UAObject): boolean {
     const folderType = addressSpace.findObjectType("FolderType") as UAObjectType;
     assert(folder instanceof BaseNodeImpl);
     assert(folder.typeDefinitionObj);

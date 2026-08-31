@@ -62,7 +62,7 @@ import { DataType, VariantArrayType } from "node-opcua-variant";
 import { dumpReferenceDescriptions, dumpReferences } from "../source/helpers/dump_tools.js";
 import { SessionContext, WellKnownRolesNodeId } from "../source/session_context.js";
 import type { XmlWriter } from "../source/xml_writer.js";
-import type { AddressSpace } from "../src/address_space.js";
+import type { AddressSpaceImpl } from "./address_space.js";
 import { _handle_add_reference_change_event } from "./address_space_change_event_tools.js";
 import type { AddressSpacePrivate } from "./address_space_private.js";
 import {
@@ -172,7 +172,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         if (!_private) {
             throw new Error(`Internal error , cannot extract private data from ${this.browseName.toString()}`);
         }
-        return _private.__address_space as AddressSpace;
+        return _private.__address_space as AddressSpaceImpl;
     }
 
     protected get addressSpacePrivate(): AddressSpacePrivate {
