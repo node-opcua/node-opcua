@@ -5,9 +5,9 @@ import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory"
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { StructureDefinition } from "node-opcua-types";
 import { ExtraDataTypeManager } from "../source/extra_data_type_manager.js";
-
-const { StructureDefinition } = require("node-opcua-types");
+import { serverImplementsDataTypeDefinition } from "../source/populate_data_type_manager.js";
 
 enum NodeClass {
     Object = 1,
@@ -340,7 +340,6 @@ describe("ExtraDataTypeManager Lazy Loading Robust", () => {
     });
 
     it("should optimize serverImplementsDataTypeDefinition", async () => {
-        const { serverImplementsDataTypeDefinition } = require("../source/populate_data_type_manager");
         const addressSpace = new MockAddressSpace();
 
         const structureRootId = resolveNodeId(DataTypeIds.Structure);

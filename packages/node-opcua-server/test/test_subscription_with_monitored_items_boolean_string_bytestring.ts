@@ -17,13 +17,12 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import sinon from "sinon";
 
-import { ServerEngine, Subscription, type SubscriptionOptions } from "..";
+import { ServerEngine, Subscription, type SubscriptionOptions } from "../source/index.js";
+import { getFakePublishEngine } from "./helper_fake_publish_engine.js";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
 const _context = SessionContext.defaultContext;
-
-const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 
 const fake_publish_engine = getFakePublishEngine();
 

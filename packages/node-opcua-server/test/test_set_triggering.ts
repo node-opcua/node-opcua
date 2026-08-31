@@ -24,6 +24,7 @@ import {
     type SubscriptionOptions,
     SubscriptionState
 } from "../source/index.js";
+import { getFakePublishEngine } from "./helper_fake_publish_engine.js";
 
 function makeSubscription(options: SubscriptionOptions) {
     const subscription1 = new Subscription(options);
@@ -33,7 +34,6 @@ function makeSubscription(options: SubscriptionOptions) {
     return subscription1;
 }
 
-const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
 const doDebug = false;

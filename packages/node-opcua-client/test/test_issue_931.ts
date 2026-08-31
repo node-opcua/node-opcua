@@ -4,7 +4,8 @@ import { MessageSecurityMode, OPCUAClient, type OPCUAClientOptions, SecurityPoli
 
 const debugLog = make_debugLog("TEST");
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 async function wait(t: number) {
     return await new Promise((resolve) => setTimeout(resolve, t));
 }

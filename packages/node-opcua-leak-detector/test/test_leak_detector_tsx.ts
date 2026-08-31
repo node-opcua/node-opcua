@@ -15,7 +15,7 @@
 
 import assert from "node:assert";
 
-const { describeWithLeakDetector: _describeWithLeakDetector } = require("../src/resource_leak_detector");
+import { describeWithLeakDetector as _describeWithLeakDetector } from "../index.js";
 
 // These tests intentionally leak timers that only the detector
 // cleans up. Without it the process hangs — skip entirely.

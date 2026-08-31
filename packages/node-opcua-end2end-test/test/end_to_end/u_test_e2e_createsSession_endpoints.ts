@@ -51,7 +51,8 @@ async function testCreateSessionResponse(
     // console.log("c", createSessionResponse.toString());
     return { createSessionResponse };
 }
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 export function t(test: { endpointUrl: string }) {
     describe("PP1 CreateSessionResponse endpoints", () => {

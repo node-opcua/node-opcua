@@ -2,13 +2,13 @@ import fs from "node:fs";
 import path from "node:path";
 import "should";
 
+import h from "humanize";
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
 
 function dumpMemoryUse() {
     if (process.memoryUsage) {
         const m = process.memoryUsage();
-        const h = require("humanize");
         console.log(
             " memoryUsage = ",
             " rss =",

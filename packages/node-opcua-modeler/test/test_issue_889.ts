@@ -1,8 +1,8 @@
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { AddressSpace, adjustNamespaceArray, PseudoSession, type UADataType } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-
 import { assert } from "node-opcua-assert";
 import { DataTypeExtractStrategy, ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import type { EnumerationDefinitionSchema, StructureInfo } from "node-opcua-factory";
@@ -10,7 +10,6 @@ import { nodesets } from "node-opcua-nodesets";
 import { BrowseDescription } from "node-opcua-types";
 import should from "should";
 import { spy } from "sinon";
-
 import {
     addExtensionObjectDataType,
     BrowseDirection,
@@ -103,7 +102,6 @@ describe("loading very large DataType Definitions ", function (this: Mocha.Suite
         }
 
         const xml = namespace.toNodeset2XML();
-        const fs = require("node:fs");
         const tmpFile = path.join(os.tmpdir(), "tmp_1.xml");
         await fs.promises.writeFile(tmpFile, xml, "utf-8");
         /* to be completed */

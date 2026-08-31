@@ -1,12 +1,12 @@
 import "should";
 import { QualifiedName } from "node-opcua-data-model";
 import { makeNodeId, resolveNodeId } from "node-opcua-nodeid";
+import sinon from "sinon";
 import { makeRelativePath, RelativePathElement } from "..";
 
 describe("makeRelativePath", () => {
     const hierarchicalReferenceTypeNodeId = resolveNodeId("HierarchicalReferences");
     const aggregatesReferenceTypeNodeId = resolveNodeId("Aggregates");
-    const sinon = require("sinon");
 
     it("MRP-01 should construct simple RelativePath for '/' ", () => {
         const relativePath = makeRelativePath("/");
@@ -153,7 +153,6 @@ describe("makeRelativePath", () => {
     //  finds targets with BrowseName = ‘1:Boiler’. From there follows any hierarchical
     // Reference and find targets with BrowseName = ‘1:HeatSensor’.
     it("MRP-11 should construct simple RelativePath for '<1:ConnectedTo>1:Boiler/1:HeatSensor'", () => {
-        const sinon = require("sinon");
         const addressSpace = {
             findReferenceType: sinon.stub().returns(makeNodeId(555, 1))
         };
@@ -182,7 +181,6 @@ describe("makeRelativePath", () => {
     //  Follows any forward Reference with a BrowseName = ‘1:ConnectedTo’ and finds targets
     // with BrowseName = ‘1:Boiler’. From there it finds all targets of hierarchical References.
     it("MRP-12 should construct simple RelativePath for '<1:ConnectedTo>1:Boiler/'", () => {
-        const sinon = require("sinon");
         const addressSpace = {
             findReferenceType: sinon.stub().returns(makeNodeId(555, 1))
         };

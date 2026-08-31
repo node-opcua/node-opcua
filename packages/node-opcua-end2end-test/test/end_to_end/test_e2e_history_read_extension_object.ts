@@ -34,7 +34,7 @@ interface RfidScanResultLike {
     scanData: { epc: { PC: number } };
 }
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const port = 2248;
 
