@@ -75,20 +75,20 @@ describe("test convertStructureTypeSchemaToStructureDefinition", () => {
         customUnionType.structureType.should.eql(StructureType.Union);
         customUnionType.baseDataType.toString().should.eql("ns=0;i=0");
 
-        customUnionType.fields?.length.should.eql(2);
+        should(customUnionType.fields?.length).eql(2);
 
-        customUnionType.fields?.[0].name?.should.eql("foo");
-        customUnionType.fields?.[0].dataType.toString().should.eql(resolveNodeId(DataType.UInt32).toString());
-        customUnionType.fields?.[0].valueRank.should.eql(-1);
-        customUnionType.fields?.[0].arrayDimensions?.should.eql([]);
-        customUnionType.fields?.[1].isOptional.should.eql(false);
+        should(customUnionType.fields?.[0].name).eql("foo");
+        should(customUnionType.fields?.[0].dataType.toString()).eql(resolveNodeId(DataType.UInt32).toString());
+        should(customUnionType.fields?.[0].valueRank).eql(-1);
+        should(customUnionType.fields?.[0].arrayDimensions).eql([]);
+        should(customUnionType.fields?.[1].isOptional).eql(false);
         should(customUnionType.fields?.[0].description.text).eql(null);
 
-        customUnionType.fields?.[1].name?.should.eql("bar");
-        customUnionType.fields?.[1].dataType.toString().should.eql(resolveNodeId(DataType.String).toString());
-        customUnionType.fields?.[1].valueRank.should.eql(-1);
-        customUnionType.fields?.[1].arrayDimensions?.should.eql([]);
-        customUnionType.fields?.[1].isOptional.should.eql(false);
+        should(customUnionType.fields?.[1].name).eql("bar");
+        should(customUnionType.fields?.[1].dataType.toString()).eql(resolveNodeId(DataType.String).toString());
+        should(customUnionType.fields?.[1].valueRank).eql(-1);
+        should(customUnionType.fields?.[1].arrayDimensions).eql([]);
+        should(customUnionType.fields?.[1].isOptional).eql(false);
         should(customUnionType.fields?.[1].description.text).eql(null);
 
         // ----------------------------------------------------------------------- CustomStructType
@@ -99,18 +99,18 @@ describe("test convertStructureTypeSchemaToStructureDefinition", () => {
         customStructType.structureType.should.eql(StructureType.Structure);
         customStructType.baseDataType.toString().should.eql("ns=0;i=0");
 
-        customStructType.fields?.length.should.eql(5);
+        should(customStructType.fields?.length).eql(5);
 
-        customStructType.fields?.[0].name?.should.eql("foo");
-        customStructType.fields?.[0].dataType.toString().should.eql(resolveNodeId("String").toString());
-        customStructType.fields?.[1].name?.should.eql("bar");
-        customStructType.fields?.[1].dataType.toString().should.eql(resolveNodeId("UInt32").toString());
-        customStructType.fields?.[2].name?.should.eql("baz");
-        customStructType.fields?.[2].dataType.toString().should.eql(resolveNodeId("Boolean").toString());
-        customStructType.fields?.[3].name?.should.eql("fiz");
-        customStructType.fields?.[3].dataType.toString().should.eql("ns=0;i=0".toString());
-        customStructType.fields?.[4].name?.should.eql("poc");
-        customStructType.fields?.[4].dataType.toString().should.eql("ns=1;i=1".toString());
+        should(customStructType.fields?.[0].name).eql("foo");
+        should(customStructType.fields?.[0].dataType.toString()).eql(resolveNodeId("String").toString());
+        should(customStructType.fields?.[1].name).eql("bar");
+        should(customStructType.fields?.[1].dataType.toString()).eql(resolveNodeId("UInt32").toString());
+        should(customStructType.fields?.[2].name).eql("baz");
+        should(customStructType.fields?.[2].dataType.toString()).eql(resolveNodeId("Boolean").toString());
+        should(customStructType.fields?.[3].name).eql("fiz");
+        should(customStructType.fields?.[3].dataType.toString()).eql("ns=0;i=0".toString());
+        should(customStructType.fields?.[4].name).eql("poc");
+        should(customStructType.fields?.[4].dataType.toString()).eql("ns=1;i=1".toString());
     });
 
     it("should convert a enumeration with unicode characters", async () => {

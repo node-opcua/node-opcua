@@ -1,6 +1,6 @@
-import "should";
 import { BrowseDirection, NodeId, NodeIdType, OPCUAClient, StatusCodes } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
@@ -33,12 +33,12 @@ export function t(test: UmbrellaTestContext) {
                 const browseResult = await session.browse(browseDesc);
 
                 browseResult.should.have.property("references");
-                browseResult.references?.should.be.an.Array();
-                browseResult.references?.should.not.be.empty();
+                should(browseResult.references).be.an.Array();
+                should(browseResult.references).not.be.empty();
                 browseResult.statusCode.should.eql(StatusCodes.Good);
 
                 const nodeIds = browseResult.references?.map((r) => r.nodeId.toString());
-                nodeIds!.should.containEql(`ns=1;s=${guidLikeString}`);
+                should(nodeIds).containEql(`ns=1;s=${guidLikeString}`);
             });
         });
     });

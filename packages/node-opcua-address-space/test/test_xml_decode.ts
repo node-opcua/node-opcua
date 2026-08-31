@@ -1,10 +1,10 @@
 import util from "node:util";
-import "should";
 import { coerceNodeId, type NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { StructureDefinition } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { Xml2Json } from "node-opcua-xml2json";
+import should from "should";
 
 import { AddressSpace } from "..";
 import { makeXmlExtensionObjectReader } from "../dist/source/loader/make_xml_extension_object_parser.js";
@@ -71,8 +71,8 @@ describe("test xml decode", () => {
         const pojo = parser2.parseString(xmlBody);
         console.log(util.inspect(pojo, { colors: true, depth: 10 }));
         (pojo.certificates as Buffer[]).length.should.eql(2);
-        (pojo.certificates as Buffer[])[0]?.toString("utf-8").should.eql("Hello");
-        (pojo.certificates as Buffer[])[1]?.toString("utf-8").should.eql("World");
+        should((pojo.certificates as Buffer[])[0]?.toString("utf-8")).eql("Hello");
+        should((pojo.certificates as Buffer[])[1]?.toString("utf-8")).eql("World");
         (pojo.url as string).should.eql("http://10.0.19.124");
     });
 

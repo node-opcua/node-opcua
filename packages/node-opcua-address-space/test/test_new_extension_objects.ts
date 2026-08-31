@@ -105,7 +105,7 @@ describe("Test Extension Object in pure 1.04 version - DataType deriving from Da
         const nsA = addressSpace.getNamespaceIndex("http://A");
         const dataTypeNodeId = addressSpace.findDataType("MyCustomDataType", nsA);
         should.exist(dataTypeNodeId);
-        dataTypeNodeId?.nodeId.toString().should.eql("ns=1;i=3011");
+        should(dataTypeNodeId?.nodeId.toString()).eql("ns=1;i=3011");
         const _o = addressSpace.constructExtensionObject(dataTypeNodeId!, {});
     });
 

@@ -930,10 +930,10 @@ describe("Subscriptions", function (this: Mocha.Suite) {
             subscription.sentNotificationMessageCount.should.equal(2);
 
             const notification1 = _send_response_spy.getCall(0).args[1].notificationMessage!;
-            notification1.sequenceNumber?.should.eql(1);
+            should(notification1.sequenceNumber).eql(1);
 
             const notification2 = _send_response_spy.getCall(1).args[1].notificationMessage!;
-            notification2.sequenceNumber?.should.eql(2);
+            should(notification2.sequenceNumber).eql(2);
 
             subscription.acknowledgeNotification(notification2.sequenceNumber!);
             subscription.sentNotificationMessageCount.should.equal(1);
@@ -975,7 +975,7 @@ describe("Subscriptions", function (this: Mocha.Suite) {
             subscription.sentNotificationMessageCount.should.equal(1);
 
             const notification1 = send_response_spy.getCall(0).args[1].notificationMessage!;
-            notification1.sequenceNumber?.should.eql(1);
+            should(notification1.sequenceNumber).eql(1);
             const seqNum = notification1.sequenceNumber!;
 
             //
@@ -1540,7 +1540,7 @@ describe("Subscription#adjustSamplingInterval", () => {
 
     const fake_node = {
         readAttribute: (context: ISessionContext | null, attributeId: AttributeIds) => {
-            context?.should.be.instanceOf(SessionContext);
+            should(context).be.instanceOf(SessionContext);
             attributeId.should.eql(AttributeIds.MinimumSamplingInterval);
             return new DataValue({ value: { dataType: DataType.Double, value: 0.0 } });
         }

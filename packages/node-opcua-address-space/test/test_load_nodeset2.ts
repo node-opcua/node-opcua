@@ -137,15 +137,15 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
 
         const someVariable = addressSpace.findNode("ns=1;i=2") as UAVariable;
         someVariable.browseName.toString().should.eql("1:SomeVariable");
-        someVariable.userAccessLevel?.should.eql(AccessLevelFlag.CurrentRead);
+        should(someVariable.userAccessLevel).eql(AccessLevelFlag.CurrentRead);
 
         const readOnlyVar = addressSpace.findNode("ns=1;i=3") as UAVariable;
         readOnlyVar.browseName.toString().should.eql("1:SomeReadOnlyVar");
-        readOnlyVar.userAccessLevel?.should.eql(AccessLevelFlag.CurrentRead);
+        should(readOnlyVar.userAccessLevel).eql(AccessLevelFlag.CurrentRead);
 
         const readWriteVar = addressSpace.findNode("ns=1;i=4") as UAVariable;
         readWriteVar.browseName.toString().should.eql("1:SomeReadWriteVar");
-        readWriteVar.userAccessLevel?.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        should(readWriteVar.userAccessLevel).eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
     });
 
     it("VU04 should read predefined values for variables", async () => {
@@ -192,10 +192,10 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
 
         my3x3MatrixType.browseName.toString().should.eql("1:My3x3MatrixType");
 
-        addressSpace.findDataType(my3x3MatrixType.dataType)?.browseName.toString().should.eql("Float");
+        should(addressSpace.findDataType(my3x3MatrixType.dataType)?.browseName.toString()).eql("Float");
 
         my3x3MatrixType.valueRank.should.eql(2);
-        my3x3MatrixType.arrayDimensions?.should.eql([3, 3]);
+        should(my3x3MatrixType.arrayDimensions).eql([3, 3]);
         (my3x3MatrixType as unknown as UAVariableTypeWithValue).value.toString().should.eql(
             new Variant({
                 dataType: "Float",
@@ -206,7 +206,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         const myDoubleArrayType = addressSpace.findVariableType("MyDoubleArrayType", ns) as UAVariableType;
         myDoubleArrayType.browseName.toString().should.eql("1:MyDoubleArrayType");
         myDoubleArrayType.valueRank.should.eql(1);
-        myDoubleArrayType.arrayDimensions?.should.eql([5]);
+        should(myDoubleArrayType.arrayDimensions).eql([5]);
         (myDoubleArrayType as unknown as UAVariableTypeWithValue).value
             .toString()
             .should.eql(new Variant({ dataType: "Double", value: [1, 2, 3, 4, 5] }).toString());
@@ -230,7 +230,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
             _err = err as Error;
         }
         should.exists(_err);
-        _err?.message.should.match(/.*NODE-OPCUA-E.*/);
+        should(_err?.message).match(/.*NODE-OPCUA-E.*/);
     });
     it("VU08 should load a nodeset file with a Models section", async () => {
         const xml_file1 = getAddressSpaceFixture("minimalist_nodeset_with_models.xml");
@@ -396,13 +396,13 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         dataType.browseName.toString().should.eql("3DFrame");
         dataType.symbolicName.toString().should.eql("ThreeDFrame");
 
-        dataType.binaryEncoding?.nodeId.toString().should.eql("ns=0;i=18823");
-        dataType.binaryEncodingDefinition?.should.eql("ThreeDFrame");
+        should(dataType.binaryEncoding?.nodeId.toString()).eql("ns=0;i=18823");
+        should(dataType.binaryEncodingDefinition).eql("ThreeDFrame");
 
-        dataType.xmlEncoding?.nodeId.toString().should.eql("ns=0;i=18859");
-        dataType.xmlEncodingDefinition?.should.eql("//xs:element[@name='ThreeDFrame']");
+        should(dataType.xmlEncoding?.nodeId.toString()).eql("ns=0;i=18859");
+        should(dataType.xmlEncodingDefinition).eql("//xs:element[@name='ThreeDFrame']");
 
-        dataType.jsonEncoding?.nodeId.toString().should.eql("ns=0;i=19072");
+        should(dataType.jsonEncoding?.nodeId.toString()).eql("ns=0;i=19072");
 
         // now construct some extension object based on this type....
         const frame = addressSpace.constructExtensionObject(dataType);
@@ -433,8 +433,8 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
         const dataType = addressSpace.findDataType("ANY", nsIndex) as UADataType;
         dataType.nodeId.namespace.should.eql(nsIndex);
         should.exist(dataType.subtypeOf);
-        dataType.subtypeOf?.toString().should.eql("ns=0;i=3");
-        dataType.subtypeOfObj?.nodeId.toString().should.eql("ns=0;i=3");
+        should(dataType.subtypeOf?.toString()).eql("ns=0;i=3");
+        should(dataType.subtypeOfObj?.nodeId.toString()).eql("ns=0;i=3");
         dataType.basicDataType.should.eql(DataType.Byte);
 
         should.throws(() => {
@@ -450,7 +450,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
 
         const HW_SUBMODULE_DataType = addressSpace.findDataType("HW_SUBMODULE", nsIndex) as UADataType;
         HW_SUBMODULE_DataType.nodeId.namespace.should.eql(nsIndex);
-        HW_SUBMODULE_DataType.subtypeOf?.toString().should.eql("ns=2;i=3034");
+        should(HW_SUBMODULE_DataType.subtypeOf?.toString()).eql("ns=2;i=3034");
         HW_SUBMODULE_DataType.basicDataType.should.eql(DataType.UInt16);
     });
 
@@ -466,8 +466,8 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
 
         const dataType = addressSpace.findDataType("F_SYSINFO", nsIndex) as UADataType;
         dataType.nodeId.namespace.should.eql(nsIndex);
-        dataType.subtypeOf?.toString().should.eql(`ns=${nsIndex};i=3500`);
-        dataType.subtypeOfObj?.nodeId.toString().should.eql(`ns=${nsIndex};i=3500`);
+        should(dataType.subtypeOf?.toString()).eql(`ns=${nsIndex};i=3500`);
+        should(dataType.subtypeOfObj?.nodeId.toString()).eql(`ns=${nsIndex};i=3500`);
         dataType.basicDataType.should.eql(DataType.ExtensionObject);
 
         const object = addressSpace.constructExtensionObject(dataType);
@@ -535,8 +535,8 @@ describe("VVA", () => {
             nsIndex
         ) as UADataType;
         connectionEndpointConfigurationDataType.nodeId.namespace.should.eql(nsIndex);
-        connectionEndpointConfigurationDataType.subtypeOf?.toString().should.eql(`ns=${0};i=22`);
-        connectionEndpointConfigurationDataType.subtypeOfObj?.nodeId.toString().should.eql(`ns=${0};i=22`);
+        should(connectionEndpointConfigurationDataType.subtypeOf?.toString()).eql(`ns=${0};i=22`);
+        should(connectionEndpointConfigurationDataType.subtypeOfObj?.nodeId.toString()).eql(`ns=${0};i=22`);
         connectionEndpointConfigurationDataType.basicDataType.should.eql(DataType.ExtensionObject);
     });
 

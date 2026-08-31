@@ -39,7 +39,7 @@ describe("OPC 10000-17: addAlias / removeAlias", () => {
     describe("clause 6.2: the AliasNameType contract", () => {
         it("should use the alias name as the string part of the BrowseName", () => {
             const alias = addAlias(addressSpace, tagVariables, "TI101", sensor);
-            alias.browseName.name!.should.eql("TI101");
+            should(alias.browseName.name).eql("TI101");
         });
 
         it("should give the DisplayName an empty locale and no other locale", () => {
@@ -47,13 +47,13 @@ describe("OPC 10000-17: addAlias / removeAlias", () => {
             // empty locale id and no other locale shall be provided."
             const alias = addAlias(addressSpace, tagVariables, "TI101", sensor);
             alias.displayName.should.have.length(1, "exactly one locale");
-            alias.displayName[0].text!.should.eql("TI101");
+            should(alias.displayName[0].text).eql("TI101");
             should.not.exist(alias.displayName[0].locale, "the locale must be empty");
         });
 
         it("should make the DisplayName equal the BrowseName's string part", () => {
             const alias = addAlias(addressSpace, tagVariables, "TI101", sensor);
-            alias.displayName[0].text!.should.eql(alias.browseName.name!);
+            should(alias.displayName[0].text).eql(alias.browseName.name!);
         });
 
         it("should create at least one AliasFor Reference", () => {
@@ -66,7 +66,7 @@ describe("OPC 10000-17: addAlias / removeAlias", () => {
 
         it("should be an instance of AliasNameType", () => {
             const alias = addAlias(addressSpace, tagVariables, "TI101", sensor);
-            alias.typeDefinitionObj.browseName.name!.should.eql("AliasNameType");
+            should(alias.typeDefinitionObj.browseName.name).eql("AliasNameType");
         });
 
         it("should be Organized by the category", () => {
@@ -225,7 +225,7 @@ describe("OPC 10000-17: addAlias / removeAlias", () => {
         it("should accept a category given by NodeId", () => {
             // by NodeId rather than by node object; still a private category
             const alias = addAlias(addressSpace, tagVariables.nodeId, "TI101", sensor);
-            alias.browseName.name!.should.eql("TI101");
+            should(alias.browseName.name).eql("TI101");
         });
 
         it("should accept a target given by NodeId", () => {

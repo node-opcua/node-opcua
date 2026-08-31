@@ -1,5 +1,6 @@
 import { QualifiedName } from "node-opcua-data-model";
 import { DataType } from "node-opcua-variant";
+import should from "should";
 import type { IAddressSpace, InstantiateObjectOptions, UAMethod, UAObject, UAObjectType, UAVariableT } from "..";
 
 export interface FakeCamera extends UAObject {
@@ -46,7 +47,7 @@ export function createCameraType(addressSpace: IAddressSpace): FakeCameraType {
         ]
     });
 
-    triggerMethod.modellingRule?.should.eql("Mandatory");
+    should(triggerMethod.modellingRule).eql("Mandatory");
     triggerMethod.browseName.toString().should.eql("1:Trigger");
     triggerMethod.browseName.should.eql(new QualifiedName({ name: "Trigger", namespaceIndex: 1 }));
 

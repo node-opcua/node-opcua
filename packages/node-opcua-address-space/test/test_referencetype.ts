@@ -1,4 +1,3 @@
-import "should";
 import { Benchmarker } from "node-opcua-benchmarker";
 import { ReferenceTypeIds } from "node-opcua-constants";
 import { AttributeIds, BrowseDirection, makeNodeClassMask, NodeClass } from "node-opcua-data-model";
@@ -8,6 +7,7 @@ import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { BrowseDescription, type ReferenceDescription } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
+import should from "should";
 
 import {
     type AddressSpace,
@@ -202,7 +202,7 @@ describe("testing ReferenceType", () => {
         serverStatus.browseName.toString().should.equal("ServerStatus");
         serverStatus.nodeId.toString().should.equal("ns=0;i=2256");
 
-        serverStatus.parent?.nodeId.should.equal(server.nodeId);
+        should(serverStatus.parent?.nodeId).equal(server.nodeId);
     });
 
     it("should return 1 refs for browseNode on ServerStatus (BrowseDirection.Reverse)", (done: (err?: Error) => void) => {

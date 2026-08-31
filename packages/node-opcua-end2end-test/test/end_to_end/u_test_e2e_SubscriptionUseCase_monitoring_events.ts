@@ -80,7 +80,7 @@ export function t(test: UmbrellaTestContext): void {
                 });
                 const res = await (session as RawSession).createMonitoredItems(req);
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                res.results![0].statusCode.should.eql(StatusCodes.BadFilterNotAllowed);
+                should(res.results?.[0].statusCode).eql(StatusCodes.BadFilterNotAllowed);
                 should(res.results![0].filterResult).eql(null);
             });
         });
@@ -115,7 +115,7 @@ export function t(test: UmbrellaTestContext): void {
                 });
                 const res = await (session as RawSession).createMonitoredItems(req);
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                res.results![0].statusCode.should.eql(StatusCodes.Good);
+                should(res.results?.[0].statusCode).eql(StatusCodes.Good);
                 should(res.results![0].filterResult).eql(null, "no filter result expected");
             });
         });
@@ -123,7 +123,7 @@ export function t(test: UmbrellaTestContext): void {
         it("ZZ2 should create a monitoredItem on an event with an Event Filter", async () => {
             if (!client) throw new Error("client not initialized");
             const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
-            eventFilter.selectClauses?.length.should.eql(3);
+            should(eventFilter.selectClauses?.length).eql(3);
             await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
                 const itemToMonitor = new ReadValueId({
                     nodeId: resolveNodeId("Server"),
@@ -148,15 +148,15 @@ export function t(test: UmbrellaTestContext): void {
                 });
                 const res = await (session as RawSession).createMonitoredItems(req);
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                res.results![0].statusCode.should.eql(StatusCodes.Good);
+                should(res.results?.[0].statusCode).eql(StatusCodes.Good);
                 should(res.results![0].filterResult).not.eql(null, "filter result expected");
                 const filterResult = res.results![0].filterResult as EventFilterResult;
                 filterResult.should.be.instanceof(EventFilterResult);
-                eventFilter.selectClauses?.length.should.eql(3);
-                filterResult.selectClauseResults?.length.should.eql(eventFilter.selectClauses?.length);
-                filterResult.selectClauseResults?.[0].should.eql(StatusCodes.Good);
-                filterResult.selectClauseResults?.[1].should.eql(StatusCodes.Good);
-                filterResult.selectClauseResults?.[2].should.eql(StatusCodes.Good);
+                should(eventFilter.selectClauses?.length).eql(3);
+                should(filterResult.selectClauseResults?.length).eql(eventFilter.selectClauses?.length);
+                should(filterResult.selectClauseResults?.[0]).eql(StatusCodes.Good);
+                should(filterResult.selectClauseResults?.[1]).eql(StatusCodes.Good);
+                should(filterResult.selectClauseResults?.[2]).eql(StatusCodes.Good);
                 filterResult.whereClauseResult.should.be.instanceof(ContentFilterResult);
             });
         });
@@ -247,7 +247,7 @@ export function t(test: UmbrellaTestContext): void {
                     makeCreateRequest(subscription.subscriptionId, eventFilter)
                 );
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                res.results![0].statusCode.should.eql(StatusCodes.BadFilterElementInvalid);
+                should(res.results?.[0].statusCode).eql(StatusCodes.BadFilterElementInvalid);
             });
         });
 
@@ -260,7 +260,7 @@ export function t(test: UmbrellaTestContext): void {
                     makeCreateRequest(subscription.subscriptionId, eventFilter)
                 );
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                res.results![0].statusCode.should.eql(StatusCodes.BadEventFilterInvalid);
+                should(res.results?.[0].statusCode).eql(StatusCodes.BadEventFilterInvalid);
             });
         });
 
@@ -272,7 +272,7 @@ export function t(test: UmbrellaTestContext): void {
                 const res = await (session as RawSession).createMonitoredItems(
                     makeCreateRequest(subscription.subscriptionId, eventFilter)
                 );
-                res.results![0].statusCode.should.eql(StatusCodes.Good);
+                should(res.results?.[0].statusCode).eql(StatusCodes.Good);
                 const monitoredItemId = res.results![0].monitoredItemId;
 
                 // ... then attempt to modify it to an oversized whereClause -> must be rejected (modify path)
@@ -290,7 +290,7 @@ export function t(test: UmbrellaTestContext): void {
                 });
                 const modifyRes = await (session as RawSession).modifyMonitoredItems(modifyReq);
                 modifyRes.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                modifyRes.results![0].statusCode.should.eql(StatusCodes.BadEventFilterInvalid);
+                should(modifyRes.results?.[0].statusCode).eql(StatusCodes.BadEventFilterInvalid);
             });
         });
 
@@ -312,9 +312,9 @@ export function t(test: UmbrellaTestContext): void {
                 );
                 res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                 // the monitored item is still created; the faulty select clause is reported per-clause
-                res.results![0].statusCode.should.eql(StatusCodes.Good);
+                should(res.results?.[0].statusCode).eql(StatusCodes.Good);
                 const filterResult = res.results![0].filterResult as EventFilterResult;
-                filterResult.selectClauseResults?.[0].should.eql(StatusCodes.BadNodeIdUnknown);
+                should(filterResult.selectClauseResults?.[0]).eql(StatusCodes.BadNodeIdUnknown);
             });
         });
 

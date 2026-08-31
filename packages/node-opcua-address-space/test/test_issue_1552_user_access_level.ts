@@ -77,7 +77,7 @@ describe("issue #1552 - UserAccessLevel through a NodeSet2 round trip", function
 
     it("UAL-1 should write UserAccessLevel when it restricts AccessLevel", () => {
         const variable = addVariable("Restricted", "CurrentRead | CurrentWrite", "CurrentRead");
-        variable.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
+        should(variable.userAccessLevel).eql(AccessLevelFlag.CurrentRead);
 
         const xml = namespace.toNodeset2XML();
         const element = findElementByNodeId(xml, "UAVariable", variable.nodeId.toString());
@@ -134,10 +134,10 @@ describe("issue #1552 - UserAccessLevel through a NodeSet2 round trip", function
         try {
             const reloadedRestricted = reloaded.findNode(restrictedNodeId) as UAVariable;
             reloadedRestricted.accessLevel.should.eql(makeAccessLevelFlag("CurrentRead | CurrentWrite"));
-            reloadedRestricted.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
+            should(reloadedRestricted.userAccessLevel).eql(AccessLevelFlag.CurrentRead);
 
             const reloadedPlain = reloaded.findNode(plainNodeId) as UAVariable;
-            reloadedPlain.userAccessLevel!.should.eql(makeAccessLevelFlag("CurrentRead | CurrentWrite"));
+            should(reloadedPlain.userAccessLevel).eql(makeAccessLevelFlag("CurrentRead | CurrentWrite"));
 
             // a second dump must be identical: the value is now stable, not decaying
             const xml2 = reloaded.getNamespace("http://sterfive.com/UA/UserAccessLevel/").toNodeset2XML();
@@ -151,6 +151,6 @@ describe("issue #1552 - UserAccessLevel through a NodeSet2 round trip", function
     it("UAL-5 should not let UserAccessLevel grant more than AccessLevel", () => {
         // Part 3: UserAccessLevel can only restrict AccessLevel, never widen it
         const variable = addVariable("Widened", "CurrentRead", "CurrentRead | CurrentWrite");
-        variable.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
+        should(variable.userAccessLevel).eql(AccessLevelFlag.CurrentRead);
     });
 });

@@ -65,7 +65,7 @@ describe("ReverseConnect - server endpoint createReverseConnection (RC-SRV)", fu
             );
         });
         should.exist(err);
-        err!.message.should.match(/endpoint url/i);
+        should(err?.message).match(/endpoint url/i);
     });
 
     it("RC-SRV-1b rejects the dial when maxConnections is already reached", async () => {
@@ -96,7 +96,7 @@ describe("ReverseConnect - server endpoint createReverseConnection (RC-SRV)", fu
                 );
             });
             should.exist(err);
-            err!.message.should.match(/maxConnections/);
+            should(err?.message).match(/maxConnections/);
         } finally {
             delete channels.__rc_srv_1_fake;
             endpoint.maxConnections = savedMax;

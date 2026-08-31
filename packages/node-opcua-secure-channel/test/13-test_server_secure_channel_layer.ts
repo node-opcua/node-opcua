@@ -355,7 +355,11 @@ describe("testing ServerSecureChannelLayer ", function (this: Mocha.Context) {
             serverSecureChannel.close(() => {
                 serverSecureChannel.dispose();
                 server_has_emitted_the_abort_message.should.equal(true);
-                err?.message.should.match(/Expecting OpenSecureChannelRequest/);
+                // the abort is reported through the "abort" event, not through init's
+                // callback, which is what FUZZ7 asserts for the same helper. The line that
+                // stood here expected an error message instead, behind a `?.` that meant it
+                // never ran for any of FUZZ4-6, the only callers there have ever been.
+                should.not.exist(err);
                 done();
             });
         });

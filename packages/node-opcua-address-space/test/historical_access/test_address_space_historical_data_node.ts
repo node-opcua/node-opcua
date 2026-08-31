@@ -277,11 +277,11 @@ describe("Testing Historical Data Node", () => {
         const dataValues = (historyReadResult.historyData as HistoryData).dataValues!;
         dataValues.length.should.eql(4);
 
-        dataValues[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 0 }));
+        should(dataValues[0].sourceTimestamp).eql(date_add(today, { seconds: 0 }));
         // no data recorded
-        dataValues[1].sourceTimestamp?.should.eql(date_add(today, { seconds: 4 }));
-        dataValues[2].sourceTimestamp?.should.eql(date_add(today, { seconds: 5 }));
-        dataValues[3].sourceTimestamp?.should.eql(date_add(today, { seconds: 6 }));
+        should(dataValues[1].sourceTimestamp).eql(date_add(today, { seconds: 4 }));
+        should(dataValues[2].sourceTimestamp).eql(date_add(today, { seconds: 5 }));
+        should(dataValues[3].sourceTimestamp).eql(date_add(today, { seconds: 6 }));
     });
 
     describe("HRRM HistoryReadRawModified", () => {
@@ -378,7 +378,7 @@ describe("Testing Historical Data Node", () => {
             dataValues.length.should.eql(1);
             should.not.exist(historyReadResult.continuationPoint, "expecting no continuation points in our case");
 
-            dataValues[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 0 }));
+            should(dataValues[0].sourceTimestamp).eql(date_add(today, { seconds: 0 }));
         });
         it("HRRM-2 should be possible to retrieve the end date of a time series", async () => {
             const historyReadDetails = new ReadRawModifiedDetails({
@@ -399,7 +399,7 @@ describe("Testing Historical Data Node", () => {
             const dataValues = (historyReadResult.historyData as HistoryData).dataValues!;
             dataValues.length.should.eql(1);
             should.not.exist(historyReadResult.continuationPoint, "expecting no continuation points in our case");
-            dataValues[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 6 * 60 }));
+            should(dataValues[0].sourceTimestamp).eql(date_add(today, { seconds: 6 * 60 }));
         });
 
         it(
@@ -426,9 +426,9 @@ describe("Testing Historical Data Node", () => {
                 should.exist(historyReadResult.continuationPoint, "expecting a continuation point in our case");
 
                 const continuationPoint: ContinuationPoint | undefined = historyReadResult.continuationPoint;
-                dataValues[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 0 }));
-                dataValues[1].sourceTimestamp?.should.eql(date_add(today, { seconds: 1 * 60 }));
-                dataValues[2].sourceTimestamp?.should.eql(date_add(today, { seconds: 2 * 60 }));
+                should(dataValues[0].sourceTimestamp).eql(date_add(today, { seconds: 0 }));
+                should(dataValues[1].sourceTimestamp).eql(date_add(today, { seconds: 1 * 60 }));
+                should(dataValues[2].sourceTimestamp).eql(date_add(today, { seconds: 2 * 60 }));
 
                 //  make_first_continuation_read(callback) {
                 const historyReadResult2 = await node.historyRead(context, historyReadDetails, indexRange, dataEncoding, {
@@ -445,9 +445,9 @@ describe("Testing Historical Data Node", () => {
                 should(continuationPoint2).not.eql(null);
                 should(continuationPoint2).eql(continuationPoint);
 
-                dataValues2[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 3 * 60 }));
-                dataValues2[1].sourceTimestamp?.should.eql(date_add(today, { seconds: 4 * 60 }));
-                dataValues2[2].sourceTimestamp?.should.eql(date_add(today, { seconds: 5 * 60 }));
+                should(dataValues2[0].sourceTimestamp).eql(date_add(today, { seconds: 3 * 60 }));
+                should(dataValues2[1].sourceTimestamp).eql(date_add(today, { seconds: 4 * 60 }));
+                should(dataValues2[2].sourceTimestamp).eql(date_add(today, { seconds: 5 * 60 }));
 
                 // make_second_continuation_read(callback) {
                 const historyReadResult3 = await node.historyRead(
@@ -464,7 +464,7 @@ describe("Testing Historical Data Node", () => {
                 dataValues3.length.should.eql(1);
                 should.not.exist(historyReadResult3.continuationPoint, "expecting no continuation point");
 
-                dataValues3[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 6 * 60 }));
+                should(dataValues3[0].sourceTimestamp).eql(date_add(today, { seconds: 6 * 60 }));
 
                 //
                 const historyReadResult4 = await node.historyRead(
@@ -497,13 +497,13 @@ describe("Testing Historical Data Node", () => {
             dataValues.length.should.eql(7);
             should.not.exist(historyReadResult1.continuationPoint, "expecting no continuation points in our case");
 
-            dataValues[6].sourceTimestamp?.should.eql(date_add(today, { seconds: 0 }));
-            dataValues[5].sourceTimestamp?.should.eql(date_add(today, { seconds: 1 * 60 }));
-            dataValues[4].sourceTimestamp?.should.eql(date_add(today, { seconds: 2 * 60 }));
-            dataValues[3].sourceTimestamp?.should.eql(date_add(today, { seconds: 3 * 60 }));
-            dataValues[2].sourceTimestamp?.should.eql(date_add(today, { seconds: 4 * 60 }));
-            dataValues[1].sourceTimestamp?.should.eql(date_add(today, { seconds: 5 * 60 }));
-            dataValues[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 6 * 60 }));
+            should(dataValues[6].sourceTimestamp).eql(date_add(today, { seconds: 0 }));
+            should(dataValues[5].sourceTimestamp).eql(date_add(today, { seconds: 1 * 60 }));
+            should(dataValues[4].sourceTimestamp).eql(date_add(today, { seconds: 2 * 60 }));
+            should(dataValues[3].sourceTimestamp).eql(date_add(today, { seconds: 3 * 60 }));
+            should(dataValues[2].sourceTimestamp).eql(date_add(today, { seconds: 4 * 60 }));
+            should(dataValues[1].sourceTimestamp).eql(date_add(today, { seconds: 5 * 60 }));
+            should(dataValues[0].sourceTimestamp).eql(date_add(today, { seconds: 6 * 60 }));
         });
         it("HRRM-5 should be possible to retrieve values in reverse order (and continuation points)", async () => {
             let continuationPoint: ContinuationPoint | undefined;
@@ -528,9 +528,9 @@ describe("Testing Historical Data Node", () => {
 
             continuationPoint = historyReadResult1.continuationPoint;
 
-            dataValues1[2].sourceTimestamp?.should.eql(date_add(today, { seconds: 4 * 60 }));
-            dataValues1[1].sourceTimestamp?.should.eql(date_add(today, { seconds: 5 * 60 }));
-            dataValues1[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 6 * 60 }));
+            should(dataValues1[2].sourceTimestamp).eql(date_add(today, { seconds: 4 * 60 }));
+            should(dataValues1[1].sourceTimestamp).eql(date_add(today, { seconds: 5 * 60 }));
+            should(dataValues1[0].sourceTimestamp).eql(date_add(today, { seconds: 6 * 60 }));
 
             const historyReadResult2 = await node.historyRead(context, historyReadDetails, indexRange, dataEncoding, {
                 continuationPoint
@@ -542,9 +542,9 @@ describe("Testing Historical Data Node", () => {
 
             continuationPoint = historyReadResult2.continuationPoint;
 
-            dataValues2[2].sourceTimestamp?.should.eql(date_add(today, { seconds: 1 * 60 }));
-            dataValues2[1].sourceTimestamp?.should.eql(date_add(today, { seconds: 2 * 60 }));
-            dataValues2[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 3 * 60 }));
+            should(dataValues2[2].sourceTimestamp).eql(date_add(today, { seconds: 1 * 60 }));
+            should(dataValues2[1].sourceTimestamp).eql(date_add(today, { seconds: 2 * 60 }));
+            should(dataValues2[0].sourceTimestamp).eql(date_add(today, { seconds: 3 * 60 }));
 
             const historyReadResult3 = await node.historyRead(context, historyReadDetails, indexRange, dataEncoding, {
                 continuationPoint
@@ -554,7 +554,7 @@ describe("Testing Historical Data Node", () => {
             dataValues3.length.should.eql(1);
             should.not.exist(historyReadResult3.continuationPoint, "expecting no continuation points in our case");
 
-            dataValues3[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 0 }));
+            should(dataValues3[0].sourceTimestamp).eql(date_add(today, { seconds: 0 }));
         });
         it("HRRM-6 should return some data if endTime & numValuesPerNode, are specified (no startTime)", async () => {
             const indexRange = null;
@@ -575,13 +575,13 @@ describe("Testing Historical Data Node", () => {
             dataValues.length.should.eql(7);
             should.not.exist(historyReadResult1.continuationPoint, "expecting no continuation points in our case");
 
-            dataValues[6].sourceTimestamp?.should.eql(date_add(today, { seconds: 0 }));
-            dataValues[5].sourceTimestamp?.should.eql(date_add(today, { seconds: 1 * 60 }));
-            dataValues[4].sourceTimestamp?.should.eql(date_add(today, { seconds: 2 * 60 }));
-            dataValues[3].sourceTimestamp?.should.eql(date_add(today, { seconds: 3 * 60 }));
-            dataValues[2].sourceTimestamp?.should.eql(date_add(today, { seconds: 4 * 60 }));
-            dataValues[1].sourceTimestamp?.should.eql(date_add(today, { seconds: 5 * 60 }));
-            dataValues[0].sourceTimestamp?.should.eql(date_add(today, { seconds: 6 * 60 }));
+            should(dataValues[6].sourceTimestamp).eql(date_add(today, { seconds: 0 }));
+            should(dataValues[5].sourceTimestamp).eql(date_add(today, { seconds: 1 * 60 }));
+            should(dataValues[4].sourceTimestamp).eql(date_add(today, { seconds: 2 * 60 }));
+            should(dataValues[3].sourceTimestamp).eql(date_add(today, { seconds: 3 * 60 }));
+            should(dataValues[2].sourceTimestamp).eql(date_add(today, { seconds: 4 * 60 }));
+            should(dataValues[1].sourceTimestamp).eql(date_add(today, { seconds: 5 * 60 }));
+            should(dataValues[0].sourceTimestamp).eql(date_add(today, { seconds: 6 * 60 }));
         });
 
         it("HRRM-7 should return an error if less than two constraints are specified (no endTime, no startTime)", async () => {

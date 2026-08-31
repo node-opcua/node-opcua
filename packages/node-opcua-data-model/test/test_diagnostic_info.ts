@@ -143,11 +143,11 @@ describe("DiagnosticInfo", () => {
         diag = DiagnosticInfo.filterForResponse(diag, serviceLevelMask, DiagnosticInfo_ServiceLevelMask);
         diag.localizedText.should.equal(2345);
         diag.symbolicId.should.equal(3456);
-        diag.additionalInfo!.should.equal("test");
+        should(diag.additionalInfo).equal("test");
         diag.innerStatusCode.should.equal(StatusCodes.Bad);
 
         should(diag.innerDiagnosticInfo).not.equal(null);
-        diag.innerDiagnosticInfo.additionalInfo!.should.equal("test 2");
+        should(diag.innerDiagnosticInfo.additionalInfo).equal("test 2");
     });
 
     it("should not return any diagnostic info if not specifically requested", () => {
@@ -192,7 +192,7 @@ describe("DiagnosticInfo", () => {
         diag = DiagnosticInfo.filterForResponse(diag, serviceLevelMask, DiagnosticInfo_ServiceLevelMask);
         diag.localizedText.should.equal(2345);
         diag.symbolicId.should.equal(3456);
-        diag.additionalInfo!.should.equal("test");
+        should(diag.additionalInfo).equal("test");
         diag.innerStatusCode.should.equal(StatusCodes.Good); // 'StatusCodes.Good' is the default value for 'innerStatusCode'
 
         diag.innerDiagnosticInfo.localizedText.should.equal(-1);
@@ -220,17 +220,17 @@ describe("DiagnosticInfo", () => {
         });
         const filtered = filterDiagnosticInfoLevel(serviceLevelMask, diagnostic, DiagnosticInfo_ServiceLevelMask);
 
-        filtered!.localizedText.should.equal(diagnostic.localizedText);
-        filtered!.symbolicId.should.equal(diagnostic.symbolicId);
-        filtered!.additionalInfo!.should.equal(diagnostic.additionalInfo);
-        filtered!.innerStatusCode.should.not.equal(diagnostic.innerStatusCode);
-        filtered!.innerStatusCode.should.equal(StatusCodes.Good); // 'StatusCodes.Good' is the default value for 'innerStatusCode'
+        should(filtered?.localizedText).equal(diagnostic.localizedText);
+        should(filtered?.symbolicId).equal(diagnostic.symbolicId);
+        should(filtered?.additionalInfo).equal(diagnostic.additionalInfo);
+        should(filtered?.innerStatusCode).not.equal(diagnostic.innerStatusCode);
+        should(filtered?.innerStatusCode).equal(StatusCodes.Good); // 'StatusCodes.Good' is the default value for 'innerStatusCode'
 
-        filtered!.innerDiagnosticInfo.localizedText.should.equal(-1);
-        filtered!.innerDiagnosticInfo.symbolicId.should.equal(34567);
+        should(filtered?.innerDiagnosticInfo.localizedText).equal(-1);
+        should(filtered?.innerDiagnosticInfo.symbolicId).equal(34567);
         should(filtered!.innerDiagnosticInfo.additionalInfo).equal(diagnostic.innerDiagnosticInfo.additionalInfo);
-        filtered!.innerDiagnosticInfo.innerStatusCode.should.not.equal(diagnostic.innerDiagnosticInfo.innerStatusCode);
-        filtered!.innerDiagnosticInfo.innerStatusCode.should.equal(StatusCodes.Good); // 'StatusCodes.Good' is the default value for 'innerStatusCode'
+        should(filtered?.innerDiagnosticInfo.innerStatusCode).not.equal(diagnostic.innerDiagnosticInfo.innerStatusCode);
+        should(filtered?.innerDiagnosticInfo.innerStatusCode).equal(StatusCodes.Good); // 'StatusCodes.Good' is the default value for 'innerStatusCode'
         should(filtered!.innerDiagnosticInfo.innerDiagnosticInfo).equal(null);
         should(filtered!.innerDiagnosticInfo.innerDiagnosticInfo).equal(diagnostic.innerDiagnosticInfo.innerDiagnosticInfo);
     });

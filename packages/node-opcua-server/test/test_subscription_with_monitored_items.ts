@@ -373,7 +373,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: ITestContext)
 
         const notifications = [...subscription._pending_notifications.values()];
 
-        notifications[0].monitoredItemId?.should.eql(monitoredItem.monitoredItemId);
+        should(notifications[0].monitoredItemId).eql(monitoredItem.monitoredItemId);
 
         subscription.on("terminated", () => {
             /** */

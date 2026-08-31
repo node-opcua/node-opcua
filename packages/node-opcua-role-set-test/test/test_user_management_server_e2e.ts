@@ -11,7 +11,7 @@
  * ActivateSession, so the server `userManager` adapter records the last
  * authentication StatusCode (non-breaking) and the test asserts against it.
  */
-import "should";
+
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -24,6 +24,7 @@ import { createUserManager, type IManagedUserManager, installUserManagement } fr
 import { OPCUAServer } from "node-opcua-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask } from "node-opcua-types";
+import should from "should";
 
 const port = 5003;
 const pkiRoot = path.join(os.tmpdir(), `role-set-um-e2e-${port}`);
@@ -126,7 +127,7 @@ describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.
         await withUserSession("newhire", "init-pw1", async (session) => {
             sessionRequiresPasswordChange(session).should.be.true("client should see a required password change");
             // (cross-check the server-side record keyed by this session)
-            userManager.getSessionAuthStatus(session.sessionId)?.should.equal(StatusCodes.GoodPasswordChangeRequired);
+            should(userManager.getSessionAuthStatus(session.sessionId)).equal(StatusCodes.GoodPasswordChangeRequired);
 
             const um = new ClientUserManagement(session);
             (await um.changePassword("init-pw1", "New-pw-2")).statusCode.should.equal(StatusCodes.Good);
@@ -142,7 +143,7 @@ describe("User Management E2E over a real OPCUAServer (MustChangePassword §5.2.
         // 4) the NEW password works and the client no longer sees a required change
         await withUserSession("newhire", "New-pw-2", async (session) => {
             sessionRequiresPasswordChange(session).should.be.false("client should no longer require a password change");
-            userManager.getSessionAuthStatus(session.sessionId)?.should.equal(StatusCodes.Good);
+            should(userManager.getSessionAuthStatus(session.sessionId)).equal(StatusCodes.Good);
         });
     });
 

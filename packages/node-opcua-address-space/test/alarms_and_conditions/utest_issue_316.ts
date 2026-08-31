@@ -1,5 +1,5 @@
-import "should";
 import { DataType } from "node-opcua-variant";
+import should from "should";
 import type { AddressSpace, UAObject } from "../..";
 import type { MochaSuiteEx } from "./test_alarms_and_conditions.js";
 
@@ -49,17 +49,16 @@ export function utest_issue_316(test: MochaSuiteEx): void {
 
             // ConditionClassName provides the display name of the ConditionClassType.
             condition.conditionClassName.readValue().value.dataType.should.equal(DataType.LocalizedText);
-            condition.conditionClassName
-                .readValue()
-                .value.value.text?.toString()
-                .should.equal(processConditionClassType.displayName[0].text);
+            should(condition.conditionClassName.readValue().value.value.text?.toString()).equal(
+                processConditionClassType.displayName[0].text
+            );
 
             // ConditionName identifies the Condition instance that the Event originated from. It can be used
             // together with the SourceName in a user display to distinguish between different Condition
             // instances. If a ConditionSource has only one instance of a ConditionType, and the Server has
             // no instance name, the Server shall supply the ConditionType browse name.
             condition.conditionName.readValue().value.dataType.should.eql(DataType.String);
-            condition.conditionName.readValue().value.value?.should.eql("MyConditionName");
+            should(condition.conditionName.readValue().value.value).eql("MyConditionName");
         });
     });
 }

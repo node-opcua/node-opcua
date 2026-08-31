@@ -45,7 +45,7 @@ export function utest_non_exclusive_deviation_alarm(test: MochaSuiteEx): void {
             });
             it("should provide correct properties", () => {
                 should(alarm.getInputNodeValue()).eql(0);
-                alarm.getSetpointNodeNode()?.should.eql(setpointNodeNode);
+                should(alarm.getSetpointNodeNode()).eql(setpointNodeNode);
 
                 setpointNodeNode.readValue().value.should.eql(new Variant({ dataType: "Double", value: 0 }));
                 should(alarm.getInputNodeValue()).eql(0);
@@ -56,30 +56,30 @@ export function utest_non_exclusive_deviation_alarm(test: MochaSuiteEx): void {
                 alarm.getHighHighLimit().should.eql(100);
 
                 alarm.activeState.getValue().should.eql(false);
-                alarm.lowLowState?.getValue().should.eql(false);
-                alarm.lowState?.getValue().should.eql(false);
-                alarm.highState?.getValue().should.eql(false);
-                alarm.highHighState?.getValue().should.eql(false);
+                should(alarm.lowLowState?.getValue()).eql(false);
+                should(alarm.lowState?.getValue()).eql(false);
+                should(alarm.highState?.getValue()).eql(false);
+                should(alarm.highHighState?.getValue()).eql(false);
             });
 
             it("should provide correct properties when set value is changed and back to orignal value", () => {
                 should(alarm.getInputNodeValue()).eql(0);
 
-                alarm.getSetpointNodeNode()?.should.eql(setpointNodeNode);
+                should(alarm.getSetpointNodeNode()).eql(setpointNodeNode);
                 setpointNodeNode.readValue().value.should.eql(new Variant({ dataType: "Double", value: 0 }));
-                alarm.getSetpointValue()?.should.eql(0);
+                should(alarm.getSetpointValue()).eql(0);
 
                 setpointNodeNode.setValueFromSource({ dataType: "Double", value: 10 });
-                alarm.getSetpointValue()?.should.eql(10);
+                should(alarm.getSetpointValue()).eql(10);
 
                 setpointNodeNode.setValueFromSource({ dataType: "Double", value: 0 });
-                alarm.getSetpointValue()?.should.eql(0);
+                should(alarm.getSetpointValue()).eql(0);
 
                 alarm.activeState.getValue().should.eql(false);
-                alarm.lowLowState?.getValue().should.eql(false);
-                alarm.lowState?.getValue().should.eql(false);
-                alarm.highState?.getValue().should.eql(false);
-                alarm.highHighState?.getValue().should.eql(false);
+                should(alarm.lowLowState?.getValue()).eql(false);
+                should(alarm.lowState?.getValue()).eql(false);
+                should(alarm.highState?.getValue()).eql(false);
+                should(alarm.highHighState?.getValue()).eql(false);
             });
 
             it("NonExclusiveDeviationAlarm", () => {
@@ -92,45 +92,45 @@ export function utest_non_exclusive_deviation_alarm(test: MochaSuiteEx): void {
                 setpointNodeNode.readValue().value.should.eql(new Variant({ dataType: "Double", value: 0 }));
 
                 alarm.activeState.getValue().should.eql(false);
-                alarm.lowLowState?.getValue().should.eql(false);
-                alarm.lowState?.getValue().should.eql(false);
-                alarm.highState?.getValue().should.eql(false);
-                alarm.highHighState?.getValue().should.eql(false);
+                should(alarm.lowLowState?.getValue()).eql(false);
+                should(alarm.lowState?.getValue()).eql(false);
+                should(alarm.highState?.getValue()).eql(false);
+                should(alarm.highHighState?.getValue()).eql(false);
 
                 setVariableValue(-100);
                 alarm.activeState.getValue().should.eql(true);
-                alarm.lowLowState?.getValue().should.eql(true);
-                alarm.lowState?.getValue().should.eql(true);
-                alarm.highState?.getValue().should.eql(false);
-                alarm.highHighState?.getValue().should.eql(false);
+                should(alarm.lowLowState?.getValue()).eql(true);
+                should(alarm.lowState?.getValue()).eql(true);
+                should(alarm.highState?.getValue()).eql(false);
+                should(alarm.highHighState?.getValue()).eql(false);
 
                 setVariableValue(-9);
                 alarm.activeState.getValue().should.eql(true);
-                alarm.lowLowState?.getValue().should.eql(false);
-                alarm.lowState?.getValue().should.eql(true);
-                alarm.highState?.getValue().should.eql(false);
-                alarm.highHighState?.getValue().should.eql(false);
+                should(alarm.lowLowState?.getValue()).eql(false);
+                should(alarm.lowState?.getValue()).eql(true);
+                should(alarm.highState?.getValue()).eql(false);
+                should(alarm.highHighState?.getValue()).eql(false);
 
                 setVariableValue(4);
                 alarm.activeState.getValue().should.eql(false);
-                alarm.lowLowState?.getValue().should.eql(false);
-                alarm.lowState?.getValue().should.eql(false);
-                alarm.highState?.getValue().should.eql(false);
-                alarm.highHighState?.getValue().should.eql(false);
+                should(alarm.lowLowState?.getValue()).eql(false);
+                should(alarm.lowState?.getValue()).eql(false);
+                should(alarm.highState?.getValue()).eql(false);
+                should(alarm.highHighState?.getValue()).eql(false);
 
                 setVariableValue(11);
                 alarm.activeState.getValue().should.eql(true);
-                alarm.lowLowState?.getValue().should.eql(false);
-                alarm.lowState?.getValue().should.eql(false);
-                alarm.highState?.getValue().should.eql(true);
-                alarm.highHighState?.getValue().should.eql(false);
+                should(alarm.lowLowState?.getValue()).eql(false);
+                should(alarm.lowState?.getValue()).eql(false);
+                should(alarm.highState?.getValue()).eql(true);
+                should(alarm.highHighState?.getValue()).eql(false);
 
                 setVariableValue(200);
                 alarm.activeState.getValue().should.eql(true);
-                alarm.lowLowState?.getValue().should.eql(false);
-                alarm.lowState?.getValue().should.eql(false);
-                alarm.highState?.getValue().should.eql(true);
-                alarm.highHighState?.getValue().should.eql(true);
+                should(alarm.lowLowState?.getValue()).eql(false);
+                should(alarm.lowState?.getValue()).eql(false);
+                should(alarm.highState?.getValue()).eql(true);
+                should(alarm.highHighState?.getValue()).eql(true);
             });
         });
     });

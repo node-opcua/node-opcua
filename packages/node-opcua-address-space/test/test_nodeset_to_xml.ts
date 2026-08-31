@@ -945,7 +945,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
     });
     it("NSXML11 -Variable containing a QualifiedName", async () => {
         const value = coerceQualifiedName({ name: "Hello", namespaceIndex: 1 });
-        value.name?.should.eql("Hello");
+        should(value.name).eql("Hello");
         value.namespaceIndex.should.eql(1);
 
         const v = namespace.addVariable({
@@ -958,8 +958,8 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             }
         });
 
-        v.readValue().value.value.name?.should.eql(value.name);
-        v.readValue().value.value.namespaceIndex?.should.eql(value.namespaceIndex);
+        should(v.readValue().value.value.name).eql(value.name);
+        should(v.readValue().value.value.namespaceIndex).eql(value.namespaceIndex);
 
         const xml = namespace.toNodeset2XML();
         const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
@@ -1007,7 +1007,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         const match = r_xml2.match(/<ArrayDimensions\/>/gm);
         doDebug && console.log(match);
         should(match).not.eql(null);
-        match?.length.should.eql(4); // 2 of input and output argument in Type and 2 for instance
+        should(match?.length).eql(4); // 2 of input and output argument in Type and 2 for instance
     });
 });
 

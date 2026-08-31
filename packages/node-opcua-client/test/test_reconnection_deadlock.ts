@@ -17,7 +17,7 @@
 // with `const err = _shouldNotContinue(session); if (err) return reject(err);`
 
 import "mocha";
-import "should";
+import should from "should";
 
 import type { ClientSessionImpl } from "../source/private/client_session_impl.js";
 import { _shouldNotContinue } from "../source/private/reconnection/reconnection.js";
@@ -131,8 +131,9 @@ describe("reconnection: _throwIfShouldNotContinue inside async callback (deadloc
         const promise = buggyCreateSession(session, simulateAsync);
 
         // The throw was swallowed by the secure channel wrapper
-        swallowedError!.should.be.an.Error();
-        swallowedError!.message.should.match(/Failure during reconnection/);
+        should(swallowedError).be.an.Error();
+        // assigned in a callback, so TypeScript narrows it to null here
+        should((swallowedError as Error | null)?.message).match(/Failure during reconnection/);
 
         // The Promise is DANGLING — it never resolves or rejects.
         // This is the deadlock: the reconnection state machine is stuck forever.

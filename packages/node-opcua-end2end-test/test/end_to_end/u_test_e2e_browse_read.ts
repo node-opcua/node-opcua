@@ -1,4 +1,3 @@
-import "should";
 import {
     AttributeIds,
     BrowseDirection,
@@ -21,6 +20,7 @@ import {
     VariantArrayType
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 const fail_fast_connectivity_strategy = {
@@ -93,10 +93,10 @@ export function t(test: UmbrellaTestContext) {
             const browseResult = await call<BrowseResult>(session.browse.bind(session), "RootFolder");
             browseResult.schema.name.should.equal("BrowseResult");
             browseResult.statusCode.should.eql(StatusCodes.Good);
-            browseResult.references!.length.should.eql(3);
-            browseResult.references![0].browseName.toString().should.eql("Objects");
-            browseResult.references![1].browseName.toString().should.eql("Types");
-            browseResult.references![2].browseName.toString().should.eql("Views");
+            should(browseResult.references?.length).eql(3);
+            should(browseResult.references?.[0].browseName.toString()).eql("Objects");
+            should(browseResult.references?.[1].browseName.toString()).eql("Types");
+            should(browseResult.references?.[2].browseName.toString()).eql("Views");
         });
 
         it("T8-2 - browse should return BadReferenceTypeIdInvalid if referenceTypeId is invalid", async () => {
@@ -223,7 +223,7 @@ export function t(test: UmbrellaTestContext) {
             browseResults[0].schema.name.should.equal("BrowseResult");
             const foundNode = browseResults[0].references!.filter((r) => r.browseName.name === "Server");
             foundNode.length.should.equal(1);
-            foundNode[0].browseName.name!.should.equal("Server");
+            should(foundNode[0].browseName.name).equal("Server");
             foundNode[0].nodeId.toString().should.equal("ns=0;i=2253");
         });
 

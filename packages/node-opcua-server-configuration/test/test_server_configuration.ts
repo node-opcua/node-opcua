@@ -416,10 +416,10 @@ describe("ServerConfiguration", () => {
 
             a = await trustList.readTrustedCertificateList();
             doDebug && console.log(a.toString());
-            a.trustedCertificates?.length.should.eql(1);
-            a.issuerCertificates?.length.should.eql(certificates.length - 1);
-            a.issuerCrls?.length.should.eql(0);
-            a.trustedCrls?.length.should.eql(0);
+            should(a.trustedCertificates?.length).eql(1);
+            should(a.issuerCertificates?.length).eql(certificates.length - 1);
+            should(a.issuerCrls?.length).eql(0);
+            should(a.trustedCrls?.length).eql(0);
         });
 
         it("should provide trust list with masks - issuer certificates", async () => {
@@ -428,10 +428,10 @@ describe("ServerConfiguration", () => {
             let a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCertificates);
 
             doDebug && console.log(a.toString());
-            a.trustedCertificates?.length.should.eql(0);
-            a.issuerCertificates?.length.should.eql(0);
-            a.issuerCrls?.length.should.eql(0);
-            a.trustedCrls?.length.should.eql(0);
+            should(a.trustedCertificates?.length).eql(0);
+            should(a.issuerCertificates?.length).eql(0);
+            should(a.issuerCrls?.length).eql(0);
+            should(a.trustedCrls?.length).eql(0);
 
             // now add a certificate
             {
@@ -452,19 +452,19 @@ describe("ServerConfiguration", () => {
             a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCertificates);
             doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(TrustListMasks.IssuerCertificates);
-            a.trustedCertificates?.length.should.eql(0);
+            should(a.trustedCertificates?.length).eql(0);
             // AddCertificate no longer adds issuer certificates per OPC UA spec
-            a.issuerCertificates?.length.should.eql(0);
-            a.issuerCrls?.length.should.eql(0);
-            a.trustedCrls?.length.should.eql(0);
+            should(a.issuerCertificates?.length).eql(0);
+            should(a.issuerCrls?.length).eql(0);
+            should(a.trustedCrls?.length).eql(0);
 
             a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.TrustedCertificates);
             doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(TrustListMasks.TrustedCertificates);
-            a.trustedCertificates?.length.should.eql(1);
-            a.issuerCertificates?.length.should.eql(0);
-            a.issuerCrls?.length.should.eql(0);
-            a.trustedCrls?.length.should.eql(0);
+            should(a.trustedCertificates?.length).eql(1);
+            should(a.issuerCertificates?.length).eql(0);
+            should(a.issuerCrls?.length).eql(0);
+            should(a.trustedCrls?.length).eql(0);
         });
 
         it("should write trust list", async () => {
@@ -483,10 +483,10 @@ describe("ServerConfiguration", () => {
 
             let a = await trustList.readTrustedCertificateList();
             doDebug && console.log(a.toString());
-            a.trustedCertificates?.length.should.eql(1);
-            a.issuerCertificates?.length.should.eql(certificates.length - 1);
-            a.issuerCrls?.length.should.eql(0);
-            a.trustedCrls?.length.should.eql(0);
+            should(a.trustedCertificates?.length).eql(1);
+            should(a.issuerCertificates?.length).eql(certificates.length - 1);
+            should(a.issuerCrls?.length).eql(0);
+            should(a.trustedCrls?.length).eql(0);
 
             // create a new trust list with additional issuer certificates and CRLs
             // Reuse the same certificate chain for issuer certificates and CRLs
@@ -512,10 +512,10 @@ describe("ServerConfiguration", () => {
 
             a = await trustList.readTrustedCertificateList();
             doDebug && console.log(a.toString());
-            a.trustedCertificates?.length.should.eql(1);
-            a.issuerCertificates?.length.should.eql(1); // issuer from the chain added via Write
-            a.issuerCrls?.length.should.eql(1); // same CRL buffer produces same filename, so only 1 file on disk
-            a.trustedCrls?.length.should.eql(0);
+            should(a.trustedCertificates?.length).eql(1);
+            should(a.issuerCertificates?.length).eql(1); // issuer from the chain added via Write
+            should(a.issuerCrls?.length).eql(1); // same CRL buffer produces same filename, so only 1 file on disk
+            should(a.trustedCrls?.length).eql(0);
         });
 
         it("should read trust list with TrustedCrls mask", async () => {
@@ -526,10 +526,10 @@ describe("ServerConfiguration", () => {
 
             doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(TrustListMasks.TrustedCrls);
-            a.trustedCertificates?.length.should.eql(0);
-            a.issuerCertificates?.length.should.eql(0);
-            a.issuerCrls?.length.should.eql(0);
-            a.trustedCrls?.length.should.eql(0); // No CRLs added yet
+            should(a.trustedCertificates?.length).eql(0);
+            should(a.issuerCertificates?.length).eql(0);
+            should(a.issuerCrls?.length).eql(0);
+            should(a.trustedCrls?.length).eql(0); // No CRLs added yet
         });
 
         it("should read trust list with IssuerCrls mask", async () => {
@@ -540,10 +540,10 @@ describe("ServerConfiguration", () => {
 
             doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(TrustListMasks.IssuerCrls);
-            a.trustedCertificates?.length.should.eql(0);
-            a.issuerCertificates?.length.should.eql(0);
-            a.issuerCrls?.length.should.eql(0); // No CRLs added yet
-            a.trustedCrls?.length.should.eql(0);
+            should(a.trustedCertificates?.length).eql(0);
+            should(a.issuerCertificates?.length).eql(0);
+            should(a.issuerCrls?.length).eql(0); // No CRLs added yet
+            should(a.trustedCrls?.length).eql(0);
         });
 
         it("should read trust list with both CRL masks", async () => {
@@ -555,10 +555,10 @@ describe("ServerConfiguration", () => {
 
             doDebug && console.log(a.toString());
             a.specifiedLists.should.eql(crlMask);
-            a.trustedCertificates?.length.should.eql(0);
-            a.issuerCertificates?.length.should.eql(0);
-            a.issuerCrls?.length.should.eql(0);
-            a.trustedCrls?.length.should.eql(0);
+            should(a.trustedCertificates?.length).eql(0);
+            should(a.issuerCertificates?.length).eql(0);
+            should(a.issuerCrls?.length).eql(0);
+            should(a.trustedCrls?.length).eql(0);
         });
 
         it("should write and read back trusted CRLs", async () => {
@@ -578,10 +578,10 @@ describe("ServerConfiguration", () => {
             doDebug && console.log(a.toString());
 
             a.specifiedLists.should.eql(TrustListMasks.TrustedCrls);
-            a.trustedCrls?.length.should.eql(1);
-            a.issuerCrls?.length.should.eql(0);
-            a.trustedCertificates?.length.should.eql(0);
-            a.issuerCertificates?.length.should.eql(0);
+            should(a.trustedCrls?.length).eql(1);
+            should(a.issuerCrls?.length).eql(0);
+            should(a.trustedCertificates?.length).eql(0);
+            should(a.issuerCertificates?.length).eql(0);
         });
 
         it("should write and read back issuer CRLs", async () => {
@@ -601,10 +601,10 @@ describe("ServerConfiguration", () => {
             doDebug && console.log(a.toString());
 
             a.specifiedLists.should.eql(TrustListMasks.IssuerCrls);
-            a.issuerCrls?.length.should.eql(1);
-            a.trustedCrls?.length.should.eql(0);
-            a.trustedCertificates?.length.should.eql(0);
-            a.issuerCertificates?.length.should.eql(0);
+            should(a.issuerCrls?.length).eql(1);
+            should(a.trustedCrls?.length).eql(0);
+            should(a.trustedCertificates?.length).eql(0);
+            should(a.issuerCertificates?.length).eql(0);
         });
 
         it("should write and read back both trusted and issuer CRLs", async () => {
@@ -626,10 +626,10 @@ describe("ServerConfiguration", () => {
             doDebug && console.log(a.toString());
 
             a.specifiedLists.should.eql(crlMask);
-            a.trustedCrls?.length.should.eql(1);
-            a.issuerCrls?.length.should.eql(1); // same CRL → same filename → 1 file on disk
-            a.trustedCertificates?.length.should.eql(0);
-            a.issuerCertificates?.length.should.eql(0);
+            should(a.trustedCrls?.length).eql(1);
+            should(a.issuerCrls?.length).eql(1); // same CRL → same filename → 1 file on disk
+            should(a.trustedCertificates?.length).eql(0);
+            should(a.issuerCertificates?.length).eql(0);
         });
 
         it("should replace existing CRLs when writing new trust list", async () => {
@@ -643,7 +643,7 @@ describe("ServerConfiguration", () => {
 
             // Verify the initial write
             let a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCrls);
-            a.issuerCrls?.length.should.eql(1);
+            should(a.issuerCrls?.length).eql(1);
 
             // Now write a new trust list with 1 issuer CRL (should replace the previous)
             await trustList.writeTrustedCertificateList(makeTrustListData(TrustListMasks.IssuerCrls, { issuerCrls: [crl] }));
@@ -651,7 +651,7 @@ describe("ServerConfiguration", () => {
             // Verify the replacement
             a = await trustList.readTrustedCertificateListWithMasks(TrustListMasks.IssuerCrls);
             doDebug && console.log(a.toString());
-            a.issuerCrls?.length.should.eql(1); // Should have only 1 CRL now, not 3
+            should(a.issuerCrls?.length).eql(1); // Should have only 1 CRL now, not 3
         });
 
         it("should handle empty CRL arrays correctly", async () => {
@@ -666,8 +666,8 @@ describe("ServerConfiguration", () => {
 
             // Verify CRLs were written
             let a = await trustList.readTrustedCertificateListWithMasks(crlMask);
-            a.issuerCrls?.length.should.eql(1);
-            a.trustedCrls?.length.should.eql(1);
+            should(a.issuerCrls?.length).eql(1);
+            should(a.trustedCrls?.length).eql(1);
 
             // Now write empty CRL arrays (should clear them)
             await trustList.writeTrustedCertificateList(makeTrustListData(crlMask));
@@ -675,8 +675,8 @@ describe("ServerConfiguration", () => {
             // Verify CRLs were cleared
             a = await trustList.readTrustedCertificateListWithMasks(crlMask);
             doDebug && console.log(a.toString());
-            a.issuerCrls?.length.should.eql(0);
-            a.trustedCrls?.length.should.eql(0);
+            should(a.issuerCrls?.length).eql(0);
+            should(a.trustedCrls?.length).eql(0);
         });
 
         it("should write trust list with certificates and CRLs together", async () => {
@@ -693,8 +693,8 @@ describe("ServerConfiguration", () => {
 
             // Verify certificate was added
             let a = await trustList.readTrustedCertificateList();
-            a.trustedCertificates?.length.should.eql(1);
-            a.issuerCertificates?.length.should.eql(certificates.length - 1);
+            should(a.trustedCertificates?.length).eql(1);
+            should(a.issuerCertificates?.length).eql(certificates.length - 1);
 
             // Now add CRLs and issuer certificates using writeTrustedCertificateList
             const { crl } = await _getFakeAuthorityCertificate(await initializeHelpers("TEST_CERT_AND_CRL", 0));
@@ -716,9 +716,9 @@ describe("ServerConfiguration", () => {
             a = await trustList.readTrustedCertificateList();
             doDebug && console.log(a.toString());
 
-            a.trustedCertificates?.length.should.eql(1);
-            a.issuerCertificates?.length.should.eql(1);
-            a.issuerCrls?.length.should.eql(1); // same CRL → same filename → 1 file on disk
+            should(a.trustedCertificates?.length).eql(1);
+            should(a.issuerCertificates?.length).eql(1);
+            should(a.issuerCrls?.length).eql(1); // same CRL → same filename → 1 file on disk
         });
 
         it("should preserve certificates when updating only CRLs", async () => {
@@ -733,7 +733,7 @@ describe("ServerConfiguration", () => {
 
             // Verify certificate was added
             let a = await trustList.readTrustedCertificateList();
-            a.trustedCertificates?.length.should.eql(1);
+            should(a.trustedCertificates?.length).eql(1);
 
             // Now update only CRLs
             const { crl } = await _getFakeAuthorityCertificate(await initializeHelpers("TEST_PRESERVE_CERT", 0));
@@ -744,8 +744,8 @@ describe("ServerConfiguration", () => {
             a = await trustList.readTrustedCertificateList();
             doDebug && console.log(a.toString());
 
-            a.trustedCertificates?.length.should.eql(1); // Certificate should still be there
-            a.issuerCrls?.length.should.eql(1);
+            should(a.trustedCertificates?.length).eql(1); // Certificate should still be there
+            should(a.issuerCrls?.length).eql(1);
         });
 
         describe("RemoveCertificate", () => {
@@ -760,7 +760,7 @@ describe("ServerConfiguration", () => {
 
                 // Verify certificate was added
                 let a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates?.length.should.eql(1);
+                should(a.trustedCertificates?.length).eql(1);
 
                 // Calculate thumbprint of the actual certificate (not the buffer which may contain chain)
                 const thumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
@@ -769,7 +769,7 @@ describe("ServerConfiguration", () => {
 
                 // Verify certificate was removed
                 a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates?.length.should.eql(0);
+                should(a.trustedCertificates?.length).eql(0);
             });
 
             it("should reject isTrustedCertificate=false per OPC UA spec", async () => {
@@ -796,7 +796,7 @@ describe("ServerConfiguration", () => {
 
                 // Verify issuer certificates were added
                 let a = await trustList.readTrustedCertificateList();
-                a.issuerCertificates?.length.should.eql(2); // client cert + its CA
+                should(a.issuerCertificates?.length).eql(2); // client cert + its CA
 
                 // Calculate thumbprint of the leaf certificate (first in chain) and remove it
                 const thumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
@@ -805,7 +805,7 @@ describe("ServerConfiguration", () => {
 
                 // Verify certificate was removed (CA should still be there)
                 a = await trustList.readTrustedCertificateList();
-                a.issuerCertificates?.length.should.eql(1);
+                should(a.issuerCertificates?.length).eql(1);
             });
 
             it("should accept thumbprint in both plain hex and NodeOPCUA[hex] formats", async () => {
@@ -819,7 +819,7 @@ describe("ServerConfiguration", () => {
                 await trustList.addCertificate(cert2Chain[0], true);
 
                 let a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates?.length.should.eql(2);
+                should(a.trustedCertificates?.length).eql(2);
 
                 // Remove first certificate using plain hex format
                 const thumbprint1 = makeSHA1Thumbprint(cert1Chain[0]).toString("hex");
@@ -827,7 +827,7 @@ describe("ServerConfiguration", () => {
                 sc.should.eql(StatusCodes.Good);
 
                 a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates?.length.should.eql(1);
+                should(a.trustedCertificates?.length).eql(1);
 
                 // Remove second certificate using NodeOPCUA[hex] format
                 const thumbprint2 = makeSHA1Thumbprint(cert2Chain[0]).toString("hex");
@@ -836,7 +836,7 @@ describe("ServerConfiguration", () => {
                 sc.should.eql(StatusCodes.Good);
 
                 a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates?.length.should.eql(0);
+                should(a.trustedCertificates?.length).eql(0);
             });
 
             it("should return BadInvalidArgument when thumbprint does not match any certificate", async () => {
@@ -875,7 +875,7 @@ describe("ServerConfiguration", () => {
                 await trustList.addCertificate(certificates[0], true);
 
                 let a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates?.length.should.eql(1);
+                should(a.trustedCertificates?.length).eql(1);
 
                 const thumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
 
@@ -888,7 +888,7 @@ describe("ServerConfiguration", () => {
                 sc.should.eql(StatusCodes.Good);
 
                 a = await trustList.readTrustedCertificateList();
-                a.trustedCertificates?.length.should.eql(0);
+                should(a.trustedCertificates?.length).eql(0);
             });
 
             it("should update LastUpdateTime property when trust list is modified", async () => {
@@ -1048,7 +1048,7 @@ describe("ServerConfiguration", () => {
 
                 // Verify: only the leaf certificate should be in trusted certs
                 const result = await trustList.readTrustedCertificateList();
-                result.trustedCertificates?.length.should.eql(1);
+                should(result.trustedCertificates?.length).eql(1);
 
                 // The stored ByteString is the full chain (chain-on-disk paradigm).
                 // Extract the leaf (first DER block) to compare thumbprints.
@@ -1058,7 +1058,7 @@ describe("ServerConfiguration", () => {
                 addedCertThumbprint.should.eql(leafThumbprint);
 
                 // Issuer certificates should still be in issuer list (not added by AddCertificate)
-                result.issuerCertificates?.length.should.eql(certificates.length - 1);
+                should(result.issuerCertificates?.length).eql(certificates.length - 1);
             });
         });
 
@@ -1095,8 +1095,8 @@ describe("ServerConfiguration", () => {
 
                 // Verify setup
                 let result = await trustList.readTrustedCertificateList();
-                result.trustedCertificates?.length.should.be.greaterThan(0);
-                result.issuerCertificates?.length.should.be.greaterThan(0);
+                should(result.trustedCertificates?.length).be.greaterThan(0);
+                should(result.issuerCertificates?.length).be.greaterThan(0);
 
                 // Try to remove the CA certificate that the trusted cert depends on
                 // The leaf cert depends on this CA in issuerCertificates, so removing it should fail
@@ -1108,7 +1108,7 @@ describe("ServerConfiguration", () => {
 
                 // Verify the CA was not removed
                 result = await trustList.readTrustedCertificateList();
-                result.issuerCertificates?.length.should.be.greaterThan(0);
+                should(result.issuerCertificates?.length).be.greaterThan(0);
             });
         });
 
@@ -1128,7 +1128,7 @@ describe("ServerConfiguration", () => {
                     [new Variant({ dataType: DataType.Byte, value: 0x02 })], // Write mode (unsupported)
                     context
                 );
-                result.statusCode?.should.eql(StatusCodes.BadNotSupported);
+                should(result.statusCode).eql(StatusCodes.BadNotSupported);
             });
 
             it("should return BadInvalidState when opening while already opened for write", async () => {
@@ -1149,7 +1149,7 @@ describe("ServerConfiguration", () => {
                     context
                 );
 
-                result.statusCode?.should.eql(StatusCodes.BadInvalidState);
+                should(result.statusCode).eql(StatusCodes.BadInvalidState);
 
                 // Clean up - close the file handle
                 // closeAndUpdate will fail since we didn't write anything

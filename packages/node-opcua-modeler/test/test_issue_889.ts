@@ -163,24 +163,26 @@ describe("loading very large DataType Definitions ", function (this: Mocha.Suite
             )
         );
         browseResults[0].statusCode.should.eql(StatusCodes.Good);
-        browseResults[0].references?.length.should.eql(17);
-        browseResults[0].continuationPoint?.toString("hex").should.not.eql("");
+        should(browseResults[0].references?.length).eql(17);
+        should(browseResults[0].continuationPoint?.toString("hex")).not.eql("");
 
         browseResults[1].statusCode.should.eql(StatusCodes.Good);
-        browseResults[1].references?.length.should.eql(17);
-        browseResults[1].continuationPoint?.toString("hex").should.not.eql("");
+        should(browseResults[1].references?.length).eql(17);
+        should(browseResults[1].continuationPoint?.toString("hex")).not.eql("");
 
         browseResults[2].statusCode.should.eql(StatusCodes.BadNoContinuationPoints);
-        browseResults[2].references?.length.should.eql(0);
-        browseResults[2].continuationPoint?.toString("hex").should.eql("");
+        should(browseResults[2].references?.length).eql(0);
+        // BadNoContinuationPoints means there is no continuation point at all; the
+        // assertion here read continuationPoint?.toString(), so it never ran.
+        should.not.exist(browseResults[2].continuationPoint);
 
         browseResults[3].statusCode.should.eql(StatusCodes.BadNoContinuationPoints);
-        browseResults[3].references?.length.should.eql(0);
-        browseResults[3].continuationPoint?.toString("hex").should.eql("");
+        should(browseResults[3].references?.length).eql(0);
+        should.not.exist(browseResults[3].continuationPoint);
 
         browseResults[4].statusCode.should.eql(StatusCodes.BadNoContinuationPoints);
-        browseResults[4].references?.length.should.eql(0);
-        browseResults[4].continuationPoint?.toString("hex").should.eql("");
+        should(browseResults[4].references?.length).eql(0);
+        should.not.exist(browseResults[4].continuationPoint);
 
         // now clear the continuation points
         const continuationPoints = browseResults

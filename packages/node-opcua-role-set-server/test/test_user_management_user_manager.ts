@@ -1,9 +1,9 @@
-import "should";
 import { WellKnownRoles } from "node-opcua-constants";
 import { makeNodeId, sameNodeId } from "node-opcua-nodeid";
 import { InMemoryIdentityMappingStore, InMemoryUserManagementStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask } from "node-opcua-types";
+import should from "should";
 import { createUserManager, type IManagedUserManager } from "../source/user_management_user_manager.js";
 
 function setup() {
@@ -32,21 +32,21 @@ describe("createUserManager", () => {
         const { userStore, um } = setup();
         await userStore.addUser("joe", "pass1", UserConfigurationMask.None, "");
         (await checkUser(um, "joe", "pass1")).should.be.true();
-        um.lastAuthStatus.get("joe")?.should.equal(StatusCodes.Good);
+        should(um.lastAuthStatus.get("joe")).equal(StatusCodes.Good);
     });
 
     it("should reject a wrong password and record BadUserAccessDenied", async () => {
         const { userStore, um } = setup();
         await userStore.addUser("joe", "pass1", UserConfigurationMask.None, "");
         (await checkUser(um, "joe", "WRONG")).should.be.false();
-        um.lastAuthStatus.get("joe")?.should.equal(StatusCodes.BadUserAccessDenied);
+        should(um.lastAuthStatus.get("joe")).equal(StatusCodes.BadUserAccessDenied);
     });
 
     it("should accept a must-change user but record GoodPasswordChangeRequired", async () => {
         const { userStore, um } = setup();
         await userStore.addUser("joe", "pass1", UserConfigurationMask.MustChangePassword, "");
         (await checkUser(um, "joe", "pass1")).should.be.true();
-        um.lastAuthStatus.get("joe")?.should.equal(StatusCodes.GoodPasswordChangeRequired);
+        should(um.lastAuthStatus.get("joe")).equal(StatusCodes.GoodPasswordChangeRequired);
     });
 
     it("should grant the configured roles to a normal user", async () => {

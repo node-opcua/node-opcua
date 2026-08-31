@@ -76,7 +76,7 @@ describe("ServerEngine Subscriptions service", function (this: ITestContext) {
         session.currentSubscriptionCount.should.equal(1);
         session.cumulatedSubscriptionCount.should.equal(1);
 
-        session.getSubscription(subscription.id)?.should.equal(subscription);
+        should(session.getSubscription(subscription.id)).equal(subscription);
 
         const statusCode = await session.deleteSubscription(subscription.id);
         statusCode.should.eql(StatusCodes.Good);
@@ -581,7 +581,7 @@ describe("ServerEngine Subscriptions service", function (this: ITestContext) {
             publishResponse1.subscriptionId.should.eql(subscription1.subscriptionId);
             publishResponse1.responseHeader.serviceResult.should.eql(StatusCodes.Good);
             publishResponse1.notificationMessage.sequenceNumber.should.eql(1);
-            publishResponse1.notificationMessage.notificationData?.length.should.eql(0);
+            should(publishResponse1.notificationMessage.notificationData?.length).eql(0);
             publishResponse1.responseHeader.requestHandle.should.eql(100);
 
             // -------------------------- Second PublishResponse -- should be a keep alive
@@ -590,7 +590,7 @@ describe("ServerEngine Subscriptions service", function (this: ITestContext) {
             publishResponse2.subscriptionId.should.eql(subscription1.subscriptionId);
             publishResponse2.responseHeader.serviceResult.should.eql(StatusCodes.Good);
             publishResponse2.notificationMessage.sequenceNumber.should.eql(1);
-            publishResponse2.notificationMessage.notificationData?.length.should.eql(0);
+            should(publishResponse2.notificationMessage.notificationData?.length).eql(0);
             publishResponse2.responseHeader.requestHandle.should.eql(101);
 
             // verify that the first keep alive message was sent after  1 time publishing interval milliseconds

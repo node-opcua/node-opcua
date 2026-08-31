@@ -7,6 +7,7 @@ import {
     SecurityPolicy
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import { assertThrow } from "../test_helpers/assert_throw.js";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
 
@@ -113,7 +114,7 @@ describe("testing behavior of secure Server ( server that only accept Sign or Si
             //xx console.log(endpoints);
             endpoints.length.should.eql(1);
             endpoints[0].securityMode.should.eql(MessageSecurityMode.SignAndEncrypt);
-            endpoints[0].securityPolicyUri?.should.eql(SecurityPolicy.Basic256);
+            should(endpoints[0].securityPolicyUri).eql(SecurityPolicy.Basic256);
 
             // assert that server has no more session
             server.currentSessionCount.should.eql(0);

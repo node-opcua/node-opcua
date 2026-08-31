@@ -10,7 +10,7 @@ import "mocha";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId } from "node-opcua-nodeid";
 import { ReadRequest, ReadResponse } from "node-opcua-service-read";
-import "should";
+import should from "should";
 import sinon from "sinon";
 import { ClientSessionImpl } from "../source/private/client_session_impl.js";
 import type { IClientBase } from "../source/private/i_private_client.js";
@@ -89,7 +89,9 @@ describe("ClientSessionImpl pending transaction queue", function (this: Mocha.Su
 
         transaction.callCount.should.eql(0);
         (err === null).should.eql(false, "with nobody repairing, waiting would be unbounded");
-        err!.message.should.match(/Invalid Channel BadConnectionClosed/);
+        // err is assigned in a callback, which TypeScript cannot see running, so it
+        // narrows err to null here. Naming the declared type restores what `!` was doing.
+        should((err as Error | null)?.message).match(/Invalid Channel BadConnectionClosed/);
         session._reconnecting.pendingTransactions.length.should.eql(0);
     });
 

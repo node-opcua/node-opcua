@@ -45,7 +45,7 @@ describe("DiagnosticInfo nesting guard", () => {
         // innermost symbolicId survived the round-trip through all five levels
         let di: DiagnosticInfo | undefined = decoded;
         for (let i = 1; i < 5; i++) di = di?.innerDiagnosticInfo;
-        di?.symbolicId.should.eql(1);
+        should(di?.symbolicId).eql(1);
     });
 
     it("refuses a chain deeper than the nesting limit", () => {

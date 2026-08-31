@@ -58,8 +58,8 @@ describe("OPC 10000-17: extension points", () => {
         it("should create a category and bind it in one step", () => {
             const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "WellsBind");
 
-            getMethod(wells, "FindAlias")!.isBound().should.eql(true);
-            getMethod(wells, "FindAliasVerbose")!.isBound().should.eql(true);
+            should(getMethod(wells, "FindAlias")?.isBound()).eql(true);
+            should(getMethod(wells, "FindAliasVerbose")?.isBound()).eql(true);
         });
 
         it("should answer FindAlias on a category created after installation", async () => {
@@ -72,7 +72,7 @@ describe("OPC 10000-17: extension points", () => {
             addAlias(addressSpace, wells, "PT-301", sensor);
 
             const result = await callFind(wells, "FindAlias", "PT%");
-            result.statusCode!.should.eql(StatusCodes.Good);
+            should(result.statusCode).eql(StatusCodes.Good);
             aliasNames(result).should.eql(["PT-301"]);
         });
 
@@ -98,7 +98,7 @@ describe("OPC 10000-17: extension points", () => {
             }
             // the late category inherits maxResults: 1, not the default
             const result = await callFind(wells, "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.BadResponseTooLarge);
+            should(result.statusCode).eql(StatusCodes.BadResponseTooLarge);
         });
 
         it("should let an explicit option override the inherited one", async () => {
@@ -111,7 +111,7 @@ describe("OPC 10000-17: extension points", () => {
                 addAlias(addressSpace, wells, `TAG${i}`, v);
             }
             const result = await callFind(wells, "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.Good);
+            should(result.statusCode).eql(StatusCodes.Good);
             resultAliases(result).should.have.length(3);
         });
 
@@ -119,10 +119,10 @@ describe("OPC 10000-17: extension points", () => {
             const addressSpace = await pristine();
             // nothing to bind against yet; installAliasNames picks it up later
             const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "Wells");
-            getMethod(wells, "FindAlias")!.isBound().should.eql(false);
+            should(getMethod(wells, "FindAlias")?.isBound()).eql(false);
 
             await installAliasNamesOnAddressSpace(addressSpace);
-            getMethod(wells, "FindAlias")!.isBound().should.eql(true);
+            should(getMethod(wells, "FindAlias")?.isBound()).eql(true);
         });
 
         it("should derive a stable, readable NodeId from the category's path", () => {
@@ -177,9 +177,9 @@ describe("OPC 10000-17: extension points", () => {
                 namespace: addressSpace.getOwnNamespace()
             }) as UAObject;
 
-            getMethod(handmade, "FindAlias")!.isBound().should.eql(false);
+            should(getMethod(handmade, "FindAlias")?.isBound()).eql(false);
             bindAliasCategory(addressSpace, handmade, installed.bindingOptions);
-            getMethod(handmade, "FindAlias")!.isBound().should.eql(true);
+            should(getMethod(handmade, "FindAlias")?.isBound()).eql(true);
         });
 
         it("should add FindAliasVerbose, which cannot be hand-rolled", async () => {
@@ -193,7 +193,7 @@ describe("OPC 10000-17: extension points", () => {
 
             should.not.exist(getMethod(handmade, "FindAliasVerbose"));
             bindAliasCategory(addressSpace, handmade, installed.bindingOptions);
-            getMethod(handmade, "FindAliasVerbose")!.isBound().should.eql(true);
+            should(getMethod(handmade, "FindAliasVerbose")?.isBound()).eql(true);
         });
 
         it("should be safe to call twice", async () => {
@@ -207,7 +207,7 @@ describe("OPC 10000-17: extension points", () => {
                 .filter((c) => c.browseName.name === "FindAliasVerbose")
                 .should.have.length(1);
             const result = await callFind(category, "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.Good);
+            should(result.statusCode).eql(StatusCodes.Good);
         });
     });
 
@@ -218,7 +218,7 @@ describe("OPC 10000-17: extension points", () => {
             const installed = await installAliasNamesOnAddressSpace(addressSpace, { store, maxResults: 42, verbose: false });
             installed.bindingOptions.store.should.equal(store);
             installed.bindingOptions.maxResults.should.eql(42);
-            installed.bindingOptions.verbose!.should.eql(false);
+            should(installed.bindingOptions.verbose).eql(false);
         });
 
         it("should be readable from the address space afterwards", async () => {
@@ -226,7 +226,7 @@ describe("OPC 10000-17: extension points", () => {
             const installed = await installAliasNamesOnAddressSpace(addressSpace);
             const recovered = getInstalledAliasNames(addressSpace);
             should.exist(recovered);
-            recovered!.store.should.equal(installed.store);
+            should(recovered?.store).equal(installed.store);
         });
 
         it("should report undefined before installation", async () => {
@@ -241,9 +241,9 @@ describe("OPC 10000-17: extension points", () => {
             const store: IAliasStore = { find: () => [], lastChange: () => 0 };
             const wells = addAliasCategory(addressSpace, WellKnownCategories.TagVariables, "Wells", { store });
 
-            getMethod(wells, "FindAlias")!.isBound().should.eql(true);
+            should(getMethod(wells, "FindAlias")?.isBound()).eql(true);
             const result = await callFind(wells, "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.Good);
+            should(result.statusCode).eql(StatusCodes.Good);
             DEFAULT_MAX_RESULTS.should.be.above(0);
         });
     });
@@ -259,7 +259,7 @@ describe("OPC 10000-17: extension points", () => {
             result.categories.should.have.length(1);
             sameNodeId(result.categories[0], WellKnownCategories.TagVariables).should.eql(true);
             // Aliases was not in the supplied set, so it stays unbound
-            getMethod(getObject(addressSpace, WellKnownCategories.Aliases), "FindAlias")!.isBound().should.eql(false);
+            should(getMethod(getObject(addressSpace, WellKnownCategories.Aliases), "FindAlias")?.isBound()).eql(false);
         });
 
         it("should receive the address space", async () => {
@@ -299,10 +299,10 @@ describe("OPC 10000-17: extension points", () => {
             });
 
             const denied = await callFind(getObject(addressSpace, WellKnownCategories.Topics), "FindAlias", "%");
-            denied.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
+            should(denied.statusCode).eql(StatusCodes.BadUserAccessDenied);
 
             const allowed = await callFind(getObject(addressSpace, WellKnownCategories.TagVariables), "FindAlias", "%");
-            allowed.statusCode!.should.eql(StatusCodes.Good);
+            should(allowed.statusCode).eql(StatusCodes.Good);
         });
 
         it("should await a Promise, for permissions that live in a database", async () => {
@@ -314,7 +314,7 @@ describe("OPC 10000-17: extension points", () => {
                 }
             });
             const result = await callFind(getObject(addressSpace, WellKnownCategories.Aliases), "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
+            should(result.statusCode).eql(StatusCodes.BadUserAccessDenied);
         });
     });
 
@@ -332,7 +332,7 @@ describe("OPC 10000-17: extension points", () => {
 
             const result = await callFind(getObject(space, WellKnownCategories.TagVariables), "FindAlias", "%");
 
-            result.statusCode!.should.eql(StatusCodes.Good, "denial is not an error");
+            should(result.statusCode).eql(StatusCodes.Good, "denial is not an error");
             aliasNames(result).should.eql(["OPEN-1"], "the denied category contributes nothing, and nothing says so");
         });
 
@@ -353,7 +353,7 @@ describe("OPC 10000-17: extension points", () => {
             });
 
             const result = await callFind(getObject(space, WellKnownCategories.TagVariables), "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.Good);
+            should(result.statusCode).eql(StatusCodes.Good);
             aliasNames(result).should.eql(["A-1"]);
 
             // the gate saw both nested categories, not just the one called on
@@ -388,7 +388,7 @@ describe("OPC 10000-17: extension points", () => {
                 isReadAllowed: (_c: ISessionContext, categoryNodeId: NodeId) => !sameNodeId(categoryNodeId, denied.nodeId)
             });
             const result = await callFind(denied, "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
+            should(result.statusCode).eql(StatusCodes.BadUserAccessDenied);
         });
 
         it("should not let FindAliasVerbose disclose more than FindAlias", async () => {
@@ -404,7 +404,7 @@ describe("OPC 10000-17: extension points", () => {
 
             const tagVariables = getObject(space, WellKnownCategories.TagVariables);
             const verbose = await callFind(tagVariables, "FindAliasVerbose", "%");
-            verbose.statusCode!.should.eql(StatusCodes.Good);
+            should(verbose.statusCode).eql(StatusCodes.Good);
 
             const entries = resultVerbose(verbose);
             entries.map((e) => e.aliasName.name).should.eql(["V-OPEN"]);
@@ -433,7 +433,7 @@ describe("OPC 10000-17: extension points", () => {
 
             const result = await callFind(getObject(space, WellKnownCategories.Aliases), "FindAlias", "%");
 
-            result.statusCode!.should.eql(StatusCodes.Good, "the other tenant's rows must not exhaust the cap");
+            should(result.statusCode).eql(StatusCodes.Good, "the other tenant's rows must not exhaust the cap");
             aliasNames(result).should.eql(["MINE-1", "MINE-2"]);
         });
 
@@ -452,7 +452,7 @@ describe("OPC 10000-17: extension points", () => {
             });
 
             const result = await callFind(getObject(space, WellKnownCategories.Aliases), "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.BadResponseTooLarge);
+            should(result.statusCode).eql(StatusCodes.BadResponseTooLarge);
         });
 
         it("should not leak through a store that ignores isVisible", async () => {
@@ -479,7 +479,7 @@ describe("OPC 10000-17: extension points", () => {
             });
 
             const result = await callFind(getObject(space, WellKnownCategories.TagVariables), "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.Good);
+            should(result.statusCode).eql(StatusCodes.Good);
             aliasNames(result).should.eql(["IGN-OPEN"], "the backstop still removes the hidden category");
         });
 
@@ -516,7 +516,7 @@ describe("OPC 10000-17: extension points", () => {
             addAlias(space, cat, "U-1", ns.addVariable({ browseName: "UVar", dataType: "Double" }));
             await installAliasNamesOnAddressSpace(space);
             const result = await callFind(getObject(space, WellKnownCategories.TagVariables), "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.Good);
+            should(result.statusCode).eql(StatusCodes.Good);
             aliasNames(result).should.eql(["U-1"]);
         });
     });
@@ -532,8 +532,8 @@ describe("OPC 10000-17: extension points", () => {
                 categoryType: subtype
             });
 
-            category.typeDefinitionObj.browseName.name!.should.eql("TenantCategoryType");
-            getMethod(category, "FindAlias")!.isBound().should.eql(true, "binding handles subtypes");
+            should(category.typeDefinitionObj.browseName.name).eql("TenantCategoryType");
+            should(getMethod(category, "FindAlias")?.isBound()).eql(true, "binding handles subtypes");
         });
 
         it("should reject a type that is not an AliasNameCategoryType", () => {
@@ -550,7 +550,7 @@ describe("OPC 10000-17: extension points", () => {
                 rolePermissions: [{ roleId: resolveNodeId("i=15644"), permissions: PermissionType.Browse }]
             });
             should.exist(category.rolePermissions);
-            category.rolePermissions!.should.have.length(1);
+            should(category.rolePermissions).have.length(1);
         });
     });
 

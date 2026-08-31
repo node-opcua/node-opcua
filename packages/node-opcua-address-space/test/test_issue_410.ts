@@ -43,8 +43,8 @@ describe("AnalogDataItem ValuePrecision issue #410", () => {
     });
 
     it("ValuePrecision should have a DataType Double", () => {
-        analogItem.valuePrecision?.dataType.should.be.instanceOf(NodeId);
-        analogItem.valuePrecision?.dataType.should.eql(resolveNodeId(DataTypeIds.Double));
+        should(analogItem.valuePrecision?.dataType).be.instanceOf(NodeId);
+        should(analogItem.valuePrecision?.dataType).eql(resolveNodeId(DataTypeIds.Double));
     });
     it("ValuePrecision should be writable ", async () => {
         analogItem = analogItem!;

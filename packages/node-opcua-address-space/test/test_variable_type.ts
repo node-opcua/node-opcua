@@ -115,7 +115,7 @@ describe("testing UAVariableType", () => {
             dataType: "Int32"
         });
 
-        myFolder.getComponentByName("Instance5")?.browseName.toString().should.eql("1:Instance5");
+        should(myFolder.getComponentByName("Instance5")?.browseName.toString()).eql("1:Instance5");
     });
     it("UAVariableType#instantiate with organizedBy", () => {
         addressSpace.rootFolder.browseName.toString().should.eql("RootFolder");
@@ -137,7 +137,7 @@ describe("testing UAVariableType", () => {
             organizedBy: myFolder
         });
 
-        myFolder.getFolderElementByName("Instance6")?.browseName.toString().should.eql("1:Instance6");
+        should(myFolder.getFolderElementByName("Instance6")?.browseName.toString()).eql("1:Instance6");
     });
     it("UAVariableType#instantiate with valueRank and arrayDimension", () => {
         const variableType = addressSpace.getOwnNamespace().addVariableType({
@@ -155,7 +155,7 @@ describe("testing UAVariableType", () => {
 
         variableType.dataType.should.eql(doubleDataType.nodeId);
         variableType.valueRank.should.eql(2);
-        variableType.arrayDimensions?.should.eql([3, 3]);
+        should(variableType.arrayDimensions).eql([3, 3]);
 
         const obj = variableType.instantiate({
             browseName: "My3x3MatrixVariable"
@@ -165,7 +165,7 @@ describe("testing UAVariableType", () => {
         obj.nodeId.identifierType.should.eql(NodeId.NodeIdType.NUMERIC);
         obj.dataType.should.eql(doubleDataType.nodeId);
         obj.valueRank.should.eql(2);
-        obj.arrayDimensions?.should.eql([3, 3]);
+        should(obj.arrayDimensions).eql([3, 3]);
     });
 
     it("should provide a mechanism to customize newly created instance", () => {

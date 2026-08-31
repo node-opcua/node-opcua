@@ -180,7 +180,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
         } catch (err) {
             _err = err as Error;
         }
-        _err?.message.should.match(/connect ECONNREFUSED|The connection may have been rejected by server/);
+        should(_err?.message).match(/connect ECONNREFUSED|The connection may have been rejected by server/);
 
         await client.connect(endpointUrl);
         await client.disconnect();
@@ -259,7 +259,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
             _err = err as Error;
         }
         await client.disconnect();
-        _err?.should.be.instanceOf(Error);
+        should(_err).be.instanceOf(Error);
     });
 });
 
@@ -342,7 +342,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     }
 
     async function verify_that_server_has_no_active_channel() {
-        server?.currentChannelCount.should.equal(0);
+        should(server?.currentChannelCount).equal(0);
     }
 
     async function wait_for(duration: number): Promise<void> {
@@ -468,7 +468,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     async function verify_that_client_is_trying_to_connect() {
         // wait a little bit and check that client has started the reconnection process
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        client?.isReconnecting.should.eql(true, "verify_that_client_is_trying_to_reconnect");
+        should(client?.isReconnecting).eql(true, "verify_that_client_is_trying_to_reconnect");
     }
 
     async function _waitUntil(lambda: () => boolean, timeout: number, errorMessage: string): Promise<void> {

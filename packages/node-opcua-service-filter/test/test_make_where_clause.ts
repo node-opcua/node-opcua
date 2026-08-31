@@ -1,6 +1,6 @@
-import "should";
 import { AttributeIds } from "node-opcua-basic-types";
 import { DataType } from "node-opcua-variant";
+import should from "should";
 import { ElementOperand, FilterOperator, LiteralOperand, SimpleAttributeOperand } from "../dist/index.js";
 import {
     and,
@@ -19,8 +19,8 @@ describe("make where clause", () => {
         const elements = makeContentFilterElements(ofType("ConditionType"));
         elements.length.should.eql(1);
         elements[0].filterOperator.should.eql(FilterOperator.OfType);
-        elements[0].filterOperands?.length.should.eql(1);
-        elements[0].filterOperands![0]!.should.be.instanceOf(LiteralOperand);
+        should(elements[0].filterOperands?.length).eql(1);
+        should(elements[0].filterOperands?.[0]).be.instanceOf(LiteralOperand);
         (elements[0].filterOperands![0]! as LiteralOperand).value.dataType.should.eql(DataType.NodeId);
     });
 
@@ -33,21 +33,21 @@ describe("make where clause", () => {
         elements.length.should.eql(3);
 
         elements[0].filterOperator.should.eql(FilterOperator.Or);
-        elements[0].filterOperands?.length.should.eql(2);
-        elements[0].filterOperands![0]!.should.be.instanceOf(ElementOperand);
-        elements[0].filterOperands![1]!.should.be.instanceOf(ElementOperand);
+        should(elements[0].filterOperands?.length).eql(2);
+        should(elements[0].filterOperands?.[0]).be.instanceOf(ElementOperand);
+        should(elements[0].filterOperands?.[1]).be.instanceOf(ElementOperand);
         (elements[0].filterOperands![0]! as ElementOperand).index.should.eql(1);
         (elements[0].filterOperands![1]! as ElementOperand).index.should.eql(2);
 
         elements[1].filterOperator.should.eql(FilterOperator.OfType);
         elements[2].filterOperator.should.eql(FilterOperator.OfType);
 
-        elements[1].filterOperands?.length.should.eql(1);
-        elements[1].filterOperands![0]!.should.be.instanceOf(LiteralOperand);
+        should(elements[1].filterOperands?.length).eql(1);
+        should(elements[1].filterOperands?.[0]).be.instanceOf(LiteralOperand);
         (elements[1].filterOperands![0]! as LiteralOperand).value.dataType.should.eql(DataType.NodeId);
 
-        elements[2].filterOperands?.length.should.eql(1);
-        elements[2].filterOperands![0]!.should.be.instanceOf(LiteralOperand);
+        should(elements[2].filterOperands?.length).eql(1);
+        should(elements[2].filterOperands?.[0]).be.instanceOf(LiteralOperand);
         (elements[2].filterOperands![0]! as LiteralOperand).value.dataType.should.eql(DataType.NodeId);
     });
 
@@ -62,11 +62,11 @@ describe("make where clause", () => {
 
         elements.length.should.eql(1);
         elements[0].filterOperator.should.eql(FilterOperator.InList);
-        elements[0].filterOperands?.length.should.eql(4);
-        elements[0].filterOperands![0]!.should.be.instanceOf(SimpleAttributeOperand);
-        elements[0].filterOperands![1]!.should.be.instanceOf(LiteralOperand);
-        elements[0].filterOperands![2]!.should.be.instanceOf(LiteralOperand);
-        elements[0].filterOperands![3]!.should.be.instanceOf(LiteralOperand);
+        should(elements[0].filterOperands?.length).eql(4);
+        should(elements[0].filterOperands?.[0]).be.instanceOf(SimpleAttributeOperand);
+        should(elements[0].filterOperands?.[1]).be.instanceOf(LiteralOperand);
+        should(elements[0].filterOperands?.[2]).be.instanceOf(LiteralOperand);
+        should(elements[0].filterOperands?.[3]).be.instanceOf(LiteralOperand);
     });
 
     it("should create a and whereClause", () => {

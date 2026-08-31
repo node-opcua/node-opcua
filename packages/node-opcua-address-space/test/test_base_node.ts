@@ -111,7 +111,7 @@ describe("Testing UAObject", () => {
             nodeId: nodeDest,
             referenceType: "Organizes"
         });
-        node1.getFolderElementByName("nodeDest")?.browseName.should.eql(nodeDest.browseName);
+        should(node1.getFolderElementByName("nodeDest")?.browseName).eql(nodeDest.browseName);
     });
     it("BaseNode#addReference - nodeId as Node", () => {
         const node1 = namespace.addObject({ browseName: "Node1" });
@@ -121,7 +121,7 @@ describe("Testing UAObject", () => {
             nodeId: nodeDest.nodeId,
             referenceType: "Organizes"
         });
-        node1.getFolderElementByName("nodeDest")?.browseName.should.eql(nodeDest.browseName);
+        should(node1.getFolderElementByName("nodeDest")?.browseName).eql(nodeDest.browseName);
     });
     it("BaseNode#addReference - nodeId as String", () => {
         const node1 = namespace.addObject({ browseName: "Node1" });
@@ -131,7 +131,7 @@ describe("Testing UAObject", () => {
             nodeId: nodeDest.nodeId.toString(),
             referenceType: "Organizes"
         });
-        node1.getFolderElementByName("nodeDest")?.browseName.should.eql(nodeDest.browseName);
+        should(node1.getFolderElementByName("nodeDest")?.browseName).eql(nodeDest.browseName);
     });
 
     it("BaseNode#addReference with invalid referenceType should raise an exception", () => {
@@ -167,11 +167,11 @@ describe("Testing UAObject", () => {
         view.addReference({ referenceType: "Organizes", nodeId: node4 });
         view.addReference({ referenceType: "OrganizedBy", isForward: false, nodeId: node5 });
 
-        view.getFolderElementByName("Node1")?.browseName.toString().should.eql(node1.browseName.toString());
-        view.getFolderElementByName("Node2")?.browseName.toString().should.eql(node2.browseName.toString());
-        view.getFolderElementByName("Node3")?.browseName.toString().should.eql(node3.browseName.toString());
-        view.getFolderElementByName("Node4")?.browseName.toString().should.eql(node4.browseName.toString());
-        view.getFolderElementByName("Node5")?.browseName.toString().should.eql(node5.browseName.toString());
+        should(view.getFolderElementByName("Node1")?.browseName.toString()).eql(node1.browseName.toString());
+        should(view.getFolderElementByName("Node2")?.browseName.toString()).eql(node2.browseName.toString());
+        should(view.getFolderElementByName("Node3")?.browseName.toString()).eql(node3.browseName.toString());
+        should(view.getFolderElementByName("Node4")?.browseName.toString()).eql(node4.browseName.toString());
+        should(view.getFolderElementByName("Node5")?.browseName.toString()).eql(node5.browseName.toString());
     });
 
     it("BaseNode#addReference - 2 nodes - should properly update backward references on referenced nodes", () => {
@@ -358,10 +358,10 @@ describe("Testing UAObject", () => {
         });
 
         const child1 = namespace.addObject({ componentOf: parentNode, browseName: "Child1" });
-        child1.parent?.should.eql(parentNode);
+        should(child1.parent).eql(parentNode);
 
         const child2 = namespace.addObject({ propertyOf: parentNode, browseName: "Child2" });
-        child2.parent?.should.eql(parentNode);
+        should(child2.parent).eql(parentNode);
 
         const child3 = namespace.addObject({ organizedBy: parentNode, browseName: "Child3" });
         should(child3.parent).eql(null, "OrganizedBy is not a Parent/Child relation");

@@ -1,5 +1,3 @@
-import "should";
-
 import { ObjectIds } from "node-opcua-constants";
 import {
     AccessLevelFlag,
@@ -19,6 +17,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { MessageSecurityMode, PermissionType, RolePermissionType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
+import should from "should";
 import {
     AddressSpace,
     makeRoles,
@@ -58,7 +57,7 @@ describe("AddressSpace : Variable.setPermissions", () => {
     });
 
     it("should adjust userAccessLevel based on session Context permission", () => {
-        variable.userAccessLevel?.should.eql(0x3f);
+        should(variable.userAccessLevel).eql(0x3f);
         accessLevelFlagToString(variable.userAccessLevel!).should.eql(
             "CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"
         );
@@ -154,7 +153,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
     });
 
     it("should adjust userAccessLevel based on session Context permission", () => {
-        variable.userAccessLevel?.should.eql(0x3f);
+        should(variable.userAccessLevel).eql(0x3f);
         accessLevelFlagToString(variable.userAccessLevel!).should.eql(
             "CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"
         );

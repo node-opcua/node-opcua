@@ -402,54 +402,51 @@ describe("Extension Object binding and sub  components\n", () => {
             dataTypeNode.isSubtypeOf(structure).should.eql(true);
 
             const definition = dataTypeNode.getStructureDefinition();
-            definition
-                .fields!.map((x: StructureField) => x.name)
-                .sort()
-                .should.eql([
-                    "ActualSessionTimeout",
-                    "AddNodesCount",
-                    "AddReferencesCount",
-                    "BrowseCount",
-                    "BrowseNextCount",
-                    "CallCount",
-                    "ClientConnectionTime",
-                    "ClientDescription",
-                    "ClientLastContactTime",
-                    "CreateMonitoredItemsCount",
-                    "CreateSubscriptionCount",
-                    "CurrentMonitoredItemsCount",
-                    "CurrentPublishRequestsInQueue",
-                    "CurrentSubscriptionsCount",
-                    "DeleteMonitoredItemsCount",
-                    "DeleteNodesCount",
-                    "DeleteReferencesCount",
-                    "DeleteSubscriptionsCount",
-                    "EndpointUrl",
-                    "HistoryReadCount",
-                    "HistoryUpdateCount",
-                    "LocaleIds",
-                    "MaxResponseMessageSize",
-                    "ModifyMonitoredItemsCount",
-                    "ModifySubscriptionCount",
-                    "PublishCount",
-                    "QueryFirstCount",
-                    "QueryNextCount",
-                    "ReadCount",
-                    "RegisterNodesCount",
-                    "RepublishCount",
-                    "ServerUri",
-                    "SessionId",
-                    "SessionName",
-                    "SetMonitoringModeCount",
-                    "SetPublishingModeCount",
-                    "SetTriggeringCount",
-                    "TotalRequestCount",
-                    "TransferSubscriptionsCount",
-                    "TranslateBrowsePathsToNodeIdsCount",
-                    "UnauthorizedRequestCount",
-                    "UnregisterNodesCount",
-                    "WriteCount"
-                ]);
+            should(definition.fields?.map((x: StructureField) => x.name).sort()).eql([
+                "ActualSessionTimeout",
+                "AddNodesCount",
+                "AddReferencesCount",
+                "BrowseCount",
+                "BrowseNextCount",
+                "CallCount",
+                "ClientConnectionTime",
+                "ClientDescription",
+                "ClientLastContactTime",
+                "CreateMonitoredItemsCount",
+                "CreateSubscriptionCount",
+                "CurrentMonitoredItemsCount",
+                "CurrentPublishRequestsInQueue",
+                "CurrentSubscriptionsCount",
+                "DeleteMonitoredItemsCount",
+                "DeleteNodesCount",
+                "DeleteReferencesCount",
+                "DeleteSubscriptionsCount",
+                "EndpointUrl",
+                "HistoryReadCount",
+                "HistoryUpdateCount",
+                "LocaleIds",
+                "MaxResponseMessageSize",
+                "ModifyMonitoredItemsCount",
+                "ModifySubscriptionCount",
+                "PublishCount",
+                "QueryFirstCount",
+                "QueryNextCount",
+                "ReadCount",
+                "RegisterNodesCount",
+                "RepublishCount",
+                "ServerUri",
+                "SessionId",
+                "SessionName",
+                "SetMonitoringModeCount",
+                "SetPublishingModeCount",
+                "SetTriggeringCount",
+                "TotalRequestCount",
+                "TransferSubscriptionsCount",
+                "TranslateBrowsePathsToNodeIdsCount",
+                "UnauthorizedRequestCount",
+                "UnregisterNodesCount",
+                "WriteCount"
+            ]);
         });
 
         it("ZA2- sessionDiagnostics should have a dataValue with the expected ExtensionObjectType", () => {
@@ -476,17 +473,17 @@ describe("Extension Object binding and sub  components\n", () => {
                 spy_on_sessionDiagnostics_value_changed.callCount.should.eql(1);
 
                 sessionDiagnostics.clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
-                sessionDiagnostics.clientDescription.readValue().value.value.applicationUri!.should.eql("applicationUri-1");
-                sessionDiagnostics.readValue().value.value.clientDescription.applicationUri!.should.eql("applicationUri-1");
+                should(sessionDiagnostics.clientDescription.readValue().value.value.applicationUri).eql("applicationUri-1");
+                should(sessionDiagnostics.readValue().value.value.clientDescription.applicationUri).eql("applicationUri-1");
 
-                _sessionDiagnostics.clientDescription?.applicationUri?.should.eql("applicationUri-1");
+                should(_sessionDiagnostics.clientDescription?.applicationUri).eql("applicationUri-1");
 
                 spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
 
                 const eo = sessionDiagnostics.readValue().value.value;
-                eo.clientDescription.applicationUri!.should.eql("applicationUri-1");
+                should(eo.clientDescription.applicationUri).eql("applicationUri-1");
 
                 // xx console.log(eo.toString());
             }
@@ -563,8 +560,8 @@ describe("Extension Object binding and sub  components\n", () => {
                 _sessionDiagnostics.clientDescription!.applicationUri = "applicationUri-1";
 
                 sessionDiagnostics.clientDescription.applicationUri.readValue().value.value.should.eql("applicationUri-1");
-                sessionDiagnostics.clientDescription.readValue().value.value.applicationUri!.should.eql("applicationUri-1");
-                sessionDiagnostics.readValue().value.value.clientDescription.applicationUri!.should.eql("applicationUri-1");
+                should(sessionDiagnostics.clientDescription.readValue().value.value.applicationUri).eql("applicationUri-1");
+                should(sessionDiagnostics.readValue().value.value.clientDescription.applicationUri).eql("applicationUri-1");
             }
         );
     });

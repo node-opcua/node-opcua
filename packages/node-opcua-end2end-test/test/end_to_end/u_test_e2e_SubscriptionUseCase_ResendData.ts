@@ -1,4 +1,3 @@
-import "should";
 import {
     AttributeIds,
     DataChangeNotification,
@@ -17,6 +16,7 @@ import {
 } from "node-opcua";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import type { TestHarness } from "./u_test_e2e_modifyMonitoredItem_onEvent.js";
 
 const debugLog = make_debugLog("TEST");
@@ -149,11 +149,11 @@ export function t(test: TestHarness) {
                     let referenceValue: DataValue;
                     {
                         messages.length.should.eql(1);
-                        messages[0].notificationData?.length.should.eql(1);
+                        should(messages[0].notificationData?.length).eql(1);
                         const n = messages[0].notificationData?.[0] as DataChangeNotification;
-                        n.monitoredItems?.length.should.eql(1);
-                        n.monitoredItems?.[0].clientHandle.should.eql(3);
-                        n.monitoredItems?.[0].value.value.value.should.eql(300);
+                        should(n.monitoredItems?.length).eql(1);
+                        should(n.monitoredItems?.[0].clientHandle).eql(3);
+                        should(n.monitoredItems?.[0].value.value.value).eql(300);
                         referenceValue = n.monitoredItems![0].value;
                     }
                     messages = [];
@@ -169,11 +169,11 @@ export function t(test: TestHarness) {
 
                     {
                         messages.length.should.eql(1);
-                        messages[0].notificationData?.length.should.eql(1);
+                        should(messages[0].notificationData?.length).eql(1);
                         const n = messages[0].notificationData?.[0] as DataChangeNotification;
-                        n.monitoredItems?.length.should.eql(1);
-                        n.monitoredItems?.[0].clientHandle.should.eql(3);
-                        n.monitoredItems?.[0].value.value.value.should.eql(300);
+                        should(n.monitoredItems?.length).eql(1);
+                        should(n.monitoredItems?.[0].clientHandle).eql(3);
+                        should(n.monitoredItems?.[0].value.value.value).eql(300);
 
                         const newDataValue = n.monitoredItems![0].value;
 
@@ -255,10 +255,10 @@ export function t(test: TestHarness) {
                     let ref: DataValue;
                     {
                         messages.length.should.eql(1);
-                        messages[0].notificationData?.length.should.eql(1);
+                        should(messages[0].notificationData?.length).eql(1);
                         const n0 = messages[0].notificationData?.[0] as DataChangeNotification;
-                        n0.monitoredItems?.length.should.eql(1);
-                        n0.monitoredItems?.[0].clientHandle.should.eql(1);
+                        should(n0.monitoredItems?.length).eql(1);
+                        should(n0.monitoredItems?.[0].clientHandle).eql(1);
                         ref = n0.monitoredItems![0].value;
                     }
                     messages = [];
@@ -279,14 +279,14 @@ export function t(test: TestHarness) {
                     console.log("now item2 goes reporting");
                     {
                         messages.length.should.eql(1);
-                        messages[0].notificationData?.length.should.eql(1);
+                        should(messages[0].notificationData?.length).eql(1);
                         const n0 = messages[0].notificationData?.[0] as DataChangeNotification;
-                        n0.monitoredItems?.length.should.eql(2);
-                        n0.monitoredItems?.[0].clientHandle.should.eql(1);
-                        n0.monitoredItems![0].value.toString().should.eql(ref.toString());
+                        should(n0.monitoredItems?.length).eql(2);
+                        should(n0.monitoredItems?.[0].clientHandle).eql(1);
+                        should(n0.monitoredItems?.[0].value.toString()).eql(ref.toString());
 
-                        n0.monitoredItems?.[1].clientHandle.should.eql(1);
-                        n0.monitoredItems![1].value.toString().should.eql(ref.toString());
+                        should(n0.monitoredItems?.[1].clientHandle).eql(1);
+                        should(n0.monitoredItems?.[1].value.toString()).eql(ref.toString());
 
                         // messages[1].notificationData!.length.should.eql(1);
                         // const n1 = messages[1].notificationData![0] as DataChangeNotification;

@@ -123,7 +123,7 @@ import { testPath } from "./paths.js";
             // clientFile.handle.should.eql(0);
 
             if (ClientFile.useGlobalMethod) {
-                (clientFile as unknown as IClientFilePriv).openMethodNodeId?.value.should.eql(MethodIds.FileType_Open);
+                should((clientFile as unknown as IClientFilePriv).openMethodNodeId?.value).eql(MethodIds.FileType_Open);
             }
         });
 
@@ -200,7 +200,7 @@ import { testPath } from "./paths.js";
 
             // Then I should verify that the read method has failed
             should.exist(hasReceivedException);
-            hasReceivedException!.message.should.match(/BadInvalidState/);
+            should(hasReceivedException?.message).match(/BadInvalidState/);
             hasSucceeded.should.eql(false);
         });
 
@@ -305,7 +305,7 @@ import { testPath } from "./paths.js";
 
             // Then I should verify that the read method has failed
             should.exist(hasReceivedException, "It should have received an exception");
-            hasReceivedException!.message.should.match(/BadInvalidState/);
+            should(hasReceivedException?.message).match(/BadInvalidState/);
             hasSucceeded.should.eql(false);
         });
 
@@ -381,9 +381,9 @@ import { testPath } from "./paths.js";
             const closeMethod = clientFile.closeMethodNodeId!;
             const getMethod = (n: number) => callSpy.getCall(n).args[0] as CallMethodRequestOptions;
 
-            getMethod(0).methodId?.should.eql(openMethod);
-            getMethod(1).methodId?.should.eql(readMethod);
-            getMethod(2).methodId?.should.eql(closeMethod);
+            should(getMethod(0).methodId).eql(openMethod);
+            should(getMethod(1).methodId).eql(readMethod);
+            should(getMethod(2).methodId).eql(closeMethod);
 
             buf.toString("utf-8").should.eql("1234567890");
         });
@@ -416,14 +416,14 @@ import { testPath } from "./paths.js";
             const closeMethod = clientFile.closeMethodNodeId!;
             const getMethod = (n: number) => callSpy.getCall(n).args[0] as CallMethodRequestOptions;
 
-            getMethod(0).methodId?.should.eql(openMethod);
-            getMethod(1).methodId?.should.eql(readMethod);
-            getMethod(2).methodId?.should.eql(readMethod);
-            getMethod(3).methodId?.should.eql(readMethod);
-            getMethod(4).methodId?.should.eql(readMethod);
-            getMethod(5).methodId?.should.eql(readMethod);
-            getMethod(6).methodId?.should.eql(readMethod);
-            getMethod(7).methodId?.should.eql(closeMethod);
+            should(getMethod(0).methodId).eql(openMethod);
+            should(getMethod(1).methodId).eql(readMethod);
+            should(getMethod(2).methodId).eql(readMethod);
+            should(getMethod(3).methodId).eql(readMethod);
+            should(getMethod(4).methodId).eql(readMethod);
+            should(getMethod(5).methodId).eql(readMethod);
+            should(getMethod(6).methodId).eql(readMethod);
+            should(getMethod(7).methodId).eql(closeMethod);
 
             callSpy.callCount.should.equal(8);
 
@@ -448,13 +448,13 @@ import { testPath } from "./paths.js";
             const setPosition = clientFile.setPositionNodeId!;
             const closeMethod = clientFile.closeMethodNodeId!;
             const getMethod = (n: number) => callSpy.getCall(n).args[0] as CallMethodRequestOptions;
-            getMethod(0).methodId?.should.eql(openMethod);
-            getMethod(1).methodId?.should.eql(setPosition);
-            getMethod(2).methodId?.should.eql(writeMethod);
-            getMethod(3).methodId?.should.eql(writeMethod);
-            getMethod(4).methodId?.should.eql(writeMethod);
-            getMethod(5).methodId?.should.eql(writeMethod);
-            getMethod(6).methodId?.should.eql(closeMethod);
+            should(getMethod(0).methodId).eql(openMethod);
+            should(getMethod(1).methodId).eql(setPosition);
+            should(getMethod(2).methodId).eql(writeMethod);
+            should(getMethod(3).methodId).eql(writeMethod);
+            should(getMethod(4).methodId).eql(writeMethod);
+            should(getMethod(5).methodId).eql(writeMethod);
+            should(getMethod(6).methodId).eql(closeMethod);
 
             const content = await fsOrigin.promises.readFile(filepath);
 

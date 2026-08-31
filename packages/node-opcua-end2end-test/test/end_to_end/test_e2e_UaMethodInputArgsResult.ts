@@ -67,7 +67,7 @@ describe("list status codes for input arguments", () => {
             inputArguments: [{ dataType: DataType.UInt16, value: 1 }]
         });
         result.statusCode.should.eql(StatusCodes.Good);
-        result.inputArgumentResults?.[0].should.eql(StatusCodes.Good);
+        should(result.inputArgumentResults?.[0]).eql(StatusCodes.Good);
     });
 
     it("should return lib generated BadTypeMismatch if argument type is wrong", async () => {
@@ -77,7 +77,7 @@ describe("list status codes for input arguments", () => {
             inputArguments: [{ dataType: DataType.UInt32, value: 1 }]
         });
         result.statusCode.should.eql(StatusCodes.BadTypeMismatch);
-        result.inputArgumentResults?.[0].should.eql(StatusCodes.BadTypeMismatch);
+        should(result.inputArgumentResults?.[0]).eql(StatusCodes.BadTypeMismatch);
     });
 
     it("should return custom error", async () => {
@@ -87,7 +87,7 @@ describe("list status codes for input arguments", () => {
             inputArguments: [{ dataType: DataType.UInt16, value: 4 }]
         });
         result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
-        result.inputArgumentResults?.[0].should.eql(StatusCodes.BadOutOfRange);
+        should(result.inputArgumentResults?.[0]).eql(StatusCodes.BadOutOfRange);
     });
 
     it("should return default status code good if no custom status code is provided for input argument result", async () => {
@@ -97,7 +97,7 @@ describe("list status codes for input arguments", () => {
             inputArguments: [{ dataType: DataType.UInt16, value: 0 }]
         });
         result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
-        result.inputArgumentResults?.[0].should.eql(StatusCodes.Good);
+        should(result.inputArgumentResults?.[0]).eql(StatusCodes.Good);
     });
 
     it("should return custom diagnostic infos", async () => {
@@ -107,9 +107,9 @@ describe("list status codes for input arguments", () => {
             inputArguments: [{ dataType: DataType.UInt16, value: 10 }]
         });
         result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
-        result.inputArgumentResults?.[0].should.eql(StatusCodes.BadOutOfRange);
+        should(result.inputArgumentResults?.[0]).eql(StatusCodes.BadOutOfRange);
         should.exist(result.inputArgumentDiagnosticInfos);
         should.exist(result.inputArgumentDiagnosticInfos?.[0]);
-        result.inputArgumentDiagnosticInfos?.[0]?.additionalInfo?.should.eql("Hey dude, stop ringing the door");
+        should(result.inputArgumentDiagnosticInfos?.[0]?.additionalInfo).eql("Hey dude, stop ringing the door");
     });
 });

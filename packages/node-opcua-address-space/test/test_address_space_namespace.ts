@@ -48,8 +48,8 @@ describe("testing address space namespace loading", function (this: Mocha.Suite)
         addressSpace.getNamespaceArray()[2].namespaceUri.should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE1/");
         addressSpace.getNamespaceArray()[3].namespaceUri.should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
 
-        addressSpace.findNode("ns=2;i=1")?.browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
-        addressSpace.findNode("ns=3;i=1")?.browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
+        should(addressSpace.findNode("ns=2;i=1")?.browseName.toString()).eql("2:ObjectInCUSTOM_NAMESPACE1");
+        should(addressSpace.findNode("ns=3;i=1")?.browseName.toString()).eql("3:ObjectInCUSTOM_NAMESPACE2");
 
         addressSpace
             .getNamespaceArray()
@@ -85,13 +85,13 @@ describe("testing address space namespace loading", function (this: Mocha.Suite)
         addressSpace.getNamespaceArray()[3].namespaceUri.should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE2/");
         addressSpace.getNamespaceArray()[4].namespaceUri.should.eql("http://nodeopcua.org/UA/CUSTOM_NAMESPACE3/");
 
-        addressSpace.findNode("ns=2;i=1")?.browseName.toString().should.eql("2:ObjectInCUSTOM_NAMESPACE1");
-        addressSpace.findNode("ns=3;i=1")?.browseName.toString().should.eql("3:ObjectInCUSTOM_NAMESPACE2");
+        should(addressSpace.findNode("ns=2;i=1")?.browseName.toString()).eql("2:ObjectInCUSTOM_NAMESPACE1");
+        should(addressSpace.findNode("ns=3;i=1")?.browseName.toString()).eql("3:ObjectInCUSTOM_NAMESPACE2");
 
-        addressSpace.findNode("ns=2;i=1000")?.browseName.toString().should.eql("2:AnOtherObjectInCUSTOM_NAMESPACE1");
-        addressSpace.findNode("ns=3;i=1000")?.browseName.toString().should.eql("3:AnOtherObjectInCUSTOM_NAMESPACE2");
+        should(addressSpace.findNode("ns=2;i=1000")?.browseName.toString()).eql("2:AnOtherObjectInCUSTOM_NAMESPACE1");
+        should(addressSpace.findNode("ns=3;i=1000")?.browseName.toString()).eql("3:AnOtherObjectInCUSTOM_NAMESPACE2");
 
-        addressSpace.findNode("ns=4;i=1")?.browseName.toString().should.eql("4:ObjectInCUSTOM_NAMESPACE3");
+        should(addressSpace.findNode("ns=4;i=1")?.browseName.toString()).eql("4:ObjectInCUSTOM_NAMESPACE3");
 
         addressSpace
             .getNamespaceArray()

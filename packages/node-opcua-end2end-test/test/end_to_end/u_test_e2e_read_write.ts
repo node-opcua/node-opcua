@@ -1,4 +1,3 @@
-import "should";
 import chalk from "chalk";
 import {
     AttributeIds,
@@ -11,6 +10,7 @@ import {
     TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 
 interface TestHarness {
@@ -77,8 +77,8 @@ export function t(test: TestHarness) {
                 }
 
                 // server must provide timestamps
-                dataValues[0].serverTimestamp?.should.be.instanceOf(Date);
-                dataValues[0].sourceTimestamp?.should.be.instanceOf(Date);
+                should(dataValues[0].serverTimestamp).be.instanceOf(Date);
+                should(dataValues[0].sourceTimestamp).be.instanceOf(Date);
 
                 (dataValues[0].serverTimestamp!.getTime() + 1).should.be.greaterThan(dataValue.serverTimestamp!.getTime());
 

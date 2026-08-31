@@ -3,8 +3,8 @@ import { AttributeIds, BrowseDirection, makeNodeClassMask, makeResultMask } from
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { StatusCodes } from "node-opcua-status-code";
 import type { ReadValueIdOptions } from "node-opcua-types";
+import should from "should";
 import { type AddressSpace, PseudoSession } from "..";
-
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("PseudoSession", () => {
@@ -51,10 +51,10 @@ describe("PseudoSession", () => {
 
         browseResult.constructor.name.should.eql("BrowseResult");
 
-        browseResult.references?.length.should.eql(3);
-        browseResult.references?.[0].browseName.toString().should.eql("Objects");
-        browseResult.references?.[1].browseName.toString().should.eql("Types");
-        browseResult.references?.[2].browseName.toString().should.eql("Views");
+        should(browseResult.references?.length).eql(3);
+        should(browseResult.references?.[0].browseName.toString()).eql("Objects");
+        should(browseResult.references?.[1].browseName.toString()).eql("Types");
+        should(browseResult.references?.[2].browseName.toString()).eql("Views");
     });
 
     it("should browse multiple nodes ", async () => {
@@ -71,17 +71,17 @@ describe("PseudoSession", () => {
 
         browseResults.should.be.instanceOf(Array);
         browseResults[0].constructor.name.should.eql("BrowseResult");
-        browseResults[0].references?.length.should.eql(3);
+        should(browseResults[0].references?.length).eql(3);
 
-        browseResults[0].references?.[0].browseName.toString().should.eql("Objects");
-        browseResults[0].references?.[1].browseName.toString().should.eql("Types");
-        browseResults[0].references?.[2].browseName.toString().should.eql("Views");
+        should(browseResults[0].references?.[0].browseName.toString()).eql("Objects");
+        should(browseResults[0].references?.[1].browseName.toString()).eql("Types");
+        should(browseResults[0].references?.[2].browseName.toString()).eql("Views");
 
         browseResults[1].constructor.name.should.eql("BrowseResult");
-        browseResults[1].references?.length.should.eql(3);
-        browseResults[1].references?.[0].browseName.toString().should.eql("Objects");
-        browseResults[1].references?.[1].browseName.toString().should.eql("Types");
-        browseResults[1].references?.[2].browseName.toString().should.eql("Views");
+        should(browseResults[1].references?.length).eql(3);
+        should(browseResults[1].references?.[0].browseName.toString()).eql("Objects");
+        should(browseResults[1].references?.[1].browseName.toString()).eql("Types");
+        should(browseResults[1].references?.[2].browseName.toString()).eql("Views");
     });
 
     it("should read a single node", async () => {

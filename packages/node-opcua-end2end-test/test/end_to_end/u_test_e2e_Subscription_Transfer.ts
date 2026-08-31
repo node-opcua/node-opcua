@@ -4,7 +4,6 @@
 // Then create another session and TRANSFER the subscription. Expect the subscription to be present and transferable.
 // If TransferSubscriptions returns Bad_NotImplemented the test should be treated as inconclusive (skipped here).
 
-import "should";
 import {
     AttributeIds,
     type ClientSession,
@@ -25,6 +24,7 @@ import {
     type TransferSubscriptionsResponse
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import sinon from "sinon";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
@@ -92,7 +92,7 @@ export function t(test: UmbrellaTestContext) {
                     sendInitialValues: true
                 });
                 spyOnTerminated.callCount.should.eql(0);
-                response.results!.length.should.eql(1);
+                should(response.results?.length).eql(1);
                 // manually terminate client-side object (server copy persists until deleted or session closed)
             } finally {
                 // ensure cleanup via DeleteSubscriptions through session close
@@ -125,16 +125,16 @@ export function t(test: UmbrellaTestContext) {
                     subscriptionIds: [subscriptionId],
                     sendInitialValues: true
                 });
-                response.results!.length.should.eql(1);
-                response.results![0].statusCode.should.eql(StatusCodes.Good);
+                should(response.results?.length).eql(1);
+                should(response.results?.[0].statusCode).eql(StatusCodes.Good);
                 // deleting subscription on session1 shall fail
                 const deleteResp1 = await (session1 as RawSession).deleteSubscriptions({ subscriptionIds: [subscriptionId] });
-                deleteResp1.results!.length.should.eql(1);
-                deleteResp1.results![0].should.eql(StatusCodes.BadSubscriptionIdInvalid);
+                should(deleteResp1.results?.length).eql(1);
+                should(deleteResp1.results?.[0]).eql(StatusCodes.BadSubscriptionIdInvalid);
                 // deleting subscription on session2 shall succeed
                 const deleteResp2 = await (session2 as RawSession).deleteSubscriptions({ subscriptionIds: [subscriptionId] });
-                deleteResp2.results!.length.should.eql(1);
-                deleteResp2.results![0].should.eql(StatusCodes.Good);
+                should(deleteResp2.results?.length).eql(1);
+                should(deleteResp2.results?.[0]).eql(StatusCodes.Good);
             } finally {
                 await session1.close(true);
                 await session2.close(true);
@@ -172,8 +172,8 @@ export function t(test: UmbrellaTestContext) {
                 subscriptionIds: [subscription.subscriptionId],
                 sendInitialValues: true
             });
-            response.results!.length.should.eql(1);
-            response.results![0].statusCode.should.eql(StatusCodes.Good);
+            should(response.results?.length).eql(1);
+            should(response.results?.[0].statusCode).eql(StatusCodes.Good);
             await delay(1000);
             spyStatusChanged.callCount.should.eql(1);
             await session2.close(true);
@@ -217,9 +217,9 @@ export function t(test: UmbrellaTestContext) {
                 ]
             });
             const monResp = await (session1 as RawSession).createMonitoredItems(createMonItemsReq);
-            monResp.results!.length.should.eql(1);
-            monResp.results![0].statusCode.should.eql(StatusCodes.Good);
-            monResp.results![0].revisedSamplingInterval.should.eql(250);
+            should(monResp.results?.length).eql(1);
+            should(monResp.results?.[0].statusCode).eql(StatusCodes.Good);
+            should(monResp.results?.[0].revisedSamplingInterval).eql(250);
 
             const spyPublishSession1 = sinon.spy();
             const spyPublishSession2 = sinon.spy();
@@ -235,8 +235,8 @@ export function t(test: UmbrellaTestContext) {
                 subscriptionIds: [subscriptionId],
                 sendInitialValues: true
             });
-            transferResp.results!.length.should.eql(1);
-            transferResp.results![0].statusCode.should.eql(StatusCodes.Good);
+            should(transferResp.results?.length).eql(1);
+            should(transferResp.results?.[0].statusCode).eql(StatusCodes.Good);
             await delay(300);
 
             // Inspect first publish responses from session1

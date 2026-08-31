@@ -120,14 +120,14 @@ describe("testing Method in address space", () => {
     it("should provide a way to find a Method object by nodeId", () => {
         should.exist(addressSpace.findMethod("ns=0;i=11489"));
         should.exist(addressSpace.findNode("ns=0;i=11489"));
-        addressSpace.findMethod("ns=0;i=11489")?.nodeClass.should.eql(NodeClass.Method);
-        addressSpace.findNode("ns=0;i=11489")?.nodeClass.should.eql(NodeClass.Method);
+        should(addressSpace.findMethod("ns=0;i=11489")?.nodeClass).eql(NodeClass.Method);
+        should(addressSpace.findNode("ns=0;i=11489")?.nodeClass).eql(NodeClass.Method);
     });
     it("should provide a way to find a Method object by nodeId", () => {
         should.exist(addressSpace.findMethod("ns=0;i=11492"));
         should.exist(addressSpace.findNode("ns=0;i=11492"));
-        addressSpace.findMethod("ns=0;i=11492")?.nodeClass.should.eql(NodeClass.Method);
-        addressSpace.findNode("ns=0;i=11492")?.nodeClass.should.eql(NodeClass.Method);
+        should(addressSpace.findMethod("ns=0;i=11492")?.nodeClass).eql(NodeClass.Method);
+        should(addressSpace.findNode("ns=0;i=11492")?.nodeClass).eql(NodeClass.Method);
     });
 
     it("should provide a input Parameter variable", () => {
@@ -391,7 +391,7 @@ describe("US-030: method call interceptors and afterCall event", () => {
 
         try {
             const result = await method.execute(null, [{ dataType: DataType.UInt32, value: 1 }], context);
-            result.statusCode?.should.eql(StatusCodes.BadUserAccessDenied);
+            should(result.statusCode).eql(StatusCodes.BadUserAccessDenied);
             callOrder.should.eql(["interceptor1"], "second interceptor should not run");
         } finally {
             addressSpace.removeMethodCallInterceptor(interceptor1);

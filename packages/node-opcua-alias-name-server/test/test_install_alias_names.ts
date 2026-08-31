@@ -44,7 +44,7 @@ describe("OPC 10000-17: installAliasNames", () => {
             const aliases = getObject(addressSpace, WellKnownCategories.Aliases);
             const findAlias = getMethod(aliases, "FindAlias");
             should.exist(findAlias, "the standard nodeset models a mandatory FindAlias");
-            findAlias!.isBound().should.eql(false, "this is the defect being fixed");
+            should(findAlias?.isBound()).eql(false, "this is the defect being fixed");
         });
 
         it("should bind FindAlias on the three well-known categories", () => {
@@ -52,7 +52,7 @@ describe("OPC 10000-17: installAliasNames", () => {
                 const category = getObject(installed, nodeId);
                 const findAlias = getMethod(category, "FindAlias");
                 should.exist(findAlias, `${category.browseName.toString()} should have FindAlias`);
-                findAlias!.isBound().should.eql(true, `${category.browseName.toString()}.FindAlias should be bound`);
+                should(findAlias?.isBound()).eql(true, `${category.browseName.toString()}.FindAlias should be bound`);
             }
         });
 
@@ -60,7 +60,7 @@ describe("OPC 10000-17: installAliasNames", () => {
             // the headline: a Server that loads the standard nodeset and calls
             // installAliasNames(server) answers the mandatory Method correctly
             const result = await callFind(getObject(installed, WellKnownCategories.Aliases), "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.Good);
+            should(result.statusCode).eql(StatusCodes.Good);
         });
     });
 
@@ -140,8 +140,8 @@ describe("OPC 10000-17: installAliasNames", () => {
 
         it("should carry the InputArguments and OutputArguments of the declaration", () => {
             const method = getMethod(getObject(installed, WellKnownCategories.Aliases), "FindAliasVerbose");
-            method!.getInputArguments().should.have.length(2);
-            method!.getOutputArguments().should.have.length(1);
+            should(method?.getInputArguments()).have.length(2);
+            should(method?.getOutputArguments()).have.length(1);
         });
 
         it("should be omitted when verbose is false", async () => {
@@ -189,7 +189,7 @@ describe("OPC 10000-17: installAliasNames", () => {
 
             const findAlias = getMethod(wells, "FindAlias");
             should.exist(findAlias, "a vendor subcategory has a mandatory FindAlias too");
-            findAlias!.isBound().should.eql(true);
+            should(findAlias?.isBound()).eql(true);
         });
 
         it("should give a vendor subcategory a server-assigned FindAliasVerbose NodeId", async () => {
@@ -201,7 +201,7 @@ describe("OPC 10000-17: installAliasNames", () => {
             const method = getMethod(wells, "FindAliasVerbose");
             should.exist(method);
             // no NodeId is reserved for a vendor category, so it gets one of ours
-            method!.nodeId.namespace.should.not.eql(0);
+            should(method?.nodeId.namespace).not.eql(0);
         });
 
         it("should not discover a category outside the Aliases hierarchy", async () => {
@@ -225,7 +225,7 @@ describe("OPC 10000-17: installAliasNames", () => {
             });
 
             result.categories.some((c) => sameNodeId(c, orphan.nodeId)).should.eql(true);
-            getMethod(orphan, "FindAlias")!.isBound().should.eql(true);
+            should(getMethod(orphan, "FindAlias")?.isBound()).eql(true);
         });
     });
 
@@ -243,11 +243,11 @@ describe("OPC 10000-17: installAliasNames", () => {
             await installAliasNamesOnAddressSpace(addressSpace);
             const result = await callFind(getObject(addressSpace, WellKnownCategories.TagVariables), "FindAlias", "TI101");
 
-            result.statusCode!.should.eql(StatusCodes.Good);
+            should(result.statusCode).eql(StatusCodes.Good);
             aliasNames(result).should.eql(["TI101"]);
             const entry = resultAliases(result)[0];
-            entry.referencedNodes!.should.have.length(1);
-            entry.referencedNodes![0].value.should.eql(sensor.nodeId.value);
+            should(entry.referencedNodes).have.length(1);
+            should(entry.referencedNodes?.[0].value).eql(sensor.nodeId.value);
         });
 
         it("should be replaceable by an injected store", async () => {

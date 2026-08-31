@@ -13,7 +13,7 @@ describe("generated types: array-of-enumeration fields", () => {
         const value = new SecuritySettingsDataType({
             securityModes: [MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt]
         });
-        value.securityModes!.should.eql([MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt]);
+        should(value.securityModes).eql([MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt]);
     });
 
     it("should coerce enumeration values given by name", () => {
@@ -21,7 +21,7 @@ describe("generated types: array-of-enumeration fields", () => {
         // the typed entry point that also accepts the enumeration item's name
         const value = new SecuritySettingsDataType({});
         value.setSecurityModes(["Sign", "SignAndEncrypt"]);
-        value.securityModes!.should.eql([MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt]);
+        should(value.securityModes).eql([MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt]);
     });
 
     it("should throw on a value that cannot be coerced", () => {
@@ -43,9 +43,9 @@ describe("generated types: array-of-enumeration fields", () => {
         const reloaded = new SecuritySettingsDataType();
         reloaded.decode(stream);
 
-        reloaded.securityModes!.should.eql([MessageSecurityMode.None, MessageSecurityMode.SignAndEncrypt]);
-        reloaded.securityPolicyUris!.should.eql(["http://opcfoundation.org/UA/SecurityPolicy#None"]);
-        reloaded.certificateGroupName!.should.eql("DefaultApplicationGroup");
+        should(reloaded.securityModes).eql([MessageSecurityMode.None, MessageSecurityMode.SignAndEncrypt]);
+        should(reloaded.securityPolicyUris).eql(["http://opcfoundation.org/UA/SecurityPolicy#None"]);
+        should(reloaded.certificateGroupName).eql("DefaultApplicationGroup");
     });
 
     it("should treat a null array the same way the sibling non-enumeration array is treated", () => {
@@ -57,11 +57,11 @@ describe("generated types: array-of-enumeration fields", () => {
 
     it("should default to an empty array when the field is omitted", () => {
         const value = new SecuritySettingsDataType({});
-        value.securityModes!.should.eql([]);
+        should(value.securityModes).eql([]);
     });
 
     it("should fast-init to an empty array when constructed with null options", () => {
         const value = new SecuritySettingsDataType(null);
-        value.securityModes!.should.eql([]);
+        should(value.securityModes).eql([]);
     });
 });

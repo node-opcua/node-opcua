@@ -1,10 +1,10 @@
-import "should";
 import type { ISessionContext, UAMethod } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
 import { InMemoryUserManagementStore, WellKnownRoleIds } from "node-opcua-role-set-common";
 import { StatusCodes } from "node-opcua-status-code";
 import { MessageSecurityMode, UserConfigurationMask, UserNameIdentityToken } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
 import {
     makeAddUserHandler,
     makeChangePasswordHandler,
@@ -57,7 +57,7 @@ describe("bind_user_management — AddUser (§5.2.5)", () => {
         const args = [str("joe"), str("secret"), mask(UserConfigurationMask.None), str("Joe")];
 
         const result = await handler.call(method, args, makeContext());
-        result.statusCode?.should.equal(StatusCodes.Good);
+        should(result.statusCode).equal(StatusCodes.Good);
         store.hasUser("joe").should.be.true();
         mutated.should.be.true();
     });
@@ -67,7 +67,7 @@ describe("bind_user_management — AddUser (§5.2.5)", () => {
         const handler = makeAddUserHandler({ store });
         const args = [str("joe"), str("secret"), mask(UserConfigurationMask.None), str("")];
         const result = await handler.call(method, args, makeContext({ roles: [] }));
-        result.statusCode?.should.equal(StatusCodes.BadUserAccessDenied);
+        should(result.statusCode).equal(StatusCodes.BadUserAccessDenied);
     });
 
     it("should deny an unencrypted channel", async () => {
@@ -75,22 +75,22 @@ describe("bind_user_management — AddUser (§5.2.5)", () => {
         const handler = makeAddUserHandler({ store });
         const args = [str("joe"), str("secret"), mask(UserConfigurationMask.None), str("")];
         const result = await handler.call(method, args, makeContext({ securityMode: MessageSecurityMode.None }));
-        result.statusCode?.should.equal(StatusCodes.BadSecurityModeInsufficient);
+        should(result.statusCode).equal(StatusCodes.BadSecurityModeInsufficient);
     });
 
     it("should reject a missing user name with BadInvalidArgument", async () => {
         const store = new InMemoryUserManagementStore();
         const handler = makeAddUserHandler({ store });
         const result = await handler.call(method, [], makeContext());
-        result.statusCode?.should.equal(StatusCodes.BadInvalidArgument);
+        should(result.statusCode).equal(StatusCodes.BadInvalidArgument);
     });
 
     it("should surface BadAlreadyExists from the store", async () => {
         const store = new InMemoryUserManagementStore();
         const handler = makeAddUserHandler({ store });
         const args = [str("joe"), str("secret"), mask(UserConfigurationMask.None), str("")];
-        (await handler.call(method, args, makeContext())).statusCode?.should.equal(StatusCodes.Good);
-        (await handler.call(method, args, makeContext())).statusCode?.should.equal(StatusCodes.BadAlreadyExists);
+        should((await handler.call(method, args, makeContext())).statusCode).equal(StatusCodes.Good);
+        should((await handler.call(method, args, makeContext())).statusCode).equal(StatusCodes.BadAlreadyExists);
     });
 });
 
@@ -106,7 +106,7 @@ describe("bind_user_management — ChangePassword (§5.2.8)", () => {
         const store = await seed();
         const handler = makeChangePasswordHandler({ store });
         const result = await handler.call(method, [str("OldPass123!"), str("NewPass456!")], makeContext({ token: joeToken() }));
-        result.statusCode?.should.equal(StatusCodes.Good);
+        should(result.statusCode).equal(StatusCodes.Good);
 
         (await store.authenticate("joe", "OldPass123!")).statusCode.should.equal(StatusCodes.BadUserAccessDenied);
         (await store.authenticate("joe", "NewPass456!")).statusCode.should.equal(StatusCodes.Good);
@@ -116,14 +116,14 @@ describe("bind_user_management — ChangePassword (§5.2.8)", () => {
         const store = await seed();
         const handler = makeChangePasswordHandler({ store });
         const result = await handler.call(method, [str("WRONG"), str("NewPass456!")], makeContext({ token: joeToken() }));
-        result.statusCode?.should.equal(StatusCodes.BadIdentityTokenInvalid);
+        should(result.statusCode).equal(StatusCodes.BadIdentityTokenInvalid);
     });
 
     it("should require a USERNAME token (BadInvalidState)", async () => {
         const store = await seed();
         const handler = makeChangePasswordHandler({ store });
         const result = await handler.call(method, [str("OldPass123!"), str("NewPass456!")], makeContext({ token: undefined }));
-        result.statusCode?.should.equal(StatusCodes.BadInvalidState);
+        should(result.statusCode).equal(StatusCodes.BadInvalidState);
     });
 
     it("should require an encrypted channel", async () => {
@@ -131,7 +131,7 @@ describe("bind_user_management — ChangePassword (§5.2.8)", () => {
         const handler = makeChangePasswordHandler({ store });
         const ctx = makeContext({ token: joeToken(), securityMode: MessageSecurityMode.None });
         const result = await handler.call(method, [str("OldPass123!"), str("NewPass456!")], ctx);
-        result.statusCode?.should.equal(StatusCodes.BadSecurityModeInsufficient);
+        should(result.statusCode).equal(StatusCodes.BadSecurityModeInsufficient);
     });
 
     it("should not require SecurityAdmin (self-service)", async () => {
@@ -140,7 +140,7 @@ describe("bind_user_management — ChangePassword (§5.2.8)", () => {
         // caller has no roles, but is changing their own password
         const ctx = makeContext({ token: joeToken(), roles: [] });
         const result = await handler.call(method, [str("OldPass123!"), str("NewPass456!")], ctx);
-        result.statusCode?.should.equal(StatusCodes.Good);
+        should(result.statusCode).equal(StatusCodes.Good);
     });
 });
 
@@ -156,17 +156,14 @@ describe("bind_user_management — ModifyUser / RemoveUser (§5.2.6-7)", () => {
         const store = await seeded();
         const handler = makeModifyUserHandler({ store });
         const args = [str("joe"), bool(false), str(""), bool(false), mask(UserConfigurationMask.None), bool(true), str("new")];
-        (await handler.call(method, args, makeContext())).statusCode?.should.equal(StatusCodes.Good);
-        store
-            .getUsers()
-            .find((u) => u.userName === "joe")
-            ?.description.should.equal("new");
+        should((await handler.call(method, args, makeContext())).statusCode).equal(StatusCodes.Good);
+        should(store.getUsers().find((u) => u.userName === "joe")?.description).equal("new");
     });
 
     it("RemoveUser should remove another user", async () => {
         const store = await seeded();
         const handler = makeRemoveUserHandler({ store });
-        (await handler.call(method, [str("joe")], makeContext())).statusCode?.should.equal(StatusCodes.Good);
+        should((await handler.call(method, [str("joe")], makeContext())).statusCode).equal(StatusCodes.Good);
         store.hasUser("joe").should.be.false();
     });
 
@@ -174,7 +171,7 @@ describe("bind_user_management — ModifyUser / RemoveUser (§5.2.6-7)", () => {
         const store = await seeded();
         const handler = makeRemoveUserHandler({ store });
         const result = await handler.call(method, [str("admin")], makeContext({ userName: "admin" }));
-        result.statusCode?.should.equal(StatusCodes.BadInvalidSelfReference);
+        should(result.statusCode).equal(StatusCodes.BadInvalidSelfReference);
     });
 });
 

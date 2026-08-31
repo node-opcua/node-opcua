@@ -1,4 +1,5 @@
 import { AttributeIds, DataType, DataValue, makeNodeId, OPCUAClient, StatusCodes, WriteRequest } from "node-opcua";
+import should from "should";
 import { assertThrow } from "../../test_helpers/assert_throw.js";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
@@ -165,7 +166,7 @@ export function t(test: UmbrellaTestContext) {
         it("MMM should return BadTooManyOperation if nodesToWrite has too many elements", async () => {
             test.server!.engine.serverCapabilities.operationLimits.maxNodesPerWrite = 3;
 
-            test.server!.engine.serverCapabilities.operationLimits.maxNodesPerWrite.should.be.greaterThan(1);
+            should(test.server?.engine.serverCapabilities.operationLimits.maxNodesPerWrite).be.greaterThan(1);
 
             await perform_operation_on_client_session(client, test.endpointUrl!, async (session) => {
                 const nodeToWrite = {
@@ -237,7 +238,7 @@ export function t(test: UmbrellaTestContext) {
                 const dataValue = await session.read(nodeToRead);
                 //xx console.log("====", results[0].sourceTimestamp.getTime());
                 //xx console.log(results[0].toString());
-                dataValue.sourceTimestamp?.getTime().should.eql(date.getTime());
+                should(dataValue.sourceTimestamp?.getTime()).eql(date.getTime());
                 dataValue.sourcePicoseconds.should.eql(1120);
                 dataValue.statusCode.should.eql(StatusCodes.GoodLocalOverride);
             });
@@ -281,7 +282,7 @@ export function t(test: UmbrellaTestContext) {
                 const dataValue = await session.read(nodeToRead);
                 //xx console.log(" server    source timestamp =",results[0].sourceTimestamp.getTime());
                 //xx console.log(results[0].toString());
-                dataValue.sourceTimestamp?.getTime().should.eql(date.getTime());
+                should(dataValue.sourceTimestamp?.getTime()).eql(date.getTime());
                 dataValue.sourcePicoseconds.should.eql(1120); // we're only accurate at 10th of a picosecond
                 dataValue.statusCode.should.eql(StatusCodes.UncertainSensorNotAccurate);
             });

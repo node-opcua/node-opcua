@@ -1,9 +1,9 @@
-import "should";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { sameNodeId } from "node-opcua-nodeid";
 import { IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types";
+import should from "should";
 import { decodeIdentityStore, encodeIdentityStore, loadFromBinaryFile, saveToBinaryFile } from "../source/binary_persistence.js";
 import { InMemoryIdentityMappingStore } from "../source/in_memory_store.js";
 import { WellKnownRoleIds } from "../source/well_known_role_ids.js";
@@ -63,7 +63,7 @@ describe("Binary Persistence", () => {
             const adminRules = loaded.getIdentitiesForRole(SecurityAdmin);
             adminRules.should.have.length(2);
             adminRules[0].criteriaType.should.equal(IdentityCriteriaType.UserName);
-            adminRules[0].criteria?.should.equal("admin");
+            should(adminRules[0].criteria).equal("admin");
             adminRules[1].criteriaType.should.equal(IdentityCriteriaType.Thumbprint);
 
             const observerRules = loaded.getIdentitiesForRole(Observer);

@@ -290,10 +290,10 @@ export function t(test: UmbrellaTestContext) {
                 };
                 const session2 = session as unknown as ClientSessionRawSubscriptionService;
                 const result = await session2.setTriggering(request);
-                result.removeResults?.length.should.eql(1);
-                result.addResults?.length.should.eql(1);
-                result.removeResults?.[0].should.eql(StatusCodes.BadMonitoredItemIdInvalid);
-                result.addResults?.[0].should.eql(StatusCodes.BadMonitoredItemIdInvalid);
+                should(result.removeResults?.length).eql(1);
+                should(result.addResults?.length).eql(1);
+                should(result.removeResults?.[0]).eql(StatusCodes.BadMonitoredItemIdInvalid);
+                should(result.addResults?.[0]).eql(StatusCodes.BadMonitoredItemIdInvalid);
                 result.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                 // console.log(result.toString());
             } catch (err) {
@@ -483,7 +483,7 @@ export function t(test: UmbrellaTestContext) {
 
             // setLinks
             const result = await subscription.setTriggering(m1, [l1, l2], []);
-            result.addResults?.should.eql([StatusCodes.Good, StatusCodes.Good]);
+            should(result.addResults).eql([StatusCodes.Good, StatusCodes.Good]);
 
             await waitUntilKeepAlive(publishEngine, subscription);
             raw_notification_spy.resetHistory();

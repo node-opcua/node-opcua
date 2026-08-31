@@ -108,7 +108,7 @@ describe("#904 - Client should connect to server that do not provide ServerNonce
         } finally {
             if (serverNonce !== undefined) {
                 should.exist(serverNonceWasNullOrEmptyBuffer, " should have received a CreateSessionResponse");
-                serverNonceWasNullOrEmptyBuffer?.should.eql(true, "we are expecting server to return and empty server Nonce");
+                should(serverNonceWasNullOrEmptyBuffer).eql(true, "we are expecting server to return and empty server Nonce");
             }
         }
     }
@@ -136,7 +136,7 @@ describe("#904 - Client should connect to server that do not provide ServerNonce
         exceptionCaught.should.eql(true, " createSession must have failed");
         if (serverNonce !== undefined) {
             should.exist(serverNonceWasNullOrEmptyBuffer, " should have received a CreateSessionResponse");
-            serverNonceWasNullOrEmptyBuffer?.should.eql(true, "we are expecting server to return and empty server Nonce");
+            should(serverNonceWasNullOrEmptyBuffer).eql(true, "we are expecting server to return and empty server Nonce");
         }
     }
     it("#904-1 Client should allow unsecure connection with anonymous user when serverNonce is specified ", async () => {

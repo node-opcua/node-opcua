@@ -1,5 +1,5 @@
 // https://reference.opcfoundation.org/Tightening/DataTypes/ResultDataType/
-import "should";
+
 import {
     AddressSpace,
     AttributeIds,
@@ -31,9 +31,9 @@ import {
     type VariantOptions
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
 import type { DTJoiningResult, DTJoiningResultMeta, UDTJoiningResult, UDTJoiningResultMeta } from "node-opcua-nodeset-ijt-base";
 import type { DTResult, UDTResult, UDTResultMeta } from "node-opcua-nodeset-machinery-result";
+import should from "should";
 
 const debugLog = make_debugLog("TEST");
 
@@ -349,9 +349,9 @@ describe("test complex dataStructure in tightening", function (this: Mocha.Suite
         const resultContent = result.resultContent[0] as VariantOptions;
 
         debugLog(resultContent.toString());
-        resultContent.dataType?.should.eql(DataType.ExtensionObject);
-        resultContent.value?.should.be.instanceOf(Object);
-        resultContent.value?.constructor.schema.name.should.eql("JoiningResultDataType");
+        should(resultContent.dataType).eql(DataType.ExtensionObject);
+        should(resultContent.value).be.instanceOf(Object);
+        should(resultContent.value?.constructor.schema.name).eql("JoiningResultDataType");
     });
 
     it("should encode and decode derived Union DataType", async () => {

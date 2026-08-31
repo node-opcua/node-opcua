@@ -279,8 +279,8 @@ describe("test readAggregateValue", () => {
         });
         debugLog(historyReadResult.toString());
         historyReadResult.statusCode.should.eql(StatusCodes.Good);
-        historyReadResult.historyData?.should.be.instanceOf(HistoryData);
+        should(historyReadResult.historyData).be.instanceOf(HistoryData);
         const historyData = historyReadResult.historyData! as HistoryData;
-        historyData.dataValues?.length.should.eql(10);
+        should(historyData.dataValues?.length).eql(10);
     });
 });

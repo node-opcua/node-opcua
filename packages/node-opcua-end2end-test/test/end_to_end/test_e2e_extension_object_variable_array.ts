@@ -239,8 +239,8 @@ async function checkScalarVariable(session: ClientSession, subscription: ClientS
         dumpStat(rootElement);
 
         info.main.counter.should.eql(1);
-        info.main.$props?.field1.counter.should.eql(1);
-        info.main.$props?.field2.counter.should.eql(1);
+        should(info.main.$props?.field1.counter).eql(1);
+        should(info.main.$props?.field2.counter).eql(1);
     }
 
     async function tryChangingChildVariable() {
@@ -259,7 +259,7 @@ async function checkScalarVariable(session: ClientSession, subscription: ClientS
             dumpStat(rootElement);
 
             info.main.counter.should.eql(1);
-            info.main.$props?.[key].counter.should.eql(1);
+            should(info.main.$props?.[key].counter).eql(1);
 
             Object.entries(info.main.$props!)
                 .filter(([k, _v]) => k !== key)
@@ -375,11 +375,11 @@ async function checkArrayVariable(
         doDebug && console.log(info);
         info.main.counter.should.eql(0);
         info.element0.counter.should.eql(0);
-        info.element0.$props?.field1.counter.should.eql(0);
-        info.element0.$props?.field2.counter.should.eql(0);
+        should(info.element0.$props?.field1.counter).eql(0);
+        should(info.element0.$props?.field2.counter).eql(0);
         info.element1.counter.should.eql(0);
-        info.element1.$props?.field1.counter.should.eql(0);
-        info.element1.$props?.field2.counter.should.eql(0);
+        should(info.element1.$props?.field1.counter).eql(0);
+        should(info.element1.$props?.field2.counter).eql(0);
 
         // modify top element
         await modifyTopElement();
@@ -389,11 +389,11 @@ async function checkArrayVariable(
 
         info.main.counter.should.eql(1);
         info.element0.counter.should.eql(1);
-        info.element0.$props?.field1.counter.should.eql(1);
-        info.element0.$props?.field2.counter.should.eql(1);
+        should(info.element0.$props?.field1.counter).eql(1);
+        should(info.element0.$props?.field2.counter).eql(1);
         info.element1.counter.should.eql(1);
-        info.element1.$props?.field1.counter.should.eql(1);
-        info.element1.$props?.field2.counter.should.eql(1);
+        should(info.element1.$props?.field1.counter).eql(1);
+        should(info.element1.$props?.field2.counter).eql(1);
     }
 
     if (level === "IndexedVariable") {
@@ -404,11 +404,11 @@ async function checkArrayVariable(
         info.main.counter.should.eql(0);
 
         info.element0.counter.should.eql(0);
-        info.element0.$props?.field1.counter.should.eql(0);
-        info.element0.$props?.field2.counter.should.eql(0);
+        should(info.element0.$props?.field1.counter).eql(0);
+        should(info.element0.$props?.field2.counter).eql(0);
         info.element1.counter.should.eql(0);
-        info.element1.$props?.field1.counter.should.eql(0);
-        info.element1.$props?.field2.counter.should.eql(0);
+        should(info.element1.$props?.field1.counter).eql(0);
+        should(info.element1.$props?.field2.counter).eql(0);
 
         doDebug && console.log("before", util.inspect(dumpInfo(info)));
         const valueAll = await read(session, nodeId);
@@ -426,12 +426,12 @@ async function checkArrayVariable(
         info.main.counter.should.eql(1);
 
         info.element0.counter.should.eql(1);
-        info.element0.$props?.field1.counter.should.eql(1);
-        info.element0.$props?.field2.counter.should.eql(1);
+        should(info.element0.$props?.field1.counter).eql(1);
+        should(info.element0.$props?.field2.counter).eql(1);
 
         info.element1.counter.should.eql(0);
-        info.element1.$props?.field1.counter.should.eql(0);
-        info.element1.$props?.field2.counter.should.eql(0);
+        should(info.element1.$props?.field1.counter).eql(0);
+        should(info.element1.$props?.field2.counter).eql(0);
 
         // do it again
         await write(session, el0NodeId, incr(el0Modified));
@@ -441,12 +441,12 @@ async function checkArrayVariable(
         info.main.counter.should.eql(2);
 
         info.element0.counter.should.eql(2);
-        info.element0.$props?.field1.counter.should.eql(2);
-        info.element0.$props?.field2.counter.should.eql(2);
+        should(info.element0.$props?.field1.counter).eql(2);
+        should(info.element0.$props?.field2.counter).eql(2);
 
         info.element1.counter.should.eql(0);
-        info.element1.$props?.field1.counter.should.eql(0);
-        info.element1.$props?.field2.counter.should.eql(0);
+        should(info.element1.$props?.field1.counter).eql(0);
+        should(info.element1.$props?.field2.counter).eql(0);
     }
 
     if (level === "InnerProperty") {
@@ -457,11 +457,11 @@ async function checkArrayVariable(
 
         info.main.counter.should.eql(0);
         info.element0.counter.should.eql(0);
-        info.element0.$props?.field1.counter.should.eql(0);
-        info.element0.$props?.field2.counter.should.eql(0);
+        should(info.element0.$props?.field1.counter).eql(0);
+        should(info.element0.$props?.field2.counter).eql(0);
         info.element1.counter.should.eql(0);
-        info.element1.$props?.field1.counter.should.eql(0);
-        info.element1.$props?.field2.counter.should.eql(0);
+        should(info.element1.$props?.field1.counter).eql(0);
+        should(info.element1.$props?.field2.counter).eql(0);
 
         const valueAll = await read(session, nodeId);
 
@@ -480,12 +480,12 @@ async function checkArrayVariable(
         info.main.counter.should.eql(1);
 
         info.element0.counter.should.eql(1);
-        info.element0.$props?.field1.counter.should.eql(0);
-        info.element0.$props?.field2.counter.should.eql(1);
+        should(info.element0.$props?.field1.counter).eql(0);
+        should(info.element0.$props?.field2.counter).eql(1);
 
         info.element1.counter.should.eql(0);
-        info.element1.$props?.field1.counter.should.eql(0);
-        info.element1.$props?.field2.counter.should.eql(0);
+        should(info.element1.$props?.field1.counter).eql(0);
+        should(info.element1.$props?.field2.counter).eql(0);
 
         // do it again
         const propModified1 = incr(propModified);
@@ -498,12 +498,12 @@ async function checkArrayVariable(
         info.main.counter.should.eql(2);
 
         info.element0.counter.should.eql(2);
-        info.element0.$props?.field1.counter.should.eql(0);
-        info.element0.$props?.field2.counter.should.eql(2);
+        should(info.element0.$props?.field1.counter).eql(0);
+        should(info.element0.$props?.field2.counter).eql(2);
 
         info.element1.counter.should.eql(0);
-        info.element1.$props?.field1.counter.should.eql(0);
-        info.element1.$props?.field2.counter.should.eql(0);
+        should(info.element1.$props?.field1.counter).eql(0);
+        should(info.element1.$props?.field2.counter).eql(0);
     }
 }
 

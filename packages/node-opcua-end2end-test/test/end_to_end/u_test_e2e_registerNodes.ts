@@ -1,4 +1,3 @@
-import "should";
 import {
     AttributeIds,
     DataType,
@@ -12,6 +11,7 @@ import {
     type UnregisterNodesResponse
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import { assertThrow } from "../../test_helpers/assert_throw.js";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
@@ -58,7 +58,7 @@ export function t(test: UmbrellaTestContext) {
                         resolve(resp as RegisterNodesResponse);
                     });
                 });
-                response.registeredNodeIds!.length.should.eql(1);
+                should(response.registeredNodeIds?.length).eql(1);
             });
         });
 
@@ -89,7 +89,7 @@ export function t(test: UmbrellaTestContext) {
                 await new Promise<void>((resolve, reject) => {
                     (session as unknown as SessionWithTransaction).performMessageTransaction(request, (err, resp) => {
                         if (err) return reject(err);
-                        resp!.should.be.ok();
+                        should(resp).be.ok();
                         resolve();
                     });
                 });

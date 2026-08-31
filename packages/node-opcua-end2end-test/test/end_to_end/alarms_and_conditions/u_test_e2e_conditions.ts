@@ -188,7 +188,7 @@ export function t(umbrellaTest: UmbrellaTestContext) {
 
                 stepInfo("... the alarm should be raised ...");
                 raiseNewConditionSpy.calledOnce.should.eql(true);
-                test.tankLevelCondition.limitState!.getCurrentState()!.should.eql("HighHigh");
+                should(test.tankLevelCondition.limitState?.getCurrentState()).eql("HighHigh");
 
                 stepInfo("      then we should check that alarm is raised ...");
                 await new Promise<void>((resolve) => {
@@ -663,8 +663,8 @@ export function t(umbrellaTest: UmbrellaTestContext) {
                         alarmNode.deleteBranch(b);
                     }
 
-                    alarmNode.activeState?.getValue().should.eql(false);
-                    alarmNode.confirmedState?.getValue().should.eql(true, "confirmedState supposed to be set");
+                    should(alarmNode.activeState?.getValue()).eql(false);
+                    should(alarmNode.confirmedState?.getValue()).eql(true, "confirmedState supposed to be set");
                     alarmNode.ackedState.getValue().should.eql(true, "ackedState supposed to be set");
 
                     alarmNode.getBranchCount().should.eql(0);
@@ -726,7 +726,7 @@ export function t(umbrellaTest: UmbrellaTestContext) {
 
                 // we_should_verify_that_no_event_has_been_raised_yet
                 test.spy_monitored_item1_changes.callCount.should.eql(0);
-                alarmNode.confirmedState?.getValue().should.eql(true, "confirmedState supposed to be set");
+                should(alarmNode.confirmedState?.getValue()).eql(true, "confirmedState supposed to be set");
                 alarmNode.getBranchCount().should.eql(0, " Expecting no extra branch apart from current branch");
 
                 // 1. Then the Alarm goes active.
@@ -783,7 +783,7 @@ export function t(umbrellaTest: UmbrellaTestContext) {
 
                 extract_value_for_field("EventType", dataValues).value.toString().should.eql(eventTypeNodeId);
 
-                eventId_Step2?.toString("hex").should.not.eql(eventId_Step0?.toString("hex"), "eventId must have changed");
+                should(eventId_Step2?.toString("hex")).not.eql(eventId_Step0?.toString("hex"), "eventId must have changed");
 
                 extract_value_for_field("BranchId", dataValues).value.should.eql(NodeId.nullNodeId);
                 //xx extract_value_for_field("ConditionName", dataValues).value.should.eql("Test2");

@@ -147,8 +147,8 @@ export function t(test: TestHarness) {
             function check_error_response(err: Error | null, response?: RegisterServerResponse): void {
                 should.exist(err);
                 should.not.exist(response);
-                (err as ErrorWithServiceFaultResponse).response!.should.be.instanceOf(ServiceFault);
-                (err as ErrorWithServiceFaultResponse).response!.responseHeader.serviceResult.should.eql(
+                should((err as ErrorWithServiceFaultResponse).response).be.instanceOf(ServiceFault);
+                should((err as ErrorWithServiceFaultResponse).response?.responseHeader.serviceResult).eql(
                     StatusCodes.BadDiscoveryUrlMissing
                 );
             }
@@ -180,8 +180,8 @@ export function t(test: TestHarness) {
                 should.exist(err);
                 should.not.exist(response);
                 //xx debugLog(response.toString());
-                (err as ErrorWithServiceFaultResponse).response!.should.be.instanceOf(ServiceFault);
-                (err as ErrorWithServiceFaultResponse).response!.responseHeader.serviceResult.should.eql(
+                should((err as ErrorWithServiceFaultResponse).response).be.instanceOf(ServiceFault);
+                should((err as ErrorWithServiceFaultResponse).response?.responseHeader.serviceResult).eql(
                     StatusCodes.BadInvalidArgument
                 );
             }
@@ -212,8 +212,8 @@ export function t(test: TestHarness) {
             function check_error_response(err: Error | null, response?: RegisterServerResponse) {
                 should.exist(err);
                 should.not.exist(response);
-                (err as ErrorWithServiceFaultResponse).response!.should.be.instanceOf(ServiceFault);
-                (err as ErrorWithServiceFaultResponse).response!.responseHeader.serviceResult.should.eql(
+                should((err as ErrorWithServiceFaultResponse).response).be.instanceOf(ServiceFault);
+                should((err as ErrorWithServiceFaultResponse).response?.responseHeader.serviceResult).eql(
                     StatusCodes.BadServerNameMissing
                 );
             }
@@ -273,7 +273,7 @@ export function t(test: TestHarness) {
             const data = await findServers(discoveryServerEndpointUrl);
             debugLog("data = ", data);
             const { servers } = data;
-            servers[0].discoveryUrls?.length.should.eql(1);
+            should(servers[0].discoveryUrls?.length).eql(1);
             debugLog("servers[0].discoveryUrls", servers[0].discoveryUrls?.join("\n"));
             const initialServerCount = servers.length;
             debugLog(" initialServerCount = ", initialServerCount);
@@ -308,7 +308,7 @@ export function t(test: TestHarness) {
                 const data = await findServers(discoveryServerEndpointUrl);
                 const { servers } = data;
                 servers.length.should.eql(initialServerCount + 1);
-                servers[1].applicationUri?.should.eql(applicationUri);
+                should(servers[1].applicationUri).eql(applicationUri);
             }
 
             stepLog("5. When the server shut down");
@@ -611,7 +611,7 @@ export function t(test: TestHarness) {
                         debugLog(s.toString());
                     }
                 }
-                servers?.length.should.eql(
+                should(servers?.length).eql(
                     6,
                     "found " +
                         servers?.length +

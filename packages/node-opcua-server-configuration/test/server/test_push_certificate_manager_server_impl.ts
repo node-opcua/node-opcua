@@ -124,8 +124,8 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then I should retrieve those 2 certificates
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificates?.should.be.instanceOf(Array);
-        result.certificates?.length.should.eql(2);
+        should(result.certificates).be.instanceOf(Array);
+        should(result.certificates?.length).eql(2);
 
         const firstCertificate = result.certificates?.[0];
         const secondCertificate = result.certificates?.[1];
@@ -180,7 +180,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
         );
-        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(resultCSR.certificateSigningRequest).be.instanceOf(Buffer);
 
         // and Given a certificate emitted by the Certificate Authority, which already outdated
         const certificateFullChain = await produceOutdatedCertificate(
@@ -208,7 +208,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-Future"
         );
-        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(resultCSR.certificateSigningRequest).be.instanceOf(Buffer);
 
         // and Given a certificate emitted by the Certificate Authority, which is not yet valid (startDate in future)
         const certificateFullChain = await produceNotYetValidCertificate(
@@ -236,7 +236,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
         );
-        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(resultCSR.certificateSigningRequest).be.instanceOf(Buffer);
 
         // and Given a certificate emitted by the Certificate Authority
         const certificateFullChain = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
@@ -263,7 +263,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
         );
-        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(resultCSR.certificateSigningRequest).be.instanceOf(Buffer);
 
         const certificateFullChain = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
         const certificate = certificateFullChain[0];
@@ -321,7 +321,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         resultCSR.statusCode.should.eql(StatusCodes.Good);
 
-        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(resultCSR.certificateSigningRequest).be.instanceOf(Buffer);
 
         // and Given a certificate emitted by the Certificate Authority
         const certificateFullChain = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
@@ -354,7 +354,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
         );
-        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(resultCSR.certificateSigningRequest).be.instanceOf(Buffer);
 
         // and Given a certificate chain emitted by the Certificate Authority
         const certificateFullChain = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
@@ -402,7 +402,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             "",
             "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server"
         );
-        resultCSR.certificateSigningRequest?.should.be.instanceOf(Buffer);
+        should(resultCSR.certificateSigningRequest).be.instanceOf(Buffer);
 
         // and Given a certificate emitted by the Certificate Authority
         const certificateFullChain = await produceCertificate(_folder, resultCSR.certificateSigningRequest ?? Buffer.alloc(0));
@@ -1010,7 +1010,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         // Then I should get certificates from both groups
         result.statusCode.should.eql(StatusCodes.Good);
-        result.certificates?.length.should.be.greaterThan(0);
+        should(result.certificates?.length).be.greaterThan(0);
     });
 
     it("updateCertificate should handle multiple calls before applyChanges", async () => {

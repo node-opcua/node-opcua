@@ -113,7 +113,7 @@ describe("testing Events  ", () => {
             whereClause: { elements: [] }
         });
 
-        eventFilter.selectClauses?.[0].should.be.instanceof(SimpleAttributeOperand);
+        should(eventFilter.selectClauses?.[0]).be.instanceof(SimpleAttributeOperand);
 
         const auditEventType = addressSpace.findEventType("AuditEventType")!;
         // xx var auditEventInstance =  auditEventType.instantiate({browseName: "Instantiation"});
@@ -228,7 +228,7 @@ describe("testing Events  ", () => {
             browseName: "Area1",
             organizedBy: addressSpace.rootFolder.objects
         });
-        area1.browseName.name?.should.eql("Area1");
+        should(area1.browseName.name).eql("Area1");
 
         const tank1 = namespace.createNode({
             browseName: "Tank1",
@@ -237,7 +237,7 @@ describe("testing Events  ", () => {
             nodeClass: NodeClass.Object,
             notifierOf: area1
         });
-        tank1.browseName.name?.should.eql("Tank1");
+        should(tank1.browseName.name).eql("Tank1");
 
         const pump = namespace.createNode({
             browseName: "Pump",
@@ -249,7 +249,7 @@ describe("testing Events  ", () => {
 
         const pumpStartEventType = namespace.addEventType({ browseName: "PumpStartEventType" });
         pumpStartEventType.browseName.toString().should.eql("1:PumpStartEventType");
-        pumpStartEventType.subtypeOfObj?.browseName.toString().should.eql("BaseEventType");
+        should(pumpStartEventType.subtypeOfObj?.browseName.toString()).eql("BaseEventType");
 
         const receivers: (string | undefined)[] = [];
 

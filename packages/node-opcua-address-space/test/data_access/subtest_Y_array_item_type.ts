@@ -77,13 +77,13 @@ export function subtest_Y_array_item_type(maintest: MainTest): void {
             yArrayItem.euRange.readValue().value.value.low.should.eql(100);
             yArrayItem.euRange.readValue().value.value.high.should.eql(200);
 
-            yArrayItem.title.readValue().value.value.text?.should.eql("My Little YArray Item");
+            should(yArrayItem.title.readValue().value.value.text).eql("My Little YArray Item");
 
             // access xAxisDefinition from extension object
             const x = yArrayItem.xAxisDefinition.readValue().value.value;
 
             x.engineeringUnits.should.eql(standardUnits.second);
-            x.title?.text?.should.eql("the X axis legend");
+            should(x.title?.text).eql("the X axis legend");
             x.euRange.low.should.eql(-10);
             x.euRange.high.should.eql(100);
 
@@ -125,8 +125,8 @@ export function subtest_Y_array_item_type(maintest: MainTest): void {
 
             prop.dataType.should.eql(resolveNodeId("Float"));
 
-            prop.instrumentRange?.readValue().value.value.low.should.eql(-100);
-            prop.instrumentRange?.readValue().value.value.high.should.eql(200);
+            should(prop.instrumentRange?.readValue().value.value.low).eql(-100);
+            should(prop.instrumentRange?.readValue().value.value.high).eql(200);
         });
     });
 }

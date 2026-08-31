@@ -267,7 +267,7 @@ describe("test reconnection when server stops and change it privateKey and certi
 
         await client.connect(endpointUrl);
 
-        client.serverCertificate?.should.eql(wrongServerCertificate);
+        should(client.serverCertificate).eql(wrongServerCertificate);
 
         let _capturedError: Error | undefined;
         try {
@@ -287,7 +287,10 @@ describe("test reconnection when server stops and change it privateKey and certi
         }
         //in this case it should work as the correct certificate has been received from the CreateSessionResponse
         should.not.exist(_capturedError, "expecting no error here");
-        _capturedError?.message.should.match(/BadUserAccessDenied/);
+        // T5 and T6 expect a failure and pair should.exist with a check on the message. This
+        // one expects none, so the message check copied from them contradicted the line
+        // above it and could only ever have run if that line had already failed. It was
+        // written `_capturedError?.message`, which is why it never did.
     });
     it("T5 - server shall not crash if password is wrongly encrypted by client in ActivateSession", async () => {
         const server = await startServer();
@@ -343,7 +346,7 @@ describe("test reconnection when server stops and change it privateKey and certi
             await server.shutdown();
         }
         should.exist(_capturedError);
-        _capturedError?.message.should.match(/BadUserAccessDenied|BadIdentityTokenRejected/);
+        should(_capturedError?.message).match(/BadUserAccessDenied|BadIdentityTokenRejected/);
         hacked.should.eql(true);
     });
     it("T6 - server shall not crash if the user identity token is corrupted ActivateSession", async () => {
@@ -410,7 +413,7 @@ describe("test reconnection when server stops and change it privateKey and certi
             await server.shutdown();
         }
         should.exist(_capturedError, "expecting createSession to have thrown an exception");
-        _capturedError?.message.should.match(/BadUserSignatureInvalid/);
+        should(_capturedError?.message).match(/BadUserSignatureInvalid/);
 
         hacked.should.eql(true);
     });

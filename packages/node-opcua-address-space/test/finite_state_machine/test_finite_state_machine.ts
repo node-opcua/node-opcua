@@ -47,11 +47,11 @@ describe("FSM1 - Finite State Machine - general tests", () => {
     it("a finite state machine should have expected mandatory and optional fields", async () => {
         const stateMachineType = addressSpace.findObjectType("StateMachineType")! as UAStateMachineType;
 
-        stateMachineType.currentState.modellingRule?.should.eql("Mandatory");
-        stateMachineType.currentState.id.modellingRule?.should.eql("Mandatory");
+        should(stateMachineType.currentState.modellingRule).eql("Mandatory");
+        should(stateMachineType.currentState.id.modellingRule).eql("Mandatory");
 
-        stateMachineType.lastTransition?.modellingRule?.should.eql("Optional");
-        stateMachineType.lastTransition?.id?.modellingRule?.should.eql("Mandatory");
+        should(stateMachineType.lastTransition?.modellingRule).eql("Optional");
+        should(stateMachineType.lastTransition?.id?.modellingRule).eql("Mandatory");
 
         stateMachineType.currentState.dataTypeObj.browseName.toString().should.eql("LocalizedText");
 
@@ -59,7 +59,7 @@ describe("FSM1 - Finite State Machine - general tests", () => {
         stateMachineType.currentState.id.dataType.isEmpty().should.eql(true);
         stateMachineType.isAbstract.should.eql(false);
         stateMachineType.currentState.typeDefinitionObj.browseName.toString().should.eql("StateVariableType");
-        stateMachineType.lastTransition?.typeDefinitionObj.browseName.toString().should.eql("TransitionVariableType");
+        should(stateMachineType.lastTransition?.typeDefinitionObj.browseName.toString()).eql("TransitionVariableType");
     });
 
     it("should instantiate a finite state machine", async () => {
@@ -67,7 +67,7 @@ describe("FSM1 - Finite State Machine - general tests", () => {
 
         const stateMachine = stateMachineType.instantiate({ browseName: "MyStateMachine" });
 
-        stateMachine.getComponentByName("CurrentState")?.browseName.toString().should.eql("CurrentState");
+        should(stateMachine.getComponentByName("CurrentState")?.browseName.toString()).eql("CurrentState");
 
         stateMachine.currentState.browseName.toString().should.eql("CurrentState");
         stateMachine.currentState.id.browseName.toString().should.eql("Id");
@@ -83,11 +83,11 @@ describe("FSM1 - Finite State Machine - general tests", () => {
             optionals: ["LastTransition"]
         });
 
-        stateMachine.getComponentByName("CurrentState")?.browseName.toString().should.eql("CurrentState");
+        should(stateMachine.getComponentByName("CurrentState")?.browseName.toString()).eql("CurrentState");
         stateMachine.currentState.browseName.toString().should.eql("CurrentState");
 
-        stateMachine.getComponentByName("LastTransition")?.browseName.toString().should.eql("LastTransition");
-        stateMachine.lastTransition?.browseName.toString().should.eql("LastTransition");
+        should(stateMachine.getComponentByName("LastTransition")?.browseName.toString()).eql("LastTransition");
+        should(stateMachine.lastTransition?.browseName.toString()).eql("LastTransition");
     });
 
     it("should bind a finite state machine state variable", async () => {
@@ -117,11 +117,11 @@ describe("FSM1 - Finite State Machine - general tests", () => {
     it("should explore FiniteStateMachineType", async () => {
         const finiteStateMachineType = addressSpace.findObjectType("FiniteStateMachineType")! as UAFiniteStateMachineType;
 
-        finiteStateMachineType.currentState.modellingRule?.should.eql("Mandatory");
-        finiteStateMachineType.currentState.id.modellingRule?.should.eql("Mandatory");
+        should(finiteStateMachineType.currentState.modellingRule).eql("Mandatory");
+        should(finiteStateMachineType.currentState.id.modellingRule).eql("Mandatory");
 
-        finiteStateMachineType.lastTransition?.modellingRule?.should.eql("Optional");
-        finiteStateMachineType.lastTransition?.id?.modellingRule?.should.eql("Mandatory");
+        should(finiteStateMachineType.lastTransition?.modellingRule).eql("Optional");
+        should(finiteStateMachineType.lastTransition?.id?.modellingRule).eql("Mandatory");
 
         finiteStateMachineType.isAbstract.should.eql(false);
 
@@ -487,9 +487,10 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
 
             stateMachine.setState("NotAvailable");
             {
-                stateMachine.currentState
-                    .readValue()
-                    .value.value.text?.should.eql("NotAvailable", "the state should be NotAvailable without namespace decoration");
+                should(stateMachine.currentState.readValue().value.value.text).eql(
+                    "NotAvailable",
+                    "the state should be NotAvailable without namespace decoration"
+                );
 
                 const state = stateMachine.getStateByName("NotAvailable")!;
 
@@ -511,13 +512,13 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
                 {
                     const value = effectiveDisplayName.readValue().value;
                     value.dataType.should.eql(DataType.LocalizedText);
-                    (value.value as LocalizedText).text?.should.eql("NotAvailable");
+                    should((value.value as LocalizedText).text).eql("NotAvailable");
                 }
             }
 
             stateMachine.setState("Executing");
             {
-                stateMachine.currentState.readValue().value.value.text?.should.eql("Executing");
+                should(stateMachine.currentState.readValue().value.value.text).eql("Executing");
                 const state = stateMachine.getStateByName("Executing")!;
 
                 {
@@ -538,7 +539,7 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
                 {
                     const value = effectiveDisplayName.readValue().value;
                     value.dataType.should.eql(DataType.LocalizedText);
-                    (value.value as LocalizedText).text?.should.eql("Executing");
+                    should((value.value as LocalizedText).text).eql("Executing");
                 }
             }
 
@@ -577,8 +578,8 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
                 const value = uaName.readValue().value;
                 value.dataType.should.eql(DataType.QualifiedName);
                 const value2 = value.value as QualifiedName;
-                value2.name?.should.eql("FromNotAvailableToExecuting");
-                value2.namespaceIndex?.should.eql(2);
+                should(value2.name).eql("FromNotAvailableToExecuting");
+                should(value2.namespaceIndex).eql(2);
             }
             const uaId = uaLastTransition.getPropertyByName("Id")! as UAVariable;
             should.exist(uaId);

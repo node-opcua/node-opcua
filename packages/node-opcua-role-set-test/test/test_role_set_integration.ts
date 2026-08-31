@@ -111,7 +111,7 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
             const results = await adminRoleSet().readAllRoleIdentities();
             const secAdmin = results.find((r) => r.roleName === "SecurityAdmin");
             should.exist(secAdmin);
-            secAdmin?.identities.should.have.length(1);
+            should(secAdmin?.identities).have.length(1);
             should(secAdmin?.identities[0].criteria).equal("admin");
         });
     });
@@ -231,7 +231,7 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
             (await adminRoleSet().getRoles()).map((r) => r.roleName).should.containEql("Maintenance");
             const byId = await adminRoleSet().getRoleByNodeId(roleNodeId);
             should.exist(byId);
-            byId?.roleName.should.equal("Maintenance");
+            should(byId?.roleName).equal("Maintenance");
 
             // its AddIdentity is bound → the role is configurable
             const role = await getClientRole(adminRoleSet(), "Maintenance");
@@ -422,7 +422,7 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
             const session = adminRoleSet().session;
             (await browseRoles(session)).map((r) => r.roleName).should.containEql("SecurityAdmin");
             const all = await readAllRoleIdentities(session);
-            all.find((r) => r.roleName === "SecurityAdmin")?.identities.should.have.length(1);
+            should(all.find((r) => r.roleName === "SecurityAdmin")?.identities).have.length(1);
         });
 
         it("readIdentities returns [] for a Role that has no identities", async () => {

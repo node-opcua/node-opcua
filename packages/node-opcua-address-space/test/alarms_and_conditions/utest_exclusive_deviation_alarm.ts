@@ -55,13 +55,13 @@ export function utest_exclusive_deviation_alarm(test: MochaSuiteEx): void {
                         value: 0
                     })
                 );
-                alarm.getSetpointValue()?.should.eql(0);
+                should(alarm.getSetpointValue()).eql(0);
 
                 setpointNodeNode.setValueFromSource({ dataType: "Double", value: 10 });
-                alarm.getSetpointValue()?.should.eql(10);
+                should(alarm.getSetpointValue()).eql(10);
 
                 setpointNodeNode.setValueFromSource({ dataType: "Double", value: 0 });
-                alarm.getSetpointValue()?.should.eql(0);
+                should(alarm.getSetpointValue()).eql(0);
             });
 
             it("ExclusiveDeviationAlarm - setpointNode Value is zero", () => {
@@ -72,12 +72,12 @@ export function utest_exclusive_deviation_alarm(test: MochaSuiteEx): void {
                 alarm.activeState.getValue().should.eql(false);
 
                 setVariableValue(-11);
-                alarm.limitState.getCurrentState()?.should.eql("LowLow");
+                should(alarm.limitState.getCurrentState()).eql("LowLow");
                 alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
                 alarm.activeState.getValue().should.eql(true);
 
                 setVariableValue(-2);
-                alarm.limitState.getCurrentState()?.should.eql("Low");
+                should(alarm.limitState.getCurrentState()).eql("Low");
                 alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
                 alarm.activeState.getValue().should.eql(true);
 
@@ -87,12 +87,12 @@ export function utest_exclusive_deviation_alarm(test: MochaSuiteEx): void {
                 alarm.activeState.getValue().should.eql(false);
 
                 setVariableValue(2.0);
-                alarm.limitState.getCurrentState()?.should.eql("High");
+                should(alarm.limitState.getCurrentState()).eql("High");
                 alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
                 alarm.activeState.getValue().should.eql(true);
 
                 setVariableValue(12);
-                alarm.limitState.getCurrentState()?.should.eql("HighHigh");
+                should(alarm.limitState.getCurrentState()).eql("HighHigh");
                 alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
                 alarm.activeState.getValue().should.eql(true);
             });
@@ -106,12 +106,12 @@ export function utest_exclusive_deviation_alarm(test: MochaSuiteEx): void {
                 alarm.activeState.getValue().should.eql(false);
 
                 setVariableValue(100 - 11);
-                alarm.limitState.getCurrentState()?.should.eql("LowLow");
+                should(alarm.limitState.getCurrentState()).eql("LowLow");
                 alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
                 alarm.activeState.getValue().should.eql(true);
 
                 setVariableValue(100 - 2);
-                alarm.limitState.getCurrentState()?.should.eql("Low");
+                should(alarm.limitState.getCurrentState()).eql("Low");
                 alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
                 alarm.activeState.getValue().should.eql(true);
 
@@ -121,12 +121,12 @@ export function utest_exclusive_deviation_alarm(test: MochaSuiteEx): void {
                 alarm.activeState.getValue().should.eql(false);
 
                 setVariableValue(100 + 2.0);
-                alarm.limitState.getCurrentState()?.should.eql("High");
+                should(alarm.limitState.getCurrentState()).eql("High");
                 alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
                 alarm.activeState.getValue().should.eql(true);
 
                 setVariableValue(100 + 12);
-                alarm.limitState.getCurrentState()?.should.eql("HighHigh");
+                should(alarm.limitState.getCurrentState()).eql("HighHigh");
                 alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
                 alarm.activeState.getValue().should.eql(true);
             });

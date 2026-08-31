@@ -36,13 +36,9 @@ export function subtest_multi_state_discrete_type(mainTest: { addressSpace: Addr
 
             multiStateDiscreteVariable.valueRank.should.eql(-2);
 
-            multiStateDiscreteVariable
-                .getPropertyByName("EnumStrings")
-                ?.readValue()
-                .value.toString()
-                .should.eql(
-                    "Variant(Array<LocalizedText>, l= 3, value=[locale=null text=Red,locale=null text=Orange,locale=null text=Green])"
-                );
+            should(multiStateDiscreteVariable.getPropertyByName("EnumStrings")?.readValue().value.toString()).eql(
+                "Variant(Array<LocalizedText>, l= 3, value=[locale=null text=Red,locale=null text=Orange,locale=null text=Green])"
+            );
 
             multiStateDiscreteVariable.enumStrings.readValue().value.dataType.should.eql(DataType.LocalizedText);
 

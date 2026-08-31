@@ -36,8 +36,8 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         const stream = new BinaryStream(message);
         const reverseHello2 = decodeMessage(stream, ReverseHelloMessage) as ReverseHelloMessage;
 
-        reverseHello2.serverUri!.should.eql(reverseHello1.serverUri);
-        reverseHello2.endpointUrl!.should.eql(reverseHello1.endpointUrl);
+        should(reverseHello2.serverUri).eql(reverseHello1.serverUri);
+        should(reverseHello2.endpointUrl).eql(reverseHello1.endpointUrl);
     });
 
     it("RHE-2 decodeReverseHello should parse a well-formed RHE chunk", () => {
@@ -48,8 +48,8 @@ describe("testing ReverseHello (RHE) message encoding and decoding", () => {
         const message = packTcpMessage("RHE", reverseHello1);
 
         const decoded = decodeReverseHello(message);
-        decoded.serverUri!.should.eql("urn:host:Server");
-        decoded.endpointUrl!.should.eql("opc.tcp://host:1234");
+        should(decoded.serverUri).eql("urn:host:Server");
+        should(decoded.endpointUrl).eql("opc.tcp://host:1234");
     });
 
     it("RHE-3 decodeReverseHello should reject a non-RHE message (e.g. a HEL)", () => {

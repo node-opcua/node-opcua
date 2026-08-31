@@ -2,7 +2,7 @@ import "mocha";
 import { createPublicKey, randomBytes } from "node:crypto";
 import { type IKeyOperations, keyOperationsFromPrivateKey, readCertificateChain, readPrivateKey } from "node-opcua-crypto";
 import { getFixture } from "node-opcua-test-fixtures";
-import "should";
+import should from "should";
 import {
     asymmetricDecryptWithKeyOps,
     asymmetricDecryptWithKeyOpsSync,
@@ -54,7 +54,7 @@ describe("computeSignatureAsync", () => {
                     `signature must verify for ${securityPolicy}`
                 );
             }
-            fromRawKey?.algorithm?.should.eql(fromSync?.algorithm);
+            should(fromRawKey?.algorithm).eql(fromSync?.algorithm);
         });
     }
 
@@ -62,7 +62,7 @@ describe("computeSignatureAsync", () => {
         for (const securityPolicy of [SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256Sha256]) {
             const fromAsync = await computeSignatureAsync(senderCertificate, senderNonce, receiverPrivateKey, securityPolicy);
             const fromSync = computeSignature(senderCertificate, senderNonce, receiverPrivateKey, securityPolicy);
-            fromAsync?.signature?.equals(fromSync?.signature as Buffer).should.eql(true);
+            should(fromAsync?.signature?.equals(fromSync!.signature as Buffer)).eql(true);
         }
     });
 

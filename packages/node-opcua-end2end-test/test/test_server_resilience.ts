@@ -1,9 +1,9 @@
-import "should";
 import { get_empty_nodeset_filename, is_valid_endpointUrl } from "node-opcua";
 import { type ClientSession, OPCUAClient } from "node-opcua-client";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { OPCUAServer } from "node-opcua-server";
+import should from "should";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
 import { ServerSideUnimplementedRequest } from "../test_helpers/unimplementedRequest.js";
 import { wait } from "../test_helpers/utils.js";
@@ -67,7 +67,7 @@ describe("testing Server resilience to unsupported request", function (this: Moc
         const bad_request = new ServerSideUnimplementedRequest({}); // intentionally send a bad request
 
         (g_session as unknown as SessionWithTransaction).performMessageTransaction(bad_request, (err: Error | null) => {
-            err?.should.be.instanceOf(Error);
+            should(err).be.instanceOf(Error);
             done();
         });
     });

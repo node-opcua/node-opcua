@@ -34,7 +34,7 @@ describe("Testing loadNodeSet - per node RolePermissions and AccessRestrictions"
             const object = addressSpace.findNode("ns=1;i=1000") as UAObject;
             should.exist(object);
 
-            object.accessRestrictions!.should.eql(
+            should(object.accessRestrictions).eql(
                 AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired
             );
 
@@ -48,7 +48,7 @@ describe("Testing loadNodeSet - per node RolePermissions and AccessRestrictions"
             const variable = addressSpace.findNode("ns=1;i=1001") as UAVariable;
             should.exist(variable);
 
-            variable.accessRestrictions!.should.eql(AccessRestrictionsFlag.SigningRequired);
+            should(variable.accessRestrictions).eql(AccessRestrictionsFlag.SigningRequired);
 
             const rolePermissions = variable.rolePermissions!;
             rolePermissions.length.should.eql(2);
@@ -61,18 +61,18 @@ describe("Testing loadNodeSet - per node RolePermissions and AccessRestrictions"
         it("LNSRP-3 should honour an explicit UserAccessLevel that restricts AccessLevel (issue #1552)", () => {
             const variable = addressSpace.findNode("ns=1;i=1001") as UAVariable;
             variable.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-            variable.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
+            should(variable.userAccessLevel).eql(AccessLevelFlag.CurrentRead);
         });
 
         it("LNSRP-4 should let UserAccessLevel default to AccessLevel when it is not declared", () => {
             const variable = addressSpace.findNode("ns=1;i=1003") as UAVariable;
             variable.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-            variable.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+            should(variable.userAccessLevel).eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
         });
 
         it("LNSRP-5 should turn HasNoPermissions into an empty, non inherited, permission list", () => {
             const variable = addressSpace.findNode("ns=1;i=1002") as UAVariable;
-            variable.rolePermissions!.should.eql([]);
+            should(variable.rolePermissions).eql([]);
             // an empty list must not fall back on the namespace default
             should(variable.getRolePermissions(true)).eql([]);
         });
@@ -85,15 +85,15 @@ describe("Testing loadNodeSet - per node RolePermissions and AccessRestrictions"
 
         it("LNSRP-7 should install the policy on UAMethod and UAObjectType too", () => {
             const method = addressSpace.findNode("ns=1;i=1004") as UAMethod;
-            method.accessRestrictions!.should.eql(AccessRestrictionsFlag.EncryptionRequired);
-            method.rolePermissions!.length.should.eql(1);
-            method.rolePermissions![0].permissions.should.eql(PermissionType.Call);
+            should(method.accessRestrictions).eql(AccessRestrictionsFlag.EncryptionRequired);
+            should(method.rolePermissions?.length).eql(1);
+            should(method.rolePermissions?.[0].permissions).eql(PermissionType.Call);
 
             const objectType = addressSpace.findNode("ns=1;i=2000") as UAObjectType;
-            objectType.accessRestrictions!.should.eql(
+            should(objectType.accessRestrictions).eql(
                 AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired
             );
-            objectType.rolePermissions!.length.should.eql(1);
+            should(objectType.rolePermissions?.length).eql(1);
         });
     });
 
@@ -104,11 +104,11 @@ describe("Testing loadNodeSet - per node RolePermissions and AccessRestrictions"
 
         it("LNSRP-11 should install RolePermissions, which are a property of the model", () => {
             const object = addressSpace.findNode("ns=1;i=1000") as UAObject;
-            object.rolePermissions!.length.should.eql(1);
-            object.rolePermissions![0].roleId.toString().should.eql(securityAdmin);
+            should(object.rolePermissions?.length).eql(1);
+            should(object.rolePermissions?.[0].roleId.toString()).eql(securityAdmin);
 
             const locked = addressSpace.findNode("ns=1;i=1002") as UAVariable;
-            locked.rolePermissions!.should.eql([], "HasNoPermissions is part of the same declaration");
+            should(locked.rolePermissions).eql([], "HasNoPermissions is part of the same declaration");
         });
 
         it("LNSRP-12 should leave AccessRestrictions alone, since they depend on the deployment", () => {
@@ -148,7 +148,7 @@ describe("Testing loadNodeSet - per node RolePermissions and AccessRestrictions"
 
         it("LNSRP-9 should still honour UserAccessLevel, which is not part of the access policy", () => {
             const variable = addressSpace.findNode("ns=1;i=1001") as UAVariable;
-            variable.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
+            should(variable.userAccessLevel).eql(AccessLevelFlag.CurrentRead);
         });
     });
 
@@ -173,19 +173,19 @@ describe("Testing loadNodeSet - per node RolePermissions and AccessRestrictions"
                 );
 
                 const object = reloaded.findNode("ns=1;i=1000") as UAObject;
-                object.accessRestrictions!.should.eql(
+                should(object.accessRestrictions).eql(
                     AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired
                 );
-                object.rolePermissions!.length.should.eql(1);
-                object.rolePermissions![0].roleId.toString().should.eql(securityAdmin);
+                should(object.rolePermissions?.length).eql(1);
+                should(object.rolePermissions?.[0].roleId.toString()).eql(securityAdmin);
 
                 const variable = reloaded.findNode("ns=1;i=1001") as UAVariable;
                 variable.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-                variable.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
-                variable.rolePermissions!.length.should.eql(2);
+                should(variable.userAccessLevel).eql(AccessLevelFlag.CurrentRead);
+                should(variable.rolePermissions?.length).eql(2);
 
                 const locked = reloaded.findNode("ns=1;i=1002") as UAVariable;
-                locked.rolePermissions!.should.eql([]);
+                should(locked.rolePermissions).eql([]);
 
                 const plain = reloaded.findNode("ns=1;i=1003") as UAVariable;
                 should(plain.rolePermissions).eql(undefined);

@@ -7,7 +7,7 @@ import {
     StatusCodes,
     TimestampsToReturn
 } from "node-opcua";
-import "should";
+import should from "should";
 
 const port = 3020;
 async function pause(ms: number) {
@@ -127,7 +127,7 @@ describe("[CLIENT] recreating large subscription during reconnection", () => {
 
             n += createMonitoredItemsResponses[i].results!.length;
             for (const r of createMonitoredItemsResponses[i].results!) {
-                r.statusCode?.should.eql(StatusCodes.Good);
+                should(r.statusCode).eql(StatusCodes.Good);
             }
         }
         n.should.eql(maxMonitoredItemsPerCall + 1);

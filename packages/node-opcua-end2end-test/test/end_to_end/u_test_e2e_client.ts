@@ -28,7 +28,7 @@ export function t(test: UmbrellaTestContext) {
                 _err = err as Error;
             }
             should.exist(_err, "expecting an error here");
-            _err?.message.should.match("Invalid endpoint");
+            should(_err?.message).match("Invalid endpoint");
             closeSpy.callCount.should.eql(0);
         });
 
@@ -53,7 +53,7 @@ export function t(test: UmbrellaTestContext) {
                 _err = err as Error;
             }
             should.exist(_err, "expecting an error here");
-            _err?.message.should.match(/this transport protocol is not supported/);
+            should(_err?.message).match(/this transport protocol is not supported/);
             closeSpy.callCount.should.eql(0);
         });
 
@@ -75,7 +75,7 @@ export function t(test: UmbrellaTestContext) {
                 await client.disconnect();
             }
             should.exist(_err, " ");
-            _err?.message.should.match(/invalid internal state = connected/);
+            should(_err?.message).match(/invalid internal state = connected/);
             closeSpy.callCount.should.eql(1);
         });
 
@@ -98,7 +98,7 @@ export function t(test: UmbrellaTestContext) {
                 closeSpy.callCount.should.eql(1);
             }
             should.exist(_err, " ");
-            _err?.message.should.match(/invalid internal state = connecting/);
+            should(_err?.message).match(/invalid internal state = connecting/);
             closeSpy.callCount.should.eql(1);
         });
 
@@ -186,7 +186,7 @@ export function t(test: UmbrellaTestContext) {
             // it is worthless keeping trying to reconnect with such TcpMessage error message
             should.exist(_err);
             // and should return BadTcpMessageTooLarge message
-            _err?.message.should.match(
+            should(_err?.message).match(
                 /The connection may have been rejected by server|BadTcpMessageTooLarge|max chunk count exceeded|received an Abort Message/
             );
 
@@ -247,7 +247,7 @@ export function t(test: UmbrellaTestContext) {
             should.exist(_err);
             const errResponse = (_err as unknown as { response: Response }).response;
             console.log("err.response", errResponse.toString());
-            errResponse!.responseHeader!.stringTable![0]!.should.match(/BadTcpMessageTooLarge/);
+            should(errResponse?.responseHeader?.stringTable?.[0]).match(/BadTcpMessageTooLarge/);
         });
 
         const immenseWriteNoProblem = async (nodeId: string) => {
@@ -328,7 +328,7 @@ export function t(test: UmbrellaTestContext) {
                 }
             });
             should.exist(_err);
-            _err?.message.should.match(/BadOperationAbandoned|BadTcpMessageTooLarge/);
+            should(_err?.message).match(/BadOperationAbandoned|BadTcpMessageTooLarge/);
         });
     });
 }

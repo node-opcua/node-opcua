@@ -40,22 +40,22 @@ describe("Testing loadNodeSet - edge cases", async function (this: Mocha.Suite) 
         await generateAddressSpace(addressSpace, [nodesets.standard, nodeset_with_special_characters]);
 
         const o1 = addressSpace.findNode("ns=1;i=1001")!;
-        o1.browseName.name?.should.eql("Noël");
+        should(o1.browseName.name).eql("Noël");
 
         const o2 = addressSpace.findNode("ns=1;i=1002")!;
-        o2.browseName.name?.should.eql("Strauß");
+        should(o2.browseName.name).eql("Strauß");
 
         const o3 = addressSpace.findNode("ns=1;i=1003")!;
-        o3.browseName.name?.should.eql("Bjørn Ødger Åse");
+        should(o3.browseName.name).eql("Bjørn Ødger Åse");
 
         const o4 = addressSpace.findNode("ns=1;i=1004")!;
-        o4.browseName.name?.should.eql("Günter Альберт");
+        should(o4.browseName.name).eql("Günter Альберт");
 
         const o5 = addressSpace.findNode("ns=1;i=1005")!;
-        o5.browseName.name?.should.eql("Мир во всём ми́ре");
+        should(o5.browseName.name).eql("Мир во всём ми́ре");
 
         const o6 = addressSpace.findNode("ns=1;i=1006")!;
-        o6.browseName.name?.should.eql("صلح در زمین");
+        should(o6.browseName.name).eql("صلح در زمین");
     });
 
     it("LNSEC-3 -  should load a nodeset2.xml that has no Aliases section", async () => {

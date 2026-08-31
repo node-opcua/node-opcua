@@ -227,7 +227,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: ITestContext) {
             session2 = engine.createSession({ sessionTimeout: 10000, server });
             const transferResult = await engine.transferSubscription(session2, subscription.id, true);
             transferResult.statusCode.should.eql(StatusCodes.Good);
-            transferResult.availableSequenceNumbers?.should.eql([]);
+            should(transferResult.availableSequenceNumbers).eql([]);
 
             test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount * 2);
             sendPublishRequest(session1, publishSpy);
@@ -287,7 +287,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: ITestContext) {
 
             const transferResult = await engine.transferSubscription(session2, subscription.id, true);
             transferResult.statusCode.should.eql(StatusCodes.Good);
-            transferResult.availableSequenceNumbers?.length.should.eql(0);
+            should(transferResult.availableSequenceNumbers?.length).eql(0);
 
             // xx  console.log(transferResult.toString());
 
@@ -605,7 +605,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: ITestContext) {
             // the transfer result.available sequence number shall be ZERO at this point because
             // we cannot validate in session2 notification that have been sent to session1
             transferResult.statusCode.should.eql(StatusCodes.Good);
-            transferResult.availableSequenceNumbers?.length.should.eql(4);
+            should(transferResult.availableSequenceNumbers?.length).eql(4);
 
             const publishSpy2 = sinon.spy();
 

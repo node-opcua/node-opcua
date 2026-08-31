@@ -6,8 +6,8 @@ import {
     UserTokenPolicy,
     UserTokenType
 } from "node-opcua";
-import "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
 
 const port = 1979;
@@ -27,8 +27,8 @@ describe("Server shall only expose userIdentityTokens that matches securityPolic
         const endpoints = server.findMatchingEndpoints();
         // endpoints.length.should.eql(1);
         // console.log(endpoints[0].userIdentityTokens);
-        endpoints[0].userIdentityTokens?.length.should.eql(1);
-        endpoints[0].userIdentityTokens?.[0].should.eql(
+        should(endpoints[0].userIdentityTokens?.length).eql(1);
+        should(endpoints[0].userIdentityTokens?.[0]).eql(
             new UserTokenPolicy({
                 policyId: "anonymous",
                 tokenType: 0,
@@ -54,8 +54,8 @@ describe("Server shall only expose userIdentityTokens that matches securityPolic
         const endpoints = server.findMatchingEndpoints();
         endpoints.length.should.eql(2);
         // console.log(endpoints[0].userIdentityTokens);
-        endpoints[0].userIdentityTokens?.length.should.eql(2);
-        endpoints[0].userIdentityTokens?.[0].should.eql(
+        should(endpoints[0].userIdentityTokens?.length).eql(2);
+        should(endpoints[0].userIdentityTokens?.[0]).eql(
             new UserTokenPolicy({
                 policyId: "username_basic256Sha256",
                 tokenType: UserTokenType.UserName,
@@ -64,7 +64,7 @@ describe("Server shall only expose userIdentityTokens that matches securityPolic
                 securityPolicyUri: SecurityPolicy.Basic256Sha256
             })
         );
-        endpoints[0].userIdentityTokens?.[1].should.eql(
+        should(endpoints[0].userIdentityTokens?.[1]).eql(
             new UserTokenPolicy({
                 policyId: "certificate_basic256Sha256",
                 tokenType: UserTokenType.Certificate,
@@ -74,7 +74,7 @@ describe("Server shall only expose userIdentityTokens that matches securityPolic
             })
         );
         //
-        endpoints[1].userIdentityTokens?.[0].should.eql(
+        should(endpoints[1].userIdentityTokens?.[0]).eql(
             new UserTokenPolicy({
                 policyId: "usernamePassword",
                 tokenType: UserTokenType.UserName,
@@ -83,7 +83,7 @@ describe("Server shall only expose userIdentityTokens that matches securityPolic
                 securityPolicyUri: null
             })
         );
-        endpoints[1].userIdentityTokens?.[1].should.eql(
+        should(endpoints[1].userIdentityTokens?.[1]).eql(
             new UserTokenPolicy({
                 policyId: "certificateX509",
                 tokenType: UserTokenType.Certificate,

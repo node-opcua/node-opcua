@@ -73,7 +73,7 @@ async function start_internal_server(test: UmbrellaTestContext, options: OPCUASe
 
     await new Promise<void>((resolve) => {
         setTimeout(() => {
-            test.server?.engine.currentSessionCount.should.eql(0, " expecting ZERO session on server when test is starting !");
+            should(test.server?.engine.currentSessionCount).eql(0, " expecting ZERO session on server when test is starting !");
             console.log(" ..... done ");
             console.log("server started at ", test.endpointUrl);
             resolve();

@@ -32,7 +32,7 @@ describe("AddressSpace#browsePath", () => {
         const browsePath = makeBrowsePath("RootFolder", "/Objects/Server");
         const result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.Good);
-        result.targets?.length.should.eql(1);
+        should(result.targets?.length).eql(1);
 
         if (doDebug) {
             const opts = { addressSpace };
@@ -43,7 +43,7 @@ describe("AddressSpace#browsePath", () => {
         const browsePath = makeBrowsePath("RootFolder", "/Objects/Server/ServerStatus");
         const result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.Good);
-        result.targets?.length.should.eql(1);
+        should(result.targets?.length).eql(1);
 
         if (doDebug) {
             const opts = { addressSpace };
@@ -52,19 +52,19 @@ describe("AddressSpace#browsePath", () => {
     });
     it("#QQ browsing a path when a null target name is not in the last element shall return an error ", () => {
         const browsePath = makeBrowsePath("RootFolder", "/Objects/Server/ServerStatus");
-        browsePath.relativePath?.elements?.[1]?.targetName.toString().should.eql("Server");
+        should(browsePath.relativePath?.elements?.[1]?.targetName.toString()).eql("Server");
         // set a null target Name in the middle of the path
         (browsePath.relativePath.elements![1] as unknown as { targetName: null }).targetName = null;
         const result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.BadBrowseNameInvalid);
-        result.targets?.length.should.eql(0);
+        should(result.targets?.length).eql(0);
     });
 
     it("should browse EventGeneratorObject", () => {
         const browsePath = makeBrowsePath("RootFolder", "/Objects/1:EventGeneratorObject");
         const result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.Good);
-        result.targets?.length.should.eql(1);
+        should(result.targets?.length).eql(1);
 
         if (doDebug) {
             const opts = { addressSpace };
@@ -79,7 +79,7 @@ describe("AddressSpace#browsePath", () => {
         let browsePath = makeBrowsePath("RootFolder", "/Types/EventTypes/BaseEventType<HasSubtype>1:MyEventType");
         let result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.Good);
-        result.targets?.length.should.eql(1);
+        should(result.targets?.length).eql(1);
 
         if (doDebug) {
             const opts = { addressSpace };
@@ -110,7 +110,7 @@ describe("AddressSpace#browsePath", () => {
         const browsePath = makeBrowsePath(rootFolder, "");
         const result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.BadNothingToDo);
-        result.targets?.length.should.eql(0);
+        should(result.targets?.length).eql(0);
     });
 
     it("should return one target", () => {
@@ -118,8 +118,8 @@ describe("AddressSpace#browsePath", () => {
         const browsePath = makeBrowsePath(rootFolder, "/Types/VariableTypes/BaseVariableType<References>PropertyType");
         const result = addressSpace.browsePath(browsePath);
         result.statusCode.should.eql(StatusCodes.Good);
-        result.targets?.length.should.eql(1);
-        result.targets?.[0].targetId.toString().should.eql("ns=0;i=68");
+        should(result.targets?.length).eql(1);
+        should(result.targets?.[0].targetId.toString()).eql("ns=0;i=68");
     });
 });
 
@@ -219,7 +219,7 @@ describe("AddressSpace#browsePath 2/2", () => {
         const result = addressSpace.browsePath(browsePath);
         // debugLog(result.toString());
         result.statusCode.should.eql(StatusCodes.Good);
-        result.targets?.length.should.eql(1);
+        should(result.targets?.length).eql(1);
     });
 });
 

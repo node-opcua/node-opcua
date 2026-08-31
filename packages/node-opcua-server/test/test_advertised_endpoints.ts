@@ -1,11 +1,9 @@
-import { getFullyQualifiedDomainName, ipv4ToHex } from "node-opcua-hostname";
+import { getFullyQualifiedDomainName, getIpAddresses, ipv4ToHex } from "node-opcua-hostname";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { UserTokenType } from "node-opcua-service-endpoints";
-import "should";
-
-import { getIpAddresses } from "node-opcua-hostname";
+import should from "should";
 import { OPCUAServer } from "../source/index.js";
 import { type AdvertisedEndpointConfig, normalizeAdvertisedEndpoints, parseOpcTcpUrl } from "../source/server_end_point.js";
 import { createServerCertificateManager } from "./create_server_certificate_manager.js";
@@ -698,7 +696,7 @@ describe("US-AE-10: normalizeAdvertisedEndpoints", () => {
         result.should.have.length(2);
         result[0].url.should.equal("opc.tcp://a:1");
         result[1].url.should.equal("opc.tcp://b:2");
-        result[1].allowAnonymous?.should.equal(false);
+        should(result[1].allowAnonymous).equal(false);
     });
 
     it("should return empty array for undefined", () => {

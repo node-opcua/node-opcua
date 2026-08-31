@@ -1,4 +1,3 @@
-import "should";
 import { type AddressSpace, type Namespace, SessionContext, type UAVariable } from "node-opcua-address-space";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { AttributeIds } from "node-opcua-data-model";
@@ -14,6 +13,7 @@ import {
 } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
+import should from "should";
 import sinon from "sinon";
 
 import {
@@ -336,7 +336,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: Moch
         // wait initial notification on itm 1
         const publishedResponse0 = waitInitialNotification();
         {
-            publishedResponse0.notificationMessage.notificationData?.length.should.eql(1);
+            should(publishedResponse0.notificationMessage.notificationData?.length).eql(1);
             const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
             notifs0.length.should.eql(1);
         }
@@ -355,7 +355,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: Moch
 
         const publishResponse = waitNextNotification();
 
-        publishResponse.notificationMessage.notificationData?.length.should.eql(1);
+        should(publishResponse.notificationMessage.notificationData?.length).eql(1);
         const notifs = (publishResponse.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
 
         // console.log(publishResponse.notificationMessage.toString());
@@ -376,7 +376,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: Moch
 
         const publishResponse1 = waitNextNotification();
 
-        publishResponse1.notificationMessage.notificationData?.length.should.eql(1);
+        should(publishResponse1.notificationMessage.notificationData?.length).eql(1);
         const notifs1 = (publishResponse1.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
         notifs1.length.should.eql(2);
         notifs1[0].clientHandle.should.eql(1);
@@ -388,7 +388,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: Moch
         const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Sampling);
         const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Sampling);
         const publishedResponse0 = waitInitialNotification();
-        publishedResponse0.notificationMessage.notificationData?.length.should.eql(0);
+        should(publishedResponse0.notificationMessage.notificationData?.length).eql(0);
 
         const result = subscription.setTriggering(
             createResult1.monitoredItemId,
@@ -402,7 +402,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: Moch
         multipleIncrement([nodeIdV1, nodeIdV2, nodeIdV3]);
         test.clock.tick(100);
         const publishResponse = waitNextNotification();
-        publishResponse.notificationMessage.notificationData?.length.should.eql(0);
+        should(publishResponse.notificationMessage.notificationData?.length).eql(0);
     });
 
     it("STG-8 If the monitoring mode of the item to report is SAMPLING, then it is reported when the triggering item triggers the items to report.", async () => {
@@ -413,7 +413,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: Moch
         const publishedResponse0 = waitInitialNotification();
         {
             // console.log(publishedResponse0.toString());
-            publishedResponse0.notificationMessage.notificationData?.length.should.eql(1);
+            should(publishedResponse0.notificationMessage.notificationData?.length).eql(1);
             const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
             notifs0.length.should.eql(1);
         }
@@ -431,7 +431,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: Moch
         test.clock.tick(100);
         const publishResponse = waitNextNotification();
 
-        publishResponse.notificationMessage.notificationData?.length.should.eql(1);
+        should(publishResponse.notificationMessage.notificationData?.length).eql(1);
         const notifs = (publishResponse.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
         notifs.length.should.eql(3);
         notifs[0].clientHandle.should.eql(1);
@@ -451,7 +451,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: Moch
             test.clock.tick(100);
             const publishedResponse0 = waitInitialNotification();
             {
-                publishedResponse0.notificationMessage.notificationData?.length.should.eql(1);
+                should(publishedResponse0.notificationMessage.notificationData?.length).eql(1);
                 const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification)
                     .monitoredItems!;
                 notifs0.length.should.eql(2);
@@ -472,7 +472,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: Moch
             test.clock.tick(100);
             const publishResponse = waitNextNotification();
 
-            publishResponse.notificationMessage.notificationData?.length.should.eql(1);
+            should(publishResponse.notificationMessage.notificationData?.length).eql(1);
             const notifs = (publishResponse.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
             notifs.length.should.eql(2);
             notifs[0].clientHandle.should.eql(2);
@@ -489,7 +489,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: Moch
             const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Disabled);
             const publishedResponse0 = waitInitialNotification();
             {
-                publishedResponse0.notificationMessage.notificationData?.length.should.eql(1);
+                should(publishedResponse0.notificationMessage.notificationData?.length).eql(1);
                 const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification)
                     .monitoredItems!;
                 notifs0.length.should.eql(1);
@@ -508,7 +508,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: Moch
             test.clock.tick(100);
             const publishResponse = waitNextNotification();
 
-            publishResponse.notificationMessage.notificationData?.length.should.eql(1);
+            should(publishResponse.notificationMessage.notificationData?.length).eql(1);
             const notifs = (publishResponse.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
             notifs.length.should.eql(1);
             notifs[0].clientHandle.should.eql(1);

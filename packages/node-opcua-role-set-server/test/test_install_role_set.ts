@@ -108,7 +108,7 @@ describe("installRoleSet", () => {
                 break;
             }
         }
-        secAdminRole?.should.not.be.undefined();
+        should(secAdminRole).not.be.undefined();
 
         const value = secAdminRole?.identities.readValue().value;
         if (!value) {
