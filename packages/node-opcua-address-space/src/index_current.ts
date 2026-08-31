@@ -30,7 +30,7 @@ export { NodeIdManager } from "../src/nodeid_manager.js";
 export * from "../src/nodeset_tools/construct_namespace_dependency.js";
 export * from "../src/private_namespace.js";
 export * from "../src/validate_data_type_correctness.js";
-export { AddressSpace } from "./address_space.js";
+export { AddressSpace } from "../source/address_space_public.js";
 export * from "./alarms_and_conditions/index.js";
 export { makeAttributeEventName } from "./base_node_impl.js";
 export * from "./data_access/add_dataItem_stuff.js";

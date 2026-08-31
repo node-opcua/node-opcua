@@ -132,26 +132,13 @@ export interface UATypesFolder extends UAFolder {
     variableTypes: UAFolder;
 }
 
-export interface AddressSpace extends IAddressSpace {
-    getOwnNamespace(): Namespace;
-    registerNamespace(namespaceUri: string): Namespace;
-    rootFolder: UARootFolder;
-}
+// AddressSpace itself lives in ./address_space_public.ts, which owns both the interface and
+// the value. It used to be declared here as an `export class` among a file of interfaces and
+// `declare class`, and so was the one member of this type surface that emitted runtime code:
+// a second AddressSpace whose create() returned an object with no methods on it.
+
 export interface IHistorizerFactory {
     create(node: UAVariable, options: IVariableHistorianOptions): IVariableHistorian;
-}
-
-// biome-ignore lint/suspicious/noUnsafeDeclarationMerging: interface adds typed members/overloads for this class
-export class AddressSpace {
-    public static historizerFactory?: IHistorizerFactory;
-
-    public static create(): AddressSpace {
-        return new AddressSpace() as AddressSpace;
-    }
-
-    private constructor() {
-        /* empty */
-    }
 }
 
 export declare class VariableHistorian implements IVariableHistorian {
