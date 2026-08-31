@@ -1,4 +1,4 @@
-import { commonCodeToUInt, standardUnits } from "..";
+import { commonCodeToUInt, standardUnits } from "../dist/index.js";
 
 describe("commonCodeToUInt", () => {
     it("commonCodeToUInt - CEL = °C = degree Celsius", () => {

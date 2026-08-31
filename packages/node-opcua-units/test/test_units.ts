@@ -1,4 +1,4 @@
-import { allUnits } from "..";
+import { allUnits } from "../dist/index.js";
 
 describe("Units", () => {
     it("should generate fancy units", () => {

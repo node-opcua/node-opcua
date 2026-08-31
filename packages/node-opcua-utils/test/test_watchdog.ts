@@ -4,7 +4,7 @@ import "node:util";
 import should from "should";
 import sinon from "sinon";
 
-import { type ISubscriber, type IWatchdogData2, WatchDog } from "..";
+import { type ISubscriber, type IWatchdogData2, WatchDog } from "../dist/index.js";
 
 class MyObject extends EventEmitter implements ISubscriber {
     // both are installed by WatchDog#addSubscriber

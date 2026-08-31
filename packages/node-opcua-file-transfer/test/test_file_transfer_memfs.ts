@@ -3,7 +3,7 @@ import { fs as fsMemory } from "memfs";
 import { AddressSpace, PseudoSession, type UAFile } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { nodesets } from "node-opcua-nodesets";
-import { type AbstractFs, ClientFile, installFileType, readOPCUAFile, writeFile } from "..";
+import { type AbstractFs, ClientFile, installFileType, readOPCUAFile, writeFile } from "../dist/index.js";
 
 describe("FileTransfer with virtual file system & refreshFunc", () => {
     let addressSpace: AddressSpace;

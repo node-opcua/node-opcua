@@ -1,4 +1,4 @@
-import { dumpIf } from "..";
+import { dumpIf } from "../dist/index.js";
 
 describe("dumpIf", () => {
     let old_console_log: typeof console.log;

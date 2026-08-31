@@ -6,7 +6,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import type { BrowsePath } from "node-opcua-types";
 import { DataType, Variant, type VariantOptions } from "node-opcua-variant";
 
-import type { FilterContext } from "..";
+import type { FilterContext } from "../dist/index.js";
 
 const warningLog = make_warningLog("TEST");
 

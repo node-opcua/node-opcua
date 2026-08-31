@@ -2,7 +2,7 @@ import { AttributeIds } from "node-opcua-data-model";
 import { SimpleAttributeOperand } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { constructEventFilter, FilterOperator, LiteralOperand, ofType } from "..";
+import { constructEventFilter, FilterOperator, LiteralOperand, ofType } from "../dist/index.js";
 
 describe("test constructEventFilter", () => {
     it("should construct a simple event filter with a single string (with namespace)", () => {

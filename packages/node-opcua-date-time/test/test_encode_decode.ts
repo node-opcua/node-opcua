@@ -1,5 +1,5 @@
 import { BinaryStream } from "node-opcua-binary-stream";
-import { coerceDateTime, decodeDateTime, encodeDateTime, getMinOPCUADate, isMinDate, isValidDateTime } from "..";
+import { coerceDateTime, decodeDateTime, encodeDateTime, getMinOPCUADate, isMinDate, isValidDateTime } from "../dist/index.js";
 import "should";
 
 describe("encode/decode DateTime", () => {

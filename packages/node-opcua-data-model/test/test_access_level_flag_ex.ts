@@ -7,7 +7,7 @@ import {
     encodeAccessLevelExFlag,
     makeAccessLevelExFlag,
     randomAccessLevelEx
-} from "..";
+} from "../dist/index.js";
 
 describe("Testing AccessLevelExFlag", () => {
     it("should create a access level extended flags from a string", () => {

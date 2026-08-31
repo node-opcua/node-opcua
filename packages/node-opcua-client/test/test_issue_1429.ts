@@ -3,7 +3,7 @@
 import type { EventEmitter } from "node:events";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import { type ConnectionStrategyOptions, OPCUAClient, type OPCUAClientOptions } from "..";
+import { type ConnectionStrategyOptions, OPCUAClient, type OPCUAClientOptions } from "../dist/index.js";
 
 /**
  * Function to log every emitted event of an event emitter.

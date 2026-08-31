@@ -1,5 +1,5 @@
 import "should";
-import { emptyGuid, isValidGuid } from "..";
+import { emptyGuid, isValidGuid } from "../dist/index.js";
 
 describe("GUID", () => {
     it("emptyGuid should be a valid GUID", () => {

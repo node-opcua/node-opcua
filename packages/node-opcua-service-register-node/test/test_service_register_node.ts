@@ -1,4 +1,4 @@
-import * as service from "..";
+import * as service from "../dist/index.js";
 
 describe("RegisterNode Service", () => {
     it("should create a RegisterNodesRequest", () => {

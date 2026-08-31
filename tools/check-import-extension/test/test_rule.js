@@ -15,7 +15,17 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { findViolations, fixText, resolveSpecifier, analyze, exitCode, formatReport, IGNORE_MARKER } from "../src/rule.js";
+import {
+    findViolations,
+    fixText,
+    resolveSpecifier,
+    analyze,
+    exitCode,
+    formatReport,
+    isGating,
+    PACKAGE_ROOT_BLOCKED,
+    IGNORE_MARKER
+} from "../src/rule.js";
 
 function withTree(files, fn) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "check-import-ext-"));
@@ -272,14 +282,31 @@ test('".", ".." and "../.." are reported as package-root, not as unresolvable', 
     );
 });
 
-test("package-root specifiers are reported but do not fail the gate", () => {
+test("a package-root specifier fails the gate, and the report says what to name instead", () => {
     withTree({ "packages/p/test/a.ts": 'import x from "..";\n' }, (root) => {
         const result = analyze({ repoRoot: root, scope: "tests" });
-        assert.equal(exitCode(result), 0, "a case the rule cannot fix must not block the gate");
+        assert.equal(exitCode(result), 1, "a directory specifier does not resolve under ESM");
         const report = formatReport(result);
         assert.match(report, /1 import\(s\) of "\." or "\.\."/);
-        assert.match(report, /do not fail this gate/);
+        assert.match(report, /Name the entry point that package\.json already names/);
+        // it has no suggestion, so it must not be counted among the manual ones as well
+        assert.doesNotMatch(report, /could not be resolved on disk/);
     });
+});
+
+test("a blocked package's package-root specifiers are exempt, and only that package's", () => {
+    const [blockedPkg] = [...PACKAGE_ROOT_BLOCKED.keys()];
+    const rootFinding = (file) => ({ file, kind: "package-root", line: 1, specifier: "..", fixable: false });
+
+    assert.equal(isGating(rootFinding(`${blockedPkg}/test/a.ts`)), false);
+    assert.equal(isGating(rootFinding("packages/node-opcua-other/test/a.ts")), true);
+    // the exemption is for package-root only; a missing extension there still fails
+    assert.equal(isGating({ file: `${blockedPkg}/test/a.ts`, kind: "file", fixable: true }), true);
+
+    // an exempt package is still reported, or the gate reads as if it had covered it
+    const report = formatReport({ scanned: 1, findings: [rootFinding(`${blockedPkg}/test/a.ts`)], scope: "all" });
+    assert.match(report, new RegExp(`1 import\\(s\\) of "\\." or "\\.\\." remain in ${blockedPkg}`));
+    assert.match(report, /main is dist\/src\/index_current\.js/);
 });
 
 test("a package-root specifier is never rewritten", () => {

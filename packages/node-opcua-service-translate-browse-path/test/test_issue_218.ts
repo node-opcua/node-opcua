@@ -1,5 +1,5 @@
 import "should";
-import { BrowsePath, makeBrowsePath } from "..";
+import { BrowsePath, makeBrowsePath } from "../dist/index.js";
 
 describe("#makeBrowsePath", () => {
     it("should parse name containing spaces and ( or )", () => {

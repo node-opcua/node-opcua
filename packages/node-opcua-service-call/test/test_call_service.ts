@@ -5,7 +5,7 @@ import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/t
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
-import * as call_service from "..";
+import * as call_service from "../dist/index.js";
 
 describe("testing CallMethodRequest", () => {
     it("should encode CallMethodRequest (scalar UInt32)", () => {

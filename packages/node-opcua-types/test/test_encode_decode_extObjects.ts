@@ -1,6 +1,6 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import { DataType } from "node-opcua-variant";
-import { PubSubConfigurationDataType, PubSubConnectionDataType, UABinaryFileDataType } from "..";
+import { PubSubConfigurationDataType, PubSubConnectionDataType, UABinaryFileDataType } from "../dist/index.js";
 import "should";
 
 describe("Testing encoding/decoding of complex ExtensionObjects", () => {

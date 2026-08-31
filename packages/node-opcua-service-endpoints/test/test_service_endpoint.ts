@@ -1,4 +1,4 @@
-import * as endpoint_service from "..";
+import * as endpoint_service from "../dist/index.js";
 
 describe("Endpoints Service", () => {
     it("should instantiate a GetEndpointsRequest", () => {

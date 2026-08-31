@@ -8,7 +8,7 @@ import {
     Xml2Json,
     Xml2JsonPojo,
     type XmlAttributes
-} from "..";
+} from "../dist/source/index.js";
 
 const _doDebug = checkDebugFlag("TEST");
 const _debugLog = make_debugLog("TEST");

@@ -262,11 +262,36 @@ export function analyze({ repoRoot = ".", packageFilter, write = false, scope = 
 }
 
 /**
- * A package-root specifier is a real problem for ESM, but not one this rule can express a
- * fix for, and it is tracked separately. Failing on it here would mean the gate could never
- * go green, so it is reported and excluded from the exit code.
+ * Packages whose package-root specifiers cannot be replaced yet, and why.
+ *
+ * A specifier is replaced by the entry point its target package names. That works whenever
+ * `main` and `types` describe the same thing. Where they do not, there is no single
+ * specifier that is right for both the compiler and the runtime, and the fix belongs to the
+ * package, not to this rule.
  */
-export const isGating = (finding) => finding.kind !== "package-root";
+export const PACKAGE_ROOT_BLOCKED = new Map([
+    [
+        "packages/node-opcua-address-space",
+        "main is dist/src/index_current.js and types is dist/source/index.d.ts, and the two " +
+            "export different AddressSpace classes rather than one behind two facades. Naming " +
+            "types type-checks and then fails at run time (AddressSpace.create() returns an " +
+            "object with no registerNamespace); naming main keeps the run time and produces 545 " +
+            "type errors. Blocked until the package points both fields at one implementation."
+    ]
+]);
+
+const packageOf = (file) => file.split("/").slice(0, 2).join("/");
+
+/**
+ * Every finding gates, except a package-root specifier in a package listed above.
+ *
+ * Package-root findings were reported without failing while the count stood at 333, because
+ * a gate that can never go green is not a gate. 175 of them are gone and the rest sit in one
+ * package for a recorded reason, so the gate can hold the line everywhere else. `--fix` still
+ * cannot rewrite one: the replacement is a per-package decision, so the report says where to
+ * read it from rather than offering a suggestion.
+ */
+export const isGating = (finding) => finding.kind !== "package-root" || !PACKAGE_ROOT_BLOCKED.has(packageOf(finding.file));
 
 export function exitCode(result) {
     return result.findings.some(isGating) ? 1 : 0;
@@ -286,17 +311,17 @@ export function formatReport(result) {
     const scanned = `${result.scanned} ${covered[scope] ?? `${scope} files`}${scope === "all" ? "" : " scanned"}`;
 
     if (gating.length === 0) {
-        lines.push(`check-import-extension: ${scanned}, every relative specifier carries its extension.`);
-        if (roots.length) {
-            lines.push(`  (${roots.length} import(s) of "." or ".." are reported below but do not fail this gate)`);
-            lines.push(...rootSection(roots));
-        }
+        lines.push(`check-import-extension: ${scanned}, every relative specifier names a file ESM can resolve.`);
+        // a blocked package is still an open item; saying so is the difference between a
+        // gate that has covered everything and one that has been told to look away
+        lines.push(...blockedSection(roots));
         return lines.join("\n");
     }
     const fixable = gating.filter((f) => f.fixable);
-    const manual = gating.filter((f) => !f.fixable);
+    // package-root findings are unfixable too, but they get their own section below
+    const manual = gating.filter((f) => !f.fixable && f.kind !== "package-root");
 
-    lines.push(`check-import-extension: ${gating.length} specifiers without an extension, in ${scanned}`, "");
+    lines.push(`check-import-extension: ${gating.length} relative specifier(s) ESM cannot resolve, in ${scanned}`, "");
     if (fixable.length) {
         const dirs = fixable.filter((f) => f.kind === "directory").length;
         lines.push(`  ${fixable.length} fixable with --fix (${fixable.length - dirs} to a file, ${dirs} to a directory index):`);
@@ -315,14 +340,31 @@ export function formatReport(result) {
         }
         lines.push("");
     }
-    if (roots.length) {
-        lines.push(...rootSection(roots));
+    const gatingRoots = roots.filter(isGating);
+    if (gatingRoots.length) {
+        lines.push(...rootSection(gatingRoots));
     }
+    lines.push(...blockedSection(roots));
+    lines.push("");
     lines.push("ESM has no extension search and no directory resolution, so a relative");
     lines.push('specifier must name the emitted file: "./x.js", or "./x/index.js" when the');
     lines.push("target is a directory. CommonJS tolerates both forms, so this can be fixed");
     lines.push("now, before any package flips.");
     return lines.join("\n");
+}
+
+/** the package-root specifiers that are known-blocked, named with the reason they are */
+function blockedSection(roots) {
+    const out = [];
+    for (const [pkg, reason] of PACKAGE_ROOT_BLOCKED) {
+        const n = roots.filter((f) => packageOf(f.file) === pkg).length;
+        if (n === 0) continue;
+        out.push("", `  ${n} import(s) of "." or ".." remain in ${pkg}, which this gate does not fail on:`);
+        for (const line of reason.match(/.{1,84}(\s|$)/g) ?? [reason]) {
+            out.push(`    ${line.trim()}`);
+        }
+    }
+    return out;
 }
 
 /** the `.` / `..` specifiers, listed by package so the scale is visible */
@@ -340,8 +382,11 @@ function rootSection(roots) {
         out.push(`    ... and ${byPackage.size - 10} more package(s)`);
     }
     out.push("  A directory resolves only through its package.json, which NodeNext does not do");
-    out.push("  for a relative specifier. There is no extension to add, so --fix cannot help:");
-    out.push("  these need an explicit entry point, tracked separately.");
+    out.push("  for a relative specifier. There is no extension to add, so --fix cannot help.");
+    out.push("  Name the entry point that package.json already names: its `types` with the");
+    out.push("  .d.ts swapped for .js, falling back to `main`. Prefer `types`, because these");
+    out.push("  callers are TypeScript and that is the surface they are checked against - a");
+    out.push("  package whose two fields name different facades would otherwise be retyped.");
     out.push("");
     return out;
 }

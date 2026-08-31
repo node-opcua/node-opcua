@@ -1,5 +1,5 @@
 import "should";
-import { DataTypeFactory } from "..";
+import { DataTypeFactory } from "../dist/index.js";
 
 describe("DataTypeFactory", () => {
     it("DataTypeFactory", () => {

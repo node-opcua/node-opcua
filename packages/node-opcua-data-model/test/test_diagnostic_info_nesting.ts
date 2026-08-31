@@ -1,6 +1,6 @@
 import { BinaryStream, BinaryStreamMaxNestingLevelExceededError } from "node-opcua-binary-stream";
 import should from "should";
-import { DiagnosticInfo } from "..";
+import { DiagnosticInfo } from "../dist/index.js";
 
 //
 // DiagnosticInfo is self-recursive through innerDiagnosticInfo. A chain of nested masks

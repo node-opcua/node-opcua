@@ -7,7 +7,7 @@
 
 import assert from "node:assert";
 import { ObjectRegistry } from "node-opcua-object-registry";
-import { describeWithLeakDetector } from "..";
+import { describeWithLeakDetector } from "../index.js";
 
 // ─────────────────────────────────────────────────────────
 // T8. ObjectRegistry — properly registered and unregistered

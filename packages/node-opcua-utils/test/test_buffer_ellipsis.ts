@@ -1,5 +1,5 @@
 import "should";
-import { buffer_ellipsis } from "..";
+import { buffer_ellipsis } from "../dist/index.js";
 
 describe("buffer_ellipsis", () => {
     it("should create a buffer ellipse", () => {

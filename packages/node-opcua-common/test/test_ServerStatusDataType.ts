@@ -1,5 +1,5 @@
 import should from "should";
-import { ServerState, ServerStatusDataType } from "..";
+import { ServerState, ServerStatusDataType } from "../dist/index.js";
 
 const _should = should;
 should(true).eql(true);

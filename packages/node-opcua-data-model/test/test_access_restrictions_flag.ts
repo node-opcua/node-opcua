@@ -1,4 +1,4 @@
-import { AccessRestrictionsFlag, accessRestrictionsFlagToString, makeAccessRestrictionsFlag } from "..";
+import { AccessRestrictionsFlag, accessRestrictionsFlagToString, makeAccessRestrictionsFlag } from "../dist/index.js";
 
 describe("Testing AccessRestrictionsFlag", () => {
     it("should create a access restrictions flags from a string", () => {

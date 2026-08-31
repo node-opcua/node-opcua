@@ -4,7 +4,7 @@ import * as guid from "node-opcua-guid";
 import { randomBytes } from "node-opcua-utils";
 import should from "should";
 
-import * as ec from "..";
+import * as ec from "../dist/index.js";
 
 // These suites drive the codecs by name ("coerce" + type). A module namespace has no
 // index signature, so the lookup needs a view that does; the shape below is what the
@@ -14,8 +14,8 @@ type CodecByName = Record<string, (value?: CodecValue | string | null) => CodecV
 const ecByName = ec as unknown as CodecByName;
 
 import { ExpandedNodeId, makeExpandedNodeId, makeNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
-import type { ByteString } from "..";
-import { decodeNodeId, encodeNodeId, randomGuid } from "..";
+import type { ByteString } from "../dist/index.js";
+import { decodeNodeId, encodeNodeId, randomGuid } from "../dist/index.js";
 
 /**
  * @method test_encode_decode

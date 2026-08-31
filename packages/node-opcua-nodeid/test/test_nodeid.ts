@@ -10,7 +10,7 @@ function asBuffer(value: NodeId["value"]): Buffer {
     return value;
 }
 
-import { coerceNodeId, makeNodeId, NodeId, NodeIdType, resolveNodeId, sameNodeId } from "..";
+import { coerceNodeId, makeNodeId, NodeId, NodeIdType, resolveNodeId, sameNodeId } from "../dist/index.js";
 
 describe("testing NodeIds", () => {
     it("should create a NUMERIC nodeID", () => {

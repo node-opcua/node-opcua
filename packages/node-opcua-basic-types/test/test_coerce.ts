@@ -1,7 +1,7 @@
 import "should";
 
-import * as ec from "..";
-import { coerceBoolean, coerceByteString, coerceInt32, coerceInt64, coerceUInt32, coerceUInt64 } from "..";
+import * as ec from "../dist/index.js";
+import { coerceBoolean, coerceByteString, coerceInt32, coerceInt64, coerceUInt32, coerceUInt64 } from "../dist/index.js";
 
 // These suites drive the codecs by name ("coerce" + type). A module namespace has no
 // index signature, so the lookup needs a view that does; the shape below is what the

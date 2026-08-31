@@ -10,7 +10,7 @@ import {
     encodeAccessLevelFlag,
     makeAccessLevelFlag,
     randomAccessLevel
-} from "..";
+} from "../dist/index.js";
 
 describe("Testing AccessLevelFlag", () => {
     it("should create a access level flags from a string", () => {

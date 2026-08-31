@@ -3,7 +3,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
 import Bonjour from "sterfive-bonjour-service";
-import { type Announcement, announcementToServiceConfig, BonjourHolder, serviceToString } from "..";
+import { type Announcement, announcementToServiceConfig, BonjourHolder, serviceToString } from "../dist/index.js";
 
 const port = 1234;
 

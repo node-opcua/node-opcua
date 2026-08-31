@@ -8,7 +8,14 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { compare_buffers } from "node-opcua-utils";
 import sinon from "sinon";
 
-import { AcknowledgeMessage, decodeMessage, HelloMessage, packTcpMessage, ServerTCP_transport, TCPErrorMessage } from "..";
+import {
+    AcknowledgeMessage,
+    decodeMessage,
+    HelloMessage,
+    packTcpMessage,
+    ServerTCP_transport,
+    TCPErrorMessage
+} from "../dist/source/index.js";
 
 import { TransportPairDirect, TransportPairSocket } from "../dist/test_helpers/index.js";
 

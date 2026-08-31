@@ -1,6 +1,6 @@
 import "should";
 import "mocha";
-import { randomInt8, randomInt16, randomInt32, randomUInt8, randomUInt16, randomUInt32 } from "..";
+import { randomInt8, randomInt16, randomInt32, randomUInt8, randomUInt16, randomUInt32 } from "../dist/index.js";
 
 // The maxima cannot be reached by sampling — over 2^32 values the expected maximum of
 // 200000 draws still falls ~21000 short. Drive Math.random to each end of its own

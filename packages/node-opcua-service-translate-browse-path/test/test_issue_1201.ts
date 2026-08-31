@@ -1,6 +1,6 @@
 import { ReferenceTypeIds } from "node-opcua-constants";
 import { resolveNodeId } from "node-opcua-nodeid";
-import { constructBrowsePathFromQualifiedName } from "..";
+import { constructBrowsePathFromQualifiedName } from "../dist/index.js";
 
 describe("test constructBrowsePathFromQualifiedName", () => {
     it("should use Organizes as default referenceTypeId", () => {

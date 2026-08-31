@@ -5,7 +5,7 @@ import "should";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/encode_decode_round_trip_test";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataValue } from "..";
+import { DataValue } from "../dist/index.js";
 
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");

@@ -1,6 +1,6 @@
 import should from "should";
 
-import { RequestHeader, ResponseHeader } from "..";
+import { RequestHeader, ResponseHeader } from "../dist/index.js";
 
 describe("testing OPCUA structures ", () => {
     it("should create a RequestHeader", () => {

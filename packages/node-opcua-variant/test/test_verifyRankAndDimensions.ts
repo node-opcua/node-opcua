@@ -1,5 +1,5 @@
 import should from "should";
-import { verifyRankAndDimensions } from "..";
+import { verifyRankAndDimensions } from "../dist/index.js";
 
 describe("verifyRankAndDimensions", () => {
     [

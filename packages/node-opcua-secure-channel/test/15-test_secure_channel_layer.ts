@@ -13,7 +13,7 @@ import {
     SecurityPolicy,
     ServerSecureChannelLayer,
     type ServerSecureChannelParent
-} from "..";
+} from "../dist/source/index.js";
 
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");

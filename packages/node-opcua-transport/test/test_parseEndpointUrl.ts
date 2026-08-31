@@ -1,6 +1,6 @@
 import should from "should";
 
-import { parseEndpointUrl } from "..";
+import { parseEndpointUrl } from "../dist/source/index.js";
 
 describe("testing parseEndpointUrl", () => {
     it("should parse a endpoint ", () => {

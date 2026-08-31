@@ -11,7 +11,7 @@ import {
 } from "node-opcua-types";
 import { DataType, Variant, type VariantOptionsT } from "node-opcua-variant";
 
-import { checkFilter, extractEventFieldsBase, ofType } from "..";
+import { checkFilter, extractEventFieldsBase, ofType } from "../dist/index.js";
 import { alarmNode, FilterContextMock, variableWithAlarm } from "./filter_context_mock.js";
 
 // https://reference.opcfoundation.org/v105/Core/docs/Part4/7.7.3/

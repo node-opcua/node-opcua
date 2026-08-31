@@ -17,7 +17,7 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import type { StructureFieldOptions } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
-import { addExtensionObjectDataType } from "..";
+import { addExtensionObjectDataType } from "../dist/index.js";
 
 describe("A- testing UAVariable with number dataType", () => {
     let addressSpace: AddressSpace;

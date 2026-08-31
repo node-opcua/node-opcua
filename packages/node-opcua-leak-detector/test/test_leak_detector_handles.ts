@@ -12,7 +12,7 @@ import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
-import { describeWithLeakDetector } from "..";
+import { describeWithLeakDetector } from "../index.js";
 
 // ─────────────────────────────────────────────────────────
 // T3. Nested describe blocks (3 levels deep)

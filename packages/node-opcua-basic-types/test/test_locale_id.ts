@@ -1,4 +1,4 @@
-import { validateLocaleId } from "..";
+import { validateLocaleId } from "../dist/index.js";
 
 describe("validateLocaleId", () => {
     it("validateLocaleId", () => {

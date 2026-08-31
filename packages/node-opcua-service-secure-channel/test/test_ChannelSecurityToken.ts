@@ -1,6 +1,6 @@
 import should from "should";
-import * as service from "..";
-import { ChannelSecurityToken, hasTokenExpired } from "..";
+import * as service from "../dist/index.js";
+import { ChannelSecurityToken, hasTokenExpired } from "../dist/index.js";
 
 describe("SecureChannel Service - ChannelSecurityToken", () => {
     it("should instantiate a ChannelSecurityToken and have a valid default revisedLifetime", () => {

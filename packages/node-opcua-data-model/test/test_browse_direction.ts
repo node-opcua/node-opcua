@@ -1,5 +1,5 @@
 import { BinaryStream } from "node-opcua-binary-stream";
-import { BrowseDirection, decodeBrowseDirection, encodeBrowseDirection } from "..";
+import { BrowseDirection, decodeBrowseDirection, encodeBrowseDirection } from "../dist/index.js";
 
 describe("BrowseDirection", () => {
     it("encodeBrowseDirection", () => {

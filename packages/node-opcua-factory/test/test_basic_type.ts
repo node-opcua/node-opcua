@@ -1,4 +1,4 @@
-import { findBuiltInType, getBuiltInType, hasBuiltInType } from "..";
+import { findBuiltInType, getBuiltInType, hasBuiltInType } from "../dist/index.js";
 import "should";
 
 describe("basic types: hasBuiltInType", () => {

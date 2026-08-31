@@ -1,5 +1,5 @@
 import should from "should";
-import { FragmentClonerParser, type ReaderStateParserLike, Xml2Json } from "..";
+import { FragmentClonerParser, type ReaderStateParserLike, Xml2Json } from "../dist/source/index.js";
 
 const doDebug = false;
 

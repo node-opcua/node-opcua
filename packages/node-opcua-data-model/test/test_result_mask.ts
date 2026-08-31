@@ -1,4 +1,4 @@
-import { makeResultMask, ResultMask } from "..";
+import { makeResultMask, ResultMask } from "../dist/index.js";
 
 describe("ResultMask", () => {
     it("makeResultMask", () => {

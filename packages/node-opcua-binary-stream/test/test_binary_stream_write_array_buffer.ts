@@ -1,5 +1,5 @@
 import should from "should";
-import { BinaryStream, BinaryStreamSizeCalculator } from "..";
+import { BinaryStream, BinaryStreamSizeCalculator } from "../dist/index.js";
 
 //
 // writeArrayBuffer has two implementations that MUST stay in lockstep:

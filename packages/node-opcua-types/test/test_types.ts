@@ -1,5 +1,5 @@
 import should from "should";
-import * as t from "..";
+import * as t from "../dist/index.js";
 
 describe("Testing node-opcua-test", () => {
     it("AxisInformation", () => {

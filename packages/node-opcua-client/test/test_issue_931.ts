@@ -1,6 +1,6 @@
 import os from "node:os";
 import { make_debugLog } from "node-opcua-debug";
-import { MessageSecurityMode, OPCUAClient, type OPCUAClientOptions, SecurityPolicy } from "..";
+import { MessageSecurityMode, OPCUAClient, type OPCUAClientOptions, SecurityPolicy } from "../dist/index.js";
 
 const debugLog = make_debugLog("TEST");
 

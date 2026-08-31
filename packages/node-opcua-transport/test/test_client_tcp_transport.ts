@@ -37,7 +37,14 @@ const ports = [port1, port2, port3, port4, port5, port6, port7, port8, port9, po
 let portIndex = 0;
 
 import { BinaryStream } from "../../node-opcua/dist/index.js";
-import { AcknowledgeMessage, ClientTCP_transport, packTcpMessage, TCP_transport, TCPErrorMessage, writeTCPMessageHeader } from "..";
+import {
+    AcknowledgeMessage,
+    ClientTCP_transport,
+    packTcpMessage,
+    TCP_transport,
+    TCPErrorMessage,
+    writeTCPMessageHeader
+} from "../dist/source/index.js";
 
 describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
     this.timeout(Math.max(15 * 1000, this.timeout()));

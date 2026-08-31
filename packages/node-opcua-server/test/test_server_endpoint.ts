@@ -10,7 +10,7 @@ import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
 import { samplesCertificateFolder } from "node-opcua-test-helpers";
 import should from "should";
-import { OPCUABaseServer, OPCUAServerEndPoint } from "..";
+import { OPCUABaseServer, OPCUAServerEndPoint } from "../dist/index.js";
 
 const it_with_crypto = it;
 

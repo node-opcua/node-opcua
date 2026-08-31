@@ -1,6 +1,6 @@
 import { ApplicationDescription, ApplicationType } from "node-opcua-service-endpoints";
 import should from "should";
-import { ActivateSessionRequest, ActivateSessionResponse, CreateSessionRequest, CreateSessionResponse } from "..";
+import { ActivateSessionRequest, ActivateSessionResponse, CreateSessionRequest, CreateSessionResponse } from "../dist/index.js";
 
 describe("Session Service", () => {
     it("should instantiate a CreateSessionRequest", () => {

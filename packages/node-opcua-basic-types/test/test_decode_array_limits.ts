@@ -1,6 +1,6 @@
 import { BinaryStream, BinaryStreamArrayLengthExceededError } from "node-opcua-binary-stream";
 import should from "should";
-import { decodeArray, encodeArray } from "..";
+import { decodeArray, encodeArray } from "../dist/index.js";
 
 //
 // decodeArray is the decoder for every structured-type array field on the wire

@@ -1,4 +1,4 @@
-import * as Read_service from "..";
+import * as Read_service from "../dist/index.js";
 
 describe("Read Service", () => {
     it("should create a ReadValueId", () => {

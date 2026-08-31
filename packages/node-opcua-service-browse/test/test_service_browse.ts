@@ -7,7 +7,7 @@ import { redirectToFile } from "node-opcua-debug/nodeJS";
 import { makeNodeId } from "node-opcua-nodeid";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
 import { StatusCodes } from "node-opcua-status-code";
-import { BrowseDescription, BrowseRequest, BrowseResponse, ReferenceDescription } from "..";
+import { BrowseDescription, BrowseRequest, BrowseResponse, ReferenceDescription } from "../dist/index.js";
 
 const doDebug = checkDebugFlag("TEST");
 const debugLog = make_debugLog("TEST");

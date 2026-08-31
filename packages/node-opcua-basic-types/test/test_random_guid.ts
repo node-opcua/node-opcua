@@ -1,5 +1,5 @@
 import should from "should";
-import { cryptoRandomBytes, emptyGuid, isValidGuid, randomGuid } from "..";
+import { cryptoRandomBytes, emptyGuid, isValidGuid, randomGuid } from "../dist/index.js";
 
 describe("randomGuid", () => {
     it("RG-1 should produce a well formed, non empty Guid", () => {

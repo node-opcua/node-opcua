@@ -1,4 +1,4 @@
-import * as tbp2n from "..";
+import * as tbp2n from "../dist/index.js";
 
 describe("Test TranslateBrowsePath Service", () => {
     it("should create a TranslateBrowsePathsToNodeIdsRequest", () => {

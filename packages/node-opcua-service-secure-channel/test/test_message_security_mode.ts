@@ -1,5 +1,5 @@
 import "should";
-import { coerceMessageSecurityMode, MessageSecurityMode } from "..";
+import { coerceMessageSecurityMode, MessageSecurityMode } from "../dist/index.js";
 
 describe("MessageSecurityMode", () => {
     it("should coerce a string into MessageSecurityMode", () => {

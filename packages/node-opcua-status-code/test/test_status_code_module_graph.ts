@@ -1,6 +1,6 @@
 import should from "should";
 
-import { coerceStatusCode, getStatusCodeFromCode, StatusCode, StatusCodes } from "..";
+import { coerceStatusCode, getStatusCodeFromCode, StatusCode, StatusCodes } from "../dist/index.js";
 
 /**
  * These pin the wiring that broke the import cycle between opcua_status_code.ts and the

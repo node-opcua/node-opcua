@@ -26,7 +26,7 @@ import {
     VARIANT_ARRAY_MASK,
     Variant,
     VariantArrayType
-} from "..";
+} from "../dist/index.js";
 
 const debugLog = make_debugLog("TEST");
 

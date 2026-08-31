@@ -15,7 +15,7 @@ import {
     walkThroughObjectTypes,
     walkThroughReferenceTypes,
     walkThroughVariableTypes
-} from "..";
+} from "../dist/index.js";
 import { scratch, testPath } from "./paths.js";
 
 describe("Convert to Typescript", () => {

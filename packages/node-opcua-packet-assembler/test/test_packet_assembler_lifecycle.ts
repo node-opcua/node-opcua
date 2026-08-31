@@ -1,5 +1,5 @@
 import should from "should";
-import { PacketAssembler, type PacketInfo } from "..";
+import { PacketAssembler, type PacketInfo } from "../dist/index.js";
 
 function readChunkHeader(data: Buffer): PacketInfo {
     const length = data.readUInt32LE(4);

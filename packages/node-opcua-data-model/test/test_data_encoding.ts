@@ -1,4 +1,4 @@
-import { isDataEncoding, isValidDataEncoding } from "..";
+import { isDataEncoding, isValidDataEncoding } from "../dist/index.js";
 
 describe("DataEncoding", () => {
     it("isDataEncoding", () => {

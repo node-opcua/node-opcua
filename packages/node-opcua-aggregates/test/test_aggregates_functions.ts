@@ -2,7 +2,7 @@ import type { DataValue } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 
-import { getInterval, interpolatedValue } from "..";
+import { getInterval, interpolatedValue } from "../dist/index.js";
 
 import { makeDataValue, makeDate } from "./helpers/helpers.js";
 

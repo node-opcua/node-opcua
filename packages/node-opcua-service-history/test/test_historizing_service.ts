@@ -4,7 +4,7 @@ import should from "should";
 
 const TimestampsToReturn = read_service.TimestampsToReturn;
 
-import * as hs from "..";
+import * as hs from "../dist/index.js";
 
 const ReadEventDetails = hs.ReadEventDetails;
 

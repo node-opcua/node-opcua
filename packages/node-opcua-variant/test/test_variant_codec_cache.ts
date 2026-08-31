@@ -2,7 +2,7 @@ import type { BinaryStream as IBinaryStream } from "node-opcua-binary-stream";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { findBuiltInType, registerType } from "node-opcua-factory";
 import should from "should";
-import { DataType, decodeVariant, Variant, VariantArrayType } from "..";
+import { DataType, decodeVariant, Variant, VariantArrayType } from "../dist/index.js";
 
 //
 // get_encoder/get_decoder memoise the built-in codec per numeric DataType, because
