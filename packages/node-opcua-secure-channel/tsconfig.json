@@ -57,6 +57,9 @@
             "path": "../node-opcua-status-code"
         },
         {
+            "path": "../node-opcua-test-fixtures"
+        },
+        {
             "path": "../node-opcua-transport"
         },
         {
