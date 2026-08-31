@@ -1,11 +1,10 @@
-"use strict";
-const fs = require("fs");
-const path = require("path");
-const child_process = require("child_process");
+import child_process from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 
-const packages_folder = path.join(__dirname, "../packages");
-const licence_file = path.join(__dirname, "../LICENSE");
-const main_packagejson = path.join(__dirname, "../package.json");
+const packages_folder = path.join(import.meta.dirname, "../packages");
+const licence_file = path.join(import.meta.dirname, "../LICENSE");
+const main_packagejson = path.join(import.meta.dirname, "../package.json");
 let licence_text = "";
 let main_package = {};
 

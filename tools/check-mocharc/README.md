@@ -5,7 +5,7 @@ Keeps every package's mocha configuration on one shape that survives pnpm's layo
 ```bash
 pnpm run check:mocharc          # report, exit 1 if anything is off-pattern
 pnpm run check:mocharc:fix      # rewrite to the canonical shape
-node tools/check-mocharc.js --verbose
+node tools/check-mocharc.mjs --verbose
 ```
 
 ## The problem it prevents

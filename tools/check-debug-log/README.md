@@ -30,10 +30,10 @@ class rather than the instance.
 ## Usage
 
 ```bash
-node tools/check-debug-log.js                      # report; exits 1 if anything is unguarded
-node tools/check-debug-log.js --verbose            # list every site as file:line
-node tools/check-debug-log.js --fix                # rewrite them
-node tools/check-debug-log.js --package node-opcua-server
+node tools/check-debug-log.mjs                      # report; exits 1 if anything is unguarded
+node tools/check-debug-log.mjs --verbose            # list every site as file:line
+node tools/check-debug-log.mjs --fix                # rewrite them
+node tools/check-debug-log.mjs --package node-opcua-server
 ```
 
 From the repo root:
@@ -78,7 +78,7 @@ The no-argument form exits non-zero when anything is unguarded, so it drops into
 pre-commit hook directly. Scope it to a package while a backlog is being worked down:
 
 ```bash
-node tools/check-debug-log.js --package node-opcua-server
+node tools/check-debug-log.mjs --package node-opcua-server
 ```
 
 ## Limitations

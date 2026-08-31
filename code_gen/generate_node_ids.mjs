@@ -1,10 +1,9 @@
-"use strict";
-const fs = require("fs");
-const path = require("path");
-const csv = require("csv");
-const sprintf = require("sprintf-js").sprintf;
+import fs from "node:fs";
+import path from "node:path";
+import * as csv from "csv";
+import { sprintf } from "sprintf-js";
 
-const dataFolder = path.join(__dirname, "latest");
+const dataFolder = path.join(import.meta.dirname, "latest");
 
 // see OPC-UA Part 6 , A2
 const codeMap = {};
@@ -36,9 +35,9 @@ function convert(data) {
 
 
     });
-    const outFile = fs.createWriteStream(path.join(__dirname, "../packages/node-opcua-constants/source", "opcua_node_ids.ts"));
+    const outFile = fs.createWriteStream(path.join(import.meta.dirname, "../packages/node-opcua-constants/source", "opcua_node_ids.ts"));
     outFile.write("// this file has been automatically generated\n");
-    outFile.write("// using code_gen/generate_node_ids.js\n");
+    outFile.write("// using code_gen/generate_node_ids.mjs\n");
 
     let e;
     if (false) {

@@ -28,9 +28,9 @@
  * a package that changes nothing carries no config at all.
  *
  * Usage:
- *     node tools/check-mocharc.js            # report, exit 1 if anything is off-pattern
- *     node tools/check-mocharc.js --fix      # rewrite to the canonical shape
- *     node tools/check-mocharc.js --verbose  # list every package, not just the offenders
+ *     node tools/check-mocharc.mjs            # report, exit 1 if anything is off-pattern
+ *     node tools/check-mocharc.mjs --fix      # rewrite to the canonical shape
+ *     node tools/check-mocharc.mjs --verbose  # list every package, not just the offenders
  */
 
 import fs from "node:fs";

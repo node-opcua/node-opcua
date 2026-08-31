@@ -1,8 +1,9 @@
 
-const path = require("path");
-const https = require('https');
-let http = require('http');
-const fs = require("fs");
+import fs from "node:fs";
+import http from "node:http";
+import https from "node:https";
+import path from "node:path";
+import process from "node:process";
 
 const force = true;
 
@@ -26,9 +27,7 @@ function wget(dest_folder, file_url) {
         fs.mkdirSync(dest_folder);
     }
 
-    if (file_url.substring(0, 5) === "https") {
-        http = https;
-    }
+    const client = file_url.substring(0, 5) === "https" ? https : http;
 
     const filename = path.join(dest_folder, path.basename(file_url)); // + path.extname(url);
 
@@ -42,7 +41,7 @@ function wget(dest_folder, file_url) {
 
     const request_options = new URL(file_url);
 
-    const req = http.get(request_options, { headers: { 'user-agent': 'Mozilla/5.0' } }, function(response) {
+    const req = client.get(request_options, { headers: { 'user-agent': 'Mozilla/5.0' } }, function(response) {
         // handle the response
         let downloadedBytes = 0;
         const contentLength = parseInt(response.headers['content-length'], 10);
@@ -251,7 +250,7 @@ if (false) {
 
 function fetch_from_github(version, file) {
 
-    const destFolder = path.join(__dirname, version);
+    const destFolder = path.join(import.meta.dirname, version);
     https: wget(destFolder, `https://raw.githubusercontent.com/OPCFoundation/UA-Nodeset/refs/heads/${version}/${file}`);
     //     https: wget(destFolder, `https://raw.githubusercontent.com/OPCFoundation/UA-Nodeset/${version}/${file}`);
 
