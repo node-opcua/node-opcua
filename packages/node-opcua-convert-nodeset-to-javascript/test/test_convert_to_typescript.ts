@@ -16,6 +16,7 @@ import {
     walkThroughReferenceTypes,
     walkThroughVariableTypes
 } from "..";
+import { scratch, testPath } from "./paths.js";
 
 describe("Convert to Typescript", () => {
     let addressSpace: AddressSpace;
@@ -32,7 +33,7 @@ describe("Convert to Typescript", () => {
         ]);
     });
     before(() => {
-        const tmpFolder = path.join(__dirname, "../tmp");
+        const tmpFolder = scratch("tmp");
         if (!fs.existsSync(tmpFolder)) {
             fs.mkdirSync(tmpFolder);
         }
@@ -42,12 +43,12 @@ describe("Convert to Typescript", () => {
     });
 
     const options = {
-        baseFolder: path.join(__dirname, "../tmp"),
+        baseFolder: scratch("tmp"),
         prefix: "node-opcua-nodeset-",
         licence: <"MIT">"MIT"
     };
-    const referenceFolder = path.join(__dirname, "./references/");
-    const actualFolder = path.join(__dirname, "../tmp/");
+    const referenceFolder = testPath("references");
+    const actualFolder = scratch("tmp");
     it("P1 - should convert DeviceType", async () => {
         const filename = "node-opcua-di.txt";
 
@@ -155,7 +156,7 @@ describe("Convert to Typescript", () => {
     it("P5 - convertNamespaceTypeToTypescript", async () => {
         const session = new PseudoSession(addressSpace);
         const options = {
-            baseFolder: path.join(__dirname, "../tmp/"),
+            baseFolder: scratch("tmp"),
             prefix: "node-opcua-nodeset-",
             licence: <"MIT">"MIT"
         };

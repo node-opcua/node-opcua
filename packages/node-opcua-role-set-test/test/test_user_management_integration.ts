@@ -33,13 +33,14 @@ import {
 } from "node-opcua-types";
 import "should";
 import { bootstrapArchive, makeSessionContext } from "./helpers.js";
+import { scratch } from "./paths.js";
 
 type TestServer = IServerForRoleSet & IServerForUserManagement & IServerBase;
 
 describe("User Management Integration: client over PseudoSession (§5)", function (this: Mocha.Suite) {
     this.timeout(30000);
 
-    const tmpDir = path.join(__dirname, "..", "_tmp_user_mgmt");
+    const tmpDir = scratch("_tmp_user_mgmt");
     const persistencePath = path.join(tmpDir, "roles.bin");
 
     let addressSpace: AddressSpace;

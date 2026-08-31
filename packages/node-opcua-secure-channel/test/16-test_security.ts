@@ -21,6 +21,7 @@ import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 import { FindServersRequest, FindServersResponse } from "node-opcua-types";
 import "should";
 import { type IKeyOperations, keyOperationsFromPrivateKey } from "node-opcua-crypto";
+import { samplesCertificateFolder } from "node-opcua-test-helpers";
 import { type Message, type Response, ServerSecureChannelLayer, type ServerSecureChannelParent } from "../dist/source/index.js";
 import {
     ClientSecureChannelLayer,
@@ -29,6 +30,7 @@ import {
     MessageSecurityMode,
     SecurityPolicy
 } from "../source/index.js";
+import { scratch } from "./paths.js";
 
 // None/None cases carry no usable key: the channels must tolerate that
 const invalidTestPrivateKey = null as unknown as PrivateKey;
@@ -47,7 +49,7 @@ interface TestParam {
     shouldFailAtClientConnection?: boolean;
 }
 
-const certificateFolder = path.join(__dirname, "../../../packages/node-opcua-samples/certificates");
+const certificateFolder = samplesCertificateFolder;
 fs.existsSync(certificateFolder).should.eql(true, `expecting certificate store at ${certificateFolder}`);
 
 const NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = parseInt(process.version.match(/^v([0-9]+)/)?.[1] || "0", 10) >= 21;
@@ -57,7 +59,7 @@ describe("Testing secure client and server connection", function (this: Mocha.Co
     this.timeout(120 * 1000);
     const certificateManager = new OPCUACertificateManager({
         automaticallyAcceptUnknownCertificate: true,
-        rootFolder: path.join(__dirname, "../certificates")
+        rootFolder: scratch("certificates")
     });
 
     before(async () => {

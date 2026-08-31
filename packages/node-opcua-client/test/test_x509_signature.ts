@@ -26,6 +26,7 @@ import type {
     SignatureDataOptions,
     X509IdentityToken
 } from "node-opcua-types";
+import { testPath } from "./paths.js";
 
 const doDebug = false;
 
@@ -152,10 +153,10 @@ describe("X509 - Wireshark Analysis", () => {
             policyId: userIdentityToken.policyId ?? ""
         };
 
-        const userCertificateChain = readCertificateChain(path.join(__dirname, "./fixtures/user1_certificate.pem"));
+        const userCertificateChain = readCertificateChain(testPath("fixtures", "user1_certificate.pem"));
         const userCertificate = userCertificateChain[0];
 
-        const privateKey = readPrivateKey(path.join(__dirname, "./fixtures/private_key.pem"));
+        const privateKey = readPrivateKey(testPath("fixtures", "private_key.pem"));
 
         const signatureData = rebuildSignature(serverCertificate, serverNonce, privateKey, securityPolicy);
 

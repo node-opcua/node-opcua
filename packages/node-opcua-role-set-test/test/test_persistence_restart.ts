@@ -20,6 +20,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types";
 import "should";
 import { bootstrapArchive, userSession } from "./helpers.js";
+import { scratch } from "./paths.js";
 
 type TestServer = IServerForRoleSet & IServerBase;
 
@@ -30,7 +31,7 @@ function userRule(criteria: string): IdentityMappingRuleType {
 describe("RoleSet persistence across restart", function (this: Mocha.Suite) {
     this.timeout(30000);
 
-    const tmpDir = path.join(__dirname, "..", "_tmp_restart");
+    const tmpDir = scratch("_tmp_restart");
     const persistencePath = path.join(tmpDir, "roles.bin");
 
     /** Stand up a fresh server bound to the same persistence path (a "boot"). */
@@ -96,7 +97,7 @@ describe("RoleSet persistence across restart", function (this: Mocha.Suite) {
     });
 
     describe("encrypted archive (operator secret)", () => {
-        const secDir = path.join(__dirname, "..", "_tmp_restart_enc");
+        const secDir = scratch("_tmp_restart_enc");
         const secPath = path.join(secDir, "roles.json");
         const secret = "s3cr3t-passphrase";
 

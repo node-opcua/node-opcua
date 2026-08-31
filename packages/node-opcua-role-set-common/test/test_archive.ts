@@ -15,9 +15,10 @@ import {
     readArchive,
     writeArchive
 } from "../source/index.js";
+import { scratch } from "./paths.js";
 
 describe("RoleSet consolidated archive", () => {
-    const tmpDir = path.join(__dirname, "..", "_tmp_archive");
+    const tmpDir = scratch("_tmp_archive");
     const filePath = path.join(tmpDir, "store.json");
 
     const sampleArchive: RoleSetArchive = {

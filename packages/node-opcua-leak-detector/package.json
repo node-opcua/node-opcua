@@ -34,5 +34,8 @@
         "node-opcua-assert": "2.179.0",
         "node-opcua-object-registry": "2.179.0",
         "wtfnode": "^0.10.1"
+    },
+    "devDependencies": {
+        "node-opcua-test-helpers": "2.179.0"
     }
 }

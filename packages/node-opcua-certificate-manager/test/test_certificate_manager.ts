@@ -15,20 +15,21 @@ import { CertificateAuthority } from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 import { CertificateManager, OPCUACertificateManager, type OPCUACertificateManagerOptions } from "../source/index.js";
+import { scratch } from "./paths.js";
 
 // const _tmpFolder = os.tmpdir();
-const _tmpFolder = path.join(__dirname, "../temp");
+const _tmpFolder = scratch("temp");
 if (!fs.existsSync(_tmpFolder)) {
     fs.mkdirSync(_tmpFolder);
 }
 
 const tmpCA = new CertificateAuthority({
     keySize: 2048,
-    location: path.join(__dirname, "../temp/someCA")
+    location: scratch("temp", "someCA")
 });
 const tmpPKI = new CertificateManager({
     keySize: 2048,
-    location: path.join(__dirname, "../temp/somePKI")
+    location: scratch("temp", "somePKI")
 });
 
 // let's prepare a Certificate issued by a Certification Authority

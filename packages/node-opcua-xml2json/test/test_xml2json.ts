@@ -4,6 +4,7 @@ import { make_debugLog } from "node-opcua-debug";
 import should from "should";
 import { type ParserLike, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "..";
 import { Xml2JsonFs } from "../dist/source/nodejs/xml2json_fs.js";
+import { testPath } from "./paths.js";
 
 const debugLog = make_debugLog("TEST");
 
@@ -66,7 +67,7 @@ describe("XMLToJSON", () => {
         await fs.promises.writeFile(filename, xmlWithBom, "utf8");
     }
     it("should parse a UTF8 encoded xml file with a BOM", async () => {
-        const fixturesDir = path.join(__dirname, "fixtures");
+        const fixturesDir = testPath("fixtures");
         await fs.promises.mkdir(fixturesDir, { recursive: true });
 
         const xml_file = path.join(fixturesDir, "nodeset-with-bom.xml");
