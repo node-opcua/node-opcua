@@ -1,9 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import { samplesCertificateFolder } from "node-opcua-test-helpers";
 import should from "should";
 import { OPCUAServer } from "../source/index.js";
 
-const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
+const certificateFolder = samplesCertificateFolder;
 fs.existsSync(certificateFolder).should.eql(true, `expecting certificate store at ${certificateFolder}`);
 
 const port = 3021;

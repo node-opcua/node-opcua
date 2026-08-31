@@ -21,30 +21,18 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-
-/** the nearest directory at or above `from` that holds `marker` */
-function findUp(from: string, marker: string): string {
-    let dir = from;
-    for (;;) {
-        if (fs.existsSync(path.join(dir, marker))) {
-            return dir;
-        }
-        const parent = path.dirname(dir);
-        if (parent === dir) {
-            throw new Error(`cannot find ${marker} at or above ${from}`);
-        }
-        dir = parent;
-    }
-}
+import { findUp, modelingFile, samplesCertificateFolder } from "node-opcua-test-helpers";
 
 /**
  * This package's root, whether the caller was compiled or is running from source: both
  * `test_helpers/` and `dist/test_helpers/` sit inside it.
+ *
+ * `findUp` and the repo-level locations come from node-opcua-test-helpers, which is
+ * `"private": true` and knows the workspace layout once for every package.
  */
 export const packageRoot = findUp(__dirname, "package.json");
 
-/** the monorepo root, for the few fixtures that live outside any one package */
-export const monorepoRoot = findUp(packageRoot, "pnpm-workspace.yaml");
+export { modelingFile };
 
 // The three that call sites already had a local name for are exported as plain paths, so
 // adopting them is a deletion at the call site rather than a rename.
@@ -53,7 +41,7 @@ export const monorepoRoot = findUp(packageRoot, "pnpm-workspace.yaml");
 export const tmpFolder = path.join(packageRoot, "tmp");
 
 /** the certificate store shipped with node-opcua-samples */
-export const certificateFolder = path.join(monorepoRoot, "packages", "node-opcua-samples", "certificates");
+export const certificateFolder = samplesCertificateFolder;
 
 /** input fixtures committed next to the tests */
 export const fixturesFolder = path.join(packageRoot, "fixtures");
@@ -76,9 +64,4 @@ export function tmpFolderFor(...segments: string[]): string {
 /** a server script under test_helpers/bin, spawned as a subprocess */
 export function serverScript(name: string): string {
     return path.join(packageRoot, "test_helpers", "bin", name);
-}
-
-/** the hand-written models at the repo root, which several suites load as nodesets */
-export function modelingFile(name: string): string {
-    return path.join(monorepoRoot, "modeling", name);
 }

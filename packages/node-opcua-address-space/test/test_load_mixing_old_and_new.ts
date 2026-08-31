@@ -1,8 +1,8 @@
-import path from "node:path";
 import { serverImplementsDataTypeDefinition } from "node-opcua-client-dynamic-extension-object";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
+import { nodesetFile } from "node-opcua-test-helpers";
 import should from "should";
 import { AddressSpace, PseudoSession, type UADataType } from "..";
 import { generateAddressSpace } from "../distNodeJS/index.js";
@@ -45,8 +45,8 @@ describe("Testing address space with old and new nodeset", () => {
     });
     it("should create a server with old and new nodeset - B", async () => {
         const new_opcua = nodesets.standard;
-        const oldDI = path.join(__dirname, "../../node-opcua-nodesets/nodesets/1.02/Opc.Ua.Di.NodeSet2.xml");
-        const oldADI = path.join(__dirname, "../../node-opcua-nodesets/nodesets/1.02/Opc.Ua.Adi.NodeSet2.xml");
+        const oldDI = nodesetFile("1.02", "Opc.Ua.Di.NodeSet2.xml");
+        const oldADI = nodesetFile("1.02", "Opc.Ua.Adi.NodeSet2.xml");
 
         await generateAddressSpace(addressSpace, [new_opcua, oldDI, oldADI]);
         await addressSpace.registerNamespace("urn:OWN");

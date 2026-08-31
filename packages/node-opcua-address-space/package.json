@@ -63,7 +63,8 @@
         "node-opcua-packet-analyzer": "2.180.0",
         "node-opcua-schemas": "2.180.0",
         "node-opcua-service-filter": "2.180.0",
-        "node-opcua-test-fixtures": "2.179.0"
+        "node-opcua-test-fixtures": "2.179.0",
+        "node-opcua-test-helpers": "2.179.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

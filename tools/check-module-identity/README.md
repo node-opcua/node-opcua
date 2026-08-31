@@ -60,6 +60,18 @@ with no obvious connection to the change.
 - **Subpath exports** such as `node-opcua-address-space/testHelpers` — they resolve into the
   built tree.
 
+## What this rule does not catch
+
+It checks **one file at a time**, and the hazard is per **process**. Mocha loads a whole
+suite into one process, so a package whose tests import `".."` in some files and
+`"../source/…"` in others still ends up with two instances, even though no single file
+mixes them.
+
+`node-opcua-server` is in that state today: 28 of its test files use `../source`, 6 use
+`".."`. It is not obviously wrong — each file is internally consistent, and which tree a
+suite exercises is a real choice — so it is left as a judgement call rather than gated. Be
+aware of it when a package's tests report leaks that make no sense.
+
 ## Fixing a violation
 
 Point the source import at its `dist` equivalent, or import the package by name. Which one
