@@ -2,8 +2,8 @@ import { EventEmitter } from "node:events";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
-import type { OPCUAServerEndPoint, ReverseConnectManagerContext } from "..";
-import { ReverseConnectManager } from "..";
+import type { OPCUAServerEndPoint, ReverseConnectManagerContext } from "../dist/index.js";
+import { ReverseConnectManager } from "../dist/index.js";
 
 /**
  * Unit tests for the server-side Reverse Connect dial loop (ReverseConnectManager).

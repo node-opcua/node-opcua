@@ -1,4 +1,4 @@
-import { Benchmarker, type ITestRun } from "..";
+import { Benchmarker, type ITestRun } from "../dist/index.js";
 
 describe("Testing Benchmarker", () => {
     it("forEach vs simple loops", (done) => {

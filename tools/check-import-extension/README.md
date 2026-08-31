@@ -33,9 +33,24 @@ A specifier made only of traversal names a *directory* and carries no filename, 
 resolves only through that directory's `package.json` - a resolution NodeNext does not
 perform for a relative specifier. There is no extension to add.
 
-These are counted and listed, but they do not fail the gate: the rule cannot express a fix,
-and failing on them would mean the gate could never go green. Reporting rather than skipping
-them is deliberate - a gate that quietly ignores a case reads as if it had checked it.
+They fail the gate all the same. While 333 of them stood in the tree they were reported
+without failing, because a gate that can never go green is not a gate; now that they are
+gone, the gate holds the line.
+
+`--fix` still leaves them alone, because the replacement is not derivable from the
+specifier: it is whatever entry point the target package already names. Take that from
+`types`, with the `.d.ts` swapped for `.js`, and fall back to `main`.
+
+`types` first, not `main`, because these callers are TypeScript and `types` is the surface
+they are type-checked against. Most packages point both fields at one file and the choice
+does not arise. `node-opcua-address-space` does not - `main` is `dist/src/index_current.js`
+and `types` is `dist/source/index.d.ts`, two facades over one compiled tree with different
+export surfaces. Its 158 call sites were written against the second, and naming the first
+retypes every one of them against an API they were never checked against.
+
+Either facade loads the same module instances, so this choice is about types only.
+Reaching instead for `../source/index.js` would not be: that is a second compilation of the
+package, and `check-module-identity` exists because of what happens next.
 
 ## Why
 

@@ -7,7 +7,15 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 
-import { AttributeIds, constructEventFilter, DataType, extractConditionFields, fieldsToJson, resolveNodeId, Variant } from "..";
+import {
+    AttributeIds,
+    constructEventFilter,
+    DataType,
+    extractConditionFields,
+    fieldsToJson,
+    resolveNodeId,
+    Variant
+} from "../dist/index.js";
 
 // const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

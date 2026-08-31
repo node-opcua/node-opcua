@@ -1,5 +1,5 @@
 import should from "should";
-import { ReadValueId } from ".."; // node-opcua-types"
+import { ReadValueId } from "../dist/index.js"; // node-opcua-types"
 
 describe("Issue 688", () => {
     it("should throw an exception when argument of ReadValueId are invalid", () => {

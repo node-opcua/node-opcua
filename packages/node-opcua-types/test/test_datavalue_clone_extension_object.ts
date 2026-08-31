@@ -1,7 +1,7 @@
 import { DataValue } from "node-opcua-data-value";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import { Argument, EUInformation, Range } from "..";
+import { Argument, EUInformation, Range } from "../dist/index.js";
 
 //
 // The server clones every sampled DataValue on the monitored-item path and keeps the

@@ -9,7 +9,7 @@ import type { IBasicSessionAsync, IBasicSessionTranslateBrowsePathAsync } from "
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { DataTypeDefinition } from "node-opcua-types";
 import should from "should";
-import { extractClassDefinition, extractClassMemberDef } from "..";
+import { extractClassDefinition, extractClassMemberDef } from "../dist/index.js";
 import { type Cache2, constructCache, makeTypeNameNew } from "../dist/private-stuff.js";
 
 const debugLog = make_debugLog("TEST");

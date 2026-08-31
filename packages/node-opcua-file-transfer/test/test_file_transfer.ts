@@ -24,7 +24,7 @@ import {
     readFile,
     readOPCUAFile,
     writeOPCUAFile
-} from "..";
+} from "../dist/index.js";
 import { testPath } from "./paths.js";
 
 ["with File object methods", "with FileType methods", "with memory file system"].forEach((message) => {

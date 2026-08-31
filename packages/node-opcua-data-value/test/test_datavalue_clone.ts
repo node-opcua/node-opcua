@@ -1,7 +1,7 @@
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import { DataValue } from "..";
+import { DataValue } from "../dist/index.js";
 
 //
 // DataValue.clone() is load-bearing on the server's sampling path: MonitoredItem records

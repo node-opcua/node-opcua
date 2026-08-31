@@ -3,7 +3,7 @@ import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stre
 import { decodeExtensionObject, encodeExtensionObject } from "node-opcua-extension-object";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
-import { PubSubConfigurationDataType, PubSubConnectionDataType, UABinaryFileDataType } from "..";
+import { PubSubConfigurationDataType, PubSubConnectionDataType, UABinaryFileDataType } from "../dist/index.js";
 
 //
 // An ExtensionObject body is length-prefixed, so the encoder has to know the body size

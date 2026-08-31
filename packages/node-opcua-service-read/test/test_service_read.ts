@@ -1,6 +1,6 @@
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
 import should from "should";
-import { ReadRequest, ReadResponse, ReadValueId, TimestampsToReturn } from "..";
+import { ReadRequest, ReadResponse, ReadValueId, TimestampsToReturn } from "../dist/index.js";
 
 describe("test service Read", () => {
     it("should create a empty ReadRequest", () => {

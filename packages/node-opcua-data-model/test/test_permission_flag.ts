@@ -1,4 +1,4 @@
-import { allPermissions, makePermissionFlag, PermissionFlag, permissionFlagToString } from "..";
+import { allPermissions, makePermissionFlag, PermissionFlag, permissionFlagToString } from "../dist/index.js";
 import "should";
 
 describe("Testing PermissionFlag", () => {

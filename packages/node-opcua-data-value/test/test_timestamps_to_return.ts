@@ -1,6 +1,6 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import "should";
-import { decodeTimestampsToReturn, TimestampsToReturn } from "..";
+import { decodeTimestampsToReturn, TimestampsToReturn } from "../dist/index.js";
 
 describe("TimestampsToReturn", () => {
     it("should create an invalid timestampsToReturn", () => {

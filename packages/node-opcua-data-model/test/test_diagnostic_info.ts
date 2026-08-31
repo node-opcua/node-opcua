@@ -10,7 +10,7 @@ import {
     decodeDiagnosticInfo,
     encodeDiagnosticInfo,
     filterDiagnosticInfoLevel
-} from "..";
+} from "../dist/index.js";
 
 describe("DiagnosticInfo", () => {
     //xx it("should have encodingDefaultBinary = 25",function(){

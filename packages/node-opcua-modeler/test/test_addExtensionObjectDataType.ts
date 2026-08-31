@@ -22,7 +22,7 @@ import {
     nodesets,
     type StructureDefinitionOptions,
     setSymbols
-} from "..";
+} from "../dist/index.js";
 
 const doDebug = false;
 

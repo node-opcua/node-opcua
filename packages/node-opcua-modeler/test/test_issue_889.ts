@@ -18,7 +18,7 @@ import {
     NodeClassMask,
     StatusCodes,
     type StructureDefinitionOptions
-} from "..";
+} from "../dist/index.js";
 
 interface DataTypeFactoryPriv {
     _structureInfoByName: Map<string, StructureInfo>;

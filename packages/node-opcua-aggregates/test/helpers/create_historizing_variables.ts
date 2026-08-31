@@ -2,7 +2,7 @@ import type { AddressSpace, UAVariable } from "node-opcua-address-space";
 import type { DataValue } from "node-opcua-data-value";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 
-import { type AggregateConfigurationOptionsEx, installAggregateConfigurationOptions } from "../..";
+import { type AggregateConfigurationOptionsEx, installAggregateConfigurationOptions } from "../../dist/index.js";
 import { makeDataValue } from "./helpers.js";
 
 interface UAVariableWithHistoryPush extends UAVariable {

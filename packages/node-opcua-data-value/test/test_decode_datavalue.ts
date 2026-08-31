@@ -3,7 +3,7 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { encodeStatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import { DataValue, decodeDataValue } from "..";
+import { DataValue, decodeDataValue } from "../dist/index.js";
 
 //
 // decodeDataValue(stream) - the single-argument form - is reached from

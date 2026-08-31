@@ -1,6 +1,6 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import { DataType, decodeVariant } from "node-opcua-variant";
-import { PacketAssembler, type PacketInfo } from "..";
+import { PacketAssembler, type PacketInfo } from "../dist/index.js";
 import "should";
 
 describe("PacketAssembler - Buffer Lifecycle Proof", () => {

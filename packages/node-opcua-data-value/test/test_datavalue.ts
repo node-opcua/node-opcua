@@ -8,7 +8,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 
-import { DataValue, type DataValueOptions, extractRange } from "..";
+import { DataValue, type DataValueOptions, extractRange } from "../dist/index.js";
 
 import "should";
 

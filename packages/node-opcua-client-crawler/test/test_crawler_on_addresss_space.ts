@@ -8,7 +8,7 @@ import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { makeNodeId, type NodeId, resolveNodeId } from "node-opcua-nodeid";
 
-import { type CacheNode, NodeCrawlerBase, type UserData } from "..";
+import { type CacheNode, NodeCrawlerBase, type UserData } from "../dist/index.js";
 
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");

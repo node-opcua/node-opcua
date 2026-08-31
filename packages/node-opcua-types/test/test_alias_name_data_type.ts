@@ -1,7 +1,7 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import { QualifiedName } from "node-opcua-data-model";
 import { coerceExpandedNodeId, ExpandedNodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
-import { AliasNameDataType, AliasNameVerboseDataType } from "..";
+import { AliasNameDataType, AliasNameVerboseDataType } from "../dist/index.js";
 import "should";
 
 // The NodeIds assigned by OPC 10000-17 / the standard NodeSet2. Asserted as

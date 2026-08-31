@@ -1,6 +1,6 @@
 import should from "should";
 
-import * as conformance from "..";
+import * as conformance from "../dist/index.js";
 
 // the original file was a bare `require("..")`: the point is that importing the package
 // resolves and evaluates without throwing. Stated as an assertion so a regression reports

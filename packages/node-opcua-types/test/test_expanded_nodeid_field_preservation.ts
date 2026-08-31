@@ -1,6 +1,6 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ExpandedNodeId, NodeIdType } from "node-opcua-nodeid";
-import { AddNodesItem, AddReferencesItem, BrowsePathTarget, ReferenceDescription } from "..";
+import { AddNodesItem, AddReferencesItem, BrowsePathTarget, ReferenceDescription } from "../dist/index.js";
 import "should";
 
 /**

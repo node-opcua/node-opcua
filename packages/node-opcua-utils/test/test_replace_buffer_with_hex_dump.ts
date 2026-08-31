@@ -1,5 +1,5 @@
 import "should";
-import { replaceBufferWithHexDump } from "..";
+import { replaceBufferWithHexDump } from "../dist/index.js";
 
 describe("replaceBufferWithHexDump", () => {
     it("replaceBufferWithHexDump", () => {

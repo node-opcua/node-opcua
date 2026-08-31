@@ -1,6 +1,6 @@
 import should from "should";
 
-import * as opcua from "..";
+import * as opcua from "../dist/index.js";
 
 describe("module 'node-opcua' module sanity test", () => {
     it("module 'node-opcua' should not export any null properties", () => {

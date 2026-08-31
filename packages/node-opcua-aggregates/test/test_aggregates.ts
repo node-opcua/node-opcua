@@ -19,7 +19,7 @@ import {
     getPercentBadData,
     getPercentGoodData,
     installAggregateConfigurationOptions
-} from "..";
+} from "../dist/index.js";
 import { createHistorian1, createHistorian2, createHistorian3, createHistorian4 } from "./helpers/create_historizing_variables.js";
 import { makeDate } from "./helpers/helpers.js";
 

@@ -2,7 +2,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { assert_arrays_are_equal } from "node-opcua-test-helpers/dist/typedarray_helpers";
 import should from "should";
 
-import { NumericRange, NumericRangeType } from "..";
+import { NumericRange, NumericRangeType } from "../dist/index.js";
 
 /** what the extract_values tests build and compare: a plain, typed, or object array */
 type NumericArrayLike = ArrayLike<unknown>;

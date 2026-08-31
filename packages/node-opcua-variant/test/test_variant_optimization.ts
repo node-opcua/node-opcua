@@ -1,6 +1,6 @@
 import { DataType } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { decodeVariant, VariantArrayType } from "..";
+import { decodeVariant, VariantArrayType } from "../dist/index.js";
 import "should";
 
 describe("Variant Optimization: Zero-Copy and Alignment", () => {

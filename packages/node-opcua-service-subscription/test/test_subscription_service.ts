@@ -25,7 +25,7 @@ import {
     RepublishResponse,
     SetPublishingModeRequest,
     SetPublishingModeResponse
-} from "..";
+} from "../dist/index.js";
 
 describe("testing subscription objects", () => {
     it("should encode and decode a CreateSubscriptionRequest", () => {

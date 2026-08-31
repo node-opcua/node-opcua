@@ -1,6 +1,6 @@
 import "should";
 
-import { QualifiedName, stringToQualifiedName } from "..";
+import { QualifiedName, stringToQualifiedName } from "../dist/index.js";
 
 describe("test qualified name pull request #406", () => {
     it('should convert a string "Hello" into a qualified name ', () => {

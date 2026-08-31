@@ -2,7 +2,7 @@ import "should";
 import { QualifiedName } from "node-opcua-data-model";
 import { makeNodeId, resolveNodeId } from "node-opcua-nodeid";
 import sinon from "sinon";
-import { makeRelativePath, RelativePathElement } from "..";
+import { makeRelativePath, RelativePathElement } from "../dist/index.js";
 
 describe("makeRelativePath", () => {
     const hierarchicalReferenceTypeNodeId = resolveNodeId("HierarchicalReferences");

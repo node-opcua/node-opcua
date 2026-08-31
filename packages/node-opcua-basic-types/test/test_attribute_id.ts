@@ -1,4 +1,4 @@
-import { AttributeIds, isValidAttributeId } from "..";
+import { AttributeIds, isValidAttributeId } from "../dist/index.js";
 
 describe("AttributeIds", () => {
     it("isValidAttributeId 1", () => {

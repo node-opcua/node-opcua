@@ -9,7 +9,7 @@ import {
     packTcpMessage,
     ReverseHelloMessage,
     validateReverseHelloFields
-} from "..";
+} from "../dist/source/index.js";
 
 // decodeReverseHello throws an Error tagged with a transport-level statusCode (see
 // ReverseHelloMessage.ts#makeTaggedError) instead of a dedicated error class.

@@ -1,5 +1,5 @@
 import "should";
-import { ObjectRegistry } from "..";
+import { ObjectRegistry } from "../dist/index.js";
 
 describe("testing ObjectRegistry", () => {
     let oldValue: boolean;

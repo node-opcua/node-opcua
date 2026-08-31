@@ -1,6 +1,6 @@
 import "should";
 import { makeNodeId } from "node-opcua-nodeid";
-import * as bs from "..";
+import * as bs from "../dist/index.js";
 
 describe("Type coercion at construction time", () => {
     it("should coerce a nodeId at construction ", () => {

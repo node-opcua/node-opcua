@@ -1,4 +1,4 @@
-import { adjustVariant, DataType, Variant, VariantArrayType } from "..";
+import { adjustVariant, DataType, Variant, VariantArrayType } from "../dist/index.js";
 
 describe("method #adjustVariant", () => {
     it("should adjust a Scalar/ByteString to a Byte/Array", () => {

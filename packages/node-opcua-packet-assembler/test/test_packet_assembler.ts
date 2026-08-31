@@ -1,6 +1,6 @@
 import "should";
 import sinon from "sinon";
-import { PacketAssembler, type PacketInfo } from "..";
+import { PacketAssembler, type PacketInfo } from "../dist/index.js";
 
 function makeChunk(msgType: string, length: number) {
     const total_length = length + 4 + 1;

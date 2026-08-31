@@ -1,4 +1,4 @@
-import * as history_service from "..";
+import * as history_service from "../dist/index.js";
 
 describe("History Service", () => {
     it("should create a HistoryReadDetails", () => {

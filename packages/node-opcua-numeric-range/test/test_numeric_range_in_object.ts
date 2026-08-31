@@ -4,7 +4,7 @@ import { BaseUAObject, buildStructuredType, type IStructuredTypeSchema } from "n
 import { encode_decode_round_trip_test, json_encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
 import should from "should";
 
-import { decodeNumericRange, encodeNumericRange, NumericRange } from "..";
+import { decodeNumericRange, encodeNumericRange, NumericRange } from "../dist/index.js";
 
 const schemaObjWithNumericRange: IStructuredTypeSchema = buildStructuredType({
     name: "ObjWithNumericRange",

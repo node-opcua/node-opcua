@@ -1,5 +1,5 @@
 import should from "should";
-import { ApplicationDescription, ApplicationType } from "..";
+import { ApplicationDescription, ApplicationType } from "../dist/index.js";
 
 describe("OPCUA Object creation", () => {
     it("should create a complex type with embedded type", () => {

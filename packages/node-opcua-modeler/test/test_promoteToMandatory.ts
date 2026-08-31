@@ -12,7 +12,7 @@ import {
     promoteChild,
     promoteToMandatory,
     type UAObject
-} from "..";
+} from "../dist/index.js";
 import "mocha";
 
 import { removeDecoration } from "./test_helpers.js";

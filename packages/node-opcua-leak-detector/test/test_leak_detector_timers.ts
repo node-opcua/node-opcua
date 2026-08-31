@@ -4,7 +4,7 @@
  */
 
 import assert from "node:assert";
-import { describeWithLeakDetector } from "..";
+import { describeWithLeakDetector } from "../index.js";
 
 // ─────────────────────────────────────────────────────────
 // T1. Timer lifecycle

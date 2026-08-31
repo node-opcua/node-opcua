@@ -1,4 +1,4 @@
-import { roundToFloat2 } from "..";
+import { roundToFloat2 } from "../dist/index.js";
 
 describe("roundToFloat2", () => {
     it("roundToFloat2", () => {

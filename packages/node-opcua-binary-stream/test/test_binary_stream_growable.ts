@@ -1,5 +1,5 @@
 import should from "should";
-import { BinaryStream, BinaryStreamMaxSizeExceededError } from "..";
+import { BinaryStream, BinaryStreamMaxSizeExceededError } from "../dist/index.js";
 
 //
 // A growable BinaryStream lets a length-prefixed message be encoded in one pass: you no

@@ -8,7 +8,7 @@ import { encode_decode_round_trip_test, type IExtensionObject } from "node-opcua
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 
-import { getOrCreateConstructor, parseBinaryXSD } from "..";
+import { getOrCreateConstructor, parseBinaryXSD } from "../dist/source/index.js";
 
 import { MockProvider } from "./mock_id_provider.js";
 import { testFixture } from "./paths.js";

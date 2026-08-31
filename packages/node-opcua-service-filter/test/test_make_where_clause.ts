@@ -1,7 +1,7 @@
 import "should";
 import { AttributeIds } from "node-opcua-basic-types";
 import { DataType } from "node-opcua-variant";
-import { ElementOperand, FilterOperator, LiteralOperand, SimpleAttributeOperand } from "..";
+import { ElementOperand, FilterOperator, LiteralOperand, SimpleAttributeOperand } from "../dist/index.js";
 import {
     and,
     greaterThanOrEqual,

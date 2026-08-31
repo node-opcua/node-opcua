@@ -1,7 +1,7 @@
 import "should";
 
 import { Benchmarker } from "node-opcua-benchmarker";
-import { getCurrentClock } from "..";
+import { getCurrentClock } from "../dist/index.js";
 
 describe("Benchmarking javascript clock", function (this: Mocha.Suite) {
     this.timeout(Math.max(40000, this.timeout()));

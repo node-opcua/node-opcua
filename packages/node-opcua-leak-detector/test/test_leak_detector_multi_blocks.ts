@@ -22,7 +22,7 @@
  */
 
 import assert from "node:assert";
-import { describeWithLeakDetector } from "..";
+import { describeWithLeakDetector } from "../index.js";
 
 // These tests intentionally leak timers that only the detector cleans up. Without it the
 // process hangs, so nothing below is registered.

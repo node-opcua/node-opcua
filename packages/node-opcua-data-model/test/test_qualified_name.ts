@@ -1,7 +1,7 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import should from "should";
 
-import { coerceQualifiedName, decodeQualifiedName, encodeQualifiedName, QualifiedName } from "..";
+import { coerceQualifiedName, decodeQualifiedName, encodeQualifiedName, QualifiedName } from "../dist/index.js";
 
 describe("QualifiedName", () => {
     it("should construct a qualified name", () => {

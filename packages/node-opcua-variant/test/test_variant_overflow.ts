@@ -1,6 +1,6 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import should from "should";
-import { DataType, Variant, VariantArrayType } from "..";
+import { DataType, Variant, VariantArrayType } from "../dist/index.js";
 
 describe("test variant array decoding - should prevent resource exhaustion", () => {
     it("should raise an exception if array buffer is too large", () => {

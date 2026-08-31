@@ -1,5 +1,5 @@
 import should from "should";
-import * as utils from "..";
+import * as utils from "../dist/index.js";
 import { countUpperCase, countUpperCaseSlow } from "../dist/string_utils.js";
 
 describe("string_utils", () => {

@@ -9,7 +9,7 @@ import {
     type ModifiableStatusCode,
     StatusCode,
     StatusCodes
-} from "..";
+} from "../dist/index.js";
 
 describe("testing status code manipulation", () => {
     it("should create BadNodeIdExists", () => {

@@ -6,7 +6,7 @@ import { makeBuffer } from "node-opcua-buffer-utils";
 import { redirectToFile } from "node-opcua-debug/nodeJS";
 import { analyzePacket } from "node-opcua-packet-analyzer";
 import { StatusCodes } from "node-opcua-status-code";
-import { ServiceFault } from "..";
+import { ServiceFault } from "../dist/index.js";
 
 describe("ServiceFault", () => {
     it("should decode a real ServiceFault", (done) => {

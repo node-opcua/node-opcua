@@ -1,6 +1,6 @@
 import { assert } from "node-opcua-assert";
 import { Benchmarker } from "node-opcua-benchmarker";
-import { BinaryStream, BinaryStreamSizeCalculator, calculateByteLength } from ".."; // node-opcua-binary-stream
+import { BinaryStream, BinaryStreamSizeCalculator, calculateByteLength } from "../dist/index.js"; // node-opcua-binary-stream
 import "should";
 
 // this suite compares the current implementation against earlier ones, which it installs on

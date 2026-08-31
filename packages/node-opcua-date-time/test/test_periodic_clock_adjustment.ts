@@ -1,4 +1,4 @@
-import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPeriodicClockAdjustment } from "..";
+import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPeriodicClockAdjustment } from "../dist/index.js";
 
 describe("installPeriodicClockAdjustment", () => {
     it("should install and uninstall", () => {

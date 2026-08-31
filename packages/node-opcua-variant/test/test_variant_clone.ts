@@ -1,7 +1,7 @@
 import { LocalizedText, QualifiedName } from "node-opcua-data-model";
 import { coerceNodeId, type NodeId } from "node-opcua-nodeid";
 import should from "should";
-import { DataType, sameVariant, Variant, VariantArrayType } from "..";
+import { DataType, sameVariant, Variant, VariantArrayType } from "../dist/index.js";
 
 //
 // Variant.clone() has to be a true deep copy. The server records a clone of every sampled

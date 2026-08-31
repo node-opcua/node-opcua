@@ -2,7 +2,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
 
-import { OPCUAClient } from "..";
+import { OPCUAClient } from "../dist/index.js";
 
 describe("OPCUAClient + transportFactory option", () => {
     it("accepts a transportFactory option on OPCUAClientOptions", () => {

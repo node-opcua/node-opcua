@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { make_debugLog } from "node-opcua-debug";
 import should from "should";
-import { type ParserLike, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "..";
+import { type ParserLike, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "../dist/source/index.js";
 import { Xml2JsonFs } from "../dist/source/nodejs/xml2json_fs.js";
 import { testPath } from "./paths.js";
 

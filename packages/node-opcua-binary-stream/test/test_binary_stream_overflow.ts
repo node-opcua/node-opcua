@@ -1,5 +1,5 @@
 import should from "should";
-import { BinaryStream } from "..";
+import { BinaryStream } from "../dist/index.js";
 
 describe("test buffer overflow prevention", function () {
     this.timeout(10000);

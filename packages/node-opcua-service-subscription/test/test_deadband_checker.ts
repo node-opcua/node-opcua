@@ -1,7 +1,7 @@
 import "should";
 import { Range } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { isOutsideDeadbandAbsolute, isOutsideDeadbandNone, isOutsideDeadbandPercent } from "..";
+import { isOutsideDeadbandAbsolute, isOutsideDeadbandNone, isOutsideDeadbandPercent } from "../dist/index.js";
 
 function v(value: number) {
     return new Variant({ dataType: "Double", value });

@@ -1,4 +1,4 @@
-import { isValidInt8, isValidInt16, isValidInt32, isValidUInt8, isValidUInt16, isValidUInt32 } from "..";
+import { isValidInt8, isValidInt16, isValidInt32, isValidUInt8, isValidUInt16, isValidUInt32 } from "../dist/index.js";
 
 describe("Integers", () => {
     it("isValidUInt16", () => {

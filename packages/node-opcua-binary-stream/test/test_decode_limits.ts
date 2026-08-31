@@ -1,5 +1,5 @@
 import should from "should";
-import { BinaryStream, BinaryStreamArrayLengthExceededError, BinaryStreamMaxNestingLevelExceededError } from "..";
+import { BinaryStream, BinaryStreamArrayLengthExceededError, BinaryStreamMaxNestingLevelExceededError } from "../dist/index.js";
 
 //
 // Two decode-side guards live on BinaryStream so that every decoder - across packages -

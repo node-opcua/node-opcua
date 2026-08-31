@@ -1,5 +1,5 @@
 import { BinaryStream } from "node-opcua-binary-stream";
-import { decodeMessage, HelloMessage, packTcpMessage } from "..";
+import { decodeMessage, HelloMessage, packTcpMessage } from "../dist/source/index.js";
 
 describe("testing message encoding and decoding", () => {
     it("should encode and decode HelloMessage ", () => {

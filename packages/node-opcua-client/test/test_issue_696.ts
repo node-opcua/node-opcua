@@ -3,7 +3,7 @@ import path from "node:path";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { checkDebugFlag } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { OPCUAClient } from "..";
+import { OPCUAClient } from "../dist/index.js";
 
 let setIntervalCalls = 0;
 let clearIntervalCalls = 0;

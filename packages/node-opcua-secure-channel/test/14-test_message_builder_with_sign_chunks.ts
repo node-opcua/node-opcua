@@ -33,7 +33,7 @@ import {
     SecurityPolicy,
     SequenceNumberGenerator,
     TokenStack
-} from "..";
+} from "../dist/source/index.js";
 
 const debugLog = make_debugLog("TEST");
 const private_key_filename = getFixture("certs/server_key_1024.pem");

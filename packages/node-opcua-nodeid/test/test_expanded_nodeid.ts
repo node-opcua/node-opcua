@@ -1,6 +1,6 @@
 import should from "should";
 
-import { coerceExpandedNodeId, coerceNodeId, ExpandedNodeId, makeExpandedNodeId, makeNodeId, NodeIdType } from "..";
+import { coerceExpandedNodeId, coerceNodeId, ExpandedNodeId, makeExpandedNodeId, makeNodeId, NodeIdType } from "../dist/index.js";
 
 describe("testing ExpandedNodeId", () => {
     it("should create a ExpandedNodeId from a integer", () => {

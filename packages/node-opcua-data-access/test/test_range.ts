@@ -1,7 +1,7 @@
 import "should";
 import { assert } from "node-opcua-assert";
 
-import { Range } from "..";
+import { Range } from "../dist/index.js";
 
 // DeadbandType = PercentDeadband
 // For this type of deadband the  deadbandValue  is defined  as the percentage of the  EURange.   That is,

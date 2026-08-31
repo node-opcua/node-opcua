@@ -1,4 +1,4 @@
-import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "..";
+import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "../dist/index.js";
 import "should";
 
 describe("hostname", () => {

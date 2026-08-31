@@ -1,6 +1,6 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import should from "should";
-import { MessageSecurityMode, SecuritySettingsDataType } from "..";
+import { MessageSecurityMode, SecuritySettingsDataType } from "../dist/index.js";
 
 /**
  * `SecuritySettingsDataType.SecurityModes` is the first field in the standard

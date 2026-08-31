@@ -2,7 +2,7 @@ import sinon from "sinon";
 import "should";
 
 import { type ClientSession, MessageSecurityMode, OPCUAClient, SecurityPolicy, UserTokenType } from "node-opcua-client";
-import { OPCUAServer } from "..";
+import { OPCUAServer } from "../dist/index.js";
 
 const seconds = 1000;
 const port = 5002;

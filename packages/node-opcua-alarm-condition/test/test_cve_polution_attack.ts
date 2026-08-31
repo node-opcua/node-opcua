@@ -1,5 +1,5 @@
 import type { Variant } from "node-opcua-variant";
-import { fieldsToJson } from "..";
+import { fieldsToJson } from "../dist/index.js";
 import "should";
 
 describe("testing fieldsToJson ", () => {

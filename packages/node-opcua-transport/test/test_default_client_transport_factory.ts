@@ -1,4 +1,9 @@
-import { ClientTCP_transport, defaultClientTransportFactory, type IClientTransport, type IClientTransportFactory } from "..";
+import {
+    ClientTCP_transport,
+    defaultClientTransportFactory,
+    type IClientTransport,
+    type IClientTransportFactory
+} from "../dist/source/index.js";
 
 describe("defaultClientTransportFactory / IClientTransport", () => {
     it("returns a ClientTCP_transport instance", () => {

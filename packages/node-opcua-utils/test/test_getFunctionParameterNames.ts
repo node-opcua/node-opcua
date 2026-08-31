@@ -1,5 +1,5 @@
 // biome-ignore-all lint/correctness/noUnusedFunctionParameters: the parameter names are the fixture this suite asserts on
-import { getFunctionParameterNames } from "..";
+import { getFunctionParameterNames } from "../dist/index.js";
 
 describe("testing getFunctionParameterNames", () => {
     it("#getFunctionParameterNames", () => {

@@ -1,7 +1,7 @@
 import EnumSlow from "enum";
 import { Benchmarker } from "node-opcua-benchmarker";
 import should from "should";
-import { Enum, type EnumItem } from "..";
+import { Enum, type EnumItem } from "../dist/index.js";
 
 /** e.get() is nullable by design; these call sites know the key exists */
 function item(e: Enum, key: string | number): EnumItem {

@@ -6,7 +6,7 @@ import "should";
 import { type NodeId, OPCUAClient, OPCUAServer, type TransportSettings, type UAFile } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-import { ClientFile, installFileType, readOPCUAFile, writeOPCUAFile } from "..";
+import { ClientFile, installFileType, readOPCUAFile, writeOPCUAFile } from "../dist/index.js";
 
 const port = 2000;
 

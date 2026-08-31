@@ -1,4 +1,4 @@
-import { definitionReaderStateParser, Xml2Json } from "..";
+import { definitionReaderStateParser, Xml2Json } from "../dist/source/index.js";
 
 describe("Definition Parser", () => {
     it("should parse a definition bloc", async () => {

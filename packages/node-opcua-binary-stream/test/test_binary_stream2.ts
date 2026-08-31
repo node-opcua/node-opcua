@@ -1,5 +1,5 @@
 import should from "should";
-import { BinaryStream, BinaryStreamSizeCalculator } from "..";
+import { BinaryStream, BinaryStreamSizeCalculator } from "../dist/index.js";
 
 // the suites below look their codec up by name, so the table's value type has to be named once
 type CodecValue = number | string | Buffer | ArrayBuffer | null;

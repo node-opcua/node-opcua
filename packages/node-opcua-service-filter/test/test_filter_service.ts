@@ -3,7 +3,7 @@ import { NumericRange } from "node-opcua-numeric-range";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
 import { MonitoringParameters } from "node-opcua-types";
 import should from "should";
-import { AttributeOperand, ElementOperand, EventFilter, FilterOperator } from "..";
+import { AttributeOperand, ElementOperand, EventFilter, FilterOperator } from "../dist/index.js";
 
 describe("Filter Service", () => {
     it("should create a EventFilter", () => {

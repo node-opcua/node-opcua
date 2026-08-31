@@ -1,4 +1,4 @@
-import { coerceClock, getCurrentClock, getCurrentClockWithJavascriptDate, getMinOPCUADate, isMinDate } from "..";
+import { coerceClock, getCurrentClock, getCurrentClockWithJavascriptDate, getMinOPCUADate, isMinDate } from "../dist/index.js";
 import "should";
 import sinon from "sinon";
 

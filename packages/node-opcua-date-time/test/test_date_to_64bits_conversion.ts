@@ -6,8 +6,8 @@ import { assert } from "node-opcua-assert";
 import { Benchmarker } from "node-opcua-benchmarker";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import * as date_time from "..";
-import { getCurrentClock } from "..";
+import * as date_time from "../dist/index.js";
+import { getCurrentClock } from "../dist/index.js";
 
 const offsetFactor1601 = date_time.offsetFactor1601;
 const randomDateTime = date_time.randomDateTime;

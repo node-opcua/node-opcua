@@ -1,6 +1,6 @@
 import "should";
 
-import * as endpoints_service from "..";
+import * as endpoints_service from "../dist/index.js";
 
 const GetEndpointsRequest = endpoints_service.GetEndpointsRequest;
 const GetEndpointsResponse = endpoints_service.GetEndpointsResponse;
