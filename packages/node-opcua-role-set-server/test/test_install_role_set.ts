@@ -83,7 +83,7 @@ describe("installRoleSet", () => {
 
     it("should reflect stored identities in the variable after install", async () => {
         // Pre-populate a store and save to a temp file
-        const tmpPath = path.join(__dirname, "..", "_tmp_test_identities", "roles.bin");
+        const tmpPath = scratch("_tmp_test_identities", "roles.bin");
         const preStore = new InMemoryIdentityMappingStore();
         preStore.addIdentity(
             WellKnownRoleIds.SecurityAdmin,
