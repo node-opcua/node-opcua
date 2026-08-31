@@ -7,7 +7,7 @@ import sinon from "sinon";
 import { MessageBuilder, MessageSecurityMode, SecurityPolicy } from "../dist/source/index.js";
 import type { IDerivedKeyProvider } from "../dist/source/token_stack.js";
 
-const _debugLog = make_debugLog(__filename);
+const _debugLog = make_debugLog("09-test_message_builder");
 
 describe("MessageBuilder", () => {
     const derivedKeyProvider: IDerivedKeyProvider = {

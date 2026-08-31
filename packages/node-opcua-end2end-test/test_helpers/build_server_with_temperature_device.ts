@@ -25,8 +25,8 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { prepareFQDN } from "node-opcua-hostname";
 import { createServerCertificateManager } from "./createServerCertificateManager.js";
 
-const _doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
+const _doDebug = checkDebugFlag("build_server_with_temperature_device");
+const debugLog = make_debugLog("build_server_with_temperature_device");
 
 /**
  * add a fake analog data item for testing

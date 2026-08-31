@@ -9,7 +9,7 @@ import { ActivateSessionResponse, CreateSessionResponse } from "node-opcua-servi
 import { AcknowledgeMessage } from "node-opcua-transport";
 import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 
-const debugLog = make_debugLog(__filename);
+const debugLog = make_debugLog("mock_transport");
 
 export const fakeAcknowledgeMessage = new AcknowledgeMessage({
     maxChunkCount: 600000,

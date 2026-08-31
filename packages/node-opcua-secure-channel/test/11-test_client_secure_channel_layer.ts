@@ -9,7 +9,7 @@ import sinon from "sinon";
 import { ClientSecureChannelLayer } from "../dist/source/index.js";
 import { fakeAcknowledgeMessage, MockServerTransport } from "../dist/test_helpers/index.js";
 
-const _debugLog = make_debugLog(__filename);
+const _debugLog = make_debugLog("11-test_client_secure_channel_layer");
 
 describe("testing ClientSecureChannelLayer ", function (this: Mocha.Context) {
     this.timeout(Math.max(120 * 1000, this.timeout()));
