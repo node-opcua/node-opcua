@@ -4244,6 +4244,8 @@ importers:
 
   tools/check-mocharc: {}
 
+  tools/check-module-identity: {}
+
   tools/check-no-tla:
     devDependencies:
       typescript:
