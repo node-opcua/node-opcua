@@ -1834,6 +1834,9 @@ importers:
       node-opcua-packet-analyzer:
         specifier: 2.180.0
         version: link:../node-opcua-packet-analyzer
+      node-opcua-test-helpers:
+        specifier: 2.179.0
+        version: link:../node-opcua-test-helpers
 
   packages/node-opcua-guid: {}
 
@@ -4300,6 +4303,8 @@ importers:
         version: 5.9.3
 
   tools/check-pack: {}
+
+  tools/check-short-circuit-assertion: {}
 
   tools/check-test-ports: {}
 

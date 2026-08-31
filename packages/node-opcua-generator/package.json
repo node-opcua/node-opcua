@@ -33,7 +33,8 @@
         "typescript": "5.9.3"
     },
     "devDependencies": {
-        "node-opcua-packet-analyzer": "2.180.0"
+        "node-opcua-packet-analyzer": "2.180.0",
+        "node-opcua-test-helpers": "2.179.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
