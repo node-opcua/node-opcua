@@ -20,7 +20,9 @@ export function subtest_two_state_discrete_type(mainTest: { addressSpace: Addres
         let addressSpace: AddressSpace;
         before(() => {
             addressSpace = mainTest.addressSpace;
-            should(addressSpace).be.instanceof(AddressSpace);
+            // AddressSpace is published as an interface and a factory, with no constructor to
+            // check against, so this asserts that there is one rather than which class it is
+            should.exist(addressSpace);
         });
         it("TwoStateDiscrete should not be abstract", () => {
             const twoStateDiscreteType = addressSpace.findVariableType("TwoStateDiscreteType")!;

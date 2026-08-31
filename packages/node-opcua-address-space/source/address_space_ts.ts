@@ -32,8 +32,6 @@ import type { ReadRawModifiedDetails } from "node-opcua-service-history";
 import type { DataType } from "node-opcua-variant";
 
 import type { MinimalistAddressSpace } from "../src/reference_impl.js";
-import type { Namespace } from "./namespace.js";
-import type { UARootFolder } from "./ua_root_folder.js";
 
 export declare function resolveReferenceType(addressSpace: MinimalistAddressSpace, reference: UAReference): UAReferenceType;
 

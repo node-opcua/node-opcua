@@ -9,8 +9,6 @@ import type {
     IEventData,
     IHistoricalDataNodeOptions,
     ISessionContext,
-    IVariableHistorian,
-    IVariableHistorianOptions,
     MethodCallInterceptor,
     RaiseEventData,
     ShutdownTask,
@@ -60,11 +58,11 @@ import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction
 import type { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor.js";
 import type { UARootFolder } from "../source/ua_root_folder.js";
 import type { AddressSpacePrivate } from "./address_space_private.js";
-import { historizerFactoryHolder } from "./historizer_factory.js";
 import { UAAcknowledgeableConditionImplBase, UAConditionImplBase } from "./alarms_and_conditions/index.js";
 import { BaseNodeImpl } from "./base_node_impl.js";
 import { EventData } from "./event_data.js";
 import { AddressSpace_installHistoricalDataNode } from "./historical_access/address_space_historical_data_node.js";
+import { historizerFactoryHolder } from "./historizer_factory.js";
 import { isNonEmptyQualifiedName, NamespaceImpl } from "./namespace_impl.js";
 import type { NamespacePrivate } from "./namespace_private.js";
 import { ReferenceImpl } from "./reference_impl.js";

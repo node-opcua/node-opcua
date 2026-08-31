@@ -4,19 +4,97 @@
 
 export * from "node-opcua-address-space-base";
 export * from "node-opcua-nodeset-ua";
-export { instantiateCertificateExpirationAlarm } from "../src/alarms_and_conditions/ua_certificate_expiration_alarm_impl.js";
-export { promoteToMultiStateDiscrete } from "../src/data_access/ua_multistate_discrete_impl.js";
-// deprecated: validateDataType
+// ---------------------------------------------------------------------------------------
+// Implementation detail, exported only so that it keeps being exported.
+//
+// These names reached consumers through the old `main`, src/index_current.js, which this
+// entry replaces. Dropping them would be a breaking change for anyone importing one, so they
+// are re-exported here and marked internal instead: the documentation excludes them
+// (typedoc's excludeInternal is already on), while the runtime surface stays exactly what it
+// was. They go at 3.0, together with stripInternal.
+//
+// 52 names. Nothing new belongs in this block.
+// ---------------------------------------------------------------------------------------
+/** @internal */
 export {
+    ConditionInfoImpl,
+    ConditionSnapshotImpl,
+    OneDayDuration,
+    promoteToCertificateExpirationAlarm,
+    TwoWeeksDuration,
+    UAAcknowledgeableConditionImpl,
+    UAAcknowledgeableConditionImplBase,
+    UAAlarmConditionImpl,
+    UAAlarmConditionImplBase,
+    UACertificateExpirationAlarmImpl,
+    UAConditionImpl,
+    UAConditionImplBase,
+    UADiscreteAlarmImpl,
+    UADiscreteAlarmImplBase,
+    UAExclusiveDeviationAlarmImpl,
+    UAExclusiveDeviationAlarmImplBase,
+    UAExclusiveLevelAlarmImpl,
+    UAExclusiveLimitAlarmImpl,
+    UAExclusiveLimitAlarmImplBase,
+    UALimitAlarmImpl,
+    UALimitAlarmImplBase,
+    UANonExclusiveDeviationAlarmImpl,
+    UANonExclusiveDeviationAlarmImplBase,
+    UANonExclusiveLimitAlarmImpl,
+    UANonExclusiveLimitAlarmImplBase
+} from "../src/alarms_and_conditions/index.js";
+export { instantiateCertificateExpirationAlarm } from "../src/alarms_and_conditions/ua_certificate_expiration_alarm_impl.js";
+/** @internal */
+export { makeAttributeEventName } from "../src/base_node_impl.js";
+/** @internal */
+export { add_dataItem_stuff } from "../src/data_access/add_dataItem_stuff.js";
+/** @internal */
+export { adjustDataValueStatusCode } from "../src/data_access/adjust_datavalue_status_code.js";
+/** @internal */
+export {
+    _addMultiStateDiscrete,
+    promoteToMultiStateDiscrete,
+    UAMultiStateDiscreteImpl,
+    UAMultiStateDiscreteImplBase
+} from "../src/data_access/ua_multistate_discrete_impl.js";
+// deprecated: validateDataType
+/** @internal */
+export {
+    _addMultiStateValueDiscrete,
     promoteToMultiStateValueDiscrete,
+    UAMultiStateValueDiscreteImpl,
+    UAMultiStateValueDiscreteImplBase,
     validateDataType,
     validateIsNumericDataType
 } from "../src/data_access/ua_multistate_value_discrete_impl.js";
-export { promoteToTwoStateDiscrete } from "../src/data_access/ua_two_state_discrete_impl.js";
+/** @internal */
+export {
+    _addTwoStateDiscrete,
+    promoteToTwoStateDiscrete,
+    UATwoStateDiscreteImpl,
+    UATwoStateDiscreteImplBase
+} from "../src/data_access/ua_two_state_discrete_impl.js";
 export * from "../src/event_data.js";
-export { ConstructNodeIdOptions, NodeIdManager } from "../src/nodeid_manager.js";
+/** @internal */
+export { addElement, bindExtObjArrayNode, createExtObjArrayNode, removeElement } from "../src/extension_object_array_node.js";
+/** @internal */
+export { VariableHistorian } from "../src/historical_access/address_space_historical_data_node.js";
+/** @internal */
+export { isNonEmptyQualifiedName, NamespaceImpl } from "../src/namespace_impl.js";
+/** @internal */
+export { ConstructNodeIdOptions, NamespaceOptions, NodeIdManager } from "../src/nodeid_manager.js";
+/** @internal */
+export { adjustNamespaceArray } from "../src/nodeset_tools/adjust_namespace_array.js";
 export * from "../src/nodeset_tools/construct_namespace_dependency.js";
+/** @internal */
+export { dumpToBSD } from "../src/nodeset_tools/dump_to_bsd.js";
+/** @internal */
+export { sortByBrowseName } from "../src/nodeset_tools/nodeset_to_xml.js";
 export * from "../src/private_namespace.js";
+/** @internal */
+export { resolveReferenceNode, resolveReferenceType } from "../src/reference_impl.js";
+/** @internal */
+export { promoteToStateMachine, promoteToStateMachineType } from "../src/state_machine/finite_state_machine.js";
 export { validateDataTypeCorrectness } from "../src/validate_data_type_correctness.js";
 export * from "./address_space_public.js";
 export * from "./address_space_ts.js";

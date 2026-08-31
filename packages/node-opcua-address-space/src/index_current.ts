@@ -1,51 +1,14 @@
 /**
  * @module node-opcua-address-space
+ *
+ * @deprecated Import the package, or `node-opcua-address-space/dist/source/index.js`.
+ *
+ * This was the package's `main` until the entry points were unified. It named nothing - there
+ * has never been an `index_previous` - and it published a different set of names from the
+ * `types` entry beside it: twelve that the .d.ts promised were missing here, and fifty-two
+ * that only existed here and so could not be imported from TypeScript at all.
+ *
+ * It is kept for one release, for anyone who reached past `main` and named this file, and is
+ * removed at 3.0.
  */
-
-export * from "node-opcua-nodeset-ua";
-export { ContinuationPointManager } from "../source/continuation_points/continuation_point_manager.js";
-export * from "../source/helpers/adjust_browse_direction.js";
-export * from "../source/helpers/argument_list.js";
-export * from "../source/helpers/call_helpers.js";
-export * from "../source/helpers/dump_tools.js";
-export * from "../source/helpers/ensure_secure_access.js";
-export * from "../source/helpers/make_optionals_map.js";
-export * from "../source/helpers/resolve_opaque_on_address_space.js";
-export * from "../source/interfaces/alarms_and_conditions/condition_info_i.js";
-export * from "../source/interfaces/nodeset_loader_options.js";
-export * from "../source/interfaces/state_machine/ua_transition_ex.js";
-export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "../source/loader/ensure_datatype_extracted.js";
-export * from "../source/loader/generateAddressSpaceRaw.js";
-export * from "../source/loader/register_node_promoter.js";
-export * from "../source/namespace.js";
-export * from "../source/namespace_alarm_and_condition.js";
-export * from "../source/namespace_data_access.js";
-export * from "../source/namespace_machine_state.js";
-export * from "../source/pseudo_session.js";
-export * from "../source/session_context.js";
-export * from "../source/set_namespace_meta_data.js";
-export * from "../source/ua_addin.js";
-export * from "../source/ua_interface.js";
-export { NodeIdManager } from "../src/nodeid_manager.js";
-export * from "../src/nodeset_tools/construct_namespace_dependency.js";
-export * from "../src/private_namespace.js";
-export * from "../src/validate_data_type_correctness.js";
-export { AddressSpace } from "../source/address_space_public.js";
-export * from "./alarms_and_conditions/index.js";
-export { makeAttributeEventName } from "./base_node_impl.js";
-export * from "./data_access/add_dataItem_stuff.js";
-export * from "./data_access/adjust_datavalue_status_code.js";
-export * from "./data_access/ua_multistate_discrete_impl.js";
-export * from "./data_access/ua_multistate_value_discrete_impl.js";
-export * from "./data_access/ua_two_state_discrete_impl.js";
-export * from "./event_data.js";
-export * from "./event_data.js";
-export * from "./extension_object_array_node.js";
-export { VariableHistorian } from "./historical_access/address_space_historical_data_node.js";
-export * from "./namespace_impl.js";
-export { NamespaceOptions } from "./nodeid_manager.js";
-export { adjustNamespaceArray } from "./nodeset_tools/adjust_namespace_array.js";
-export { dumpToBSD } from "./nodeset_tools/dump_to_bsd.js";
-export * from "./nodeset_tools/nodeset_to_xml.js";
-export { resolveReferenceNode, resolveReferenceType } from "./reference_impl.js";
-export { promoteToStateMachine, promoteToStateMachineType } from "./state_machine/finite_state_machine.js";
+export * from "../source/index.js";

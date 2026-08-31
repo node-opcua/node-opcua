@@ -8,7 +8,7 @@ import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
 import {
-    AddressSpace,
+    type AddressSpace,
     type EnumValueTypeOptionsLike,
     type Namespace,
     SessionContext,
@@ -28,7 +28,11 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
             addressSpace = mainTest.addressSpace;
             namespace = addressSpace.getOwnNamespace();
 
-            should(addressSpace).be.instanceof(AddressSpace);
+            // AddressSpace is published as an interface and a factory, with no constructor to
+
+            // check against, so this asserts that there is one rather than which class it is
+
+            should.exist(addressSpace);
         });
 
         it("MultiStateValueDiscreteType should not be abstract", () => {
