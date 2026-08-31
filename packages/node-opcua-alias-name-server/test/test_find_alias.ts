@@ -3,6 +3,7 @@ import type { AddressSpace, UAObject, UAVariable } from "node-opcua-address-spac
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceExpandedNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
+import should from "should";
 import { addAlias } from "../source/add_alias.js";
 import { AddressSpaceAliasStore } from "../source/address_space_alias_store.js";
 import { addAliasCategory } from "../source/bind_alias_category.js";
@@ -79,15 +80,15 @@ describe("OPC 10000-17: FindAlias", () => {
             describe(`via ${methodName}`, () => {
                 it("should find an alias by its exact name", async () => {
                     const result = await callFind(tagVariables, methodName, "TI101");
-                    result.statusCode!.should.eql(StatusCodes.Good);
+                    should(result.statusCode).eql(StatusCodes.Good);
                     aliasNames(result).should.eql(["TI101"]);
                 });
 
                 it("should return the Node the alias names", async () => {
                     const result = await callFind(tagVariables, methodName, "TI101");
                     const entry = resultAliases(result)[0];
-                    entry.referencedNodes!.should.have.length(1);
-                    entry.referencedNodes![0].value.should.eql(ti101.nodeId.value);
+                    should(entry.referencedNodes).have.length(1);
+                    should(entry.referencedNodes?.[0].value).eql(ti101.nodeId.value);
                 });
 
                 it("should support the % wildcard", async () => {
@@ -109,24 +110,24 @@ describe("OPC 10000-17: FindAlias", () => {
                     // clause 6.3.2 Table 3: "If no Nodes match [...] the list shall be
                     // empty" - an empty result is not an error
                     const result = await callFind(tagVariables, methodName, "PT999");
-                    result.statusCode!.should.eql(StatusCodes.Good);
+                    should(result.statusCode).eql(StatusCodes.Good);
                     resultAliases(result).should.have.length(0);
                 });
 
                 it("should return Bad_InvalidArgument on an invalid search pattern", async () => {
                     // clause 6.3.2 Table 4
                     const result = await callFind(tagVariables, methodName, "TI[10");
-                    result.statusCode!.should.eql(StatusCodes.BadInvalidArgument);
+                    should(result.statusCode).eql(StatusCodes.BadInvalidArgument);
                 });
 
                 it("should return Bad_InvalidArgument on a dangling escape", async () => {
                     const result = await callFind(tagVariables, methodName, "TI\\");
-                    result.statusCode!.should.eql(StatusCodes.BadInvalidArgument);
+                    should(result.statusCode).eql(StatusCodes.BadInvalidArgument);
                 });
 
                 it("should return Bad_InvalidArgument on a null pattern", async () => {
                     const result = await callFind(tagVariables, methodName, null);
-                    result.statusCode!.should.eql(StatusCodes.BadInvalidArgument);
+                    should(result.statusCode).eql(StatusCodes.BadInvalidArgument);
                 });
 
                 it("should be case sensitive, as OPC 10000-4 defines Like", async () => {
@@ -184,7 +185,7 @@ describe("OPC 10000-17: FindAlias", () => {
 
             it("should still carry the alias name itself", async () => {
                 const result = await callFind(tagVariables, "FindAlias", "TI101");
-                resultAliases(result)[0].aliasName.name!.should.eql("TI101");
+                should(resultAliases(result)[0].aliasName.name).eql("TI101");
             });
         });
 
@@ -252,7 +253,7 @@ describe("OPC 10000-17: FindAlias", () => {
             addAlias(addressSpace, category, "TI900", spare);
 
             const result = await callFind(category, "FindAlias", "TI900");
-            resultAliases(result)[0].referencedNodes!.should.have.length(2);
+            should(resultAliases(result)[0].referencedNodes).have.length(2);
         });
 
         describe("FindAliasVerbose specifics (clause 6.3.3)", () => {
@@ -282,8 +283,8 @@ describe("OPC 10000-17: FindAlias", () => {
                 addAlias(addressSpace, category, "SU-1", v);
 
                 const entry = resultVerbose(await callFind(category, "FindAliasVerbose", "SU-1"))[0];
-                entry.serverUris!.should.have.length(entry.referencedNodes!.length);
-                entry.serverUris!.should.eql([null]);
+                should(entry.serverUris).have.length(entry.referencedNodes!.length);
+                should(entry.serverUris).eql([null]);
             });
 
             it("should report one entry per category when an alias name is in two of them", async () => {
@@ -303,7 +304,7 @@ describe("OPC 10000-17: FindAlias", () => {
 
                 const plain = resultAliases(await callFind(parent, "FindAlias", "DUP-1"));
                 plain.should.have.length(1, "merged into a single AliasNameDataType");
-                plain[0].referencedNodes!.should.have.length(2, "with both targets");
+                should(plain[0].referencedNodes).have.length(2, "with both targets");
             });
         });
     });
@@ -327,17 +328,17 @@ describe("OPC 10000-17: FindAlias", () => {
             const category = getObject(addressSpace, WellKnownCategories.TagVariables);
 
             const tooMany = await callFind(category, "FindAlias", "%");
-            tooMany.statusCode!.should.eql(StatusCodes.BadResponseTooLarge);
+            should(tooMany.statusCode).eql(StatusCodes.BadResponseTooLarge);
 
             // "try new filter and repeat find" - a narrower pattern succeeds
             const narrower = await callFind(category, "FindAlias", "TAG1");
-            narrower.statusCode!.should.eql(StatusCodes.Good);
+            should(narrower.statusCode).eql(StatusCodes.Good);
         });
 
         it("should allow exactly the cap", async () => {
             const addressSpace = await withAliases(3, 3);
             const result = await callFind(getObject(addressSpace, WellKnownCategories.TagVariables), "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.Good);
+            should(result.statusCode).eql(StatusCodes.Good);
             resultAliases(result).should.have.length(3);
         });
 
@@ -365,7 +366,7 @@ describe("OPC 10000-17: FindAlias", () => {
             await installAliasNamesOnAddressSpace(addressSpace, { maxResults: 5, store: counting });
             const result = await callFind(getObject(addressSpace, WellKnownCategories.TagVariables), "FindAlias", "%");
 
-            result.statusCode!.should.eql(StatusCodes.BadResponseTooLarge);
+            should(result.statusCode).eql(StatusCodes.BadResponseTooLarge);
             seen.should.eql(6, "one past the cap, not all 50");
         });
 
@@ -387,7 +388,7 @@ describe("OPC 10000-17: FindAlias", () => {
             }
             await installAliasNamesOnAddressSpace(addressSpace, { maxResults: 2 });
             const result = await callFind(getObject(addressSpace, WellKnownCategories.TagVariables), "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.BadResponseTooLarge);
+            should(result.statusCode).eql(StatusCodes.BadResponseTooLarge);
         });
     });
 
@@ -396,7 +397,7 @@ describe("OPC 10000-17: FindAlias", () => {
             const addressSpace = await pristine();
             await installAliasNamesOnAddressSpace(addressSpace, { isReadAllowed: () => false });
             const result = await callFind(getObject(addressSpace, WellKnownCategories.Aliases), "FindAlias", "%");
-            result.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
+            should(result.statusCode).eql(StatusCodes.BadUserAccessDenied);
         });
     });
 

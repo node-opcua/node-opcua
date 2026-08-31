@@ -61,8 +61,8 @@ export function t(test: { endpointUrl: string }) {
             //xx console.log("e=", endpointUrl);
             const { createSessionResponse, err } = await testCreateSessionResponse(endpointUrl);
             should.not.exist(err);
-            createSessionResponse?.serverEndpoints?.length.should.eql(7);
-            createSessionResponse?.serverEndpoints?.[0].endpointUrl?.should.eql(test.endpointUrl);
+            should(createSessionResponse?.serverEndpoints?.length).eql(7);
+            should(createSessionResponse?.serverEndpoints?.[0].endpointUrl).eql(test.endpointUrl);
         });
         it("should receive server endpoint in CreateSessionResponse when endpointUrl used by the client doesn't match a valid endpoint", async () => {
             const match = test.endpointUrl.match(/:([0-9]*)$/)!;
@@ -71,8 +71,8 @@ export function t(test: { endpointUrl: string }) {
             // console.log(endpointUrl);
             const { createSessionResponse, err } = await testCreateSessionResponse(endpointUrl);
             should.not.exist(err);
-            createSessionResponse?.serverEndpoints?.length.should.eql(7);
-            createSessionResponse?.serverEndpoints?.[0].endpointUrl?.should.eql(test.endpointUrl);
+            should(createSessionResponse?.serverEndpoints?.length).eql(7);
+            should(createSessionResponse?.serverEndpoints?.[0].endpointUrl).eql(test.endpointUrl);
         });
     });
 }

@@ -3,6 +3,7 @@ import { standardUnits } from "node-opcua-data-access";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import should from "should";
 import { AddressSpace } from "../..";
 import { generateAddressSpace } from "../../nodeJS.js";
 import { subtest_analog_item_semantic_changed } from "./subtest_analog_item_semantic_changed.js";
@@ -102,17 +103,17 @@ describe("DataAccess", () => {
 
     it("should have a UAVariableType XYArrayItemType", () => {
         const xyArrayItemType = addressSpace.findVariableType("XYArrayItemType")!;
-        xyArrayItemType.arrayDimensions?.should.eql([0]);
+        should(xyArrayItemType.arrayDimensions).eql([0]);
     });
 
     it("should have a ImageItemType ", () => {
         const xyArrayItemType = addressSpace.findVariableType("ImageItemType")!;
-        xyArrayItemType.arrayDimensions?.should.eql([0, 0]);
+        should(xyArrayItemType.arrayDimensions).eql([0, 0]);
     });
 
     it("should have a CubeItemType ", () => {
         const xyArrayItemType = addressSpace.findVariableType("CubeItemType")!;
-        xyArrayItemType.arrayDimensions?.should.eql([0, 0, 0]);
+        should(xyArrayItemType.arrayDimensions).eql([0, 0, 0]);
     });
 
     it("should encode and decode a string containing fancy characters", (done: Mocha.Done) => {

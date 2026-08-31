@@ -80,18 +80,18 @@ describe("testing browse & browseNext", () => {
         };
 
         const result: BrowseResult = await session.browse(nodeToBrowse);
-        result.references?.length.should.eql(10);
+        should(result.references?.length).eql(10);
 
         should.exist(result.continuationPoint);
 
         const resultNext1: BrowseResult = await session.browseNext(result.continuationPoint, false);
 
-        resultNext1.references?.length.should.eql(10);
+        should(resultNext1.references?.length).eql(10);
 
         should.exist(resultNext1.continuationPoint);
 
         const resultNext2: BrowseResult = await session.browseNext(resultNext1.continuationPoint, false);
-        resultNext2.references?.length.should.eql(7);
+        should(resultNext2.references?.length).eql(7);
         should.not.exist(resultNext2.continuationPoint);
     });
 
@@ -106,7 +106,7 @@ describe("testing browse & browseNext", () => {
         const browseNextSpy = spy(session, "browseNext");
 
         const result = await browseAll(session, nodeToBrowse);
-        result.references?.length.should.eql(27);
+        should(result.references?.length).eql(27);
 
         browseSpy.callCount.should.eql(1);
         browseNextSpy.callCount.should.eql(2);

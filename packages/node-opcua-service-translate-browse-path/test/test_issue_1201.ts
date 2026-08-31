@@ -1,5 +1,6 @@
 import { ReferenceTypeIds } from "node-opcua-constants";
 import { resolveNodeId } from "node-opcua-nodeid";
+import should from "should";
 import { constructBrowsePathFromQualifiedName } from "../dist/index.js";
 
 describe("test constructBrowsePathFromQualifiedName", () => {
@@ -10,6 +11,8 @@ describe("test constructBrowsePathFromQualifiedName", () => {
             },
             ["ConditionType"]
         );
-        path.relativePath.elements![0].referenceTypeId.toString().should.eql(resolveNodeId(ReferenceTypeIds.Aggregates).toString());
+        should(path.relativePath.elements?.[0].referenceTypeId.toString()).eql(
+            resolveNodeId(ReferenceTypeIds.Aggregates).toString()
+        );
     });
 });

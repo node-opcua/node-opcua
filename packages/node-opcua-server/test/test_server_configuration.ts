@@ -24,7 +24,7 @@ describe("OPCUAServer exposing serverConfiguration basic properties", () => {
             registerServerMethod: RegisterServerMethod.MDNS
         });
         await server.start();
-        server.serverInfo.applicationType?.should.eql(ApplicationType.ClientAndServer);
+        should(server.serverInfo.applicationType).eql(ApplicationType.ClientAndServer);
     });
     after(async () => {
         await server.shutdown();

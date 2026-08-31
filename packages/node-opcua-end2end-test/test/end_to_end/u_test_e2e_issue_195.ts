@@ -1,4 +1,3 @@
-import "should";
 import {
     AttributeIds,
     ClientMonitoredItem,
@@ -13,6 +12,7 @@ import {
     type TransferSubscriptionsResponse
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 interface SessionWithPublishEngine extends ClientSession {
@@ -135,7 +135,7 @@ export function t(test: UmbrellaTestContext) {
                     }
                 );
             });
-            transferResponse.results![0].statusCode.should.eql(StatusCodes.Good);
+            should(transferResponse.results?.[0].statusCode).eql(StatusCodes.Good);
 
             await session.close();
             await client.disconnect();

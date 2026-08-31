@@ -65,7 +65,7 @@ export function utest_acknowledgeable_condition(test: MochaSuiteEx): void {
             should.exist(condition.ackedState.isTrueSubStateOf, "isTrueSubStateOf must exist");
 
             // HasTrueSubState and HasFalseSubState relationship must be maintained
-            condition.ackedState.isTrueSubStateOf?.should.eql(condition.enabledState);
+            should(condition.ackedState.isTrueSubStateOf).eql(condition.enabledState);
 
             condition.browseName.toString().should.eql("1:AcknowledgeableCondition2");
         });
@@ -84,7 +84,7 @@ export function utest_acknowledgeable_condition(test: MochaSuiteEx): void {
             ) as UAAcknowledgeableConditionEx;
 
             // HasTrueSubState and HasFalseSubState relationship must be maintained
-            condition.ackedState.isTrueSubStateOf?.should.eql(condition.enabledState);
+            should(condition.ackedState.isTrueSubStateOf).eql(condition.enabledState);
             condition.enabledState.getTrueSubStates().length.should.eql(1);
             condition.browseName.toString().should.eql("1:AcknowledgeableCondition3");
         });
@@ -105,8 +105,8 @@ export function utest_acknowledgeable_condition(test: MochaSuiteEx): void {
             ) as UAAcknowledgeableConditionEx;
 
             condition.confirmedState?.browseName.toString();
-            condition.ackedState.isTrueSubStateOf?.should.eql(condition.enabledState);
-            condition.confirmedState?.isTrueSubStateOf?.should.eql(condition.enabledState);
+            should(condition.ackedState.isTrueSubStateOf).eql(condition.enabledState);
+            should(condition.confirmedState?.isTrueSubStateOf).eql(condition.enabledState);
             condition.enabledState.getTrueSubStates().length.should.eql(2);
         });
 
@@ -132,23 +132,23 @@ export function utest_acknowledgeable_condition(test: MochaSuiteEx): void {
             condition.enabledState.getTrueSubStates().length.should.eql(5);
 
             condition.ackedState.browseName.toString().should.eql("AckedState");
-            condition.ackedState.isTrueSubStateOf?.should.eql(condition.enabledState);
+            should(condition.ackedState.isTrueSubStateOf).eql(condition.enabledState);
 
             condition.activeState.browseName.toString().should.eql("ActiveState");
-            condition.activeState.isTrueSubStateOf?.should.eql(condition.enabledState);
+            should(condition.activeState.isTrueSubStateOf).eql(condition.enabledState);
 
-            condition.shelvingState?.browseName.toString().should.eql("ShelvingState");
+            should(condition.shelvingState?.browseName.toString()).eql("ShelvingState");
             //condition.shelvingState!.isTrueSubStateOf!.should.eql(condition.enabledState);
 
-            condition.suppressedState?.browseName.toString().should.eql("SuppressedState");
-            condition.suppressedState?.isTrueSubStateOf?.should.eql(condition.enabledState);
+            should(condition.suppressedState?.browseName.toString()).eql("SuppressedState");
+            should(condition.suppressedState?.isTrueSubStateOf).eql(condition.enabledState);
 
-            condition.confirmedState?.browseName.toString().should.eql("ConfirmedState");
-            condition.confirmedState?.isTrueSubStateOf?.should.eql(condition.enabledState);
+            should(condition.confirmedState?.browseName.toString()).eql("ConfirmedState");
+            should(condition.confirmedState?.isTrueSubStateOf).eql(condition.enabledState);
 
-            condition.confirm?.nodeClass.should.eql(NodeClass.Method);
+            should(condition.confirm?.nodeClass).eql(NodeClass.Method);
 
-            condition.ackedState.isTrueSubStateOf?.should.eql(condition.enabledState);
+            should(condition.ackedState.isTrueSubStateOf).eql(condition.enabledState);
 
             // lets disable the alarm now
             const statusCode = condition.setEnabledState(false);

@@ -34,7 +34,7 @@ function createCustomType(addressSpace: AddressSpace): MyCustomType {
         valuePrecision: 0.01
     });
 
-    customTypeNode.getComponentByName("Temperature")?.browseName.toString().should.eql("1:Temperature");
+    should(customTypeNode.getComponentByName("Temperature")?.browseName.toString()).eql("1:Temperature");
 
     assert(customTypeNode.temperature?.browseName.toString() === "1:Temperature");
     return customTypeNode;
@@ -60,10 +60,10 @@ describe("testing add new DataType ", function (this: Mocha.Context) {
     it("should instantiate an object whose type defines an analog item", () => {
         const customType = createCustomType(addressSpace);
         customType.temperature.browseName.toString().should.eql("1:Temperature");
-        customType.temperature.valuePrecision?.browseName.toString().should.eql("ValuePrecision");
-        customType.temperature.instrumentRange?.browseName.toString().should.eql("InstrumentRange");
-        customType.temperature.instrumentRange?.readValue().value.value.low.should.eql(-70);
-        customType.temperature.instrumentRange?.readValue().value.value.high.should.eql(120);
+        should(customType.temperature.valuePrecision?.browseName.toString()).eql("ValuePrecision");
+        should(customType.temperature.instrumentRange?.browseName.toString()).eql("InstrumentRange");
+        should(customType.temperature.instrumentRange?.readValue().value.value.low).eql(-70);
+        should(customType.temperature.instrumentRange?.readValue().value.value.high).eql(120);
 
         const customNode1 = customType.instantiate({
             browseName: "TestNode",
@@ -73,10 +73,10 @@ describe("testing add new DataType ", function (this: Mocha.Context) {
         customNode1.browseName.toString().should.eql("1:TestNode");
         customNode1.temperature.browseName.toString().should.eql("1:Temperature");
 
-        customNode1.temperature.valuePrecision?.browseName.toString().should.eql("ValuePrecision");
-        customNode1.temperature.instrumentRange?.browseName.toString().should.eql("InstrumentRange");
-        customNode1.temperature.instrumentRange?.readValue().value.value.low.should.eql(-70);
-        customNode1.temperature.instrumentRange?.readValue().value.value.high.should.eql(120);
+        should(customNode1.temperature.valuePrecision?.browseName.toString()).eql("ValuePrecision");
+        should(customNode1.temperature.instrumentRange?.browseName.toString()).eql("InstrumentRange");
+        should(customNode1.temperature.instrumentRange?.readValue().value.value.low).eql(-70);
+        should(customNode1.temperature.instrumentRange?.readValue().value.value.high).eql(120);
     });
 });
 

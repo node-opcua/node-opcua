@@ -31,7 +31,7 @@ describe("createBrowserClient", () => {
         // exposes it for white-box assertion. There is no public getter today.
         const tf = (client as unknown as { _transportFactory?: IClientTransportFactory })._transportFactory;
         should.exist(tf);
-        tf!.should.equal(browserWsTransportFactory);
+        should(tf).equal(browserWsTransportFactory);
     });
 
     it("preserves a caller-supplied `transportFactory`", () => {
@@ -41,7 +41,7 @@ describe("createBrowserClient", () => {
         };
         const client = createBrowserClient({ transportFactory: customFactory });
         const tf = (client as unknown as { _transportFactory?: IClientTransportFactory })._transportFactory;
-        tf!.should.equal(customFactory);
+        should(tf).equal(customFactory);
     });
 
     it("defaults `clientCertificateManager` to an `InMemoryCertificateStore`", () => {

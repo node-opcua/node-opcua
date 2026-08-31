@@ -14,6 +14,7 @@ import {
     type Variant
 } from "node-opcua-client";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import { perform_operation_on_subscription_async } from "../../../test_helpers/perform_operation_on_client_session.js";
 import type { UmbrellaTestContext } from "../_helper_umbrella.js";
 
@@ -146,7 +147,7 @@ export function t(umbrellaTest: UmbrellaTestContext) {
                 dataType: "Double",
                 value
             });
-            test.tankLevelCondition.limitState.getCurrentState()!.should.eql("HighHigh");
+            should(test.tankLevelCondition.limitState.getCurrentState()).eql("HighHigh");
         }
         function setAlarmLowLow() {
             const value = 0.01;
@@ -157,7 +158,7 @@ export function t(umbrellaTest: UmbrellaTestContext) {
                 dataType: "Double",
                 value
             });
-            test.tankLevelCondition.limitState.getCurrentState()!.should.eql("Low");
+            should(test.tankLevelCondition.limitState.getCurrentState()).eql("Low");
         }
         async function pause() {
             await new Promise((resolve) => setTimeout(resolve, 1500));

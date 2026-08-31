@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import "should";
 import bcrypt from "bcryptjs";
 import { makeRoles, WellKnownRoles } from "node-opcua-address-space";
 import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -20,6 +19,7 @@ import {
 } from "node-opcua-client";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { OPCUAServer } from "node-opcua-server";
+import should from "should";
 
 import { installPushCertificateManagementOnServer } from "../../dist/index.js";
 import {
@@ -263,12 +263,9 @@ describe("Test CertificateExpiredAlarm", function (this: Mocha.Suite) {
     }
     function checkAlarmIsCertificateExpirationAlarmForDefaultUserTokenGroup(alarms: ClientAlarm[], messageMatch = /has expired/) {
         alarms.length.should.eql(1);
-        alarms[0].getField("sourceName")?.value.toString().should.eql("DefaultUserTokenGroup");
-        alarms[0].getField("message")?.value.toString().should.match(messageMatch);
-        alarms[0]
-            .getField("eventType")
-            ?.value.toString()
-            .should.match(/i=13225/);
+        should(alarms[0].getField("sourceName")?.value.toString()).eql("DefaultUserTokenGroup");
+        should(alarms[0].getField("message")?.value.toString()).match(messageMatch);
+        should(alarms[0].getField("eventType")?.value.toString()).match(/i=13225/);
     }
 
     let server: OPCUAServer;

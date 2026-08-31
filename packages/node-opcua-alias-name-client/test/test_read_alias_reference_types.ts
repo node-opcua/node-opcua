@@ -138,7 +138,7 @@ describe("OPC 10000-17: readAliasReferenceTypes", () => {
         referenceTypes.size.should.eql(2);
         const pt42Targets = referenceTypes.get(pt42Alias.nodeId)!;
         sameNodeId(pt42Targets[0].referenceTypeId, hasSensorAlias.nodeId).should.eql(true);
-        referenceTypes.get(dualAlias.nodeId)!.should.have.length(2);
+        should(referenceTypes.get(dualAlias.nodeId)).have.length(2);
     });
 
     it("should batch many verbose entries into one TranslateBrowsePaths and one Browse", async () => {

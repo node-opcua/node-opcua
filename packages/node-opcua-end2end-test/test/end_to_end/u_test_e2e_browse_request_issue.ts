@@ -55,8 +55,8 @@ export function t(test: UmbrellaTestContext): void {
                 nodesToBrowse: [nodeToBrowse]
             });
             const response = await (g_session as unknown as SessionWithTransaction).performMessageTransaction(browseRequest1);
-            response.results![0].statusCode.should.eql(StatusCodes.Good);
-            response.results![0].references!.length.should.be.greaterThan(3); // want 4 at least
+            should(response.results?.[0].statusCode).eql(StatusCodes.Good);
+            should(response.results?.[0].references?.length).be.greaterThan(3); // want 4 at least
             should(response.results![0].continuationPoint).eql(null);
         });
     });

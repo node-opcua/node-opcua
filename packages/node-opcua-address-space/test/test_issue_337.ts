@@ -2,6 +2,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { NumericRange } from "node-opcua-numeric-range";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import should from "should";
 import type { AddressSpace } from "..";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
@@ -43,6 +44,6 @@ describe("Testing bug found in #337", () => {
         const dataValue = n.readValue(null, new NumericRange());
         dataValue.isValid().should.eql(true);
         dataValue.value.arrayType.should.eql(VariantArrayType.Matrix);
-        dataValue.value.dimensions?.should.eql([3, 3]);
+        should(dataValue.value.dimensions).eql([3, 3]);
     });
 });

@@ -170,7 +170,7 @@ describe("testing addins - case 1", () => {
 
         const defaultIsntanceBrowseName = jobManagementType.getPropertyByName("DefaultInstanceBrowseName", 0);
         should.exist(defaultIsntanceBrowseName);
-        defaultIsntanceBrowseName?.nodeId.namespace.should.eql(namespace1.index);
+        should(defaultIsntanceBrowseName?.nodeId.namespace).eql(namespace1.index);
 
         namespace1.addObject({
             componentOf: jobManagementType,
@@ -319,6 +319,6 @@ describe("testing addins - case 1", () => {
 
         const inst1 = uaObjectInstance.getChildByName("JobManager1");
         should.exist(inst1);
-        inst1?.nodeId.namespace.should.eql(2);
+        should(inst1?.nodeId.namespace).eql(2);
     });
 });

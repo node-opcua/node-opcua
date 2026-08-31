@@ -85,8 +85,8 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
             });
             should.exist(alarm.maxTimeShelved);
 
-            alarm.maxTimeShelved?.readValue().value.dataType.should.eql(DataType.Double);
-            alarm.maxTimeShelved?.readValue().value.value.should.eql(10 * 1000);
+            should(alarm.maxTimeShelved?.readValue().value.dataType).eql(DataType.Double);
+            should(alarm.maxTimeShelved?.readValue().value.value).eql(10 * 1000);
         });
 
         describe("should instantiate AlarmConditionType with ConfirmedState", async () => {
@@ -119,8 +119,8 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
 
             it("checking basic properties", () => {
                 alarm.confirmedState?.browseName.toString();
-                alarm.ackedState.isTrueSubStateOf?.should.eql(alarm.enabledState);
-                alarm.confirmedState?.isTrueSubStateOf?.should.eql(alarm.enabledState);
+                should(alarm.ackedState.isTrueSubStateOf).eql(alarm.enabledState);
+                should(alarm.confirmedState?.isTrueSubStateOf).eql(alarm.enabledState);
                 alarm.enabledState.getTrueSubStates().length.should.eql(5);
 
                 alarm.inputNode
@@ -143,15 +143,15 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
                 // playing with suppressed State
                 // ---------------------------------------------------------------------------------------------
                 // we can set suppressedState this way ( by setting the id as a boolean)
-                alarm.suppressedState?.constructor.name.should.eql("UATwoStateVariableImpl");
+                should(alarm.suppressedState?.constructor.name).eql("UATwoStateVariableImpl");
 
                 alarm.suppressedState?.setValue(true);
-                alarm.suppressedState?.getValue().should.eql(true);
-                alarm.suppressedState?.getValueAsString().should.eql("Suppressed");
+                should(alarm.suppressedState?.getValue()).eql(true);
+                should(alarm.suppressedState?.getValueAsString()).eql("Suppressed");
 
                 alarm.suppressedState?.setValue(false);
-                alarm.suppressedState?.getValue().should.eql(false);
-                alarm.suppressedState?.getValueAsString().should.eql("Unsuppressed");
+                should(alarm.suppressedState?.getValue()).eql(false);
+                should(alarm.suppressedState?.getValueAsString()).eql("Unsuppressed");
             });
 
             it("checking shelving state behavior", () => {
@@ -163,23 +163,23 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
                     return x.browseName.toString();
                 }
 
-                alarm.shelvingState?.getStates().map(getBrowseName).should.eql(["Unshelved", "TimedShelved", "OneShotShelved"]);
+                should(alarm.shelvingState?.getStates().map(getBrowseName)).eql(["Unshelved", "TimedShelved", "OneShotShelved"]);
 
                 alarm.shelvingState?.setState("Unshelved");
-                alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                should(alarm.shelvingState?.getCurrentState()).eql("Unshelved");
 
                 alarm.shelvingState?.setState("TimedShelved");
-                alarm.shelvingState?.getCurrentState()?.should.eql("TimedShelved");
+                should(alarm.shelvingState?.getCurrentState()).eql("TimedShelved");
 
                 alarm.shelvingState?.setState("OneShotShelved");
-                alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
+                should(alarm.shelvingState?.getCurrentState()).eql("OneShotShelved");
             });
 
             it("checking shelving state behavior with automatic unshelving", async () => {
-                alarm.shelvingState?.constructor.name.should.eql("UAShelvedStateMachineExImplBase");
+                should(alarm.shelvingState?.constructor.name).eql("UAShelvedStateMachineExImplBase");
 
                 alarm.shelvingState?.setState("Unshelved");
-                alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                should(alarm.shelvingState?.getCurrentState()).eql("Unshelved");
 
                 // xx alarm.shelvingState!.maxTimeShelved.setValueFromSource({dataType: "Double",value: 100 });
 
@@ -209,7 +209,7 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
                     });
                 });
 
-                alarm.shelvingState?.getCurrentState()?.should.eql("TimedShelved");
+                should(alarm.shelvingState?.getCurrentState()).eql("TimedShelved");
 
                 let previous = timeShelvedDuration + 1;
 
@@ -262,23 +262,23 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
                 const context = new SessionContext();
 
                 it("unshelving an already unshelved alarm should return BadConditionNotShelved", async () => {
-                    alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("Unshelved");
                     const callMethodResult = await alarm.shelvingState?.unshelve.execute(null, [], context);
                     should(callMethodResult?.statusCode).eql(StatusCodes.BadConditionNotShelved);
                 });
                 it("unshelving an TimedShelved  alarm should succeed", async () => {
                     alarm.shelvingState?.setState("TimedShelved");
-                    alarm.shelvingState?.getCurrentState()?.should.eql("TimedShelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("TimedShelved");
 
                     const callMethodResult = await alarm.shelvingState?.unshelve.execute(null, [], context);
-                    alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("Unshelved");
                     should(callMethodResult?.statusCode).eql(StatusCodes.Good);
                 });
                 it("unshelving an OneShotShelved  alarm should succeed", async () => {
                     alarm.shelvingState?.setState("OneShotShelved");
-                    alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("OneShotShelved");
                     const callMethodResult = await alarm.shelvingState?.unshelve.execute(null, [], context);
-                    alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("Unshelved");
                     should(callMethodResult?.statusCode).eql(StatusCodes.Good);
                 });
                 it("timed-shelving an already timed-shelved alarm should return BadConditionAlreadyShelved", async () => {
@@ -286,20 +286,20 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
                     const shelvingTime = new Variant({ dataType: DataType.Double, value: 20 * 1000 });
 
                     alarm.shelvingState?.setState("TimedShelved");
-                    alarm.shelvingState?.getCurrentState()?.should.eql("TimedShelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("TimedShelved");
 
                     const callMethodResult = await alarm.shelvingState?.timedShelve.execute(null, [shelvingTime], context);
-                    alarm.shelvingState?.getCurrentState()?.should.eql("TimedShelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("TimedShelved");
                     should(callMethodResult?.statusCode).eql(StatusCodes.BadConditionAlreadyShelved);
                 });
                 it("timed-shelving an already oneshot-shelved alarm should return BadConditionAlreadyShelved", async () => {
                     // Duration (ms)
                     const shelvingTime = new Variant({ dataType: DataType.Double, value: 10 });
                     alarm.shelvingState?.setState("OneShotShelved");
-                    alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("OneShotShelved");
 
                     const callMethodResult = await alarm.shelvingState?.timedShelve.execute(null, [shelvingTime], context);
-                    alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("OneShotShelved");
                     should(callMethodResult?.statusCode).eql(StatusCodes.BadConditionAlreadyShelved);
                 });
                 it("timed-shelving an unshelved alarm should return Good when ShelvingTime is OK", async () => {
@@ -307,9 +307,9 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
 
                     // Duration (ms)
                     const shelvingTime = new Variant({ dataType: DataType.Double, value: 10 });
-                    alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("Unshelved");
                     const callMethodResult = await alarm.shelvingState?.timedShelve.execute(null, [shelvingTime], context);
-                    alarm.shelvingState?.getCurrentState()?.should.eql("TimedShelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("TimedShelved");
                     should(callMethodResult?.statusCode).eql(StatusCodes.Good);
                 });
                 it(
@@ -318,30 +318,30 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
                         alarm.setMaxTimeShelved(5 * 1000);
 
                         const shelvingTime = new Variant({ dataType: DataType.Double, value: 10 * 1000 }); // Duration (ms)
-                        alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                        should(alarm.shelvingState?.getCurrentState()).eql("Unshelved");
 
                         const callMethodResult = await alarm.shelvingState?.timedShelve.execute(null, [shelvingTime], context);
-                        alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                        should(alarm.shelvingState?.getCurrentState()).eql("Unshelved");
                         should(callMethodResult?.statusCode).eql(StatusCodes.BadShelvingTimeOutOfRange);
                     }
                 );
 
                 it("one-shot-shelving an already one-shot-shelved alarm should return BadConditionAlreadyShelved", async () => {
                     alarm.shelvingState?.setState("OneShotShelved");
-                    alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("OneShotShelved");
 
                     const callMethodResult = await alarm.shelvingState?.oneShotShelve.execute(null, [], context);
                     should(callMethodResult?.statusCode).eql(StatusCodes.BadConditionAlreadyShelved);
-                    alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("OneShotShelved");
                 });
 
                 it("one-shot-shelving an unshelved alarm should return Good", async () => {
                     alarm.shelvingState?.setState("Unshelved");
-                    alarm.shelvingState?.getCurrentState()?.should.eql("Unshelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("Unshelved");
 
                     const callMethodResult = await alarm.shelvingState?.oneShotShelve.execute(null, [], context);
                     should(callMethodResult?.statusCode).eql(StatusCodes.Good);
-                    alarm.shelvingState?.getCurrentState()?.should.eql("OneShotShelved");
+                    should(alarm.shelvingState?.getCurrentState()).eql("OneShotShelved");
                 });
             });
         });
@@ -382,7 +382,7 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
             //
 
             // HasTrueSubState and HasFalseSubState relationship must be maintained
-            condition.ackedState.isTrueSubStateOf?.should.eql(condition.enabledState);
+            should(condition.ackedState.isTrueSubStateOf).eql(condition.enabledState);
             condition.enabledState.getTrueSubStates().length.should.eql(3);
             condition.enabledState.getFalseSubStates().length.should.eql(0);
             condition.browseName.toString().should.eql("1:AcknowledgeableCondition4");
@@ -394,7 +394,7 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
 
             // sanity check
             branch.getActiveState().should.eql(false);
-            condition.activeState.readValue().value.value.text?.should.eql("Inactive");
+            should(condition.activeState.readValue().value.value.text).eql("Inactive");
 
             branch.setAckedState(true);
             branch.getAckedState().should.eql(true);
@@ -406,7 +406,7 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
             branch.getAckedState().should.eql(true);
             branch.getRetain().should.eql(false);
 
-            condition.findBranchForEventId(null)?.should.eql(branch);
+            should(condition.findBranchForEventId(null)).eql(branch);
 
             const acknowledged_spy = sinon.spy();
 
@@ -463,7 +463,7 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
                     param,
                     context,
                     (_err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                        callMethodResult?.statusCode?.should.equal(StatusCodes.Good);
+                        should(callMethodResult?.statusCode).equal(StatusCodes.Good);
                     }
                 );
 
@@ -521,7 +521,7 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
                     param,
                     context,
                     (_err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                        callMethodResult?.statusCode?.should.equal(StatusCodes.Good);
+                        should(callMethodResult?.statusCode).equal(StatusCodes.Good);
                     }
                 );
 
@@ -592,7 +592,7 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
                     param,
                     context,
                     (_err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                        callMethodResult?.statusCode?.should.equal(StatusCodes.Good);
+                        should(callMethodResult?.statusCode).equal(StatusCodes.Good);
                     }
                 );
 
@@ -624,7 +624,7 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
                     param,
                     context,
                     (_err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                        callMethodResult?.statusCode?.should.equal(StatusCodes.Good);
+                        should(callMethodResult?.statusCode).equal(StatusCodes.Good);
                     }
                 );
 

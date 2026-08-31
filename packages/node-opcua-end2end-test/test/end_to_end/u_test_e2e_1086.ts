@@ -1,4 +1,5 @@
 import { coerceLocalizedText, DataType, MethodIds, ObjectIds, OPCUAClient, ServerState, StatusCodes } from "node-opcua-client";
+import should from "should";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 export function t(test: UmbrellaTestContext) {
     describe("issue#1086 calling method with enumeration in arguments", () => {
@@ -20,10 +21,10 @@ export function t(test: UmbrellaTestContext) {
                     ]
                 });
                 console.log(result.toString());
-                result.inputArgumentResults?.[1].should.eql(StatusCodes.Good);
-                result.inputArgumentResults?.[3].should.eql(StatusCodes.Good);
-                result.inputArgumentResults?.[4].should.eql(StatusCodes.Good);
-                result.inputArgumentResults?.[0].should.eql(StatusCodes.Good);
+                should(result.inputArgumentResults?.[1]).eql(StatusCodes.Good);
+                should(result.inputArgumentResults?.[3]).eql(StatusCodes.Good);
+                should(result.inputArgumentResults?.[4]).eql(StatusCodes.Good);
+                should(result.inputArgumentResults?.[0]).eql(StatusCodes.Good);
             });
         });
     });

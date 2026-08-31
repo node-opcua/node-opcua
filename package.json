@@ -28,6 +28,8 @@
     "check:pack": "node tools/check-pack.mjs",
     "check:cycles": "node tools/check-import-cycles.mjs",
     "check:identity": "node tools/check-module-identity.mjs",
+    "check:shortcircuit": "node tools/check-short-circuit-assertion.mjs",
+    "check:shortcircuit:fix": "node tools/check-short-circuit-assertion.mjs --fix",
     "check:cycles:all": "node tools/check-import-cycles.mjs --all",
     "check:consumers": "node fixtures/consumer-cjs/index.cjs && node fixtures/consumer-esm/index.mjs",
     "preinstall": "node prevent_npm_install.js",

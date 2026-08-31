@@ -560,7 +560,7 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
                 clearTimeout(safetyTimer);
                 try {
                     should.exist(err);
-                    err!.message.should.containEql("Timeout");
+                    should(err?.message).containEql("Timeout");
                     should.not.exist(
                         (clientTransport as unknown as { _socket: net.Socket | null })._socket,
                         "_socket reference must be cleared after failure"

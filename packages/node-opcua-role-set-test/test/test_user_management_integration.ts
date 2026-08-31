@@ -135,7 +135,7 @@ describe("User Management Integration: client over PseudoSession (§5)", functio
 
             const users = await um.readUsers();
             const found = users.find((u) => u.userName === "desc-user");
-            (found?.description ?? "").should.equal("new description");
+            (found!.description ?? "").should.equal("new description");
         });
 
         it("should return BadNotFound when modifying an unknown user", async () => {

@@ -32,7 +32,7 @@ describe("Async Callback Straight functors", () => {
             _err = err as Error;
         }
         should.exist(_err);
-        _err?.message.should.eql("this is failing");
+        should(_err?.message).eql("this is failing");
     }
 
     it("should work with a straight function", async () => {
@@ -135,7 +135,7 @@ describe("Async Callback Straight functors with one arguments", () => {
             _err = err as Error;
         }
         should.exist(_err);
-        _err?.message.should.eql("this is failing");
+        should(_err?.message).eql("this is failing");
     }
 
     it("should work with a straight function", async () => {

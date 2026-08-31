@@ -1,4 +1,3 @@
-import "should";
 import fs from "node:fs";
 import { DataType, randomGuid } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -11,6 +10,7 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { type StructureDefinition, StructureType } from "node-opcua-types";
 import { Variant, VariantArrayType } from "node-opcua-variant";
+import should from "should";
 import { AddressSpace, PseudoSession } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
@@ -53,17 +53,17 @@ describe("Testing ExtensionObject 2017", function (this: Mocha.Suite) {
             StructureType.StructureWithSubtypedValues,
             "should be StructureWithSubtypedValues"
         );
-        dataTypeDefinition.fields?.length.should.eql(2);
+        should(dataTypeDefinition.fields?.length).eql(2);
 
-        dataTypeDefinition.fields?.[0].name?.should.eql("Id");
-        dataTypeDefinition.fields?.[0].dataType?.toString().should.eql("ns=0;i=14");
-        dataTypeDefinition.fields?.[0].valueRank?.should.eql(-1); // Scalar
+        should(dataTypeDefinition.fields?.[0].name).eql("Id");
+        should(dataTypeDefinition.fields?.[0].dataType?.toString()).eql("ns=0;i=14");
+        should(dataTypeDefinition.fields?.[0].valueRank).eql(-1); // Scalar
 
-        dataTypeDefinition.fields?.[1].name?.should.eql("Pet");
-        dataTypeDefinition.fields?.[1].dataType?.toString().should.eql("ns=1;i=1001");
-        dataTypeDefinition.fields?.[1].valueRank?.should.eql(1); // OneDimension
+        should(dataTypeDefinition.fields?.[1].name).eql("Pet");
+        should(dataTypeDefinition.fields?.[1].dataType?.toString()).eql("ns=1;i=1001");
+        should(dataTypeDefinition.fields?.[1].valueRank).eql(1); // OneDimension
 
-        dataTypeDefinition.fields?.[1].isOptional?.should.eql(true, "special marker for subtyped field");
+        should(dataTypeDefinition.fields?.[1].isOptional).eql(true, "special marker for subtyped field");
     });
 
     it("should create a StructureWithSubtypedValues ExtensionObject", async () => {

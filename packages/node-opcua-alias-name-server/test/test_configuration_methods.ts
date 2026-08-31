@@ -98,8 +98,8 @@ describe("OPC 10000-17: the configuration Methods", () => {
         it("should be present and bound when configurationMethods is on", async () => {
             const space = await writableServer();
             const aliases = getObject(space, WellKnownCategories.Aliases);
-            getMethod(aliases, "AddAliasesToCategory")!.isBound().should.eql(true);
-            getMethod(aliases, "DeleteAliasesFromCategory")!.isBound().should.eql(true);
+            should(getMethod(aliases, "AddAliasesToCategory")?.isBound()).eql(true);
+            should(getMethod(aliases, "DeleteAliasesFromCategory")?.isBound()).eql(true);
         });
 
         it("should use the NodeIds the specification reserves", async () => {
@@ -107,14 +107,14 @@ describe("OPC 10000-17: the configuration Methods", () => {
             // instantiate them: Aliases_AddAliasesToCategory = 24057
             const space = await writableServer();
             const aliases = getObject(space, WellKnownCategories.Aliases);
-            getMethod(aliases, "AddAliasesToCategory")!.nodeId.value.should.eql(24057);
-            getMethod(aliases, "DeleteAliasesFromCategory")!.nodeId.value.should.eql(24060);
+            should(getMethod(aliases, "AddAliasesToCategory")?.nodeId.value).eql(24057);
+            should(getMethod(aliases, "DeleteAliasesFromCategory")?.nodeId.value).eql(24060);
         });
 
         it("should appear on every category, not only the well-known ones", async () => {
             const space = await writableServer();
             const wells = addAliasCategory(space, WellKnownCategories.TagVariables, "Wells");
-            getMethod(wells, "AddAliasesToCategory")!.isBound().should.eql(true);
+            should(getMethod(wells, "AddAliasesToCategory")?.isBound()).eql(true);
         });
     });
 
@@ -125,7 +125,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
             const v = space.getOwnNamespace().addVariable({ browseName: "V1", dataType: "Double" }) as UAVariable;
 
             const result = await callAdd(tags, ["A", "B"], [coerceExpandedNodeId(v.nodeId.toString())]);
-            result.statusCode!.should.eql(StatusCodes.BadInvalidArgument);
+            should(result.statusCode).eql(StatusCodes.BadInvalidArgument);
         });
 
         it("should reject a TargetServers array of the wrong size", async () => {
@@ -134,7 +134,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
             const v = space.getOwnNamespace().addVariable({ browseName: "V1", dataType: "Double" }) as UAVariable;
 
             const result = await callAdd(tags, ["A"], [coerceExpandedNodeId(v.nodeId.toString())], ["x", "y"]);
-            result.statusCode!.should.eql(StatusCodes.BadInvalidArgument);
+            should(result.statusCode).eql(StatusCodes.BadInvalidArgument);
         });
 
         it("should accept an empty TargetServers, meaning all targets are local", async () => {
@@ -145,7 +145,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
             const v = space.getOwnNamespace().addVariable({ browseName: "V1", dataType: "Double" }) as UAVariable;
 
             const result = await callAdd(tags, ["TI101"], [coerceExpandedNodeId(v.nodeId.toString())], []);
-            result.statusCode!.should.eql(StatusCodes.Good);
+            should(result.statusCode).eql(StatusCodes.Good);
             errorCodes(result)[0].should.eql(StatusCodes.Good);
         });
 
@@ -153,7 +153,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
             const space = await writableServer();
             const tags = getObject(space, WellKnownCategories.TagVariables);
             const result = await callAdd(tags, [], []);
-            result.statusCode!.should.eql(StatusCodes.BadInvalidArgument);
+            should(result.statusCode).eql(StatusCodes.BadInvalidArgument);
         });
     });
 
@@ -211,7 +211,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
 
             const result = await callAdd(tags, ["GOOD", "BAD"], [coerceExpandedNodeId(v.nodeId.toString()), missing]);
 
-            result.statusCode!.should.eql(StatusCodes.Good, "one bad item does not fail the call");
+            should(result.statusCode).eql(StatusCodes.Good, "one bad item does not fail the call");
             errorCodes(result)[0].should.eql(StatusCodes.Good);
             errorCodes(result)[1].should.eql(StatusCodes.BadNodeIdUnknown);
         });
@@ -227,9 +227,10 @@ describe("OPC 10000-17: the configuration Methods", () => {
             const second = await callAdd(tags, ["TI101"], [target]);
 
             errorCodes(second)[0].should.eql(StatusCodes.Good, "ignored, not an error");
-            findAlias(space, tags, "TI101")!
-                .findReferencesEx(ALIAS_FOR, BrowseDirection.Forward)
-                .should.have.length(1, "still one target");
+            should(findAlias(space, tags, "TI101")?.findReferencesEx(ALIAS_FOR, BrowseDirection.Forward)).have.length(
+                1,
+                "still one target"
+            );
         });
 
         it("should ignore a duplicate repeated within the same call", async () => {
@@ -263,7 +264,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
             errorCodes(result)
                 .every((c) => c.isGood())
                 .should.eql(true);
-            findAlias(space, tags, "TI101")!.findReferencesEx(ALIAS_FOR, BrowseDirection.Forward).should.have.length(2);
+            should(findAlias(space, tags, "TI101")?.findReferencesEx(ALIAS_FOR, BrowseDirection.Forward)).have.length(2);
         });
 
         it("should default a null TargetReferenceType to AliasFor", async () => {
@@ -327,7 +328,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
             const { space, tags } = await serverWithAlias();
             const result = await callDelete(tags, ["TI101"], []);
 
-            result.statusCode!.should.eql(StatusCodes.Good);
+            should(result.statusCode).eql(StatusCodes.Good);
             errorCodes(result)[0].should.eql(StatusCodes.Good);
             should.not.exist(findAlias(space, tags, "TI101"));
         });
@@ -344,7 +345,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
             const { space, tags } = await serverWithAlias();
             const b = space.getOwnNamespace().addVariable({ browseName: "V2", dataType: "Double" }) as UAVariable;
             addAlias(space, tags, "TI101", b);
-            findAlias(space, tags, "TI101")!.findReferencesEx(ALIAS_FOR, BrowseDirection.Forward).should.have.length(2);
+            should(findAlias(space, tags, "TI101")?.findReferencesEx(ALIAS_FOR, BrowseDirection.Forward)).have.length(2);
 
             const result = await callDelete(tags, ["TI101"], []);
 
@@ -362,7 +363,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
             errorCodes(result)[0].should.eql(StatusCodes.Good);
             const alias = findAlias(space, tags, "TI101");
             should.exist(alias, "the other target keeps the alias alive");
-            alias!.findReferencesEx(ALIAS_FOR, BrowseDirection.Forward).should.have.length(1);
+            should(alias?.findReferencesEx(ALIAS_FOR, BrowseDirection.Forward)).have.length(1);
         });
 
         it("should be all-or-nothing per name", async () => {
@@ -376,7 +377,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
 
             errorCodes(result)[0].should.eql(StatusCodes.BadNotFound);
             should.exist(findAlias(space, tags, "TI101"), "nothing was deleted");
-            findAlias(space, tags, "TI101")!.findReferencesEx(ALIAS_FOR, BrowseDirection.Forward).should.have.length(1);
+            should(findAlias(space, tags, "TI101")?.findReferencesEx(ALIAS_FOR, BrowseDirection.Forward)).have.length(1);
             should.exist(space.findNode(v.nodeId), "the target Variable itself is untouched");
         });
 
@@ -395,13 +396,13 @@ describe("OPC 10000-17: the configuration Methods", () => {
             const { space, tags, v } = await serverWithAlias();
             void space;
             const result = await callDelete(tags, ["A", "B"], [coerceExpandedNodeId(v.nodeId.toString())]);
-            result.statusCode!.should.eql(StatusCodes.BadInvalidArgument);
+            should(result.statusCode).eql(StatusCodes.BadInvalidArgument);
         });
 
         it("should reject an empty call", async () => {
             const { tags } = await serverWithAlias();
             const result = await callDelete(tags, [], []);
-            result.statusCode!.should.eql(StatusCodes.BadInvalidArgument);
+            should(result.statusCode).eql(StatusCodes.BadInvalidArgument);
         });
 
         it("should move LastChange", async () => {
@@ -426,7 +427,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
             const v = space.getOwnNamespace().addVariable({ browseName: "V1", dataType: "Double" }) as UAVariable;
 
             const result = await callAdd(tags, ["TI101"], [coerceExpandedNodeId(v.nodeId.toString())]);
-            result.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
+            should(result.statusCode).eql(StatusCodes.BadUserAccessDenied);
         });
 
         it("should deny deletes by default too", async () => {
@@ -436,7 +437,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
             const tags = getObject(space, WellKnownCategories.TagVariables);
 
             const result = await callDelete(tags, ["TI101"], []);
-            result.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
+            should(result.statusCode).eql(StatusCodes.BadUserAccessDenied);
         });
 
         it("should gate reads and writes independently", async () => {
@@ -462,10 +463,10 @@ describe("OPC 10000-17: the configuration Methods", () => {
                 ],
                 SessionContext.defaultContext
             );
-            read.statusCode!.should.eql(StatusCodes.Good, "reads are open");
+            should(read.statusCode).eql(StatusCodes.Good, "reads are open");
 
             const write = await callAdd(tags, ["X"], [coerceExpandedNodeId(v.nodeId.toString())]);
-            write.statusCode!.should.eql(StatusCodes.BadUserAccessDenied, "writes are not");
+            should(write.statusCode).eql(StatusCodes.BadUserAccessDenied, "writes are not");
         });
 
         it("should receive the category, so writes can be gated per tenant", async () => {
@@ -498,7 +499,7 @@ describe("OPC 10000-17: the configuration Methods", () => {
             });
             const tags = getObject(space, WellKnownCategories.TagVariables);
             const result = await callDelete(tags, ["TI101"], []);
-            result.statusCode!.should.eql(StatusCodes.BadUserAccessDenied);
+            should(result.statusCode).eql(StatusCodes.BadUserAccessDenied);
         });
     });
 });

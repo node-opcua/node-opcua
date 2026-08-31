@@ -278,9 +278,9 @@ describe("Aggregates - Function ", () => {
 
         const configuration = getAggregateConfiguration(h3);
 
-        configuration.treatUncertainAsBad!.should.eql(true);
-        configuration.stepped!.should.eql(true);
-        configuration.useSlopedExtrapolation!.should.eql(false);
+        should(configuration.treatUncertainAsBad).eql(true);
+        should(configuration.stepped).eql(true);
+        should(configuration.useSlopedExtrapolation).eql(false);
         // xx configuration.percentDataBad.should.eql(50);
         // xx configuration.percentDataGood.should.eql(50);
 

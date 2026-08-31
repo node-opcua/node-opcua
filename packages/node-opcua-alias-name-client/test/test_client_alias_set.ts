@@ -281,7 +281,7 @@ describe("OPC 10000-17: ClientAliasSet", () => {
 
             located.local.should.eql(false);
             located.serverIndex.should.eql(1);
-            located.serverUri!.should.eql("urn:test:remote-server");
+            should(located.serverUri).eql("urn:test:remote-server");
         });
 
         it("should read the ServerArray only once", async () => {
@@ -309,7 +309,7 @@ describe("OPC 10000-17: ClientAliasSet", () => {
             const serverArray = await aliases.serverIndexResolver.getServerArray();
             const resolved = await aliases.serverIndexResolver.resolveServerIndex(0);
             should.exist(resolved);
-            resolved!.should.eql(serverArray[0]);
+            should(resolved).eql(serverArray[0]);
         });
     });
 });

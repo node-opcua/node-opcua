@@ -106,7 +106,7 @@ describe("Testing Boiler System", () => {
         boiler
             .getNotifiers()
             .map((x: BaseNode) => {
-                return x.browseName.name?.toString();
+                return x.browseName.name!.toString();
             })
             .join(" ")
             .should.eql("InputPipe BoilerDrum OutputPipe");
@@ -189,7 +189,7 @@ describe("Testing Boiler System", () => {
 
         // when state is "Halted" , the Halt method is not executable
         boilerStateMachine.setState(haltedState);
-        boilerStateMachine.currentStateNode?.browseName.toString().should.eql("Halted");
+        should(boilerStateMachine.currentStateNode?.browseName.toString()).eql("Halted");
 
         const haltMethod = boilerStateMachine.getMethodByName("Halt")!;
         // halt method should not be executable when current State is Halted

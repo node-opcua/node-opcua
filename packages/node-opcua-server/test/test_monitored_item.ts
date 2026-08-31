@@ -1,6 +1,4 @@
 import { EventEmitter } from "node:events";
-import sinon from "sinon";
-import "should";
 import { type IAddressSpace, type ISessionContext, SessionContext } from "node-opcua-address-space";
 import { AttributeIds, NodeClass, type QualifiedNameOptions } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
@@ -18,6 +16,8 @@ import {
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type MonitoredItemNotification, Range } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
+import sinon from "sinon";
 
 import { MonitoredItem, type MonitoredItemOptions } from "../source/index.js";
 
@@ -307,8 +307,8 @@ describe("Server Side MonitoredItem", () => {
         );
 
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue[0].value.serverTimestamp?.should.eql(now);
-        monitoredItem.queue[0].value.sourceTimestamp?.should.eql(now);
+        should(monitoredItem.queue[0].value.serverTimestamp).eql(now);
+        should(monitoredItem.queue[0].value.sourceTimestamp).eql(now);
 
         monitoredItem.terminate();
         monitoredItem.dispose();
@@ -347,9 +347,9 @@ describe("Server Side MonitoredItem", () => {
         );
 
         monitoredItem.queue.length.should.eql(1);
-        monitoredItem.queue[0].value.serverTimestamp?.should.eql(now);
+        should(monitoredItem.queue[0].value.serverTimestamp).eql(now);
 
-        monitoredItem.queue[0].value.sourceTimestamp?.should.eql(sourceTimestamp);
+        should(monitoredItem.queue[0].value.sourceTimestamp).eql(sourceTimestamp);
         monitoredItem.queue[0].value.sourcePicoseconds.should.eql(picoseconds);
 
         monitoredItem.terminate();

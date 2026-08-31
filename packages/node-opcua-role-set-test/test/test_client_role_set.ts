@@ -57,7 +57,7 @@ describe("node-opcua-role-set-client: ClientRoleSet", () => {
             const secAdmin = await roleSet.getRole("SecurityAdmin");
             should.exist(secAdmin);
             const identities = await secAdmin?.readIdentities();
-            identities?.should.be.an.Array();
+            should(identities).be.an.Array();
         });
 
         it("should return undefined for an unknown role", async () => {
@@ -70,7 +70,7 @@ describe("node-opcua-role-set-client: ClientRoleSet", () => {
             const roleSet = new ClientRoleSet(session);
             const observer = await roleSet.getRole("Observer");
             should.exist(observer);
-            (await observer?.readIdentities())?.should.have.length(0);
+            should(await observer!.readIdentities()).have.length(0);
         });
     });
 

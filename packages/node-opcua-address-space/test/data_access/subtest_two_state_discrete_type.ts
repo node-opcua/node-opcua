@@ -41,17 +41,13 @@ export function subtest_two_state_discrete_type(mainTest: { addressSpace: Addres
             });
             twoStateDiscreteVariable.browseName.toString().should.eql("1:MySwitch");
 
-            twoStateDiscreteVariable
-                .getPropertyByName("TrueState")
-                ?.readValue()
-                .value.toString()
-                .should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=busy)");
+            should(twoStateDiscreteVariable.getPropertyByName("TrueState")?.readValue().value.toString()).eql(
+                "Variant(Scalar<LocalizedText>, value: locale=null text=busy)"
+            );
 
-            twoStateDiscreteVariable
-                .getPropertyByName("FalseState")
-                ?.readValue()
-                .value.toString()
-                .should.eql("Variant(Scalar<LocalizedText>, value: locale=null text=idle)");
+            should(twoStateDiscreteVariable.getPropertyByName("FalseState")?.readValue().value.toString()).eql(
+                "Variant(Scalar<LocalizedText>, value: locale=null text=idle)"
+            );
 
             twoStateDiscreteVariable.readValue().value.toString().should.eql("Variant(Scalar<Boolean>, value: false)");
         });
@@ -124,7 +120,7 @@ export function subtest_two_state_discrete_type(mainTest: { addressSpace: Addres
             // verification
             obj.myState.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
             obj.myState.readValue().value.value.should.eql(true);
-            obj.myState.trueState.readValue().value.value.text?.should.eql("SomeTrueState");
+            should(obj.myState.trueState.readValue().value.value.text).eql("SomeTrueState");
 
             // it
             obj.myState.setValue(true);

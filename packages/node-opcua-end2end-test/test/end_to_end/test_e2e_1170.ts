@@ -1,7 +1,6 @@
-import "should";
 import { OPCUAClient, OPCUAServer } from "node-opcua";
-
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 
 describe("Testing bug #1170", () => {
     const port = 1170;
@@ -30,6 +29,6 @@ describe("Testing bug #1170", () => {
         const serverEndpoints = await client.withSessionAsync(endpointUrl, async (session) => {
             return session.serverEndpoints;
         });
-        serverEndpoints[0].server.productUri?.should.eql("Mini NodeOPCUA-Server");
+        should(serverEndpoints[0].server.productUri).eql("Mini NodeOPCUA-Server");
     });
 });

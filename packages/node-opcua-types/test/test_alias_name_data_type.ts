@@ -1,8 +1,8 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import { QualifiedName } from "node-opcua-data-model";
 import { coerceExpandedNodeId, ExpandedNodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import should from "should";
 import { AliasNameDataType, AliasNameVerboseDataType } from "../dist/index.js";
-import "should";
 
 // The NodeIds assigned by OPC 10000-17 / the standard NodeSet2. Asserted as
 // literals on purpose: comparing against node-opcua-constants would be circular,
@@ -46,9 +46,9 @@ describe("OPC 10000-17: AliasName DataTypes", () => {
             const reloaded = binaryRoundTrip(value, AliasNameDataType);
 
             reloaded.aliasName.toString().should.eql(value.aliasName.toString());
-            reloaded.referencedNodes!.length.should.eql(2);
-            reloaded.referencedNodes![0].toString().should.eql(value.referencedNodes![0].toString());
-            reloaded.referencedNodes![1].toString().should.eql(value.referencedNodes![1].toString());
+            should(reloaded.referencedNodes?.length).eql(2);
+            should(reloaded.referencedNodes?.[0].toString()).eql(value.referencedNodes![0].toString());
+            should(reloaded.referencedNodes?.[1].toString()).eql(value.referencedNodes![1].toString());
         });
 
         it("should preserve namespaceUri and serverIndex of referencedNodes at construction and through the binary encoding", () => {
@@ -61,12 +61,12 @@ describe("OPC 10000-17: AliasName DataTypes", () => {
                 referencedNodes: [remote]
             });
 
-            value.referencedNodes![0].toString().should.eql("ns=2;s=Temp1;namespaceUri:urn:remote:pub1:ns;serverIndex:1");
+            should(value.referencedNodes?.[0].toString()).eql("ns=2;s=Temp1;namespaceUri:urn:remote:pub1:ns;serverIndex:1");
 
             const reloaded = binaryRoundTrip(value, AliasNameDataType);
-            reloaded.referencedNodes![0].namespaceUri!.should.eql("urn:remote:pub1:ns");
-            reloaded.referencedNodes![0].serverIndex.should.eql(1);
-            reloaded.referencedNodes![0].toString().should.eql(remote.toString());
+            should(reloaded.referencedNodes?.[0].namespaceUri).eql("urn:remote:pub1:ns");
+            should(reloaded.referencedNodes?.[0].serverIndex).eql(1);
+            should(reloaded.referencedNodes?.[0].toString()).eql(remote.toString());
         });
 
         it("should expose the standard DataType and encoding NodeIds", () => {
@@ -99,10 +99,10 @@ describe("OPC 10000-17: AliasName DataTypes", () => {
             const reloaded = binaryRoundTrip(value, AliasNameVerboseDataType);
 
             reloaded.aliasName.toString().should.eql(value.aliasName.toString());
-            reloaded
-                .referencedNodes!.map((n: ExpandedNodeId) => n.toString())
-                .should.eql(value.referencedNodes!.map((n: ExpandedNodeId) => n.toString()));
-            reloaded.serverUris!.should.eql([null, "urn:remote:server"]);
+            should(reloaded.referencedNodes?.map((n: ExpandedNodeId) => n.toString())).eql(
+                value.referencedNodes!.map((n: ExpandedNodeId) => n.toString())
+            );
+            should(reloaded.serverUris).eql([null, "urn:remote:server"]);
             reloaded.aliasNameCategoryId.toString().should.eql(value.aliasNameCategoryId.toString());
         });
 
@@ -119,14 +119,14 @@ describe("OPC 10000-17: AliasName DataTypes", () => {
 
             const reloaded = binaryRoundTrip(value, AliasNameVerboseDataType);
 
-            reloaded.serverUris!.length.should.eql(reloaded.referencedNodes!.length);
-            reloaded.serverUris!.should.eql([null, "urn:a", null]);
+            should(reloaded.serverUris?.length).eql(reloaded.referencedNodes!.length);
+            should(reloaded.serverUris).eql([null, "urn:a", null]);
         });
 
         it("should default to an empty structure when constructed with no options", () => {
             const value = new AliasNameVerboseDataType();
-            value.referencedNodes!.should.eql([]);
-            value.serverUris!.should.eql([]);
+            should(value.referencedNodes).eql([]);
+            should(value.serverUris).eql([]);
             value.aliasNameCategoryId.should.eql(NodeId.nullNodeId);
             value.aliasName.should.eql(new QualifiedName({}));
         });

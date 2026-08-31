@@ -109,7 +109,7 @@ describe("sessionsCompatibleForTransfer (OPC UA Part 4 §5.14.7)", () => {
         const snapshot = getTransferSessionIdentity(fakeSession(userIdentityToken));
         // the snapshot must keep the identity key but NOT the raw token / password
         snapshot.kind.should.eql("username");
-        snapshot.userName!.should.eql("user1");
+        should(snapshot.userName).eql("user1");
         should(JSON.stringify(snapshot)).not.match(/s3cret/, "snapshot must not retain the password");
 
         // the snapshot must remain valid for a transfer decision even after the session is gone

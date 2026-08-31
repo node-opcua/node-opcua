@@ -588,7 +588,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                     function publish_callback(err: Error | null, response?: PublishResponse) {
                         should.not.exist(response);
                         const errEx = err as Error & { response: Response };
-                        errEx?.response.should.be.instanceOf(ServiceFault);
+                        should(errEx?.response).be.instanceOf(ServiceFault);
                         should(err?.message).match(/BadNoSubscription/);
                     }
 
@@ -1186,7 +1186,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                 });
                 const response = await (session as ClientSessionEx).createMonitoredItems(createMonitoredItemsRequest);
                 response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                response.results?.[0].statusCode.should.eql(StatusCodes.Good);
+                should(response.results?.[0].statusCode).eql(StatusCodes.Good);
             });
         });
 
@@ -1892,8 +1892,8 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                 const modifyMonitoredItemsResponse = await (session as ClientSessionEx).modifyMonitoredItems(
                     modifyMonitoredItemsRequest
                 );
-                modifyMonitoredItemsResponse.results?.length.should.eql(1);
-                modifyMonitoredItemsResponse.results?.[0].statusCode.should.eql(StatusCodes.BadMonitoredItemIdInvalid);
+                should(modifyMonitoredItemsResponse.results?.length).eql(1);
+                should(modifyMonitoredItemsResponse.results?.[0].statusCode).eql(StatusCodes.BadMonitoredItemIdInvalid);
             });
         });
 
@@ -1990,7 +1990,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
             };
 
             const monitoredItemResult = await test_modify_monitored_item(itemToMonitor, parameters);
-            monitoredItemResult.revisedSamplingInterval?.should.be.greaterThan(19);
+            should(monitoredItemResult.revisedSamplingInterval).be.greaterThan(19);
         });
 
         async function test_modify_monitored_item_on_noValue_attribute(parameters: MonitoringParametersOptions): Promise<void> {
@@ -2224,7 +2224,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                 response2.responseHeader.serviceResult.should.eql(StatusCodes.Good);
                 //xx tracelog(response.results[0].toString());
 
-                response2.results?.[0].statusCode.should.eql(StatusCodes.Good);
+                should(response2.results?.[0].statusCode).eql(StatusCodes.Good);
                 const samplingInterval = response2.results![0].revisedSamplingInterval;
                 samplingInterval.should.eql(revisedSamplingInterval, "expected revisedSamplingInterval to be modified");
             });
@@ -2386,13 +2386,13 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                 await writeValue(nodeId, session, 7);
 
                 const response = await sendPublishRequest(session);
-                response.notificationMessage.notificationData?.length.should.eql(1);
+                should(response.notificationMessage.notificationData?.length).eql(1);
 
                 const notification = (response.notificationMessage.notificationData![0] as DataChangeNotification)
                     .monitoredItems![0];
                 notification.value.value.value.should.eql(7);
 
-                parameters.queueSize!.should.eql(1);
+                should(parameters.queueSize).eql(1);
                 notification.value.statusCode.should.eql(StatusCodes.Good, "OverFlow bit shall not be set when queueSize =1");
             });
         }
@@ -2448,11 +2448,11 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
 
                 const publishResponse2 = await sendPublishRequest(session);
                 should(!!publishResponse2.notificationMessage.notificationData).eql(true);
-                publishResponse2.notificationMessage.notificationData?.length.should.eql(1);
+                should(publishResponse2.notificationMessage.notificationData?.length).eql(1);
 
                 // we should have 2 elements in queue
                 const dataChangeNotification = publishResponse2.notificationMessage.notificationData?.[0] as DataChangeNotification;
-                dataChangeNotification.monitoredItems?.length.should.eql(2);
+                should(dataChangeNotification.monitoredItems?.length).eql(2);
                 const notification2 = dataChangeNotification.monitoredItems![0];
                 //xx tracelog(notification.value.value.value);
                 notification2.value.value.value.should.eql(expected_values[0]);
@@ -2513,7 +2513,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                 await createSubscription(session);
                 await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
                 const publishResponse1 = await sendPublishRequest(session);
-                publishResponse1.notificationMessage.notificationData?.length.should.eql(1);
+                should(publishResponse1.notificationMessage.notificationData?.length).eql(1);
             });
         });
 
@@ -2549,11 +2549,11 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                 //xx tracelog("--------------");
                 // we should get notified immediately that the session has timed out
                 const publishResponse1 = await sendPublishRequest(session);
-                publishResponse1.notificationMessage.notificationData?.length.should.eql(1);
+                should(publishResponse1.notificationMessage.notificationData?.length).eql(1);
                 const notificationData = publishResponse1.notificationMessage?.notificationData?.[0];
                 //xx tracelog(notificationData.toString());
                 //.monitoredItems[0];
-                notificationData?.constructor.name.should.eql("StatusChangeNotification");
+                should(notificationData?.constructor.name).eql("StatusChangeNotification");
                 (notificationData as StatusChangeNotification).status.should.eql(StatusCodes.BadTimeout);
             });
         });
@@ -2690,7 +2690,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                     const publishResponse3 = await sendPublishRequest(session);
                     const dataChangeNotification3 = publishResponse3.notificationMessage
                         .notificationData?.[0] as DataChangeNotification;
-                    dataChangeNotification3.monitoredItems?.length.should.be.aboveOrEqual(
+                    should(dataChangeNotification3.monitoredItems?.length).be.aboveOrEqual(
                         2,
                         "expecting two monitoredItem in  notification data"
                     );
@@ -2813,8 +2813,8 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                             monitoredItemIds: [(monitoredItem.monitoredItemId as number) + 9999]
                         };
                         const response = await (session as ClientSessionEx).setMonitoringMode(setMonitoringModeRequest);
-                        response.results?.length.should.eql(1);
-                        response.results?.[0].should.eql(StatusCodes.BadMonitoredItemIdInvalid);
+                        should(response.results?.length).eql(1);
+                        should(response.results?.[0]).eql(StatusCodes.BadMonitoredItemIdInvalid);
                     }
                 );
             });
@@ -2832,8 +2832,8 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                             monitoredItemIds: [monitoredItem.monitoredItemId as number]
                         };
                         const response = await (session as ClientSessionEx).setMonitoringMode(setMonitoringModeRequest);
-                        response.results?.length.should.eql(1);
-                        response.results?.[0].should.eql(StatusCodes.Good);
+                        should(response.results?.length).eql(1);
+                        should(response.results?.[0]).eql(StatusCodes.Good);
                     }
                 );
             });
@@ -2914,7 +2914,7 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                         monitoredItemIds: [monitoredItem.monitoredItemId as number]
                     };
                     const response = await (session as ClientSessionEx).setMonitoringMode(setMonitoringModeRequest);
-                    response.results?.[0].should.eql(StatusCodes.Good);
+                    should(response.results?.[0]).eql(StatusCodes.Good);
 
                     // ----
                     nb_keep_alive_received.should.eql(2);
@@ -2985,8 +2985,8 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                     );
                     createMonitoredItemResponse.should.be.instanceof(CreateMonitoredItemsResponse);
                     createMonitoredItemResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                    createMonitoredItemResponse.results?.length.should.eql(1);
-                    createMonitoredItemResponse.results?.[0].statusCode.should.eql(StatusCodes.Good);
+                    should(createMonitoredItemResponse.results?.length).eql(1);
+                    should(createMonitoredItemResponse.results?.[0].statusCode).eql(StatusCodes.Good);
 
                     fanSpeed.setValueFromSource(new Variant({ dataType: DataType.Double, value: 1 }));
                     await wait(50);

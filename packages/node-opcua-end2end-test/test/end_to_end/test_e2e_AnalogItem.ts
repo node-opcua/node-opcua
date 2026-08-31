@@ -104,9 +104,9 @@ describe("testing AnalogItem on client side", function (this: Mocha.Runnable) {
         const dataValue = await g_session!.read(nodeToRead);
 
         //xx console.log("result = ",result.toString());
-        dataValue!.value.dataType.should.eql(DataType.ExtensionObject);
+        should(dataValue?.value.dataType).eql(DataType.ExtensionObject);
 
-        dataValue!.value.value.low.should.eql(100);
-        dataValue!.value.value.high.should.eql(200);
+        should(dataValue?.value.value.low).eql(100);
+        should(dataValue?.value.value.high).eql(200);
     });
 });

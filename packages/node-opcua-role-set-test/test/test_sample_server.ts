@@ -124,7 +124,7 @@ describe("Sample server: Variables gated by per-Role RolePermissions (§4)", fun
             identities.map((i) => i.criteria).should.containEql("admin");
 
             const operatorRole = await roleSet.getRole("Operator");
-            ((await operatorRole?.readIdentities()) ?? []).map((i) => i.criteria).should.containEql("operator");
+            ((await operatorRole!.readIdentities()) ?? []).map((i) => i.criteria).should.containEql("operator");
         });
     });
 });

@@ -3,7 +3,7 @@ import path from "node:path";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask } from "node-opcua-types";
-import "should";
+import should from "should";
 import {
     ArchiveStore,
     InMemoryIdentityMappingStore,
@@ -44,7 +44,7 @@ describe("RoleSet consolidated archive", () => {
         const text = await fs.readFile(filePath, "utf8");
         text.should.containEql("Maintenance"); // plain JSON, human-readable
         const back = await readArchive(filePath);
-        back?.should.eql(sampleArchive);
+        should(back).eql(sampleArchive);
     });
 
     it("returns undefined for a missing file", async () => {
@@ -78,7 +78,7 @@ describe("RoleSet consolidated archive", () => {
             onDisk.should.not.containEql("urn:acme:scada");
 
             const back = await readArchive(filePath, { secret });
-            back?.should.eql(sampleArchive);
+            should(back).eql(sampleArchive);
         });
 
         it("refuses to read an encrypted archive without the secret", async () => {
@@ -120,8 +120,8 @@ describe("RoleSet consolidated archive", () => {
 
             // a fresh coordinator (simulating a restart) reloads BOTH sections
             const back = await new ArchiveStore(filePath).load();
-            back?.users?.map((u) => u.userName).should.eql(["alice"]);
-            (typeof back?.identities).should.equal("string");
+            should(back?.users?.map((u) => u.userName)).eql(["alice"]);
+            (typeof back!.identities).should.equal("string");
 
             // the salted scrypt hash round-trips: the password still verifies
             const users2 = new InMemoryUserManagementStore();
@@ -146,8 +146,8 @@ describe("RoleSet consolidated archive", () => {
 
             // the roles written by the other installer must NOT be clobbered
             const back = await readArchive(filePath);
-            back?.roles?.map((r) => r.roleName).should.eql(["Maintenance"]);
-            back?.users?.map((u) => u.userName).should.eql(["carol"]);
+            should(back?.roles?.map((r) => r.roleName)).eql(["Maintenance"]);
+            should(back?.users?.map((u) => u.userName)).eql(["carol"]);
         });
 
         it("persists encrypted when a secret is configured", async () => {
@@ -158,7 +158,7 @@ describe("RoleSet consolidated archive", () => {
             await store.save();
 
             (await fs.readFile(filePath, "utf8")).should.containEql('"encrypted": true');
-            (await new ArchiveStore(filePath, { secret: "k" }).load())?.users?.map((u) => u.userName).should.eql(["bob"]);
+            should((await new ArchiveStore(filePath, { secret: "k" }).load())?.users?.map((u) => u.userName)).eql(["bob"]);
         });
     });
 });

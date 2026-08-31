@@ -8,8 +8,8 @@ describe("LocalizedText", () => {
         const localizedText = new LocalizedText({ text: "HelloWorld", locale: "en-US" });
         localizedText.should.have.property("text");
         localizedText.should.have.property("locale");
-        localizedText.text!.should.equal("HelloWorld");
-        localizedText.locale!.should.equal("en-US");
+        should(localizedText.text).equal("HelloWorld");
+        should(localizedText.locale).equal("en-US");
     });
 
     it("should encode and decode a LocalizeText that have both text and locale", () => {
@@ -28,8 +28,8 @@ describe("LocalizedText", () => {
         localizedText_check.decode(stream);
 
         localizedText_check.should.eql(localizedText);
-        localizedText_check.text!.should.equal("HelloWorld");
-        localizedText_check.locale!.should.equal("en-US");
+        should(localizedText_check.text).equal("HelloWorld");
+        should(localizedText_check.locale).equal("en-US");
     });
 
     it("should encode and decode a LocalizeText that have text but no locale", () => {
@@ -50,7 +50,7 @@ describe("LocalizedText", () => {
         stream.rewind();
         localizedText_check.decode(stream);
 
-        localizedText_check.text!.should.equal("HelloWorld");
+        should(localizedText_check.text).equal("HelloWorld");
         should.not.exist(localizedText_check.locale);
     });
 
@@ -73,7 +73,7 @@ describe("LocalizedText", () => {
         localizedText_check.decode(stream);
 
         localizedText_check.should.eql(localizedText);
-        localizedText_check.locale!.should.equal("en-US");
+        should(localizedText_check.locale).equal("en-US");
         localizedText_check.should.have.property("text");
         should.not.exist(localizedText_check.text);
     });
@@ -97,7 +97,7 @@ describe("LocalizedText", () => {
         LocalizedText.schema.name.should.eql("LocalizedText");
     });
     it("LocalizedText#coerce", () => {
-        LocalizedText.coerce("A")!.should.eql(new LocalizedText({ text: "A" }));
+        should(LocalizedText.coerce("A")).eql(new LocalizedText({ text: "A" }));
     });
     it("LocalizedText#encode/decode", () => {
         const stream = new BinaryStream();

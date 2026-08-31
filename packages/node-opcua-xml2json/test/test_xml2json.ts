@@ -97,7 +97,7 @@ describe("XMLToJSON", () => {
         await parser.parse(xml_file);
 
         should(parsedObj).not.be.null();
-        parsedObj!.should.eql({ element: "Hello, World!" });
+        should(parsedObj).eql({ element: "Hello, World!" });
 
         // Clean up temp fixture
         await fs.promises.unlink(xml_file);
@@ -117,7 +117,7 @@ describe("XMLToJSON", () => {
         });
 
         parser.parseString("<object>" + "  <DisplayName>&lt;HelloWorld&gt;</DisplayName>" + "</object>");
-        displayName!.should.eql("<HelloWorld>");
+        should(displayName).eql("<HelloWorld>");
     });
 
     it("should parse a array", () => {

@@ -96,7 +96,7 @@ describe("Automatic Generation of  string nodeId", () => {
 
             // xx console.log(serverStatus.toString());
 
-            serverStatus.getComponentByName("BuildInfo")?.should.eql(serverStatus.buildInfo);
+            should(serverStatus.getComponentByName("BuildInfo")).eql(serverStatus.buildInfo);
 
             // xx console.log(serverStatus.toString());
             // xx console.log(serverStatus.buildInfo.toString());

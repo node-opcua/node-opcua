@@ -125,14 +125,14 @@ export function utest_limit_alarm(test: MochaSuiteEx): void {
             should(alarm.limitState.getCurrentState()).eql(null); // not alarmed !
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.BadStateNotActive);
             alarm.activeState.getValue().should.eql(false);
-            alarm.currentBranch().getMessage().text?.should.eql("Back to normal"); // initial message is empty
+            should(alarm.currentBranch().getMessage().text).eql("Back to normal"); // initial message is empty
             spyOnEvent.callCount.should.eql(0);
 
             // InputNode goes very low - alarm becomes active - state change to LowLow - 1 event raised
             // -----------------------------------------------------------------------------------------
             setVariableValue(-100);
 
-            alarm.limitState.getCurrentState()?.should.eql("LowLow");
+            should(alarm.limitState.getCurrentState()).eql("LowLow");
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
             alarm.activeState.getValue().should.eql(true);
 
@@ -144,7 +144,7 @@ export function utest_limit_alarm(test: MochaSuiteEx): void {
             // InputNode goes a little bit low - alarm stays active - state changes to low - 1 event raised
             // ----------------------------------------------------------------------------------------------
             setVariableValue(-9);
-            alarm.limitState.getCurrentState()?.should.eql("Low");
+            should(alarm.limitState.getCurrentState()).eql("Low");
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(2);
@@ -185,7 +185,7 @@ export function utest_limit_alarm(test: MochaSuiteEx): void {
             // InputNode goes too high  - alarm becomes active - state changes to High - 1 event raised
             // --------------------------------------------------------------------------------------------------
             setVariableValue(11);
-            alarm.limitState.getCurrentState()?.should.eql("High");
+            should(alarm.limitState.getCurrentState()).eql("High");
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(5);
@@ -195,7 +195,7 @@ export function utest_limit_alarm(test: MochaSuiteEx): void {
             // InputNode goes very very high  - alarm stays active - state changes to HighHigh - 1 event raised
             // --------------------------------------------------------------------------------------------------
             setVariableValue(200);
-            alarm.limitState.getCurrentState()?.should.eql("HighHigh");
+            should(alarm.limitState.getCurrentState()).eql("HighHigh");
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(6);
@@ -224,7 +224,7 @@ export function utest_limit_alarm(test: MochaSuiteEx): void {
             alarm.constructor.name.should.eql("UANonExclusiveLimitAlarmImplBase");
 
             alarm.inputNode.readValue().value.value.should.eql(variableWithAlarm.nodeId);
-            alarm.getInputNodeNode()?.should.eql(variableWithAlarm);
+            should(alarm.getInputNodeNode()).eql(variableWithAlarm);
 
             alarm.getLowLowLimit().should.eql(-10);
             alarm.getLowLimit().should.eql(-1.0);
@@ -233,45 +233,45 @@ export function utest_limit_alarm(test: MochaSuiteEx): void {
 
             //
             alarm.activeState.getValue().should.eql(false);
-            alarm.lowLowState?.getValue().should.eql(false);
-            alarm.lowState?.getValue().should.eql(false);
-            alarm.highState?.getValue().should.eql(false);
-            alarm.highHighState?.getValue().should.eql(false);
+            should(alarm.lowLowState?.getValue()).eql(false);
+            should(alarm.lowState?.getValue()).eql(false);
+            should(alarm.highState?.getValue()).eql(false);
+            should(alarm.highHighState?.getValue()).eql(false);
 
             setVariableValue(-100);
             alarm.activeState.getValue().should.eql(true);
-            alarm.lowLowState?.getValue().should.eql(true);
-            alarm.lowState?.getValue().should.eql(true);
-            alarm.highState?.getValue().should.eql(false);
-            alarm.highHighState?.getValue().should.eql(false);
+            should(alarm.lowLowState?.getValue()).eql(true);
+            should(alarm.lowState?.getValue()).eql(true);
+            should(alarm.highState?.getValue()).eql(false);
+            should(alarm.highHighState?.getValue()).eql(false);
 
             setVariableValue(-9);
             alarm.activeState.getValue().should.eql(true);
-            alarm.lowLowState?.getValue().should.eql(false);
-            alarm.lowState?.getValue().should.eql(true);
-            alarm.highState?.getValue().should.eql(false);
-            alarm.highHighState?.getValue().should.eql(false);
+            should(alarm.lowLowState?.getValue()).eql(false);
+            should(alarm.lowState?.getValue()).eql(true);
+            should(alarm.highState?.getValue()).eql(false);
+            should(alarm.highHighState?.getValue()).eql(false);
 
             setVariableValue(4);
             alarm.activeState.getValue().should.eql(false);
-            alarm.lowLowState?.getValue().should.eql(false);
-            alarm.lowState?.getValue().should.eql(false);
-            alarm.highState?.getValue().should.eql(false);
-            alarm.highHighState?.getValue().should.eql(false);
+            should(alarm.lowLowState?.getValue()).eql(false);
+            should(alarm.lowState?.getValue()).eql(false);
+            should(alarm.highState?.getValue()).eql(false);
+            should(alarm.highHighState?.getValue()).eql(false);
 
             setVariableValue(11);
             alarm.activeState.getValue().should.eql(true);
-            alarm.lowLowState?.getValue().should.eql(false);
-            alarm.lowState?.getValue().should.eql(false);
-            alarm.highState?.getValue().should.eql(true);
-            alarm.highHighState?.getValue().should.eql(false);
+            should(alarm.lowLowState?.getValue()).eql(false);
+            should(alarm.lowState?.getValue()).eql(false);
+            should(alarm.highState?.getValue()).eql(true);
+            should(alarm.highHighState?.getValue()).eql(false);
 
             setVariableValue(200);
             alarm.activeState.getValue().should.eql(true);
-            alarm.lowLowState?.getValue().should.eql(false);
-            alarm.lowState?.getValue().should.eql(false);
-            alarm.highState?.getValue().should.eql(true);
-            alarm.highHighState?.getValue().should.eql(true);
+            should(alarm.lowLowState?.getValue()).eql(false);
+            should(alarm.lowState?.getValue()).eql(false);
+            should(alarm.highState?.getValue()).eql(true);
+            should(alarm.highHighState?.getValue()).eql(true);
 
             setVariableValue(11);
             setVariableValue(4);
@@ -388,10 +388,10 @@ export function utest_limit_alarm(test: MochaSuiteEx): void {
             setVariableValue(6);
 
             alarm.activeState.getValue().should.eql(false);
-            alarm.lowLowState?.getValue().should.eql(false);
-            alarm.lowState?.getValue().should.eql(false);
-            alarm.highState?.getValue().should.eql(false);
-            alarm.highHighState?.getValue().should.eql(false);
+            should(alarm.lowLowState?.getValue()).eql(false);
+            should(alarm.lowState?.getValue()).eql(false);
+            should(alarm.highState?.getValue()).eql(false);
+            should(alarm.highHighState?.getValue()).eql(false);
 
             const spyOnEvent = sinon.spy();
             alarm.on("event", spyOnEvent);
@@ -401,10 +401,10 @@ export function utest_limit_alarm(test: MochaSuiteEx): void {
             alarm.setHighLimit(5);
 
             alarm.activeState.getValue().should.eql(true);
-            alarm.lowLowState?.getValue().should.eql(false);
-            alarm.lowState?.getValue().should.eql(false);
-            alarm.highState?.getValue().should.eql(true);
-            alarm.highHighState?.getValue().should.eql(false);
+            should(alarm.lowLowState?.getValue()).eql(false);
+            should(alarm.lowState?.getValue()).eql(false);
+            should(alarm.highState?.getValue()).eql(true);
+            should(alarm.highHighState?.getValue()).eql(false);
 
             spyOnEvent.callCount.should.eql(1, "one event should have been triggered automatically");
 
@@ -412,10 +412,10 @@ export function utest_limit_alarm(test: MochaSuiteEx): void {
             alarm.setHighLimit(1);
 
             alarm.activeState.getValue().should.eql(true);
-            alarm.lowLowState?.getValue().should.eql(false);
-            alarm.lowState?.getValue().should.eql(false);
-            alarm.highState?.getValue().should.eql(true);
-            alarm.highHighState?.getValue().should.eql(true);
+            should(alarm.lowLowState?.getValue()).eql(false);
+            should(alarm.lowState?.getValue()).eql(false);
+            should(alarm.highState?.getValue()).eql(true);
+            should(alarm.highHighState?.getValue()).eql(true);
 
             spyOnEvent.callCount.should.eql(2);
 

@@ -165,7 +165,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
         );
         should(endpoint_desc).be.instanceof(EndpointDescription);
 
-        endpoint_desc?.userIdentityTokens?.length.should.be.greaterThan(1);
+        should(endpoint_desc?.userIdentityTokens?.length).be.greaterThan(1);
     });
 });
 describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", function (this: Mocha.Suite) {
@@ -200,7 +200,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
         );
         should(endpoint_desc).be.instanceof(EndpointDescription);
 
-        endpoint_desc?.userIdentityTokens?.length.should.eql(0);
+        should(endpoint_desc?.userIdentityTokens?.length).eql(0);
     });
 });
 

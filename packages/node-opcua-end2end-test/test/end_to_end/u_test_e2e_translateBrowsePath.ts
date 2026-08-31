@@ -1,4 +1,3 @@
-import "should";
 import {
     BrowsePath,
     makeBrowsePath,
@@ -10,6 +9,7 @@ import {
     VariableIds
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 export function t(test: UmbrellaTestContext) {
@@ -46,27 +46,27 @@ export function t(test: UmbrellaTestContext) {
                 //xx console.log(results[0].toString());
 
                 results[0].statusCode.should.eql(StatusCodes.Good);
-                results[0].targets?.length.should.eql(1);
-                results[0].targets?.[0].targetId.toString().should.eql("ns=0;i=2253");
-                results[0].targets?.[0].targetId.value.should.eql(ObjectIds.Server);
+                should(results[0].targets?.length).eql(1);
+                should(results[0].targets?.[0].targetId.toString()).eql("ns=0;i=2253");
+                should(results[0].targets?.[0].targetId.value).eql(ObjectIds.Server);
 
                 //xx console.log(results[1].toString());
                 results[1].statusCode.should.eql(StatusCodes.Good);
-                results[1].targets?.length.should.eql(1);
-                results[1].targets?.[0].targetId.toString().should.eql("ns=0;i=2256");
-                results[1].targets?.[0].targetId.value.should.eql(VariableIds.Server_ServerStatus);
+                should(results[1].targets?.length).eql(1);
+                should(results[1].targets?.[0].targetId.toString()).eql("ns=0;i=2256");
+                should(results[1].targets?.[0].targetId.value).eql(VariableIds.Server_ServerStatus);
 
                 //xx console.log(results[2].toString());
                 results[2].statusCode.should.eql(StatusCodes.Good);
-                results[2].targets?.length.should.eql(1);
-                results[2].targets?.[0].targetId.toString().should.eql("ns=0;i=2260");
-                results[2].targets?.[0].targetId.value.should.eql(VariableIds.Server_ServerStatus_BuildInfo);
+                should(results[2].targets?.length).eql(1);
+                should(results[2].targets?.[0].targetId.toString()).eql("ns=0;i=2260");
+                should(results[2].targets?.[0].targetId.value).eql(VariableIds.Server_ServerStatus_BuildInfo);
 
                 //xx console.log(results[3].toString());
                 results[3].statusCode.should.eql(StatusCodes.Good);
-                results[3].targets?.length.should.eql(1);
-                results[3].targets?.[0].targetId.toString().should.eql("ns=0;i=2261");
-                results[3].targets?.[0].targetId.value.should.eql(VariableIds.Server_ServerStatus_BuildInfo_ProductName);
+                should(results[3].targets?.length).eql(1);
+                should(results[3].targets?.[0].targetId.toString()).eql("ns=0;i=2261");
+                should(results[3].targets?.[0].targetId.value).eql(VariableIds.Server_ServerStatus_BuildInfo_ProductName);
 
                 // missing browseName on last element of the relativepath => ERROR
                 results[4].statusCode.should.eql(StatusCodes.BadBrowseNameInvalid);

@@ -13,7 +13,7 @@ import {
     TimestampsToReturn
 } from "node-opcua";
 import { OpaqueStructure } from "node-opcua-extension-object";
-import "should";
+import should from "should";
 
 function date_add(date: Date, options: { seconds: number }): Date {
     const date1 = new Date(date.getTime() + options.seconds * 1000);
@@ -160,7 +160,7 @@ describe("Testing HistoryRead with ExtensionObject", () => {
             );
 
             result.responseHeader.serviceResult.isGood().should.be.true();
-            result.results!.length.should.eql(1);
+            should(result.results?.length).eql(1);
 
             const historyResult = result.results![0];
             historyResult.statusCode.isGood().should.be.true();

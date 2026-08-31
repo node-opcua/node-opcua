@@ -1,3 +1,4 @@
+import should from "should";
 import {
     ClientTCP_transport,
     defaultClientTransportFactory,
@@ -26,10 +27,10 @@ describe("defaultClientTransportFactory / IClientTransport", () => {
         // the constructor copies settings into a private _helloSettings object; it is
         // surfaced via getTransportSettings() which is part of IClientTransport
         const s = t.getTransportSettings();
-        s.maxChunkCount!.should.equal(7);
-        s.maxMessageSize!.should.equal(987_654);
-        s.receiveBufferSize!.should.equal(8192);
-        s.sendBufferSize!.should.equal(8192);
+        should(s.maxChunkCount).equal(7);
+        should(s.maxMessageSize).equal(987_654);
+        should(s.receiveBufferSize).equal(8192);
+        should(s.sendBufferSize).equal(8192);
         t.dispose();
     });
 

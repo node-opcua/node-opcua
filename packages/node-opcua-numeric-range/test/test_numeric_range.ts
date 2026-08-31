@@ -178,7 +178,7 @@ describe("Testing numerical range", () => {
             const nr = new NumericRange("1,2");
             nr.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
             nr.isValid().should.equal(true);
-            nr.value!.should.eql([
+            should(nr.value).eql([
                 [1, 1],
                 [2, 2]
             ]);
@@ -188,7 +188,7 @@ describe("Testing numerical range", () => {
             const nr = new NumericRange("1,2:3");
             nr.type.should.equal(NumericRange.NumericRangeType.MatrixRange);
             nr.isValid().should.equal(true);
-            nr.value!.should.eql([
+            should(nr.value).eql([
                 [1, 1],
                 [2, 3]
             ]);

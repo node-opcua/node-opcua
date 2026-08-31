@@ -35,7 +35,7 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
             variableType: "SubscriptionDiagnosticsType"
         });
 
-        addressSpace.findNode(arr.dataType)?.nodeClass.should.eql(NodeClass.DataType);
+        should(addressSpace.findNode(arr.dataType)?.nodeClass).eql(NodeClass.DataType);
 
         const expectedType = addressSpace.findVariableType("SubscriptionDiagnosticsArrayType")!;
         arr.typeDefinition
@@ -118,10 +118,10 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
         const elVar4 = addElement({ subscriptionId: 1003 }, arr);
         arr.readValue().value.value.length.should.eql(4, "expecting 4 elements in array");
 
-        arr.getComponentByName("1000")?.should.eql(elVar1);
-        arr.getComponentByName("1001")?.should.eql(elVar2);
-        arr.getComponentByName("1002")?.should.eql(elVar3);
-        arr.getComponentByName("1003")?.should.eql(elVar4);
+        should(arr.getComponentByName("1000")).eql(elVar1);
+        should(arr.getComponentByName("1001")).eql(elVar2);
+        should(arr.getComponentByName("1002")).eql(elVar3);
+        should(arr.getComponentByName("1003")).eql(elVar4);
 
         removeElement(arr, elVar1);
         arr.readValue().value.value.length.should.eql(3, "expecting 3 elements in array");
@@ -251,14 +251,14 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
         // ---------------------------------------------------------------------
         elemA.should.eql(elemB);
 
-        arrA.getComponentByName("1123455")?.browseName.toString().should.eql("1:1123455");
-        arrB.getComponentByName("1123455")?.browseName.toString().should.eql("1:1123455");
+        should(arrA.getComponentByName("1123455")?.browseName.toString()).eql("1:1123455");
+        should(arrB.getComponentByName("1123455")?.browseName.toString()).eql("1:1123455");
 
         removeElement(arrA, elemA);
         arrA.readValue().value.value.length.should.eql(0);
         arrB.readValue().value.value.length.should.eql(1);
         should.not.exist(arrA.getComponentByName("1123455"));
-        arrB.getComponentByName("1123455")?.browseName.toString().should.eql("1:1123455");
+        should(arrB.getComponentByName("1123455")?.browseName.toString()).eql("1:1123455");
 
         removeElement(arrB, elemB);
         arrA.readValue().value.value.length.should.eql(0);

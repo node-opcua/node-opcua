@@ -53,10 +53,10 @@ describe("testing add TwoStateVariable ", function (this: Mocha.Suite) {
         node.readValue().statusCode.should.eql(StatusCodes.UncertainInitialValue);
 
         node.setValue(true);
-        node.readValue().value.value.text?.should.eql("TRUE");
+        should(node.readValue().value.value.text).eql("TRUE");
 
         node.setValue(false);
-        node.readValue().value.value.text?.should.eql("FALSE");
+        should(node.readValue().value.value.text).eql("FALSE");
     });
 
     it("TwoStateVariableType should add an uncertain value after creation", () => {
@@ -66,7 +66,7 @@ describe("testing add TwoStateVariable ", function (this: Mocha.Suite) {
 
         node.readValue().statusCode.should.eql(StatusCodes.UncertainInitialValue);
 
-        node.id?.readValue().statusCode.should.eql(StatusCodes.UncertainInitialValue);
+        should(node.id?.readValue().statusCode).eql(StatusCodes.UncertainInitialValue);
 
         node.setValue(true);
         node.readValue().statusCode.should.eql(StatusCodes.Good);
@@ -88,10 +88,10 @@ describe("testing add TwoStateVariable ", function (this: Mocha.Suite) {
         should.not.exist(node.transitionTime);
 
         node.setValue(true);
-        node.readValue().value.value.text?.should.eql("Enabled");
+        should(node.readValue().value.value.text).eql("Enabled");
 
         node.setValue(false);
-        node.readValue().value.value.text?.should.eql("Disabled");
+        should(node.readValue().value.value.text).eql("Disabled");
     });
 
     it("should keep the fallback text for the missing state property", () => {
@@ -132,8 +132,8 @@ describe("testing add TwoStateVariable ", function (this: Mocha.Suite) {
         });
 
         trueStateNode.setValueFromSource.calledOnce.should.eql(true);
-        node.getTrueState().text?.should.eql("Enabled");
-        node.getFalseState().text?.should.eql("Disabled");
+        should(node.getTrueState().text).eql("Enabled");
+        should(node.getFalseState().text).eql("Disabled");
         node._falseState.should.eql("Disabled");
     });
 
@@ -146,15 +146,15 @@ describe("testing add TwoStateVariable ", function (this: Mocha.Suite) {
 
         clock?.tick(100);
         node.setValue(true);
-        node.transitionTime?.readValue().value.value.getTime().should.eql(100);
+        should(node.transitionTime?.readValue().value.value.getTime()).eql(100);
 
         clock?.tick(100);
         node.setValue(false);
-        node.transitionTime?.readValue().value.value.getTime().should.eql(200);
+        should(node.transitionTime?.readValue().value.value.getTime()).eql(200);
 
         clock?.tick(100);
         node.setValue(false);
-        node.transitionTime?.readValue().value.value.getTime().should.eql(200, "again");
+        should(node.transitionTime?.readValue().value.value.getTime()).eql(200, "again");
     });
 
     it("SubState => IsFalseSubStateOf", () => {
@@ -219,26 +219,26 @@ describe("testing add TwoStateVariable ", function (this: Mocha.Suite) {
             optionals: ["TransitionTime"],
             trueState: "PowerON"
         });
-        mainState.effectiveTransitionTime?.readValue().statusCode.should.eql(StatusCodes.Good);
+        should(mainState.effectiveTransitionTime?.readValue().statusCode).eql(StatusCodes.Good);
 
         mainState.getTrueSubStates().length.should.eql(1);
         mainState.getTrueSubStates()[0].browseName.toString().should.eql("1:TwoStateVariableSub");
 
         clock?.tick(100);
         mainState.setValue(false);
-        mainState.effectiveTransitionTime?.readValue().statusCode.should.eql(StatusCodes.Good);
-        mainState.effectiveTransitionTime?.readValue().value.value.getTime().should.eql(100);
-        mainState.transitionTime?.readValue().value.value.getTime().should.eql(100);
+        should(mainState.effectiveTransitionTime?.readValue().statusCode).eql(StatusCodes.Good);
+        should(mainState.effectiveTransitionTime?.readValue().value.value.getTime()).eql(100);
+        should(mainState.transitionTime?.readValue().value.value.getTime()).eql(100);
 
         clock?.tick(100);
         subState.setValue(true);
-        mainState.effectiveTransitionTime?.readValue().value.value.getTime().should.eql(200);
-        mainState.transitionTime?.readValue().value.value.getTime().should.eql(100);
+        should(mainState.effectiveTransitionTime?.readValue().value.value.getTime()).eql(200);
+        should(mainState.transitionTime?.readValue().value.value.getTime()).eql(100);
 
         clock?.tick(100);
         subState.setValue(false);
-        mainState.effectiveTransitionTime?.readValue().value.value.getTime().should.eql(300);
-        mainState.transitionTime?.readValue().value.value.getTime().should.eql(100);
+        should(mainState.effectiveTransitionTime?.readValue().value.value.getTime()).eql(300);
+        should(mainState.transitionTime?.readValue().value.value.getTime()).eql(100);
 
         //  todo
         // mainState.effectiveDisplayName.readValue().value.value.should.eql("aaa");

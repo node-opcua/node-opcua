@@ -78,7 +78,7 @@ describe("addExtensionObjectDataType", function (this: Mocha.Suite) {
         };
         const dataType = await addExtensionObjectDataType(ns, options);
 
-        dataType.binaryEncoding!.browseName.toString().should.eql("Default Binary");
+        should(dataType.binaryEncoding?.browseName.toString()).eql("Default Binary");
 
         // const tmpFile = await fs.promises.mkdtemp(os.tmpdir() + "test.NodeSet2.xml", "utf-8");
         const tmpFile = path.join(os.tmpdir(), "test.NodeSet2.xml");

@@ -1,7 +1,6 @@
-import "should";
-
 import { CertificatePurpose, convertPEMtoDER, createSelfSignedCertificate, generateKeyPair } from "node-opcua-crypto/web";
 import { MessageSecurityMode } from "node-opcua-types";
+import should from "should";
 
 import { SessionContext } from "..";
 import { makeMockSessionContext } from "../testHelpers.js";
@@ -25,7 +24,7 @@ describe("US-035: ISessionContext.clientCertificate / clientApplicationUri", () 
     it("should return certificate from the channel", () => {
         const fakeCert = Buffer.from("fake-cert-data");
         const ctx = makeMockSessionContext({ clientCertificate: fakeCert, securityMode: MessageSecurityMode.SignAndEncrypt });
-        ctx.clientCertificate?.should.eql(fakeCert);
+        should(ctx.clientCertificate).eql(fakeCert);
     });
 
     it("should extract applicationUri from a real self-signed certificate", async () => {
@@ -43,8 +42,8 @@ describe("US-035: ISessionContext.clientCertificate / clientApplicationUri", () 
         const certDer = convertPEMtoDER(certPem);
 
         const ctx = makeMockSessionContext({ clientCertificate: certDer, securityMode: MessageSecurityMode.SignAndEncrypt });
-        ctx.clientCertificate?.should.be.instanceOf(Buffer);
-        ctx.clientApplicationUri?.should.eql(applicationUri);
+        should(ctx.clientCertificate).be.instanceOf(Buffer);
+        should(ctx.clientApplicationUri).eql(applicationUri);
     });
 
     it("should return null applicationUri for invalid certificate data", () => {

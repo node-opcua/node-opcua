@@ -31,7 +31,7 @@ describe("testing findReferencesEx", () => {
             if (!reference.node?.modellingRule) {
                 return false;
             }
-            (typeof reference.node?.modellingRule === "string").should.eql(true);
+            (typeof reference.node!.modellingRule === "string").should.eql(true);
             return reference.node?.modellingRule === "Mandatory" || reference.node?.modellingRule === "Optional";
         }
 

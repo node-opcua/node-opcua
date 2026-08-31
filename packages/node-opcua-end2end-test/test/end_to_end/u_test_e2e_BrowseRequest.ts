@@ -1,4 +1,3 @@
-import "should";
 import {
     BrowseDescription,
     BrowseDirection,
@@ -12,6 +11,7 @@ import {
     StatusCodes
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 interface SessionWithTransaction {
@@ -108,8 +108,8 @@ export function t(test: UmbrellaTestContext) {
                 nodesToBrowse: [browseDesc]
             });
             let response = await performMessageTransaction<BrowseResponse>(session, browseRequest1);
-            response.results![0].statusCode.should.eql(StatusCodes.Good);
-            response.results![0].references!.length.should.be.greaterThan(3);
+            should(response.results?.[0].statusCode).eql(StatusCodes.Good);
+            should(response.results?.[0].references?.length).be.greaterThan(3);
             (response.results![0].continuationPoint === null).should.eql(true);
 
             // small limit -> continuation point expected
@@ -118,8 +118,8 @@ export function t(test: UmbrellaTestContext) {
                 nodesToBrowse: [browseDesc]
             });
             response = await performMessageTransaction<BrowseResponse>(session, browseRequest2);
-            response.results![0].statusCode.should.eql(StatusCodes.Good);
-            response.results![0].references!.length.should.eql(1);
+            should(response.results?.[0].statusCode).eql(StatusCodes.Good);
+            should(response.results?.[0].references?.length).eql(1);
             (response.results![0].continuationPoint !== null).should.eql(true);
         });
 
@@ -144,8 +144,8 @@ export function t(test: UmbrellaTestContext) {
                 nodesToBrowse: [browseDesc]
             });
             let resp = await performMessageTransaction<BrowseResponse>(session, fullReq);
-            resp.results![0].statusCode.should.eql(StatusCodes.Good);
-            resp.results![0].references!.length.should.be.greaterThan(3);
+            should(resp.results?.[0].statusCode).eql(StatusCodes.Good);
+            should(resp.results?.[0].references?.length).be.greaterThan(3);
             const allReferences = resp.results![0].references!;
 
             // limited browse to receive continuation point
@@ -154,11 +154,11 @@ export function t(test: UmbrellaTestContext) {
                 nodesToBrowse: [browseDesc]
             });
             resp = await performMessageTransaction<BrowseResponse>(session, limitedReq);
-            resp.results!.length.should.eql(1);
-            resp.results![0].statusCode.should.eql(StatusCodes.Good);
-            resp.results![0].references!.length.should.eql(2);
-            resp.results![0].references![0].should.eql(allReferences[0]);
-            resp.results![0].references![1].should.eql(allReferences[1]);
+            should(resp.results?.length).eql(1);
+            should(resp.results?.[0].statusCode).eql(StatusCodes.Good);
+            should(resp.results?.[0].references?.length).eql(2);
+            should(resp.results?.[0].references?.[0]).eql(allReferences[0]);
+            should(resp.results?.[0].references?.[1]).eql(allReferences[1]);
             const continuationPoint = resp.results![0].continuationPoint;
             (continuationPoint !== null).should.eql(true);
 
@@ -166,9 +166,9 @@ export function t(test: UmbrellaTestContext) {
             const browseNextRequest1 = new BrowseNextRequest({ continuationPoints: [continuationPoint] });
             let respNext = await performMessageTransaction<BrowseNextResponse>(session, browseNextRequest1);
             respNext.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-            respNext.results![0].references!.length.should.eql(2);
-            respNext.results![0].references![0].should.eql(allReferences[2]);
-            respNext.results![0].references![1].should.eql(allReferences[3]);
+            should(respNext.results?.[0].references?.length).eql(2);
+            should(respNext.results?.[0].references?.[0]).eql(allReferences[2]);
+            should(respNext.results?.[0].references?.[1]).eql(allReferences[3]);
             (respNext.results![0].continuationPoint === null).should.eql(true);
 
             // reusing exhausted continuationPoint should yield BadContinuationPointInvalid
@@ -178,7 +178,7 @@ export function t(test: UmbrellaTestContext) {
             });
             respNext = await performMessageTransaction<BrowseNextResponse>(session, browseNextRequest2);
             respNext.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-            respNext.results![0].statusCode.should.eql(StatusCodes.BadContinuationPointInvalid);
+            should(respNext.results?.[0].statusCode).eql(StatusCodes.BadContinuationPointInvalid);
         });
 
         const IT = test.server ? it : xit;
@@ -200,7 +200,7 @@ export function t(test: UmbrellaTestContext) {
                     session,
                     new BrowseRequest({ requestedMaxReferencesPerNode: 10, nodesToBrowse: [browseDesc] })
                 );
-                respAll.results![0].references!.length.should.be.greaterThan(3);
+                should(respAll.results?.[0].references?.length).be.greaterThan(3);
                 const allReferences = respAll.results![0].references!;
 
                 // first limited browse (max 1)
@@ -208,8 +208,8 @@ export function t(test: UmbrellaTestContext) {
                     session,
                     new BrowseRequest({ requestedMaxReferencesPerNode: 1, nodesToBrowse: [browseDesc] })
                 );
-                resp1.results![0].references!.length.should.eql(1);
-                resp1.results![0].references![0].should.eql(allReferences[0]);
+                should(resp1.results?.[0].references?.length).eql(1);
+                should(resp1.results?.[0].references?.[0]).eql(allReferences[0]);
                 const continuationPoint = resp1.results![0].continuationPoint;
                 (continuationPoint !== null).should.eql(true);
 
@@ -218,8 +218,8 @@ export function t(test: UmbrellaTestContext) {
                     session,
                     new BrowseNextRequest({ releaseContinuationPoints: false, continuationPoints: [continuationPoint] })
                 );
-                bn1.results![0].references!.length.should.eql(1);
-                bn1.results![0].references![0].should.eql(allReferences[1]);
+                should(bn1.results?.[0].references?.length).eql(1);
+                should(bn1.results?.[0].references?.[0]).eql(allReferences[1]);
                 (bn1.results![0].continuationPoint !== null).should.eql(true);
 
                 // BrowseNext release continuation (now empty)
@@ -227,7 +227,7 @@ export function t(test: UmbrellaTestContext) {
                     session,
                     new BrowseNextRequest({ releaseContinuationPoints: true, continuationPoints: [continuationPoint] })
                 );
-                bn2.results![0].references!.length.should.eql(0);
+                should(bn2.results?.[0].references?.length).eql(0);
                 (bn2.results![0].continuationPoint === null).should.eql(true);
             }
             await test_5_7_2__9("ns=0;i=2253");

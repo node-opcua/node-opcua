@@ -215,7 +215,7 @@ describe("Testing AutoID custom types", async function (this: Mocha.Suite) {
 
             //Xx console.log(dataTypeDefinition.toString());
             const structureDefinition = dataTypeDefinition as StructureDefinition;
-            structureDefinition.fields?.length.should.eql(4);
+            should(structureDefinition.fields?.length).eql(4);
         }
         const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
 
@@ -227,7 +227,7 @@ describe("Testing AutoID custom types", async function (this: Mocha.Suite) {
 
             //Xx console.log(dataTypeDefinition.toString());
             const structureDefinition = dataTypeDefinition as StructureDefinition;
-            structureDefinition.fields?.length.should.eql(5);
+            should(structureDefinition.fields?.length).eql(5);
         }
     });
     it("GHU-2 - should promote the OpaqueStructure of an array of variant containing Extension Object", async () => {
@@ -254,11 +254,11 @@ describe("Testing AutoID custom types", async function (this: Mocha.Suite) {
         const reload_v2 = encode_decode(v);
         reload_v2.value.should.be.instanceOf(CallMethodResult);
         const callbackResult2 = reload_v2.value as CallMethodResult;
-        callbackResult2.outputArguments?.length.should.eql(1);
-        callbackResult2.outputArguments?.[0].dataType.should.eql(DataType.ExtensionObject);
-        callbackResult2.outputArguments?.[0].value.length.should.eql(2);
-        callbackResult2.outputArguments?.[0].value[0].should.be.instanceOf(OpaqueStructure);
-        callbackResult2.outputArguments?.[0].value[1].should.be.instanceOf(OpaqueStructure);
+        should(callbackResult2.outputArguments?.length).eql(1);
+        should(callbackResult2.outputArguments?.[0].dataType).eql(DataType.ExtensionObject);
+        should(callbackResult2.outputArguments?.[0].value.length).eql(2);
+        should(callbackResult2.outputArguments?.[0].value[0]).be.instanceOf(OpaqueStructure);
+        should(callbackResult2.outputArguments?.[0].value[1]).be.instanceOf(OpaqueStructure);
 
         const session = new PseudoSession(addressSpace);
         const _extraDataTypeManager = await getExtraDataTypeManager(session);
@@ -267,8 +267,8 @@ describe("Testing AutoID custom types", async function (this: Mocha.Suite) {
             callbackResult2.outputArguments!.map((a) => ({ value: a }))
         );
 
-        callbackResult2.outputArguments?.[0].value[0].should.not.be.instanceOf(OpaqueStructure);
-        callbackResult2.outputArguments?.[0].value[1].should.not.be.instanceOf(OpaqueStructure);
+        should(callbackResult2.outputArguments?.[0].value[0]).not.be.instanceOf(OpaqueStructure);
+        should(callbackResult2.outputArguments?.[0].value[1]).not.be.instanceOf(OpaqueStructure);
 
         debugLog(reload_v2.toString());
     });
@@ -380,9 +380,9 @@ describe("resolving Opaque Structure", function () {
         const dataValue = await session.read({ nodeId: "ns=4;i=3007", attributeId: AttributeIds.DataTypeDefinition });
         // console.log(dataValue.value.toString());
         const def = dataValue.value.value as StructureDefinition;
-        def.fields?.length.should.eql(5);
-        def.fields?.[4].name?.should.eql("Sighting");
-        def.fields?.[4].valueRank.should.eql(1);
+        should(def.fields?.length).eql(5);
+        should(def.fields?.[4].name).eql("Sighting");
+        should(def.fields?.[4].valueRank).eql(1);
     });
 
     it("GHV-3 should decode this opaque structure", async () => {

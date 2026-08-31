@@ -49,14 +49,14 @@ export function t(test: UmbrellaTestContext) {
                 const { inputArguments, outputArguments } = args;
 
                 inputArguments.length.should.equal(1);
-                inputArguments[0].name?.should.equal("SubscriptionId");
+                should(inputArguments[0].name).equal("SubscriptionId");
                 inputArguments[0].dataType.toString().should.equal("ns=0;i=7");
 
                 outputArguments.length.should.equal(2);
-                outputArguments[0].name?.should.equal("ServerHandles");
+                should(outputArguments[0].name).equal("ServerHandles");
                 outputArguments[0].dataType.toString().should.equal("ns=0;i=7");
 
-                outputArguments[1].name?.should.equal("ClientHandles");
+                should(outputArguments[1].name).equal("ClientHandles");
                 outputArguments[1].dataType.toString().should.equal("ns=0;i=7");
             });
         });
@@ -80,10 +80,10 @@ export function t(test: UmbrellaTestContext) {
 
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 const results = await session.call(methodsToCall);
-                results[0].inputArgumentResults?.length.should.eql(1);
-                results[0].inputArgumentResults?.[0].should.eql(StatusCodes.Good);
+                should(results[0].inputArgumentResults?.length).eql(1);
+                should(results[0].inputArgumentResults?.[0]).eql(StatusCodes.Good);
                 results[0].statusCode.should.eql(StatusCodes.BadSubscriptionIdInvalid);
-                results[0].outputArguments?.length.should.eql(0);
+                should(results[0].outputArguments?.length).eql(0);
             });
         });
 
@@ -100,14 +100,14 @@ export function t(test: UmbrellaTestContext) {
 
                 const results = await session.call(methodsToCall);
 
-                results[0].inputArgumentResults?.length.should.eql(1);
-                results[0].inputArgumentResults?.[0].should.eql(StatusCodes.Good);
+                should(results[0].inputArgumentResults?.length).eql(1);
+                should(results[0].inputArgumentResults?.[0]).eql(StatusCodes.Good);
 
                 results[0].statusCode.should.eql(StatusCodes.Good);
 
-                results[0].outputArguments?.length.should.eql(2);
-                results[0].outputArguments?.[0].should.be.instanceOf(Variant);
-                results[0].outputArguments?.[1].should.be.instanceOf(Variant);
+                should(results[0].outputArguments?.length).eql(2);
+                should(results[0].outputArguments?.[0]).be.instanceOf(Variant);
+                should(results[0].outputArguments?.[1]).be.instanceOf(Variant);
             });
         });
 
@@ -129,8 +129,8 @@ export function t(test: UmbrellaTestContext) {
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 const results = await session.call(methodsToCall);
                 results[0].statusCode.should.eql(StatusCodes.BadTypeMismatch);
-                results[0].inputArgumentResults?.length.should.eql(1);
-                results[0].inputArgumentResults?.[0].should.eql(StatusCodes.BadTypeMismatch);
+                should(results[0].inputArgumentResults?.length).eql(1);
+                should(results[0].inputArgumentResults?.[0]).eql(StatusCodes.BadTypeMismatch);
             });
         });
 
@@ -148,8 +148,8 @@ export function t(test: UmbrellaTestContext) {
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 const results = await session.call(methodsToCall);
                 results[0].statusCode.should.eql(StatusCodes.BadTypeMismatch);
-                results[0].inputArgumentResults?.length.should.eql(1);
-                results[0].inputArgumentResults?.[0].should.eql(StatusCodes.BadTypeMismatch);
+                should(results[0].inputArgumentResults?.length).eql(1);
+                should(results[0].inputArgumentResults?.[0]).eql(StatusCodes.BadTypeMismatch);
             });
         });
 
@@ -168,8 +168,8 @@ export function t(test: UmbrellaTestContext) {
                 const results = await session.call(methodsToCall);
                 results.length.should.eql(many_calls);
                 results.forEach((result) => {
-                    result.inputArgumentResults?.length.should.eql(1);
-                    result.inputArgumentResults?.[0].should.eql(StatusCodes.Good);
+                    should(result.inputArgumentResults?.length).eql(1);
+                    should(result.inputArgumentResults?.[0]).eql(StatusCodes.Good);
                 });
             });
         });
@@ -285,9 +285,9 @@ export function t(test: UmbrellaTestContext) {
                 results.length.should.eql(1);
                 results[0].statusCode.should.equalOneOf(StatusCodes.BadTypeMismatch, StatusCodes.BadInvalidArgument);
 
-                results[0].inputArgumentResults?.should.be.instanceOf(Array);
-                results[0].inputArgumentResults?.length.should.eql(1);
-                results[0].inputArgumentResults?.[0].should.eql(StatusCodes.BadTypeMismatch);
+                should(results[0].inputArgumentResults).be.instanceOf(Array);
+                should(results[0].inputArgumentResults?.length).eql(1);
+                should(results[0].inputArgumentResults?.[0]).eql(StatusCodes.BadTypeMismatch);
             });
         });
 
@@ -452,13 +452,13 @@ export function t(test: UmbrellaTestContext) {
                 const results = await session.translateBrowsePath(browsePaths);
                 //xx console.log(results[0].toString());
                 results[0].statusCode.should.eql(StatusCodes.Good);
-                results[0].targets?.length.should.eql(1);
-                results[0].targets?.[0].targetId.toString().should.eql("ns=0;i=11493");
+                should(results[0].targets?.length).eql(1);
+                should(results[0].targets?.[0].targetId.toString()).eql("ns=0;i=11493");
 
                 //xx console.log(results[1].toString());
                 results[1].statusCode.should.eql(StatusCodes.Good);
-                results[1].targets?.length.should.eql(1);
-                results[1].targets?.[0].targetId.toString().should.eql("ns=0;i=11494");
+                should(results[1].targets?.length).eql(1);
+                should(results[1].targets?.[0].targetId.toString()).eql("ns=0;i=11494");
             });
         });
     });

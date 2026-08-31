@@ -1,7 +1,7 @@
+import should from "should";
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 import { get_mini_nodeset_filename } from "../testHelpers.js";
-import "should";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
@@ -30,10 +30,10 @@ describe("setDescription", () => {
             description: { locale: "fr", text: "Ma Variable" }
         });
 
-        uaVariable.description.text?.should.eql("Ma Variable");
+        should(uaVariable.description.text).eql("Ma Variable");
 
         uaVariable.setDescription({ locale: "fi", text: "minun muuttujani" });
 
-        uaVariable.description.text?.should.eql("minun muuttujani");
+        should(uaVariable.description.text).eql("minun muuttujani");
     });
 });

@@ -94,9 +94,9 @@ describe("testing UADataType -  Attribute", () => {
         const definition = dataType.getStructureDefinition();
         definition.should.be.instanceOf(StructureDefinition);
 
-        definition.fields?.length.should.eql(1);
-        definition.fields?.[0].name?.should.eql("Value");
+        should(definition.fields?.length).eql(1);
+        should(definition.fields?.[0].name).eql("Value");
         // Must be BaseDataType (ns=0;i=24), not Null NodeId (ns=0;i=0)
-        definition.fields?.[0].dataType.toString().should.eql("ns=0;i=24");
+        should(definition.fields?.[0].dataType.toString()).eql("ns=0;i=24");
     });
 });

@@ -1,4 +1,3 @@
-import "should";
 import {
     AttributeIds,
     BrowseDirection,
@@ -13,6 +12,7 @@ import {
     VariableIds,
     Variant
 } from "node-opcua";
+import should from "should";
 import sinon from "sinon";
 import { waitUntilCondition } from "../../test_helpers/utils.js";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
@@ -316,10 +316,10 @@ export function t(test: UmbrellaTestContext) {
                 return await countNumberOfExposedSessionDiagnostics();
             });
 
-            nbSessionDiagnosticsStep1!.should.eql(nbSessionDiagnosticsStep! - 1);
+            should(nbSessionDiagnosticsStep1).eql(nbSessionDiagnosticsStep! - 1);
 
             const nbSessionDiagnosticsStep2 = await countNumberOfExposedSessionDiagnostics();
-            nbSessionDiagnosticsStep1!.should.eql(nbSessionDiagnosticsStep2);
+            should(nbSessionDiagnosticsStep1).eql(nbSessionDiagnosticsStep2);
         });
     });
 }

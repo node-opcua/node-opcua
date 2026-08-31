@@ -1,4 +1,4 @@
-import "should";
+import should from "should";
 
 import * as endpoints_service from "../dist/index.js";
 
@@ -14,8 +14,8 @@ describe(" EndPoint Service", () => {
         endpointRequest.should.have.property("localeIds");
         endpointRequest.should.have.property("profileUris");
 
-        endpointRequest.localeIds!.should.be.instanceOf(Array);
-        endpointRequest.profileUris!.should.be.instanceOf(Array);
+        should(endpointRequest.localeIds).be.instanceOf(Array);
+        should(endpointRequest.profileUris).be.instanceOf(Array);
     });
 
     it(" should create a GetEndPointResponse", () => {

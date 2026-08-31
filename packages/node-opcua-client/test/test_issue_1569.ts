@@ -113,7 +113,7 @@ describe("issue #1569 - lastResponseReceivedTime must only reflect genuine serve
                 try {
                     if (testCase.errMatch) {
                         (err === null).should.eql(false, "an error was expected");
-                        err!.message.should.match(testCase.errMatch);
+                        should(err?.message).match(testCase.errMatch);
                     } else {
                         (err === null).should.eql(true, `no error expected, got ${err?.message}`);
                     }
@@ -233,7 +233,10 @@ describe("issue #1569 - lastResponseReceivedTime must only reflect genuine serve
 
         (annotated === null).should.eql(false, "the callback must have been called");
         should(annotated!.serviceDiagnostics).be.instanceOf(DiagnosticInfo);
-        annotated!.serviceDiagnostics!.additionalInfo!.should.eql("account is locked");
+        // assigned in a callback, so TypeScript narrows it to null here
+        should((annotated as (Error & { serviceDiagnostics?: DiagnosticInfo }) | null)?.serviceDiagnostics?.additionalInfo).eql(
+            "account is locked"
+        );
     });
     it("should decay evaluateRemainingLifetime() during an outage", () => {
         // the estimate used to be anchored on the last *send*, which a client that keeps

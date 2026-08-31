@@ -50,7 +50,7 @@ describe("Test object instantiate when organizes references exists", () => {
             browseName: "MyInstance",
             organizedBy: addressSpace.rootFolder.objects
         });
-        objInstance.typeDefinitionObj.browseName.name?.should.eql("MyObjectType");
+        should(objInstance.typeDefinitionObj.browseName.name).eql("MyObjectType");
 
         const folder1InInstance = objInstance.getFolderElementByName("Folder1");
         // console.log(folder1InInstance?.toString());
@@ -107,12 +107,12 @@ describe("Test object instantiate when organizes references exists", () => {
             browseName: "MyInstance",
             organizedBy: addressSpace.rootFolder.objects
         });
-        objInstance.typeDefinitionObj.browseName.name?.should.eql("MyObjectType");
+        should(objInstance.typeDefinitionObj.browseName.name).eql("MyObjectType");
 
         const parameter1InInstanceAsStoredInParameterSet = objInstance
             .getChildByName("ParameterSet", 1)!
             .getChildByName("Parameter1")!;
-        parameter1InInstanceAsStoredInParameterSet.browseName.name?.should.eql("Parameter1");
+        should(parameter1InInstanceAsStoredInParameterSet.browseName.name).eql("Parameter1");
 
         const folder1InInstance = objInstance.getFolderElementByName("Folder1");
         // console.log(folder1InInstance?.toString());
@@ -120,7 +120,7 @@ describe("Test object instantiate when organizes references exists", () => {
         should.exist(folder1InInstance, "Element organized by should be instantiates");
         should.not.exist(folder1InInstance?.modellingRule, "folder1 in instance must not have a modelling rule");
 
-        folder1InInstance?.findReferencesEx("Organizes", BrowseDirection.Forward).length.should.eql(1);
+        should(folder1InInstance?.findReferencesEx("Organizes", BrowseDirection.Forward).length).eql(1);
         const parameter1InInstanceAsStoredInFolder1 = folder1InInstance!.findReferencesExAsObject(
             "Organizes",
             BrowseDirection.Forward
@@ -170,12 +170,12 @@ describe("Test object instantiate when organizes references exists", () => {
             browseName: "MyInstance",
             organizedBy: addressSpace.rootFolder.objects
         });
-        objInstance.typeDefinitionObj.browseName.name?.should.eql("MyObjectType");
+        should(objInstance.typeDefinitionObj.browseName.name).eql("MyObjectType");
 
         const parameter1InInstanceAsStoredInParameterSet = objInstance
             .getChildByName("ParameterSet", 1)!
             .getChildByName("Parameter1")!;
-        parameter1InInstanceAsStoredInParameterSet.browseName.name?.should.eql("Parameter1");
+        should(parameter1InInstanceAsStoredInParameterSet.browseName.name).eql("Parameter1");
 
         const folder1InInstance = objInstance.getFolderElementByName("Folder1");
         // console.log(folder1InInstance?.toString());
@@ -183,7 +183,7 @@ describe("Test object instantiate when organizes references exists", () => {
         should.exist(folder1InInstance, "Element organized by should be instantiates");
         should.not.exist(folder1InInstance?.modellingRule, "folder1 in instance must not have a modelling rule");
 
-        folder1InInstance?.findReferencesEx("Organizes", BrowseDirection.Forward).length.should.eql(1);
+        should(folder1InInstance?.findReferencesEx("Organizes", BrowseDirection.Forward).length).eql(1);
         const parameter1InInstanceAsStoredInFolder1 = folder1InInstance!.findReferencesExAsObject(
             "Organizes",
             BrowseDirection.Forward

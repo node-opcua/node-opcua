@@ -214,6 +214,6 @@ describe("Test low level routine for typescript d.ts creation", () => {
         const parentNodeId = sessionDiagnosticsVariable.nodeId;
         const classDef = await extractClassDefinition(session, parentNodeId, cache)!;
         // console.log(classDef);
-        classDef.baseInterfaceName!.name.should.eql("UABaseDataVariable");
+        should(classDef.baseInterfaceName?.name).eql("UABaseDataVariable");
     });
 });

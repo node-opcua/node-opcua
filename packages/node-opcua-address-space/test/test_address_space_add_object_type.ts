@@ -41,7 +41,7 @@ function createMachineType(addressSpace: AddressSpace): MockMachineType {
     });
 
     should.exist(machineTypeNode.temperatureSensor);
-    machineTypeTemperatureSensorNode.modellingRule?.should.eql("Mandatory");
+    should(machineTypeTemperatureSensorNode.modellingRule).eql("Mandatory");
 
     // MachineType.HeaderSwitch
     const machineTypeHeaderSwitchNode = namespace.addVariable({
@@ -131,7 +131,7 @@ describe("testing add new ObjectType ", () => {
         const specialTemperatureSensorTypeNode = createSpecialTempSensorType(addressSpace);
         specialTemperatureSensorTypeNode.nodeClass.should.eql(NodeClass.ObjectType);
 
-        specialTemperatureSensorTypeNode.subtypeOfObj?.browseName.toString().should.eql("1:TemperatureSensorType");
+        should(specialTemperatureSensorTypeNode.subtypeOfObj?.browseName.toString()).eql("1:TemperatureSensorType");
 
         const specialSensor = specialTemperatureSensorTypeNode.instantiate({
             browseName: "mySpecialSensor",
@@ -166,13 +166,12 @@ describe("testing add new ObjectType ", () => {
         cameraType.getComponents()[0].nodeId.toString().should.not.eql(c[0].nodeId.toString());
         cameraType.getComponents()[0].browseName.toString().should.eql("1:Trigger");
 
-        cameraType.getMethodByName("Trigger")?.nodeClass.should.eql(NodeClass.Method);
-        camera1.getMethodByName("Trigger")?.nodeClass.should.eql(NodeClass.Method);
+        should(cameraType.getMethodByName("Trigger")?.nodeClass).eql(NodeClass.Method);
+        should(camera1.getMethodByName("Trigger")?.nodeClass).eql(NodeClass.Method);
 
-        camera1
-            .getMethodByName("Trigger")
-            ?.methodDeclarationId.toString()
-            .should.eql(cameraType.getMethodByName("Trigger")?.nodeId.toString());
+        should(camera1.getMethodByName("Trigger")?.methodDeclarationId.toString()).eql(
+            cameraType.getMethodByName("Trigger")?.nodeId.toString()
+        );
 
         camera1.trigger.nodeId.namespace.should.eql(1);
         camera1.pictureTakenCount.nodeId.namespace.should.eql(1);
@@ -193,7 +192,7 @@ describe("testing add new ObjectType ", () => {
         camera.browseName.toString().should.eql(`${namespace.index}:Camera2`);
 
         camera.nodeId.namespace.should.eql(namespace.index);
-        camera.getMethodByName("Trigger")?.nodeId.namespace.should.eql(namespace.index);
+        should(camera.getMethodByName("Trigger")?.nodeId.namespace).eql(namespace.index);
 
         camera.pictureTakenCount.browseName.toString().should.eql("1:PictureTakenCount");
         camera.pictureTakenCount.nodeId.namespace.should.eql(namespace.index);

@@ -37,6 +37,6 @@ describe("testing 2 servers on same port ", () => {
         // note : on WSL (windows subsystem for Linux), it seems possible that
         //        two servers could listen to the same port
         should.exist(_err, "trying to start a second server on a port that is already in used shall produce an error");
-        _err?.should.be.instanceOf(Error);
+        should(_err).be.instanceOf(Error);
     });
 });

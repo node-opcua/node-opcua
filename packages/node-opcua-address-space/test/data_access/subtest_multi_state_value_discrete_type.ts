@@ -63,7 +63,7 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
             multiStateDiscreteVariable.readValue().value.toString().should.eql("Variant(Scalar<UInt32>, value: 16711680)");
             multiStateDiscreteVariable.readValue().value.dataType.should.eql(DataType.UInt32);
 
-            multiStateDiscreteVariable.valueAsText.readValue().value.value.text?.should.eql("Red");
+            should(multiStateDiscreteVariable.valueAsText.readValue().value.value.text).eql("Red");
         });
         it("should add a MultiStateValueDiscreteType variable - form 2", () => {
             const objectsFolder = addressSpace.rootFolder.objects;
@@ -221,7 +221,7 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
                 // Xx console.log(  multiStateValue.readValue().toString());
                 // Xx console.log(  multiStateValue.valueAsText.readValue().toString());
 
-                multiStateValueDiscreteVariable.valueAsText.readValue().value.value.text?.should.eql("Blue");
+                should(multiStateValueDiscreteVariable.valueAsText.readValue().value.value.text).eql("Blue");
             });
 
             it("changing MultiStateVariable value shall change valueAsText accordingly", async () => {
@@ -242,7 +242,7 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
                 // await new Promise((resolve) => setTimeout(resolve, 100));
 
                 statusCode.should.eql(StatusCodes.Good);
-                multiStateValueDiscreteVariable.valueAsText.readValue().value.value.text?.should.eql("Green");
+                should(multiStateValueDiscreteVariable.valueAsText.readValue().value.value.text).eql("Green");
             });
 
             it("UAMultiStateValueDiscreteVariable#setValue - 1", () => {
@@ -292,16 +292,16 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
 
             // verification
             obj.color.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-            obj.color.valueAsText.readValue().value.value.text?.should.eql("Red");
+            should(obj.color.valueAsText.readValue().value.value.text).eql("Red");
             obj.color.readValue().value.value.should.eql(0xff0000);
 
             // console.log("obj.color.enumValues.readValue().value.value ", obj.color.enumValues.readValue().value.value);
 
             const arr = obj.color.enumValues.readValue().value.value as unknown as EnumValueType[];
-            arr[0].displayName.text?.should.eql("Red");
-            arr[1].displayName.text?.should.eql("Orange");
-            arr[2].displayName.text?.should.eql("Green");
-            arr[3].displayName.text?.should.eql("Blue");
+            should(arr[0].displayName.text).eql("Red");
+            should(arr[1].displayName.text).eql("Orange");
+            should(arr[2].displayName.text).eql("Green");
+            should(arr[3].displayName.text).eql("Blue");
 
             const greenValue = obj.color.enumValues.readValue().value.value[2].value[1];
             // now change the value => verify that valueAsText will change accordingly
@@ -314,16 +314,16 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
             statusCode.should.eql(StatusCodes.Good);
 
             // now verify that valueAsText has been updated accordingly...
-            obj.color.valueAsText.readValue().value.value.text?.should.eql("Green");
+            should(obj.color.valueAsText.readValue().value.value.text).eql("Green");
 
             // it
             obj.color.setValue("Green");
             obj.color.getValueAsString().should.eql("Green");
-            obj.color.valueAsText.readValue().value.value.text?.should.eql("Green");
+            should(obj.color.valueAsText.readValue().value.value.text).eql("Green");
 
             obj.color.setValue("Blue");
             obj.color.getValueAsString().should.eql("Blue");
-            obj.color.valueAsText.readValue().value.value.text?.should.eql("Blue");
+            should(obj.color.valueAsText.readValue().value.value.text).eql("Blue");
         });
 
         it("should handle value=0 appropriately (fixes issue #1323", () => {
@@ -351,7 +351,7 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
             >;
             // verification
             multiStateValueDiscrete1323.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-            multiStateValueDiscrete1323.valueAsText.readValue().value.value.text?.should.eql("Zero");
+            should(multiStateValueDiscrete1323.valueAsText.readValue().value.value.text).eql("Zero");
             multiStateValueDiscrete1323.readValue().value.value.should.eql(coerceInt64(0));
 
             multiStateValueDiscrete1323.setValue("One");
@@ -465,7 +465,7 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
                 const initialEnumName = toEnumName(initialValue);
                 // verification
                 multiStateValueDiscrete1323.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-                multiStateValueDiscrete1323.valueAsText.readValue().value.value.text?.should.eql(initialEnumName);
+                should(multiStateValueDiscrete1323.valueAsText.readValue().value.value.text).eql(initialEnumName);
                 multiStateValueDiscrete1323.readValue().value.value.should.eql(coerce(initialValue));
 
                 for (let index = 0; index < values.length; index++) {

@@ -114,8 +114,8 @@ describe("AddressSpace#delete", () => {
         });
 
         parentNode.getComponents().length.should.eql(1);
-        parentNode.getChildByName("ChildNode")?.should.eql(childNode);
-        parentNode.childNode?.should.eql(childNode);
+        should(parentNode.getChildByName("ChildNode")).eql(childNode);
+        should(parentNode.childNode).eql(childNode);
 
         addressSpace.deleteNode(childNode);
 
@@ -135,8 +135,8 @@ describe("AddressSpace#delete", () => {
         });
 
         parentNode.getComponents().length.should.eql(1);
-        parentNode.getChildByName("ChildNode")?.should.eql(childNode);
-        parentNode.childNode?.should.eql(childNode);
+        should(parentNode.getChildByName("ChildNode")).eql(childNode);
+        should(parentNode.childNode).eql(childNode);
 
         addressSpace.deleteNode(childNode);
 
@@ -150,8 +150,8 @@ describe("AddressSpace#delete", () => {
         });
 
         parentNode.getComponents().length.should.eql(1);
-        parentNode.getChildByName("ChildNode")?.should.eql(childNodeAgain);
-        parentNode.childNode?.should.eql(childNodeAgain);
+        should(parentNode.getChildByName("ChildNode")).eql(childNodeAgain);
+        should(parentNode.childNode).eql(childNodeAgain);
     });
 });
 

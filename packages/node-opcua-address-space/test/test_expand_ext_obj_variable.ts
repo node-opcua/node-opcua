@@ -101,7 +101,7 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
             StatusCodes.Good,
             new Date(Date.UTC(nextYear, 0, 1, 0, 0, 0))
         );
-        uaVariable.readValue().sourceTimestamp?.toISOString().should.eql(`${nextYear}-01-01T00:00:00.000Z`);
+        should(uaVariable.readValue().sourceTimestamp?.toISOString()).eql(`${nextYear}-01-01T00:00:00.000Z`);
 
         uaVariable.installExtensionObjectVariables();
         return uaVariable;
@@ -243,7 +243,7 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
 
                 const el0 = uaVariable.getComponentByName("0") as UAVariable;
                 sameNodeId(el0.dataType, uaVariable.dataType).should.eql(true);
-                el0?.nodeId.toString().should.eql(`${uaVariable.nodeId?.toString()}[0]`);
+                should(el0?.nodeId.toString()).eql(`${uaVariable.nodeId?.toString()}[0]`);
 
                 const el1 = uaVariable.getComponentByName("1") as UAVariable;
                 sameNodeId(el1.dataType, uaVariable.dataType).should.eql(true);
@@ -437,7 +437,7 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
                     const dataValue = uaVariable.readValue();
                     dataValue.value.dataType.should.eql(DataType.ExtensionObject);
                     dataValue.value.arrayType.should.eql(VariantArrayType.Matrix);
-                    dataValue.value.dimensions?.should.eql([2, 3]);
+                    should(dataValue.value.dimensions).eql([2, 3]);
 
                     const dataValue00 = el00.readValue();
                     dataValue00.value.dataType.should.eql(DataType.ExtensionObject);

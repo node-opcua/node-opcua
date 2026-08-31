@@ -26,9 +26,9 @@ import {
     type UInt32,
     VariantArrayType
 } from "node-opcua";
-import "should";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 const debugLog = make_debugLog("TEST");
@@ -209,7 +209,7 @@ export function t(test: UmbrellaTestContext) {
 
             // get a partial notification , but do not go to completion
             const dataChangeNotification = await waitForDataChangeNotification();
-            dataChangeNotification?.monitoredItems?.length.should.eql(2);
+            should(dataChangeNotification?.monitoredItems?.length).eql(2);
 
             await group.terminate();
 

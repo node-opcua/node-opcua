@@ -1,4 +1,3 @@
-import "should";
 import {
     type ActivateSessionResponse,
     type CreateSessionResponse,
@@ -9,6 +8,7 @@ import {
     SecurityPolicy
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import sinon from "sinon";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
 
@@ -48,7 +48,7 @@ describe("testing server with restricted securityModes - Given a server with a s
 
     it("should not connect with SecurityMode==None", async () => {
         const err = await attemptConnection();
-        err!.message.should.match(/The connection may have been rejected by server/);
+        should(err?.message).match(/The connection may have been rejected by server/);
     });
 
     it("should not connect with SecurityMode==Sign/Basic256Sha256", async () => {
@@ -56,25 +56,25 @@ describe("testing server with restricted securityModes - Given a server with a s
             securityMode: MessageSecurityMode.Sign,
             securityPolicy: SecurityPolicy.Basic256Sha256
         });
-        err!.message.should.match(/The connection may have been rejected by server/);
+        should(err?.message).match(/The connection may have been rejected by server/);
     });
     it("should not connect with  SecurityMode SignAndEncrypt / Basic256", async () => {
         const err = await attemptConnection({ securityMode: MessageSecurityMode.Sign, securityPolicy: SecurityPolicy.Basic256 });
-        err!.message.should.match(/The connection may have been rejected by server/);
+        should(err?.message).match(/The connection may have been rejected by server/);
     });
     it("should not connect with  SecurityMode SignAndEncrypt / Basic128Rsa15", async () => {
         const err = await attemptConnection({
             securityMode: MessageSecurityMode.Sign,
             securityPolicy: SecurityPolicy.Basic128Rsa15
         });
-        err!.message.should.match(/The connection may have been rejected by server/);
+        should(err?.message).match(/The connection may have been rejected by server/);
     });
     it("should connect with  SecurityMode SignAndEncrypt / Basic256Sha256  (but server only offers Aes128_Sha256_RsaOaep so expect rejection)", async () => {
         const err = await attemptConnection({
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256
         });
-        err!.message.should.match(/The connection may have been rejected by server/);
+        should(err?.message).match(/The connection may have been rejected by server/);
     });
     it("should connect with  SecurityMode SignAndEncrypt / Aes128_Sha256_RsaOaep", async () => {
         const err = await attemptConnection({
@@ -124,7 +124,7 @@ describe("testing server with restricted securityModes -#933", () => {
         createSessionResponse.constructor.name.should.eql("CreateSessionResponse");
         activateSessionResponse.constructor.name.should.eql("ActivateSessionResponse");
 
-        createSessionResponse.serverEndpoints!.length.should.eql(1);
-        getEndpointsResponse.endpoints!.length.should.eql(1);
+        should(createSessionResponse.serverEndpoints?.length).eql(1);
+        should(getEndpointsResponse.endpoints?.length).eql(1);
     });
 });

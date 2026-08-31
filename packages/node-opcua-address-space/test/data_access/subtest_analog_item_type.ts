@@ -61,18 +61,18 @@ export function subtest_analog_item_type(maintest: MainTest): void {
             // xx console.log(JSON.stringify(analogItem,null," "));
             // analogItem.dataType.should.eql(addressSpace.findVariableType("AnalogItemType").nodeId);
 
-            analogItem.definition?.browseName.toString().should.eql("Definition");
-            analogItem.valuePrecision?.browseName.toString().should.eql("ValuePrecision");
+            should(analogItem.definition?.browseName.toString()).eql("Definition");
+            should(analogItem.valuePrecision?.browseName.toString()).eql("ValuePrecision");
             analogItem.euRange.browseName.toString().should.eql("EURange");
-            analogItem.instrumentRange?.browseName.toString().should.eql("InstrumentRange");
-            analogItem.engineeringUnits?.browseName.toString().should.eql("EngineeringUnits");
+            should(analogItem.instrumentRange?.browseName.toString()).eql("InstrumentRange");
+            should(analogItem.engineeringUnits?.browseName.toString()).eql("EngineeringUnits");
 
             // xx console.log("xxxx = analogItem.euRange.readValue().value.value", analogItem.euRange.readValue().toString());
             analogItem.euRange.readValue().value.value.low.should.eql(100);
             analogItem.euRange.readValue().value.value.high.should.eql(200);
 
-            analogItem.instrumentRange?.readValue().value.value.low.should.eql(-100);
-            analogItem.instrumentRange?.readValue().value.value.high.should.eql(200);
+            should(analogItem.instrumentRange?.readValue().value.value.low).eql(-100);
+            should(analogItem.instrumentRange?.readValue().value.value.high).eql(200);
 
             // browsing variable
             const browseDescription = new BrowseDescription({
@@ -98,14 +98,14 @@ export function subtest_analog_item_type(maintest: MainTest): void {
             const dataValue2 = await analogItem.readValueAsync(context);
             dataValue2.statusCode.should.eql(StatusCodes.Good);
             dataValue2.value.dataType.should.eql(DataType.Double);
-            dataValue2.value.value?.should.eql(fakeValue);
+            should(dataValue2.value.value).eql(fakeValue);
 
             fakeValue = 2.0;
 
             const dataValue3 = await analogItem.readValueAsync(context);
             dataValue3.statusCode.should.eql(StatusCodes.Good);
             dataValue3.value.dataType.should.eql(DataType.Double);
-            dataValue3.value.value?.should.eql(fakeValue);
+            should(dataValue3.value.value).eql(fakeValue);
         });
 
         it("Writing a value exceeding InstrumentRange shall return BadOutOfRange and refuse to set the dataValue", async () => {
@@ -133,7 +133,7 @@ export function subtest_analog_item_type(maintest: MainTest): void {
             const dataValue2 = await analogItem.readValueAsync(context);
             dataValue2.statusCode.should.eql(StatusCodes.Good);
             dataValue2.value.dataType.should.eql(DataType.Double);
-            dataValue2.value.value?.should.eql(10.0);
+            should(dataValue2.value.value).eql(10.0);
         });
 
         it("Writing a value exceeding InstrumentRange shall return Good and adjust the StatusCode to BadOutOfRange if record", async () => {
@@ -162,7 +162,7 @@ export function subtest_analog_item_type(maintest: MainTest): void {
             const dataValue2 = await analogItem.readValueAsync(context);
             dataValue2.statusCode.should.eql(StatusCodes.BadOutOfRange);
             dataValue2.value.dataType.should.eql(DataType.Double);
-            dataValue2.value.value?.should.eql(-1000.0);
+            should(dataValue2.value.value).eql(-1000.0);
         });
 
         it("Writing a value within InstrumentRange shall return Good", async () => {
@@ -228,10 +228,10 @@ export function subtest_analog_item_type(maintest: MainTest): void {
             // and the usual AnalogItemType members must still be there, with a single instance each
             analogItem.euRange.readValue().value.value.low.should.eql(0);
             analogItem.euRange.readValue().value.value.high.should.eql(100);
-            analogItem.instrumentRange?.readValue().value.value.low.should.eql(0);
-            analogItem.engineeringUnits
-                ?.readValue()
-                .value.value.displayName.text?.should.eql(standardUnits.degree_celsius.displayName?.text);
+            should(analogItem.instrumentRange?.readValue().value.value.low).eql(0);
+            should(analogItem.engineeringUnits?.readValue().value.value.displayName.text).eql(
+                standardUnits.degree_celsius.displayName?.text
+            );
 
             const browseDescription = new BrowseDescription({
                 browseDirection: BrowseDirection.Forward,

@@ -228,7 +228,7 @@ describe("issue #1550 - Historizing attribute of a UAVariable in NodeSet2 files"
 
             const variable = addressSpace.findNode("ns=1;i=1000") as UAVariable;
             should.exist(variable);
-            variable.browseName.name!.should.eql("SomeVariable");
+            should(variable.browseName.name).eql("SomeVariable");
             return variable;
         }
 
@@ -263,7 +263,7 @@ describe("issue #1550 - Historizing attribute of a UAVariable in NodeSet2 files"
             for (const nodeId of localCoordinateNodeIds) {
                 const variable = addressSpace1.findNode(nodeId) as UAVariable;
                 should.exist(variable, `cannot find ${nodeId}`);
-                variable.browseName.name!.should.eql("LocalCoordinate");
+                should(variable.browseName.name).eql("LocalCoordinate");
                 variable.historizing.should.eql(true, `${nodeId} should be historizing after the initial load`);
             }
 
@@ -290,7 +290,7 @@ describe("issue #1550 - Historizing attribute of a UAVariable in NodeSet2 files"
             for (const nodeId of localCoordinateNodeIds) {
                 const variable = addressSpace2.findNode(nodeId) as UAVariable;
                 should.exist(variable, `cannot find ${nodeId} in the reloaded address space`);
-                variable.browseName.name!.should.eql("LocalCoordinate");
+                should(variable.browseName.name).eql("LocalCoordinate");
                 variable.historizing.should.eql(true, `${nodeId} should still be historizing after the round trip`);
             }
             addressSpace2.dispose();

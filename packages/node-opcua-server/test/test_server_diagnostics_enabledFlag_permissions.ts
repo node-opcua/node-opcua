@@ -51,7 +51,7 @@ describe("ServerDiagnostics.EnabledFlag Permissions", function (this: Mocha.Suit
     it("EnabledFlag should have rolePermissions set", () => {
         const enabledFlag = getEnabledFlagNode();
         should.exist(enabledFlag.rolePermissions, "rolePermissions should be set");
-        enabledFlag.rolePermissions?.length.should.eql(8, "should have 8 role permission entries");
+        should(enabledFlag.rolePermissions?.length).eql(8, "should have 8 role permission entries");
     });
 
     it("Anonymous user should have Read+Browse but NOT Write permission", () => {

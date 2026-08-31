@@ -68,7 +68,7 @@ describe("testing address space", () => {
         });
 
         // object shall be found with a global nodeId search
-        addressSpace.findNode(object.nodeId)?.should.eql(object);
+        should(addressSpace.findNode(object.nodeId)).eql(object);
 
         const rootFolder = addressSpace.rootFolder;
         // object shall be found in parent folder
@@ -76,7 +76,7 @@ describe("testing address space", () => {
         findReference(references, object.nodeId).length.should.eql(1);
 
         // root folder should organize the object
-        rootFolder.objects.getFolderElementByName("SomeObject")?.browseName.toString().should.eql("1:SomeObject");
+        should(rootFolder.objects.getFolderElementByName("SomeObject")?.browseName.toString()).eql("1:SomeObject");
 
         // ------------------------------------- NOW DELETE THE OBJECT
         addressSpace.deleteNode(object.nodeId);
@@ -101,8 +101,8 @@ describe("testing address space", () => {
         const innerVar = namespace.addVariable({ componentOf: object, browseName: "Hello", dataType: "String" });
 
         // objects shall  be found with a global nodeId search
-        addressSpace.findNode(object.nodeId)?.should.eql(object);
-        addressSpace.findNode(innerVar.nodeId)?.should.eql(innerVar);
+        should(addressSpace.findNode(object.nodeId)).eql(object);
+        should(addressSpace.findNode(innerVar.nodeId)).eql(innerVar);
 
         let references = object.findReferences("HasComponent", true);
         findReference(references, innerVar.nodeId).length.should.eql(1);
@@ -138,8 +138,8 @@ describe("testing address space", () => {
         object.getProperties().length.should.eql(1);
         object.getProperties()[0].browseName.toString().should.eql("1:Property1");
 
-        object.getChildByName("Component1")?.browseName.toString().should.eql("1:Component1");
-        object.getChildByName("Property1")?.browseName.toString().should.eql("1:Property1");
+        should(object.getChildByName("Component1")?.browseName.toString()).eql("1:Component1");
+        should(object.getChildByName("Property1")?.browseName.toString()).eql("1:Property1");
         should(object.getChildByName("Component2")).eql(null);
 
         const _comp2 = namespace.addVariable({ componentOf: object, browseName: "Component2", dataType: "String" });
@@ -153,27 +153,27 @@ describe("testing address space", () => {
         object.getProperties()[0].browseName.toString().should.eql("1:Property1");
         object.getProperties()[1].browseName.toString().should.eql("1:Property2");
 
-        object.getChildByName("Component1")?.browseName.toString().should.eql("1:Component1");
-        object.getChildByName("Property1")?.browseName.toString().should.eql("1:Property1");
-        object.getChildByName("Component2")?.browseName.toString().should.eql("1:Component2");
-        object.getChildByName("Property2")?.browseName.toString().should.eql("1:Property2");
+        should(object.getChildByName("Component1")?.browseName.toString()).eql("1:Component1");
+        should(object.getChildByName("Property1")?.browseName.toString()).eql("1:Property1");
+        should(object.getChildByName("Component2")?.browseName.toString()).eql("1:Component2");
+        should(object.getChildByName("Property2")?.browseName.toString()).eql("1:Property2");
 
         // now lets remove Prop1
         addressSpace.deleteNode(prop1.nodeId);
         object.getProperties().length.should.eql(1);
         object.getProperties()[0].browseName.toString().should.eql("1:Property2");
 
-        object.getChildByName("Component1")?.browseName.toString().should.eql("1:Component1");
+        should(object.getChildByName("Component1")?.browseName.toString()).eql("1:Component1");
         should(object.getChildByName("Property1")).eql(null);
-        object.getChildByName("Component2")?.browseName.toString().should.eql("1:Component2");
-        object.getChildByName("Property2")?.browseName.toString().should.eql("1:Property2");
+        should(object.getChildByName("Component2")?.browseName.toString()).eql("1:Component2");
+        should(object.getChildByName("Property2")?.browseName.toString()).eql("1:Property2");
 
         addressSpace.deleteNode(prop2.nodeId);
         object.getProperties().length.should.eql(0);
 
-        object.getChildByName("Component1")?.browseName.toString().should.eql("1:Component1");
+        should(object.getChildByName("Component1")?.browseName.toString()).eql("1:Component1");
         should(object.getChildByName("Property1")).eql(null);
-        object.getChildByName("Component2")?.browseName.toString().should.eql("1:Component2");
+        should(object.getChildByName("Component2")?.browseName.toString()).eql("1:Component2");
         should(object.getChildByName("Property2")).eql(null);
     });
 
@@ -190,7 +190,7 @@ describe("testing address space", () => {
         });
 
         should.exist(object.getChildByName("MyComponent"));
-        object.getComponentByName("MyComponent")?.browseName.toString().should.eql("1:MyComponent");
+        should(object.getComponentByName("MyComponent")?.browseName.toString()).eql("1:MyComponent");
 
         addressSpace.deleteNode(component);
         should.not.exist(object.getChildByName("MyComponent"));
@@ -206,7 +206,7 @@ describe("testing address space", () => {
             isForward: true
         });
         should.exist(object.getChildByName("MyComponent"));
-        object.getComponentByName("MyComponent")?.browseName.toString().should.eql("1:MyComponent");
+        should(object.getComponentByName("MyComponent")?.browseName.toString()).eql("1:MyComponent");
 
         addressSpace.deleteNode(component);
         should.not.exist(object.getChildByName("MyComponent"));
@@ -251,10 +251,10 @@ describe("testing address space", () => {
     });
 
     it("AddressSpace#findCorrespondingBasicDataType variation 1 - Alias", () => {
-        addressSpace.findCorrespondingBasicDataType("Int32")?.should.eql(DataType.Int32);
+        should(addressSpace.findCorrespondingBasicDataType("Int32")).eql(DataType.Int32);
     });
     it("AddressSpace#findCorrespondingBasicDataType variation 2 - nodeId as String", () => {
-        addressSpace.findCorrespondingBasicDataType("i=13")?.should.eql(DataType.DateTime);
+        should(addressSpace.findCorrespondingBasicDataType("i=13")).eql(DataType.DateTime);
     });
     it("AddressSpace#findCorrespondingBasicDataType variation 3 - nodeId as NodeId", () => {
         addressSpace.findCorrespondingBasicDataType(makeNodeId(DataTypeIds.BuildInfo)).should.eql(DataType.ExtensionObject);

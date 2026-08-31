@@ -1,4 +1,3 @@
-import "should";
 import chalk from "chalk";
 import {
     AttributeIds,
@@ -13,6 +12,7 @@ import {
     type RepublishResponse
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import sinon from "sinon";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session.js";
 
@@ -151,18 +151,18 @@ export function t(test: TestHarness) {
                 await f(write_value_and_wait_for_change)(session);
                 await f(write_value_and_wait_for_change)(session);
 
-                subscription_raw_notification_event?.callCount.should.eql(4);
+                should(subscription_raw_notification_event?.callCount).eql(4);
                 const seqNumber1 = subscription_raw_notification_event?.getCall(0).args[0].sequenceNumber;
-                subscription_raw_notification_event?.getCall(0).args[0].sequenceNumber.should.eql(seqNumber1 + 0);
-                subscription_raw_notification_event?.getCall(1).args[0].sequenceNumber.should.eql(seqNumber1 + 1);
-                subscription_raw_notification_event?.getCall(2).args[0].sequenceNumber.should.eql(seqNumber1 + 2);
-                subscription_raw_notification_event?.getCall(3).args[0].sequenceNumber.should.eql(seqNumber1 + 3);
+                should(subscription_raw_notification_event?.getCall(0).args[0].sequenceNumber).eql(seqNumber1 + 0);
+                should(subscription_raw_notification_event?.getCall(1).args[0].sequenceNumber).eql(seqNumber1 + 1);
+                should(subscription_raw_notification_event?.getCall(2).args[0].sequenceNumber).eql(seqNumber1 + 2);
+                should(subscription_raw_notification_event?.getCall(3).args[0].sequenceNumber).eql(seqNumber1 + 3);
 
                 expected_values.push(subscription_raw_notification_event?.getCall(1).args[0].notificationData[0].monitoredItems[0]);
                 expected_values.push(subscription_raw_notification_event?.getCall(2).args[0].notificationData[0].monitoredItems[0]);
                 expected_values.push(subscription_raw_notification_event?.getCall(3).args[0].notificationData[0].monitoredItems[0]);
 
-                spy_publish?.callCount.should.eql(4);
+                should(spy_publish?.callCount).eql(4);
 
                 sequenceNumbers = [seqNumber1 + 1, seqNumber1 + 2, seqNumber1 + 3];
 

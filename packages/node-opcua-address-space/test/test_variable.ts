@@ -330,7 +330,7 @@ describe("testing Variable#bindVariable", () => {
             options.get.callCount.should.eql(2 + base);
 
             sameDataValue(dataValue1, dataValue2).should.eql(true);
-            dataValue1.serverTimestamp?.getTime().should.eql(dataValue2.serverTimestamp?.getTime());
+            should(dataValue1.serverTimestamp?.getTime()).eql(dataValue2.serverTimestamp?.getTime());
 
             // now change data value
             value = value + 200;
@@ -427,7 +427,7 @@ describe("testing Variable#bindVariable", () => {
             dataValueCheck1.should.be.instanceOf(DataValue);
             dataValueCheck1.statusCode.should.eql(StatusCodes.Good);
             dataValueCheck1.value.value.should.eql(987654);
-            dataValueCheck1.sourceTimestamp?.should.eql(new Date(1789, 7, 14));
+            should(dataValueCheck1.sourceTimestamp).eql(new Date(1789, 7, 14));
 
             // write_simple_value
             const dataValue = new DataValue({
@@ -444,7 +444,7 @@ describe("testing Variable#bindVariable", () => {
             const dataValueCheck2 = await variable.readValueAsync(context);
             dataValueCheck2.should.be.instanceOf(DataValue);
             dataValueCheck2.value.value.should.eql(987654);
-            dataValueCheck2.sourceTimestamp?.should.eql(new Date(1789, 7, 14));
+            should(dataValueCheck2.sourceTimestamp).eql(new Date(1789, 7, 14));
         }
     );
 
@@ -494,7 +494,7 @@ describe("testing Variable#bindVariable", () => {
         dataValue.statusCode.should.eql(StatusCodes.Good);
         dataValue.value.value.should.eql(expected_value);
         if (expected_date) {
-            dataValue.sourceTimestamp?.should.eql(expected_date);
+            should(dataValue.sourceTimestamp).eql(expected_date);
         }
     }
 
@@ -964,7 +964,7 @@ describe("testing Variable#writeValue Array", () => {
         dataValueCheck2.should.be.instanceOf(DataValue);
         dataValueCheck2.statusCode.should.eql(StatusCodes.GoodClamped);
         dataValueCheck2.value.value.should.eql(new Float64Array([1, 200, 3, 4, 5, 6]));
-        dataValueCheck2.sourceTimestamp?.should.eql(new Date(1789, 7, 14));
+        should(dataValueCheck2.sourceTimestamp).eql(new Date(1789, 7, 14));
     });
 
     it("A6 - should write a ByteString into a Array of Byte", async () => {

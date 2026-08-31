@@ -15,6 +15,7 @@ import {
     VariableIds,
     VariantArrayType
 } from "node-opcua";
+import should from "should";
 
 // SubscriptionDiagnosticsDataType is not part of the public node-opcua API surface,
 // so this mirrors the subset of fields these tests actually read.
@@ -90,7 +91,7 @@ async function stopSubscriptionByTransfer(endpointUrl: string, subscription: Cli
         if (response.results![0].statusCode.isNotGood()) {
             console.log(response.toString());
         }
-        response.results![0].statusCode.should.eql(StatusCodes.Good);
+        should(response.results?.[0].statusCode).eql(StatusCodes.Good);
         await subscription.terminate();
     });
 }
@@ -155,14 +156,15 @@ export function t(test: TestHarness): void {
                     ];
                     const result = await session.translateBrowsePath(browsePath);
                     result[0].statusCode.should.eql(StatusCodes.Good, "server should expose a SubscriptionDiagnosticsArray node");
-                    result[0].targets?.[0].targetId
-                        .toString()
-                        .should.eql("ns=0;i=2290", "SubscriptionDiagnosticsArray must have well known node id i=2290");
+                    should(result[0].targets?.[0].targetId.toString()).eql(
+                        "ns=0;i=2290",
+                        "SubscriptionDiagnosticsArray must have well known node id i=2290"
+                    );
                     result[1].statusCode.should.eql(
                         StatusCodes.Good,
                         "SubscriptionDiagnosticsArray should expose a SubscriptionDiagnostics node"
                     );
-                    result[1].targets?.[0].targetId.namespace.should.eql(
+                    should(result[1].targets?.[0].targetId.namespace).eql(
                         1,
                         "SubscriptionDiagnostics nodeId must be in namespace 1"
                     );

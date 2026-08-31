@@ -37,7 +37,7 @@ describe("AddressSpace : add event type ", () => {
     });
 
     it("should find BaseEventType", () => {
-        addressSpace.findEventType("BaseEventType")?.nodeId.toString().should.eql("ns=0;i=2041");
+        should(addressSpace.findEventType("BaseEventType")?.nodeId.toString()).eql("ns=0;i=2041");
     });
 
     it("BaseEventType should be abstract ", () => {

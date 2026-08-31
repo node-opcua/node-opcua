@@ -8,7 +8,7 @@ import {
     UserTokenPolicy,
     UserTokenType
 } from "node-opcua";
-import "should";
+import should from "should";
 
 const port = 2242;
 
@@ -94,6 +94,6 @@ describe("issue #1334 - client should avoid using userToken that have deprecated
             throw new Error("expecting activeSessionRequest to have been captured");
         }
         const userToken = activeSessionRequest.userIdentityToken as UserNameIdentityToken;
-        userToken.policyId?.should.eql("UserName_Basic256Sha256_Token");
+        should(userToken.policyId).eql("UserName_Basic256Sha256_Token");
     });
 });

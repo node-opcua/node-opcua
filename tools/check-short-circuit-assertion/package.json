@@ -1,0 +1,14 @@
+{
+    "name": "@sterfive/check-short-circuit-assertion",
+    "version": "1.0.0",
+    "private": true,
+    "description": "fail the build when an optional chain can switch an assertion off",
+    "bin": {
+        "check-short-circuit-assertion": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "test": "node test/test_rule.js"
+    }
+}

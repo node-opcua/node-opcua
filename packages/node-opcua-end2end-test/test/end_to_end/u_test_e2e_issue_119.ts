@@ -1,4 +1,3 @@
-import "should";
 import {
     AttributeIds,
     DataType,
@@ -11,6 +10,7 @@ import {
     Variant
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import { wait, waitUntilCondition } from "../../test_helpers/utils.js";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
@@ -50,7 +50,7 @@ export function t(test: UmbrellaTestContext) {
                     { samplingInterval, discardOldest: true, queueSize: 1 },
                     TimestampsToReturn.Both
                 );
-                monitoredItem.result!.revisedSamplingInterval.should.eql(samplingInterval);
+                should(monitoredItem.result?.revisedSamplingInterval).eql(samplingInterval);
 
                 let change_count = 0;
                 monitoredItem.on("changed", (dataValue) => {
@@ -99,7 +99,7 @@ export function t(test: UmbrellaTestContext) {
                     { samplingInterval: 500, discardOldest: true, queueSize: 10 },
                     TimestampsToReturn.Both
                 );
-                monitoredItem.result!.revisedSamplingInterval.should.eql(500);
+                should(monitoredItem.result?.revisedSamplingInterval).eql(500);
 
                 let change_count = 0;
                 monitoredItem.on("changed", (dataValue) => {

@@ -1,10 +1,9 @@
 import os from "node:os";
-import "should";
-
 import { findServers, findServersOnNetwork, makeApplicationUrn, OPCUAServer } from "node-opcua";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { OPCUADiscoveryServer } from "node-opcua-server-discovery";
+import should from "should";
 
 import { createAndStartServer, ep, pause, startDiscovery, type TestHarness } from "./helpers/index.js";
 
@@ -74,7 +73,7 @@ export function t(_test: TestHarness) {
                 const data = await findServers(discoveryServerEndpointUrl1);
                 const { servers } = data;
                 _initialServerCount = servers.length;
-                servers[0].discoveryUrls?.length.should.eql(1);
+                should(servers[0].discoveryUrls?.length).eql(1);
             }
             const server1 = await createAndStartServer(discoveryServerEndpointUrl1, port1, "A1");
 
@@ -99,8 +98,8 @@ export function t(_test: TestHarness) {
                 const data = await findServers(discoveryServerEndpointUrl1);
                 const { servers } = data!;
                 servers.length.should.eql(2);
-                servers[0].applicationUri?.should.eql(`urn:localhost:LDS-${port_discover1}`);
-                servers[1].applicationUri?.should.eql(makeApplicationUrn(hostname, `A1`));
+                should(servers[0].applicationUri).eql(`urn:localhost:LDS-${port_discover1}`);
+                should(servers[1].applicationUri).eql(makeApplicationUrn(hostname, `A1`));
             }
             {
                 const data = await findServers(discoveryServerEndpointUrl2);
@@ -110,8 +109,8 @@ export function t(_test: TestHarness) {
                 debugLog("servers[0].applicationUri = ", servers[0].applicationUri);
                 debugLog("servers[1].applicationUri = ", servers[1].applicationUri);
                 servers.length.should.eql(2);
-                servers[0].applicationUri?.should.eql(`urn:localhost:LDS-${port_discover2}`);
-                servers[1].applicationUri?.should.eql(makeApplicationUrn(hostname, `A2`));
+                should(servers[0].applicationUri).eql(`urn:localhost:LDS-${port_discover2}`);
+                should(servers[1].applicationUri).eql(makeApplicationUrn(hostname, `A2`));
             }
 
             await pause(500);
@@ -120,8 +119,8 @@ export function t(_test: TestHarness) {
                 const data = await findServers(discoveryServerEndpointUrl3);
                 const { servers } = data!;
                 servers.length.should.eql(2);
-                servers[0].applicationUri?.should.eql(`urn:localhost:LDS-${port_discover3}`);
-                servers[1].applicationUri?.should.eql(makeApplicationUrn(hostname, `A3`));
+                should(servers[0].applicationUri).eql(`urn:localhost:LDS-${port_discover3}`);
+                should(servers[1].applicationUri).eql(makeApplicationUrn(hostname, `A3`));
             }
 
             await pause(500);
@@ -133,7 +132,7 @@ export function t(_test: TestHarness) {
                 if (doDebug) {
                     debugLog(servers?.map((x) => x.discoveryUrl).join("\n"));
                 }
-                servers?.length.should.eql(6);
+                should(servers?.length).eql(6);
                 debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
             }
             // query_discovery_server_for_available_servers_on_network(callback) {
@@ -142,7 +141,7 @@ export function t(_test: TestHarness) {
                 if (doDebug) {
                     debugLog(servers?.map((x) => x.discoveryUrl).join("\n"));
                 }
-                servers?.length.should.eql(6);
+                should(servers?.length).eql(6);
                 debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
             }
             {

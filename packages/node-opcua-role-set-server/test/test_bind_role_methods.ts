@@ -54,7 +54,7 @@ describe("bind_role_methods — makeAddIdentityHandler", () => {
             const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "admin");
 
             const result = await handler.call(mockMethod, inputArgs, context);
-            result.statusCode?.should.equal(StatusCodes.BadUserAccessDenied);
+            should(result.statusCode).equal(StatusCodes.BadUserAccessDenied);
         });
 
         it("should succeed when user has SecurityAdmin role", async () => {
@@ -65,7 +65,7 @@ describe("bind_role_methods — makeAddIdentityHandler", () => {
             const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "admin");
 
             const result = await handler.call(mockMethod, inputArgs, context);
-            result.statusCode?.should.equal(StatusCodes.Good);
+            should(result.statusCode).equal(StatusCodes.Good);
         });
     });
 
@@ -77,7 +77,7 @@ describe("bind_role_methods — makeAddIdentityHandler", () => {
             const mockMethod = makeMockMethod(WellKnownRoleIds.SecurityAdmin);
 
             const result = await handler.call(mockMethod, [], context);
-            result.statusCode?.should.equal(StatusCodes.BadInvalidArgument);
+            should(result.statusCode).equal(StatusCodes.BadInvalidArgument);
         });
 
         it("should return BadInvalidArgument when value is not IdentityMappingRuleType", async () => {
@@ -89,7 +89,7 @@ describe("bind_role_methods — makeAddIdentityHandler", () => {
             const inputArgs = [new Variant({ dataType: DataType.String, value: "not-a-rule" })];
 
             const result = await handler.call(mockMethod, inputArgs, context);
-            result.statusCode?.should.equal(StatusCodes.BadInvalidArgument);
+            should(result.statusCode).equal(StatusCodes.BadInvalidArgument);
         });
     });
 
@@ -102,7 +102,7 @@ describe("bind_role_methods — makeAddIdentityHandler", () => {
             const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "admin");
 
             const result = await handler.call(mockMethod, inputArgs, context);
-            result.statusCode?.should.equal(StatusCodes.BadInternalError);
+            should(result.statusCode).equal(StatusCodes.BadInternalError);
         });
     });
 
@@ -116,7 +116,7 @@ describe("bind_role_methods — makeAddIdentityHandler", () => {
             const inputArgs = makeRuleVariant(IdentityCriteriaType.Anonymous, "*");
 
             const result = await handler.call(mockMethod, inputArgs, context);
-            result.statusCode?.should.equal(StatusCodes.Good);
+            should(result.statusCode).equal(StatusCodes.Good);
 
             const identities = store.getIdentitiesForRole(roleNodeId);
             identities.should.have.length(1);
@@ -172,7 +172,7 @@ describe("bind_role_methods — makeRemoveIdentityHandler", () => {
             const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "admin");
 
             const result = await handler.call(mockMethod, inputArgs, context);
-            result.statusCode?.should.equal(StatusCodes.BadUserAccessDenied);
+            should(result.statusCode).equal(StatusCodes.BadUserAccessDenied);
         });
     });
 
@@ -197,7 +197,7 @@ describe("bind_role_methods — makeRemoveIdentityHandler", () => {
             const inputArgs = makeRuleVariant(IdentityCriteriaType.Anonymous, "*");
 
             const result = await handler.call(mockMethod, inputArgs, context);
-            result.statusCode?.should.equal(StatusCodes.Good);
+            should(result.statusCode).equal(StatusCodes.Good);
 
             store.getIdentitiesForRole(roleNodeId).should.have.length(0);
         });
@@ -222,11 +222,11 @@ describe("bind_role_methods — makeRemoveIdentityHandler", () => {
 
             // First remove — should succeed
             const result1 = await handler.call(mockMethod, inputArgs, context);
-            result1.statusCode?.should.equal(StatusCodes.Good);
+            should(result1.statusCode).equal(StatusCodes.Good);
 
             // Second remove — should fail
             const result2 = await handler.call(mockMethod, inputArgs, context);
-            result2.statusCode?.should.equal(StatusCodes.BadNoMatch);
+            should(result2.statusCode).equal(StatusCodes.BadNoMatch);
         });
     });
 
@@ -288,26 +288,26 @@ describe("bind_role_methods — encrypted channel enforcement (OPC 10000-18 §4.
     it("should reject AddIdentity over a None channel with BadSecurityModeInsufficient", async () => {
         const context = makeContextWithChannel([WellKnownRoleIds.SecurityAdmin], MessageSecurityMode.None);
         const result = await addOnOperator(context);
-        result.statusCode?.should.equal(StatusCodes.BadSecurityModeInsufficient);
+        should(result.statusCode).equal(StatusCodes.BadSecurityModeInsufficient);
     });
 
     it("should reject AddIdentity over a Sign-only channel", async () => {
         const context = makeContextWithChannel([WellKnownRoleIds.SecurityAdmin], MessageSecurityMode.Sign);
         const result = await addOnOperator(context);
-        result.statusCode?.should.equal(StatusCodes.BadSecurityModeInsufficient);
+        should(result.statusCode).equal(StatusCodes.BadSecurityModeInsufficient);
     });
 
     it("should accept AddIdentity over a SignAndEncrypt channel", async () => {
         const context = makeContextWithChannel([WellKnownRoleIds.SecurityAdmin], MessageSecurityMode.SignAndEncrypt);
         const result = await addOnOperator(context);
-        result.statusCode?.should.equal(StatusCodes.Good);
+        should(result.statusCode).equal(StatusCodes.Good);
     });
 
     it("should enforce encryption before the access check", async () => {
         // even a non-admin must first be rejected for the insecure channel
         const context = makeContextWithChannel([], MessageSecurityMode.None);
         const result = await addOnOperator(context);
-        result.statusCode?.should.equal(StatusCodes.BadSecurityModeInsufficient);
+        should(result.statusCode).equal(StatusCodes.BadSecurityModeInsufficient);
     });
 
     it("should reject RemoveIdentity over a None channel", async () => {
@@ -317,7 +317,7 @@ describe("bind_role_methods — encrypted channel enforcement (OPC 10000-18 §4.
         const mockMethod = makeMockMethod(WellKnownRoleIds.Operator);
         const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "joe");
         const result = await handler.call(mockMethod, inputArgs, context);
-        result.statusCode?.should.equal(StatusCodes.BadSecurityModeInsufficient);
+        should(result.statusCode).equal(StatusCodes.BadSecurityModeInsufficient);
     });
 });
 
@@ -330,7 +330,7 @@ describe("bind_role_methods — well-known role immutability (OPC 10000-18 §4.3
             const mockMethod = makeMockMethod(WellKnownRoleIds[role]);
             const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "joe");
             const result = await handler.call(mockMethod, inputArgs, context);
-            result.statusCode?.should.equal(StatusCodes.BadRequestNotAllowed);
+            should(result.statusCode).equal(StatusCodes.BadRequestNotAllowed);
         });
 
         it(`should reject RemoveIdentity on the ${role} role`, async () => {
@@ -340,7 +340,7 @@ describe("bind_role_methods — well-known role immutability (OPC 10000-18 §4.3
             const mockMethod = makeMockMethod(WellKnownRoleIds[role]);
             const inputArgs = makeRuleVariant(IdentityCriteriaType.AuthenticatedUser, "");
             const result = await handler.call(mockMethod, inputArgs, context);
-            result.statusCode?.should.equal(StatusCodes.BadRequestNotAllowed);
+            should(result.statusCode).equal(StatusCodes.BadRequestNotAllowed);
         });
     }
 });
@@ -353,7 +353,7 @@ describe("bind_role_methods — weak criteria on administrative roles (OPC 10000
         const mockMethod = makeMockMethod(WellKnownRoleIds.SecurityAdmin);
         const inputArgs = makeRuleVariant(IdentityCriteriaType.Anonymous, "");
         const result = await handler.call(mockMethod, inputArgs, context);
-        result.statusCode?.should.equal(StatusCodes.BadRequestNotAllowed);
+        should(result.statusCode).equal(StatusCodes.BadRequestNotAllowed);
     });
 
     it("should reject an AuthenticatedUser rule on the ConfigureAdmin role", async () => {
@@ -363,7 +363,7 @@ describe("bind_role_methods — weak criteria on administrative roles (OPC 10000
         const mockMethod = makeMockMethod(WellKnownRoleIds.ConfigureAdmin);
         const inputArgs = makeRuleVariant(IdentityCriteriaType.AuthenticatedUser, "");
         const result = await handler.call(mockMethod, inputArgs, context);
-        result.statusCode?.should.equal(StatusCodes.BadRequestNotAllowed);
+        should(result.statusCode).equal(StatusCodes.BadRequestNotAllowed);
     });
 
     it("should allow a UserName rule on the SecurityAdmin role", async () => {
@@ -373,7 +373,7 @@ describe("bind_role_methods — weak criteria on administrative roles (OPC 10000
         const mockMethod = makeMockMethod(WellKnownRoleIds.SecurityAdmin);
         const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "admin");
         const result = await handler.call(mockMethod, inputArgs, context);
-        result.statusCode?.should.equal(StatusCodes.Good);
+        should(result.statusCode).equal(StatusCodes.Good);
     });
 });
 
@@ -386,10 +386,10 @@ describe("bind_role_methods — duplicate identity (OPC 10000-18 §4.4.5)", () =
         const inputArgs = makeRuleVariant(IdentityCriteriaType.UserName, "joe");
 
         const first = await handler.call(mockMethod, inputArgs, context);
-        first.statusCode?.should.equal(StatusCodes.Good);
+        should(first.statusCode).equal(StatusCodes.Good);
 
         const second = await handler.call(mockMethod, inputArgs, context);
-        second.statusCode?.should.equal(StatusCodes.BadAlreadyExists);
+        should(second.statusCode).equal(StatusCodes.BadAlreadyExists);
 
         store.getIdentitiesForRole(WellKnownRoleIds.Operator).should.have.length(1);
     });

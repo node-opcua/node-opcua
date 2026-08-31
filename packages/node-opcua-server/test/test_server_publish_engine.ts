@@ -967,7 +967,7 @@ describe("Testing the server publish engine", function (this: Mocha.Suite) {
 
             const response = send_response_for_request_spy.firstCall.args[1] as PublishResponse;
             response.subscriptionId.should.eql(1234);
-            response.notificationMessage.notificationData?.length.should.eql(1);
+            should(response.notificationMessage.notificationData?.length).eql(1);
             should((response.notificationMessage.notificationData?.[0] as unknown as { status: StatusCodes })?.status).eql(
                 StatusCodes.BadTimeout
             );

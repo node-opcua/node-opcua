@@ -23,6 +23,7 @@ import { modelingFile } from "node-opcua-test-helpers";
 import { ServerState } from "node-opcua-types";
 import { get_clock_tick } from "node-opcua-utils";
 import { DataType, Variant } from "node-opcua-variant";
+import should from "should";
 import { AddressSpace, type BaseNode, type DTServerStatus, type Namespace, type UAServerStatus, type UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS.js";
 
@@ -238,32 +239,32 @@ describe("testing address space namespace loading", function (this: Mocha.Suite)
 
         serverStatus.readValue().value.value.startTime.toISOString().should.eql("1601-01-01T00:00:00.000Z");
 
-        serverStatus.startTime.readValue().value.value?.toISOString().should.eql("1601-01-01T00:00:00.000Z");
+        should(serverStatus.startTime.readValue().value.value?.toISOString()).eql("1601-01-01T00:00:00.000Z");
 
         serverStatus.$extensionObject.startTime = new Date(Date.UTC(1800, 0, 1));
 
         serverStatus.readValue().value.value.startTime.toISOString().should.eql("1800-01-01T00:00:00.000Z");
 
-        serverStatus.startTime.readValue().value.value?.toISOString().should.eql("1800-01-01T00:00:00.000Z");
+        should(serverStatus.startTime.readValue().value.value?.toISOString()).eql("1800-01-01T00:00:00.000Z");
 
         serverStatus.startTime.setValueFromSource({
             dataType: DataType.DateTime,
             value: new Date(Date.UTC(2100, 0, 1))
         });
 
-        serverStatus.readValue().value.value?.startTime.toISOString().should.eql("2100-01-01T00:00:00.000Z");
+        should(serverStatus.readValue().value.value?.startTime.toISOString()).eql("2100-01-01T00:00:00.000Z");
 
-        serverStatus.startTime.readValue().value.value?.toISOString().should.eql("2100-01-01T00:00:00.000Z");
+        should(serverStatus.startTime.readValue().value.value?.toISOString()).eql("2100-01-01T00:00:00.000Z");
 
         // xx debugLog(serverStatus.readValue().value.toString());
 
         serverStatus.$extensionObject.buildInfo.productName = "productName1";
-        serverStatus.readValue().value.value.buildInfo.productName?.should.eql("productName1");
-        serverStatus.buildInfo.productName.readValue().value.value?.should.eql("productName1");
+        should(serverStatus.readValue().value.value.buildInfo.productName).eql("productName1");
+        should(serverStatus.buildInfo.productName.readValue().value.value).eql("productName1");
 
         serverStatus.buildInfo.productName.setValueFromSource({ dataType: DataType.String, value: "productName2" });
-        serverStatus.readValue().value.value.buildInfo.productName?.should.eql("productName2");
-        serverStatus.buildInfo.productName.readValue().value.value?.should.eql("productName2");
+        should(serverStatus.readValue().value.value.buildInfo.productName).eql("productName2");
+        should(serverStatus.buildInfo.productName.readValue().value.value).eql("productName2");
 
         accessLevelFlagToString(serverStatus.buildInfo.productName.accessLevel).should.eql("CurrentRead");
         const writeValue0 = new WriteValue({
@@ -307,8 +308,8 @@ describe("testing address space namespace loading", function (this: Mocha.Suite)
         const statusCode = await serverStatus.buildInfo.productName.writeAttribute(null, writeValue);
         statusCode.should.eql(StatusCodes.Good);
 
-        serverStatus.buildInfo.productName.readValue().value.value?.should.eql("productName3");
-        serverStatus.readValue().value.value.buildInfo.productName?.should.eql("productName3");
+        should(serverStatus.buildInfo.productName.readValue().value.value).eql("productName3");
+        should(serverStatus.readValue().value.value.buildInfo.productName).eql("productName3");
     });
 
     it("should instantiate SessionDiagnostics in a linear time", () => {
