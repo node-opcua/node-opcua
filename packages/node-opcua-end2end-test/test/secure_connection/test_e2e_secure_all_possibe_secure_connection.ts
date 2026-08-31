@@ -43,11 +43,12 @@ import { randomBytes } from "node-opcua-utils";
 import should from "should";
 import sinon from "sinon";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
+import { certificateFolder, tmpFolder } from "../../test_helpers/paths.js";
 
 const debugLog = make_debugLog("TEST");
 const _doDebug = checkDebugFlag("TEST");
 
-const sampleCertificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
+const sampleCertificateFolder = certificateFolder;
 fs.existsSync(sampleCertificateFolder).should.eql(true, `expecting certificate store at ${sampleCertificateFolder}`);
 
 const NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = parseInt(process.version.match(/^v([0-9]+)/)?.[1] || "0", 10) >= 21;
@@ -70,7 +71,7 @@ const no_reconnect_connectivity_strategy = {
     maxDelay: 200,
     randomisationFactor: 0
 };
-const _tmpFolder = path.join(__dirname, "../../tmp");
+const _tmpFolder = tmpFolder;
 if (!fs.existsSync(_tmpFolder)) {
     fs.mkdirSync(_tmpFolder);
 }

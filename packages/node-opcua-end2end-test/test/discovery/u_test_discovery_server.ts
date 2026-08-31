@@ -103,7 +103,7 @@ export function t(test: TestHarness) {
         ): Promise<void> {
             const client = OPCUAClient.create({
                 endpointMustExist: false,
-                clientName: __filename
+                clientName: "u_test_discovery_server"
             });
             client.on("backoff", () => {
                 debugLog(`cannot connect to ${discoveryServerEndpointUrl}`);

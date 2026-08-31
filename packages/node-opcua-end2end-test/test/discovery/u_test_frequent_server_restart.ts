@@ -102,7 +102,7 @@ export function t(test: TestHarness) {
                 }
                 const client = OPCUAClient.create({
                     requestedSessionTimeout: 10000,
-                    clientName: `Client-${clientCount}__${__filename}`
+                    clientName: `Client-${clientCount}__u_test_frequent_server_restart`
                 });
                 clientCount += 1;
 
@@ -315,7 +315,7 @@ export function t(test: TestHarness) {
 
         it("DISCO4-D - should cancel a client that is attempting a connection on an existing server", async () => {
             const client = OPCUAClient.create({
-                clientName: `DISCO4-D ${__filename}`
+                clientName: `DISCO4-D u_test_frequent_server_restart`
             });
 
             const [promise, resolveLast] = makeResolver();

@@ -70,7 +70,7 @@ export function t(umbrellaTest: UmbrellaTestContext) {
             construct_demo_alarm_in_address_space(test, addressSpace);
 
             client = OPCUAClient.create({
-                clientName: __filename
+                clientName: "u_test_e2e_conditions"
             });
         });
         afterEach(() => {});

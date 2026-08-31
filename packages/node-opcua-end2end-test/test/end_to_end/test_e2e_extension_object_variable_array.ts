@@ -1,4 +1,3 @@
-import path from "node:path";
 import util from "node:util";
 import {
     AttributeIds,
@@ -681,13 +680,14 @@ async function withClient(
 }
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { testFixture } from "../../test_helpers/paths.js";
 
 describe("testing extension object variable enrichment", function (this: Mocha.Suite) {
     let server: OPCUAServer;
     beforeEach(async () => {
         server = new OPCUAServer({
             port,
-            nodeset_filename: [nodesets.standard, path.join(__dirname, "../../fixtures/_generated_mymodel.model.Nodeset2.xml")]
+            nodeset_filename: [nodesets.standard, testFixture("_generated_mymodel.model.Nodeset2.xml")]
         });
         await server.initialize();
         const _addressSpace = server.engine.addressSpace!;
@@ -719,7 +719,7 @@ describe("testing extension object with client residing on a different process t
     before(async () => {
         server = new OPCUAServer({
             port,
-            nodeset_filename: [nodesets.standard, path.join(__dirname, "../../fixtures/extension_array_variable_model.xml")]
+            nodeset_filename: [nodesets.standard, testFixture("extension_array_variable_model.xml")]
         });
         await server.initialize();
 

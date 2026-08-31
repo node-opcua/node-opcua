@@ -1,5 +1,4 @@
 import "should"; // side-effect assertion library
-import path from "node:path";
 import chalk from "chalk";
 import {
     AttributeIds,
@@ -22,6 +21,7 @@ import type { OPCUAClientImpl } from "node-opcua-client/source/private/opcua_cli
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { describeWithLeakDetector } from "node-opcua-leak-detector";
 import { crash_simple_server, type ServerHandle, start_simple_server } from "../../test_helpers/external_server_fixture.js";
+import { serverScript as serverScriptPath } from "../../test_helpers/paths.js";
 
 // -------------------------------------------------------------------------------------------------
 // This test stresses the client reconnection pipeline with a server that (a) crashes, (b) drops the
@@ -44,7 +44,7 @@ const serverScript = "simple_server_that_terminate_session_too_early.js";
 async function start_external_opcua_server(): Promise<void> {
     const options = {
         silent: !doDebug,
-        server_sourcefile: path.join(__dirname, "../../test_helpers/bin/", serverScript),
+        server_sourcefile: serverScriptPath(serverScript),
         port
     };
     server_data = await start_simple_server(options);

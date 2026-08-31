@@ -20,13 +20,10 @@ import {
 } from "node-opcua-crypto";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import "should";
+import { certificateFolder, tmpFolder } from "../../test_helpers/paths.js";
 
 const empty_nodeset_filename = get_empty_nodeset_filename();
-
-const certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
 fs.existsSync(certificateFolder).should.eql(true, `expecting certificate store at ${certificateFolder}`);
-
-const tmpFolder = path.join(__dirname, "../../tmp");
 const port = 5794;
 const portSecure = 5795;
 

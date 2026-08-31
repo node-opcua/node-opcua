@@ -117,7 +117,7 @@ async function doTest(session: IBasicSessionReadAsyncSimple): Promise<DataValue>
 }
 
 async function test_with_anonymous_user() {
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `A ${__filename}` });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `A test_change_user` });
 
     const dataValue = await client.withSessionAsync(
         {
@@ -132,7 +132,7 @@ async function test_with_anonymous_user() {
 }
 
 async function test_with_admin_user() {
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `B ${__filename}` });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `B test_change_user` });
 
     return await client.withSessionAsync(
         {
@@ -150,7 +150,7 @@ async function test_with_admin_user() {
 }
 
 async function test_with_wrong_user_should_throw() {
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `C ${__filename}` });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `C test_change_user` });
 
     let _err: Error | undefined;
     try {
@@ -176,7 +176,7 @@ async function test_with_wrong_user_should_throw() {
 }
 
 async function test_with_admin_user_changing_to_anonymous() {
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `D ${__filename}` });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `D test_change_user` });
 
     return await client.withSessionAsync(
         {
@@ -197,7 +197,7 @@ async function test_with_admin_user_changing_to_anonymous() {
 }
 
 async function test_with_anonymous_user_changing_to_admin() {
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `E ${__filename}` });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `E test_change_user` });
 
     return await client.withSessionAsync(
         {
@@ -215,7 +215,7 @@ async function test_with_anonymous_user_changing_to_admin() {
     );
 }
 async function test_with_admin_user_changing_to_wrong_user() {
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `F ${__filename}` });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `F test_change_user` });
 
     return await client.withSessionAsync(
         {
@@ -240,7 +240,7 @@ async function test_with_admin_user_changing_to_wrong_user() {
 
 async function test_with_admin_changing_to_make_is_valid_user_crash() {
     // make_me_crash
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `G ${__filename}` });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `G test_change_user` });
 
     return await client.withSessionAsync(
         {
@@ -261,7 +261,7 @@ async function test_with_admin_changing_to_make_is_valid_user_crash() {
     );
 }
 async function test_with_anonymous_user_changing_to_wrong_user() {
-    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `H ${__filename}` });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: `H test_change_user` });
 
     return await client.withSessionAsync(
         {
@@ -358,7 +358,7 @@ describe("Testing subscription and  security", function (this: Mocha.Suite) {
     });
 
     it("should not be possible to monitor a restricted variable", async () => {
-        const client = OPCUAClient.create({ endpointMustExist: false, clientName: `I ${__filename}` });
+        const client = OPCUAClient.create({ endpointMustExist: false, clientName: `I test_change_user` });
 
         const dataValues: DataValue[] = [];
         await client.withSubscriptionAsync(
@@ -411,7 +411,7 @@ describe("Testing subscription and  security", function (this: Mocha.Suite) {
     });
 
     it("should stop monitoring a restricted variable when user change with lesser access right", async () => {
-        const client = OPCUAClient.create({ endpointMustExist: false, clientName: `J ${__filename}` });
+        const client = OPCUAClient.create({ endpointMustExist: false, clientName: `J test_change_user` });
 
         let dataValues: DataValue[] = [];
         await client.withSubscriptionAsync(
@@ -480,7 +480,7 @@ describe("Testing subscription and  security", function (this: Mocha.Suite) {
         }
     });
     it("should start monitoring a restricted variable when user change with great access right", async () => {
-        const client = OPCUAClient.create({ endpointMustExist: false, clientName: `K ${__filename}` });
+        const client = OPCUAClient.create({ endpointMustExist: false, clientName: `K test_change_user` });
 
         let dataValues: DataValue[] = [];
         await client.withSubscriptionAsync(

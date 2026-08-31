@@ -77,7 +77,7 @@ describe("ReverseConnect - reconnection end-to-end (RC-E2E-2)", function (this: 
 
     it("RC-E2E-2 re-accepts the server's redial after a channel drop without fetching the server certificate", async () => {
         const client = OPCUAClient.create({
-            clientName: `reverse-reconnect ${__filename}`,
+            clientName: `reverse-reconnect test_e2e_reverse_connect_reconnection`,
             endpointMustExist: false,
             keepSessionAlive: true,
             keepAliveInterval: 1000,

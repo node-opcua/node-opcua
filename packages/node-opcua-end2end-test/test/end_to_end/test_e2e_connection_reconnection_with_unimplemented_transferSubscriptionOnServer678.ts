@@ -1,5 +1,4 @@
 import "should"; // assertion side effects
-import path from "node:path";
 import chalk from "chalk";
 import {
     AttributeIds,
@@ -18,6 +17,7 @@ import type { ClientSessionImpl } from "node-opcua-client/source/private/client_
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector } from "node-opcua-leak-detector";
 import { crash_simple_server, type ServerHandle, start_simple_server } from "../../test_helpers/external_server_fixture.js";
+import { serverScript as serverScriptPath } from "../../test_helpers/paths.js";
 
 // -------------------------------------------------------------------------------------------------
 // This test covers reconnection logic when the server either fails to republish or doesn't implement
@@ -38,7 +38,7 @@ let server_data: ServerHandle | null = null;
 async function start_external_opcua_server(): Promise<void> {
     const options = {
         silent: true,
-        server_sourcefile: path.join(__dirname, "../../test_helpers/bin", serverScript),
+        server_sourcefile: serverScriptPath(serverScript),
         port
     };
     server_data = await start_simple_server(options);
