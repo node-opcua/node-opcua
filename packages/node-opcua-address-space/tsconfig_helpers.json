@@ -15,6 +15,9 @@
         },
         {
             "path": "./tsconfig_nodejs.json"
+        },
+        {
+            "path": "../node-opcua-test-helpers"
         }
     ],
     "exclude": [
