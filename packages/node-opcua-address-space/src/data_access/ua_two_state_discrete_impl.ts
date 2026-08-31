@@ -17,6 +17,7 @@ import { registerNodePromoter } from "../../source/loader/register_node_promoter
 import { UAVariableImpl } from "../ua_variable_impl.js";
 import { add_dataItem_stuff } from "./add_dataItem_stuff.js";
 
+/** @internal */
 export class UATwoStateDiscreteImplBase extends UAVariableImpl {
     private get $5(): UATwoStateDiscreteEx {
         return this as unknown as UATwoStateDiscreteEx;
@@ -90,7 +91,9 @@ export class UATwoStateDiscreteImplBase extends UAVariableImpl {
         return variable1;
     }
 }
+/** @internal */
 export type UATwoStateDiscreteImpl = UATwoStateDiscreteImplBase & UATwoStateDiscreteEx;
+/** @internal */
 export const UATwoStateDiscreteImpl = UATwoStateDiscreteImplBase as unknown as new () => UATwoStateDiscreteImpl;
 
 export function promoteToTwoStateDiscrete(node: UAVariable): UATwoStateDiscreteEx {
@@ -105,6 +108,7 @@ export function promoteToTwoStateDiscrete(node: UAVariable): UATwoStateDiscreteE
 }
 registerNodePromoter(VariableTypeIds.TwoStateDiscreteType, promoteToTwoStateDiscrete);
 
+/** @internal */
 export function _addTwoStateDiscrete(namespace: INamespace, options: AddTwoStateDiscreteOptions): UATwoStateDiscreteEx {
     const addressSpace = namespace.addressSpace;
 

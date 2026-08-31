@@ -18,6 +18,7 @@ interface RequiredModel {
     requiredNamespaceIndexes: number[];
     nbTypes: number;
 }
+/** @internal */
 export function _recomputeRequiredModelsFromTypes(namespace: INamespace, cache?: Map<number, RequiredModel>): RequiredModel {
     if (namespace.index === 0) {
         return { requiredNamespaceIndexes: [], nbTypes: 1 };
@@ -164,6 +165,7 @@ export function _recomputeRequiredModelsFromTypes(namespace: INamespace, cache?:
     return result;
 }
 
+/** @internal */
 export function _recomputeRequiredModelsFromTypes2(namespace: INamespace, cache?: Map<number, RequiredModel>): RequiredModel {
     const addressSpace = namespace.addressSpace;
 
@@ -189,6 +191,7 @@ export function _recomputeRequiredModelsFromTypes2(namespace: INamespace, cache?
     return { requiredNamespaceIndexes: pass2, nbTypes: 0 };
 }
 
+/** @internal */
 export function _getCompleteRequiredModelsFromValuesAndReferences(
     namespace: INamespace,
     priorityList: number[],
@@ -348,6 +351,7 @@ export function constructNamespaceDependency(namespace: INamespace, priorityTabl
 
 /**
  * @private
+ * @internal
  */
 export function _constructNamespaceTranslationTable(dependency: INamespace[], exportedNamespace: INamespace): TranslationTable {
     const translationTable: TranslationTable = new Map();

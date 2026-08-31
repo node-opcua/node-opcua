@@ -35,6 +35,7 @@ export interface UAMultiStateDiscreteEx<T, DT extends DataType> extends UAMultiS
 
 /**
  * @class UAMultiStateDiscrete
+ * @internal
  */
 export class UAMultiStateDiscreteImplBase<T, DT extends DataType> extends UAVariableImpl {
     private get $7(): UAMultiStateDiscreteEx<T, DT> {
@@ -103,7 +104,9 @@ export class UAMultiStateDiscreteImplBase<T, DT extends DataType> extends UAVari
         return promoteToMultiStateDiscrete(variable1);
     }
 }
+/** @internal */
 export type UAMultiStateDiscreteImpl<T, DT extends DataType> = UAMultiStateDiscreteImplBase<T, DT> & UAMultiStateDiscreteEx<T, DT>;
+/** @internal */
 export const UAMultiStateDiscreteImpl = UAMultiStateDiscreteImplBase as unknown as new <
     T,
     DT extends DataType
@@ -127,6 +130,7 @@ export function promoteToMultiStateDiscrete<T, DT extends DataType>(node: UAVari
 }
 registerNodePromoter(VariableTypeIds.MultiStateDiscreteType, promoteToMultiStateDiscrete);
 
+/** @internal */
 export function _addMultiStateDiscrete<T, DT extends DataType>(
     namespace: INamespace,
     options: AddMultiStateDiscreteOptions

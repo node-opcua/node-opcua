@@ -26,6 +26,7 @@ import {
 import { UAExclusiveLimitAlarmImpl, UAExclusiveLimitAlarmImplBase } from "./ua_exclusive_limit_alarm_impl.js";
 import { UALimitAlarmImpl } from "./ua_limit_alarm_impl.js";
 
+/** @internal */
 export class UAExclusiveDeviationAlarmImplBase extends UAExclusiveLimitAlarmImplBase {
     public static instantiate(
         namespace: NamespacePrivate,
@@ -88,7 +89,9 @@ export class UAExclusiveDeviationAlarmImplBase extends UAExclusiveLimitAlarmImpl
         UAExclusiveLimitAlarmImpl.prototype._setStateBasedOnInputValue.call(this, value - setpointValue);
     }
 }
+/** @internal */
 export type UAExclusiveDeviationAlarmImpl = UAExclusiveDeviationAlarmImplBase & UAExclusiveDeviationAlarmEx;
+/** @internal */
 export const UAExclusiveDeviationAlarmImpl =
     UAExclusiveDeviationAlarmImplBase as unknown as new () => UAExclusiveDeviationAlarmImpl;
 export interface UAExclusiveDeviationAlarmHelper extends SetPointSupport {}

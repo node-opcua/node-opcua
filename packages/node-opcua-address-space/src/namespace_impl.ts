@@ -234,6 +234,7 @@ function toNodeId(nodeId: NodeId | { nodeId: NodeId } | string | number | undefi
  * @params options.version="" {string}
  * @params options.publicationDate="" {Date}
  *
+ * @internal
  */
 export class NamespaceImpl implements NamespacePrivate {
     public static _handle_hierarchy_parent = _handle_hierarchy_parent;

@@ -239,6 +239,8 @@ export function promoteToCertificateExpirationAlarm(node: UAObject): UACertifica
 }
 registerNodePromoter(ObjectTypeIds.CertificateExpirationAlarmType, promoteToCertificateExpirationAlarm, true);
 
+/** @internal */
 export type UACertificateExpirationAlarmImpl = UACertificateExpirationAlarmImplBase & UACertificateExpirationAlarmEx;
+/** @internal */
 export const UACertificateExpirationAlarmImpl: new () => UACertificateExpirationAlarmImpl =
     UACertificateExpirationAlarmImplBase as unknown as new () => UACertificateExpirationAlarmImpl;

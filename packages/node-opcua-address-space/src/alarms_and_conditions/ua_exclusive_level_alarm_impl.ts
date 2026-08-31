@@ -7,6 +7,7 @@ import type { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarm
 import type { NamespacePrivate } from "../namespace_private.js";
 import { UAExclusiveLimitAlarmImpl, UAExclusiveLimitAlarmImplBase } from "./ua_exclusive_limit_alarm_impl.js";
 
+/** @internal */
 export class UAExclusiveLevelAlarmImpl extends UAExclusiveLimitAlarmImpl {
     public static instantiate(
         namespace: NamespacePrivate,

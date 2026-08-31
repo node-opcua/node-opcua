@@ -87,6 +87,7 @@ function install_synchronization<T extends Number, DT extends DataType>(
     _variable.emit("value_changed", dataValue);
 }
 
+/** @internal */
 export class UAMultiStateValueDiscreteImplBase<T extends Number, DT extends DataType> extends UAVariableImpl {
     private get $6(): UAMultiStateValueDiscreteEx<T, DT> {
         return this as unknown as UAMultiStateValueDiscreteEx<T, DT>;
@@ -226,8 +227,10 @@ export class UAMultiStateValueDiscreteImplBase<T extends Number, DT extends Data
         install_synchronization(this as unknown as UAVariableImpl & UAMultiStateValueDiscreteEx<T, DT>);
     }
 }
+/** @internal */
 export type UAMultiStateValueDiscreteImpl<T extends Number, DT extends DataType> = UAMultiStateValueDiscreteImplBase<T, DT> &
     UAMultiStateValueDiscreteEx<T, DT>;
+/** @internal */
 export const UAMultiStateValueDiscreteImpl = UAMultiStateValueDiscreteImplBase as unknown as new <
     T extends Number,
     DT extends DataType
@@ -247,6 +250,7 @@ export function promoteToMultiStateValueDiscrete<T extends Number, DT extends Da
 
 registerNodePromoter(VariableTypeIds.MultiStateValueDiscreteType, promoteToMultiStateValueDiscrete);
 
+/** @internal */
 export function _addMultiStateValueDiscrete<T, DT extends DataType>(
     namespace: INamespace,
     options: AddMultiStateValueDiscreteOptions

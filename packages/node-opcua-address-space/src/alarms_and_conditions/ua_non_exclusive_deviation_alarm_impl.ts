@@ -20,6 +20,7 @@ import {
 import { UALimitAlarmImpl } from "./ua_limit_alarm_impl.js";
 import { UANonExclusiveLimitAlarmImpl, UANonExclusiveLimitAlarmImplBase } from "./ua_non_exclusive_limit_alarm_impl.js";
 
+/** @internal */
 export class UANonExclusiveDeviationAlarmImplBase extends UANonExclusiveLimitAlarmImplBase {
     public static instantiate(
         namespace: NamespacePrivate,
@@ -83,6 +84,8 @@ export class UANonExclusiveDeviationAlarmImplBase extends UANonExclusiveLimitAla
     }
 }
 
+/** @internal */
 export type UANonExclusiveDeviationAlarmImpl = UANonExclusiveDeviationAlarmImplBase & UANonExclusiveDeviationAlarmEx;
+/** @internal */
 export const UANonExclusiveDeviationAlarmImpl =
     UANonExclusiveDeviationAlarmImplBase as unknown as new () => UANonExclusiveDeviationAlarmImpl;

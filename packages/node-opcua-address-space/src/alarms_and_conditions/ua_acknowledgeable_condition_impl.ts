@@ -29,6 +29,7 @@ export interface UAAcknowegeableConditionEvents extends UAConditionEvents {
     acknowledged: (eventId: Buffer | null, comment: LocalizedText | null, branch: ConditionSnapshot) => void;
     confirmed: (eventId: Buffer | null, comment: LocalizedText | null, branch: ConditionSnapshot) => void;
 }
+/** @internal */
 export class UAAcknowledgeableConditionImplBase<
     T extends UAAcknowegeableConditionEvents & ListenerSignature<T> = UAAcknowegeableConditionEvents
 > extends UAConditionImplBase<T> {
@@ -277,7 +278,9 @@ export class UAAcknowledgeableConditionImplBase<
     }
 }
 
+/** @internal */
 export type UAAcknowledgeableConditionImpl = UAAcknowledgeableConditionImplBase & UAAcknowledgeableConditionEx;
+/** @internal */
 export const UAAcknowledgeableConditionImpl =
     UAAcknowledgeableConditionImplBase as unknown as new () => UAAcknowledgeableConditionImpl;
 

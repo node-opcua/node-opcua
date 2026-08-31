@@ -34,6 +34,7 @@ function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
 }
 
 const $ = (a: UAAlarmConditionImplBase): UAAlarmConditionEx => a as unknown as UAAlarmConditionEx;
+/** @internal */
 export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase {
     public static MaxDuration = 2 ** 31;
 
@@ -475,5 +476,7 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
     }
 }
 
+/** @internal */
 export type UAAlarmConditionImpl = UAAlarmConditionImplBase & UAAlarmConditionEx;
+/** @internal */
 export const UAAlarmConditionImpl = UAAlarmConditionImplBase as unknown as new () => UAAlarmConditionImpl;

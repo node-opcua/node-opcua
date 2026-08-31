@@ -172,6 +172,7 @@ export function findOrder(nodesetDescs: NodesetDesc[]): number[] {
  * @param addressSpace the addressSpace to populate
  * @xmlFiles: a lis of xml files
  * @param xmlLoader - a helper function to return the content of the xml file
+ * @internal
  */
 export async function generateAddressSpaceRaw(
     addressSpace: IAddressSpace,
