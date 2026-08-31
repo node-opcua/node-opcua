@@ -17,7 +17,7 @@ npm run build
 
 # Run from tools directory
 cd ../..
-node tools/scan-deps.js
+node tools/scan-deps.mjs
 
 # Or run directly
 cd tools/scan-dependencies
@@ -27,19 +27,19 @@ npm run scan
 **Usage:**
 ```bash
 # Scan for missing dependencies (read-only)
-node tools/scan-deps.js
+node tools/scan-deps.mjs
 
 # Scan and fix missing dependencies
-node tools/scan-deps.js --fix
+node tools/scan-deps.mjs --fix
 
 # Scan and remove extraneous dependencies
-node tools/scan-deps.js --remove-extraneous
+node tools/scan-deps.mjs --remove-extraneous
 
 # Scan and fix both missing and extraneous dependencies
-node tools/scan-deps.js --fix --remove-extraneous
+node tools/scan-deps.mjs --fix --remove-extraneous
 
 # Verbose output
-node tools/scan-deps.js --verbose
+node tools/scan-deps.mjs --verbose
 ```
 
 For more details, see [scan-dependencies/README.md](scan-dependencies/README.md).
@@ -52,14 +52,14 @@ flag *inside* the returned function, so arguments — template literals, chalk c
 
 ```bash
 # report; exits non-zero if anything is unguarded, so it works as a CI gate
-node tools/check-debug-log.js
+node tools/check-debug-log.mjs
 
 # list every site, or scope to one package
-node tools/check-debug-log.js --verbose
-node tools/check-debug-log.js --package node-opcua-server
+node tools/check-debug-log.mjs --verbose
+node tools/check-debug-log.mjs --package node-opcua-server
 
 # rewrite them into `if (doDebug) { ... }` blocks
-node tools/check-debug-log.js --fix
+node tools/check-debug-log.mjs --fix
 ```
 
 For more details, see [check-debug-log/README.md](check-debug-log/README.md).
@@ -106,9 +106,9 @@ tools/
 ├── check-test-types/        # Test-suite type-check ratchet
 ├── clean/                   # Cleanup utilities
 ├── fix-tsconfigs/           # TypeScript config fixes
-├── scan-deps.js             # Launcher for scan-dependencies
-├── check-debug-log.js       # Launcher for check-debug-log
-├── check-mocharc.js         # Launcher for check-mocharc
+├── scan-deps.mjs            # Launcher for scan-dependencies
+├── check-debug-log.mjs      # Launcher for check-debug-log
+├── check-mocharc.mjs        # Launcher for check-mocharc
 ├── check-no-tla.mjs         # Launcher for check-no-tla
 ├── check-import-extension.mjs
 ├── check-import-cycles.mjs

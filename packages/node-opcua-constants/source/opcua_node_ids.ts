@@ -1,5 +1,5 @@
 // this file has been automatically generated
-// using code_gen/generate_node_ids.js
+// using code_gen/generate_node_ids.mjs
  export enum DataTypeIds {
                                                                            Boolean=      1 ,
                                                                              SByte=      2 ,

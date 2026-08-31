@@ -26,10 +26,10 @@
  *     }
  *
  * Usage:
- *     node tools/check-debug-log.js                  # report, exit 1 if anything is unguarded
- *     node tools/check-debug-log.js --fix            # rewrite, then report what is left
- *     node tools/check-debug-log.js --package node-opcua-server
- *     node tools/check-debug-log.js --verbose
+ *     node tools/check-debug-log.mjs                  # report, exit 1 if anything is unguarded
+ *     node tools/check-debug-log.mjs --fix            # rewrite, then report what is left
+ *     node tools/check-debug-log.mjs --package node-opcua-server
+ *     node tools/check-debug-log.mjs --verbose
  */
 
 import fs from "node:fs";

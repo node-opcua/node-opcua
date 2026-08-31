@@ -2,12 +2,11 @@
  * utility to generate source file ./lib/raw_status_codes.js from  Opc.Ua.StatusCodes.csv
  *
  */
-const util = require("util");
-const fs = require("fs");
-const path = require("path");
-const xml = require("ersatz-node-expat");
-const csv = require("csv");
-const { sprintf  }= require("sprintf-js");
+import fs from "node:fs";
+import path from "node:path";
+import * as csv from "csv";
+import * as xml from "ersatz-node-expat";
+import { sprintf } from "sprintf-js";
 
 
 // see OPC-UA Part 6 , A2
@@ -15,7 +14,7 @@ const codeMap = {};
 const code_list = [];
 
 
-const dataFolder = path.join(__dirname, "latest");
+const dataFolder = path.join(import.meta.dirname, "latest");
 
 
 const parser = csv.parse({
@@ -43,12 +42,12 @@ fs.createReadStream(path.join(dataFolder, "/StatusCode.csv")).pipe(parser);
 
 function parseStatusCodeXML_not_used_anymore() {
 
-    const xmlFile = __dirname + "/UA_StatusCodes.xml";
+    const xmlFile = import.meta.dirname + "/UA_StatusCodes.xml";
 
     const parser = new xml.Parser();
 
     const obj = {};
-    const outFile = fs.createWriteStream(__dirname + "/../packages/node-opcua-constants/source/raw_status_codes.ts");
+    const outFile = fs.createWriteStream(import.meta.dirname + "/../packages/node-opcua-constants/source/raw_status_codes.ts");
     outFile.write(`
 /**
  * @module node-opcua-constants
@@ -79,12 +78,12 @@ export interface IStatusCodeDescription {
 
 function parseStatusCodeXML2() {
 
-    const xmlFile = __dirname + "/UA_StatusCodes.xml";
+    const xmlFile = import.meta.dirname + "/UA_StatusCodes.xml";
 
     const parser = new xml.Parser();
 
     const obj = {};
-    const outFile = fs.createWriteStream(__dirname + "/../packages/node-opcua-status-code/source/_generated_status_codes.ts");
+    const outFile = fs.createWriteStream(import.meta.dirname + "/../packages/node-opcua-status-code/source/_generated_status_codes.ts");
     outFile.write(`
 /**
  * @module node-opcua-status-codes
