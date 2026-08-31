@@ -10,10 +10,11 @@ import { AddressSpace } from "..";
 import type { UAVariableImpl } from "../dist/src/ua_variable_impl.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
+import { scratch } from "./paths.js";
 
 describe("Advanced nodeset to XML", () => {
     const nodesetFilename = getAddressSpaceFixture("nodeset_with_extensionObjects_datatype.xml");
-    const tmpFolder = path.join(__dirname, "../tmp");
+    const tmpFolder = scratch("tmp");
     before(() => {
         if (!fs.existsSync(tmpFolder)) {
             fs.mkdirSync(tmpFolder);

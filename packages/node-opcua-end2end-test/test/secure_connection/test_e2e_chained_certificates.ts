@@ -13,6 +13,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { CertificateAuthority } from "node-opcua-pki";
 import should from "should";
 import "mocha";
+import { scratch } from "../../test_helpers/paths.js";
 
 const port2 = 5013;
 
@@ -21,7 +22,7 @@ const port1 = 5012;
 describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
     this.timeout(200000);
 
-    const tmpFolder = path.join(__dirname, "../../tmp_chained_test");
+    const tmpFolder = scratch("tmp_chained_test");
     if (!fs.existsSync(tmpFolder)) {
         fs.mkdirSync(tmpFolder);
     }

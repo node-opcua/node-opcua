@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
 import { OPCUAClient } from "node-opcua-client";
@@ -10,6 +9,7 @@ import { UserTokenType } from "node-opcua-service-endpoints";
 import should from "should";
 
 import { OPCUAServer, type ServerSession } from "..";
+import { testPath } from "./paths.js";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
@@ -144,7 +144,7 @@ describe("OPCUAServer-4", () => {
     let server: OPCUAServer;
     let client: OPCUAClient;
     const endpointUrl = `opc.tcp://localhost:${port}`;
-    const privateKeyFile = path.join(__dirname, "utils", "private_key.pem");
+    const privateKeyFile = testPath("utils", "private_key.pem");
     const privateKey1 = readPrivateKey(privateKeyFile);
     const privateKeyPem = coercePrivateKeyPem(privateKey1);
 

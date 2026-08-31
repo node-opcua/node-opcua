@@ -1160,6 +1160,9 @@ importers:
       node-opcua-leak-detector:
         specifier: 2.179.0
         version: link:../node-opcua-leak-detector
+      node-opcua-test-helpers:
+        specifier: 2.179.0
+        version: link:../node-opcua-test-helpers
       process:
         specifier: ^0.11.10
         version: 0.11.10
@@ -1329,6 +1332,10 @@ importers:
       node-opcua-types:
         specifier: 2.180.0
         version: link:../node-opcua-types
+    devDependencies:
+      node-opcua-test-helpers:
+        specifier: 2.179.0
+        version: link:../node-opcua-test-helpers
 
   packages/node-opcua-constants: {}
 
@@ -1760,6 +1767,9 @@ importers:
       node-opcua-nodesets:
         specifier: 2.179.0
         version: link:../node-opcua-nodesets
+      node-opcua-test-helpers:
+        specifier: 2.179.0
+        version: link:../node-opcua-test-helpers
       node-opcua-utils:
         specifier: 2.179.0
         version: link:../node-opcua-utils

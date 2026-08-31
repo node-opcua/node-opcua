@@ -6,6 +6,8 @@ import chalk from "chalk";
 import { makeSHA1Thumbprint, readCertificateChain } from "node-opcua-crypto";
 import { make_debugLog } from "node-opcua-debug";
 import type { ServerCapabilitiesOptions } from "node-opcua-server";
+import { samplesCertificateFolder } from "node-opcua-test-helpers";
+import { serverScript as serverScriptPath } from "./paths.js";
 
 const debugLog = make_debugLog("TEST");
 
@@ -56,7 +58,7 @@ async function _start_simple_server_once(options: {
 
     options.silent = false;
 
-    const serverScript = options.server_sourcefile || path.join(__dirname, "./bin/simple_server.js");
+    const serverScript = options.server_sourcefile || serverScriptPath("simple_server.js");
 
     if (!fs.existsSync(serverScript)) {
         throw new Error(`start_simple_server : cannot find server script : ${options.server_sourcefile}`);
@@ -79,7 +81,7 @@ async function _start_simple_server_once(options: {
 
     const server_exec = spawn("node", [serverScript, "-p", `${port}`], options);
 
-    const serverCertificateFilename = path.join(__dirname, "../../node-opcua-samples/certificates/server_cert_2048.pem");
+    const serverCertificateFilename = path.join(samplesCertificateFolder, "server_cert_2048.pem");
 
     if (process.env.DEBUG2 || process.env.DEBUG) {
         console.log(" node ", serverScript);

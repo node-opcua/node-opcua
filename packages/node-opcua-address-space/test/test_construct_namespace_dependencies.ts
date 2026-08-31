@@ -15,8 +15,9 @@ import {
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 import { makeBoiler } from "../testHelpers.js";
+import { scratch } from "./paths.js";
 
-const tmpFolder = path.join(__dirname, "../tmp");
+const tmpFolder = scratch("tmp");
 
 function getCoffeeMachineDeviceType(addressSpace: IAddressSpace) {
     const nsKitchen = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/CommercialKitchenEquipment/");

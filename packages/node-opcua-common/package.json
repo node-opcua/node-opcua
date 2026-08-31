@@ -47,5 +47,8 @@
     "files": [
         "dist",
         "source"
-    ]
+    ],
+    "devDependencies": {
+        "node-opcua-test-helpers": "2.179.0"
+    }
 }
