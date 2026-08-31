@@ -1,10 +1,10 @@
 import fs from "node:fs";
-import path from "node:path";
 import { DataTypeFactory, parameters } from "node-opcua-factory";
 import { encode_decode_round_trip_test, type IExtensionObject } from "node-opcua-packet-analyzer/dist/test_helpers";
 
 import { parseBinaryXSD } from "..";
 import { MockProvider } from "./mock_id_provider.js";
+import { testFixture } from "./paths.js";
 
 class MockProvider2 extends MockProvider {
     public getDataTypeAndEncodingId(key: string) {
@@ -21,7 +21,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
     let old_schema_helpers_doDebug = false;
     let sample: string;
     before(async () => {
-        const sample_file = path.join(__dirname, "fixtures/simaticSchema.bsd");
+        const sample_file = testFixture("simaticSchema.bsd");
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
