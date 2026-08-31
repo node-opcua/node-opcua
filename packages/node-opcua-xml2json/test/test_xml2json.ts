@@ -3,7 +3,7 @@ import path from "node:path";
 import { make_debugLog } from "node-opcua-debug";
 import should from "should";
 import { type ParserLike, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "..";
-import { Xml2JsonFs } from "../source/nodejs/xml2json_fs.js";
+import { Xml2JsonFs } from "../dist/source/nodejs/xml2json_fs.js";
 
 const debugLog = make_debugLog("TEST");
 

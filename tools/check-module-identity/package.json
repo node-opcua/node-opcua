@@ -1,0 +1,14 @@
+{
+    "name": "@sterfive/check-module-identity",
+    "version": "1.0.0",
+    "private": true,
+    "description": "fail the build when a file reaches one package by two routes",
+    "bin": {
+        "check-module-identity": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "test": "node test/test_rule.js"
+    }
+}

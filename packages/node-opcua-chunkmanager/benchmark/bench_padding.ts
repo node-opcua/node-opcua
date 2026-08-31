@@ -1,4 +1,4 @@
-import { Benchmarker } from "../../node-opcua-benchmarker/source/benchmarker";
+import { Benchmarker } from "node-opcua-benchmarker";
 import { ChunkManager, Mode } from "../source/chunk_manager";
 
 const bench = new Benchmarker();

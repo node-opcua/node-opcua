@@ -5,8 +5,8 @@ import { Argument } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type Namespace } from "..";
+import { isArgumentValid } from "../dist/source/helpers/argument_list.js";
 import { generateAddressSpace } from "../nodeJS.js";
-import { isArgumentValid } from "../source/helpers/argument_list.js";
 
 const nodesetFilename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 

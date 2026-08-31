@@ -18,7 +18,7 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { checkFilter, ofType } from "node-opcua-service-filter";
 
-import { extractEventFields, FilterContextOnAddressSpace } from "node-opcua-service-filter/source/on_address_space/index";
+import { extractEventFields, FilterContextOnAddressSpace } from "node-opcua-service-filter/dist/on_address_space/index.js";
 import {
     ContentFilter,
     ElementOperand,

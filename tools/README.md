@@ -79,6 +79,15 @@ For more details, see [check-mocharc/README.md](check-mocharc/README.md).
 
 ### Other Tools
 
+Each has its own README with the reasoning behind the rule.
+
+- `check-no-tla/`: module-scope `await`, which breaks `require(esm)` for CJS consumers
+- `check-import-extension/`: relative specifiers must carry the extension ESM needs
+- `check-import-cycles/`: circular imports that would throw under ESM
+- `check-module-identity/`: a file must reach any one package by a single route
+- `check-pack/`: declared entry points must actually be published
+- `check-test-types/`: ratchet on test-suite type-checking
+- `check-test-ports/`: no hard-coded ports in tests
 - `clean/`: Cleanup utilities
 - `fix-tsconfigs/`: TypeScript configuration fixes
 
@@ -86,13 +95,23 @@ For more details, see [check-mocharc/README.md](check-mocharc/README.md).
 
 ```
 tools/
-├── scan-dependencies/     # Dependency scanning tool
-├── check-debug-log/       # Unguarded debug-log finder / fixer
-├── check-mocharc/         # Mocha config shape checker / fixer
-├── clean/                # Cleanup utilities
-├── fix-tsconfigs/        # TypeScript config fixes
-├── scan-deps.js          # Launcher for scan-dependencies
-├── check-debug-log.js    # Launcher for check-debug-log
-├── check-mocharc.js      # Launcher for check-mocharc
-└── README.md            # This file
+├── scan-dependencies/       # Dependency scanning tool
+├── check-debug-log/         # Unguarded debug-log finder / fixer
+├── check-mocharc/           # Mocha config shape checker / fixer
+├── check-no-tla/            # Module-scope await finder
+├── check-import-extension/  # Extension on relative specifiers
+├── check-import-cycles/     # Cycles that would throw under ESM
+├── check-module-identity/   # One route per package
+├── check-pack/              # Declared entry points are published
+├── check-test-types/        # Test-suite type-check ratchet
+├── clean/                   # Cleanup utilities
+├── fix-tsconfigs/           # TypeScript config fixes
+├── scan-deps.js             # Launcher for scan-dependencies
+├── check-debug-log.js       # Launcher for check-debug-log
+├── check-mocharc.js         # Launcher for check-mocharc
+├── check-no-tla.mjs         # Launcher for check-no-tla
+├── check-import-extension.mjs
+├── check-import-cycles.mjs
+├── check-module-identity.mjs
+└── README.md                # This file
 ``` 

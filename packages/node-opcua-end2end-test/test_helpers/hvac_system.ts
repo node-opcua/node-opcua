@@ -9,8 +9,8 @@ import type {
     UAObject,
     UAVariableT
 } from "node-opcua-address-space";
-import { adjustDataValueStatusCode } from "node-opcua-address-space/src/data_access/adjust_datavalue_status_code";
-import type { UAVariableImpl } from "node-opcua-address-space/src/ua_variable_impl";
+import { adjustDataValueStatusCode } from "node-opcua-address-space/dist/src/data_access/adjust_datavalue_status_code.js";
+import type { UAVariableImpl } from "node-opcua-address-space/dist/src/ua_variable_impl.js";
 import { assert } from "node-opcua-assert";
 
 const doDebug = false;
