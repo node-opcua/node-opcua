@@ -4280,6 +4280,8 @@ importers:
 
   tools/check-debug-name: {}
 
+  tools/check-entry-points: {}
+
   tools/check-import-cycles:
     devDependencies:
       typescript:
