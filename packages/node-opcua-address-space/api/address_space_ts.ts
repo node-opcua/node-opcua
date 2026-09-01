@@ -33,12 +33,6 @@ import type { DataType } from "node-opcua-variant";
 
 import type { MinimalistAddressSpace } from "../impl/reference_impl.js";
 
-export declare function resolveReferenceType(addressSpace: MinimalistAddressSpace, reference: UAReference): UAReferenceType;
-
-export declare function resolveReferenceNode(addressSpace: MinimalistAddressSpace, reference: UAReference): BaseNode;
-
-export declare function makeAttributeEventName(attributeId: AttributeIds): AttributeEventName;
-
 export interface EnumValueTypeOptionsLike {
     value?: Int64 | UInt32;
     displayName?: LocalizedTextLike | null;
@@ -120,8 +114,6 @@ export interface XAxisDefinitionVariable extends UAVariable {
     euRange: RangeVariable;
 }
 
-export declare const NamespaceOptions: { nodeIdNameSeparator: string };
-
 export interface UATypesFolder extends UAFolder {
     dataTypes: UAFolder;
     eventTypes: UAFolder;
@@ -139,36 +131,6 @@ export interface IHistorizerFactory {
     create(node: UAVariable, options: IVariableHistorianOptions): IVariableHistorian;
 }
 
-export declare class VariableHistorian implements IVariableHistorian {
-    public constructor(node: UAVariable, options: IVariableHistorianOptions);
-
-    /**
-     * push a new value into the history for this variable
-     * the method should take a very small amount of time and not
-     * directly write to the underlying database
-     * @param newDataValue
-     */
-    public push(newDataValue: DataValue): Promise<void>;
-
-    /**
-     * Extract a series of dataValue from the History database for this value
-     * @param historyReadRawModifiedDetails
-     * @param maxNumberToExtract
-     * @param isReversed
-     * @param reverseDataValue
-     * @param callback
-     */
-    public extractDataValues(
-        historyReadRawModifiedDetails: ReadRawModifiedDetails,
-        maxNumberToExtract: number,
-        isReversed: boolean,
-        reverseDataValue: boolean,
-        callback: (err: Error | null, dataValue?: DataValue[]) => void
-    ): void;
-}
-
-export type UAClonable = UAObject | UAVariable | UAMethod;
-
 export interface CreateExtObjArrayNodeOptions {
     browseName: QualifiedNameLike;
     complexVariableType: string | NodeId;
@@ -177,29 +139,4 @@ export interface CreateExtObjArrayNodeOptions {
     minimumSamplingInterval?: number;
 }
 
-export declare function createExtObjArrayNode<T extends ExtensionObject>(
-    parentFolder: UAObject,
-    options: CreateExtObjArrayNodeOptions
-): UADynamicVariableArray<T>;
-
-export declare function bindExtObjArrayNode<T extends ExtensionObject>(
-    uaArrayVariableNode: UADynamicVariableArray<T>,
-    variableTypeNodeId: string | NodeId,
-    indexPropertyName: string
-): UAVariable;
-
-export declare function addElement<T extends ExtensionObject>(
-    options: Record<string, unknown> | ExtensionObject | UAVariable,
-    uaArrayVariableNode: UADynamicVariableArray<T>
-): UAVariable;
-
-export declare function removeElement<T extends ExtensionObject>(
-    uaArrayVariableNode: UADynamicVariableArray<T>,
-    element: number | UAVariable | ((a: T) => boolean)
-): void;
-
 // }}
-
-export declare function dumpXml(node: BaseNode, options: Record<string, unknown>): string;
-export declare function dumpToBSD(namespace: INamespace): string;
-export declare function adjustNamespaceArray(addressSpace: IAddressSpace): void;
