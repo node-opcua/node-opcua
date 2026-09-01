@@ -22,6 +22,35 @@ export interface UAAlarmConditionHelper extends UAAcknowledgeableConditionHelper
     updateState(): void;
     getCurrentConditionInfo(): ConditionInfo;
     installInputNodeMonitoring(inputNode: BaseNode | NodeId): void;
+
+    /**
+     * What the alarm reports when its state changes. Assign to it to give an alarm a message
+     * and a severity of its own:
+     *
+     * ```ts
+     * alarm.calculateConditionInfo = (state, isActive, value, oldConditionInfo) =>
+     *     new ConditionInfo({
+     *         message: `Tank is almost ${Math.ceil(Number(value) * 100)}% full`,
+     *         severity: 100,
+     *         quality: StatusCodes.Good,
+     *         retain: true
+     *     });
+     * ```
+     *
+     * The default returns the previous ConditionInfo unchanged, so an alarm that does not
+     * assign one reports nothing new.
+     *
+     * This has been the documented way to give an alarm its own message for years, but under
+     * the name `_calculateConditionInfo` and only on the implementation class, so following
+     * the documentation meant importing from inside the package. That name still works and is
+     * deprecated.
+     */
+    calculateConditionInfo(
+        stateName: string | null,
+        isActive: boolean,
+        value: string,
+        oldConditionInfo: ConditionInfo
+    ): ConditionInfo;
 }
 
 export interface UALarmConditionEvents extends UAAcknowledgeableConditionEvents {}

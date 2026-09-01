@@ -111,7 +111,7 @@ export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implement
         return alarm;
     }
 
-    public _calculateConditionInfo(
+    public calculateConditionInfo(
         state: string | null,
         isActive: boolean,
         value: string,
