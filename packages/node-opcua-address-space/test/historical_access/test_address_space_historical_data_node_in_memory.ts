@@ -6,7 +6,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { type HistoryData, ReadRawModifiedDetails } from "node-opcua-service-history";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
-import { AddressSpace, type ContinuationPoint, ContinuationPointManager, SessionContext } from "../..";
+import { AddressSpace, type ContinuationPoint, ContinuationPointManager, SessionContext } from "../../dist/api/index.js";
 import { generateAddressSpace } from "../../nodeJS.js";
 import { date_add } from "../../testHelpers.js";
 

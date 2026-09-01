@@ -1,5 +1,5 @@
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import type { AddressSpace } from "..";
+import type { AddressSpace } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/432", () => {

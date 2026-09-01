@@ -3,7 +3,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { PermissionType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { type AddressSpace, makeRoles, type Namespace, type UAVariable, WellKnownRoles } from "..";
+import { type AddressSpace, makeRoles, type Namespace, type UAVariable, WellKnownRoles } from "../dist/api/index.js";
 import { getMiniAddressSpace, makeMockSessionContext } from "../testHelpers.js";
 
 /**

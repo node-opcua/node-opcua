@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { getFixture } from "node-opcua-test-fixtures";
-import { AddressSpace } from "..";
+import { AddressSpace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

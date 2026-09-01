@@ -9,7 +9,7 @@ import {
     promoteToStateMachine,
     SessionContext,
     type UAProgramStateMachineEx
-} from "..";
+} from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { createBoilerType, makeBoiler } from "../testHelpers.js";
 

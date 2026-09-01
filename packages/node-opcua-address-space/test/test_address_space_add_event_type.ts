@@ -4,7 +4,7 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { checkSelectClause, constructEventFilter } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
-import type { AddressSpace, InstantiateConditionOptions, Namespace } from "..";
+import type { AddressSpace, InstantiateConditionOptions, Namespace } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("AddressSpace : add event type ", () => {

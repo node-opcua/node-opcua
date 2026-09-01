@@ -11,7 +11,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { ThreeDCartesianCoordinates } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import XMLWriter from "xml-writer";
-import { AddressSpace, type BaseNode, type Namespace, type UARootFolder, type UAVariable } from "..";
+import { AddressSpace, type BaseNode, type Namespace, type UARootFolder, type UAVariable } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { createBoilerType, getMiniAddressSpace } from "../testHelpers.js";
 import { createCameraType } from "./fixture_camera_type.js";

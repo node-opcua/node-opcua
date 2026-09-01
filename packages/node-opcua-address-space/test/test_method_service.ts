@@ -7,7 +7,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { makeNodeId } from "node-opcua-nodeid";
 import { CallRequest } from "node-opcua-service-call";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace, type UAObject } from "..";
+import { AddressSpace, type UAObject } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

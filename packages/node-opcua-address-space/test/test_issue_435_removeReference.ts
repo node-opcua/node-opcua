@@ -1,7 +1,7 @@
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace, type BaseNode } from "..";
+import { AddressSpace, type BaseNode } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { type BoilerType, createBoilerType } from "../testHelpers.js";
 

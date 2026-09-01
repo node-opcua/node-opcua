@@ -24,7 +24,7 @@ import {
     type UAReferenceType,
     type UATransitionEventType,
     type UAVariable
-} from "..";
+} from "../dist/api/index.js";
 
 import type { UAStateMachineImpl } from "../impl/state_machine/finite_state_machine.js";
 

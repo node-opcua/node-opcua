@@ -2,7 +2,7 @@ import "should";
 
 import type { Double } from "node-opcua-basic-types";
 import { DataType, Variant } from "node-opcua-variant";
-import type { AddressSpace, InstantiateObjectOptions, UAObject, UAObjectType, UAVariableT } from "..";
+import type { AddressSpace, InstantiateObjectOptions, UAObject, UAObjectType, UAVariableT } from "../dist/api/index.js";
 
 export interface TemperatureSensor extends UAObject {
     temperature: UAVariableT<Double, DataType.Double>;

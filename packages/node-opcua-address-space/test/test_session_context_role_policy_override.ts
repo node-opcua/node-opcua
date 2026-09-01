@@ -3,7 +3,7 @@ import "should";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { AnonymousIdentityToken, UserNameIdentityToken } from "node-opcua-types";
 
-import { type IRolePolicyOverride, type IServerBase, type IUserManager, WellKnownRoles } from "..";
+import { type IRolePolicyOverride, type IServerBase, type IUserManager, WellKnownRoles } from "../dist/api/index.js";
 import { makeMockSessionContext } from "../testHelpers.js";
 
 describe("US-028: IRolePolicyOverride", () => {

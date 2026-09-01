@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
-import type { AddReferenceOpts, BaseNode, UAReference } from "..";
+import type { AddReferenceOpts, BaseNode, UAReference } from "../dist/api/index.js";
 
 /**
  * asserts that the provided reference exists in the node references

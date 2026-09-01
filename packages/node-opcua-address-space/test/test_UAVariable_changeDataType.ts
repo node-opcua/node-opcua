@@ -2,7 +2,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceNodeId } from "node-opcua-nodeid";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import type { AddressSpace, Namespace } from "..";
+import type { AddressSpace, Namespace } from "../dist/api/index.js";
 import { _getBasicDataTypeFromDataTypeNodeId } from "../impl/get_basic_datatype.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 

@@ -4,7 +4,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { StatusCodes } from "node-opcua-status-code";
 import type { ReadValueIdOptions } from "node-opcua-types";
 import should from "should";
-import { type AddressSpace, PseudoSession } from "..";
+import { type AddressSpace, PseudoSession } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("PseudoSession", () => {

@@ -5,7 +5,7 @@ import { coerceNodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { getBuiltInDataType } from "node-opcua-pseudo-session";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace, type Namespace, PseudoSession } from "..";
+import { AddressSpace, type Namespace, PseudoSession } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 describe("testing github issue #998", () => {

@@ -1,7 +1,7 @@
 import { BrowseDirection } from "node-opcua-data-model";
 import { sameNodeId } from "node-opcua-nodeid";
 import should from "should";
-import type { AddressSpace, BaseNode, UARootFolder } from "..";
+import type { AddressSpace, BaseNode, UARootFolder } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../distHelpers/index.js";
 
 describe("AddressSpace : removeReference", () => {

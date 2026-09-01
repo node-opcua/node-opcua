@@ -1,7 +1,7 @@
 import { StatusCodes } from "node-opcua-status-code";
 import "should";
 import { DataType, Variant } from "node-opcua-variant";
-import { AddressSpace } from "..";
+import { AddressSpace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 import { get_mini_nodeset_filename } from "../testHelpers.js";
 

@@ -1,6 +1,6 @@
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import type { AddressSpace, Namespace } from "..";
+import type { AddressSpace, Namespace } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("#513 Testing issue porting from 0.4.0 0.4.2", () => {

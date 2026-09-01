@@ -3,7 +3,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 
-import { AddressSpace, validateDataTypeCorrectness } from "..";
+import { AddressSpace, validateDataTypeCorrectness } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 
 describe("testing validateDataTypeCorrectness", () => {

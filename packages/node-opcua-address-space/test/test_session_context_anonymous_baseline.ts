@@ -6,7 +6,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { PermissionType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, type IServerBase, makeRoles, type UAMethod, type UAVariable, WellKnownRoles } from "..";
+import { AddressSpace, type IServerBase, makeRoles, type UAMethod, type UAVariable, WellKnownRoles } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { makeMockSessionContext } from "../testHelpers.js";
 

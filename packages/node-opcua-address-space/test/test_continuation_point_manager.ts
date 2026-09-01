@@ -3,7 +3,7 @@ import { ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { ContinuationPointManager } from "..";
+import { ContinuationPointManager } from "../dist/api/index.js";
 
 describe("ContinuationPointManager", () => {
     it("should create a ContinuationPointManager", () => {

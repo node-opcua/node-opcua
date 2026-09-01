@@ -8,7 +8,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import type { StructureDefinition } from "node-opcua-types";
 import should from "should";
 import { DataTypeIds } from "../../node-opcua-constants/dist/index.js";
-import { AddressSpace, PseudoSession } from "..";
+import { AddressSpace, PseudoSession } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

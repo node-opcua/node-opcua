@@ -1,6 +1,6 @@
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import type { AddressSpace, Namespace } from "../";
+import type { AddressSpace, Namespace } from "../dist/api/index.js";
 import { assertHasMatchingReference, getMiniAddressSpace } from "../testHelpers.js";
 import { createTemperatureSensorType } from "./fixture_temperature_sensor_type.js";
 

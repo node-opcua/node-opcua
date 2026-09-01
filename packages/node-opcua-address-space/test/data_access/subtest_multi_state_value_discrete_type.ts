@@ -16,7 +16,7 @@ import {
     type UAMultiStateValueDiscreteEx,
     type UAObject,
     type UAObjectType
-} from "../..";
+} from "../../dist/api/index.js";
 
 const context = new SessionContext();
 

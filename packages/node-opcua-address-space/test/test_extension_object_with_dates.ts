@@ -3,7 +3,14 @@ import { StatusCodes } from "node-opcua-status-code";
 import type { CallMethodResultOptions } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, type ISessionContext, SessionContext, type UAMethod, type UAObject, type UAVariable } from "..";
+import {
+    AddressSpace,
+    type ISessionContext,
+    SessionContext,
+    type UAMethod,
+    type UAObject,
+    type UAVariable
+} from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

@@ -2,7 +2,7 @@ import { AttributeIds } from "node-opcua-basic-types";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace } from "..";
+import { AddressSpace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

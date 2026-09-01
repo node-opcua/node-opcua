@@ -1,7 +1,7 @@
 import { NodeClass } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import type { AddressSpace, Namespace } from "..";
+import type { AddressSpace, Namespace } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("testing add new ObjectType ", () => {

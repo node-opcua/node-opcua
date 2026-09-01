@@ -28,7 +28,7 @@ import {
     type UAObject,
     type UAVariable,
     WellKnownRoles
-} from "..";
+} from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 import { getMiniAddressSpace, makeMockSessionContext, mockSession } from "../testHelpers.js";
 

@@ -3,7 +3,7 @@ import { NodeClass } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import type { AddressSpace, InstantiateObjectOptions, Namespace, UAObject, UAObjectType, UAVariable } from "..";
+import type { AddressSpace, InstantiateObjectOptions, Namespace, UAObject, UAObjectType, UAVariable } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 import { createCameraType, type FakeCameraType } from "./fixture_camera_type.js";
 import {

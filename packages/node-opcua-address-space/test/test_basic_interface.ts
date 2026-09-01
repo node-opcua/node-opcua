@@ -2,7 +2,7 @@ import { describe } from "mocha";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace, implementInterface } from "..";
+import { AddressSpace, implementInterface } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 const debugLog = make_debugLog("TEST");

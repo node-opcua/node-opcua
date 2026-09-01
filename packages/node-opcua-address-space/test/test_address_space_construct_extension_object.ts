@@ -24,7 +24,14 @@ import { ServerState } from "node-opcua-types";
 import { get_clock_tick } from "node-opcua-utils";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, type BaseNode, type DTServerStatus, type Namespace, type UAServerStatus, type UAVariable } from "..";
+import {
+    AddressSpace,
+    type BaseNode,
+    type DTServerStatus,
+    type Namespace,
+    type UAServerStatus,
+    type UAVariable
+} from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 const debugLog = make_debugLog("TEST");

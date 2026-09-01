@@ -1,7 +1,7 @@
 import { QualifiedName } from "node-opcua-data-model";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import type { IAddressSpace, InstantiateObjectOptions, UAMethod, UAObject, UAObjectType, UAVariableT } from "..";
+import type { IAddressSpace, InstantiateObjectOptions, UAMethod, UAObject, UAObjectType, UAVariableT } from "../dist/api/index.js";
 
 export interface FakeCamera extends UAObject {
     trigger: UAMethod;

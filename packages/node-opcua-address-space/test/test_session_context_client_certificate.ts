@@ -2,7 +2,7 @@ import { CertificatePurpose, convertPEMtoDER, createSelfSignedCertificate, gener
 import { MessageSecurityMode } from "node-opcua-types";
 import should from "should";
 
-import { SessionContext } from "..";
+import { SessionContext } from "../dist/api/index.js";
 import { makeMockSessionContext } from "../testHelpers.js";
 
 describe("US-035: ISessionContext.clientCertificate / clientApplicationUri", () => {

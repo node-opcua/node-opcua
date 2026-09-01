@@ -2,7 +2,7 @@ import { coerceQualifiedName } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 
-import { AddressSpace, type Namespace, type UAObjectType } from "..";
+import { AddressSpace, type Namespace, type UAObjectType } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 
 describe("Object Instantiate with various nested properties defined at different subType level", () => {

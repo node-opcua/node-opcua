@@ -1,7 +1,7 @@
 import { DataType } from "node-opcua-basic-types";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace, type Namespace } from "..";
+import { AddressSpace, type Namespace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1320", () => {

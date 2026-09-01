@@ -6,7 +6,7 @@ import { DataType } from "node-opcua-variant";
 import { Xml2Json } from "node-opcua-xml2json";
 import should from "should";
 
-import { AddressSpace } from "..";
+import { AddressSpace } from "../dist/api/index.js";
 import { makeXmlExtensionObjectReader } from "../dist/api/loader/make_xml_extension_object_parser.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 

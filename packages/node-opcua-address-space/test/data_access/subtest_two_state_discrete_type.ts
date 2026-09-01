@@ -10,7 +10,7 @@ import { DataType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
 
-import { AddressSpace, SessionContext, type UAObject, type UAObjectType, type UATwoStateDiscreteEx } from "../..";
+import { AddressSpace, SessionContext, type UAObject, type UAObjectType, type UATwoStateDiscreteEx } from "../../dist/api/index.js";
 import { generateAddressSpace } from "../../distNodeJS/index.js";
 
 const doDebug = false;

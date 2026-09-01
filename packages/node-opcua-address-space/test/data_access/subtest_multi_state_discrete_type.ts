@@ -5,7 +5,7 @@ import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
 
-import { type AddressSpace, SessionContext, type UAMultiStateDiscreteEx } from "../..";
+import { type AddressSpace, SessionContext, type UAMultiStateDiscreteEx } from "../../dist/api/index.js";
 
 export function subtest_multi_state_discrete_type(mainTest: { addressSpace: AddressSpace }): void {
     describe("MultiStateDiscreteType", () => {

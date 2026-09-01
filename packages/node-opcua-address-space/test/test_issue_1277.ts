@@ -2,7 +2,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace } from "..";
+import { AddressSpace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 function git1277(addressSpace: AddressSpace) {

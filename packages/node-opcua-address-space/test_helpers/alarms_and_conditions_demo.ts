@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 import { assert } from "node-opcua-assert";
-import type { AddressSpace, UAExclusiveLimitAlarmEx, UANonExclusiveLimitAlarmEx, UAObject, UAVariable } from "..";
+import type { AddressSpace, UAExclusiveLimitAlarmEx, UANonExclusiveLimitAlarmEx, UAObject, UAVariable } from "../dist/api/index.js";
 
 export interface IAlarmTestData {
     tankLevel: UAVariable;

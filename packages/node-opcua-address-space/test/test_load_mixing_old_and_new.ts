@@ -4,7 +4,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { nodesetFile } from "node-opcua-test-helpers";
 import should from "should";
-import { AddressSpace, PseudoSession, type UADataType } from "..";
+import { AddressSpace, PseudoSession, type UADataType } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

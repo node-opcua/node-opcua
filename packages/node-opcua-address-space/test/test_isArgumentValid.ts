@@ -3,8 +3,8 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, type Namespace } from "..";
 import { isArgumentValid } from "../dist/api/helpers/argument_list.js";
+import { AddressSpace, type Namespace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

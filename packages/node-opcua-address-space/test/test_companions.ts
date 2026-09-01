@@ -1,6 +1,6 @@
 import "should";
 import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace } from "..";
+import { AddressSpace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 describe("Companion ", () => {

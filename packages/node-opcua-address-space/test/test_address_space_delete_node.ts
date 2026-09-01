@@ -11,7 +11,7 @@ import {
     type UAObject,
     type UAObjectType,
     type UAVariable
-} from "..";
+} from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 

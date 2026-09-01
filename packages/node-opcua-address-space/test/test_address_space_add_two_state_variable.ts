@@ -4,7 +4,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 import sinon from "sinon";
-import { AddressSpace, type BaseNode, type Namespace } from "..";
+import { AddressSpace, type BaseNode, type Namespace } from "../dist/api/index.js";
 import { UATwoStateVariableImpl } from "../dist/impl/state_machine/ua_two_state_variable.js";
 import { generateAddressSpace } from "../nodeJS.js";
 

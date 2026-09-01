@@ -12,7 +12,7 @@ import {
     decode_ArgumentList,
     encode_ArgumentList,
     verifyArguments_ArgumentList
-} from "..";
+} from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 const debugLog = make_debugLog("TEST");

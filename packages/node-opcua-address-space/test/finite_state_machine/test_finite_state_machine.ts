@@ -17,7 +17,7 @@ import {
     type UAStateMachineEx,
     type UAStateMachineType,
     type UAVariable
-} from "../..";
+} from "../../dist/api/index.js";
 import { generateAddressSpace } from "../../nodeJS.js";
 import { getAddressSpaceFixture } from "../../test_helpers/get_address_space_fixture.js";
 

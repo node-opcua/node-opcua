@@ -5,7 +5,7 @@ import { BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 
-import { AddressSpace, type Namespace } from "..";
+import { AddressSpace, type Namespace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { add_eventGeneratorObject, getMiniAddressSpace } from "../testHelpers.js";
 

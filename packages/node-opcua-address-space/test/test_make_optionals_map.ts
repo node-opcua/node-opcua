@@ -1,5 +1,5 @@
 import "should";
-import { makeOptionalsMap } from "..";
+import { makeOptionalsMap } from "../dist/api/index.js";
 
 const j = <T>(o: T) => JSON.parse(JSON.stringify(o));
 describe("Testing makeOptionalsMap", () => {

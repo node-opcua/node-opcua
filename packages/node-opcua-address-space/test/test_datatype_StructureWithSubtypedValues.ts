@@ -11,7 +11,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { type StructureDefinition, StructureType } from "node-opcua-types";
 import { Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, PseudoSession } from "..";
+import { AddressSpace, PseudoSession } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

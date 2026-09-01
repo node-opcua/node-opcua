@@ -5,7 +5,7 @@ import { WriteValue } from "node-opcua-service-write";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
-import { type AddressSpace, SessionContext, type UAAnalogItem } from "../..";
+import { type AddressSpace, SessionContext, type UAAnalogItem } from "../../dist/api/index.js";
 
 const context = SessionContext.defaultContext;
 

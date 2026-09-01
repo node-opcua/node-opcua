@@ -21,7 +21,7 @@ import {
     type UADataType,
     type UAVariable,
     type UAVariableType
-} from "..";
+} from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

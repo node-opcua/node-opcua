@@ -1,7 +1,7 @@
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 
-import { AddressSpace, dumpToBSD } from "..";
+import { AddressSpace, dumpToBSD } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 describe("converting DataType to BSD schema files", () => {

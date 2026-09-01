@@ -1,5 +1,5 @@
 import should from "should";
-import type { AddressSpace, UAObject } from "..";
+import type { AddressSpace, UAObject } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("test component/property/method and method accessors", () => {

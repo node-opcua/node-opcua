@@ -12,7 +12,7 @@ import type { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import type { ReferenceDescription } from "node-opcua-service-browse";
 import { AnonymousIdentityToken, MessageSecurityMode, UserNameIdentityToken } from "node-opcua-types";
-import { type AnyUserIdentityToken, type IServerBase, SessionContext } from "..";
+import { type AnyUserIdentityToken, type IServerBase, SessionContext } from "../dist/api/index.js";
 
 export class MockContinuationPointManager implements IContinuationPointManager {
     public registerHistoryReadRaw(

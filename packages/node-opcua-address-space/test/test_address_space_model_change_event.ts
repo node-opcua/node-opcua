@@ -3,7 +3,14 @@ import { nodesets } from "node-opcua-nodesets";
 import type { DataType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
-import { type AddObjectOptions, AddressSpace, type Namespace, type UAObject, type UAProperty, type UAVariable } from "..";
+import {
+    type AddObjectOptions,
+    AddressSpace,
+    type Namespace,
+    type UAObject,
+    type UAProperty,
+    type UAVariable
+} from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 interface UAObjectWithVersion extends UAObject {

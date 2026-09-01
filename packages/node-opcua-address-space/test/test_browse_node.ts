@@ -5,7 +5,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId } from "node-opcua-nodeid";
 import type { BrowseDescriptionOptions } from "node-opcua-types";
 import should from "should";
-import { type AddressSpace, dumpBrowseDescription, dumpReferences } from "..";
+import { type AddressSpace, dumpBrowseDescription, dumpReferences } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("testing address space", () => {

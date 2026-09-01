@@ -1,5 +1,5 @@
 import should from "should";
-import * as opcua from "..";
+import * as opcua from "../dist/api/index.js";
 
 describe("node-opcua-address-space module sanity test ", () => {
     it("module 'node-opcua-address-space' should not export any null properties", () => {

@@ -3,7 +3,7 @@ import { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import { type AddressSpace, SessionContext, type UAVariable } from "..";
+import { type AddressSpace, SessionContext, type UAVariable } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("Multi-Dimensional Array", () => {

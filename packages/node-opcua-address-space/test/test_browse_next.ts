@@ -6,7 +6,7 @@ import type { ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
 import should from "should";
 
-import { AddressSpace, PseudoSession } from "..";
+import { AddressSpace, PseudoSession } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 describe("BrowseNext", function () {

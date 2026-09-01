@@ -4,7 +4,14 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { PermissionType } from "node-opcua-types";
 import should from "should";
-import { AddressSpace, generateAddressSpaceRaw, type UAMethod, type UAObject, type UAObjectType, type UAVariable } from "..";
+import {
+    AddressSpace,
+    generateAddressSpaceRaw,
+    type UAMethod,
+    type UAObject,
+    type UAObjectType,
+    type UAVariable
+} from "../dist/api/index.js";
 import { generateAddressSpace, readNodeSet2XmlFile } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
