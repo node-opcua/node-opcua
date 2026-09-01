@@ -87,9 +87,17 @@ export function exportedSymbols(text, filePath) {
  * never reach the documentation, because typedoc only follows what the entry point exposes.
  * Flagging them would be a gate reporting on something it does not actually guard.
  */
-export function publishedNames(entryFile) {
+export function publishedDeclarations(entryFile) {
     const seen = new Set();
-    const names = new Set();
+    /** name -> { value: boolean, ambient: {file,line} | null } */
+    const decls = new Map();
+
+    const note = (name, kind, where) => {
+        const d = decls.get(name) ?? { value: false, ambient: null };
+        if (kind === "value") d.value = true;
+        if (kind === "ambient" && !d.ambient) d.ambient = where;
+        decls.set(name, d);
+    };
 
     const visit = (file) => {
         if (seen.has(file) || !fs.existsSync(file)) return;
@@ -101,7 +109,9 @@ export function publishedNames(entryFile) {
             if (ts.isExportDeclaration(st)) {
                 const spec = st.moduleSpecifier && ts.isStringLiteral(st.moduleSpecifier) ? st.moduleSpecifier.text : null;
                 if (st.exportClause && ts.isNamedExports(st.exportClause)) {
-                    for (const el of st.exportClause.elements) names.add(el.name.text);
+                    // a re-export carries whatever the other module has; `export type` does not
+                    const kind = st.isTypeOnly ? "type" : "value";
+                    for (const el of st.exportClause.elements) note(el.name.text, el.isTypeOnly ? "type" : kind, null);
                     continue; // an explicit list does not pull in the rest of that module
                 }
                 // `export * from "..."`: everything that module publishes, recursively
@@ -110,18 +120,35 @@ export function publishedNames(entryFile) {
             }
             const mods = ts.canHaveModifiers(st) ? (ts.getModifiers(st) ?? []) : [];
             if (!mods.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)) continue;
-            if (ts.isClassDeclaration(st) || ts.isFunctionDeclaration(st) || ts.isInterfaceDeclaration(st)) {
-                if (st.name) names.add(st.name.text);
-            } else if (ts.isTypeAliasDeclaration(st) || ts.isEnumDeclaration(st)) {
-                names.add(st.name.text);
+
+            // `declare` emits nothing: it promises a value that some other module must provide
+            const isAmbient = mods.some((m) => m.kind === ts.SyntaxKind.DeclareKeyword);
+            const { line } = ts.getLineAndCharacterOfPosition(sf, st.getStart(sf));
+            const where = { file, line: line + 1 };
+
+            if (ts.isInterfaceDeclaration(st) || ts.isTypeAliasDeclaration(st)) {
+                // type-only by construction, and legitimately so
+                note(st.name.text, "type", null);
+            } else if (ts.isClassDeclaration(st) || ts.isFunctionDeclaration(st)) {
+                if (st.name) note(st.name.text, isAmbient ? "ambient" : "value", where);
+            } else if (ts.isEnumDeclaration(st)) {
+                note(st.name.text, isAmbient ? "ambient" : "value", where);
             } else if (ts.isVariableStatement(st)) {
-                for (const d of st.declarationList.declarations) if (ts.isIdentifier(d.name)) names.add(d.name.text);
+                const ambient = isAmbient || st.declarationList.declarations.every((d) => !d.initializer);
+                for (const d of st.declarationList.declarations) {
+                    if (ts.isIdentifier(d.name)) note(d.name.text, ambient ? "ambient" : "value", where);
+                }
             }
         }
     };
 
     visit(entryFile);
-    return names;
+    return decls;
+}
+
+/** the names a package publishes, whatever kind of declaration each has */
+export function publishedNames(entryFile) {
+    return new Set(publishedDeclarations(entryFile).keys());
 }
 
 /** a relative specifier as written for ESM (".js") back to the .ts it is emitted from */
@@ -197,6 +224,7 @@ export function analyze({ repoRoot = ".", packageFilter } = {}) {
     const packages = findPackages(repoRoot, packageFilter);
     const entryFindings = [];
     const internalFindings = [];
+    const phantomFindings = [];
     let scanned = 0;
 
     for (const pkg of packages) {
@@ -209,7 +237,18 @@ export function analyze({ repoRoot = ".", packageFilter } = {}) {
         }
 
         const entrySource = entrySourceFor(pkg.dir, p);
-        const published = entrySource ? publishedNames(entrySource) : null;
+        const declarations = entrySource ? publishedDeclarations(entrySource) : null;
+        const published = declarations ? new Set(declarations.keys()) : null;
+
+        // a `declare` promises a value that some module has to provide. When none does, the
+        // name is in the .d.ts and undefined at run time - it compiles and gives you nothing.
+        for (const [name, d] of declarations ?? []) {
+            if (d.ambient && !d.value) {
+                // resolveTs walks with absolute paths; report where the reader can find it
+                const rel = path.relative(repoRoot, d.ambient.file).split(path.sep).join("/");
+                phantomFindings.push({ package: pkg.name, name, file: rel, line: d.ambient.line });
+            }
+        }
 
         for (const file of pkg.files) {
             scanned++;
@@ -223,7 +262,7 @@ export function analyze({ repoRoot = ".", packageFilter } = {}) {
             }
         }
     }
-    return { packages: packages.length, scanned, entryFindings, internalFindings };
+    return { packages: packages.length, scanned, entryFindings, internalFindings, phantomFindings };
 }
 
 /**
@@ -252,18 +291,34 @@ export function currentCounts(result) {
 }
 
 export function exitCode(result, baseline = {}) {
-    return result.entryFindings.length > 0 || overBaseline(result, baseline).length > 0 ? 1 : 0;
+    const phantoms = result.phantomFindings ?? [];
+    return result.entryFindings.length > 0 || phantoms.length > 0 || overBaseline(result, baseline).length > 0 ? 1 : 0;
 }
 
 export function formatReport(result, baseline = {}) {
     const lines = [];
     const over = overBaseline(result, baseline);
 
-    if (result.entryFindings.length === 0 && over.length === 0) {
+    const phantoms = result.phantomFindings ?? [];
+
+    if (phantoms.length) {
+        lines.push(`check-entry-points: ${phantoms.length} name(s) declared in the types and defined nowhere`, "");
+        for (const f of phantoms.slice(0, 20)) {
+            lines.push(`  ${f.file}:${f.line}  ${f.name}   (${f.package})`);
+        }
+        lines.push("");
+        lines.push("  A `declare` promises a value that some module has to provide. When none does, the");
+        lines.push("  name reaches the .d.ts and is undefined at run time: importing it compiles and gives");
+        lines.push("  you nothing. Either export the implementation, or delete the declaration.");
+        lines.push("");
+    }
+
+    if (result.entryFindings.length === 0 && over.length === 0 && phantoms.length === 0) {
         const tally = result.internalFindings.length;
         lines.push(
             `check-entry-points: ${result.packages} packages, ${result.scanned} files. Every types field describes ` +
-                `its own main${tally ? `, and no package exceeds its untagged-export baseline (${tally} total)` : ""}.`
+                `its own main, every declared name is defined` +
+                `${tally ? `, and no package exceeds its untagged-export baseline (${tally} total)` : ""}.`
         );
         return lines.join("\n");
     }
