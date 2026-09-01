@@ -5,33 +5,20 @@
 import type {
     AddBaseNodeOptions,
     AddVariableOptionsWithoutValue,
-    AttributeEventName,
     BaseNode,
     BindVariableOptions,
-    IAddressSpace,
-    INamespace,
     IVariableHistorian,
     IVariableHistorianOptions,
-    UADynamicVariableArray,
-    UAMethod,
-    UAObject,
-    UAReference,
-    UAReferenceType,
     UAVariable,
     UAVariableT,
     UAVariableType,
     VariableStuff
 } from "node-opcua-address-space-base";
 import type { Int64, UAString, UInt32 } from "node-opcua-basic-types";
-import type { AttributeIds, LocalizedText, LocalizedTextLike, QualifiedNameLike } from "node-opcua-data-model";
-import type { DataValue } from "node-opcua-data-value";
-import type { ExtensionObject } from "node-opcua-extension-object";
+import type { LocalizedText, LocalizedTextLike, QualifiedNameLike } from "node-opcua-data-model";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import type { UAFolder } from "node-opcua-nodeset-ua";
-import type { ReadRawModifiedDetails } from "node-opcua-service-history";
 import type { DataType } from "node-opcua-variant";
-
-import type { MinimalistAddressSpace } from "../impl/reference_impl.js";
 
 export interface EnumValueTypeOptionsLike {
     value?: Int64 | UInt32;
