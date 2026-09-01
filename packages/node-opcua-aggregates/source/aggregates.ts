@@ -12,7 +12,7 @@ import type {
     UAServerCapabilities,
     UAVariable
 } from "node-opcua-address-space";
-import type { AddressSpacePrivate } from "node-opcua-address-space/src/address_space_private";
+import type { AddressSpacePrivate } from "node-opcua-address-space/impl/address_space_private";
 import { AggregateFunction, ObjectIds, ObjectTypeIds, ReferenceTypeIds } from "node-opcua-constants";
 import { BrowseDirection, coerceQualifiedName, NodeClass, NodeClassMask } from "node-opcua-data-model";
 import { coerceNodeId, makeNodeId, type NodeId, type NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";

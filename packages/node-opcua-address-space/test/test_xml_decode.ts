@@ -7,7 +7,7 @@ import { Xml2Json } from "node-opcua-xml2json";
 import should from "should";
 
 import { AddressSpace } from "..";
-import { makeXmlExtensionObjectReader } from "../dist/source/loader/make_xml_extension_object_parser.js";
+import { makeXmlExtensionObjectReader } from "../dist/api/loader/make_xml_extension_object_parser.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 
 describe("test xml decode", () => {

@@ -7,8 +7,8 @@
         "incremental": true
     },
     "include": [
-        "source/**/*.ts",
-        "src/**/*.ts"
+        "api/**/*.ts",
+        "impl/**/*.ts"
     ],
     "references": [
         {

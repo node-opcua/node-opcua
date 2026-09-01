@@ -3,6 +3,6 @@
     "out": "generated_doc",
     "theme": "default",
     "entryPoints": [
-        "./source/index.ts"
+        "./api/index.ts"
     ]
 }

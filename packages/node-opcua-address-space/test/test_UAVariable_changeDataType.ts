@@ -3,7 +3,7 @@ import { coerceNodeId } from "node-opcua-nodeid";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import type { AddressSpace, Namespace } from "..";
-import { _getBasicDataTypeFromDataTypeNodeId } from "../src/get_basic_datatype.js";
+import { _getBasicDataTypeFromDataTypeNodeId } from "../impl/get_basic_datatype.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("Testing UAVariable changeDataType", () => {

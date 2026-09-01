@@ -7,8 +7,8 @@ import type {
     UAObject,
     UAObjectType
 } from "node-opcua-address-space";
-import { ConditionInfoImpl } from "node-opcua-address-space/dist/src/alarms_and_conditions/condition_info_impl";
-import { UAAlarmConditionImpl } from "node-opcua-address-space/dist/src/alarms_and_conditions/ua_alarm_condition_impl";
+import { ConditionInfoImpl } from "node-opcua-address-space/dist/impl/alarms_and_conditions/condition_info_impl";
+import { UAAlarmConditionImpl } from "node-opcua-address-space/dist/impl/alarms_and_conditions/ua_alarm_condition_impl";
 import type { DataValue } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";

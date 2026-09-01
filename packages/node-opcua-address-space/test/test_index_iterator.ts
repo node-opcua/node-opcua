@@ -1,6 +1,6 @@
 import "should";
 import should from "should";
-import { IndexIterator } from "../src/idx_iterator.js";
+import { IndexIterator } from "../impl/idx_iterator.js";
 
 describe("index iterator", () => {
     it("should iterate", () => {
