@@ -1,0 +1,14 @@
+{
+    "name": "@sterfive/check-entry-points",
+    "version": "1.0.0",
+    "private": true,
+    "description": "fail the build when a package's types and main describe different modules",
+    "bin": {
+        "check-entry-points": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "test": "node test/test_rule.js"
+    }
+}

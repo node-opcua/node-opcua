@@ -100,6 +100,13 @@ jobs:
       # had, 11 were harmless and flagging those would have made the gate noise.
       - run: pnpm run check:cycles
       - run: pnpm run check:identity
+      # A package's types must describe the module its main loads. When the two named
+      # different modules, node-opcua-address-space came to declare twelve names its main
+      # did not export: they compiled and were undefined at run time, for every consumer of
+      # the published API. Absolute; the internal-tag half of the rule is a baseline.
+      - run: pnpm run check:entrypoints
+      - name: Unit tests for the entry-points rule
+        run: node tools/check-entry-points/test/test_rule.js
       # `a?.b.should.eql(x)` short-circuits the whole chain, so a null skips the assertion
       # and the test passes having checked nothing. 1441 were reaching their subject through
       # `?.` or `!`; they now pass it to should(), which asserts on undefined instead of
