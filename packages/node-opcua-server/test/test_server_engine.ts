@@ -1,5 +1,5 @@
 import { type INamespace, type ISessionContext, SessionContext, type UAObject, type UAVariable } from "node-opcua-address-space";
-import type { UAVariableImpl } from "node-opcua-address-space/dist/src/ua_variable_impl";
+import type { UAVariableImpl } from "node-opcua-address-space/dist/impl/ua_variable_impl";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { assert } from "node-opcua-assert";
 import { BrowsePath, BrowsePathResult, WriteValue } from "node-opcua-client";

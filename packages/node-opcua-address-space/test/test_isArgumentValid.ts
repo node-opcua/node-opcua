@@ -4,7 +4,7 @@ import { Argument } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type Namespace } from "..";
-import { isArgumentValid } from "../dist/source/helpers/argument_list.js";
+import { isArgumentValid } from "../dist/api/helpers/argument_list.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

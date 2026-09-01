@@ -6,7 +6,7 @@ import {
     convertToCallbackFunction1,
     type MultiformFunc,
     type MultiformFunc1
-} from "../source/helpers/multiform_func.js";
+} from "../api/helpers/multiform_func.js";
 
 class Stuff {}
 class Output {

@@ -11,7 +11,7 @@ import {
     TimestampsToReturn,
     Variant
 } from "node-opcua";
-import type { UAVariableImpl } from "node-opcua-address-space/src/ua_variable_impl";
+import type { UAVariableImpl } from "node-opcua-address-space/impl/ua_variable_impl";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session.js";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";

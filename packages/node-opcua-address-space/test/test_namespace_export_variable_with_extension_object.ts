@@ -7,7 +7,7 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import type { Variant } from "node-opcua-variant";
 import { AddressSpace } from "..";
-import type { UAVariableImpl } from "../dist/src/ua_variable_impl.js";
+import type { UAVariableImpl } from "../dist/impl/ua_variable_impl.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 import { scratch } from "./paths.js";
