@@ -5,15 +5,17 @@
 export * from "node-opcua-address-space-base";
 export * from "node-opcua-nodeset-ua";
 // ---------------------------------------------------------------------------------------
-// Implementation detail, exported only so that it keeps being exported.
+// Implementation, exported only so that it keeps being exported.
 //
-// These names reached consumers through the old `main`, src/index_current.js, which this
-// entry replaces. Dropping them would be a breaking change for anyone importing one, so they
-// are re-exported here and marked internal instead: the documentation excludes them
-// (typedoc's excludeInternal is already on), while the runtime surface stays exactly what it
-// was. They go at 3.0, together with stripInternal.
+// These reached consumers through the old `main`, and are kept and marked internal so the
+// run-time surface does not change: the documentation excludes them, and they go at 3.0.
 //
-// 52 names. Nothing new belongs in this block.
+// This block started at 52 names. The ones with real use are now published above with the
+// rest of the API - scanning downstream code found `promoteToStateMachine` in five separate
+// projects and a dozen more names in others, so dropping the block wholesale, as first
+// planned, would have broken working code to tidy a list.
+//
+// What is left is the *Impl classes and the underscore helpers. Nothing new belongs here.
 // ---------------------------------------------------------------------------------------
 /** @internal */
 export {
@@ -44,12 +46,13 @@ export {
     UANonExclusiveLimitAlarmImplBase
 } from "../impl/alarms_and_conditions/index.js";
 export { instantiateCertificateExpirationAlarm } from "../impl/alarms_and_conditions/ua_certificate_expiration_alarm_impl.js";
-/** @internal */
+/** The event name a node emits when one of its attributes changes. */
 export { makeAttributeEventName } from "../impl/base_node_impl.js";
 /** @internal */
 export { add_dataItem_stuff } from "../impl/data_access/add_dataItem_stuff.js";
 /** @internal */
 export { adjustDataValueStatusCode } from "../impl/data_access/adjust_datavalue_status_code.js";
+/** @see promoteToStateMachine */
 /** @internal */
 export {
     _addMultiStateDiscrete,
@@ -57,7 +60,8 @@ export {
     UAMultiStateDiscreteImpl,
     UAMultiStateDiscreteImplBase
 } from "../impl/data_access/ua_multistate_discrete_impl.js";
-// deprecated: validateDataType
+/** @see promoteToStateMachine */
+// validateDataType is deprecated
 /** @internal */
 export {
     _addMultiStateValueDiscrete,
@@ -67,6 +71,7 @@ export {
     validateDataType,
     validateIsNumericDataType
 } from "../impl/data_access/ua_multistate_value_discrete_impl.js";
+/** @see promoteToStateMachine */
 /** @internal */
 export {
     _addTwoStateDiscrete,
@@ -75,25 +80,30 @@ export {
     UATwoStateDiscreteImplBase
 } from "../impl/data_access/ua_two_state_discrete_impl.js";
 export * from "../impl/event_data.js";
-/** @internal */
+/** Building and maintaining a variable whose value is an array of extension objects. */
 export { addElement, bindExtObjArrayNode, createExtObjArrayNode, removeElement } from "../impl/extension_object_array_node.js";
-/** @internal */
+/** The default historian, installed through {@link AddressSpace.historizerFactory}. */
 export { VariableHistorian } from "../impl/historical_access/address_space_historical_data_node.js";
 /** @internal */
 export { isNonEmptyQualifiedName, NamespaceImpl } from "../impl/namespace_impl.js";
-/** @internal */
+/** How node ids are assigned within a namespace. */
 export { ConstructNodeIdOptions, NamespaceOptions, NodeIdManager } from "../impl/nodeid_manager.js";
-/** @internal */
+/** Rewrites the server's namespace array to match the namespaces actually loaded. */
 export { adjustNamespaceArray } from "../impl/nodeset_tools/adjust_namespace_array.js";
 export * from "../impl/nodeset_tools/construct_namespace_dependency.js";
-/** @internal */
+/** A namespace's data types as an OPC binary schema (BSD) document. */
 export { dumpToBSD } from "../impl/nodeset_tools/dump_to_bsd.js";
 /** @internal */
 export { sortByBrowseName } from "../impl/nodeset_tools/nodeset_to_xml.js";
 export * from "../impl/private_namespace.js";
-/** @internal */
+/** Following a reference to the node, or the reference type, it points at. */
 export { resolveReferenceNode, resolveReferenceType } from "../impl/reference_impl.js";
-/** @internal */
+/**
+ * Upgrading a node to the typed view of what it already is.
+ *
+ * Loading a nodeset gives plain nodes; promoting one returns the same node seen through the
+ * interface for its type, with the helpers that go with it.
+ */
 export { promoteToStateMachine, promoteToStateMachineType } from "../impl/state_machine/finite_state_machine.js";
 export { validateDataTypeCorrectness } from "../impl/validate_data_type_correctness.js";
 export * from "./address_space_public.js";
