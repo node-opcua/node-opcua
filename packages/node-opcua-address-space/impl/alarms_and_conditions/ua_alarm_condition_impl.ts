@@ -378,26 +378,29 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
         return oldConditionInfo;
     }
 
-    /***
-     *
-     * this method need to be overridden by the instantiate to allow custom message and severity
-     * to be set based on specific context of the alarm.
+    /**
+     * What this alarm reports when its state changes. Assign to it to give an alarm a message
+     * and a severity of its own.
      *
      * @example
      *
+     * ```ts
+     * const myAlarm = namespace.instantiateExclusiveLimitAlarm({ ... });
+     * myAlarm.calculateConditionInfo = (stateName, isActive, value, oldConditionInfo) =>
+     *     new ConditionInfo({
+     *         message: `Tank is almost ${Math.ceil(Number(value) * 100)}% full`,
+     *         severity: 100,
+     *         quality: StatusCodes.Good,
+     *         retain: true
+     *     });
+     * ```
      *
-     *    var myAlarm = addressSpace.instantiateExclusiveLimitAlarm({...});
-     *    myAlarm._calculateConditionInfo = function(stateName,value,oldCondition) {
-     *       var percent = Math.ceil(value * 100);
-     *       return new ConditionInfo({
-     *            message: "Tank is almost " + percent + "% full",
-     *            severity: 100,
-     *            quality: StatusCodes.Good
-     *      });
-     *    };
-     *
+     * This example is now runnable. It was written against `_calculateConditionInfo` and
+     * `new ConditionInfo(...)`, while the method sat on this class only and ConditionInfo was
+     * exported as a type with no constructor - so following the documentation meant importing
+     * two names from inside the package.
      */
-    public _calculateConditionInfo(
+    public calculateConditionInfo(
         stateData: string | null,
         _isActive: boolean,
         value: string,
@@ -420,6 +423,18 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
         }
     }
 
+    /**
+     * @deprecated assign {@link calculateConditionInfo} instead; this delegates to it.
+     */
+    public _calculateConditionInfo(
+        stateData: string | null,
+        isActive: boolean,
+        value: string,
+        oldCondition: ConditionInfo
+    ): ConditionInfo {
+        return this.calculateConditionInfo(stateData, isActive, value, oldCondition);
+    }
+
     public _signalInitialCondition(): void {
         this.currentBranch().setActiveState(false);
         this.currentBranch().setAckedState(true);
@@ -435,6 +450,9 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
         // xx assert(isActive !== alarm.activeState.getValue());
 
         const oldConditionInfo = this.getCurrentConditionInfo();
+        // deliberately the deprecated name: code that overrode `_calculateConditionInfo`
+        // still takes effect through it, and code that assigns the published
+        // `calculateConditionInfo` is reached by the default below. Both work.
         const newConditionInfo = this._calculateConditionInfo(stateName, isActive, value, oldConditionInfo);
 
         // detect potential internal bugs due to misused of _signalNewCondition
