@@ -5,7 +5,7 @@ import fs from "node:fs";
 import { format } from "node:util";
 
 import { assert } from "node-opcua-assert";
-import { getTempFilename } from "./get_temp_filename";
+import { getTempFilename } from "./get_temp_filename.js";
 
 /**
 

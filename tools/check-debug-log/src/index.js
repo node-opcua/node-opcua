@@ -35,6 +35,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { shippedDirsOf } from "../../shared/shipped_dirs.mjs";
 
 const IGNORE_COMMENT = "// c8 ignore next";
 
@@ -58,8 +59,9 @@ function findSourceFiles(repoRoot, packageFilter) {
             if (packageFilter && pkg !== packageFilter) {
                 continue;
             }
-            for (const sub of SOURCE_DIRS) {
-                collect(path.join(rootDir, pkg, sub), files);
+            const pkgDir = path.join(rootDir, pkg);
+            for (const sub of shippedDirsOf(pkgDir, SOURCE_DIRS)) {
+                collect(path.join(pkgDir, sub), files);
             }
         }
     }

@@ -15,8 +15,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
+import { shippedDirsOf } from "../../shared/shipped_dirs.mjs";
 
-/** shipped source only: test trees may use whatever they like, they are never required by a consumer */
+/**
+ * Shipped source only: test trees may use whatever they like, they are never required by a
+ * consumer. The conventional layout below is a fallback - what is actually scanned comes
+ * from each package's own `files`, so a package that ships an unconventionally named tree
+ * cannot slip out of coverage unnoticed.
+ */
 export const SCAN_DIRS = ["source", "src"];
 
 /** directories that never contain shipped source */
@@ -92,8 +98,9 @@ export function findSourceFiles(root = "packages") {
         if (!pkg.isDirectory() || SKIP_DIRS.has(pkg.name)) {
             continue;
         }
-        for (const dir of SCAN_DIRS) {
-            walk(path.join(root, pkg.name, dir), files);
+        const pkgDir = path.join(root, pkg.name);
+        for (const dir of shippedDirsOf(pkgDir, SCAN_DIRS)) {
+            walk(path.join(pkgDir, dir), files);
         }
     }
     return files;

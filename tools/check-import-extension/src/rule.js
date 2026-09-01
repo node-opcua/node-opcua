@@ -20,11 +20,18 @@
 import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
+import { SOURCE_ROOTS, shippedDirsOf } from "../../shared/shipped_dirs.mjs";
 
 /** opt out of the rule on one line, with a reason: `// check-import-extension: ok - why` */
 export const IGNORE_MARKER = "check-import-extension: ok";
 
-export const SOURCE_ROOTS = ["packages", "packages_extra"];
+export { SOURCE_ROOTS };
+
+/**
+ * The conventional layout, used only when a package does not say what it publishes.
+ * What is actually scanned comes from each package's own `files` - see shipped_dirs.mjs
+ * for why this is no longer a constant.
+ */
 export const SOURCE_DIRS = ["source", "src"];
 
 /**
@@ -34,10 +41,14 @@ export const SOURCE_DIRS = ["source", "src"];
  */
 export const TEST_DIRS = ["test", "test_helpers", "test_fixtures"];
 
+/**
+ * A scope says which directories to scan. `shipped` means "whatever this package publishes",
+ * resolved per package rather than assumed; `extra` is scanned on top of it.
+ */
 export const SCOPES = {
-    source: SOURCE_DIRS,
-    tests: TEST_DIRS,
-    all: [...SOURCE_DIRS, ...TEST_DIRS]
+    source: { shipped: true, extra: [] },
+    tests: { shipped: false, extra: TEST_DIRS },
+    all: { shipped: true, extra: TEST_DIRS }
 };
 
 const SKIP_DIRS = new Set(["node_modules", "dist", "dist-esm", "coverage", "build"]);
@@ -195,7 +206,12 @@ export function fixText(text, filePath) {
     return { text: out, fixed: edits.length };
 }
 
-export function findSourceFiles(repoRoot = ".", packageFilter, dirs = SOURCE_DIRS) {
+/**
+ * `scope` is a SCOPES descriptor, or a plain array of directory names to scan in every
+ * package (which is what the unit tests hand it).
+ */
+export function findSourceFiles(repoRoot = ".", packageFilter, scope = SCOPES.source) {
+    const descriptor = Array.isArray(scope) ? { shipped: false, extra: scope } : scope;
     const files = [];
     for (const root of SOURCE_ROOTS) {
         const full = path.join(repoRoot, root);
@@ -209,8 +225,13 @@ export function findSourceFiles(repoRoot = ".", packageFilter, dirs = SOURCE_DIR
             if (packageFilter && pkg.name !== packageFilter) {
                 continue;
             }
-            for (const dir of dirs) {
-                walk(path.join(full, pkg.name, dir), files);
+            const pkgDir = path.join(full, pkg.name);
+            const dirs = [
+                ...(descriptor.shipped ? shippedDirsOf(pkgDir, SOURCE_DIRS) : []),
+                ...(descriptor.extra ?? [])
+            ];
+            for (const dir of new Set(dirs)) {
+                walk(path.join(pkgDir, dir), files);
             }
         }
     }
@@ -236,8 +257,7 @@ function walk(dir, out) {
 export function analyze({ repoRoot = ".", packageFilter, write = false, scope = "source" } = {}) {
     // note: the CLI defaults to "all"; the library default stays "source" so existing callers
     // and the unit tests keep their narrow scope unless they ask for more.
-    const dirs = SCOPES[scope] ?? SOURCE_DIRS;
-    const files = findSourceFiles(repoRoot, packageFilter, dirs);
+    const files = findSourceFiles(repoRoot, packageFilter, SCOPES[scope] ?? SCOPES.source);
     const findings = [];
     let fixedCount = 0;
     let fixedFiles = 0;

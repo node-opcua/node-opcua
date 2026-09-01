@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import type { IAddressSpace } from "node-opcua-address-space-base";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { generateAddressSpaceRaw, type NodeSetLoaderOptions } from "..";
+import { generateAddressSpaceRaw, type NodeSetLoaderOptions } from "../dist/api/index.js";
 
-const _doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
-const errorLog = make_errorLog(__filename);
+const _doDebug = checkDebugFlag("generate_address_space");
+const debugLog = make_debugLog("generate_address_space");
+const errorLog = make_errorLog("generate_address_space");
 
 export async function readNodeSet2XmlFile(xmlFile: string): Promise<string> {
     // c8 ignore next
@@ -14,7 +14,9 @@ export async function readNodeSet2XmlFile(xmlFile: string): Promise<string> {
         errorLog(msg);
         throw new Error(msg);
     }
-    debugLog(" parsing ", xmlFile);
+    if (_doDebug) {
+        debugLog(" parsing ", xmlFile);
+    }
     const xmlData = await fs.promises.readFile(xmlFile, "utf-8");
     return xmlData;
 }

@@ -25,6 +25,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
+import { shippedDirsOf } from "../../shared/shipped_dirs.mjs";
 
 /** opt out on one line, with a reason: `// check-entry-points: ok - why` */
 export const IGNORE_MARKER = "check-entry-points: ok";
@@ -191,7 +192,7 @@ export function findPackages(repoRoot = ".", packageFilter) {
             const dir = path.join(full, entry.name).replace(/\\/g, "/");
             const pjPath = path.join(dir, "package.json");
             if (!fs.existsSync(pjPath)) continue;
-            const files = ["source", "src"].flatMap((sub) => sourceFilesUnder(path.join(dir, sub)));
+            const files = shippedDirsOf(dir).flatMap((sub) => sourceFilesUnder(path.join(dir, sub)));
             packages.push({ name: entry.name, dir, pjPath, files });
         }
     }

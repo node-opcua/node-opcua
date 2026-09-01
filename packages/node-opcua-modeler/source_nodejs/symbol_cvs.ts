@@ -2,8 +2,8 @@ import fs from "node:fs";
 import { types } from "node:util";
 import { type Parser, parse } from "csv-parse";
 
-import type { Symbols } from "..";
-import { toCSV } from "..";
+import type { Symbols } from "../dist/index.js";
+import { toCSV } from "../dist/index.js";
 
 // node 14 onward : import { readFile, writeFile } from "fs/promises";
 const { readFile, writeFile } = fs.promises;
