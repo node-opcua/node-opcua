@@ -1,0 +1,12 @@
+{
+    "node-opcua-aggregates": 2,
+    "node-opcua-convert-nodeset-to-javascript": 1,
+    "node-opcua-data-model": 3,
+    "node-opcua-data-value": 1,
+    "node-opcua-enum": 1,
+    "node-opcua-factory": 1,
+    "node-opcua-server-configuration": 1,
+    "node-opcua-types": 32,
+    "node-opcua-variant": 2,
+    "node-opcua-xml2json": 1
+}

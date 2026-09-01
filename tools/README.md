@@ -102,6 +102,7 @@ tools/
 ├── check-import-extension/  # Extension on relative specifiers
 ├── check-import-cycles/     # Cycles that would throw under ESM
 ├── check-module-identity/   # One route per package
+├── check-entry-points/      # types describes the module main loads
 ├── check-short-circuit-assertion/  # Assertions an optional chain can switch off
 ├── check-pack/              # Declared entry points are published
 ├── check-test-types/        # Test-suite type-check ratchet
@@ -114,6 +115,7 @@ tools/
 ├── check-import-extension.mjs
 ├── check-import-cycles.mjs
 ├── check-module-identity.mjs
+├── check-entry-points.mjs
 ├── check-short-circuit-assertion.mjs
 └── README.md                # This file
 ``` 
