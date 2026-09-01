@@ -6,7 +6,14 @@ import { nodesets } from "node-opcua-nodesets";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type HistoryData, type HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
-import { AddressSpace, type BindVariableOptions, type ISessionBase, PseudoSession, SessionContext, type UAVariable } from "..";
+import {
+    AddressSpace,
+    type BindVariableOptions,
+    type ISessionBase,
+    PseudoSession,
+    SessionContext,
+    type UAVariable
+} from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 
 describe("historization and status code Bad #1119", function () {

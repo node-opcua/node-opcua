@@ -7,7 +7,7 @@ import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { spy } from "sinon";
 //
-import { AddressSpace, adjustNamespaceArray, PseudoSession } from "..";
+import { AddressSpace, adjustNamespaceArray, PseudoSession } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

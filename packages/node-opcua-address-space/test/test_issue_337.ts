@@ -3,7 +3,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NumericRange } from "node-opcua-numeric-range";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import type { AddressSpace } from "..";
+import type { AddressSpace } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("Testing bug found in #337", () => {

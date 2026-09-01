@@ -3,7 +3,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace, SessionContext } from "..";
+import { AddressSpace, SessionContext } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 const _context = SessionContext.defaultContext;

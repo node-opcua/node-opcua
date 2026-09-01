@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import should from "should";
 
-import type { AddressSpace, DTServerStatus, UAObjectType, UAServerStatus } from "..";
+import type { AddressSpace, DTServerStatus, UAObjectType, UAServerStatus } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 import { createCameraType, type FakeCamera } from "./fixture_camera_type.js";
 

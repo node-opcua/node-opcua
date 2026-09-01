@@ -2,7 +2,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { getFixture } from "node-opcua-test-fixtures";
 // import fs from "fs";
 import should from "should";
-import { AddressSpace, findOrder, generateAddressSpaceRaw, preLoad } from "..";
+import { AddressSpace, findOrder, generateAddressSpaceRaw, preLoad } from "../dist/api/index.js";
 import { readNodeSet2XmlFile } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

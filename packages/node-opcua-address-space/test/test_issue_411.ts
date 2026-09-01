@@ -3,7 +3,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, type Namespace } from "..";
+import { AddressSpace, type Namespace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 interface AddressSpaceWithPrivateNamespaceIndex {

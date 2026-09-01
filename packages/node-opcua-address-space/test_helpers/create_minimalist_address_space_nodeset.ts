@@ -8,7 +8,7 @@ import { DataTypeIds, ObjectIds, ObjectTypeIds, ReferenceTypeIds, VariableTypeId
 import { NodeClass } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
 
-import type { AddReferenceOpts, AddressSpace, UAObject, UAReferenceType, UAVariableType } from "..";
+import type { AddReferenceOpts, AddressSpace, UAObject, UAReferenceType, UAVariableType } from "../dist/api/index.js";
 
 const doDebug = false;
 

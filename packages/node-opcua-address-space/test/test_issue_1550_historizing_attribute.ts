@@ -7,7 +7,7 @@ import { getTempFilename } from "node-opcua-debug/nodeJS";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace, type Namespace, type UAVariable, type UAVariableType } from "..";
+import { AddressSpace, type Namespace, type UAVariable, type UAVariableType } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 

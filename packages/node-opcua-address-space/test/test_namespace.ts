@@ -1,7 +1,7 @@
 import { NodeClass } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import { AddressSpace } from "..";
+import { AddressSpace } from "../dist/api/index.js";
 
 const _should = should;
 

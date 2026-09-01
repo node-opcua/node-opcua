@@ -28,7 +28,7 @@ import {
     type UAMethod,
     type UAObject,
     WellKnownRoles
-} from "..";
+} from "../dist/api/index.js";
 
 // let's make sure should don't get removed by typescript optimizer
 const _keep_should = should;

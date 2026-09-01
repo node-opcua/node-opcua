@@ -15,7 +15,7 @@ import {
     SessionContext,
     type UAObject,
     type UAVariable
-} from "..";
+} from "../dist/api/index.js";
 import { create_minimalist_address_space_nodeset } from "../distHelpers/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";

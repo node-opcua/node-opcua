@@ -4,7 +4,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 
-import { AddressSpace, ensureDatatypeExtracted, resolveOpaqueOnAddressSpace } from "..";
+import { AddressSpace, ensureDatatypeExtracted, resolveOpaqueOnAddressSpace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 const debugLog = make_debugLog("TEST");

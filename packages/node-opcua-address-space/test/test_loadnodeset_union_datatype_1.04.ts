@@ -5,7 +5,7 @@ import {
 } from "node-opcua-client-dynamic-extension-object";
 import { coerceNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace, PseudoSession } from "..";
+import { AddressSpace, PseudoSession } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

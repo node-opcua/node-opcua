@@ -4,7 +4,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import sinon from "sinon";
 
-import { AddressSpace, type UAVariable } from "..";
+import { AddressSpace, type UAVariable } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 
 interface CncPositionExtensionObject extends ExtensionObject {

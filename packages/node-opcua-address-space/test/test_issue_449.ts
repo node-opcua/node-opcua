@@ -9,7 +9,7 @@ import {
     type BindVariableOptionsVariation1,
     SessionContext,
     type UAVariable
-} from "..";
+} from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/449", () => {

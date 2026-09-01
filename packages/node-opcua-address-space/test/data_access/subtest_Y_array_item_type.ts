@@ -4,7 +4,7 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 
-import type { AddressSpace, Namespace, UAFolder } from "../..";
+import type { AddressSpace, Namespace, UAFolder } from "../../dist/api/index.js";
 
 interface MainTest {
     addressSpace: AddressSpace;

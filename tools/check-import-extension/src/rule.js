@@ -262,23 +262,15 @@ export function analyze({ repoRoot = ".", packageFilter, write = false, scope = 
 }
 
 /**
- * Packages whose package-root specifiers cannot be replaced yet, and why.
+ * Packages whose package-root specifiers cannot be replaced yet, and why. Empty.
  *
- * A specifier is replaced by the entry point its target package names. That works whenever
- * `main` and `types` describe the same thing. Where they do not, there is no single
- * specifier that is right for both the compiler and the runtime, and the fix belongs to the
- * package, not to this rule.
+ * A specifier is replaced by the entry point its target package names, which works whenever
+ * `main` and `types` describe the same thing. node-opcua-address-space was listed here
+ * because they did not: the two named different modules exporting different AddressSpace
+ * classes. That is fixed, and check-entry-points now fails any package that splits them, so
+ * this cannot fill up again without someone noticing.
  */
-export const PACKAGE_ROOT_BLOCKED = new Map([
-    [
-        "packages/node-opcua-address-space",
-        "main is dist/src/index_current.js and types is dist/source/index.d.ts, and the two " +
-            "export different AddressSpace classes rather than one behind two facades. Naming " +
-            "types type-checks and then fails at run time (AddressSpace.create() returns an " +
-            "object with no registerNamespace); naming main keeps the run time and produces 545 " +
-            "type errors. Blocked until the package points both fields at one implementation."
-    ]
-]);
+export const PACKAGE_ROOT_BLOCKED = new Map();
 
 const packageOf = (file) => file.split("/").slice(0, 2).join("/");
 

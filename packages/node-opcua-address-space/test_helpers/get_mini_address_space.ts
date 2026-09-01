@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 
-import { AddressSpace } from "..";
+import { AddressSpace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 import { getAddressSpaceFixture } from "./get_address_space_fixture.js";

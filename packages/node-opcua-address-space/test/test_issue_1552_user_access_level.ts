@@ -5,7 +5,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, generateAddressSpaceRaw, type Namespace, type UAVariable, type UAVariableType } from "..";
+import { AddressSpace, generateAddressSpaceRaw, type Namespace, type UAVariable, type UAVariableType } from "../dist/api/index.js";
 import { generateAddressSpace, readNodeSet2XmlFile } from "../nodeJS.js";
 
 // see https://github.com/node-opcua/node-opcua/issues/1552

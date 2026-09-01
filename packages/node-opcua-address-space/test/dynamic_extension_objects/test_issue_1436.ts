@@ -7,7 +7,7 @@ import { OpaqueStructure } from "node-opcua-extension-object";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace, type Namespace, PseudoSession } from "../..";
+import { AddressSpace, type Namespace, PseudoSession } from "../../dist/api/index.js";
 import { generateAddressSpace } from "../../distNodeJS/index.js";
 import { getAddressSpaceFixture } from "../../test_helpers/get_address_space_fixture.js";
 

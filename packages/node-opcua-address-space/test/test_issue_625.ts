@@ -1,6 +1,6 @@
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceNodeId } from "node-opcua-nodeid";
-import { AddressSpace } from "..";
+import { AddressSpace } from "../dist/api/index.js";
 
 describe("#625 automatic string nodeid assignment", () => {
     let addressSpace: AddressSpace;

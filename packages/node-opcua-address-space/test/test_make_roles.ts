@@ -3,7 +3,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace, makeRoles, WellKnownRoles } from "..";
+import { AddressSpace, makeRoles, WellKnownRoles } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 const GDS_NAMESPACE_URI = "http://opcfoundation.org/UA/GDS/";

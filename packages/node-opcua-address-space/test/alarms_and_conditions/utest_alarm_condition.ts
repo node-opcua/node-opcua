@@ -7,7 +7,14 @@ import type { CallMethodResultOptions } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
-import { type AddressSpace, type BaseNode, SessionContext, type UAAlarmConditionEx, type UAObject, type UAVariable } from "../..";
+import {
+    type AddressSpace,
+    type BaseNode,
+    SessionContext,
+    type UAAlarmConditionEx,
+    type UAObject,
+    type UAVariable
+} from "../../dist/api/index.js";
 import type { MochaSuiteEx } from "./test_alarms_and_conditions.js";
 
 const debugLog = make_debugLog("TEST");

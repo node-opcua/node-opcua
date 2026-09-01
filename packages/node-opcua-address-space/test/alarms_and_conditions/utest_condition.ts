@@ -12,7 +12,7 @@ import {
     type UAConditionEx,
     type UAEventType,
     type UAObject
-} from "../..";
+} from "../../dist/api/index.js";
 import { mockSession } from "../../testHelpers.js";
 import type { MochaSuiteEx } from "./test_alarms_and_conditions.js";
 

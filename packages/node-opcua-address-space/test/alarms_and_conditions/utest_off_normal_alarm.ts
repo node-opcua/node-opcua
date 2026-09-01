@@ -1,7 +1,7 @@
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
-import type { AddressSpace, Namespace, UAMultiStateDiscreteEx, UAObject, UAVariable, UAVariableT } from "../..";
+import type { AddressSpace, Namespace, UAMultiStateDiscreteEx, UAObject, UAVariable, UAVariableT } from "../../dist/api/index.js";
 import type { MochaSuiteEx } from "./test_alarms_and_conditions.js";
 
 export function utest_off_normal_alarm(test: MochaSuiteEx): void {

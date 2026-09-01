@@ -1,6 +1,6 @@
 import { resolveNodeId } from "node-opcua-nodeid";
 import should from "should";
-import { AddressSpace } from "..";
+import { AddressSpace } from "../dist/api/index.js";
 import { create_minimalist_address_space_nodeset } from "../testHelpers.js";
 
 describe("testing AddressSpace#findReferenceType and findReferenceTypeFromInverseName", () => {

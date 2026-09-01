@@ -6,7 +6,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 
-import { type AddressSpace, type Namespace, SessionContext } from "../..";
+import { type AddressSpace, type Namespace, SessionContext } from "../../dist/api/index.js";
 
 interface MainTest {
     addressSpace: AddressSpace;

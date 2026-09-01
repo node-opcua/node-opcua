@@ -2,7 +2,7 @@ import "should";
 import { coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { makeNodeId, type NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { AddressSpace, type ConstructNodeIdOptions, getNodeIdManager, NodeIdManager, setSymbols } from "..";
+import { AddressSpace, type ConstructNodeIdOptions, getNodeIdManager, NodeIdManager, setSymbols } from "../dist/api/index.js";
 import { get_mini_nodeset_filename } from "../distHelpers/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 

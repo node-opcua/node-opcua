@@ -3,7 +3,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import should from "should";
 import sinon from "sinon";
-import type { AddressSpace, Namespace, UAObject, UAObjectType, UAReferenceType, UARootFolder } from "..";
+import type { AddressSpace, Namespace, UAObject, UAObjectType, UAReferenceType, UARootFolder } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 interface UAObjectWithInternals extends UAObject {

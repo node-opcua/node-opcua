@@ -5,7 +5,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 
-import { AddressSpace, SessionContext, type UAVariable } from "..";
+import { AddressSpace, SessionContext, type UAVariable } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 

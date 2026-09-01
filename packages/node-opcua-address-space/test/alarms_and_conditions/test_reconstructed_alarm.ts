@@ -7,7 +7,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 
-import { AddressSpace, instantiateCertificateExpirationAlarm } from "../..";
+import { AddressSpace, instantiateCertificateExpirationAlarm } from "../../dist/api/index.js";
 import { generateAddressSpace } from "../../nodeJS.js";
 
 const fakeCertificate = Buffer.from(

@@ -33,24 +33,26 @@ A specifier made only of traversal names a *directory* and carries no filename, 
 resolves only through that directory's `package.json` - a resolution NodeNext does not
 perform for a relative specifier. There is no extension to add.
 
-They fail the gate all the same. While 333 of them stood in the tree they were reported
-without failing, because a gate that can never go green is not a gate; now that they are
-gone, the gate holds the line.
+They fail the gate. While 333 of them stood in the tree they were reported without failing,
+because a gate that can never go green is not a gate; they are all gone now.
 
-`--fix` still leaves them alone, because the replacement is not derivable from the
-specifier: it is whatever entry point the target package already names. Take that from
-`types`, with the `.d.ts` swapped for `.js`, and fall back to `main`.
+`--fix` still leaves them alone, because the replacement is not derivable from the specifier:
+it is whatever entry point the target package already names. Take that from `types`, with the
+`.d.ts` swapped for `.js`, and fall back to `main`.
 
 `types` first, not `main`, because these callers are TypeScript and `types` is the surface
-they are type-checked against. Most packages point both fields at one file and the choice
-does not arise. `node-opcua-address-space` does not - `main` is `dist/src/index_current.js`
-and `types` is `dist/source/index.d.ts`, two facades over one compiled tree with different
-export surfaces. Its 158 call sites were written against the second, and naming the first
-retypes every one of them against an API they were never checked against.
+they are type-checked against. Most packages point both fields at one file and the choice does
+not arise. `node-opcua-address-space` did not, and its 158 call sites had to wait: `main` named
+`dist/src/index_current.js` and `types` named `dist/source/index.d.ts`, two modules exporting
+two different `AddressSpace` classes. Naming one type-checked and then failed at run time,
+naming the other kept the run time and produced 545 type errors.
 
-Either facade loads the same module instances, so this choice is about types only.
-Reaching instead for `../source/index.js` would not be: that is a second compilation of the
-package, and `check-module-identity` exists because of what happens next.
+That is fixed, the 158 are converted, and `PACKAGE_ROOT_BLOCKED` is empty. `check-entry-points`
+now fails any package whose `types` and `main` name different modules, so the situation that
+required the exemption cannot recur unnoticed.
+
+Reaching for `../source/index.js` instead would be a different mistake: that is a second
+compilation of the package, and `check-module-identity` exists because of what happens next.
 
 ## Why
 

@@ -4,7 +4,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
 import should from "should";
-import { AddressSpace } from "../..";
+import { AddressSpace } from "../../dist/api/index.js";
 import { generateAddressSpace } from "../../nodeJS.js";
 import { subtest_analog_item_semantic_changed } from "./subtest_analog_item_semantic_changed.js";
 import { subtest_analog_item_type } from "./subtest_analog_item_type.js";

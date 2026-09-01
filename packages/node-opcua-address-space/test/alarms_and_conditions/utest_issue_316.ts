@@ -1,6 +1,6 @@
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import type { AddressSpace, UAObject } from "../..";
+import type { AddressSpace, UAObject } from "../../dist/api/index.js";
 import type { MochaSuiteEx } from "./test_alarms_and_conditions.js";
 
 export function utest_issue_316(test: MochaSuiteEx): void {

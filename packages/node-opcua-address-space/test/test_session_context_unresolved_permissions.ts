@@ -12,7 +12,7 @@ import {
     type UAVariable,
     type UnresolvedPermissionPolicy,
     WellKnownRoles
-} from "..";
+} from "../dist/api/index.js";
 import { getMiniAddressSpace, makeMockSessionContext } from "../testHelpers.js";
 
 describe("SessionContext - unresolved permissions", () => {

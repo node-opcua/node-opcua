@@ -10,7 +10,13 @@ import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResult, type DataTypeDefinition, StructureDefinition } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, ensureDatatypeExtracted, PseudoSession, resolveOpaqueOnAddressSpace, type UAVariable } from "..";
+import {
+    AddressSpace,
+    ensureDatatypeExtracted,
+    PseudoSession,
+    resolveOpaqueOnAddressSpace,
+    type UAVariable
+} from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 const debugLog = make_debugLog("TEST");

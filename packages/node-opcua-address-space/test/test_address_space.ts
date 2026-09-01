@@ -5,7 +5,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import type { AddressSpace, Namespace, UAReference } from "..";
+import type { AddressSpace, Namespace, UAReference } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 function findReference(references: UAReference[], nodeId: NodeId): UAReference[] {

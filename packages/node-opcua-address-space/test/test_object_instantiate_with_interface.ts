@@ -2,7 +2,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace, implementInterface } from "..";
+import { AddressSpace, implementInterface } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 
 const debugLog = make_debugLog("TEST");

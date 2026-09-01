@@ -1,7 +1,7 @@
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace, type UAObject, type UAReferenceType } from "..";
+import { AddressSpace, type UAObject, type UAReferenceType } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 
 interface UAMachineToolWithIdentification extends UAObject {

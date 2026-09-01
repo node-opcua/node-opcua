@@ -2,7 +2,7 @@ import { BrowseDirection } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { sameNodeId } from "node-opcua-nodeid";
 import should from "should";
-import type { AddressSpace, UAObject, UAObjectType, UAReferenceType, UAVariable } from "..";
+import type { AddressSpace, UAObject, UAObjectType, UAReferenceType, UAVariable } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("testing add new ObjectType ", () => {

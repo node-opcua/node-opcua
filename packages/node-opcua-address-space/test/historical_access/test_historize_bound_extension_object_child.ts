@@ -11,7 +11,7 @@ import {
     SessionContext,
     type UAObjectType,
     type UAVariable
-} from "../..";
+} from "../../dist/api/index.js";
 import { generateAddressSpace } from "../../nodeJS.js";
 import { date_add } from "../../testHelpers.js";
 

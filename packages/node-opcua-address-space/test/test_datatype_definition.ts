@@ -4,7 +4,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { StructureDefinition } from "node-opcua-types";
 import should from "should";
-import { AddressSpace, SessionContext } from "..";
+import { AddressSpace, SessionContext } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 const _context = SessionContext.defaultContext;

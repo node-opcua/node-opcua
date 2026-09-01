@@ -10,7 +10,7 @@ import {
     type DTSubscriptionDiagnostics,
     removeElement,
     type UASubscriptionDiagnostics
-} from "..";
+} from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 describe("Extension Object Array Node (or Complex Variable)", () => {

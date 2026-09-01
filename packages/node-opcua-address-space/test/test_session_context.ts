@@ -9,7 +9,7 @@ import { DataType } from "node-opcua-variant";
 import "should";
 
 import { samplesCertificateFolder } from "node-opcua-test-helpers";
-import { type AddressSpace, makeRoles, SessionContext } from "..";
+import { type AddressSpace, makeRoles, SessionContext } from "../dist/api/index.js";
 import { getMiniAddressSpace, makeMockSessionContext } from "../testHelpers.js";
 
 const certificateFolder = samplesCertificateFolder;

@@ -17,7 +17,13 @@ import type { WriteValueOptions } from "node-opcua-service-write";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, type ContinuationPoint, ContinuationPointManager, SessionContext, type UAVariable } from "../..";
+import {
+    AddressSpace,
+    type ContinuationPoint,
+    ContinuationPointManager,
+    SessionContext,
+    type UAVariable
+} from "../../dist/api/index.js";
 import { generateAddressSpace } from "../../nodeJS.js";
 import { date_add } from "../../testHelpers.js";
 

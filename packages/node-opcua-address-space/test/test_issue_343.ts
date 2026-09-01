@@ -1,7 +1,7 @@
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace, NamespaceOptions } from "..";
+import { AddressSpace, NamespaceOptions } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { type BoilerType, createBoilerType } from "../testHelpers.js";
 

@@ -15,7 +15,7 @@ import {
     type UAObject,
     type UAObjectType,
     type UARootFolder
-} from "..";
+} from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 const context = SessionContext.defaultContext;

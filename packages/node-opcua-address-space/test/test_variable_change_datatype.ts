@@ -3,7 +3,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { DataType, Variant } from "node-opcua-variant";
 
-import { type AddressSpace, SessionContext } from "..";
+import { type AddressSpace, SessionContext } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../testHelpers.js";
 
 const doDebug = false;

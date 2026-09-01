@@ -8,7 +8,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, SessionContext, type UAAnalogItem } from "..";
+import { AddressSpace, SessionContext, type UAAnalogItem } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 describe("AnalogDataItem ValuePrecision issue #410", () => {

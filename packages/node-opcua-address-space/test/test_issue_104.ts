@@ -3,7 +3,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, type Namespace } from "..";
+import { AddressSpace, type Namespace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 import { assertHasMatchingReference } from "../testHelpers.js";

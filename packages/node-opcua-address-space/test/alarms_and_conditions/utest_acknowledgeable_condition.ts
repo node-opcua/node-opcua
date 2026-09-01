@@ -4,7 +4,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 
-import type { AddressSpace, UAObject } from "../..";
+import type { AddressSpace, UAObject } from "../../dist/api/index.js";
 import type { UAAcknowledgeableConditionEx } from "../../dist/api/interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex.js";
 import type { MochaSuiteEx } from "./test_alarms_and_conditions.js";
 
