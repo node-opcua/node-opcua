@@ -14,7 +14,18 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { analyze, classifyEntry, currentCounts, exitCode, exportedSymbols, formatReport, overBaseline, publishedNames, IGNORE_MARKER } from "../src/rule.js";
+import {
+    analyze,
+    classifyEntry,
+    currentCounts,
+    exitCode,
+    exportedSymbols,
+    formatReport,
+    overBaseline,
+    publishedDeclarations,
+    publishedNames,
+    IGNORE_MARKER
+} from "../src/rule.js";
 
 function withTree(files, fn) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "check-entry-"));
@@ -180,6 +191,74 @@ test("a clean tree reports what it covered", () => {
             const result = analyze({ repoRoot: root });
             assert.equal(exitCode(result, {}), 0);
             assert.match(formatReport(result, {}), /Every types field describes its own main/);
+        }
+    );
+});
+
+test("a declare with no implementation anywhere is a phantom", () => {
+    // the shape that shipped: declared in the type surface, exported by no module, so it
+    // reaches the .d.ts and is undefined at run time
+    withTree(
+        {
+            "packages/p/package.json": pkg(),
+            "packages/p/source/index.ts": 'export * from "./types.js";\n',
+            "packages/p/source/types.ts": "export declare function dumpXml(node: unknown): string;\n"
+        },
+        (root) => {
+            const result = analyze({ repoRoot: root });
+            assert.equal(result.phantomFindings.length, 1);
+            assert.equal(result.phantomFindings[0].name, "dumpXml");
+            assert.equal(exitCode(result, { p: 999 }), 1, "the baseline covers tags, never a phantom");
+            assert.match(formatReport(result, {}), /declared in the types and defined nowhere/);
+        }
+    );
+});
+
+test("a declare that some module does implement is not a phantom", () => {
+    withTree(
+        {
+            "packages/p/package.json": pkg(),
+            "packages/p/source/index.ts": 'export * from "./types.js";\nexport { dumpXml } from "./impl.js";\n',
+            "packages/p/source/types.ts": "export declare function dumpXml(node: unknown): string;\n",
+            "packages/p/source/impl.ts": "export function dumpXml(_node: unknown): string { return \"\"; }\n"
+        },
+        (root) => {
+            assert.equal(analyze({ repoRoot: root }).phantomFindings.length, 0);
+        }
+    );
+});
+
+test("an interface is type-only by construction and is never a phantom", () => {
+    withTree(
+        {
+            "packages/p/package.json": pkg(),
+            "packages/p/source/index.ts": 'export * from "./types.js";\n',
+            "packages/p/source/types.ts": "export interface Shape { a: number }\nexport type Other = Shape;\n"
+        },
+        (root) => {
+            assert.equal(analyze({ repoRoot: root }).phantomFindings.length, 0, "a type is supposed to have no value");
+        }
+    );
+});
+
+test("publishedDeclarations separates what has a value from what only has a type", () => {
+    withTree(
+        {
+            "packages/p/source/index.ts": 'export * from "./m.js";\n',
+            "packages/p/source/m.ts":
+                "export interface OnlyType { a: number }\n" +
+                "export declare function promised(): void;\n" +
+                "export function real(): void {}\n" +
+                "export const value = 1;\n"
+        },
+        (root) => {
+            const d = publishedDeclarations(path.join(root, "packages/p/source/index.ts"));
+            assert.equal(d.get("real").value, true);
+            assert.equal(d.get("value").value, true);
+            assert.equal(d.get("OnlyType").value, false);
+            assert.equal(d.get("OnlyType").ambient, null, "an interface is not an unkept promise");
+            assert.equal(d.get("promised").value, false);
+            assert.ok(d.get("promised").ambient, "a declare records where it was promised");
         }
     );
 });
