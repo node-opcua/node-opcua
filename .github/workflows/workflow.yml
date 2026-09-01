@@ -77,6 +77,12 @@ jobs:
       # ERR_REQUIRE_ASYNC_MODULE, which is how every CommonJS consumer loads us. The test
       # suite would not notice: it loads packages with `import`, where top-level await is
       # legal. Only a consumer's application finds out. Checked here so it cannot happen.
+      # Which directories each gate looks at, derived from what each package publishes
+      # rather than a hardcoded source/src. That assumption had already cost coverage
+      # twice: source_nodejs was never scanned, and renaming a package's trees to api/impl
+      # dropped 151 files out of every gate at once, all of which kept reporting clean.
+      - name: Unit tests for shipped-directory discovery
+        run: node tools/shared/test/test_shipped_dirs.js
       - run: pnpm run check:tla
       - name: Unit tests for the top-level-await detector
         run: node tools/check-no-tla/test/test_detector.js

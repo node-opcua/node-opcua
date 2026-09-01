@@ -335,3 +335,64 @@ test("the report always names the scope it covered", () => {
         assert.match(formatReport(analyze({ repoRoot: root, scope: "tests" })), /test files scanned/);
     });
 });
+
+// ── the scanned set follows what a package publishes ────────────────────────────
+//
+// These pin the regression that motivated the change: the gate scanned a hardcoded
+// `source`/`src`, so a package shipping anything else left its coverage silently, and the
+// report still said "clean" because nothing had been looked at.
+
+test("scans a source directory a package names in `files`, whatever it is called", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p", files: ["api", "impl", "dist"] }),
+            "packages/p/api/a.ts": 'import x from "./b";\n',
+            "packages/p/api/b.ts": "",
+            "packages/p/impl/c.ts": 'import x from "./d";\n',
+            "packages/p/impl/d.ts": ""
+        },
+        (root) => {
+            const result = analyze({ repoRoot: root });
+            assert.equal(result.scanned, 4);
+            assert.equal(result.findings.length, 2, JSON.stringify(result.findings));
+        }
+    );
+});
+
+test("scans a shipped directory alongside the conventional ones", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p", files: ["source", "source_nodejs"] }),
+            "packages/p/source/a.ts": 'import x from "./b";\n',
+            "packages/p/source/b.ts": "",
+            "packages/p/source_nodejs/c.ts": 'import x from "./d";\n',
+            "packages/p/source_nodejs/d.ts": ""
+        },
+        (root) => {
+            assert.equal(analyze({ repoRoot: root }).findings.length, 2);
+        }
+    );
+});
+
+test("build output is never scanned, even when `files` names it", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p", files: ["dist", "source"] }),
+            "packages/p/dist/a.ts": 'import x from "./b";\n',
+            "packages/p/dist/b.ts": "",
+            "packages/p/source/c.ts": ""
+        },
+        (root) => {
+            const result = analyze({ repoRoot: root });
+            assert.equal(result.scanned, 1);
+            assert.equal(result.findings.length, 0);
+        }
+    );
+});
+
+test("a package with no manifest still gets its conventional layout scanned", () => {
+    withTree({ "packages/p/source/a.ts": 'import x from "./b";\n', "packages/p/source/b.ts": "" }, (root) => {
+        // guessing wide is recoverable; scanning nothing and reporting clean is not
+        assert.equal(analyze({ repoRoot: root }).findings.length, 1);
+    });
+});

@@ -9,8 +9,9 @@ import { DataValue, type DataValueLike } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-
-import { SessionContext, type UAReferenceType as UAReferenceTypePublic } from "../api/index.js";
+// the module itself, not the api barrel: the barrel also publishes the AddressSpace value,
+// and reaching it from here closes a cycle that throws under ESM
+import { SessionContext } from "../api/session_context.js";
 import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl.js";
 import { BaseNode_getCache } from "./base_node_private.js";
 import { ReferenceImpl } from "./reference_impl.js";
@@ -18,7 +19,7 @@ import { construct_isSubtypeOf, construct_slow_isSubtypeOf, get_subtypeOf, get_s
 
 const ReferenceTypeCounter = { count: 0 };
 
-function _internal_getAllSubtypes(referenceType: UAReferenceType): UAReferenceTypePublic[] {
+function _internal_getAllSubtypes(referenceType: UAReferenceType): UAReferenceType[] {
     const addressSpace = referenceType.addressSpace;
     const possibleReferenceTypes: UAReferenceType[] = [];
 
@@ -30,7 +31,7 @@ function _internal_getAllSubtypes(referenceType: UAReferenceType): UAReferenceTy
         assert(referenceTypeInner.nodeClass === NodeClass.ReferenceType);
         const references = referenceTypeInner.findReferences(hasSubtypeReferenceType, true);
         for (const _r of references) {
-            const subType: UAReferenceTypePublic | null = addressSpace.findReferenceType(_r.nodeId);
+            const subType: UAReferenceType | null = addressSpace.findReferenceType(_r.nodeId);
             if (!subType) throw new Error("cannot find subtype reference type");
             _findAllSubType(subType);
         }
@@ -52,7 +53,7 @@ function _getAllSubtypes(ref: UAReferenceType) {
     return _cache._allSubTypes;
 }
 
-function _internal_getSubtypeIndex(referenceType: UAReferenceType): Map<string, UAReferenceTypePublic> {
+function _internal_getSubtypeIndex(referenceType: UAReferenceType): Map<string, UAReferenceType> {
     const possibleReferenceTypes = _getAllSubtypes(referenceType);
     // create a index of reference type with browseName as key for faster search
     const keys: Map<string, UAReferenceType> = new Map();
@@ -62,7 +63,7 @@ function _internal_getSubtypeIndex(referenceType: UAReferenceType): Map<string, 
     return keys;
 }
 
-function _getSubtypeIndex(referenceType: UAReferenceType): Map<string, UAReferenceTypePublic> {
+function _getSubtypeIndex(referenceType: UAReferenceType): Map<string, UAReferenceType> {
     const _cache = BaseNode_getCache(referenceType);
     if (!_cache._subtype_idx || (_cache._subtype_idxVersion && _cache._subtype_idxVersion < ReferenceTypeCounter.count)) {
         // the cache need to be invalidated
@@ -86,7 +87,7 @@ export class UAReferenceTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements
     public readonly symmetric: boolean;
     public readonly inverseName: LocalizedText;
 
-    public get subtypeOfObj(): UAReferenceTypePublic | null {
+    public get subtypeOfObj(): UAReferenceType | null {
         return get_subtypeOfObj.call(this) as unknown as UAReferenceType;
     }
 

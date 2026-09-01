@@ -21,8 +21,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
+import { shippedDirsOf } from "../../shared/shipped_dirs.mjs";
 
 export const SOURCE_ROOTS = ["packages", "packages_extra"];
+
+/**
+ * The conventional layout, used only when a package does not say what it publishes.
+ * What is actually scanned comes from each package's own `files` - see shipped_dirs.mjs.
+ */
 export const SOURCE_DIRS = ["source", "src"];
 
 const SKIP_DIRS = new Set(["node_modules", "dist", "dist-esm", "coverage", "build"]);
@@ -271,8 +277,9 @@ export function findSourceFiles(repoRoot = ".", packageFilter) {
             if (packageFilter && pkg.name !== packageFilter) {
                 continue;
             }
-            for (const dir of SOURCE_DIRS) {
-                walk(path.join(full, pkg.name, dir), files);
+            const pkgDir = path.join(full, pkg.name);
+            for (const dir of shippedDirsOf(pkgDir, SOURCE_DIRS)) {
+                walk(path.join(pkgDir, dir), files);
             }
         }
     }

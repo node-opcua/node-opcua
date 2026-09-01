@@ -1,1 +1,1 @@
-export * from "./generate_address_space";
+export * from "./generate_address_space.js";
