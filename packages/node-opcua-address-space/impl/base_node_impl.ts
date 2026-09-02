@@ -85,6 +85,7 @@ import {
     hasSharedChildAccessor,
     isReservedChildAccessorName,
     registerChildName,
+    reservedChildAccessorNames,
     resolveChildInIndex
 } from "./child_accessors.js";
 import { type MinimalistAddressSpace, ReferenceImpl } from "./reference_impl.js";
@@ -1937,6 +1938,41 @@ export function resolveChildAccessor(node: BaseNode, accessorName: string): Base
         accessorName,
         (reference) => hasChild.checkHasSubtype(reference.referenceType) || organizes.checkHasSubtype(reference.referenceType)
     );
+}
+
+/**
+ * The accessor names under which a child of `node` can never be reached: the reserved names, the
+ * members of the class of the node (attributes, methods, EventEmitter and Object members) and its
+ * own fields. A child carrying one of these is reachable through `getChildByName` only.
+ *
+ * The generator of the typed nodeset interfaces reads this so that a generated interface names a
+ * child exactly the way the runtime exposes it.
+ *
+ * @internal
+ */
+export function childAccessorNamesShadowedBy(node: BaseNode): Set<string> {
+    const names = new Set<string>(reservedChildAccessorNames());
+    // a member of the class that resolves the child of that name itself, the way the shared
+    // accessors do: BaseNode.nodeVersion is the NodeVersion property, and declared as such
+    const membersExposingTheChild = new Set(["nodeVersion"]);
+    for (const own of Object.getOwnPropertyNames(node)) {
+        // an own accessor is a child installed by install_extra_properties, not a field
+        if (!Object.getOwnPropertyDescriptor(node, own)?.get) {
+            names.add(own);
+        }
+    }
+    for (let proto = Object.getPrototypeOf(node); proto; proto = Object.getPrototypeOf(proto)) {
+        // the shared child accessors sit on BaseNodeImpl.prototype and are the names the runtime
+        // does expose; the same name on a subclass prototype is a real member that wins over them
+        const sharedAccessorsLiveHere = proto === BaseNodeImpl.prototype;
+        for (const member of Object.getOwnPropertyNames(proto)) {
+            if (membersExposingTheChild.has(member) || (sharedAccessorsLiveHere && hasSharedChildAccessor(member))) {
+                continue;
+            }
+            names.add(member);
+        }
+    }
+    return names;
 }
 
 function resolveSharedChildAccessor(node: BaseNodeImpl, accessorName: string): unknown {

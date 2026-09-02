@@ -37,6 +37,19 @@ through the namespace API keep the per-parent accessor they had.
 - The loader translates each NodeId string of a file once, and a node under construction clears its caches once
   rather than once per reference.
 
+#### Initial values take a shorter path
+
+The value a nodeset declares for a variable, or the default of its data type, is set through an internal
+`_setInitialDataValue`: the same compatibility checks as `setValueFromSource` (a wrong `<Value>` in a
+third-party nodeset is still reported and skipped), without the clone of the previous value, the comparison
+with it, the change event and the touch of the parents that a variable nobody has seen yet cannot need.
+
+#### The child-accessor rule is available to the typed-interface generator
+
+`childAccessorNamesShadowedBy(node)` (internal) lists the names under which a child of that node can never be
+reached: the reserved names, the members of its class and its own fields. The generator of the
+`node-opcua-nodeset-*` interfaces escapes exactly those, so the interfaces promise what the runtime exposes.
+
 #### `generateAddressSpace` rejects when a post-load promoter throws
 
 The promotion of loaded objects and variables (`promoteObjectsAndVariables`) was never awaited, so a failure

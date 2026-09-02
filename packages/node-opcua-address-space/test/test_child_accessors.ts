@@ -11,7 +11,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { AddressSpace, type UAObject, type UAObjectType, type UAVariable } from "../dist/api/index.js";
-import { BaseNodeImpl } from "../dist/impl/base_node_impl.js";
+import { BaseNodeImpl, childAccessorNamesShadowedBy } from "../dist/impl/base_node_impl.js";
 import { hasSharedChildAccessor } from "../dist/impl/child_accessors.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 
@@ -201,6 +201,23 @@ describe("child accessors", function (this: Mocha.Suite) {
         should(dotted(device).serverStatus).equal(notified);
         device.removeReference({ referenceType: "HasComponent", nodeId: notified.nodeId });
         should(dotted(device).serverStatus).eql(undefined);
+    });
+
+    it("tells the generator which names a child of a node can never be reached under", () => {
+        const variable = server.getPropertyByName("NamespaceArray") as UAVariable;
+        const forVariable = childAccessorNamesShadowedBy(variable);
+        const forObject = childAccessorNamesShadowedBy(server);
+        // fields and attributes of the class, methods, EventEmitter members, reserved names
+        for (const name of ["dataType", "valueRank", "readValue", "nodeId", "namespaceUri", "on", "then", "__proto__"]) {
+            should(forVariable.has(name)).eql(true, name);
+        }
+        should(forObject.has("eventNotifier")).eql(true);
+        should(forObject.has("dataType")).eql(false, "an object exposes a child named DataType");
+        // a shared child accessor is not a member: those are the names the runtime does expose
+        should(forObject.has("serverStatus")).eql(false);
+        // BaseNode.nodeVersion resolves the NodeVersion property itself
+        should(forObject.has("nodeVersion")).eql(false);
+        should(forVariable.has("enumStrings")).eql(false);
     });
 
     it("no node class hides a shared accessor behind an emitted class field", () => {
