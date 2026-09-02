@@ -51,7 +51,7 @@ import type {
     RelativePathElement
 } from "node-opcua-types";
 import { BrowsePath, BrowsePathResult } from "node-opcua-types";
-import { isNullOrUndefined, lowerFirstLetter, randomBytes } from "node-opcua-utils";
+import { isNullOrUndefined, randomBytes } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, type VariantOptions, type VariantT } from "node-opcua-variant";
 import type { IHistorizerFactory } from "../api/address_space_ts.js";
 import { adjustBrowseDirection } from "../api/helpers/adjust_browse_direction.js";
@@ -61,6 +61,7 @@ import type { AddressSpacePrivate } from "./address_space_private.js";
 import { UAAcknowledgeableConditionImplBase, UAConditionImplBase } from "./alarms_and_conditions/index.js";
 import { BaseNodeImpl, defineSharedChildAccessors } from "./base_node_impl.js";
 import { EventData } from "./event_data.js";
+import { getEventLayout } from "./event_layout.js";
 import { AddressSpace_installHistoricalDataNode } from "./historical_access/address_space_historical_data_node.js";
 import { historizerFactoryHolder } from "./historizer_factory.js";
 import { isNonEmptyQualifiedName, NamespaceImpl } from "./namespace_impl.js";
@@ -790,131 +791,38 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
             throw new Error("BaseObjectType must be defined in the address space");
         }
 
-        const hasProperty = (data: RaiseEventData, propertyName: string): boolean => Object.hasOwn(data, propertyName);
+        const layout = getEventLayout(this, eventTypeNode, baseObjectType);
+        const eventData = new EventData(eventTypeNode, layout.pathToNodeId);
 
-        const visitedProperties: { [key: string]: number } = {};
-        const alreadyVisited = (key: string) => Object.hasOwn(visitedProperties, key);
-        const markAsVisited = (key: string) => (visitedProperties[key] = 1);
-
-        function _process_var(self: BaseNode, prefixLower: string, prefixStandard: string, node: BaseNode) {
-            const lowerName = prefixLower + lowerFirstLetter(node.browseName?.name || "");
-            const fullBrowsePath = prefixStandard + node.browseName.toString();
-            if (alreadyVisited(lowerName)) {
-                return;
+        for (const field of layout.fields) {
+            if (Object.hasOwn(data, field.lowerName)) {
+                eventData._setField(field, data[field.lowerName] as VariantOptions);
+                continue;
             }
-            markAsVisited(lowerName);
-
-            if (hasProperty(data, lowerName)) {
-                eventData._createValue(fullBrowsePath, node, data[lowerName] as VariantOptions);
-            } else {
-                // add a property , but with a null variant
-                eventData._createValue(fullBrowsePath, node, { dataType: DataType.Null });
-
-                // c8 ignore next
-                if (doDebug) {
-                    if (node.modellingRule === "Mandatory") {
-                        errorLog(
-                            chalk.red("ERROR : AddressSpace#constructEventData(eventType,options) " + "cannot find property ") +
-                                self.browseName.toString() +
-                                " => " +
-                                chalk.cyan(lowerName)
-                        );
-                    } else {
-                        errorLog(
-                            chalk.yellow(
-                                "Warning : AddressSpace#constructEventData(eventType,options)" + " cannot find property "
-                            ) +
-                                self.browseName.toString() +
-                                " => " +
-                                chalk.cyan(lowerName)
-                        );
-                    }
-                }
+            // add a property , but with a null variant
+            eventData._setField(field, { dataType: DataType.Null });
+            // c8 ignore next
+            if (doDebug) {
+                errorLog(
+                    (field.mandatory
+                        ? chalk.red("ERROR : AddressSpace#constructEventData(eventType,options) cannot find property ")
+                        : chalk.yellow("Warning : AddressSpace#constructEventData(eventType,options) cannot find property ")) +
+                        eventTypeNode.browseName.toString() +
+                        " => " +
+                        chalk.cyan(field.lowerName)
+                );
             }
         }
 
         // verify that all elements of data are valid
-        function verify_data_is_valid(data1: Record<string, unknown>) {
-            Object.keys(data1).forEach((k: string) => {
-                if (k === "$eventDataSource") {
-                    return;
-                }
-                /* c8 ignore next */
-                if (!alreadyVisited(k)) {
-                    warningLog(
-                        "constructEventData:  cannot find property '" +
-                            k +
-                            "' in [ " +
-                            Object.keys(visitedProperties).join(", ") +
-                            "] when filling " +
-                            eventTypeNode?.browseName.toString()
-                    );
-                }
-            });
+        for (const key of Object.keys(data)) {
+            /* c8 ignore next */
+            if (key !== "$eventDataSource" && !layout.names.has(key)) {
+                warningLog(
+                    `constructEventData:  cannot find property '${key}' in [ ${[...layout.names].join(", ")}] when filling ${eventTypeNode.browseName.toString()}`
+                );
+            }
         }
-
-        const populate_data = (self: UAObjectType, eventData1: EventData) => {
-            if (sameNodeId(baseObjectType?.nodeId, self.nodeId)) {
-                return; // nothing to do
-            }
-
-            const baseTypeNodeId = self.subtypeOf;
-            /* c8 ignore next */
-            if (!baseTypeNodeId) {
-                throw new Error(`Object ${self.browseName.toString()} with nodeId ${self.nodeId} has no Type`);
-            }
-
-            const baseType = this.findNode(baseTypeNodeId);
-            /* c8 ignore next */
-            if (!baseType) {
-                throw new Error(chalk.red("Cannot find object with nodeId ") + baseTypeNodeId);
-            }
-
-            // subtypeOf always points to another node in the ObjectType hierarchy
-            populate_data(baseType as UAObjectType, eventData1);
-
-            // get properties and components from base class
-            const properties = self.getProperties();
-            const components = self.getComponents();
-            const children = ([] as BaseNode[]).concat(properties, components);
-
-            // c8 ignore next
-            if (doDebug) {
-                debugLog(` ${chalk.bgWhite.cyan(self.browseName.toString())}`);
-            }
-
-            for (const node of children) {
-                // only keep those that have a "HasModellingRule"
-                if (!node.modellingRule) {
-                    continue;
-                }
-                // ignore also methods
-                if (node.nodeClass === NodeClass.Method) {
-                    continue;
-                }
-
-                _process_var(self, "", "", node);
-
-                // also store value in index
-                // xx eventData.__nodes[node.nodeId.toString()] = eventData[lowerName];
-
-                const children2 = node.getAggregates();
-                if (children2.length > 0) {
-                    const lowerName = lowerFirstLetter(node.browseName.name || "");
-                    const standardName = node.browseName.toString();
-                    for (const child2 of children2) {
-                        _process_var(self, `${lowerName}.`, `${standardName}.`, child2);
-                    }
-                }
-            }
-        };
-
-        const eventData = new EventData(eventTypeNode);
-
-        // verify standard properties...
-        populate_data(eventTypeNode, eventData);
-
-        verify_data_is_valid(data);
 
         return eventData;
     }

@@ -169,6 +169,11 @@ function cloneVariantValue(dataType: DataType, value: unknown): unknown {
         return copy;
     }
     if (Array.isArray(value)) {
+        if (!hasMutableElements(dataType)) {
+            // strings, numbers, booleans: the elements need no copy, only the array does; an
+            // element-by-element walk here cost a million-string variable 150ms per read
+            return value.slice();
+        }
         const n = value.length;
         const copy = new Array(n);
         for (let i = 0; i < n; i++) {
@@ -177,6 +182,23 @@ function cloneVariantValue(dataType: DataType, value: unknown): unknown {
         return copy;
     }
     return cloneVariantElement(dataType, value);
+}
+
+/** the data types whose elements cloneVariantElement copies rather than returns as they are */
+function hasMutableElements(dataType: DataType): boolean {
+    switch (dataType) {
+        case DataType.ByteString:
+        case DataType.DateTime:
+        case DataType.NodeId:
+        case DataType.ExpandedNodeId:
+        case DataType.LocalizedText:
+        case DataType.QualifiedName:
+        case DataType.Variant:
+        case DataType.ExtensionObject:
+            return true;
+        default:
+            return false;
+    }
 }
 
 function _coerceVariant(variantLike: VariantOptions | Variant): Variant {

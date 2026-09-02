@@ -9,6 +9,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { type BrowsePath, BrowsePathResult } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { Variant, type VariantLike } from "node-opcua-variant";
+import type { EventField } from "./event_layout.js";
 
 type NodeIdString = string;
 type FullBrowsePath = string;
@@ -18,40 +19,41 @@ type FullBrowsePath = string;
 export class EventData implements IEventData {
     public eventId: NodeId;
     #eventDataSource: BaseNode;
-    #cache: {
-        __values: { [key: NodeIdString]: Variant };
-        __nodeIdToNode: { [key: NodeIdString]: BaseNode };
-        __pathToNodeId: { [key: FullBrowsePath]: NodeId };
-        __nodeIdToFullPath: { [key: NodeIdString]: FullBrowsePath };
-    };
+    #values = new Map<NodeIdString, Variant>();
+    #pathToNodeId: Map<FullBrowsePath, NodeId>;
+    /** the path map belongs to the event layout and is already complete */
+    #sharedPaths: boolean;
 
-    constructor(eventTypeNode: BaseNode) {
-        this.#cache = {
-            __values: {},
-            __nodeIdToNode: {},
-            __pathToNodeId: {},
-            __nodeIdToFullPath: {}
-        };
-
+    /**
+     * @param pathToNodeId the browse-path index of the event layout, shared by every event of the type;
+     *   an event built field by field (a condition snapshot) keeps an index of its own
+     */
+    constructor(eventTypeNode: BaseNode, pathToNodeId?: Map<FullBrowsePath, NodeId>) {
         this.eventId = new NodeId();
         this.#eventDataSource = eventTypeNode;
+        this.#sharedPaths = pathToNodeId !== undefined;
+        this.#pathToNodeId = pathToNodeId ?? new Map<FullBrowsePath, NodeId>();
     }
 
     public getEventDataSource(): BaseNode {
         return this.#eventDataSource;
     }
+
     public _createValue(fullBrowsePath: string, node: BaseNode, variant: VariantLike): void {
         const eventData = this as Record<string, unknown>;
         assert(!eventData[fullBrowsePath], `already exists ${fullBrowsePath}`);
-
         const lowerName = fullBrowsePath.split(".").map(lowerFirstLetter).join(".");
+        this._setField({ lowerName, fullBrowsePath, node, nodeIdKey: node.nodeId.toString(), mandatory: false }, variant);
+    }
 
-        eventData[lowerName] = Variant.coerce(variant);
-
-        this.#cache.__pathToNodeId[fullBrowsePath] = node.nodeId;
-        this.#cache.__nodeIdToNode[node.nodeId.toString()] = node;
-        this.#cache.__nodeIdToFullPath[node.nodeId.toString()] = fullBrowsePath;
-        this.#cache.__values[node.nodeId.toString()] = eventData[lowerName] as Variant;
+    /** the value of one field of the layout */
+    public _setField(field: EventField, variant: VariantLike): void {
+        const value = Variant.coerce(variant);
+        (this as Record<string, unknown>)[field.lowerName] = value;
+        if (!this.#sharedPaths) {
+            this.#pathToNodeId.set(field.fullBrowsePath, field.node.nodeId);
+        }
+        this.#values.set(field.nodeIdKey, value);
     }
 
     public _browse(browsePath: BrowsePath): BrowsePathResult | null {
@@ -59,7 +61,7 @@ export class EventData implements IEventData {
             return null;
         }
         const fullBrowsePath = (browsePath.relativePath.elements || []).map((b) => b.targetName.toString()).join(".");
-        const nodeId = this.#cache.__pathToNodeId[fullBrowsePath];
+        const nodeId = this.#pathToNodeId.get(fullBrowsePath);
         if (!nodeId) return null;
         return new BrowsePathResult({
             statusCode: StatusCodes.Good,
@@ -73,11 +75,6 @@ export class EventData implements IEventData {
     }
 
     public _readValue(nodeId: NodeId): Variant | null {
-        const key = nodeId.toString();
-        const cached_value = this.#cache.__values[key];
-        if (cached_value) {
-            return cached_value;
-        }
-        return null;
+        return this.#values.get(nodeId.toString()) ?? null;
     }
 }
