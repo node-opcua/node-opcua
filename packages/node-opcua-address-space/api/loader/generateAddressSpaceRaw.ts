@@ -148,7 +148,7 @@ async function preLoadSources(readers: NodesetReader[]): Promise<NodesetSourceDe
                 modelUri: m.modelUri,
                 version: m.version,
                 publicationDate: m.publicationDate ? new Date(m.publicationDate) : getMinOPCUADate(),
-                requiredModel: m.requiredModels.map((r) => ({ ...r, publicationDate: new Date(r.publicationDate) }))
+                requiredModel: m.requiredModels.map((r) => ({ ...r, publicationDate: new Date(r.publicationDate ?? Number.NaN) }))
             }));
             if (models.length === 0 && header.namespaceUris.length >= 1) {
                 models.push({

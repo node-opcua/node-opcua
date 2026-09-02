@@ -62,7 +62,9 @@
     "makelinks": "npx tsx ../make-links/makelinks.ts",
     "clean": "node tools/clean/clean.js",
     "postversion": "pnpm m install",
-    "prepare": "husky"
+    "prepare": "husky",
+    "build:nodeset-images": "node tools/build-nodeset-images.mjs",
+    "check:nodeset-images": "node tools/check-nodeset-images.mjs"
   },
   "repository": {
     "type": "git",
