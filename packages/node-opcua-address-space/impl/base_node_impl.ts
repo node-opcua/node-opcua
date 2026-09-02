@@ -37,7 +37,6 @@ import {
     coerceQualifiedName,
     LocalizedText,
     type LocalizedTextLike,
-    makeNodeClassMask,
     NodeClass,
     QualifiedName,
     type QualifiedNameLike,
@@ -101,9 +100,43 @@ const debugLog = make_debugLog("base_node_impl");
 
 const HasEventSourceReferenceType = resolveNodeId("HasEventSource");
 const HasNotifierReferenceType = resolveNodeId("HasNotifier");
+const HierarchicalReferencesType = resolveNodeId("HierarchicalReferences");
 const HasChildReferenceType = resolveNodeId("HasChild");
 /** a node with more references than this keeps the result of its reference scans */
 const referenceScanMemoThreshold = 8;
+
+/**
+ * the reference types every child lookup and accessor installation needs, resolved once per
+ * address space rather than once per call; absent until namespace 0 has loaded them
+ */
+interface WellKnownReferenceTypes {
+    hierarchicalReferences: UAReferenceType;
+    hasChild: UAReferenceType;
+    hasComponent: UAReferenceType;
+    hasProperty: UAReferenceType;
+    organizes: UAReferenceType;
+}
+const wellKnownReferenceTypesByAddressSpace = new WeakMap<IAddressSpace, WellKnownReferenceTypes>();
+
+function wellKnownReferenceTypes(addressSpace: IAddressSpace): WellKnownReferenceTypes | null {
+    const known = wellKnownReferenceTypesByAddressSpace.get(addressSpace);
+    // an address space is disposed namespace by namespace, namespace 0 first: a child lookup made
+    // while a later namespace is torn down must not be handed reference types that are gone
+    if (known && !(known.hasChild as unknown as BaseNodeImpl).isDisposed()) {
+        return known;
+    }
+    const hierarchicalReferences = addressSpace.findReferenceType(HierarchicalReferencesType);
+    const hasChild = addressSpace.findReferenceType(HasChildReferenceType);
+    const hasComponent = addressSpace.findReferenceType(HasComponentReferenceType);
+    const hasProperty = addressSpace.findReferenceType(HasPropertyReferenceType);
+    const organizes = addressSpace.findReferenceType(OrganizesReferenceType);
+    if (!hierarchicalReferences || !hasChild || !hasComponent || !hasProperty || !organizes) {
+        return null; // namespace 0 is still loading
+    }
+    const resolved = { hierarchicalReferences, hasChild, hasComponent, hasProperty, organizes };
+    wellKnownReferenceTypesByAddressSpace.set(addressSpace, resolved);
+    return resolved;
+}
 const HasComponentReferenceType = resolveNodeId("HasComponent");
 const HasPropertyReferenceType = resolveNodeId("HasProperty");
 const OrganizesReferenceType = resolveNodeId("Organizes");
@@ -845,7 +878,10 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         // Subtypes are included if this value is TRUE.
         assert(Object.hasOwn(relativePathElement, "includeSubtypes"));
 
-        const references = this.allReferences();
+        // A forward step naming its target through a hierarchical reference type, the shape of
+        // almost every TranslateBrowsePath element, is a lookup in the child index rather than a
+        // scan of every reference of the node; the filter below still applies to what it finds.
+        const references = this._hierarchicalStepCandidates(relativePathElement) ?? this.allReferences();
 
         const _check_reference = (reference: UAReference) => {
             if (relativePathElement.referenceTypeId.isEmpty()) {
@@ -911,6 +947,27 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
             }
         }
         return nodeIds;
+    }
+
+    /**
+     * the references of this node that can answer a relative path element, taken from the child
+     * index, or null when the element is one the index cannot answer (an inverse step, an
+     * unspecified or non-hierarchical reference type, no target name)
+     */
+    private _hierarchicalStepCandidates(relativePathElement: RelativePathElement): UAReference[] | null {
+        const targetName = relativePathElement.targetName;
+        if (relativePathElement.isInverse || !targetName?.name || relativePathElement.referenceTypeId.isEmpty()) {
+            return null;
+        }
+        const wellKnown = wellKnownReferenceTypes(this.addressSpace);
+        const referenceType = this.addressSpace.findReferenceType(relativePathElement.referenceTypeId);
+        if (!wellKnown || !referenceType) {
+            return null;
+        }
+        if (referenceType !== wellKnown.hierarchicalReferences && !referenceType.isSubtypeOf(wellKnown.hierarchicalReferences)) {
+            return null;
+        }
+        return _select_by_browse_name(_get_HierarchicalReference(this), targetName, targetName.namespaceIndex);
     }
 
     /**
@@ -1067,13 +1124,11 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         if (addressSpace.isFrugal) {
             return;
         }
-        const hasChild = addressSpace.findReferenceType(HasChildReferenceType);
-        const hasComponent = addressSpace.findReferenceType(HasComponentReferenceType);
-        const hasProperty = addressSpace.findReferenceType(HasPropertyReferenceType);
-        const organizes = addressSpace.findReferenceType(OrganizesReferenceType);
-        if (!hasChild || !hasComponent || !hasProperty || !organizes) {
+        const wellKnown = wellKnownReferenceTypes(addressSpace);
+        if (!wellKnown) {
             return; // namespace 0 is still loading
         }
+        const { hasChild, hasComponent, hasProperty, organizes } = wellKnown;
         const self = this as BaseNode;
         const visit = (reference: UAReference) => {
             if (reference.isForward) {
@@ -1881,15 +1936,11 @@ function _filter_by_nodeClass(this: BaseNode, references: UAReference[], nodeCla
     const addressSpace = this.addressSpace;
     return references.filter((reference) => {
         const obj = resolveReferenceNode(addressSpace, reference);
-
         if (!obj) {
             return false;
         }
-
-        const nodeClassName = NodeClass[obj.nodeClass];
-
-        const value = makeNodeClassMask(nodeClassName);
-        return (value & nodeClassMask) === value;
+        // the NodeClass values are the NodeClassMask bits (Part 4, BrowseDescription.nodeClassMask)
+        return (nodeClassMask & obj.nodeClass) !== 0;
     });
 }
 
@@ -1924,15 +1975,14 @@ export function resolveChildAccessor(node: BaseNode, accessorName: string): Base
     if (!_private?.__address_space) {
         return undefined;
     }
-    const addressSpace = node.addressSpace;
     // a dotted child is a component, a property, a subtype or an organized node; a node that is
     // only an event source or a notifier of this one is not exposed, and removing the structural
     // reference removes the child even when an event reference to it remains
-    const hasChild = addressSpace.findReferenceType(HasChildReferenceType);
-    const organizes = addressSpace.findReferenceType(OrganizesReferenceType);
-    if (!hasChild || !organizes) {
+    const wellKnown = wellKnownReferenceTypes(node.addressSpace);
+    if (!wellKnown) {
         return undefined; // namespace 0 is still loading
     }
+    const { hasChild, organizes } = wellKnown;
     return resolveChildInIndex(
         _get_HierarchicalReference(node),
         accessorName,
