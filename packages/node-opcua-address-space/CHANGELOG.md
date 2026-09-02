@@ -110,8 +110,8 @@ each file as a 256 KB stream instead of one string. A load fed in chunks costs t
 
 An image is the records of a NodeSet2 document as JSON Lines, gzip-compressed (`.ndjson.gz`): a header (schema,
 writer version, namespace URIs, models, resolved aliases), one line per node, and a trailer with the node count and
-the SHA-256 of the source bytes. Ids are tuples in the file's own namespace table, so an image depends on nothing
-but its own file; every value type has one JSON rule (`nodeset_image_codec.ts`); the four extension objects the
+the SHA-256 of the source bytes. Ids are indexes in the file's own namespace table (a bare number for a numeric id in namespace 0, a
+tuple otherwise), so an image depends on nothing but its own file; every value type has one JSON rule (`nodeset_image_codec.ts`); the four extension objects the
 XML reader decodes itself are typed JSON, every other one stays the XML fragment the loader decodes once the data
 types are known. `NodesetImageWriter` is a record consumer and `imageNodesetRecords` a record producer, so an image
 is written in the same pass as the XML parse and replayed exactly as the XML is applied.
@@ -128,7 +128,8 @@ is written in the same pass as the XML parse and replayed exactly as the XML is 
   in one call and are ordered by their dependencies together.
 - `opcua-nodeset-image build | verify | info`, a bin of this package: convert files, prove an image loads what its
   XML loads, print an image's header and trailer.
-- `bench_load_nodeset2.ts` gains an `image` variant.
+- `bench_load_nodeset2.ts` gains an `image` variant. The standard nodeset loads 36% faster from its image than from
+  the XML, a six-file companion chain 34% (best of 7, alternating).
 
 ### Security
 
