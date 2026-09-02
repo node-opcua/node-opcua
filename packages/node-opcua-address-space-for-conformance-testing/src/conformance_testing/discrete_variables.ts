@@ -25,7 +25,7 @@ export function addTwoStateDiscreteVariables(namespace: Namespace, parentFolder:
     const DADiscreteTypeFolder = getDADiscreteTypeFolder(namespace, parentFolder);
 
     const twoStateDiscrete001 = namespace.addTwoStateDiscrete({
-        organizedBy: DADiscreteTypeFolder,
+        componentOf: DADiscreteTypeFolder,
         nodeId: "s=TwoStateDiscrete001",
         browseName: "TwoStateDiscrete001",
         trueState: "Enabled",
@@ -33,7 +33,7 @@ export function addTwoStateDiscreteVariables(namespace: Namespace, parentFolder:
     });
 
     const twoStateDiscrete002 = namespace.addTwoStateDiscrete({
-        organizedBy: DADiscreteTypeFolder,
+        componentOf: DADiscreteTypeFolder,
         nodeId: "s=TwoStateDiscrete002",
         browseName: "TwoStateDiscrete002",
         trueState: "On",
@@ -41,9 +41,9 @@ export function addTwoStateDiscreteVariables(namespace: Namespace, parentFolder:
         optionals: ["TransitionTime", "EffectiveDisplayName"]
     });
 
-    // HasTrueSubState is not hierarchical: the folder keeps it browsable
+    // HasTrueSubState is not hierarchical: the HasComponent reference keeps it browsable
     const twoStateDiscrete003 = namespace.addTwoStateDiscrete({
-        organizedBy: DADiscreteTypeFolder,
+        componentOf: DADiscreteTypeFolder,
         browseName: "twoStateDiscrete003",
         nodeId: "s=TwoStateDiscrete003",
         optionals: ["TransitionTime"],
@@ -51,7 +51,7 @@ export function addTwoStateDiscreteVariables(namespace: Namespace, parentFolder:
     });
 
     const twoStateDiscrete004 = namespace.addTwoStateDiscrete({
-        organizedBy: DADiscreteTypeFolder,
+        componentOf: DADiscreteTypeFolder,
         nodeId: "s=TwoStateDiscrete004",
         browseName: "TwoStateDiscrete004",
         trueState: "InProgress",
@@ -59,7 +59,7 @@ export function addTwoStateDiscreteVariables(namespace: Namespace, parentFolder:
     });
 
     const twoStateDiscrete005 = namespace.addTwoStateDiscrete({
-        organizedBy: DADiscreteTypeFolder,
+        componentOf: DADiscreteTypeFolder,
         nodeId: "s=TwoStateDiscrete005",
         browseName: "TwoStateDiscrete005",
         trueState: "InProgress",
