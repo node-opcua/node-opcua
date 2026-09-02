@@ -4276,6 +4276,12 @@ importers:
         specifier: 2.180.0
         version: link:../../packages/node-opcua
 
+  tools/check-construction-cast:
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   tools/check-debug-log: {}
 
   tools/check-debug-name: {}
