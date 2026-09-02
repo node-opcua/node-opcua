@@ -92,8 +92,11 @@ describe("Loading through an image store", function (this: Mocha.Suite) {
         await store.inner.put(key, image.subarray(0, image.length - 40));
         should(await load([miniBytes], store)).eql(reference);
         should(store.puts).eql([key, key], "rebuilt once");
+        // rebuilt, and readable again (not the same bytes: the header carries a timestamp)
         const repaired = (await store.inner.get(key)) as Uint8Array;
-        should(repaired.length).eql(image.length);
+        const info = await readNodesetImageInfo(repaired);
+        should(info.trailer?.sourceDigest).eql(miniDigest);
+        should(info.trailer?.nodes).eql(info.lines);
     });
 
     it("discards an image built from other bytes, and an edited document gets a fresh key", async () => {

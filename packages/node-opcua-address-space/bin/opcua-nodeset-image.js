@@ -11,17 +11,21 @@
  *       them; dependencies come from the node-opcua-nodesets catalog, or from --require
  *   opcua-nodeset-image info <image>
  *       prints the header and the trailer of an image
+ *   opcua-nodeset-image export <file.xml>... [--out <image>]
+ *       loads the files (dependencies resolved as for verify) and exports the last one's
+ *       namespace, from the live address space, to an image: the round-trip fixture
  */
 const fs = require("node:fs");
 const path = require("node:path");
 const { performance } = require("node:perf_hooks");
-const { AddressSpace, generateAddressSpaceRaw, preLoad, readNodesetImageInfo } = require("../dist/api/index.js");
-const { digestAddressSpace, nodesetFileToImage, readNodeSet2XmlFile } = require("../distNodeJS/index.js");
+const { AddressSpace, generateAddressSpaceRaw, namespaceToImage, preLoad, readNodesetImageInfo } = require("../dist/api/index.js");
+const { addressSpacePackageVersion, digestAddressSpace, nodesetFileToImage, readNodeSet2XmlFile } = require("../distNodeJS/index.js");
 
 const usage = () => {
     console.error("usage: opcua-nodeset-image build <file.xml>... [--out <dir>]");
     console.error("       opcua-nodeset-image verify <file.xml>... [--require <file.xml>]...");
     console.error("       opcua-nodeset-image info <image>");
+    console.error("       opcua-nodeset-image export <file.xml>... [--out <image>] [--require <file.xml>]...");
     process.exit(2);
 };
 
@@ -128,6 +132,30 @@ async function verify(files, options) {
     return failed > 0 ? 1 : 0;
 }
 
+async function exportNamespace(files, options) {
+    const last = files[files.length - 1];
+    const chain = await dependencyChain(last, [...options.require, ...files.slice(0, -1)]);
+    const addressSpace = AddressSpace.create();
+    try {
+        const asFile = (f) => ({ name: f, source: () => [new Uint8Array(fs.readFileSync(f))] });
+        await generateAddressSpaceRaw(addressSpace, chain.map(asFile), {});
+        const [desc] = await preLoad([last], readNodeSet2XmlFile);
+        const modelUri = desc.namespaceModel.models[0]?.modelUri;
+        const namespace = addressSpace.getNamespaceArray().find((n) => n.namespaceUri === modelUri);
+        if (!namespace) throw new Error(`${path.basename(last)}: namespace ${modelUri} not found after loading`);
+        const t0 = performance.now();
+        const image = await namespaceToImage(namespace, { addressSpaceVersion: addressSpacePackageVersion() });
+        const target = options.out ?? imageFileOf(last, undefined).replace(/\.ndjson\.gz$/, ".export.ndjson.gz");
+        fs.mkdirSync(path.dirname(target), { recursive: true });
+        fs.writeFileSync(target, image);
+        const info = await readNodesetImageInfo(image);
+        console.log(`${path.basename(last)}: namespace ${modelUri} -> ${path.basename(target)} ${kb(image.length)}, ${info.trailer.nodes} nodes, ${(performance.now() - t0).toFixed(0)} ms`);
+        return 0;
+    } finally {
+        addressSpace.dispose();
+    }
+}
+
 async function info(files) {
     for (const file of files) {
         const bytes = new Uint8Array(fs.readFileSync(file));
@@ -148,6 +176,8 @@ async function main() {
             return verify(files, options);
         case "info":
             return info(files);
+        case "export":
+            return exportNamespace(files, options);
         default:
             usage();
     }
