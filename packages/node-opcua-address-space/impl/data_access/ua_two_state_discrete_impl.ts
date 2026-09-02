@@ -4,6 +4,7 @@ import type {
     CloneFilter,
     CloneOptions,
     INamespace,
+    UAProperty,
     UAVariable
 } from "node-opcua-address-space-base";
 import assert from "node-opcua-assert";
@@ -19,9 +20,12 @@ import { add_dataItem_stuff } from "./add_dataItem_stuff.js";
 
 /** @internal */
 export class UATwoStateDiscreteImplBase extends UAVariableImpl {
-    private get $5(): UATwoStateDiscreteEx {
-        return this as unknown as UATwoStateDiscreteEx;
-    }
+    /**
+     * Properties installed as child nodes by the address space rather than assigned by this
+     * constructor - hence `declare`, which emits nothing.
+     */
+    public declare readonly falseState: UAProperty<LocalizedText, DataType.LocalizedText>;
+    public declare readonly trueState: UAProperty<LocalizedText, DataType.LocalizedText>;
     /*
      * @private
      */
@@ -79,10 +83,10 @@ export class UATwoStateDiscreteImplBase extends UAVariableImpl {
         }
     }
     getTrueStateAsString(): string {
-        return (this.$5.trueState.readValue().value.value as LocalizedText).text || "";
+        return (this.trueState.readValue().value.value as LocalizedText).text || "";
     }
     getFalseStateAsString(): string {
-        return (this.$5.falseState.readValue().value.value as LocalizedText).text || "";
+        return (this.falseState.readValue().value.value as LocalizedText).text || "";
     }
 
     public clone(options1: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAVariable {
