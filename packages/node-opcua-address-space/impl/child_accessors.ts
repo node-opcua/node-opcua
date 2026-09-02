@@ -72,6 +72,11 @@ export function hasSharedChildAccessor(accessorName: string): boolean {
     return sharedAccessors.has(accessorName);
 }
 
+/** the names no child may claim on any node, see {@link isReservedChildAccessorName} */
+export function reservedChildAccessorNames(): readonly string[] {
+    return [...forbiddenNames];
+}
+
 /**
  * true for the names no child may claim on any node, shared getter or own accessor alike:
  * `then` would turn every node into a thenable, `__proto__` would corrupt it

@@ -399,7 +399,10 @@ async function _extractLocalMembers(
         if (!browseName.name) {
             throw new Error(`Expecting a browseName.name for node ${nodeId.toString()}`);
         }
-        const name = toJavascritPropertyName(browseName.name, { ignoreConflictingName: true });
+        const name = toJavascritPropertyName(browseName.name, {
+            ignoreConflictingName: true,
+            parentNodeClass: classMember.nodeClass
+        });
 
         const description = await getDescription(session, nodeId);
         const modellingRule = await getModellingRule(session, nodeId);
@@ -533,11 +536,25 @@ async function extractVariableExtra(
 }
 
 interface ClassDefinitionB {
+    /** the class of the type; its instances are of the matching instance class */
+    nodeClass?: NodeClass.VariableType | NodeClass.ObjectType;
     superType?: {
         nodeId: NodeId;
     };
     interfaceName: Import;
     baseClassDef?: ClassDefinition | null;
+}
+
+/** the class of the instances of a type: what a generated interface describes */
+function instanceNodeClass(typeNodeClass: NodeClass | undefined): NodeClass | undefined {
+    switch (typeNodeClass) {
+        case NodeClass.ObjectType:
+            return NodeClass.Object;
+        case NodeClass.VariableType:
+            return NodeClass.Variable;
+        default:
+            return typeNodeClass;
+    }
 }
 export async function extractClassMemberDef(
     session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
@@ -551,7 +568,10 @@ export async function extractClassMemberDef(
     if (!browseName.name) {
         throw new Error(`Expecting a browseName.name for node ${nodeId.toString()}`);
     }
-    const name = toJavascritPropertyName(browseName.name, { ignoreConflictingName: true });
+    const name = toJavascritPropertyName(browseName.name, {
+        ignoreConflictingName: true,
+        parentNodeClass: instanceNodeClass(parentDef.nodeClass)
+    });
 
     if (nodeClass !== NodeClass.Method && nodeClass !== NodeClass.Object && nodeClass !== NodeClass.Variable) {
         throw new Error(`Invalid property ${NodeClass[nodeClass]} ${browseName?.toString()} ${nodeId.toString()}`);
@@ -740,6 +760,8 @@ function dumpChildren(padding: string, children: ClassMemberBasic[], f: LineFile
             continue;
         }
         cache.ensureImported(childType);
+        // name went through the rule already, with its parent class known; this is the same
+        // transformation applied to an already adjusted name, hence no parent class here
         const adjustedName = toJavascritPropertyName(name, { ignoreConflictingName: true });
         if (description.text) {
             f.write(`${padding}/**`);

@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Changed
+
+#### Escaped property names follow the runtime rule
+
+A child is emitted as `$name` when node-opcua-address-space cannot expose it as `parent.name` on a node of the
+parent class (`childAccessorNamesShadowedBy`): the reserved names, the members of the node class and its
+fields. The seven names escaped so far stay escaped whatever the rule says, so no published interface changes.
+
 ### Fixed
 
 #### Fix #1: Inherited member type compatibility

@@ -47,7 +47,7 @@ export {
 } from "../impl/alarms_and_conditions/index.js";
 export { instantiateCertificateExpirationAlarm } from "../impl/alarms_and_conditions/ua_certificate_expiration_alarm_impl.js";
 /** The event name a node emits when one of its attributes changes. */
-export { makeAttributeEventName } from "../impl/base_node_impl.js";
+export { childAccessorNamesShadowedBy, makeAttributeEventName } from "../impl/base_node_impl.js";
 /** @internal */
 export { add_dataItem_stuff } from "../impl/data_access/add_dataItem_stuff.js";
 /** @internal */
