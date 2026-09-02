@@ -149,7 +149,23 @@ export * from "./interfaces/state_machine/ua_transition_ex.js";
 export * from "./interfaces/ua_subscription_diagnostics_variable_ex.js";
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "./loader/ensure_datatype_extracted.js";
 export * from "./loader/generateAddressSpaceRaw.js";
+export {
+    NODESET_RECORD_SCHEMA,
+    type NodesetDataTypeDefinitionRecord,
+    type NodesetDefinitionField,
+    type NodesetHeaderRecord,
+    type NodesetModelRecord,
+    type NodesetNodeRecord,
+    type NodesetRecord,
+    type NodesetRecordConsumer,
+    type NodesetRecordProducer,
+    type NodesetReferenceRecord,
+    type NodesetRolePermissionRecord,
+    recordBytes,
+    XmlExtensionObjectFragment
+} from "./loader/nodeset_record.js";
 export type { NamedNodesetSource, NodesetChunk, NodesetChunkStream, NodesetSource } from "./loader/nodeset_source.js";
+export { makeXmlNodesetRecordReader, type XmlNodesetRecordReader, xmlNodesetRecords } from "./loader/nodeset_xml_producer.js";
 export * from "./loader/register_node_promoter.js";
 export * from "./namespace.js";
 export type { INamespaceAlarmAndCondition } from "./namespace_alarm_and_condition.js";

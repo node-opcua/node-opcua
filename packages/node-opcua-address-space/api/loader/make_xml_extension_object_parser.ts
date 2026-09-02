@@ -1,4 +1,3 @@
-import type { IAddressSpace } from "node-opcua-address-space-base";
 import {
     type Byte,
     coerceInt64,
@@ -27,7 +26,7 @@ import {
 } from "node-opcua-xml2json";
 import { localizedText_parser } from "./parsers/localized_text_parser.js";
 import { makeQualifiedNameParser } from "./parsers/qualified_name_parser.js";
-import { makeVariantReader } from "./parsers/variant_parser.js";
+import { makeVariantReader, withoutXmlFragments } from "./parsers/variant_parser.js";
 
 const warningLog = make_warningLog("make_xml_extension_object_parser");
 const debugLog = make_debugLog("make_xml_extension_object_parser");
@@ -456,14 +455,9 @@ function _makeTypeReader(
         // <Value><String>Foo</String></Value>
         let variantOptions: VariantOptions = Object.create(null);
 
+        // an extension object the reader cannot decode inside a Variant field is dropped, as before
         const variantReader = makeVariantReader(
-            (_self, data: VariantOptions) => (variantOptions = data),
-            /*setDeferredValue: */ (_self, _data, _deferedTask) => {
-                // to do
-            },
-            /* postExtensionObjectDecoding:*/ (_task: (addressSpace: IAddressSpace) => Promise<void>) => {
-                // to do
-            },
+            (_self, data: VariantOptions) => (variantOptions = withoutXmlFragments(data)),
             translateNodeId
         );
         return {
