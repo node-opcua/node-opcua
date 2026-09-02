@@ -15,6 +15,7 @@ import {
     AddressSpace,
     type IEventData,
     type Namespace,
+    type RaiseEventData,
     type UAEventType,
     type UAObject,
     type UAVariable
@@ -59,7 +60,7 @@ describe("Event layout cache", function (this: Mocha.Suite) {
         events.length = 0;
     });
 
-    const raise = (data: Record<string, unknown>): IEventData => {
+    const raise = (data: RaiseEventData): IEventData => {
         source.raiseEvent(eventType, data);
         should(events.length).eql(1);
         return events[0];

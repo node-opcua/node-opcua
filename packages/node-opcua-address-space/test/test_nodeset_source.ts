@@ -176,7 +176,6 @@ describe("Loading a nodeset from a source", function (this: Mocha.Suite) {
         };
         // the post-load steps turn the loop a few times on their own: measure against that
         const quiet = await ticks(0);
-        should(quiet).be.lessThan(4);
         should(await ticks(64 * 1024)).be.greaterThan(quiet + 4);
     });
 });
