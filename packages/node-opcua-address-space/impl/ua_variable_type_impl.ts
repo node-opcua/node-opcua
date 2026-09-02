@@ -126,7 +126,8 @@ export class UAVariableTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements 
     public valueRank: number;
     public arrayDimensions: UInt32[] | null;
     public readonly minimumSamplingInterval: number;
-    public readonly value: unknown;
+    // declare-only: an emitted field would hide, on a type without a default value, a child named Value
+    public declare readonly value: unknown;
     public historizing: boolean;
 
     constructor(options: UAVariableTypeOptions) {
@@ -141,7 +142,11 @@ export class UAVariableTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements 
         this.historizing = isNullOrUndefined(options.historizing) ? false : (options.historizing as boolean);
         this.isAbstract = isNullOrUndefined(options.isAbstract) ? false : (options.isAbstract as boolean);
 
-        this.value = options.value; // optional default value for instances of this UAVariableType
+        // optional default value for instances of this UAVariableType; assigned only when given, so that
+        // a type without one does not hide a child named Value behind an own undefined field
+        if (options.value !== undefined) {
+            this.value = options.value;
+        }
 
         this.dataType = coerceNodeId(options.dataType); // DataType (NodeId)
 
