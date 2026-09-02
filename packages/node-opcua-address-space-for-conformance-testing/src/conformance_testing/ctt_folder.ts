@@ -22,7 +22,7 @@ import { standardUnits } from "node-opcua-data-access";
 import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
 import { buildVariantArray, DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
-import { typeAndDefaultValue } from "./type_defaults";
+import { typeAndDefaultValue } from "./type_defaults.js";
 
 const readWrite = makeAccessLevelFlag("CurrentRead | CurrentWrite");
 
