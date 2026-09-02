@@ -1,5 +1,10 @@
 import { coerceBoolean, coerceInt64, coerceUInt64, DataType, type Int64, isValidGuid, type UInt64 } from "node-opcua-basic-types";
-import { coerceLocalizedText, coerceQualifiedName, type LocalizedTextOptions, type QualifiedNameOptions } from "node-opcua-data-model";
+import {
+    coerceLocalizedText,
+    coerceQualifiedName,
+    type LocalizedTextOptions,
+    type QualifiedNameOptions
+} from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { VariantArrayType, type VariantOptions } from "node-opcua-variant";

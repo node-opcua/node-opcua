@@ -69,7 +69,8 @@ export class NodeSetLoader {
         this.options = options || {};
         this.options.loadDeprecatedNodes = this.options.loadDeprecatedNodes === undefined ? true : this.options.loadDeprecatedNodes;
         this.options.loadDraftNodes = this.options.loadDraftNodes || false;
-        this.yieldEveryBytes = this.options.yieldEveryBytes === undefined ? DEFAULT_YIELD_EVERY_BYTES : this.options.yieldEveryBytes;
+        this.yieldEveryBytes =
+            this.options.yieldEveryBytes === undefined ? DEFAULT_YIELD_EVERY_BYTES : this.options.yieldEveryBytes;
         this.queues = makeLoaderTaskQueues();
         this.applier = new NodesetRecordApplier(this.addressSpace, this.options, this.queues);
     }
@@ -120,11 +121,17 @@ export class NodeSetLoader {
             });
             // c8 ignore next
             if (doDebug) {
-                debugLog("addressSpace NS = ", addressSpace1.rootFolder.objects.server.namespaceArray.readValue().value.value.join(" "));
+                debugLog(
+                    "addressSpace NS = ",
+                    addressSpace1.rootFolder.objects.server.namespaceArray.readValue().value.value.join(" ")
+                );
             }
         }
         doDebug &&
-            debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") + chalk.green("DONE"));
+            debugLog(
+                chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") +
+                    chalk.green("DONE")
+            );
 
         /**
          * run every queued post-loading task.
@@ -160,7 +167,8 @@ export class NodeSetLoader {
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------"));
             await performPostLoadingTasks("post tasks", queues.postTasks);
 
-            doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Simple Variables ---------------------"));
+            doDebug &&
+                debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Simple Variables ---------------------"));
             await performPostLoadingTasks("initializing simple variables", queues.postTasks0_InitializeVariable);
 
             doDebug && debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
@@ -182,11 +190,15 @@ export class NodeSetLoader {
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Decoding Pojo String (parsing XML objects) -"));
             await performPostLoadingTasks("decoding XML extension objects", queues.postTasks0_DecodePojoString);
 
-            doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Complex Variables ---------------------"));
+            doDebug &&
+                debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Complex Variables ---------------------"));
             await performPostLoadingTasks("initializing complex variables", queues.postTasks1_InitializeVariable);
 
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks: (assigning Extension Object to Variables) -"));
-            await performPostLoadingTasks("assigning extension objects to variables", queues.postTasks2_AssignedExtensionObjectToDataValue);
+            await performPostLoadingTasks(
+                "assigning extension objects to variables",
+                queues.postTasks2_AssignedExtensionObjectToDataValue
+            );
 
             doDebug && debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
             // awaited: a promoter that throws must reject generateAddressSpace, not surface later
