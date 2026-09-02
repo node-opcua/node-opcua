@@ -27,6 +27,7 @@
     "check:importext:fix": "node tools/check-import-extension.mjs --fix",
     "check:pack": "node tools/check-pack.mjs",
     "check:cycles": "node tools/check-import-cycles.mjs",
+    "check:ctorcast": "node tools/check-construction-cast.mjs",
     "check:identity": "node tools/check-module-identity.mjs",
     "check:entrypoints": "node tools/check-entry-points.mjs",
     "check:entrypoints:update": "node tools/check-entry-points.mjs --update",

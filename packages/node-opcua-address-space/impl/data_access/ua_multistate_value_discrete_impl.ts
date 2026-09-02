@@ -241,6 +241,7 @@ export class UAMultiStateValueDiscreteImplBase<T extends Number, DT extends Data
 export type UAMultiStateValueDiscreteImpl<T extends Number, DT extends DataType> = UAMultiStateValueDiscreteImplBase<T, DT> &
     UAMultiStateValueDiscreteEx<T, DT>;
 /** @internal */
+// check-construction-cast: ok - serves both the scalar and the array interface, see above
 export const UAMultiStateValueDiscreteImpl = UAMultiStateValueDiscreteImplBase as unknown as new <
     T extends Number,
     DT extends DataType
