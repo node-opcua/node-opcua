@@ -7,7 +7,6 @@ import { assert } from "node-opcua-assert";
 import type { DataValue } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
 import type { DataType, VariantOptions } from "node-opcua-variant";
-import type { DeviationStuff } from "../../api/interfaces/alarms_and_conditions/deviation_stuff.js";
 import type {
     InstallSetPointOptions,
     SetPointSupport

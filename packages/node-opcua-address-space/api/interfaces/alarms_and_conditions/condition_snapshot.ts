@@ -2,7 +2,7 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import type { EventEmitter } from "node:events";
-import type { BaseNode, IEventData, UAVariable } from "node-opcua-address-space-base";
+import type { IEventData, UAVariable } from "node-opcua-address-space-base";
 import type { UInt16 } from "node-opcua-basic-types";
 import type { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
@@ -12,6 +12,7 @@ import type { Variant } from "node-opcua-variant";
 import type { IConditionVariableTypeSetterOptions } from "../i_condition_variable_type_setter_options.js";
 import type { ISetStateOptions } from "../i_set_state_options.js";
 import type { UtcTime } from "../state_machine/ua_state_machine_type.js";
+import type { UAConditionEx } from "./ua_condition_ex.js";
 
 export interface ConditionSnapshot {
     on(
@@ -25,7 +26,7 @@ export interface ConditionSnapshot extends EventEmitter {
 
     emit(eventName: "valueChanged", node: UAVariable, variant: Variant, options: { sourceTimestamp: Date }): boolean;
     emit(eventName: string | symbol): boolean;
-    condition: BaseNode;
+    condition: UAConditionEx;
     eventData: IEventData | null;
     branchId: NodeId | null;
 

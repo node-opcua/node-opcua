@@ -8,12 +8,12 @@ import type { UInt16 } from "node-opcua-basic-types";
 import { coerceLocalizedText, type LocalizedText, type LocalizedTextLike, NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
-import type { UAAcknowledgeableCondition } from "node-opcua-nodeset-ua";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { TimeZoneDataType } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import type { UAConditionEx } from "../../api/index.js";
 import type { ConditionSnapshot } from "../../api/interfaces/alarms_and_conditions/condition_snapshot.js";
+import type { UAAcknowledgeableConditionEx } from "../../api/interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex.js";
 import type { IConditionVariableTypeSetterOptions } from "../../api/interfaces/i_condition_variable_type_setter_options.js";
 import type { ISetStateOptions } from "../../api/interfaces/i_set_state_options.js";
 import type { UtcTime } from "../../api/interfaces/state_machine/ua_state_machine_type.js";
@@ -60,7 +60,7 @@ type FullBrowsePath = string;
 export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnapshot {
     public static normalizeName = normalizeName;
 
-    public condition: BaseNode;
+    public condition: UAConditionEx;
     public eventData: IEventData | null = null;
     public branchId: NodeId | null = null;
 
@@ -69,7 +69,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
 
     /**
      */
-    constructor(condition: BaseNode, branchId: NodeId) {
+    constructor(condition: UAConditionEx, branchId: NodeId) {
         super();
         assert(branchId instanceof NodeId);
         // xx self.branchId = branchId;
@@ -88,7 +88,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         if (this.branchId && sameNodeId(this.branchId, NodeId.nullNodeId)) {
             this.#_ensure_condition_values_correctness(this.condition, "", []);
         }
-        const c = this.condition as unknown as UAConditionEx;
+        const c = this.condition;
         const isDisabled = !c.getEnabledState();
         const eventData = new EventData(this.condition);
 
@@ -199,7 +199,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @internal
      */
     #_get_var_inner(varName: string): Variant {
-        const c = this.condition as unknown as UAConditionEx;
+        const c = this.condition;
         if (!c.getEnabledState() && !Object.hasOwn(_varTable, varName)) {
             // xx debuglog("ConditionSnapshot#_get_var condition enabled =", self.condition.getEnabledState());
             return disabledVar;
@@ -494,13 +494,13 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     /**
      */
     public getSeverity(): UInt16 {
-        const c = this.condition as unknown as UAConditionEx;
+        const c = this.condition;
         assert(c.getEnabledState(), "condition must be enabled");
         const value = this.#_get_varT<UInt16>(DataType.UInt16, "Severity");
         return +value;
     }
     public getSeveritySourceTimestamp(): Date {
-        const c = this.condition as unknown as UAConditionEx;
+        const c = this.condition;
         return c.severity.readValue().sourceTimestamp || new Date();
     }
 
@@ -613,7 +613,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     // -- ACKNOWLEDGEABLE -------------------------------------------------------------------
 
     public getAckedState(): boolean {
-        const acknowledgeableCondition = this.condition as UAAcknowledgeableCondition;
+        const acknowledgeableCondition = this.condition as UAAcknowledgeableConditionEx;
         if (!acknowledgeableCondition.ackedState) {
             throw new Error(
                 "Node " +
@@ -632,14 +632,14 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     }
 
     public getConfirmedState(): boolean {
-        const acknowledgeableCondition = this.condition as UAAcknowledgeableCondition;
+        const acknowledgeableCondition = this.condition as UAAcknowledgeableConditionEx;
         assert(acknowledgeableCondition.confirmedState, "Must have a confirmed state");
         return this.#_get_twoStateVariable("ConfirmedState");
     }
 
     public setConfirmedStateIfExists(confirmedState: boolean, options?: ISetStateOptions): void {
         confirmedState = !!confirmedState;
-        const acknowledgeableCondition = this.condition as UAAcknowledgeableCondition;
+        const acknowledgeableCondition = this.condition as UAAcknowledgeableConditionEx;
         if (!acknowledgeableCondition.confirmedState) {
             // no condition node has been defined (this is valid)
             // confirm state cannot be set
@@ -650,7 +650,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     }
 
     public setConfirmedState(confirmedState: boolean): void {
-        const acknowledgeableCondition = this.condition as UAAcknowledgeableCondition;
+        const acknowledgeableCondition = this.condition as UAAcknowledgeableConditionEx;
         assert(acknowledgeableCondition.confirmedState, "Must have a confirmed state.  Add ConfirmedState to the optionals");
         this.setConfirmedStateIfExists(confirmedState);
     }
