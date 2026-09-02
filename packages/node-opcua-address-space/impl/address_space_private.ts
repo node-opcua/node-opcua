@@ -31,6 +31,9 @@ import type { NamespacePrivate } from "./namespace_private.js";
 export interface AddressSpacePrivate extends IAddressSpace {
     rootFolder: UARootFolder;
 
+    /** a small integer per reference type NodeId, the same for the life of the address space */
+    referenceTypeOrdinal(referenceType: NodeId): number;
+
     isFrugal: boolean;
     suspendBackReference: boolean;
 

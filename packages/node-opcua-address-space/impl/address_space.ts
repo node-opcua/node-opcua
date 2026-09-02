@@ -65,7 +65,7 @@ import { AddressSpace_installHistoricalDataNode } from "./historical_access/addr
 import { historizerFactoryHolder } from "./historizer_factory.js";
 import { isNonEmptyQualifiedName, NamespaceImpl } from "./namespace_impl.js";
 import type { NamespacePrivate } from "./namespace_private.js";
-import { ReferenceImpl } from "./reference_impl.js";
+import { nodeIdKey, ReferenceImpl } from "./reference_impl.js";
 import { UADataTypeImpl } from "./ua_data_type_impl.js";
 import { UAObjectImpl } from "./ua_object_impl.js";
 import { UAObjectTypeImpl } from "./ua_object_type_impl.js";
@@ -195,6 +195,19 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
 
     public registerChildAccessorNames(browseNames: string[]): void {
         defineSharedChildAccessors(browseNames);
+    }
+
+    // reference keys pack a reference type as a small ordinal (see reference_impl.ts); one is
+    // handed out per distinct reference type NodeId, whether or not the type exists yet
+    private readonly _referenceTypeOrdinals = new Map<number | string, number>();
+    public referenceTypeOrdinal(referenceType: NodeId): number {
+        const key = nodeIdKey(referenceType);
+        let ordinal = this._referenceTypeOrdinals.get(key);
+        if (ordinal === undefined) {
+            ordinal = this._referenceTypeOrdinals.size;
+            this._referenceTypeOrdinals.set(key, ordinal);
+        }
+        return ordinal;
     }
     public historizingNodes: Set<UAVariable> = new Set();
     public _condition_refresh_in_progress = false;

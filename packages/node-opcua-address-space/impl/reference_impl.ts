@@ -4,7 +4,7 @@
 import chalk from "chalk";
 import type { AddReferenceOpts, BaseNode, IAddressSpace, UAReference, UAReferenceType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { coerceNodeId, NodeId, type NodeIdLike, sameNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, NodeId, type NodeIdLike, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { isNullOrUndefined } from "node-opcua-utils";
 
 export function isNodeIdString(str: string): boolean {
@@ -63,6 +63,44 @@ export interface MinimalistAddressSpace {
     findReferenceType(referenceTypeId: NodeIdLike | UAReferenceType, namespaceIndex?: number): UAReferenceType | null;
 }
 
+/**
+ * The key a reference is indexed under in a node: one safe integer for the common case, a string
+ * otherwise. A load of the standard nodeset indexes 17 000 references; building a string for each
+ * (two NodeId.toString and a concatenation) was a measurable share of node construction and of
+ * the retained heap.
+ */
+export type ReferenceKey = number | string;
+
+/** what a reference key needs from the address space: a small ordinal per reference type */
+export interface ReferenceTypeOrdinals {
+    referenceTypeOrdinal(referenceType: NodeId): number;
+}
+
+const NODE_KEY_SPAN = 0x10000000000; // 2^40: a namespace index below 256 and a 32-bit numeric identifier
+const MAX_PACKED_ORDINAL = 4096; // (2 * 4096) * 2^40 = 2^53, the safe-integer limit
+
+/**
+ * the key of a node in reference indexes: a number below 2^40 for a numeric NodeId in a namespace
+ * below 256, which is what nodesets carry, a string for the rest
+ */
+export function nodeIdKey(nodeId: NodeId): number | string {
+    if (nodeId.identifierType === NodeIdType.NUMERIC && nodeId.namespace < 256) {
+        return nodeId.namespace * 0x100000000 + (nodeId.value as number);
+    }
+    return nodeId.toString();
+}
+
+/**
+ * the key of a reference (direction, reference type, target) given the reference type ordinal
+ * and the target key; a safe integer when both fit, a string otherwise
+ */
+export function referenceKey(isForward: boolean, referenceTypeOrdinal: number, targetKey: number | string): ReferenceKey {
+    if (typeof targetKey === "number" && referenceTypeOrdinal < MAX_PACKED_ORDINAL) {
+        return (referenceTypeOrdinal * 2 + (isForward ? 1 : 0)) * NODE_KEY_SPAN + targetKey;
+    }
+    return `${isForward ? "" : "!"}${referenceTypeOrdinal}-${targetKey}`;
+}
+
 export function resolveReferenceNode(addressSpace: MinimalistAddressSpace, reference: UAReference): BaseNode {
     const _reference = reference as ReferenceImpl;
     if (!_reference.node) {
@@ -107,6 +145,7 @@ export class ReferenceImpl implements UAReference {
 
     // cache
     private __hash?: string;
+    private __key?: ReferenceKey;
 
     constructor(options: AddReferenceOpts | UAReference) {
         assert(options.referenceType instanceof NodeId);
@@ -155,12 +194,23 @@ export class ReferenceImpl implements UAReference {
 
     /**
      * @internal
-     * the hash of the reference that `sourceNodeKey` would hold to point back at us: what
-     * `BaseNode_add_backward_reference` would create, so that the caller can find out first
-     * whether it exists already. One short string, against the ReferenceImpl it saves.
+     * the key this reference is indexed under in the node holding it, computed once
      */
-    inverseHash(sourceNodeKey: string): string {
-        return `${(this.isForward ? "!" : "") + this.referenceType.toString()}-${sourceNodeKey}`;
+    key(ordinals: ReferenceTypeOrdinals): ReferenceKey {
+        if (this.__key === undefined) {
+            this.__key = referenceKey(this.isForward, ordinals.referenceTypeOrdinal(this.referenceType), nodeIdKey(this.nodeId));
+        }
+        return this.__key;
+    }
+
+    /**
+     * @internal
+     * the key of the reference that the node `sourceNodeKey` would hold to point back at us: what
+     * `BaseNode_add_backward_reference` would create, so that the caller can find out first
+     * whether it exists already, without allocating anything
+     */
+    inverseKey(ordinals: ReferenceTypeOrdinals, sourceNodeKey: number | string): ReferenceKey {
+        return referenceKey(!this.isForward, ordinals.referenceTypeOrdinal(this.referenceType), sourceNodeKey);
     }
 
     /**
@@ -168,6 +218,7 @@ export class ReferenceImpl implements UAReference {
      */
     public dispose(): void {
         this.__hash = undefined;
+        this.__key = undefined;
         this.node = undefined;
         /*
         this._referenceType = null;

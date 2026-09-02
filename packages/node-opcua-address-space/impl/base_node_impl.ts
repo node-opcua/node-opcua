@@ -87,7 +87,7 @@ import {
     reservedChildAccessorNames,
     resolveChildInIndex
 } from "./child_accessors.js";
-import { type MinimalistAddressSpace, ReferenceImpl } from "./reference_impl.js";
+import { type MinimalistAddressSpace, nodeIdKey, ReferenceImpl, type ReferenceKey } from "./reference_impl.js";
 import { referenceTypeVersion } from "./reference_type_version.js";
 import { coerceRolePermissions } from "./role_permissions.js";
 
@@ -483,7 +483,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         }
 
         const results: UAReference[] = [];
-        const process = (referenceIdx: Map<string, UAReference>) => {
+        const process = (referenceIdx: Map<ReferenceKey, UAReference>) => {
             for (const ref of referenceIdx.values()) {
                 if (ref.isForward === isForward && referenceTypeNode.checkHasSubtype(ref.referenceType)) {
                     results.push(ref);
@@ -1066,7 +1066,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         const addressSpace = this.addressSpace as AddressSpacePrivate;
 
         const reference = addressSpace.normalizeReferenceTypes([referenceOpts])?.[0];
-        const h = (<ReferenceImpl>reference).hash;
+        const h = (<ReferenceImpl>reference).key(addressSpace);
 
         const relatedNode = addressSpace.findNode(reference.nodeId);
 
@@ -1308,10 +1308,10 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
      * by their target as well, so each is looked up there before a back reference is built
      */
     public propagate_back_references_declared_from_both_ends(): void {
-        this._propagate_back_references(this.nodeId.toString());
+        this._propagate_back_references(nodeIdKey(this.nodeId));
     }
 
-    private _propagate_back_references(sourceNodeKey: string | undefined): void {
+    private _propagate_back_references(sourceNodeKey: number | string | undefined): void {
         const _private = BaseNode_getPrivate(this);
         if ((this.addressSpace as AddressSpacePrivate).suspendBackReference) {
             // this indicates that the base node is constructed from an xml definition
@@ -1471,7 +1471,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         const reference: UAReference = addressSpace.normalizeReferenceType(referenceOpts);
         assert(reference instanceof ReferenceImpl);
 
-        const h = (<ReferenceImpl>reference).hash;
+        const h = (<ReferenceImpl>reference).key(addressSpace);
         assert(!_private._back_referenceIdx.has(h), "reference exists already in _back_references");
         assert(!_private._referenceIdx.has(h), "reference exists already in _references");
 
@@ -1666,7 +1666,7 @@ function toString_ReferenceDescription(ref: UAReference, options: { addressSpace
     return str;
 }
 
-function _setup_parent_item(this: BaseNode, referencesMap: Map<string, UAReference>): BaseNode | null {
+function _setup_parent_item(this: BaseNode, referencesMap: Map<ReferenceKey, UAReference>): BaseNode | null {
     let references: UAReference[] | MapIterator<UAReference> = referencesMap.values();
 
     const _private = BaseNode_getPrivate(this);
@@ -1760,7 +1760,7 @@ function _propagate_ref(
     this: BaseNode,
     addressSpace: MinimalistAddressSpace,
     reference: UAReference,
-    sourceNodeKey?: string
+    sourceNodeKey?: number | string
 ): void {
     // filter out non  Hierarchical References
     const referenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference);
@@ -1803,7 +1803,9 @@ function _propagate_ref(
         // created at runtime rarely is, and BaseNode_add_backward_reference copes when it is.
         if (
             sourceNodeKey !== undefined &&
-            BaseNode_getPrivate(related_node)._referenceIdx.has((reference as ReferenceImpl).inverseHash(sourceNodeKey))
+            BaseNode_getPrivate(related_node)._referenceIdx.has(
+                (reference as ReferenceImpl).inverseKey(addressSpace as AddressSpacePrivate, sourceNodeKey)
+            )
         ) {
             return;
         }
