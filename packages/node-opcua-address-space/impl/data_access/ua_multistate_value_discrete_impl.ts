@@ -4,6 +4,7 @@ import type {
     CloneFilter,
     CloneOptions,
     INamespace,
+    UAProperty,
     UAVariable
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
@@ -19,7 +20,7 @@ import {
     type UInt64
 } from "node-opcua-basic-types";
 import { VariableTypeIds } from "node-opcua-constants";
-import { coerceLocalizedText } from "node-opcua-data-model";
+import { coerceLocalizedText, type LocalizedText } from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
 import type { DTEnumValue } from "node-opcua-nodeset-ua";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -89,12 +90,15 @@ function install_synchronization<T extends Number, DT extends DataType>(
 
 /** @internal */
 export class UAMultiStateValueDiscreteImplBase<T extends Number, DT extends DataType> extends UAVariableImpl {
-    private get $6(): UAMultiStateValueDiscreteEx<T, DT> {
-        return this as unknown as UAMultiStateValueDiscreteEx<T, DT>;
-    }
+    /**
+     * Properties installed as child nodes by the address space rather than assigned by this
+     * constructor - hence `declare`, which emits nothing.
+     */
+    public declare readonly enumValues: UAProperty<DTEnumValue[], DataType.ExtensionObject>;
+    public declare readonly valueAsText: UAProperty<LocalizedText, DataType.LocalizedText>;
     public setValue(value: string | number | Int64, options?: ISetStateOptions): void {
         if (typeof value === "string") {
-            const enumValues = this.$6.enumValues.readValue().value.value;
+            const enumValues = this.enumValues.readValue().value.value;
             const selected = enumValues.filter((a) => a.displayName.text === value)[0];
             if (selected) {
                 this._setValue(selected.value);
@@ -107,7 +111,7 @@ export class UAMultiStateValueDiscreteImplBase<T extends Number, DT extends Data
     }
 
     public getValueAsString(): string | string[] {
-        const v = this.$6.valueAsText.readValue().value.value;
+        const v = this.valueAsText.readValue().value.value;
         if (Array.isArray(v)) {
             return v.map((a) => a.text);
         }
@@ -119,7 +123,7 @@ export class UAMultiStateValueDiscreteImplBase<T extends Number, DT extends Data
     }
 
     public checkVariantCompatibility(value: Variant): StatusCode {
-        if (this.$6.enumValues) {
+        if (this.enumValues) {
             if (!this._isValueInRange(coerceInt32(value.value))) {
                 return StatusCodes.BadOutOfRange;
             }
@@ -141,7 +145,7 @@ export class UAMultiStateValueDiscreteImplBase<T extends Number, DT extends Data
      */
     public _isValueInRange(value: number): boolean {
         // MultiStateValueDiscreteType
-        const enumValues = this.$6.enumValues.readValue().value.value as DTEnumValue[];
+        const enumValues = this.enumValues.readValue().value.value as DTEnumValue[];
         const e = enumValues.findIndex((x: DTEnumValue) => coerceInt64toInt32(x.value) === value);
         return !(e === -1);
     }
@@ -151,7 +155,7 @@ export class UAMultiStateValueDiscreteImplBase<T extends Number, DT extends Data
      */
     public _enumValueIndex(): Record<Int32, DTEnumValue> {
         // construct an index to quickly find a EnumValue from a value
-        const enumValues: DTEnumValue[] = this.$6.enumValues.readValue().value.value;
+        const enumValues: DTEnumValue[] = this.enumValues.readValue().value.value;
         const enumValueIndex: Record<Int32, DTEnumValue> = Object.create(null);
         if (!enumValues?.forEach) {
             return enumValueIndex;

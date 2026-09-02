@@ -86,6 +86,7 @@ import type { UAExclusiveLimitAlarmEx } from "../api/interfaces/alarms_and_condi
 import type { UALimitAlarmEx } from "../api/interfaces/alarms_and_conditions/ua_limit_alarm_ex.js";
 import type { UANonExclusiveDeviationAlarmEx } from "../api/interfaces/alarms_and_conditions/ua_non_exclusive_deviation_alarm_ex.js";
 import type { UANonExclusiveLimitAlarmEx } from "../api/interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_ex.js";
+import type { UAMultiStateDiscreteEx } from "../api/interfaces/data_access/ua_multistate_discrete_ex.js";
 import type { UAMultiStateValueDiscreteEx } from "../api/interfaces/data_access/ua_multistate_value_discrete_ex.js";
 import type { UAStateMachineEx } from "../api/interfaces/state_machine/ua_state_machine_type.js";
 import type { UATransitionEx } from "../api/interfaces/state_machine/ua_transition_ex.js";
@@ -109,7 +110,7 @@ import { UANonExclusiveLimitAlarmImplBase } from "./alarms_and_conditions/ua_non
 import { type UAOffNormalAlarmEx, UAOffNormalAlarmImplBase } from "./alarms_and_conditions/ua_off_normal_alarm_impl.js";
 import { BaseNodeImpl } from "./base_node_impl.js";
 import { add_dataItem_stuff } from "./data_access/add_dataItem_stuff.js";
-import { _addMultiStateDiscrete, type UAMultiStateDiscreteImpl } from "./data_access/ua_multistate_discrete_impl.js";
+import { _addMultiStateDiscrete } from "./data_access/ua_multistate_discrete_impl.js";
 import { _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete_impl.js";
 import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete_impl.js";
 import { _coerce_parent, _handle_hierarchy_parent } from "./handle_hierarchy_parent.js";
@@ -666,7 +667,10 @@ export class NamespaceImpl implements NamespacePrivate {
 
     /**
      */
-    public addMultiStateDiscrete<T, DT extends DataType>(options: AddMultiStateDiscreteOptions): UAMultiStateDiscreteImpl<T, DT> {
+    // returns the published type, not UAMultiStateDiscreteImpl: two generic signatures are
+    // compared with their parameters erased to constraints, so declaring the narrower one
+    // here makes this method fail to satisfy the very interface it implements
+    public addMultiStateDiscrete<T, DT extends DataType>(options: AddMultiStateDiscreteOptions): UAMultiStateDiscreteEx<T, DT> {
         return _addMultiStateDiscrete<T, DT>(this, options);
     }
 

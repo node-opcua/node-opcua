@@ -8,52 +8,54 @@ import type {
     CloneFilter,
     CloneOptions,
     INamespace,
+    UAProperty,
     UAVariable
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { VariableTypeIds } from "node-opcua-constants";
 import { coerceLocalizedText, type LocalizedText } from "node-opcua-data-model";
-import type { UAMultiStateDiscrete_Base } from "node-opcua-nodeset-ua";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import type { AddMultiStateDiscreteOptions } from "../../api/address_space_ts.js";
 import type { ISetStateOptions } from "../../api/interfaces/i_set_state_options.js";
 import { registerNodePromoter } from "../../api/loader/register_node_promoter.js";
-import { UAVariableImpl } from "../ua_variable_impl.js";
+import { UAVariableImpl, UAVariableImplT } from "../ua_variable_impl.js";
 import { add_dataItem_stuff } from "./add_dataItem_stuff.js";
 
 export { UAMultiStateDiscrete } from "node-opcua-nodeset-ua";
 
-export interface UAMultiStateDiscreteEx<T, DT extends DataType> extends UAMultiStateDiscrete_Base<T, DT> {
-    //------------ helpers ------------------
-    getValue(): number;
-    getValueAsString(): string;
-    getIndex(value: string): number;
-    setValue(value: string | number, options?: ISetStateOptions): void;
-    checkVariantCompatibility(value: Variant): StatusCode;
-}
+// One declaration, in the api tree, rather than a lesser copy here: this file used to
+// declare its own UAMultiStateDiscreteEx without the UAVariableT half, so the two drifted
+// on what readValue returns.
+import type { UAMultiStateDiscreteEx } from "../../api/interfaces/data_access/ua_multistate_discrete_ex.js";
+
+export type { UAMultiStateDiscreteEx };
 
 /**
  * @class UAMultiStateDiscrete
  * @internal
  */
-export class UAMultiStateDiscreteImplBase<T, DT extends DataType> extends UAVariableImpl {
-    private get $7(): UAMultiStateDiscreteEx<T, DT> {
-        return this as unknown as UAMultiStateDiscreteEx<T, DT>;
-    }
+export class UAMultiStateDiscreteImplBase<T, DT extends DataType> extends UAVariableImplT<T, DT> {
+    /**
+     * The EnumStrings property, installed as a child node by the address space rather than
+     * assigned by this constructor - hence `declare`, which emits nothing.
+     */
+    public declare readonly enumStrings: UAProperty<LocalizedText[], DataType.LocalizedText>;
+
     public getValue(): number {
-        return this.readValue().value.value;
+        // MultiStateDiscrete fixes its value to UInt32 (OPC 10000-8), whatever T says
+        return this.readValue().value.value as number;
     }
 
     public getValueAsString(): string {
         const index = this.getValue();
-        const arr = this.$7.enumStrings.readValue().value.value;
+        const arr = this.enumStrings.readValue().value.value;
         assert(Array.isArray(arr));
         return arr[index].text ? arr[index].text?.toString() : "????";
     }
 
     public getIndex(value: string): number {
-        const arr = this.$7.enumStrings.readValue().value.value;
+        const arr = this.enumStrings.readValue().value.value;
         assert(Array.isArray(arr));
         const index = arr.findIndex((a: LocalizedText) => a.text === value);
         return index;
@@ -68,7 +70,7 @@ export class UAMultiStateDiscreteImplBase<T, DT extends DataType> extends UAVari
             this.setValue(index, options);
             return;
         }
-        const arrayEnumStrings = this.$7.enumStrings.readValue().value.value;
+        const arrayEnumStrings = this.enumStrings.readValue().value.value;
         if (value >= arrayEnumStrings.length) {
             throw new Error(`UAMultiStateDiscrete#setValue BadOutOfRange ${value}`);
         }
@@ -80,8 +82,8 @@ export class UAMultiStateDiscreteImplBase<T, DT extends DataType> extends UAVari
         if (!this._validate_DataType(value.dataType)) {
             return StatusCodes.BadTypeMismatch;
         }
-        if (this.$7.enumStrings) {
-            const arrayEnumStrings = this.$7.enumStrings.readValue().value.value;
+        if (this.enumStrings) {
+            const arrayEnumStrings = this.enumStrings.readValue().value.value;
             // MultiStateDiscreteType
             assert(value.dataType === DataType.UInt32);
             if (value.value >= arrayEnumStrings.length) {

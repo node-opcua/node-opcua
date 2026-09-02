@@ -6,16 +6,16 @@ import type {
     BaseNode,
     ConstructNodeIdOptions,
     CreateNodeOptions,
-    INamespace,
     ModellingRuleType,
     RequiredModel
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import type { NodeId } from "node-opcua-nodeid";
 
+import type { Namespace } from "../api/namespace.js";
 import type { AddressSpacePrivate } from "./address_space_private.js";
 
-export interface NamespacePrivate extends INamespace {
+export interface NamespacePrivate extends Namespace {
     addressSpace: AddressSpacePrivate;
 
     setRequiredModels(requiredModels: RequiredModel[]): void;
