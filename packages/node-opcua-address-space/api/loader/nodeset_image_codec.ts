@@ -356,7 +356,7 @@ export interface NodesetImageHeader {
         modelUri: string;
         version: string;
         publicationDate: string | null;
-        requiredModels: Array<{ modelUri: string; version: string; publicationDate: string }>;
+        requiredModels: Array<{ modelUri: string; version: string; publicationDate: string | null }>;
         symbolicName?: string;
         accessRestrictions?: string;
     }>;
@@ -375,6 +375,11 @@ export interface EncodeHeaderOptions {
     createdAt?: Date;
 }
 
+/** a date as the XML reader leaves it: an absent or unparsable one is an invalid Date, written as null */
+const encodeDateOrNull = (date: Date | undefined): string | null =>
+    date instanceof Date && !Number.isNaN(date.getTime()) ? date.toISOString() : null;
+const decodeDateOrInvalid = (iso: string | null | undefined): Date => (iso ? new Date(iso) : new Date(Number.NaN));
+
 export function encodeHeader(record: NodesetHeaderRecord, options: EncodeHeaderOptions = {}): NodesetImageHeader {
     const aliases: Record<string, JsonNodeId> = {};
     for (const [name, nodeId] of Object.entries(record.aliases)) {
@@ -390,11 +395,11 @@ export function encodeHeader(record: NodesetHeaderRecord, options: EncodeHeaderO
             const model: NodesetImageHeader["models"][number] = {
                 modelUri: m.modelUri,
                 version: m.version,
-                publicationDate: m.publicationDate ? m.publicationDate.toISOString() : null,
+                publicationDate: encodeDateOrNull(m.publicationDate),
                 requiredModels: m.requiredModels.map((r) => ({
                     modelUri: r.modelUri,
                     version: r.version,
-                    publicationDate: r.publicationDate.toISOString()
+                    publicationDate: encodeDateOrNull(r.publicationDate)
                 }))
             };
             if (m.symbolicName !== undefined) model.symbolicName = m.symbolicName;
@@ -426,7 +431,7 @@ export function decodeHeader(json: NodesetImageHeader): NodesetHeaderRecord {
             requiredModels: (m.requiredModels || []).map((r) => ({
                 modelUri: r.modelUri,
                 version: r.version,
-                publicationDate: new Date(r.publicationDate)
+                publicationDate: decodeDateOrInvalid(r.publicationDate)
             }))
         };
         if (m.symbolicName !== undefined) model.symbolicName = m.symbolicName;

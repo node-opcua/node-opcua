@@ -49,6 +49,24 @@ export const nodesets = nodesetCatalog.reduce(
     <Record<NodesetName, string>>{}
 );
 
+/** the image file that sits next to a catalog NodeSet2 file: <name>.ndjson.gz */
+export function constructNodesetImageFilename(xmlFile: string): string {
+    return xmlFile.replace(/.xml$/i, ".ndjson.gz");
+}
+
+/**
+ * the precompiled images of the catalog, one per nodeset, next to the XML files. The loader
+ * picks them up by itself when given the XML paths; this map is for a deployment that ships
+ * or loads the images alone.
+ */
+export const nodesetImages = nodesetCatalog.reduce(
+    (imageMap, meta) => {
+        imageMap[meta.name] = constructNodesetImageFilename(nodesets[meta.name]);
+        return imageMap;
+    },
+    <Record<NodesetName, string>>{}
+);
+
 export interface NodeSetMetaSummary {
     packageName: string;
     uri: string;

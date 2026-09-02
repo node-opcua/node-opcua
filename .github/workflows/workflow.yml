@@ -119,6 +119,8 @@ jobs:
       # did not export: they compiled and were undefined at run time, for every consumer of
       # the published API. Absolute; the internal-tag half of the rule is a baseline.
       - run: pnpm run check:entrypoints
+      - name: Catalog images match their NodeSet2 files
+        run: pnpm run check:nodeset-images
       - name: Unit tests for the entry-points rule
         run: node tools/check-entry-points/test/test_rule.js
       # `a?.b.should.eql(x)` short-circuits the whole chain, so a null skips the assertion

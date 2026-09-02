@@ -128,6 +128,13 @@ is written in the same pass as the XML parse and replayed exactly as the XML is 
   in one call and are ordered by their dependencies together.
 - `opcua-nodeset-image build | verify | info`, a bin of this package: convert files, prove an image loads what its
   XML loads, print an image's header and trailer.
+- Every load is fast with nothing to configure: the Node.js `generateAddressSpace` looks for `<name>.ndjson.gz` next
+  to `<name>.xml` and replays it when its trailer digest is the SHA-256 of the XML bytes (one read and one hash, about
+  12 ms for the standard nodeset); a missing, stale, truncated or unreadable image means the XML, silently, with a
+  debug log line naming the path taken. `node-opcua-nodesets` ships such an image for every nodeset of its catalog.
+  Nothing is written by this path; `imageStore: false` disables the sibling images too and streams the XML.
+- `generateAddressSpace` with a path source and the sibling images on reads the file whole to hash it: the file
+  streaming of the previous entry applies to `imageStore: false` and to `generateAddressSpaceRaw` sources.
 - `bench_load_nodeset2.ts` gains an `image` variant. The standard nodeset loads 36% faster from its image than from
   the XML, a six-file companion chain 34% (best of 7, alternating).
 

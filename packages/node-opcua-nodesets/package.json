@@ -8,7 +8,9 @@
     "scripts": {
         "build": "tsc -b",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "test": "echo no test"
+        "test": "echo no test",
+        "build:images": "node ../../tools/build-nodeset-images.mjs",
+        "prepublishOnly": "node ../../tools/build-nodeset-images.mjs && node ../../tools/check-nodeset-images.mjs"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
