@@ -74,7 +74,7 @@ export function subtest_Y_array_item_type(maintest: MainTest): void {
             yArrayItem.readValue().value.value[2].should.eql(3);
             yArrayItem.readValue().value.value[3].should.eql(2);
 
-            Object.hasOwn(yArrayItem, "instrumentRange").should.eql(false, "optional instrument Range not expected");
+            should(yArrayItem.instrumentRange).eql(undefined, "optional instrument Range not expected");
 
             yArrayItem.euRange.readValue().value.value.low.should.eql(100);
             yArrayItem.euRange.readValue().value.value.high.should.eql(200);

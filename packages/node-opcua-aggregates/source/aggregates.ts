@@ -96,7 +96,7 @@ function setHistoricalServerCapabilities(historyServerCapabilities: UAObject, de
     function setUInt32(propName: string) {
         const lowerCase = lowerFirstLetter(propName);
         /* c8 ignore next */
-        if (!Object.hasOwn(historyServerCapabilities, lowerCase)) {
+        if (!Object.hasOwn(defaultProperties, lowerCase)) {
             throw new Error(`cannot find ${lowerCase}`);
         }
         const value = defaultProperties[lowerCase];

@@ -87,7 +87,7 @@ export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implement
                 trueState: "LowLow active"
             });
             alarm.lowLowState.setValue(false);
-            assert(Object.hasOwn(alarm, "lowLowLimit"));
+            assert(alarm.lowLowLimit !== undefined);
         }
         if (alarm.lowState) {
             _install_TwoStateVariable_machinery(alarm.lowState, {
@@ -95,7 +95,7 @@ export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implement
                 trueState: "Low active"
             });
             alarm.lowState.setValue(false);
-            assert(Object.hasOwn(alarm, "lowLimit"));
+            assert(alarm.lowLimit !== undefined);
         }
         if (alarm.highState) {
             _install_TwoStateVariable_machinery(alarm.highState, {
@@ -103,7 +103,7 @@ export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implement
                 trueState: "High active"
             });
             alarm.highState.setValue(false);
-            assert(Object.hasOwn(alarm, "highLimit"));
+            assert(alarm.highLimit !== undefined);
         }
         if (alarm.highHighState) {
             _install_TwoStateVariable_machinery(alarm.highHighState, {
@@ -111,7 +111,7 @@ export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implement
                 trueState: "HighHigh active"
             });
             alarm.highHighState.setValue(false);
-            assert(Object.hasOwn(alarm, "highHighLimit"));
+            assert(alarm.highHighLimit !== undefined);
         }
 
         alarm.activeState.setValue(false);

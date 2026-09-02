@@ -256,7 +256,7 @@ describe("ServerConfiguration", () => {
 
     it("should expose a server configuration object", async () => {
         const server = addressSpace.rootFolder.objects.server;
-        server.should.have.ownProperty("serverConfiguration");
+        server.should.have.property("serverConfiguration");
     });
 
     interface UAServerWithConfiguration extends UAServer {
@@ -266,19 +266,19 @@ describe("ServerConfiguration", () => {
         const server = addressSpace.rootFolder.objects.server as UAServerWithConfiguration;
 
         // folders
-        server.serverConfiguration.should.have.ownProperty("certificateGroups");
+        server.serverConfiguration.should.have.property("certificateGroups");
 
         // properties
-        server.serverConfiguration.should.have.ownProperty("maxTrustListSize");
-        server.serverConfiguration.should.have.ownProperty("multicastDnsEnabled");
-        server.serverConfiguration.should.have.ownProperty("serverCapabilities");
-        server.serverConfiguration.should.have.ownProperty("supportedPrivateKeyFormats");
+        server.serverConfiguration.should.have.property("maxTrustListSize");
+        server.serverConfiguration.should.have.property("multicastDnsEnabled");
+        server.serverConfiguration.should.have.property("serverCapabilities");
+        server.serverConfiguration.should.have.property("supportedPrivateKeyFormats");
 
         // methods
-        server.serverConfiguration.should.have.ownProperty("applyChanges");
-        server.serverConfiguration.should.have.ownProperty("createSigningRequest");
-        server.serverConfiguration.should.have.ownProperty("getRejectedList");
-        server.serverConfiguration.should.have.ownProperty("updateCertificate");
+        server.serverConfiguration.should.have.property("applyChanges");
+        server.serverConfiguration.should.have.property("createSigningRequest");
+        server.serverConfiguration.should.have.property("getRejectedList");
+        server.serverConfiguration.should.have.property("updateCertificate");
     });
 
     it("server configuration should make its first level object visible", () => {
@@ -295,12 +295,12 @@ describe("ServerConfiguration", () => {
 
     it("should expose a server configuration object - KeyCredential Management", async () => {
         const server = addressSpace.rootFolder.objects.server as UAServerWithConfiguration;
-        server.serverConfiguration.should.have.ownProperty("keyCredentialConfiguration");
+        server.serverConfiguration.should.have.property("keyCredentialConfiguration");
     });
 
     it("should expose a server configuration object - Authorization Management", async () => {
         const server = addressSpace.rootFolder.objects.server as UAServerWithConfiguration;
-        server.serverConfiguration.should.have.ownProperty("authorizationServices");
+        server.serverConfiguration.should.have.property("authorizationServices");
     });
 
     describe("Push Certificate Management model", () => {

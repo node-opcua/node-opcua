@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+### Changed
+
+#### Child properties (`server.serverStatus.currentTime`) are inherited accessors, no longer installed on every node
+
+Loading a nodeset used to end with a sweep that turned every hierarchical child into an own accessor of its
+parent: four reference scans per node, 12% of the load time of `Opc.Ua.NodeSet2.xml` and 7% of its heap.
+A browse name seen while a nodeset loads now gets one getter, shared on the node prototype, that resolves the
+child through the node's child index; `getComponentByName`, `getPropertyByName`, `getMethodByName` and
+`getFolderElementByName` read that same index instead of scanning references. Names first created at runtime
+through the namespace API keep the per-parent accessor they had.
+
+- `Object.hasOwn(node, "enabledState")` is now false and `Object.keys(node)` no longer lists children;
+  `"enabledState" in node` is true on every node and reads `undefined` where the child is absent.
+- A child can no longer shadow an attribute, a method or a field: `object.eventNotifier` is the attribute even
+  on a PubSub `PublishedEventsType` instance, `node.namespaceUri` is the namespace URI (the generated types
+  already name the NamespaceMetadata child `$namespaceUri`), and a child named `Then` no longer makes its
+  parent a thenable. Reach such children with `getChildByName`.
+- A dotted child is one reached through a structural reference: a component, a property, a subtype or an
+  organized node. A node that is only an event source or a notifier of its parent is not exposed, and removing
+  the structural reference removes the child even when a `HasNotifier` reference to it remains.
+- When two children share a name the first one wins, as before; removing it now reveals the second.
+- `isFrugal = true` works end to end: it only suppresses the per-parent accessors of runtime names.
+- New `addressSpace.registerChildAccessorNames(names)` gives runtime names a shared accessor too.
+
+#### `generateAddressSpace` rejects when a post-load promoter throws
+
+The promotion of loaded objects and variables (`promoteObjectsAndVariables`) was never awaited, so a failure
+there surfaced as an unhandled rejection after `generateAddressSpace` had resolved.
+
+
 ### Security
 
 #### Per-node `RolePermissions` and `AccessRestrictions` are no longer dropped when loading a NodeSet2 file

@@ -57,7 +57,6 @@ import {
     type RolePermissionTypeOptions,
     type WriteValueOptions
 } from "node-opcua-types";
-import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import { dumpReferenceDescriptions, dumpReferences } from "../api/helpers/dump_tools.js";
 import { SessionContext, WellKnownRolesNodeId } from "../api/session_context.js";
@@ -81,6 +80,13 @@ import {
     type HierarchicalIndexMap,
     ToStringBuilder
 } from "./base_node_private.js";
+import {
+    childAccessorName,
+    hasSharedChildAccessor,
+    isReservedChildAccessorName,
+    registerChildName,
+    resolveChildInIndex
+} from "./child_accessors.js";
 import { type MinimalistAddressSpace, ReferenceImpl } from "./reference_impl.js";
 import { coerceRolePermissions } from "./role_permissions.js";
 
@@ -93,6 +99,10 @@ const debugLog = make_debugLog("base_node_impl");
 
 const HasEventSourceReferenceType = resolveNodeId("HasEventSource");
 const HasNotifierReferenceType = resolveNodeId("HasNotifier");
+const HasChildReferenceType = resolveNodeId("HasChild");
+const HasComponentReferenceType = resolveNodeId("HasComponent");
+const HasPropertyReferenceType = resolveNodeId("HasProperty");
+const OrganizesReferenceType = resolveNodeId("Organizes");
 
 function defaultBrowseFilterFunc(_context?: ISessionContext): boolean {
     return true;
@@ -366,6 +376,16 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
 
         this._accessRestrictions = options.accessRestrictions;
         this._rolePermissions = coerceRolePermissions(options.rolePermissions);
+
+        // make `parent.<thisName>` resolve to this node: through a getter shared by every node when
+        // a nodeset is loading, through the own accessor installed by install_extra_properties
+        // otherwise (see child_accessors.ts for why the two paths exist)
+        registerChildName(
+            this.browseName.name,
+            BaseNodeImpl.prototype,
+            resolveSharedChildAccessor,
+            options.addressSpace.suspendBackReference
+        );
     }
 
     public getDisplayName(_locale?: string): string {
@@ -532,13 +552,41 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
     }
 
     /**
+     * the children of this node named `browseName` reached through a reference of type
+     * `referenceType` or a subtype of it, read from the child index rather than by scanning the
+     * references of the node again
+     */
+    private _selectChildren(browseName: QualifiedNameLike, namespaceIndex: number | undefined, referenceType: NodeId): BaseNode[] {
+        const references = _select_by_browse_name(_get_HierarchicalReference(this), browseName, namespaceIndex);
+        if (references.length === 0) {
+            return [];
+        }
+        const referenceTypeNode = this.addressSpace.findReferenceType(referenceType);
+        if (!referenceTypeNode) {
+            return [];
+        }
+        const selected: BaseNode[] = [];
+        for (const reference of references) {
+            if (referenceTypeNode.checkHasSubtype(reference.referenceType)) {
+                const node = ReferenceImpl.resolveReferenceNode(this.addressSpace, reference);
+                if (node) {
+                    selected.push(node);
+                }
+            }
+        }
+        if (selected.length > 1 && typeof browseName === "string" && (namespaceIndex === null || namespaceIndex === undefined)) {
+            warningLog("Multiple children exist with name ", browseName, " please specify a namespace index");
+        }
+        return selected;
+    }
+
+    /**
      * retrieve a component by name
      */
     public getComponentByName(browseName: QualifiedNameOptions): UAVariable | UAObject | null;
     public getComponentByName(browseName: string, namespaceIndex?: number): UAVariable | UAObject | null;
     public getComponentByName(browseName: QualifiedNameLike, namespaceIndex?: number): UAVariable | UAObject | null {
-        const components = this.getComponents();
-        const select = _filter_by_browse_name(components, browseName, namespaceIndex);
+        const select = this._selectChildren(browseName, namespaceIndex, HasComponentReferenceType);
         assert(select.length <= 1, "BaseNode#getComponentByName found duplicated reference");
         if (select.length === 1) {
             const component = select[0];
@@ -559,8 +607,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
     public getPropertyByName(browseName: QualifiedNameOptions): UAVariable | null;
     public getPropertyByName(browseName: string, namespaceIndex?: number): UAVariable | null;
     public getPropertyByName(browseName: QualifiedNameLike, namespaceIndex?: number): UAVariable | null {
-        const properties = this.getProperties();
-        const select = _filter_by_browse_name(properties, browseName, namespaceIndex);
+        const select = this._selectChildren(browseName, namespaceIndex, HasPropertyReferenceType);
         assert(select.length <= 1, "BaseNode#getPropertyByName found duplicated reference");
         if (select.length === 1 && select[0].nodeClass !== NodeClass.Variable) {
             throw new Error("Expecting a property to be of nodeClass==NodeClass.Variable");
@@ -574,8 +621,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
     public getFolderElementByName(browseName: QualifiedNameOptions): BaseNode | null;
     public getFolderElementByName(browseName: string, namespaceIndex?: number): BaseNode | null;
     public getFolderElementByName(browseName: QualifiedNameLike, namespaceIndex?: number): BaseNode | null {
-        const elements = this.getFolderElements();
-        const select = _filter_by_browse_name(elements, browseName, namespaceIndex);
+        const select = this._selectChildren(browseName, namespaceIndex, OrganizesReferenceType);
         return select.length === 1 ? select[0] : null;
     }
 
@@ -610,8 +656,10 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
     public getMethodByName(methodName: QualifiedNameOptions): UAMethod | null;
     public getMethodByName(methodName: string, namespaceIndex?: number): UAMethod | null;
     public getMethodByName(methodName: QualifiedNameLike, namespaceIndex?: number): UAMethod | null {
-        const methods = this.getMethods();
-        const select = _filter_by_browse_name(methods, methodName, namespaceIndex);
+        // methods are components of a special node class
+        const select = this._selectChildren(methodName, namespaceIndex, HasComponentReferenceType).filter(
+            (node) => node.nodeClass === NodeClass.Method
+        );
         assert(select.length <= 1, "BaseNode#getMethodByName found duplicated reference");
         return select.length === 1 ? (select[0] as UAMethod) : null;
     }
@@ -970,76 +1018,74 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         return this.addressSpace.resolveNodeId(nodeId);
     }
 
+    /**
+     * Expose the hierarchical children of this node as properties of this node, and this node as
+     * a property of its parents, for the browse names that have no shared accessor.
+     *
+     * A node created while a nodeset loads needs nothing here: its name got a getter on the
+     * prototype (see child_accessors.ts). This is the path for nodes created afterwards through the
+     * namespace API, whose browse names may be anything and must not touch the prototype.
+     */
     public install_extra_properties(): void {
         const addressSpace = this.addressSpace;
-
         if (addressSpace.isFrugal) {
-            // skipping
             return;
         }
-
-        install_components_as_object_properties(this);
-
-        // Only this node is new, so only this node has to appear on the parent.
-        // Re-walking every child the parent already has made building a folder
-        // of N children cost O(N^2) - measured at 7.2s for 3000 children, of
-        // which 4.1s was spent re-installing properties that were already there.
+        const hasChild = addressSpace.findReferenceType(HasChildReferenceType);
+        const hasComponent = addressSpace.findReferenceType(HasComponentReferenceType);
+        const hasProperty = addressSpace.findReferenceType(HasPropertyReferenceType);
+        const organizes = addressSpace.findReferenceType(OrganizesReferenceType);
+        if (!hasChild || !hasComponent || !hasProperty || !organizes) {
+            return; // namespace 0 is still loading
+        }
         const self = this as BaseNode;
-        function install_extra_properties_on_parent(ref: UAReference): void {
-            const node = ReferenceImpl.resolveReferenceNode(addressSpace, ref) as BaseNode;
-            install_child_as_object_property(node, self);
+        const visit = (reference: UAReference) => {
+            if (reference.isForward) {
+                if (hasChild.checkHasSubtype(reference.referenceType) || organizes.checkHasSubtype(reference.referenceType)) {
+                    install_child_as_object_property(self, resolveReferenceNode(addressSpace, reference));
+                }
+            } else if (
+                hasComponent.checkHasSubtype(reference.referenceType) ||
+                hasProperty.checkHasSubtype(reference.referenceType) ||
+                organizes.checkHasSubtype(reference.referenceType)
+            ) {
+                // Only this node is new, so only this node has to appear on the parent.
+                // Re-walking every child the parent already has made building a folder
+                // of N children cost O(N^2) - measured at 7.2s for 3000 children.
+                install_child_as_object_property(resolveReferenceNode(addressSpace, reference), self);
+            }
+        };
+        const _private = BaseNode_getPrivate(this);
+        for (const reference of _private._referenceIdx.values()) {
+            visit(reference);
         }
-
-        // make sure parent have extra properties updated
-        const parentComponents = this.findReferencesEx("HasComponent", BrowseDirection.Inverse);
-        const parentSubfolders = this.findReferencesEx("Organizes", BrowseDirection.Inverse);
-        const parentProperties = this.findReferencesEx("HasProperty", BrowseDirection.Inverse);
-
-        for (const p of parentComponents) {
-            install_extra_properties_on_parent(p);
-        }
-        for (const p of parentSubfolders) {
-            install_extra_properties_on_parent(p);
-        }
-        for (const p of parentProperties) {
-            install_extra_properties_on_parent(p);
+        for (const reference of _private._back_referenceIdx.values()) {
+            visit(reference);
         }
     }
 
+    /**
+     * undo install_extra_properties for one reference, on both ends when it is an inverse one
+     */
     public uninstall_extra_properties(reference: UAReference): void {
         const addressSpace = this.addressSpace;
-
         if (addressSpace.isFrugal) {
-            // skipping
             return;
         }
         if (!reference.isForward) {
             const parentNode = resolveReferenceNode(addressSpace, reference);
-            // uninstall backward
-            (parentNode as BaseNodeImpl).uninstall_extra_properties({
-                isForward: true,
-                nodeId: this.nodeId,
-                referenceType: reference.referenceType
-            });
+            if (parentNode) {
+                (parentNode as BaseNodeImpl).uninstall_extra_properties({
+                    isForward: true,
+                    nodeId: this.nodeId,
+                    referenceType: reference.referenceType
+                });
+            }
         }
         const childNode = resolveReferenceNode(addressSpace, reference);
-
-        const name = lowerFirstLetter(childNode.browseName.name || "");
-        if (Object.hasOwn(reservedNames, name)) {
-            // c8 ignore next
-            if (doDebug) {
-                debugLog(chalk.bgWhite.red(`Ignoring reserved keyword  ${name}`));
-            }
-            return;
+        if (childNode) {
+            uninstall_child_object_property(this, childNode);
         }
-        /* c8 ignore next */
-        if (!Object.hasOwn(this, name)) {
-            return;
-        }
-
-        Object.defineProperty(this, name, {
-            value: undefined
-        });
     }
 
     public toString(): string {
@@ -1598,25 +1644,6 @@ function _select_by_browse_name(map: HierarchicalIndexMap, browseName: Qualified
     return [];
 }
 
-function _filter_by_browse_name(components: BaseNode[], browseName: QualifiedNameLike, namespaceIndex?: number): BaseNode[] {
-    let select: BaseNode[] = [];
-    if ((namespaceIndex === null || namespaceIndex === undefined) && typeof browseName === "string") {
-        select = components.filter((c: BaseNode) => c.browseName.name === browseName);
-        if (select && select.length > 1) {
-            warningLog("Multiple children exist with name ", browseName, " please specify a namespace index");
-        }
-    } else {
-        const _browseName = coerceQualifiedName(typeof browseName === "string" ? { name: browseName, namespaceIndex } : browseName);
-        if (!_browseName) {
-            return [];
-        }
-        select = components.filter(
-            (c: BaseNode) => c.browseName.name === _browseName.name && c.browseName.namespaceIndex === _browseName.namespaceIndex
-        );
-    }
-    return select;
-}
-
 let displayWarningReferencePointingToItSelf = true;
 
 function _is_massively_used_reference(referenceType: UAReferenceType): boolean {
@@ -1821,80 +1848,85 @@ function _filter_by_userFilter(this: BaseNode, references: UAReference[], contex
     });
 }
 
-const reservedNames = {
-    __description: 0,
-    __displayName: 0,
-    browseName: 0,
-    description: 0,
-    displayName: 0,
-    nodeClass: 0,
-    nodeId: 0,
-    typeDefinition: 0
-};
-
-/*
- * install hierarchical references as javascript properties
- * Components/Properties/Organizes
- */
 /**
- * Expose a single child of `parentObj` as a JavaScript property on it.
+ * the child designated by `node.<accessorName>`: what the shared getters resolve, exposed for the
+ * code that walks dotted paths by name (`_getCompositeKey`); works under `isFrugal` too, where no
+ * own accessor is ever installed
+ */
+export function resolveChildAccessor(node: BaseNode, accessorName: string): BaseNode | undefined {
+    const _private = BaseNode_getPrivate(node);
+    // the prototype itself, or a disposed node
+    if (!_private?.__address_space) {
+        return undefined;
+    }
+    const addressSpace = node.addressSpace;
+    // a dotted child is a component, a property, a subtype or an organized node; a node that is
+    // only an event source or a notifier of this one is not exposed, and removing the structural
+    // reference removes the child even when an event reference to it remains
+    const hasChild = addressSpace.findReferenceType(HasChildReferenceType);
+    const organizes = addressSpace.findReferenceType(OrganizesReferenceType);
+    if (!hasChild || !organizes) {
+        return undefined; // namespace 0 is still loading
+    }
+    return resolveChildInIndex(
+        _get_HierarchicalReference(node),
+        accessorName,
+        (reference) => hasChild.checkHasSubtype(reference.referenceType) || organizes.checkHasSubtype(reference.referenceType)
+    );
+}
+
+function resolveSharedChildAccessor(node: BaseNodeImpl, accessorName: string): unknown {
+    return resolveChildAccessor(node, accessorName);
+}
+
+/**
+ * Give browse names created at runtime a shared accessor, for an application that builds its
+ * model through the namespace API and wants `parent.<child>` without an accessor on every parent.
+ */
+export function defineSharedChildAccessors(browseNames: string[]): void {
+    for (const browseName of browseNames) {
+        registerChildName(browseName, BaseNodeImpl.prototype, resolveSharedChildAccessor, true);
+    }
+}
+
+/**
+ * Expose `child` as `parentObj.<accessorName>` through an own accessor, unless the name is taken
+ * already: by a shared accessor (which resolves it anyway), by an attribute, a method or a field
+ * of the parent, or by an earlier child of the same name (first installed wins).
  *
- * Split out of {@link install_components_as_object_properties} so that adding
- * one child does not have to re-walk every child the parent already has: that
- * made building a large folder quadratic. See
- * {@link BaseNodeImpl.install_extra_properties}.
+ * This is the runtime fallback of child_accessors.ts, for names no loaded nodeset declared.
  */
 function install_child_as_object_property(parentObj: BaseNode | null, child: BaseNode | null): void {
-    // the parent may be unresolvable while a nodeset is still loading, which is
-    // why the whole-parent form guarded it too
+    // the parent may be unresolvable while a nodeset is still loading
     if (!parentObj || !child) {
         return;
     }
-    // assumption: we ignore namespace here .
-    const name = lowerFirstLetter(child.browseName.name || "");
-
-    if (Object.hasOwn(reservedNames, name)) {
-        // ignore reserved names
-        if (doDebug) {
-            debugLog(chalk.bgWhite.red(`Ignoring reserved keyword                                               ${name}`));
-        }
+    const name = childAccessorName(child.browseName.name || "");
+    if (isReservedChildAccessorName(name) || hasSharedChildAccessor(name) || name in parentObj) {
         return;
     }
-
-    // ignore reserved names
     doDebug && debugLog(`Installing property ${name}`, " on ", parentObj.browseName.toString());
-
-    const hasProperty = Object.hasOwn(parentObj, name);
-    if (
-        hasProperty &&
-        (parentObj as unknown as Record<string, unknown>)[name] !== null &&
-        (parentObj as unknown as Record<string, unknown>)[name] !== undefined
-    ) {
-        return;
-    }
-
     Object.defineProperty(parentObj, name, {
-        configurable: true, // set to true, so we can undefine later
+        configurable: true, // so that uninstall_child_object_property can remove it
         enumerable: true,
-        // xx writable: false,
         get() {
             return child;
         }
-        // value: child
     });
 }
 
-function install_components_as_object_properties(parentObj: BaseNode) {
-    if (!parentObj) {
+function uninstall_child_object_property(parentObj: BaseNode, child: BaseNode): void {
+    const name = childAccessorName(child.browseName.name || "");
+    if (!name || hasSharedChildAccessor(name)) {
+        return; // the child index already reflects the removal
+    }
+    // only an accessor installed above goes; a field or a method of the same name stays, and so
+    // does an accessor designating another child of the same name
+    const descriptor = Object.getOwnPropertyDescriptor(parentObj, name);
+    if (!descriptor?.get || !descriptor.configurable || descriptor.get.call(parentObj) !== child) {
         return;
     }
-
-    const addressSpace = parentObj.addressSpace;
-    const hierarchicalRefs = (parentObj as BaseNodeImpl).findHierarchicalReferences();
-
-    for (const reference of hierarchicalRefs) {
-        install_child_as_object_property(parentObj, ReferenceImpl.resolveReferenceNode(addressSpace, reference) as BaseNode);
-    }
+    delete (parentObj as unknown as Record<string, unknown>)[name];
 }
 
 export function getReferenceType(reference: UAReference): UAReferenceType {

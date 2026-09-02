@@ -26,7 +26,7 @@ export function DeviationAlarmHelper_getSetpointNodeNode(
 }
 
 export function DeviationAlarmHelper_getSetpointValue(this: DeviationStuff): number | null {
-    assert(Object.hasOwn(this, "setpointNode"));
+    assert(this.setpointNode !== undefined);
     assert(Object.hasOwn(this, "setpointNodeNode"));
     if (!this.setpointNodeNode) {
         return null;

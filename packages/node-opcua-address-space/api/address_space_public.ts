@@ -17,6 +17,16 @@ export interface AddressSpace extends IAddressSpace {
     getOwnNamespace(): Namespace;
     registerNamespace(namespaceUri: string): Namespace;
     rootFolder: UARootFolder;
+
+    /**
+     * Give browse names created at runtime the treatment of the names a nodeset declares:
+     * `parent.<name>` then resolves through one getter shared by every node instead of an accessor
+     * installed on each parent. Nodes created before the call are covered too.
+     *
+     * Only worth it when many nodes carry the same browse name; a name used once costs the same
+     * either way.
+     */
+    registerChildAccessorNames(browseNames: string[]): void;
 }
 
 /**
