@@ -45,5 +45,9 @@
         "data",
         "dist",
         "src"
-    ]
+    ],
+    "devDependencies": {
+        "node-opcua-nodesets": "2.179.0",
+        "should": "^13.2.3"
+    }
 }

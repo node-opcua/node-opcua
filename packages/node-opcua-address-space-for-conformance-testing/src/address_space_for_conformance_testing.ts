@@ -5,9 +5,9 @@
  */
 import type { AddressSpace, UAObject } from "node-opcua-address-space";
 import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers";
-
 import { addAccessRightVariables } from "./conformance_testing/access_right_variables.js";
 import { addAnalogDataItems } from "./conformance_testing/analog_data_items.js";
+import { addCttFolder } from "./conformance_testing/ctt_folder";
 import {
     addMultiStateDiscreteVariable,
     addMultiStateValueDiscreteVariables,
@@ -83,4 +83,7 @@ export async function build_address_space_for_conformance_testing(
     addMultiStateDiscreteVariable(namespace, simulationFolder);
 
     addTriggerNodes(namespace, simulationFolder);
+
+    // nodes named after the CTT settings the folders above do not serve
+    addCttFolder(namespace, objectsFolder);
 }
