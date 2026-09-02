@@ -3,7 +3,7 @@
  *
  * Run from packages/node-opcua-address-space after `pnpm run build`:
  *
- *     node --expose-gc --import tsx benchmark/bench_load_nodeset2.ts            # both scenarios, 5 runs
+ *     node --expose-gc --import tsx benchmark/bench_load_nodeset2.ts            # both scenarios, 5 runs, 20000 names
  *     node --expose-gc --import tsx benchmark/bench_load_nodeset2.ts load 7     # cold loads only, 7 runs
  *     node --expose-gc --import tsx benchmark/bench_load_nodeset2.ts unique 50000
  *
@@ -172,13 +172,15 @@ async function benchUniqueNames(countOfNodes: number) {
 }
 
 async function main() {
+    // load [runs]  |  unique [count]  |  all [runs] [count]
     const scenario = process.argv[2] || "all";
-    const n = Number.parseInt(process.argv[3] || "", 10);
+    const runs = Number.parseInt(process.argv[3] || "", 10);
+    const count = Number.parseInt((scenario === "unique" ? process.argv[3] : process.argv[4]) || "", 10);
     if (scenario === "load" || scenario === "all") {
-        await benchLoad(Number.isFinite(n) ? n : 5);
+        await benchLoad(Number.isFinite(runs) ? runs : 5);
     }
     if (scenario === "unique" || scenario === "all") {
-        await benchUniqueNames(Number.isFinite(n) ? n : 20000);
+        await benchUniqueNames(Number.isFinite(count) ? count : 20000);
     }
 }
 main().catch((err) => {

@@ -74,6 +74,7 @@ import {
     BaseNode_getCache,
     BaseNode_getPrivate,
     BaseNode_initPrivate,
+    BaseNode_nodeIdKey,
     BaseNode_remove_backward_reference,
     BaseNode_removePrivate,
     BaseNode_toString,
@@ -88,6 +89,7 @@ import {
     resolveChildInIndex
 } from "./child_accessors.js";
 import { type MinimalistAddressSpace, ReferenceImpl } from "./reference_impl.js";
+import { referenceTypeVersion } from "./reference_type_version.js";
 import { coerceRolePermissions } from "./role_permissions.js";
 
 type ApplyFunc = { apply: (...args: unknown[]) => void };
@@ -371,8 +373,10 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         // its normal name and fix the isForward flag accordingly.
         // ( e.g "ComponentOf" isForward:true => "HasComponent", isForward:false)
         for (const reference of options.references) {
-            this.__addReference(reference);
+            this.__addReference(reference, false);
         }
+        // the cache was empty to start with; one clear covers every reference just added
+        this._clear_caches();
 
         this._accessRestrictions = options.accessRestrictions;
         this._rolePermissions = coerceRolePermissions(options.rolePermissions);
@@ -415,11 +419,35 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         }
 
         const isForward = browseDirection === BrowseDirection.Forward;
-        const results: UAReference[] = [];
 
+        // memoized per reference type and direction: a scan touches every reference of the node
+        // and runs checkHasSubtype on each, and the same question is asked over and over (every
+        // child lookup, every browse). The memo goes with the rest of _cache whenever a reference
+        // is added or removed, and when a reference type was created since it was built.
+        const _cache = BaseNode_getCache(this);
+        if (_cache._refExVersion !== referenceTypeVersion.count) {
+            _cache._refEx = undefined;
+            _cache._refExVersion = referenceTypeVersion.count;
+        }
+        if (!_cache._refEx) {
+            _cache._refEx = new Map();
+        }
+        const memo = _cache._refEx;
+        let entry = memo.get(referenceTypeNode);
+        if (!entry) {
+            entry = [undefined, undefined];
+            memo.set(referenceTypeNode, entry);
+        }
+        const slot = isForward ? 0 : 1;
+        const memoized = entry[slot];
+        if (memoized) {
+            return memoized;
+        }
+
+        const results: UAReference[] = [];
         const process = (referenceIdx: Map<string, UAReference>) => {
             for (const ref of referenceIdx.values()) {
-                if (ref.isForward === isForward && referenceTypeNode && referenceTypeNode.checkHasSubtype(ref.referenceType)) {
+                if (ref.isForward === isForward && referenceTypeNode.checkHasSubtype(ref.referenceType)) {
                     results.push(ref);
                 }
             }
@@ -427,6 +455,8 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         const _private = BaseNode_getPrivate(this);
         process(_private._referenceIdx);
         process(_private._back_referenceIdx);
+        // callers iterate the result, they never change it; make a regression loud when debugging
+        entry[slot] = doDebug ? (Object.freeze(results) as UAReference[]) : results;
         return results;
     }
 
@@ -1358,14 +1388,14 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         return result as UAReferenceType;
     }
 
-    private __addReference(referenceOpts: AddReferenceOpts): UAReference {
+    private __addReference(referenceOpts: AddReferenceOpts, clearCaches = true): UAReference {
         const addressSpace = this.addressSpace as AddressSpacePrivate;
         const _private = BaseNode_getPrivate(this);
         assert(Object.hasOwn(referenceOpts, "referenceType"));
         // xx isForward is optional : assert(Object.prototype.hasOwnProperty.call(reference,"isForward"));
         assert(Object.hasOwn(referenceOpts, "nodeId"));
 
-        const reference: UAReference = addressSpace.normalizeReferenceTypes([referenceOpts])[0];
+        const reference: UAReference = addressSpace.normalizeReferenceType(referenceOpts);
         assert(reference instanceof ReferenceImpl);
 
         const h = (<ReferenceImpl>reference).hash;
@@ -1374,7 +1404,9 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
 
         _private._referenceIdx.set(h, reference);
         _handle_HierarchicalReference(this, reference);
-        this._clear_caches();
+        if (clearCaches) {
+            this._clear_caches();
+        }
         return reference;
     }
 
@@ -1687,6 +1719,13 @@ function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, re
             }
         }
 
+        // NodeSet2 files declare most references from both ends, so the related node usually
+        // holds the inverse as a forward reference of its own already: nothing to add, and no
+        // ReferenceImpl to build for BaseNode_add_backward_reference to throw away
+        const inverseHash = (reference as ReferenceImpl).inverseHash(BaseNode_nodeIdKey(this));
+        if (BaseNode_getPrivate(related_node)._referenceIdx.has(inverseHash)) {
+            return;
+        }
         (related_node as BaseNodeImpl)._add_backward_reference(
             new ReferenceImpl({
                 _referenceType: getReferenceType(reference),

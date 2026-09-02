@@ -107,6 +107,7 @@ export class ReferenceImpl implements UAReference {
 
     // cache
     private __hash?: string;
+    private __referenceTypeKey?: string;
 
     constructor(options: AddReferenceOpts | UAReference) {
         assert(options.referenceType instanceof NodeId);
@@ -148,9 +149,30 @@ export class ReferenceImpl implements UAReference {
      */
     get hash(): string {
         if (!this.__hash) {
-            this.__hash = `${(this.isForward ? "" : "!") + this.referenceType.toString()}-${this.nodeId.toString()}`;
+            this.__hash = `${(this.isForward ? "" : "!") + this.referenceTypeKey}-${this.nodeId.toString()}`;
         }
         return this.__hash;
+    }
+
+    /**
+     * @internal
+     * `referenceType.toString()`, computed once
+     */
+    get referenceTypeKey(): string {
+        if (this.__referenceTypeKey === undefined) {
+            this.__referenceTypeKey = this.referenceType.toString();
+        }
+        return this.__referenceTypeKey;
+    }
+
+    /**
+     * @internal
+     * the hash of the reference that `sourceNodeKey` would hold to point back at us: what
+     * `BaseNode_add_backward_reference` would create, so that the caller can find out first
+     * whether it exists already
+     */
+    inverseHash(sourceNodeKey: string): string {
+        return `${(this.isForward ? "!" : "") + this.referenceTypeKey}-${sourceNodeKey}`;
     }
 
     /**
@@ -158,6 +180,7 @@ export class ReferenceImpl implements UAReference {
      */
     public dispose(): void {
         this.__hash = undefined;
+        this.__referenceTypeKey = undefined;
         this.node = undefined;
         /*
         this._referenceType = null;
