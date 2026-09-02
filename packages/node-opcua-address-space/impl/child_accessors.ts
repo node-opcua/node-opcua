@@ -33,6 +33,13 @@ const browseNamesByAccessor = new Map<string, string[]>();
 /** accessor names carried by a shared getter on the prototype */
 const sharedAccessors = new Set<string>();
 
+/**
+ * accessor names waiting for their shared getter. Defining a property on a prototype invalidates
+ * the inline caches of every object inheriting from it, so the getters of a nodeset are not
+ * defined one at a time while its nodes are being created but in one batch once the load is done.
+ */
+const pendingSharedAccessors = new Set<string>();
+
 export type ChildAccessorResolver<Node> = (node: Node, accessorName: string) => unknown;
 
 /**
@@ -57,18 +64,12 @@ export function isReservedChildAccessorName(accessorName: string): boolean {
 
 /**
  * Record that a node named `browseName` exists, so that `resolveChildInIndex` can map the accessor
- * name back to it, and, when `defineShared` is set, make sure the prototype carries a getter for it.
- *
- * @returns true when this call defined a new getter
+ * name back to it; with `requestShared`, also queue a shared getter for it, to be defined by the
+ * next {@link defineSharedChildAccessors}.
  */
-export function registerChildName<Node extends object>(
-    browseName: string | null | undefined,
-    prototype: Node,
-    resolve: ChildAccessorResolver<Node>,
-    defineShared: boolean
-): boolean {
+export function registerChildName(browseName: string | null | undefined, requestShared: boolean): void {
     if (!browseName) {
-        return false;
+        return;
     }
     const accessorName = lowerFirstLetter(browseName);
     const known = browseNamesByAccessor.get(accessorName);
@@ -77,7 +78,33 @@ export function registerChildName<Node extends object>(
     } else if (!known.includes(browseName)) {
         known.push(browseName);
     }
-    if (!defineShared || sharedAccessors.has(accessorName)) {
+    if (requestShared && !sharedAccessors.has(accessorName)) {
+        pendingSharedAccessors.add(accessorName);
+    }
+}
+
+/**
+ * Define the shared getter of every accessor name queued by {@link registerChildName}.
+ *
+ * @returns the number of getters defined
+ */
+export function defineSharedChildAccessors<Node extends object>(prototype: Node, resolve: ChildAccessorResolver<Node>): number {
+    let defined = 0;
+    for (const accessorName of pendingSharedAccessors) {
+        if (defineSharedChildAccessor(prototype, resolve, accessorName)) {
+            defined += 1;
+        }
+    }
+    pendingSharedAccessors.clear();
+    return defined;
+}
+
+function defineSharedChildAccessor<Node extends object>(
+    prototype: Node,
+    resolve: ChildAccessorResolver<Node>,
+    accessorName: string
+): boolean {
+    if (sharedAccessors.has(accessorName)) {
         return false;
     }
     // a child never shadows what the node already has: attributes, methods, fields, and

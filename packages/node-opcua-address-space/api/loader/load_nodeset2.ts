@@ -38,6 +38,7 @@ import { DataType, Variant, VariantArrayType, type VariantOptions } from "node-o
 import { _definitionParser, ReaderState, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
 import semver from "semver";
 import type { AddressSpacePrivate } from "../../impl/address_space_private.js";
+import { flushSharedChildAccessors } from "../../impl/base_node_impl.js";
 import { BaseNode_resetChildIndex } from "../../impl/base_node_private.js";
 import type { NamespacePrivate } from "../../impl/namespace_private.js";
 import type { StructureFieldOptionsEx } from "../../impl/ua_data_type_impl.js";
@@ -69,6 +70,8 @@ function __make_back_references(namespace: INamespace) {
 function make_back_references(addressSpace: IAddressSpace): void {
     const addressSpacePrivate = addressSpace as AddressSpacePrivate;
     addressSpacePrivate.suspendBackReference = false;
+    // the getters of every browse name the files declared, in one batch (see child_accessors.ts)
+    flushSharedChildAccessors();
     addressSpace.getNamespaceArray().map(__make_back_references);
 }
 
