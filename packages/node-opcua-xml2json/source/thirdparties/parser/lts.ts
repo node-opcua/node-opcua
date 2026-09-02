@@ -14,6 +14,11 @@ const STATE_ATTR_VALUE = 8;
 const STATE_CDATA = 9;
 const STATE_IGNORE_CDATA = 10;
 
+// where a tag name or an attribute name ends: found by the regex engine in one step rather than by
+// the loop below one character at a time (the way text runs and attribute values already are)
+const TAG_NAME_END = /[\s/>]/g;
+const ATTR_NAME_END = /[\s=]/g;
+
 /**
  * Handlers called directly, without going through EventEmitter. A nodeset carries hundreds of
  * thousands of elements and text runs, and the emit machinery (listener lookup, arguments array,
@@ -140,6 +145,26 @@ export class SaxLtx extends EventEmitter {
 
                         break;
                     }
+                    case STATE_TAG_NAME: {
+                        // past the first character, which may be "/", "!" or "?", fast-forward
+                        // to the end of the name
+                        if (recordStart !== pos) {
+                            TAG_NAME_END.lastIndex = pos;
+                            const m = TAG_NAME_END.exec(data);
+                            if (m) {
+                                pos = m.index;
+                            }
+                        }
+                        break;
+                    }
+                    case STATE_ATTR_NAME: {
+                        ATTR_NAME_END.lastIndex = pos;
+                        const m = ATTR_NAME_END.exec(data);
+                        if (m) {
+                            pos = m.index;
+                        }
+                        break;
+                    }
                     case STATE_IGNORE_COMMENT: {
                         // if we're looping through a comment, fast-forward using
                         // indexOf to the first end-comment character
@@ -178,13 +203,21 @@ export class SaxLtx extends EventEmitter {
                         break;
                     case STATE_CDATA:
                         if (c === 93 /* ] */) {
-                            if (data.substring(pos + 1, 2) === "]>") {
+                            if (data.startsWith("]>", pos + 1)) {
                                 const cData = endRecording();
                                 if (cData) {
-                                    this.emit("text", cData);
+                                    if (onText) {
+                                        onText(cData);
+                                    } else {
+                                        this.emit("text", cData);
+                                    }
                                 }
+                                // skip the "]>" that closes the section
+                                pos += 2;
                                 state = STATE_TEXT;
-                            } else if (data.length < pos + 2) {
+                                recordStart = pos + 1;
+                            } else if (data.length < pos + 3) {
+                                // the closing "]]>" may straddle this chunk and the next
                                 parseRemainder = true;
                                 pos = data.length;
                             }
@@ -195,7 +228,7 @@ export class SaxLtx extends EventEmitter {
                             recordStart = pos + 1;
                             endTag = true;
                         } else if (c === 33 /* ! */) {
-                            if (data.substring(pos + 1, 7) === "[CDATA[") {
+                            if (data.startsWith("[CDATA[", pos + 1)) {
                                 recordStart = pos + 8;
                                 state = STATE_CDATA;
                             } else if (data.length < pos + 8 && "[CDATA[".startsWith(data.slice(pos + 1))) {
@@ -287,6 +320,12 @@ export class SaxLtx extends EventEmitter {
             if (typeof recordStart === "number" && recordStart <= data.length) {
                 remainder = data.slice(recordStart);
                 recordStart = 0;
+            } else if (state === STATE_IGNORE_COMMENT || state === STATE_IGNORE_INSTRUCTION || state === STATE_IGNORE_CDATA) {
+                // the end of a comment (-->), of an instruction (?>) or of a skipped CDATA (]]>) is
+                // recognised by looking back at the characters before the '>': keep the last two
+                // so that a terminator straddling this chunk and the next is still seen
+                remainder = data.slice(-2);
+                parseRemainder = true;
             }
         };
     }
