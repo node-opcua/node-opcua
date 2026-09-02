@@ -14,10 +14,52 @@ const STATE_ATTR_VALUE = 8;
 const STATE_CDATA = 9;
 const STATE_IGNORE_CDATA = 10;
 
+/**
+ * Handlers called directly, without going through EventEmitter. A nodeset carries hundreds of
+ * thousands of elements and text runs, and the emit machinery (listener lookup, arguments array,
+ * apply) was a measurable share of the parse; the events are still emitted when no handler is set.
+ */
+export interface SaxLtxHandlers {
+    onStartElement?: (name: string, attrs: XmlAttributes) => void;
+    onEndElement?: (name: string, selfClosing: boolean) => void;
+    onText?: (text: string) => void;
+    /**
+     * drop a text run made of white space only before unescaping it: the indentation between
+     * two tags, which is most of the text runs of a pretty-printed document
+     */
+    skipBlankText?: boolean;
+}
+
+function isBlank(text: string): boolean {
+    for (let i = 0; i < text.length; i++) {
+        if (text.charCodeAt(i) > 32) {
+            return false;
+        }
+    }
+    return true;
+}
+
 export class SaxLtx extends EventEmitter {
     #write: (data: string) => void;
-    constructor() {
+    constructor(handlers: SaxLtxHandlers = {}) {
         super();
+
+        const onStartElement = handlers.onStartElement;
+        const onEndElement = handlers.onEndElement;
+        const onText = handlers.onText;
+        const skipBlankText = !!handlers.skipBlankText;
+
+        const emitText = (text: string) => {
+            if (skipBlankText && isBlank(text)) {
+                return;
+            }
+            const unescaped = unescapeXML(text);
+            if (onText) {
+                onText(unescaped);
+            } else {
+                this.emit("text", unescaped);
+            }
+        };
 
         function _handleTagOpening(
             this: SaxLtx,
@@ -26,10 +68,20 @@ export class SaxLtx extends EventEmitter {
             attrs: XmlAttributes | undefined
         ) {
             if (!endTag) {
-                this.emit("startElement", tagName, attrs);
-                if (selfClosing) {
-                    this.emit("endElement", tagName, true);
+                if (onStartElement) {
+                    onStartElement(tagName as string, attrs as XmlAttributes);
+                } else {
+                    this.emit("startElement", tagName, attrs);
                 }
+                if (selfClosing) {
+                    if (onEndElement) {
+                        onEndElement(tagName as string, true);
+                    } else {
+                        this.emit("endElement", tagName, true);
+                    }
+                }
+            } else if (onEndElement) {
+                onEndElement(tagName as string, false);
             } else {
                 this.emit("endElement", tagName, false);
             }
@@ -117,7 +169,7 @@ export class SaxLtx extends EventEmitter {
                         if (c === 60 /* < */) {
                             const text = endRecording();
                             if (text) {
-                                this.emit("text", unescapeXML(text));
+                                emitText(text);
                             }
                             state = STATE_TAG_NAME;
                             recordStart = pos + 1;
