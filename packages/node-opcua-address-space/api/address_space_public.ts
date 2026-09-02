@@ -42,15 +42,12 @@ export interface AddressSpaceConstructor {
  * annotate with and the value you call `create()` on, while the implementation class stays
  * unexported and undocumented.
  *
- * The conversion is here, in one place, and it is doing something specific: AddressSpaceImpl
- * types `getOwnNamespace()` as `NamespacePrivate`, which extends `INamespace` rather than the
- * published `Namespace`, so the compiler cannot see the alarm-and-condition, data-access and
- * machine-state methods that NamespaceImpl really has and that this package has always
- * documented. The published shape above is the accurate one; the implementation's internal
- * types are the ones that under-declare, and correcting them runs into the data-access
- * classes not statically satisfying their own `Ex` interfaces (they carry
- * `this as unknown as UAMultiStateDiscreteEx<T, DT>` for the same reason). That is tracked
- * separately. Until it is done, this line is where the two views meet - previously they never
- * met at all, because each was a class of its own.
+ * This was a conversion for a while, and it no longer needs to be: the compiler now agrees
+ * that AddressSpaceImpl provides the published shape. It could not before, because
+ * `getOwnNamespace()` returned a `NamespacePrivate` that extended `INamespace` rather than
+ * the published `Namespace`, hiding the alarm-and-condition, data-access and machine-state
+ * methods NamespaceImpl really has; and correcting that ran into the data-access classes not
+ * statically satisfying their own `Ex` interfaces. Both are fixed, so the annotation is
+ * checked rather than asserted.
  */
-export const AddressSpace = AddressSpaceImpl as unknown as AddressSpaceConstructor;
+export const AddressSpace: AddressSpaceConstructor = AddressSpaceImpl;
