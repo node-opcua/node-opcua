@@ -35,7 +35,10 @@ export type { UAMultiStateDiscreteEx };
  * @class UAMultiStateDiscrete
  * @internal
  */
-export class UAMultiStateDiscreteImplBase<T, DT extends DataType> extends UAVariableImplT<T, DT> {
+export class UAMultiStateDiscreteImplBase<T, DT extends DataType>
+    extends UAVariableImplT<T, DT>
+    implements UAMultiStateDiscreteEx<T, DT>
+{
     /**
      * The EnumStrings property, installed as a child node by the address space rather than
      * assigned by this constructor - hence `declare`, which emits nothing.
@@ -106,13 +109,13 @@ export class UAMultiStateDiscreteImplBase<T, DT extends DataType> extends UAVari
         return promoteToMultiStateDiscrete(variable1);
     }
 }
+// The class states that it implements the published interface, so the name is just the
+// class. It used to be an intersection with a cast behind it, because the class could not
+// satisfy the interface while its child nodes were reachable only through a cast.
 /** @internal */
-export type UAMultiStateDiscreteImpl<T, DT extends DataType> = UAMultiStateDiscreteImplBase<T, DT> & UAMultiStateDiscreteEx<T, DT>;
+export type UAMultiStateDiscreteImpl<T, DT extends DataType> = UAMultiStateDiscreteImplBase<T, DT>;
 /** @internal */
-export const UAMultiStateDiscreteImpl = UAMultiStateDiscreteImplBase as unknown as new <
-    T,
-    DT extends DataType
->() => UAMultiStateDiscreteImpl<T, DT>;
+export const UAMultiStateDiscreteImpl = UAMultiStateDiscreteImplBase;
 
 export function promoteToMultiStateDiscrete<T, DT extends DataType>(node: UAVariable): UAMultiStateDiscreteImpl<T, DT> {
     if (node instanceof UAMultiStateDiscreteImpl) {

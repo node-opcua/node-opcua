@@ -15,11 +15,11 @@ import type { AddTwoStateDiscreteOptions } from "../../api/address_space_ts.js";
 import type { UATwoStateDiscreteEx } from "../../api/interfaces/data_access/ua_two_state_discrete_ex.js";
 import type { ISetStateOptions } from "../../api/interfaces/i_set_state_options.js";
 import { registerNodePromoter } from "../../api/loader/register_node_promoter.js";
-import { UAVariableImpl } from "../ua_variable_impl.js";
+import { UAVariableImpl, UAVariableImplT } from "../ua_variable_impl.js";
 import { add_dataItem_stuff } from "./add_dataItem_stuff.js";
 
 /** @internal */
-export class UATwoStateDiscreteImplBase extends UAVariableImpl {
+export class UATwoStateDiscreteImplBase extends UAVariableImplT<boolean, DataType.Boolean> implements UATwoStateDiscreteEx {
     /**
      * Properties installed as child nodes by the address space rather than assigned by this
      * constructor - hence `declare`, which emits nothing.
@@ -95,20 +95,22 @@ export class UATwoStateDiscreteImplBase extends UAVariableImpl {
         return variable1;
     }
 }
+// The class states that it implements the published interface, so the name is just the
+// class, and promoteToTwoStateDiscrete can return it without converting.
 /** @internal */
-export type UATwoStateDiscreteImpl = UATwoStateDiscreteImplBase & UATwoStateDiscreteEx;
+export type UATwoStateDiscreteImpl = UATwoStateDiscreteImplBase;
 /** @internal */
-export const UATwoStateDiscreteImpl = UATwoStateDiscreteImplBase as unknown as new () => UATwoStateDiscreteImpl;
+export const UATwoStateDiscreteImpl = UATwoStateDiscreteImplBase;
 
 export function promoteToTwoStateDiscrete(node: UAVariable): UATwoStateDiscreteEx {
     if (node instanceof UATwoStateDiscreteImpl) {
-        return node as unknown as UATwoStateDiscreteEx; // already promoted
+        return node; // already promoted
     }
     Object.setPrototypeOf(node, UATwoStateDiscreteImpl.prototype);
     assert(node instanceof UATwoStateDiscreteImpl, "should now  be a UATwoStateDiscrete");
     const _node = node as UATwoStateDiscreteImpl;
     _node._post_initialize();
-    return _node as unknown as UATwoStateDiscreteEx;
+    return _node;
 }
 registerNodePromoter(VariableTypeIds.TwoStateDiscreteType, promoteToTwoStateDiscrete);
 
