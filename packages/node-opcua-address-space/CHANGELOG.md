@@ -50,6 +50,16 @@ with it, the change event and the touch of the parents that a variable nobody ha
 reached: the reserved names, the members of its class and its own fields. The generator of the
 `node-opcua-nodeset-*` interfaces escapes exactly those, so the interfaces promise what the runtime exposes.
 
+#### TranslateBrowsePath and browse filtering cost what they should
+
+- A forward TranslateBrowsePath step naming its target through a hierarchical reference type is answered from the
+  child index instead of a scan of every reference of the node with a deep comparison per child: one step on a
+  folder of 5 000 children goes from about 5 ms to about 3 µs. Inverse steps and non-hierarchical reference types
+  keep the scan, and the reference-type and subtype filter applies unchanged.
+- Browse filtering by node class tests the mask bit instead of turning each class into its name and back.
+- `isSubtypeOf` memoizes a node argument by identity, so a call with a node builds no string.
+- The reference types every child lookup needs are resolved once per address space.
+
 #### `generateAddressSpace` rejects when a post-load promoter throws
 
 The promotion of loaded objects and variables (`promoteObjectsAndVariables`) was never awaited, so a failure
