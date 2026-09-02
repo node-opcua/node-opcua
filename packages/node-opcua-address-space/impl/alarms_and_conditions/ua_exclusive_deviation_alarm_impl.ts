@@ -63,24 +63,20 @@ export class UAExclusiveDeviationAlarmImplBase extends UAExclusiveLimitAlarmImpl
 
         return alarm as UAExclusiveDeviationAlarmImpl;
     }
-
-    private get $16() {
-        return this as unknown as UAExclusiveDeviationAlarmEx & DeviationStuff;
-    }
     public getSetpointNodeNode(): UAVariableT<number, DataType.Double> | UAVariableT<number, DataType.Float> | undefined {
-        return DeviationAlarmHelper_getSetpointNodeNode.call(this.$16);
+        return DeviationAlarmHelper_getSetpointNodeNode.call(this);
     }
 
     public getSetpointValue(): number | null {
-        return DeviationAlarmHelper_getSetpointValue.call(this.$16);
+        return DeviationAlarmHelper_getSetpointValue.call(this);
     }
 
     public _onSetpointDataValueChange(dataValue: DataValue): void {
-        DeviationAlarmHelper_onSetpointDataValueChange.call(this.$16, dataValue);
+        DeviationAlarmHelper_onSetpointDataValueChange.call(this, dataValue);
     }
 
     public _install_setpoint(options: InstallSetPointOptions): void {
-        DeviationAlarmHelper_install_setpoint.call(this.$16, options);
+        DeviationAlarmHelper_install_setpoint.call(this, options);
     }
 
     public _setStateBasedOnInputValue(value: number): void {

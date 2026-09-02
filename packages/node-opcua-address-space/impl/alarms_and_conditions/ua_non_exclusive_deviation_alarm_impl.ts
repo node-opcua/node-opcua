@@ -61,10 +61,6 @@ export class UANonExclusiveDeviationAlarmImplBase
 
         return alarm;
     }
-
-    private get $13() {
-        return this as unknown as UANonExclusiveDeviationAlarmEx;
-    }
     public _setStateBasedOnInputValue(value: number): void {
         const setpointValue = this.getSetpointValue();
         if (setpointValue === null) {
@@ -76,19 +72,19 @@ export class UANonExclusiveDeviationAlarmImplBase
     }
 
     public getSetpointNodeNode(): UAVariableT<number, DataType.Double> | UAVariableT<number, DataType.Float> | undefined {
-        return DeviationAlarmHelper_getSetpointNodeNode.call(this.$13);
+        return DeviationAlarmHelper_getSetpointNodeNode.call(this);
     }
 
     public getSetpointValue(): number | null {
-        return DeviationAlarmHelper_getSetpointValue.call(this.$13);
+        return DeviationAlarmHelper_getSetpointValue.call(this);
     }
 
     public _onSetpointDataValueChange(dataValue: DataValue): void {
-        DeviationAlarmHelper_onSetpointDataValueChange.call(this.$13, dataValue);
+        DeviationAlarmHelper_onSetpointDataValueChange.call(this, dataValue);
     }
 
     public _install_setpoint(options: InstallSetPointOptions): void {
-        DeviationAlarmHelper_install_setpoint.call(this.$13, options);
+        DeviationAlarmHelper_install_setpoint.call(this, options);
     }
 }
 
