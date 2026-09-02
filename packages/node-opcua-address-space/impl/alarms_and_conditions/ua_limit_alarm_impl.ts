@@ -1,5 +1,6 @@
-import type { UAEventType, UAVariable } from "node-opcua-address-space-base";
+import type { UAEventType, UAProperty, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
+import type { UInt16 } from "node-opcua-basic-types";
 import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { make_warningLog } from "node-opcua-debug";
@@ -25,7 +26,28 @@ const uaLimitAlarmInputSupportedDataType: DataType[] = [
 ];
 
 /** @internal */
-export class UALimitAlarmImplBase extends UAAlarmConditionImplBase {
+export class UALimitAlarmImplBase extends UAAlarmConditionImplBase implements UALimitAlarmEx {
+    /**
+     * The limits, all optional: which ones exist depends on the alarm type instantiated.
+     * Installed as child nodes by the address space, not assigned here - hence `declare`.
+     */
+    public declare readonly highHighLimit?: UAProperty<number, DataType.Double>;
+    public declare readonly highLimit?: UAProperty<number, DataType.Double>;
+    public declare readonly lowLimit?: UAProperty<number, DataType.Double>;
+    public declare readonly lowLowLimit?: UAProperty<number, DataType.Double>;
+    public declare readonly baseHighHighLimit?: UAProperty<number, DataType.Double>;
+    public declare readonly baseHighLimit?: UAProperty<number, DataType.Double>;
+    public declare readonly baseLowLimit?: UAProperty<number, DataType.Double>;
+    public declare readonly baseLowLowLimit?: UAProperty<number, DataType.Double>;
+    public declare readonly severityHighHigh?: UAProperty<UInt16, DataType.UInt16>;
+    public declare readonly severityHigh?: UAProperty<UInt16, DataType.UInt16>;
+    public declare readonly severityLow?: UAProperty<UInt16, DataType.UInt16>;
+    public declare readonly severityLowLow?: UAProperty<UInt16, DataType.UInt16>;
+    public declare readonly highHighDeadband?: UAProperty<number, DataType.Double>;
+    public declare readonly highDeadband?: UAProperty<number, DataType.Double>;
+    public declare readonly lowDeadband?: UAProperty<number, DataType.Double>;
+    public declare readonly lowLowDeadband?: UAProperty<number, DataType.Double>;
+
     public static instantiate(
         namespace: NamespacePrivate,
         limitAlarmTypeId: UAEventType | NodeId | string,
@@ -126,63 +148,59 @@ export class UALimitAlarmImplBase extends UAAlarmConditionImplBase {
         return alarmNode;
     }
 
-    private get $8() {
-        return this as unknown as UALimitAlarmEx;
-    }
-
     public getHighHighLimit(): number {
-        if (!this.$8.highHighLimit) {
+        if (!this.highHighLimit) {
             throw new Error("Alarm do not expose highHighLimit");
         }
-        return this.$8.highHighLimit.readValue().value.value;
+        return this.highHighLimit.readValue().value.value;
     }
 
     public getHighLimit(): number {
-        if (!this.$8.highLimit) {
+        if (!this.highLimit) {
             throw new Error("Alarm do not expose highLimit");
         }
-        return this.$8.highLimit.readValue().value.value;
+        return this.highLimit.readValue().value.value;
     }
 
     public getLowLimit(): number {
-        if (!this.$8.lowLimit) {
+        if (!this.lowLimit) {
             throw new Error("Alarm do not expose lowLimit");
         }
-        return this.$8.lowLimit.readValue().value.value;
+        return this.lowLimit.readValue().value.value;
     }
 
     public getLowLowLimit(): number {
-        if (!this.$8.lowLowLimit) {
+        if (!this.lowLowLimit) {
             throw new Error("Alarm do not expose lowLowLimit");
         }
-        return this.$8.lowLowLimit.readValue().value.value;
+        return this.lowLowLimit.readValue().value.value;
     }
 
     public setHighHighLimit(value: number): void {
-        if (!this.$8.highHighLimit) {
+        if (!this.highHighLimit) {
             throw new Error("LimitAlarm instance must expose the optional HighHighLimit property");
         }
-        this.$8.highHighLimit.setValueFromSource({ dataType: DataType.Double, value });
+        this.highHighLimit.setValueFromSource({ dataType: DataType.Double, value });
     }
 
     public setHighLimit(value: number): void {
-        if (!this.$8.highLimit) {
+        if (!this.highLimit) {
             throw new Error("LimitAlarm instance must expose the optional HighLimit property");
         }
-        this.$8.highLimit.setValueFromSource({ dataType: DataType.Double, value });
+        this.highLimit.setValueFromSource({ dataType: DataType.Double, value });
     }
 
     public setLowLimit(value: number): void {
-        if (!this.$8.lowLimit) {
+        if (!this.lowLimit) {
             throw new Error("LimitAlarm instance must expose the optional LowLimit property");
         }
-        this.$8.lowLimit.setValueFromSource({ dataType: DataType.Double, value });
+        this.lowLimit.setValueFromSource({ dataType: DataType.Double, value });
     }
     public setLowLowLimit(value: number): void {
-        if (!this.$8.lowLowLimit) {
+        if (!this.lowLowLimit) {
             throw new Error("LimitAlarm instance must expose the optional LowLowLimit property");
         }
-        this.$8.lowLowLimit.setValueFromSource({ dataType: DataType.Double, value });
+        this.lowLowLimit.setValueFromSource({ dataType: DataType.Double, value });
     }
 
     protected _onInputDataValueChange(dataValue: DataValue): void {
@@ -215,17 +233,17 @@ export class UALimitAlarmImplBase extends UAAlarmConditionImplBase {
         /// Installing Limits monitored
         const _updateState = () => this.updateState();
 
-        if (this.$8.highHighLimit) {
-            this.$8.highHighLimit.on("value_changed", _updateState);
+        if (this.highHighLimit) {
+            this.highHighLimit.on("value_changed", _updateState);
         }
-        if (this.$8.highLimit) {
-            this.$8.highLimit.on("value_changed", _updateState);
+        if (this.highLimit) {
+            this.highLimit.on("value_changed", _updateState);
         }
-        if (this.$8.lowLimit) {
-            this.$8.lowLimit.on("value_changed", _updateState);
+        if (this.lowLimit) {
+            this.lowLimit.on("value_changed", _updateState);
         }
-        if (this.$8.lowLowLimit) {
-            this.$8.lowLowLimit.on("value_changed", _updateState);
+        if (this.lowLowLimit) {
+            this.lowLowLimit.on("value_changed", _updateState);
         }
     }
 
@@ -242,6 +260,6 @@ export class UALimitAlarmImplBase extends UAAlarmConditionImplBase {
 }
 
 /** @internal */
-export const UALimitAlarmImpl = UALimitAlarmImplBase as unknown as new () => UALimitAlarmImpl;
+export const UALimitAlarmImpl = UALimitAlarmImplBase;
 /** @internal */
-export type UALimitAlarmImpl = UALimitAlarmImplBase & UALimitAlarmEx;
+export type UALimitAlarmImpl = UALimitAlarmImplBase;

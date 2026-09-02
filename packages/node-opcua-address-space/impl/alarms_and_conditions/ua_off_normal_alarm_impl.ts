@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import type { INamespace, UAVariable, UAVariableT } from "node-opcua-address-space-base";
+import type { INamespace, UAProperty, UAVariable, UAVariableT } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import type { DataValue } from "node-opcua-data-value";
 import { NodeId, type NodeIdLike } from "node-opcua-nodeid";
@@ -39,14 +39,16 @@ export declare interface UAOffNormalAlarmEx
     setNormalStateValue(value: NodeIdLike): void;
 }
 
-const $ = (instance: UAOffNormalAlarmImplBase): UAOffNormalAlarmEx => instance as unknown as UAOffNormalAlarmEx;
 /**
  * The OffNormalAlarmType is a specialization of the DiscreteAlarmType intended to represent a
  * discrete Condition that is considered to be not normal.
  * This sub type is usually used to indicate that a discrete value is in an Alarm state, it is active as
  * long as a non-normal value is present.
  */
-export class UAOffNormalAlarmImplBase extends UADiscreteAlarmImplBase {
+export class UAOffNormalAlarmImplBase extends UADiscreteAlarmImplBase implements UAOffNormalAlarmEx {
+    /** installed as a child node by the address space, not assigned here - hence `declare` */
+    public declare readonly normalState: UAProperty<NodeId, DataType.NodeId>;
+
     /**
      * When the value of inputNode doesn't match the normalState node value, then the alarm is raised.
      *
@@ -104,7 +106,7 @@ export class UAOffNormalAlarmImplBase extends UADiscreteAlarmImplBase {
             const normalState = addressSpace._coerceNode(options.normalState) as UAVariable | null;
             const normalStateNodeId = normalState ? normalState.nodeId : new NodeId();
             alarmNode.normalState.setValueFromSource({ dataType: DataType.NodeId, value: normalStateNodeId });
-            alarmNode.normalState.on("value_changed", (_newDataValue, _indexRange) => {
+            alarmNode.normalState.on("value_changed", (_newDataValue: DataValue) => {
                 // The node that contains the normalState value has changed.
                 //   we must remove the listener on current normalState and replace
                 //   normalState with the new one and set listener again
@@ -133,12 +135,8 @@ export class UAOffNormalAlarmImplBase extends UADiscreteAlarmImplBase {
     // Variable referenced by the InputNode Property is not equal to the value of the NormalState
     // Property the Alarm is Active. If this Variable is not in the AddressSpace, a Null NodeId shall
     // be provided.
-
-    private get $4(): UAOffNormalAlarmEx {
-        return this as unknown as UAOffNormalAlarmEx;
-    }
     public getNormalStateNode(): UAVariableT<NodeId, DataType.NodeId> | null {
-        const nodeId = this.$4.normalState.readValue().value.value;
+        const nodeId = this.normalState.readValue().value.value;
         const node = this.addressSpace.findNode(nodeId) as UAVariableT<NodeId, DataType.NodeId>;
         if (!node) {
             return null;
@@ -164,7 +162,7 @@ export class UAOffNormalAlarmImplBase extends UADiscreteAlarmImplBase {
     }
 
     public updateAlarmState(isActive: boolean, message: string) {
-        if (isActive === $(this).activeState.getValue()) {
+        if (isActive === this.activeState.getValue()) {
             // no change => ignore !
             return;
         }
@@ -178,7 +176,7 @@ export class UAOffNormalAlarmImplBase extends UADiscreteAlarmImplBase {
 
     _mayBe_updateAlarmState(normalStateValue?: NodeId | null, inputValue?: unknown): void {
         if (isNullOrUndefined(normalStateValue) || isNullOrUndefined(inputValue)) {
-            $(this).activeState.setValue(false);
+            this.activeState.setValue(false);
             return;
         }
         const isActive = !isEqual(normalStateValue, inputValue);
@@ -214,5 +212,5 @@ export class UAOffNormalAlarmImplBase extends UADiscreteAlarmImplBase {
     }
 }
 
-export type UAOffNormalAlarmImpl = UAOffNormalAlarmImplBase & UAOffNormalAlarmEx;
-export const UAOffNormalAlarmImpl = UAOffNormalAlarmImplBase as unknown as new () => UAOffNormalAlarmImpl;
+export type UAOffNormalAlarmImpl = UAOffNormalAlarmImplBase;
+export const UAOffNormalAlarmImpl = UAOffNormalAlarmImplBase;

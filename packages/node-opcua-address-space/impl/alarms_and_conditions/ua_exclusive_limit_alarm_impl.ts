@@ -4,6 +4,7 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { VariantOptions } from "node-opcua-variant";
 import type { InstantiateLimitAlarmOptions } from "../../api/interfaces/alarms_and_conditions/instantiate_limit_alarm_options.js";
 import type { UAExclusiveLimitAlarmEx } from "../../api/interfaces/alarms_and_conditions/ua_exclusive_limit_alarm_ex.js";
+import type { UAExclusiveLimitStateMachineEx } from "../../api/interfaces/state_machine/ua_exclusive_limit_state_machine_type_ex.js";
 import type { NamespacePrivate } from "../namespace_private.js";
 import { promoteToStateMachine } from "../state_machine/finite_state_machine.js";
 import { UALimitAlarmImpl, UALimitAlarmImplBase } from "./ua_limit_alarm_impl.js";
@@ -11,7 +12,10 @@ import { UALimitAlarmImpl, UALimitAlarmImplBase } from "./ua_limit_alarm_impl.js
 const validState = ["HighHigh", "High", "Low", "LowLow", null];
 
 /** @internal */
-export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl {
+export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implements UAExclusiveLimitAlarmEx {
+    /** installed as a child node by the address space, not assigned here - hence `declare` */
+    public declare readonly limitState: UAExclusiveLimitStateMachineEx;
+
     /***
      *
      * @param namespace {INamespace}
@@ -48,8 +52,8 @@ export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl {
         assert(alarm instanceof UALimitAlarmImpl);
 
         // ---------------- install LimitState StateMachine
-        assert(alarm.$10.limitState, "limitState is mandatory");
-        promoteToStateMachine(alarm.$10.limitState as unknown as UAObject);
+        assert(alarm.limitState, "limitState is mandatory");
+        promoteToStateMachine(alarm.limitState as unknown as UAObject);
 
         // start with a inactive state
         alarm.activeState.setValue(false);
@@ -58,22 +62,18 @@ export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl {
 
         return alarm as UAExclusiveLimitAlarmImpl;
     }
-
-    private get $10() {
-        return this as unknown as UAExclusiveLimitAlarmEx;
-    }
     public _signalNewCondition(stateName: string | null, isActive: boolean, value: string): void {
         assert(stateName === null || typeof isActive === "boolean");
         assert(validState.indexOf(stateName) >= 0, `must have a valid state : ${stateName}`);
 
-        const _oldState = this.$10.limitState.getCurrentState();
+        const _oldState = this.limitState.getCurrentState();
         const _oldActive = this.activeState.getValue();
 
         if (stateName) {
-            this.$10.limitState.setState(stateName);
+            this.limitState.setState(stateName);
         } else {
             assert(stateName === null);
-            this.$10.limitState.setState(stateName);
+            this.limitState.setState(stateName);
         }
         super._signalNewCondition(stateName, isActive, value);
     }
@@ -84,7 +84,7 @@ export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl {
 
         let state = null;
 
-        const oldState = this.$10.limitState.getCurrentState();
+        const oldState = this.limitState.getCurrentState();
 
         if (this.highHighLimit && this.getHighHighLimit() < value) {
             state = "HighHigh";
@@ -107,6 +107,6 @@ export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl {
 }
 
 /** @internal */
-export type UAExclusiveLimitAlarmImpl = UAExclusiveLimitAlarmImplBase & UAExclusiveLimitAlarmEx;
+export type UAExclusiveLimitAlarmImpl = UAExclusiveLimitAlarmImplBase;
 /** @internal */
-export const UAExclusiveLimitAlarmImpl = UAExclusiveLimitAlarmImplBase as unknown as new () => UAExclusiveLimitAlarmImpl;
+export const UAExclusiveLimitAlarmImpl = UAExclusiveLimitAlarmImplBase;

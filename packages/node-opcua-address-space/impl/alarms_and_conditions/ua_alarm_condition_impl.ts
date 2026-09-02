@@ -2,7 +2,7 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { isDeepStrictEqual as isEqual } from "node:util";
-import type { BaseNode, INamespace, UAEventType, UAVariable } from "node-opcua-address-space-base";
+import type { BaseNode, INamespace, UAEventType, UAProperty, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
@@ -13,6 +13,8 @@ import { DataType, type VariantOptions } from "node-opcua-variant";
 import type { ConditionInfo } from "../../api/interfaces/alarms_and_conditions/condition_info_i.js";
 import type { InstantiateAlarmConditionOptions } from "../../api/interfaces/alarms_and_conditions/instantiate_alarm_condition_options.js";
 import type { UAAlarmConditionEx } from "../../api/interfaces/alarms_and_conditions/ua_alarm_condition_ex.js";
+import type { UAShelvedStateMachineEx } from "../../api/interfaces/state_machine/ua_shelved_state_machine_ex.js";
+import type { UATwoStateVariableEx } from "../../api/ua_two_state_variable_ex.js";
 import type { AddressSpacePrivate } from "../address_space_private.js";
 import {
     _clear_timer_if_any,
@@ -33,9 +35,22 @@ function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
     });
 }
 
-const $ = (a: UAAlarmConditionImplBase): UAAlarmConditionEx => a as unknown as UAAlarmConditionEx;
 /** @internal */
-export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase {
+export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase implements UAAlarmConditionEx {
+    /**
+     * Installed as child nodes by the address space, not assigned here - hence `declare`.
+     * enabledState, ackedState and confirmedState come from the base classes.
+     */
+    public declare readonly activeState: UATwoStateVariableEx;
+    public declare readonly inputNode: UAProperty<NodeId, DataType.NodeId>;
+    public declare readonly suppressedOrShelved: UAProperty<boolean, DataType.Boolean>;
+    public declare readonly suppressedState?: UATwoStateVariableEx;
+    public declare readonly outOfServiceState?: UATwoStateVariableEx;
+    public declare readonly shelvingState?: UAShelvedStateMachineEx;
+    public declare readonly silenceState?: UATwoStateVariableEx;
+    public declare readonly latchedState?: UATwoStateVariableEx;
+    public declare readonly maxTimeShelved?: UAProperty<number, DataType.Double>;
+
     public static MaxDuration = 2 ** 31;
 
     public static instantiate(
@@ -185,8 +200,8 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
     }
 
     public dispose(): void {
-        if ($(this).shelvingState) {
-            _clear_timer_if_any($(this).shelvingState as unknown as UAShelvedStateMachineExImpl);
+        if (this.shelvingState) {
+            _clear_timer_if_any(this.shelvingState as unknown as UAShelvedStateMachineExImpl);
         }
         super.dispose();
     }
@@ -220,12 +235,12 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
 
     public isSuppressedOrShelved(): boolean {
         let suppressed = false;
-        if ($(this).suppressedState) {
-            suppressed = $(this).suppressedState?.id?.readValue().value.value || false;
+        if (this.suppressedState) {
+            suppressed = this.suppressedState?.id?.readValue().value.value || false;
         }
         let shelved = false;
-        if ($(this).shelvingState) {
-            const shelvedValue = $(this).shelvingState?.currentState.readValue().value.value;
+        if (this.shelvingState) {
+            const shelvedValue = this.shelvingState?.currentState.readValue().value.value;
             if (shelvedValue && shelvedValue.text !== "Unshelved") {
                 shelved = true;
             }
@@ -234,7 +249,7 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
     }
 
     public getSuppressedOrShelved(): boolean {
-        return $(this).suppressedOrShelved.readValue().value.value;
+        return this.suppressedOrShelved.readValue().value.value;
     }
 
     /**
@@ -245,7 +260,7 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
         if (duration < 10 || duration >= 2 ** 31) {
             throw new Error(` Invalid maxTimeShelved duration: ${duration}  must be [10,2**31] `);
         }
-        $(this).maxTimeShelved?.setValueFromSource({
+        this.maxTimeShelved?.setValueFromSource({
             dataType: "Duration", // <= Duration is basic Type Double! ( milliseconds)
             value: duration
         });
@@ -255,12 +270,12 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
      * note: return a  Duration
      */
     public getMaxTimeShelved(): number {
-        if (!$(this).maxTimeShelved) {
+        if (!this.maxTimeShelved) {
             // if maxTimeShelved is not provided we assume MaxDuration
             assert(UAAlarmConditionImplBase.MaxDuration <= 2147483648, "MaxDuration cannot be greater than 2**31");
             return UAAlarmConditionImplBase.MaxDuration;
         }
-        const dataValue = $(this).maxTimeShelved?.readValue();
+        const dataValue = this.maxTimeShelved?.readValue();
         assert(dataValue?.value.dataType === DataType.Double); // Double <= Duration
         return dataValue?.value.value || 0;
     }
@@ -276,7 +291,7 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
      *       whose node id is stored in alarm.inputNode
      */
     public getInputNodeNode(): UAVariable | null {
-        const nodeId = $(this).inputNode.readValue().value.value;
+        const nodeId = this.inputNode.readValue().value.value;
         assert(nodeId instanceof NodeId || nodeId === null);
         return this.addressSpace.findNode(nodeId) as UAVariable | null;
     }
@@ -320,18 +335,18 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
          * @property inputNode
          * @type     UAVariable
          */
-        assert($(this).inputNode.nodeClass === NodeClass.Variable);
+        assert(this.inputNode.nodeClass === NodeClass.Variable);
 
         const addressSpace = this.addressSpace as AddressSpacePrivate;
         assert(inputNode, " must provide options.inputNode (NodeId or BaseNode object)");
 
         if (inputNode instanceof NodeId) {
-            $(this).inputNode.setValueFromSource({
+            this.inputNode.setValueFromSource({
                 dataType: DataType.NodeId,
                 value: inputNode as NodeId
             });
         } else {
-            $(this).inputNode.setValueFromSource({
+            this.inputNode.setValueFromSource({
                 dataType: "NodeId",
                 value: (inputNode as BaseNode).nodeId
             });
@@ -342,7 +357,7 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
                 doDebug && debugLog(" cannot find nodeId ", inputNode);
             } else {
                 assert(_node, "Expecting a valid input node");
-                $(this).inputNode.setValueFromSource({
+                this.inputNode.setValueFromSource({
                     dataType: DataType.NodeId,
                     value: _node.nodeId
                 });
@@ -495,6 +510,6 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
 }
 
 /** @internal */
-export type UAAlarmConditionImpl = UAAlarmConditionImplBase & UAAlarmConditionEx;
+export type UAAlarmConditionImpl = UAAlarmConditionImplBase;
 /** @internal */
-export const UAAlarmConditionImpl = UAAlarmConditionImplBase as unknown as new () => UAAlarmConditionImpl;
+export const UAAlarmConditionImpl = UAAlarmConditionImplBase;

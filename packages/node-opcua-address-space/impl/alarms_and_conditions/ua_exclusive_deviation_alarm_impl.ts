@@ -27,7 +27,11 @@ import { UAExclusiveLimitAlarmImpl, UAExclusiveLimitAlarmImplBase } from "./ua_e
 import { UALimitAlarmImpl } from "./ua_limit_alarm_impl.js";
 
 /** @internal */
-export class UAExclusiveDeviationAlarmImplBase extends UAExclusiveLimitAlarmImplBase {
+export class UAExclusiveDeviationAlarmImplBase extends UAExclusiveLimitAlarmImplBase implements UAExclusiveDeviationAlarmEx {
+    /** installed as child nodes by the address space, not assigned here - hence `declare` */
+    public declare readonly setpointNode: UAVariableT<NodeId, DataType.NodeId>;
+    public declare readonly setpointNodeNode?: UAVariableT<number, DataType.Double> | UAVariableT<number, DataType.Float>;
+
     public static instantiate(
         namespace: NamespacePrivate,
         type: string | NodeId,
@@ -90,8 +94,7 @@ export class UAExclusiveDeviationAlarmImplBase extends UAExclusiveLimitAlarmImpl
     }
 }
 /** @internal */
-export type UAExclusiveDeviationAlarmImpl = UAExclusiveDeviationAlarmImplBase & UAExclusiveDeviationAlarmEx;
+export type UAExclusiveDeviationAlarmImpl = UAExclusiveDeviationAlarmImplBase;
 /** @internal */
-export const UAExclusiveDeviationAlarmImpl =
-    UAExclusiveDeviationAlarmImplBase as unknown as new () => UAExclusiveDeviationAlarmImpl;
+export const UAExclusiveDeviationAlarmImpl = UAExclusiveDeviationAlarmImplBase;
 export interface UAExclusiveDeviationAlarmHelper extends SetPointSupport {}
