@@ -71,11 +71,11 @@ describe("the CTT folder", function () {
         should.exist(byPath("Static/DA Profile/ArrayItemType/CubeItemType").getPropertyByName("ZAxisDefinition"));
     });
 
-    it("keeps the TwoStateDiscrete variables reachable from their folder", () => {
+    it("keeps the TwoStateDiscrete variables as components of their folder", () => {
         const ns = addressSpace.getNamespaceIndex("urn://node-opcua-simulator");
         const folder = addressSpace.findNode(`ns=${ns};s=Simulation_DA_DiscreteType`) as UAObject;
         should.exist(folder);
-        const names = folder.findReferencesExAsObject("Organizes").map((n) => n.browseName.name);
+        const names = folder.findReferencesExAsObject("HasComponent").map((n) => n.browseName.name);
         for (let i = 1; i <= 5; i++) names.should.containEql(i === 3 ? "twoStateDiscrete003" : `TwoStateDiscrete00${i}`);
     });
 
