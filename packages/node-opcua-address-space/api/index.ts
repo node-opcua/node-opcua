@@ -93,6 +93,13 @@ export { adjustNamespaceArray } from "../impl/nodeset_tools/adjust_namespace_arr
 export * from "../impl/nodeset_tools/construct_namespace_dependency.js";
 /** A namespace's data types as an OPC binary schema (BSD) document. */
 export { dumpToBSD } from "../impl/nodeset_tools/dump_to_bsd.js";
+export {
+    type NamespaceToImageOptions,
+    NodesetExportError,
+    namespaceToImage,
+    namespaceToRecords,
+    type ToNodesetRecordsOptions
+} from "../impl/nodeset_tools/nodeset_to_records.js";
 /** @internal */
 export { sortByBrowseName } from "../impl/nodeset_tools/nodeset_to_xml.js";
 export * from "../impl/private_namespace.js";

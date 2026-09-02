@@ -26,7 +26,7 @@ import { performance } from "node:perf_hooks";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 import { Xml2Json } from "node-opcua-xml2json";
-import { AddressSpace, generateAddressSpaceRaw, type IAddressSpace, nodesetToImage } from "../dist/api/index.js";
+import { AddressSpace, generateAddressSpaceRaw, type IAddressSpace, namespaceToImage, nodesetToImage } from "../dist/api/index.js";
 import { NodeSetLoader } from "../dist/api/loader/load_nodeset2.js";
 import { BaseNodeImpl } from "../dist/impl/base_node_impl.js";
 
@@ -222,6 +222,41 @@ async function benchUniqueNamesOne(countOfNodes: number, frugal: boolean) {
     }
 }
 
+/**
+ * scenario `export`: the DI namespace and the last namespace of the companion chain, exported
+ * to XML (`toNodeset2XML`) and to an image (`namespaceToImage`), best of N
+ */
+async function benchExport(runs: number) {
+    const addressSpace = AddressSpace.create();
+    await generateAddressSpaceRaw(
+        addressSpace,
+        scenarios.chain.map((name) => nodesets[name]),
+        (f) => fs.promises.readFile(f, "utf-8"),
+        {}
+    );
+    const namespaces = addressSpace.getNamespaceArray();
+    // not namespace 0: the XML exporter does not export the UA namespace itself
+    for (const namespace of [namespaces[1], namespaces[namespaces.length - 1]]) {
+        let bestXml = Number.POSITIVE_INFINITY;
+        let bestImage = Number.POSITIVE_INFINITY;
+        let xmlLength = 0;
+        let imageLength = 0;
+        for (let run = 0; run < runs; run++) {
+            let t0 = performance.now();
+            xmlLength = namespace.toNodeset2XML().length;
+            bestXml = Math.min(bestXml, performance.now() - t0);
+            t0 = performance.now();
+            imageLength = (await namespaceToImage(namespace)).length;
+            bestImage = Math.min(bestImage, performance.now() - t0);
+        }
+        console.log(
+            `export ${namespace.namespaceUri.padEnd(40)} best of ${runs}: toNodeset2XML=${seconds(bestXml)} (${megabytes(xmlLength)}) ` +
+                `toNodesetImage=${seconds(bestImage)} (${megabytes(imageLength)})`
+        );
+    }
+    addressSpace.dispose();
+}
+
 async function main() {
     // load [runs]  |  unique [count]  |  all [runs] [count]
     const scenario = process.argv[2] || "all";
@@ -233,6 +268,9 @@ async function main() {
     const count = Number.parseInt((scenario === "unique" ? process.argv[3] : process.argv[4]) || "", 10);
     if (scenario === "load" || scenario === "all") {
         await benchLoad(Number.isFinite(runs) ? runs : 5);
+    }
+    if (scenario === "export" || scenario === "all") {
+        await benchExport(Number.isFinite(runs) ? runs : 5);
     }
     if (scenario === "unique" || scenario === "all") {
         benchUniqueNames(Number.isFinite(count) ? count : 20000);

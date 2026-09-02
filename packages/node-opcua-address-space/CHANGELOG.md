@@ -138,6 +138,22 @@ is written in the same pass as the XML parse and replayed exactly as the XML is 
 - `bench_load_nodeset2.ts` gains an `image` variant. The standard nodeset loads 36% faster from its image than from
   the XML, a six-file companion chain 34% (best of 7, alternating).
 
+#### A namespace exports to records and to an image, not only to XML
+
+`namespace.toNodesetRecords()` yields the header record then one record per node, the same records the XML loader
+yields for the equivalent NodeSet2 file, in the order `toNodeset2XML` writes its elements, with ids in the exported
+file's own namespace table. `namespace.toNodesetImage()` and `namespaceToImage(namespace)` serialize them as a
+precompiled image whose trailer digest is the SHA-256 of the node lines, so a re-import keys on content. Round trip
+is the identity: a namespace loaded from a file, exported, loaded again from its records and exported once more
+gives the same records, and the two address spaces digest the same; so does a namespace built in code, and
+`toNodeset2XML` of the reloaded one is byte-identical. The walk visits a data type's encodings by NodeId rather
+than by the order their references were added, so two exports agree whatever built the address space.
+
+- `opcua-nodeset-image export <file.xml>` exports the last file's namespace from the live address space.
+- The loader reads `UAView` elements and views round-trip; a record applied to an address space is left untouched
+  for the next consumer (the applier translates copies of the values it stores).
+- `toNodeset2XML` still holds its own walk; making it a consumer of the records is the next step.
+
 ### Security
 
 #### Per-node `RolePermissions` and `AccessRestrictions` are no longer dropped when loading a NodeSet2 file

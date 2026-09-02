@@ -92,6 +92,9 @@ export interface NodesetNodeRecord {
     eventNotifier?: number;
     // reference types
     inverseName?: string;
+    symmetric?: boolean;
+    // views
+    containsNoLoops?: boolean;
     // variables, variable types and methods
     parentNodeId?: NodeId | null;
     // variables and variable types

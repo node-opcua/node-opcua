@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
+
 import chalk from "chalk";
 import type {
     AddBaseNodeOptions,
@@ -90,9 +91,9 @@ import type { UAMultiStateDiscreteEx } from "../api/interfaces/data_access/ua_mu
 import type { UAMultiStateValueDiscreteEx } from "../api/interfaces/data_access/ua_multistate_value_discrete_ex.js";
 import type { UAStateMachineEx } from "../api/interfaces/state_machine/ua_state_machine_type.js";
 import type { UATransitionEx } from "../api/interfaces/state_machine/ua_transition_ex.js";
+import type { NodesetRecord } from "../api/loader/nodeset_record.js";
 import type { AddAnalogDataItemOptions, AddDataItemOptions } from "../api/namespace_data_access.js";
 import type { UATwoStateVariableEx } from "../api/ua_two_state_variable_ex.js";
-
 import { _handle_delete_node_model_change_event, _handle_model_change_event } from "./address_space_change_event_tools.js";
 import type { AddressSpacePrivate } from "./address_space_private.js";
 import {
@@ -116,8 +117,8 @@ import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete_impl.j
 import { _coerce_parent, _handle_hierarchy_parent } from "./handle_hierarchy_parent.js";
 //
 import { type NamespacePrivate, UANamespace_process_modelling_rule } from "./namespace_private.js";
-
 import { type ConstructNodeIdOptions, NodeIdManager } from "./nodeid_manager.js";
+import type { NamespaceToImageOptions, ToNodesetRecordsOptions } from "./nodeset_tools/nodeset_to_records.js";
 import { coerceRolePermissions } from "./role_permissions.js";
 import type { UAStateMachineImpl, UATransitionImpl } from "./state_machine/finite_state_machine.js";
 // state machine
@@ -1545,6 +1546,13 @@ export class NamespaceImpl implements NamespacePrivate {
     // -------------------------------------------------------------------------
     public toNodeset2XML(): string {
         return "<toNodeset2XML>has not be installed</toNodeset2XML>!";
+    }
+    // installed by impl/nodeset_tools/nodeset_to_records.ts
+    public toNodesetRecords(_options?: ToNodesetRecordsOptions): Iterable<NodesetRecord> {
+        throw new Error("toNodesetRecords has not been installed");
+    }
+    public toNodesetImage(_options?: NamespaceToImageOptions): Promise<Uint8Array> {
+        throw new Error("toNodesetImage has not been installed");
     }
     public setRequiredModels(requiredModels: RequiredModel[]): void {
         this._requiredModels = requiredModels;

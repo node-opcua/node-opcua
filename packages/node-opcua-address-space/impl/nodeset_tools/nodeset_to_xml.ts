@@ -256,7 +256,7 @@ interface XmlWriterEx extends XmlWriter {
     stackMap: Record<XmlNamespaceUri, XmlNs>[];
     namespaceArray: NamespaceUri[];
 }
-function initXmlWriterEx(xw: XmlWriter, map: Record<XmlNamespaceUri, XmlNs>, namespaceArray: NamespaceUri[]): void {
+export function initXmlWriterEx(xw: XmlWriter, map: Record<XmlNamespaceUri, XmlNs>, namespaceArray: NamespaceUri[]): void {
     const xwe = xw as XmlWriterEx;
     xwe.map = map;
     xwe.stackMap = [];
@@ -520,7 +520,7 @@ function _dumpVariantInnerValue(
  * @param value
  * @private
  */
-function _dumpVariantExtensionObjectValue_Body(
+export function _dumpVariantExtensionObjectValue_Body(
     xw: XmlWriter,
     definitionMap: DefinitionMap2,
     name: string,
@@ -588,7 +588,7 @@ function _dumpVariantExtensionObjectValue2(xw: XmlWriter, addressSpace: IAddress
     _dumpVariantExtensionObjectValue(xw, dataTypeNode.nodeId, definitionMap, addressSpace, value);
 }
 
-function _isDefaultValue(value: Variant): boolean {
+export function _isDefaultValue(value: Variant): boolean {
     // detect default value
     if (value.arrayType === VariantArrayType.Scalar) {
         switch (value.dataType) {
@@ -922,7 +922,7 @@ function dumpCommonElements(xw: XmlWriter, node: BaseNode) {
     _dumpRolePermissions(xw, node);
 }
 
-function coerceInt64ToInt32(int64: Int64): number {
+export function coerceInt64ToInt32(int64: Int64): number {
     if (typeof int64 === "number") {
         return int64 as number;
     }
@@ -1449,7 +1449,7 @@ UAViewImpl.prototype.dumpXML = function (xw: XmlWriter) {
     dumpUAView(xw, this);
 };
 
-function makeTypeXsd(namespaceUri: string): string {
+export function makeTypeXsd(namespaceUri: string): string {
     return `${namespaceUri.replace(/\/$/, "")}/Type.xsd`;
 }
 

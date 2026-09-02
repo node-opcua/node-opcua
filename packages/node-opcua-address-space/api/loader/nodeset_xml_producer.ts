@@ -274,6 +274,16 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
         }
     };
 
+    const state_UAView = {
+        init(this: NodeState, _name: string, attrs: XmlAttributes) {
+            this.obj = baseRecord(NodeClass.View, attrs);
+            if (attrs.ContainsNoLoops !== undefined) this.obj.containsNoLoops = coerceBoolean(attrs.ContainsNoLoops);
+            this.obj.eventNotifier = coerceByte(attrs.EventNotifier) || 0;
+        },
+        ...emit,
+        parser: common_parser
+    };
+
     const state_ModelTableEntry = new ReaderState({
         init(this: State) {
             this._requiredModels = [] as RequiredModel[];
@@ -324,7 +334,8 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
             UAObjectType: state_UAObjectType,
             UAReferenceType: state_UAReferenceType,
             UAVariable: state_UAVariable,
-            UAVariableType: state_UAVariableType
+            UAVariableType: state_UAVariableType,
+            UAView: state_UAView
         }
     };
 

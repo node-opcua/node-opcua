@@ -459,6 +459,8 @@ export interface NodesetImageNode {
     isAbstract?: boolean;
     eventNotifier?: number;
     inverseName?: string;
+    symmetric?: boolean;
+    containsNoLoops?: boolean;
     parentNodeId?: JsonNodeId | null;
     dataType?: JsonNodeId | null;
     valueRank?: number;
@@ -482,6 +484,8 @@ const OPTIONAL_PLAIN: Array<keyof NodesetNodeRecord & keyof NodesetImageNode> = 
     "isAbstract",
     "eventNotifier",
     "inverseName",
+    "symmetric",
+    "containsNoLoops",
     "valueRank",
     "arrayDimensions",
     "minimumSamplingInterval",

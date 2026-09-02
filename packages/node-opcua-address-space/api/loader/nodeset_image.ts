@@ -148,6 +148,11 @@ export class NodesetImageWriter implements NodesetRecordConsumer {
         return `${header}\n${this.lines.join("\n")}\n${JSON.stringify(trailer)}\n`;
     }
 
+    /** the node lines alone, what an exported namespace's digest covers (the header carries a timestamp) */
+    public bodyText(): string {
+        return `${this.lines.join("\n")}\n`;
+    }
+
     /** the image: the lines, gzip-compressed */
     public async finish(sourceDigest: string, sourceLength?: number): Promise<Uint8Array> {
         return gzip(this.text(sourceDigest, sourceLength));
