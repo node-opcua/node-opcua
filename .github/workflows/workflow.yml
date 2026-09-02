@@ -105,6 +105,14 @@ jobs:
       # (a class heritage clause, a module-scope initializer). Of the 14 cycles this repo
       # had, 11 were harmless and flagging those would have made the gate noise.
       - run: pnpm run check:cycles
+      # A class published as `X as unknown as new () => X` asserts something the compiler
+      # cannot check, so the class and the interface it claims drift. Address-space had 15,
+      # and behind them a Transition typed as a bare BaseNode rather than the UAObject it
+      # is, an alarm requiring a property its own interface made optional, and a method
+      # returning a wider type than promised. One documented exemption remains.
+      - run: pnpm run check:ctorcast
+      - name: Unit tests for the construction-cast rule
+        run: node tools/check-construction-cast/test/test_rule.js
       - run: pnpm run check:identity
       # A package's types must describe the module its main loads. When the two named
       # different modules, node-opcua-address-space came to declare twelve names its main

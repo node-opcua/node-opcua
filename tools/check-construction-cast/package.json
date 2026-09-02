@@ -1,0 +1,17 @@
+{
+    "name": "@sterfive/check-construction-cast",
+    "version": "1.0.0",
+    "private": true,
+    "description": "an implementation class is published as itself, not through a constructor cast",
+    "bin": {
+        "check-construction-cast": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "test": "node test/test_rule.js"
+    },
+    "devDependencies": {
+        "typescript": "5.9.3"
+    }
+}
