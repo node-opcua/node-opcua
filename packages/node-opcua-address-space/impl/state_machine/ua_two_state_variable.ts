@@ -151,14 +151,14 @@ export function _install_TwoStateVariable_machinery(
 
 export function promoteToTwoStateVariable(node: UAVariable): UATwoStateVariableEx {
     if (node instanceof UATwoStateVariableImpl) {
-        return node as unknown as UATwoStateVariableEx;
+        return node;
     }
     // c8 ignore next
     if (!(node instanceof UAVariableImpl)) {
         throw new Error("Trying to promote a invalid object");
     }
     Object.setPrototypeOf(node, UATwoStateVariableImpl.prototype);
-    return node as unknown as UATwoStateVariableEx;
+    return node as UATwoStateVariableImpl;
 }
 registerNodePromoter(VariableTypeIds.TwoStateVariableType, promoteToTwoStateVariable);
 
