@@ -6,7 +6,7 @@ import type { BaseNodeEvents, UAReference, UAReferenceType } from "node-opcua-ad
 import { assert } from "node-opcua-assert";
 import { AttributeIds, LocalizedText, type LocalizedTextOptions, NodeClass } from "node-opcua-data-model";
 import { DataValue, type DataValueLike } from "node-opcua-data-value";
-import type { NodeId } from "node-opcua-nodeid";
+import { type NodeId, NodeIdType } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 // the module itself, not the api barrel: the barrel also publishes the AddressSpace value,
@@ -15,9 +15,18 @@ import { SessionContext } from "../api/session_context.js";
 import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl.js";
 import { BaseNode_getCache } from "./base_node_private.js";
 import { ReferenceImpl } from "./reference_impl.js";
+import { referenceTypeVersion } from "./reference_type_version.js";
 import { construct_isSubtypeOf, construct_slow_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf.js";
 
-const ReferenceTypeCounter = { count: 0 };
+/**
+ * the key a reference type is indexed under: no string is built for a numeric NodeId, which is
+ * what every reference in a load carries, and `checkHasSubtype` runs once per reference per scan
+ */
+function subtypeIndexKey(nodeId: NodeId): number | string {
+    return nodeId.identifierType === NodeIdType.NUMERIC
+        ? nodeId.namespace * 0x100000000 + (nodeId.value as number)
+        : nodeId.toString();
+}
 
 function _internal_getAllSubtypes(referenceType: UAReferenceType): UAReferenceType[] {
     const addressSpace = referenceType.addressSpace;
@@ -43,35 +52,35 @@ function _internal_getAllSubtypes(referenceType: UAReferenceType): UAReferenceTy
 function _getAllSubtypes(ref: UAReferenceType) {
     const _cache = BaseNode_getCache(ref);
 
-    if (!_cache._allSubTypesVersion || _cache._allSubTypesVersion < ReferenceTypeCounter.count) {
+    if (!_cache._allSubTypesVersion || _cache._allSubTypesVersion < referenceTypeVersion.count) {
         _cache._allSubTypes = null;
     }
     if (!_cache._allSubTypes) {
         _cache._allSubTypes = _internal_getAllSubtypes(ref);
-        _cache._allSubTypesVersion = ReferenceTypeCounter.count;
+        _cache._allSubTypesVersion = referenceTypeVersion.count;
     }
     return _cache._allSubTypes;
 }
 
-function _internal_getSubtypeIndex(referenceType: UAReferenceType): Map<string, UAReferenceType> {
+function _internal_getSubtypeIndex(referenceType: UAReferenceType): Map<number | string, UAReferenceType> {
     const possibleReferenceTypes = _getAllSubtypes(referenceType);
-    // create a index of reference type with browseName as key for faster search
-    const keys: Map<string, UAReferenceType> = new Map();
+    // an index of the reference type and all its subtypes, by NodeId, for faster search
+    const keys: Map<number | string, UAReferenceType> = new Map();
     for (const refType of possibleReferenceTypes) {
-        keys.set(refType.nodeId.toString(), refType);
+        keys.set(subtypeIndexKey(refType.nodeId), refType);
     }
     return keys;
 }
 
-function _getSubtypeIndex(referenceType: UAReferenceType): Map<string, UAReferenceType> {
+function _getSubtypeIndex(referenceType: UAReferenceType): Map<number | string, UAReferenceType> {
     const _cache = BaseNode_getCache(referenceType);
-    if (!_cache._subtype_idx || (_cache._subtype_idxVersion && _cache._subtype_idxVersion < ReferenceTypeCounter.count)) {
+    if (!_cache._subtype_idx || (_cache._subtype_idxVersion && _cache._subtype_idxVersion < referenceTypeVersion.count)) {
         // the cache need to be invalidated
         _cache._subtype_idx = null;
     }
     if (!_cache._subtype_idx) {
         _cache._subtype_idx = _internal_getSubtypeIndex(referenceType);
-        _cache._subtype_idxVersion = ReferenceTypeCounter.count;
+        _cache._subtype_idxVersion = referenceTypeVersion.count;
     }
     return _cache._subtype_idx;
 }
@@ -115,7 +124,7 @@ export class UAReferenceTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements
         // Note: Inverse name is not required anymore in 1.0.4
         this.inverseName = new LocalizedText(options.inverseName || this.browseName.name);
 
-        ReferenceTypeCounter.count += 1;
+        referenceTypeVersion.count += 1;
     }
 
     public readAttribute(context: SessionContext | null, attributeId: AttributeIds): DataValue {
@@ -165,7 +174,6 @@ export class UAReferenceTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements
     public checkHasSubtype(ref: UAReference | NodeId): boolean {
         const _index = _getSubtypeIndex(this);
         const referenceTypeNodeId = ref instanceof ReferenceImpl ? ref.nodeId : (ref as NodeId);
-        const _key = referenceTypeNodeId.toString();
-        return _index.has(_key);
+        return _index.has(subtypeIndexKey(referenceTypeNodeId));
     }
 }

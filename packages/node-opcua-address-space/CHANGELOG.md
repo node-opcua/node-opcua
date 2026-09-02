@@ -26,6 +26,16 @@ through the namespace API keep the per-parent accessor they had.
 - `isFrugal = true` works end to end: it only suppresses the per-parent accessors of runtime names.
 - New `addressSpace.registerChildAccessorNames(names)` gives runtime names a shared accessor too.
 
+#### Reference lookups on the load path stop rescanning and reallocating
+
+- `findReferencesEx` is memoized per reference type and direction, dropped with the rest of the node cache on
+  every reference added or removed and whenever a reference type is created (the callers iterate the result and
+  never change it). Removing a back reference now clears the cache of the node that held it, which it never did.
+- `checkHasSubtype` indexes reference types by NodeId value instead of building a string per reference per scan.
+- A back reference is no longer allocated for a reference the NodeSet2 file declares from both ends.
+- The loader translates each NodeId string of a file once, and a node under construction clears its caches once
+  rather than once per reference.
+
 #### `generateAddressSpace` rejects when a post-load promoter throws
 
 The promotion of loaded objects and variables (`promoteObjectsAndVariables`) was never awaited, so a failure

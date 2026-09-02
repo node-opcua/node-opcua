@@ -220,6 +220,9 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     }
 
     const namespaceUriTranslationMap: Map<number, number> = new Map();
+    // every id string of the file, translated once: "i=47" alone appears tens of thousands of times,
+    // and the regex plus resolveNodeId parse were a measurable share of node creation
+    const translatedNodeIds: Map<string, NodeId> = new Map();
     let namespaceCounter = 0;
     const foundNamespaceMap: Map<string, NamespacePrivate> = new Map();
     let models: Model[] = [];
@@ -229,6 +232,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         // c8 ignore next
         doDebug && debugLog("_reset_namespace_translation");
         namespaceUriTranslationMap.clear();
+        translatedNodeIds.clear();
         foundNamespaceMap.clear();
         namespaceCounter = 0;
         aliasMap.clear();
@@ -373,12 +377,19 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 return aliasedNodeId;
             }
         }
+        const translated = translatedNodeIds.get(nodeId);
+        if (translated) {
+            return translated;
+        }
+        let nodeIdString = nodeId;
         const m = nodeId.match(reg);
         if (m) {
             const namespaceIndex = _translateNamespaceIndex(parseInt(m[1], 10));
-            nodeId = `ns=${namespaceIndex};${m[2]}`;
+            nodeIdString = `ns=${namespaceIndex};${m[2]}`;
         }
-        return resolveNodeId(nodeId);
+        const result = resolveNodeId(nodeIdString);
+        translatedNodeIds.set(nodeId, result);
+        return result;
     }
 
     function _translateReferenceType(refType: string): NodeId {

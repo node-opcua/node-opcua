@@ -51,18 +51,19 @@ const g_weakMap = new WeakMap();
 interface BaseNodeCacheInner {
     typeDefinition?: NodeId;
     typeDefinitionObj?: UAVariableType | UAObjectType | null;
-    _aggregates?: BaseNode[];
-    _components?: BaseNode[];
-    _properties?: BaseNode[];
     _children?: BaseNode[];
     _versionNode?: UAVariableT<string, DataType.String> | null;
 
-    _notifiers?: BaseNode[];
-    _eventSources?: BaseNode[];
-    _methods?: UAMethod[];
     _ref?: Map<string, UAReference[]>;
+    /**
+     * memoized `findReferencesEx`: per reference type node, the forward then the inverse result;
+     * dropped with the rest of the cache on every reference added or removed, and when the
+     * reference-type hierarchy moved (`_refExVersion`)
+     */
+    _refEx?: Map<UAReferenceType, [UAReference[] | undefined, UAReference[] | undefined]>;
+    _refExVersion?: number;
     _encoding?: Map<string, UAObject | null>;
-    _subtype_idx?: Map<string, UAReferenceType> | null;
+    _subtype_idx?: Map<number | string, UAReferenceType> | null;
     _subtype_idxVersion?: number;
     _allSubTypes?: UAReferenceType[] | null;
     _allSubTypesVersion?: number;
@@ -87,6 +88,17 @@ interface BaseNodeCache {
     _parent?: BaseNode | null;
     _back_referenceIdx: Map<string, UAReference>;
     _referenceIdx: Map<string, UAReference>;
+    /** `nodeId.toString()`, computed once: it ends the hash of every reference pointing here */
+    _nodeIdKey?: string;
+}
+
+/** the string the node is identified by in reference hashes, built once per node */
+export function BaseNode_nodeIdKey(node: BaseNode): string {
+    const _private = BaseNode_getPrivate(node);
+    if (_private._nodeIdKey === undefined) {
+        _private._nodeIdKey = node.nodeId.toString();
+    }
+    return _private._nodeIdKey;
 }
 
 export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {
@@ -1308,6 +1320,8 @@ export function BaseNode_remove_backward_reference(this: BaseNodeImpl, reference
         //        _back_referenceIdx to UAObjectType and UAVariableType for performance reasons
         (<ReferenceImpl>_private._back_referenceIdx.get(h)).dispose();
         _private._back_referenceIdx.delete(h);
+        // the memoized reference scans of this node listed the reference just removed
+        BaseNode_clearCache(this);
     }
     (<ReferenceImpl>reference).dispose();
 }
