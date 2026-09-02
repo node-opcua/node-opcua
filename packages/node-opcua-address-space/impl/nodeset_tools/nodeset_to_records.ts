@@ -98,6 +98,16 @@ const currentReadFlag = makeAccessLevelFlag("CurrentRead");
 /** what the exporter cannot turn into a record: named by the node so that the caller can act */
 export class NodesetExportError extends Error {}
 
+/**
+ * a comment the XML export writes at a point of the walk (a section, the start or end of an
+ * object); not a record: the image writer and the loader never see one
+ */
+export interface SectionMarker {
+    kind: "section";
+    text: string;
+}
+export type NodesetWalkEvent = NodesetRecord | SectionMarker;
+
 class RecordExporter {
     private readonly addressSpace: IAddressSpace;
     private readonly priorityTable: number[];
@@ -108,7 +118,11 @@ class RecordExporter {
     private readonly namespacesMap: Record<string, string>;
     private readonly definitionMap: DefinitionMap2;
     private readonly visited = new Set<string>();
-    private readonly records: NodesetRecord[] = [];
+    private readonly records: NodesetWalkEvent[] = [];
+
+    private section(text: string): void {
+        this.records.push({ kind: "section", text });
+    }
 
     constructor(private readonly namespace: NamespaceImpl) {
         const addressSpace = namespace.addressSpace;
@@ -161,10 +175,22 @@ class RecordExporter {
     }
     // #endregion
 
-    public run(): NodesetRecord[] {
+    /** the events of one node and what the walk brings with it (type, supertype, children); no header */
+    public walkFrom(node: BaseNode): NodesetWalkEvent[] {
+        this.dumpNode(node);
+        return this.records;
+    }
+
+    /** the exported file's namespace table, address-space index to file index */
+    public get translation(): Map<number, number> {
+        return this.translationTable;
+    }
+
+    public run(): NodesetWalkEvent[] {
         const namespace = this.namespace;
         this.records.push(this.header());
 
+        this.section("ReferenceTypes");
         const referenceTypes = [...namespace._referenceTypeIterator()].sort(sortByBrowseName);
         for (const referenceType of referenceTypes) {
             this.dumpReferenceType(referenceType);
@@ -172,6 +198,7 @@ class RecordExporter {
 
         const dataTypes = [...namespace._dataTypeIterator()].sort(sortByBrowseName);
         if (dataTypes.length) {
+            this.section("DataTypes");
             for (const dataType of dataTypes.sort(sortByNodeId)) {
                 if (!this.visited.has(this.hash(dataType))) {
                     this.dumpNode(dataType);
@@ -180,18 +207,21 @@ class RecordExporter {
             this.dumpDictionaries();
         }
 
+        this.section("ObjectTypes");
         const objectTypes = [...namespace._objectTypeIterator()].sort(sortByBrowseName);
         for (const objectType of objectTypes.sort(sortByNodeId)) {
             if (!this.visited.has(this.hash(objectType))) {
                 this.dumpNode(objectType);
             }
         }
+        this.section("VariableTypes");
         const variableTypes = [...namespace._variableTypeIterator()].sort(sortByBrowseName);
         for (const variableType of variableTypes.sort(sortByNodeId)) {
             if (!this.visited.has(this.hash(variableType))) {
                 this.dumpNode(variableType);
             }
         }
+        this.section("Other Nodes");
         const nodes = [...namespace.nodeIterator()].sort(sortByBrowseName);
         for (const node of nodes.sort(sortByNodeId)) {
             if (!this.visited.has(this.hash(node))) {
@@ -298,7 +328,8 @@ class RecordExporter {
             if (referenceType.isSubtypeOf(hasEventSource) && reference.isForward) return true;
             return false;
         };
-        const references = node.allReferences().filter(keep).sort(sortByNodeId);
+        // the node's own order: the XML writer sorts them when it writes, a reload keeps them as they were
+        const references = node.allReferences().filter(keep);
         const out: NodesetReferenceRecord[] = [];
         for (const reference of references) {
             if (getReferenceType(reference).browseName.toString() === "HasSubtype" && reference.isForward) continue;
@@ -468,9 +499,9 @@ class RecordExporter {
         if (definition) record.definition = definition;
         this.records.push(record);
         // the encodings, then the aggregates
-        // by NodeId, not by the order the references were added: an export must not depend on what built the address space
-        const encodings = node.findReferencesExAsObject("HasEncoding", BrowseDirection.Forward).sort(sortByNodeId);
-        for (const encoding of encodings) {
+        // in the order the references were added, as the XML export always walked them; a record
+        // stream keeps that order in its references, so a reload reproduces it
+        for (const encoding of node.findReferencesExAsObject("HasEncoding", BrowseDirection.Forward)) {
             if (encoding.nodeClass !== NodeClass.Object) continue;
             const description = encoding.findReferencesAsObject("HasDescription")[0];
             if (description) this.dumpVariable(description as UAVariable);
@@ -561,8 +592,10 @@ class RecordExporter {
     }
 
     private dumpObject(node: UAObject): void {
+        this.section(`Object - ${this.b(node.browseName)} {{{{ `);
         this.dumpObjectInner(node);
         this.dumpElementsInFolder(node as unknown as BaseNodeImpl);
+        this.section(`Object - ${this.b(node.browseName)} }}}} `);
     }
     private dumpObjectInner(node: UAObject): void {
         this.markVisited(node);
@@ -574,6 +607,7 @@ class RecordExporter {
     }
 
     private dumpObjectType(node: BaseNode): void {
+        this.section(`ObjectType - ${this.b(node.browseName)} {{{{ `);
         this.markVisited(node);
         this.dumpReferencedNodes(node);
         const record = this.common(node);
@@ -581,6 +615,7 @@ class RecordExporter {
         if (eventNotifier) record.eventNotifier = eventNotifier;
         this.records.push(record);
         this.dumpAggregates(node);
+        this.section(`ObjectType - ${this.b(node.browseName)} }}}}`);
     }
 
     private dumpMethod(node: UAMethodImpl): void {
@@ -623,6 +658,7 @@ class RecordExporter {
             if (result.length !== 1) continue;
             const dictionary = addressSpace.findNode(result[0].nodeId) as UAVariable | null;
             if (!dictionary) continue;
+            this.section(typeSystemId === ObjectIds.OPCBinarySchema_TypeSystem ? "DataSystem - Binary" : "DataSystem - Xml");
             for (const component of dictionary.getComponents()) {
                 if (!this.visited.has(this.hash(component))) this.dumpNode(component);
             }
@@ -753,9 +789,24 @@ class RecordExporter {
     // #endregion
 }
 
+/** the records of a namespace with the comment markers the XML export places between them */
+export function namespaceToWalkEvents(namespace: INamespace): NodesetWalkEvent[] {
+    return new RecordExporter(namespace as NamespaceImpl).run();
+}
+
+/**
+ * the walk from one node: the node, its type definition and supertype when they belong to the
+ * same namespace and are not out yet, its aggregates after it; with the namespace table the
+ * events' ids are in
+ */
+export function nodeToWalkEvents(node: BaseNode): { events: NodesetWalkEvent[]; translationTable: Map<number, number> } {
+    const exporter = new RecordExporter(node.namespace as NamespaceImpl);
+    return { events: exporter.walkFrom(node), translationTable: exporter.translation };
+}
+
 /** the records of a namespace; see {@link ToNodesetRecordsOptions} */
 export function namespaceToRecords(namespace: INamespace, _options: ToNodesetRecordsOptions = {}): NodesetRecord[] {
-    return new RecordExporter(namespace as NamespaceImpl).run();
+    return namespaceToWalkEvents(namespace).filter((event): event is NodesetRecord => event.kind !== "section");
 }
 
 export interface NamespaceToImageOptions extends Pick<NodesetImageWriterOptions, "addressSpaceVersion" | "createdAt"> {}
