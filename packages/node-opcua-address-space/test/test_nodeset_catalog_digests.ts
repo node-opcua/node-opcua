@@ -8,41 +8,19 @@
  * To refresh the fixture after an intended change of what the loader produces:
  *     NODESET_CATALOG_DIGESTS_UPDATE=1 npx mocha test/test_nodeset_catalog_digests.ts
  */
-import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { nodesetCatalog, nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace, type UAVariable } from "../dist/api/index.js";
+import { AddressSpace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
+import { type AddressSpaceDigest, digestAddressSpace } from "../test_helpers/address_space_digest.js";
+import { packageRoot } from "./paths.js";
 
-interface Digest {
+const fixtureFile = path.join(packageRoot, "test", "fixtures", "nodeset_catalog_digests.json");
+
+interface Digest extends AddressSpaceDigest {
     files: string[];
-    nodes: number;
-    references: number;
-    hash: string;
-}
-
-const fixtureFile = path.join(path.dirname(fileURLToPath(import.meta.url)), "fixtures", "nodeset_catalog_digests.json");
-
-export function digestAddressSpace(addressSpace: AddressSpace): Omit<Digest, "files"> {
-    const lines: string[] = [];
-    let references = 0;
-    for (const namespace of addressSpace.getNamespaceArray()) {
-        for (const node of namespace.nodeIterator()) {
-            const refs = node.allReferences();
-            references += refs.length;
-            let line = `${node.nodeId.toString()}|${node.browseName.toString()}|${node.nodeClass}|${refs.length}`;
-            if ((node as UAVariable).readValue) {
-                const dataValue = (node as UAVariable).readValue();
-                line += `|${dataValue.statusCode.toString()}|${dataValue.value.toString()}`;
-            }
-            lines.push(line);
-        }
-    }
-    lines.sort();
-    return { nodes: lines.length, references, hash: createHash("sha1").update(lines.join("\n")).digest("hex") };
 }
 
 /** a nodeset with its dependencies, the standard nodeset first, in load order */
