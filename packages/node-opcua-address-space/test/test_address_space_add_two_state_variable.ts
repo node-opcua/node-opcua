@@ -1,6 +1,6 @@
 import fs from "node:fs";
-import { coerceLocalizedText } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
+import { coerceLocalizedText, type LocalizedText } from "node-opcua-data-model";
+import { DataValueT } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
@@ -54,7 +54,9 @@ describe("testing add TwoStateVariable ", function (this: Mocha.Suite) {
 
         const statusCode = await node.writeValue(
             SessionContext.defaultContext,
-            new DataValue({ value: new Variant({ dataType: DataType.LocalizedText, value: coerceLocalizedText("FALSE") }) })
+            new DataValueT<LocalizedText, DataType.LocalizedText>({
+                value: new Variant({ dataType: DataType.LocalizedText, value: coerceLocalizedText("FALSE") })
+            })
         );
         should.exist(statusCode);
     });
