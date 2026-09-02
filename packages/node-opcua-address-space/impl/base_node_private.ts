@@ -74,6 +74,11 @@ export type HierarchicalIndexMap = Map<string, UAReferenceWithNodeRef | UARefere
 
 interface BaseNodeCache {
     _childByNameMap?: HierarchicalIndexMap;
+    /**
+     * set when a reference could not be indexed (target node or reference type not in the
+     * address space yet): the index is rebuilt on the next lookup instead of missing a child
+     */
+    _childByNameMapIncomplete?: boolean;
     __address_space: IAddressSpace | null;
     _browseFilter?: (this: BaseNode, context?: ISessionContext) => boolean;
     _cache: BaseNodeCacheInner;
@@ -110,8 +115,23 @@ export function BaseNode_removePrivate(self: BaseNode): void {
     _private.__address_space = null;
     _private._back_referenceIdx = new Map();
     _private._referenceIdx = new Map();
+    _private._childByNameMap = undefined;
     _private._description = undefined;
     _private._displayName = [];
+}
+
+/**
+ * Drop the child index; it is rebuilt lazily on the next lookup. The nodeset loader calls this on
+ * every node once a load is complete, so an index built before the load (a second nodeset added at
+ * runtime to an address space already in use) cannot go stale.
+ */
+export function BaseNode_resetChildIndex(node: BaseNode): void {
+    const _private = BaseNode_getPrivate(node);
+    if (!_private) {
+        return;
+    }
+    _private._childByNameMap = undefined;
+    _private._childByNameMapIncomplete = false;
 }
 
 export function BaseNode_getPrivate(self: BaseNode): BaseNodeCache {
@@ -129,6 +149,9 @@ export function BaseNode_clearCache(node: BaseNode): void {
     wipeMemorizedStuff(node);
 }
 const hasTypeDefinition_ReferenceTypeNodeId = resolveNodeId("HasTypeDefinition");
+// looked up by NodeId rather than by name: a name lookup throws while namespace 0 is still
+// loading, and the child index must simply answer "nothing yet" at that point
+const hierarchicalReferences_ReferenceTypeNodeId = resolveNodeId("HierarchicalReferences");
 
 export interface ToStringOptionBase {
     level: number;
@@ -1101,11 +1124,14 @@ export function _clone<T extends UAObject | UAVariable | UAMethod, O>(
     return clonedNode;
 }
 
-function _add(_childByNameMap: HierarchicalIndexMap, reference: UAReferenceWithNodeRef) {
+/**
+ * @returns false when the reference points to a node that is not (yet) in the address space:
+ * such a dangling reference cannot be indexed by browse name, and the caller must remember that
+ * the index is incomplete rather than silently lose the child.
+ */
+function _add(_childByNameMap: HierarchicalIndexMap, reference: UAReferenceWithNodeRef): boolean {
     const targetNode = reference.node;
-    // a reference may point to a node that is not (yet) in the address space:
-    // such a dangling reference simply cannot be indexed by browse name.
-    if (!targetNode) return;
+    if (!targetNode) return false;
     const hash = targetNode.browseName?.name || "";
     const existing = _childByNameMap.get(hash);
     if (existing) {
@@ -1117,6 +1143,7 @@ function _add(_childByNameMap: HierarchicalIndexMap, reference: UAReferenceWithN
     } else {
         _childByNameMap.set(hash, reference as UAReferenceWithNodeRef);
     }
+    return true;
 }
 
 function sameRef(a: UAReference, b: UAReference) {
@@ -1143,37 +1170,67 @@ function _remove(_childByNameMap: HierarchicalIndexMap, reference: UAReferenceWi
         _childByNameMap.delete(hash);
     }
 }
+/**
+ * keep an existing child index in step with a forward reference just added to `node`
+ */
 export function _handle_HierarchicalReference(node: BaseNode, reference: UAReference): void {
     const _private = BaseNode_getPrivate(node);
-    if (!reference.isForward) return;
-    if (_private._childByNameMap) {
-        const addressSpace = node.addressSpace;
-        const referenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference);
-
-        if (referenceType) {
-            const HierarchicalReferencesType = addressSpace.findReferenceType("HierarchicalReferences");
-            if (!HierarchicalReferencesType) return;
-
-            if (referenceType.isSubtypeOf(HierarchicalReferencesType)) {
-                ReferenceImpl.resolveReferenceNode(addressSpace, reference);
-                _add(_private._childByNameMap, reference as UAReferenceWithNodeRef);
-            }
-        }
+    if (!reference.isForward || !_private._childByNameMap) return;
+    const addressSpace = node.addressSpace;
+    const referenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference);
+    const hierarchicalReferences = addressSpace.findReferenceType(hierarchicalReferences_ReferenceTypeNodeId);
+    if (!referenceType || !hierarchicalReferences) {
+        _private._childByNameMapIncomplete = true;
+        return;
+    }
+    let isHierarchical: boolean;
+    try {
+        isHierarchical = referenceType.isSubtypeOf(hierarchicalReferences);
+    } catch {
+        // the supertype chain of a reference type declared later in the file being loaded
+        _private._childByNameMapIncomplete = true;
+        return;
+    }
+    if (!isHierarchical) return;
+    ReferenceImpl.resolveReferenceNode(addressSpace, reference);
+    if (!_add(_private._childByNameMap, reference as UAReferenceWithNodeRef)) {
+        _private._childByNameMapIncomplete = true;
     }
 }
 
+/**
+ * The child index of `node`: browse name -> forward hierarchical reference(s), target resolved.
+ *
+ * Built lazily and kept by `_handle_HierarchicalReference` / `_remove_HierarchicalReference`. It is
+ * not kept while a nodeset is loading (`suspendBackReference`) nor when some target could not be
+ * resolved: a lookup then gets a transient map and the next one rebuilds. Before namespace 0 has
+ * loaded `HierarchicalReferences` nothing can be hierarchical yet and the map is empty.
+ */
 export function _get_HierarchicalReference(node: BaseNode): HierarchicalIndexMap {
-    const addressSpace = node.addressSpace;
     const _private = BaseNode_getPrivate(node);
-    if (!_private._childByNameMap) {
-        _private._childByNameMap = new Map();
-        const references = node.findReferencesEx("HierarchicalReferences");
-        for (const reference of references) {
-            ReferenceImpl.resolveReferenceNode(addressSpace, reference);
-            _add(_private._childByNameMap, reference as UAReferenceWithNodeRef);
+    if (_private._childByNameMap && !_private._childByNameMapIncomplete) {
+        return _private._childByNameMap;
+    }
+    const addressSpace = node.addressSpace as AddressSpacePrivate;
+    const map: HierarchicalIndexMap = new Map();
+    const hierarchicalReferences = addressSpace.findReferenceType(hierarchicalReferences_ReferenceTypeNodeId);
+    if (!hierarchicalReferences) {
+        return map;
+    }
+    let complete = true;
+    for (const reference of node.findReferencesEx(hierarchicalReferences, BrowseDirection.Forward)) {
+        ReferenceImpl.resolveReferenceNode(addressSpace, reference);
+        if (!_add(map, reference as UAReferenceWithNodeRef)) {
+            complete = false;
         }
     }
-    return _private._childByNameMap;
+    if (complete && !addressSpace.suspendBackReference) {
+        _private._childByNameMap = map;
+    } else {
+        _private._childByNameMap = undefined;
+    }
+    _private._childByNameMapIncomplete = false;
+    return map;
 }
 export function _remove_HierarchicalReference(node: BaseNodeImpl, reference: UAReference) {
     const _private = BaseNode_getPrivate(node);
@@ -1182,7 +1239,7 @@ export function _remove_HierarchicalReference(node: BaseNodeImpl, reference: UAR
         const referenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference);
 
         if (referenceType) {
-            const HierarchicalReferencesType = addressSpace.findReferenceType("HierarchicalReferences");
+            const HierarchicalReferencesType = addressSpace.findReferenceType(hierarchicalReferences_ReferenceTypeNodeId);
             if (HierarchicalReferencesType && referenceType.isSubtypeOf(HierarchicalReferencesType)) {
                 ReferenceImpl.resolveReferenceNode(addressSpace, reference);
                 _remove(_private._childByNameMap, reference as UAReferenceWithNodeRef);

@@ -86,8 +86,11 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     public isSubtypeOf = construct_isSubtypeOf<UADataType>(UADataTypeImpl);
 
     public readonly isAbstract: boolean;
-    private enumStrings?: UAVariable;
-    private enumValues?: UAVariable;
+    // the EnumStrings / EnumValues children, reached through the child accessors: declared for the
+    // type checker only, since an emitted class field would sit on the instance and hide the
+    // accessor inherited from the prototype
+    private declare enumStrings?: UAVariable;
+    private declare enumValues?: UAVariable;
     private $partialDefinition?: StructureFieldOptionsEx[] | EnumFieldOptions[];
     private $fullDefinition?: StructureDefinition | EnumDefinition;
 

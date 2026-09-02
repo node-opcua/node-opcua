@@ -59,7 +59,7 @@ import type { ExtensionObjectConstructorFuncWithSchema } from "../api/interfaces
 import type { UARootFolder } from "../api/ua_root_folder.js";
 import type { AddressSpacePrivate } from "./address_space_private.js";
 import { UAAcknowledgeableConditionImplBase, UAConditionImplBase } from "./alarms_and_conditions/index.js";
-import { BaseNodeImpl } from "./base_node_impl.js";
+import { BaseNodeImpl, defineSharedChildAccessors } from "./base_node_impl.js";
 import { EventData } from "./event_data.js";
 import { AddressSpace_installHistoricalDataNode } from "./historical_access/address_space_historical_data_node.js";
 import { historizerFactoryHolder } from "./historizer_factory.js";
@@ -192,6 +192,10 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
      */
     public suspendBackReference = false;
     public isFrugal = false;
+
+    public registerChildAccessorNames(browseNames: string[]): void {
+        defineSharedChildAccessors(browseNames);
+    }
     public historizingNodes: Set<UAVariable> = new Set();
     public _condition_refresh_in_progress = false;
 

@@ -72,7 +72,7 @@ describe("FSM1 - Finite State Machine - general tests", () => {
         stateMachine.currentState.browseName.toString().should.eql("CurrentState");
         stateMachine.currentState.id.browseName.toString().should.eql("Id");
 
-        Object.hasOwn(stateMachine, "lastTransition").should.eql(false);
+        should(stateMachine.lastTransition).eql(undefined);
     });
 
     it("should instantiate a finite state machine with lastTransition", async () => {

@@ -11,6 +11,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import type { StructureField } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, VariantArrayType, type VariantLike } from "node-opcua-variant";
+import { resolveChildAccessor } from "./base_node_impl.js";
 import { IndexIterator } from "./idx_iterator.js";
 import type { UADataTypeImpl } from "./ua_data_type_impl.js";
 import { UAVariableImpl } from "./ua_variable_impl.js";
@@ -35,7 +36,7 @@ function getProxyVariable(ext: Record<string, unknown>): UAVariable | null {
 function getProxyVariableForProp(ext: Record<string, unknown>, prop: string) {
     const uaVariable = getProxyVariable(ext);
     if (!uaVariable) return undefined;
-    return (uaVariable as unknown as Record<string, unknown>)[prop] as UAVariableImpl | undefined;
+    return resolveChildAccessor(uaVariable, prop) as UAVariableImpl | undefined;
 }
 
 export function getProxyTarget(ext: Record<string, unknown>): unknown {

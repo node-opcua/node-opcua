@@ -40,6 +40,7 @@ import type { UAConditionEvents, UAConditionEx } from "../../api/interfaces/alar
 import type { ISetStateOptions } from "../../api/interfaces/i_set_state_options.js";
 import type { UATwoStateVariableEx } from "../../api/ua_two_state_variable_ex.js";
 import type { AddressSpacePrivate } from "../address_space_private.js";
+import { resolveChildAccessor } from "../base_node_impl.js";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable.js";
 import type { UAConditionType } from "../ua_condition_type.js";
 import { UAObjectImpl } from "../ua_object_impl.js";
@@ -519,7 +520,7 @@ export class UAConditionImplBase<T extends UAConditionEvents & ListenerSignature
         branch.setReceiveTime(receiveTime);
 
         // note : in 1.04 LocalTime property is optional
-        if (Object.hasOwn(this, "localTime")) {
+        if (this.getPropertyByName("LocalTime")) {
             branch.setLocalTime(
                 new TimeZoneDataType({
                     daylightSavingInOffset: false,
@@ -1261,16 +1262,16 @@ function _install_condition_variable_type<T, DT extends DataType>(node: UACondit
  *
  */
 function _getCompositeKey(node: BaseNode, key: string): UAVariableImpl {
-    let cur: Record<string, unknown> = node as unknown as Record<string, unknown>;
-    const elements = key.split(".");
-    for (const e of elements) {
+    let cur: BaseNode = node;
+    for (const e of key.split(".")) {
+        const next = resolveChildAccessor(cur, e);
         // c8 ignore next
-        if (!Object.hasOwn(cur, e)) {
+        if (!next) {
             throw new Error(` cannot extract '${key}' from ${node.browseName.toString()}`);
         }
-        cur = cur[e] as Record<string, unknown>;
+        cur = next;
     }
-    return cur as unknown as UAVariableImpl;
+    return cur as UAVariableImpl;
 }
 
 /**

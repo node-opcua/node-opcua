@@ -63,6 +63,6 @@ export async function promoteObjectAndVariablesInNamespace(namespace: INamespace
 }
 export async function promoteObjectsAndVariables(addressSpace: IAddressSpace): Promise<void> {
     for (const namespace of addressSpace.getNamespaceArray()) {
-        promoteObjectAndVariablesInNamespace(namespace);
+        await promoteObjectAndVariablesInNamespace(namespace);
     }
 }

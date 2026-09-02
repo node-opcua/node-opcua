@@ -38,6 +38,7 @@ import { DataType, Variant, VariantArrayType, type VariantOptions } from "node-o
 import { _definitionParser, ReaderState, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
 import semver from "semver";
 import type { AddressSpacePrivate } from "../../impl/address_space_private.js";
+import { BaseNode_resetChildIndex } from "../../impl/base_node_private.js";
 import type { NamespacePrivate } from "../../impl/namespace_private.js";
 import type { StructureFieldOptionsEx } from "../../impl/ua_data_type_impl.js";
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.js";
@@ -55,8 +56,13 @@ function __make_back_references(namespace: INamespace) {
     for (const node of namespaceP.nodeIterator()) {
         node.propagate_back_references();
     }
+    // Children are reached through shared accessors resolved on the child index (see
+    // impl/child_accessors.ts), so there is no per-node property installation to run here any
+    // more: that sweep was four reference scans per node, 12% of a load. What the load may have
+    // left behind is an index built earlier on a node that just gained children, so drop them all;
+    // they are rebuilt on first use.
     for (const node of namespaceP.nodeIterator()) {
-        node.install_extra_properties();
+        BaseNode_resetChildIndex(node);
     }
 }
 
@@ -1233,7 +1239,9 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             );
 
             doDebug && debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
-            promoteObjectsAndVariables(addressSpace);
+            // awaited: a promoter that throws must reject generateAddressSpace, not surface later
+            // as an unhandled rejection once the caller believes the address space is complete
+            await promoteObjectsAndVariables(addressSpace);
         }
 
         try {
