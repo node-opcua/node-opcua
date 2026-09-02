@@ -15,6 +15,7 @@ import type {
     UADataType,
     UAVariable,
     UAVariableEvents,
+    UAVariableT,
     UAVariableType
 } from "node-opcua-address-space-base";
 import {
@@ -2411,7 +2412,7 @@ function bind_getter(this: UAVariableImpl, options: GetterOptions) {
     }
 }
 
-export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl {
+export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl implements UAVariableT<T, DT> {
     public readValue(
         context?: ISessionContext | null,
         indexRange?: NumericRange,
