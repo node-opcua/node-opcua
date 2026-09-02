@@ -83,6 +83,7 @@ import {
 } from "./base_node_private.js";
 import {
     childAccessorName,
+    defineSharedChildAccessors as defineQueuedChildAccessors,
     hasSharedChildAccessor,
     isReservedChildAccessorName,
     registerChildName,
@@ -382,14 +383,10 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         this._rolePermissions = coerceRolePermissions(options.rolePermissions);
 
         // make `parent.<thisName>` resolve to this node: through a getter shared by every node when
-        // a nodeset is loading, through the own accessor installed by install_extra_properties
-        // otherwise (see child_accessors.ts for why the two paths exist)
-        registerChildName(
-            this.browseName.name,
-            BaseNodeImpl.prototype,
-            resolveSharedChildAccessor,
-            options.addressSpace.suspendBackReference
-        );
+        // a nodeset is loading (defined in one batch by the loader, see flushSharedChildAccessors),
+        // through the own accessor installed by install_extra_properties otherwise
+        // (see child_accessors.ts for why the two paths exist)
+        registerChildName(this.browseName.name, options.addressSpace.suspendBackReference);
     }
 
     public getDisplayName(_locale?: string): string {
@@ -1919,13 +1916,23 @@ function resolveSharedChildAccessor(node: BaseNodeImpl, accessorName: string): u
 }
 
 /**
+ * Define the shared getter of every browse name seen since the last call: the nodeset loader calls
+ * it once a load is complete, so that the prototype changes in one batch rather than once per
+ * new name in the middle of node creation.
+ */
+export function flushSharedChildAccessors(): number {
+    return defineQueuedChildAccessors(BaseNodeImpl.prototype, resolveSharedChildAccessor);
+}
+
+/**
  * Give browse names created at runtime a shared accessor, for an application that builds its
  * model through the namespace API and wants `parent.<child>` without an accessor on every parent.
  */
 export function defineSharedChildAccessors(browseNames: string[]): void {
     for (const browseName of browseNames) {
-        registerChildName(browseName, BaseNodeImpl.prototype, resolveSharedChildAccessor, true);
+        registerChildName(browseName, true);
     }
+    flushSharedChildAccessors();
 }
 
 /**
