@@ -106,6 +106,30 @@ each file as a 256 KB stream instead of one string. A load fed in chunks costs t
   difference on purpose: a method's `ParentNodeId` is now translated to the address space's namespace table like
   every other id, where it used to be passed through as the file's string.
 
+#### Precompiled nodeset images, and a store that makes the second load skip the XML
+
+An image is the records of a NodeSet2 document as JSON Lines, gzip-compressed (`.ndjson.gz`): a header (schema,
+writer version, namespace URIs, models, resolved aliases), one line per node, and a trailer with the node count and
+the SHA-256 of the source bytes. Ids are tuples in the file's own namespace table, so an image depends on nothing
+but its own file; every value type has one JSON rule (`nodeset_image_codec.ts`); the four extension objects the
+XML reader decodes itself are typed JSON, every other one stays the XML fragment the loader decodes once the data
+types are known. `NodesetImageWriter` is a record consumer and `imageNodesetRecords` a record producer, so an image
+is written in the same pass as the XML parse and replayed exactly as the XML is applied.
+
+- `nodesetToImage(source)` converts a file or source; it needs neither the file's dependencies nor an address space.
+- Option `imageStore` (a `NodesetImageStore`, or `true`): a document given whole is hashed and its image replayed
+  when the store has it, parsed and written otherwise; a stream is parsed and written, and replayed only when its
+  named source carries an `imageKey`. The key is the record schema plus the digest, never the package version. An
+  image that does not inflate, does not count, or was built from other bytes is discarded and rebuilt, with a debug
+  log line. `true` selects `FileNodesetImageStore` in the Node.js `generateAddressSpace` (a per-user directory,
+  `NODE_OPCUA_NODESET_IMAGE_DIR` or `~/.cache/node-opcua/nodeset-images`, atomic writes, oldest-first eviction,
+  files writable by others ignored) and a process-wide memory store elsewhere.
+- A source that holds an image is recognized by its first bytes and replayed, store or not; images and XML files mix
+  in one call and are ordered by their dependencies together.
+- `opcua-nodeset-image build | verify | info`, a bin of this package: convert files, prove an image loads what its
+  XML loads, print an image's header and trailer.
+- `bench_load_nodeset2.ts` gains an `image` variant.
+
 ### Security
 
 #### Per-node `RolePermissions` and `AccessRestrictions` are no longer dropped when loading a NodeSet2 file

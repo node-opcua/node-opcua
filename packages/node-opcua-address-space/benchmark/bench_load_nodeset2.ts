@@ -26,7 +26,7 @@ import { performance } from "node:perf_hooks";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 import { Xml2Json } from "node-opcua-xml2json";
-import { AddressSpace, generateAddressSpaceRaw, type IAddressSpace } from "../dist/api/index.js";
+import { AddressSpace, generateAddressSpaceRaw, type IAddressSpace, nodesetToImage } from "../dist/api/index.js";
 import { NodeSetLoader } from "../dist/api/loader/load_nodeset2.js";
 import { BaseNodeImpl } from "../dist/impl/base_node_impl.js";
 
@@ -95,7 +95,18 @@ interface LoadSample {
     nodes: number;
 }
 
-type LoadMode = "string" | "stream";
+type LoadMode = "string" | "stream" | "image";
+
+/** the precompiled images of the files, built once per scenario, outside the timed runs */
+const imageCache = new Map<string, Uint8Array>();
+async function imageOf(file: string): Promise<Uint8Array> {
+    let image = imageCache.get(file);
+    if (!image) {
+        image = await nodesetToImage(new Uint8Array(fs.readFileSync(file)));
+        imageCache.set(file, image);
+    }
+    return image;
+}
 
 /** the standard nodeset in 256 KB pieces, as the Node.js generateAddressSpace reads a file */
 const fileSource = (file: string) => ({ name: file, source: () => fs.createReadStream(file, { highWaterMark: 256 * 1024 }) });
@@ -109,8 +120,11 @@ async function loadOnce(files: string[], mode: LoadMode): Promise<LoadSample> {
     const t0 = performance.now();
     if (mode === "string") {
         await generateAddressSpaceRaw(addressSpace, files, (f) => fs.promises.readFile(f, "utf-8"), {});
-    } else {
+    } else if (mode === "stream") {
         await generateAddressSpaceRaw(addressSpace, files.map(fileSource), {});
+    } else {
+        const images = await Promise.all(files.map(imageOf));
+        await generateAddressSpaceRaw(addressSpace, images, {});
     }
     const total = performance.now() - t0;
     const heap1 = heapUsed();
@@ -133,7 +147,7 @@ const scenarios: Record<string, (keyof typeof nodesets)[]> = {
 async function benchLoad(runs: number) {
     for (const [scenario, names] of Object.entries(scenarios)) {
         const files = names.map((name) => nodesets[name]);
-        for (const mode of ["string", "stream"] as LoadMode[]) {
+        for (const mode of ["string", "stream", "image"] as LoadMode[]) {
             const label = `${scenario}/${mode}`;
             let best: LoadSample | undefined;
             for (let run = 0; run < runs; run++) {

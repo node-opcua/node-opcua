@@ -5,6 +5,8 @@
  *  - `"ignore"` : the declaration is discarded. This is what node-opcua did before these options
  *                 existed: a nodeset declaring a restrictive policy would load fail-open.
  */
+import type { NodesetImageStore } from "../loader/nodeset_image_store.js";
+
 export type NodeSetPermissionsPolicy = "apply" | "ignore";
 
 export interface NodeSetLoaderOptions {
@@ -43,4 +45,14 @@ export interface NodeSetLoaderOptions {
      * @default 8388608 (8 MiB)
      */
     yieldEveryBytes?: number;
+    /**
+     * where precompiled images of the documents are kept between loads. With a store, a
+     * document given whole (a path, a string, bytes) is hashed and its image replayed when the
+     * store has it, parsed and written otherwise; a stream is parsed and written, and replayed
+     * only when its named source carries an `imageKey`. `true` selects the default store: the
+     * per-user file store of the Node.js `generateAddressSpace`, a memory store elsewhere. An
+     * image the store returns that fails to read is discarded and rebuilt.
+     * @default undefined (no store)
+     */
+    imageStore?: NodesetImageStore | boolean;
 }
