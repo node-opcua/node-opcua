@@ -74,6 +74,15 @@ The promotion of loaded objects and variables (`promoteObjectsAndVariables`) was
 there surfaced as an unhandled rejection after `generateAddressSpace` had resolved.
 
 
+#### Raising an event fills a layout computed once per event type
+
+`raiseEvent` used to browse the event type and each of its supertypes on every call to find out which fields the
+event carries: 20 fields cost 225us per event, 90% of it in that discovery. The layout of an event type (its
+fields, their browse paths, the names under which the caller gives their values) is now built on first use and
+kept, and rebuilt when the type, one of its supertypes or one of their children gains or loses a reference. The
+same event now takes 75us, most of it the construction of the caller's Variants. The browse-path index that a
+select clause resolves against is shared by every event of the type; the values stay per event.
+
 ### Security
 
 #### Per-node `RolePermissions` and `AccessRestrictions` are no longer dropped when loading a NodeSet2 file
