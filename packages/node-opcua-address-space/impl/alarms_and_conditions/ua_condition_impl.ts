@@ -9,11 +9,13 @@ import {
     type ISessionContext,
     type ListenerSignature,
     type UAEventType,
+    type UAMethod,
     type UAObject,
+    type UAProperty,
     type UAVariable
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { type ByteString, getMinOPCUADate, minDate, randomGuid } from "node-opcua-basic-types";
+import { type ByteString, getMinOPCUADate, minDate, randomGuid, type UAString, type UInt16 } from "node-opcua-basic-types";
 import {
     AttributeIds,
     BrowseDirection,
@@ -36,7 +38,7 @@ import type { ConditionSnapshot } from "../../api/interfaces/alarms_and_conditio
 import type { InstantiateConditionOptions } from "../../api/interfaces/alarms_and_conditions/instantiate_condition_options.js";
 import type { UAConditionEvents, UAConditionEx } from "../../api/interfaces/alarms_and_conditions/ua_condition_ex.js";
 import type { ISetStateOptions } from "../../api/interfaces/i_set_state_options.js";
-
+import type { UATwoStateVariableEx } from "../../api/ua_two_state_variable_ex.js";
 import type { AddressSpacePrivate } from "../address_space_private.js";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable.js";
 import type { UAConditionType } from "../ua_condition_type.js";
@@ -73,12 +75,34 @@ const warningLog = make_warningLog("ua_condition_impl");
  *
  */
 
-const $ = (a: UAConditionImplBase): UAConditionEx => a as unknown as UAConditionEx;
-
 /** @internal */
-export class UAConditionImplBase<
-    T extends UAConditionEvents & ListenerSignature<T> = UAConditionEvents
-> extends UABaseEventImplBase<T> {
+export class UAConditionImplBase<T extends UAConditionEvents & ListenerSignature<T> = UAConditionEvents>
+    extends UABaseEventImplBase<T>
+    implements UAConditionEx<T>
+{
+    /**
+     * The condition's own child nodes, on top of the ones UABaseEventImplBase declares.
+     * Installed by the address space, not by this constructor - hence `declare`.
+     */
+    public declare readonly conditionClassId: UAProperty<NodeId, DataType.NodeId>;
+    public declare readonly conditionClassName: UAProperty<LocalizedText, DataType.LocalizedText>;
+    public declare readonly conditionSubClassId?: UAProperty<NodeId[], DataType.NodeId>;
+    public declare readonly conditionSubClassName?: UAProperty<LocalizedText[], DataType.LocalizedText>;
+    public declare readonly conditionName: UAProperty<UAString, DataType.String>;
+    public declare readonly branchId: UAProperty<NodeId, DataType.NodeId>;
+    public declare readonly retain: UAProperty<boolean, DataType.Boolean>;
+    public declare readonly supportsFilteredRetain: UAProperty<boolean, DataType.Boolean>;
+    public declare readonly enabledState: UATwoStateVariableEx;
+    public declare readonly quality: UAConditionVariable<StatusCode, DataType.StatusCode>;
+    public declare readonly lastSeverity: UAConditionVariable<UInt16, DataType.UInt16>;
+    public declare readonly comment: UAConditionVariable<LocalizedText, DataType.LocalizedText>;
+    public declare readonly clientUserId: UAProperty<UAString, DataType.String>;
+    public declare readonly disable: UAMethod;
+    public declare readonly enable: UAMethod;
+    public declare readonly addComment: UAMethod;
+    public declare readonly conditionRefresh: UAMethod;
+    public declare readonly conditionRefresh2: UAMethod;
+
     public static defaultSeverity = 250;
     public static typeDefinition = resolveNodeId("ConditionType");
 
@@ -244,31 +268,28 @@ export class UAConditionImplBase<
         (this as UAConditionImplBase).emit("branch_deleted", key);
     }
 
-    private get $() {
-        return this as unknown as UAConditionEx;
-    }
     /**
      */
     public getEnabledState(): boolean {
-        if (!this.$.enabledState) {
+        if (!this.enabledState) {
             // ua variable is missing
             return false;
         }
-        if (typeof this.$.enabledState.getValue !== "function") {
+        if (typeof this.enabledState.getValue !== "function") {
             // the enabledState is not initialized yet, probably because the addressSpace is not fully initialized
             // try the id that contains the flag status as a boolean DataValue
-            if (!this.$.enabledState.id) {
+            if (!this.enabledState.id) {
                 return false;
             }
-            return this.$.enabledState.id.readValue().value.value as boolean;
+            return this.enabledState.id.readValue().value.value as boolean;
         }
-        return this.$.enabledState.getValue();
+        return this.enabledState.getValue();
     }
 
     /**
      */
     public getEnabledStateAsString(): string {
-        return this.$.enabledState.getValueAsString();
+        return this.enabledState.getValueAsString();
     }
 
     /**
@@ -371,22 +392,22 @@ export class UAConditionImplBase<
     }
 
     public _assert_valid(): void {
-        assert($(this).receiveTime.readValue().value.dataType === DataType.DateTime);
-        assert($(this).receiveTime.readValue().value.value instanceof Date);
+        assert(this.receiveTime.readValue().value.dataType === DataType.DateTime);
+        assert(this.receiveTime.readValue().value.value instanceof Date);
 
-        assert($(this).message.readValue().value.dataType === DataType.LocalizedText);
-        assert($(this).severity.readValue().value.dataType === DataType.UInt16);
+        assert(this.message.readValue().value.dataType === DataType.LocalizedText);
+        assert(this.severity.readValue().value.dataType === DataType.UInt16);
 
-        assert($(this).time.readValue().value.dataType === DataType.DateTime);
-        assert($(this).time.readValue().value.value instanceof Date);
+        assert(this.time.readValue().value.dataType === DataType.DateTime);
+        assert(this.time.readValue().value.value instanceof Date);
 
-        assert($(this).quality.readValue().value.dataType === DataType.StatusCode);
+        assert(this.quality.readValue().value.dataType === DataType.StatusCode);
 
-        assert($(this).enabledState.readValue().value.dataType === DataType.LocalizedText);
-        assert($(this).branchId.readValue().value.dataType === DataType.NodeId);
+        assert(this.enabledState.readValue().value.dataType === DataType.LocalizedText);
+        assert(this.branchId.readValue().value.dataType === DataType.NodeId);
 
         // note localTime has been made optional in 1.04
-        assert(!$(this).localTime || $(this).localTime?.readValue().value.dataType === DataType.ExtensionObject);
+        assert(!this.localTime || this.localTime?.readValue().value.dataType === DataType.ExtensionObject);
     }
 
     /**
@@ -629,7 +650,7 @@ export class UAConditionImplBase<
     }
 
     public findBranchForEventId(eventId: Buffer | null): ConditionSnapshot | null {
-        if (sameBuffer($(this).eventId?.readValue().value.value, eventId)) {
+        if (sameBuffer(this.eventId?.readValue().value.value, eventId)) {
             return this.currentBranch();
         }
         const e = [...this._branches.values()].filter((branch: ConditionSnapshot) => sameBuffer(branch.getEventId(), eventId));
@@ -646,9 +667,9 @@ export class UAConditionImplBase<
     }
 }
 /** @internal */
-export type UAConditionImpl = UAConditionImplBase & UAConditionEx;
+export type UAConditionImpl = UAConditionImplBase;
 /** @internal */
-export const UAConditionImpl = UAConditionImplBase as unknown as new () => UAConditionImpl;
+export const UAConditionImpl = UAConditionImplBase;
 
 /**²
  * instantiate a Condition.
