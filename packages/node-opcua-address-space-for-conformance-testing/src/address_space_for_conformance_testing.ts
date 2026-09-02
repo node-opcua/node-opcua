@@ -7,7 +7,7 @@ import type { AddressSpace, UAObject } from "node-opcua-address-space";
 import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers";
 import { addAccessRightVariables } from "./conformance_testing/access_right_variables.js";
 import { addAnalogDataItems } from "./conformance_testing/analog_data_items.js";
-import { addCttFolder } from "./conformance_testing/ctt_folder";
+import { addCttFolder } from "./conformance_testing/ctt_folder.js";
 import {
     addMultiStateDiscreteVariable,
     addMultiStateValueDiscreteVariables,
