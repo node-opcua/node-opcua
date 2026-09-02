@@ -81,7 +81,6 @@ import {
     ToStringBuilder
 } from "./base_node_private.js";
 import {
-    childAccessorName,
     defineSharedChildAccessors as defineQueuedChildAccessors,
     hasSharedChildAccessor,
     isReservedChildAccessorName,
@@ -387,7 +386,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         // a nodeset is loading (defined in one batch by the loader, see flushSharedChildAccessors),
         // through the own accessor installed by install_extra_properties otherwise
         // (see child_accessors.ts for why the two paths exist)
-        registerChildName(this.browseName.name, options.addressSpace.suspendBackReference);
+        _private._accessorName = registerChildName(this.browseName.name, options.addressSpace.suspendBackReference);
     }
 
     public getDisplayName(_locale?: string): string {
@@ -1245,6 +1244,18 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
      * @private
      */
     public propagate_back_references(): void {
+        this._propagate_back_references(undefined);
+    }
+
+    /**
+     * propagate_back_references for a node a NodeSet2 file declared: its references may be held
+     * by their target as well, so each is looked up there before a back reference is built
+     */
+    public propagate_back_references_declared_from_both_ends(): void {
+        this._propagate_back_references(this.nodeId.toString());
+    }
+
+    private _propagate_back_references(sourceNodeKey: string | undefined): void {
         const _private = BaseNode_getPrivate(this);
         if ((this.addressSpace as AddressSpacePrivate).suspendBackReference) {
             // this indicates that the base node is constructed from an xml definition
@@ -1252,7 +1263,6 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
             return;
         }
         const addressSpace = this.addressSpace;
-        const sourceNodeKey = this.nodeId.toString();
         for (const reference of _private._referenceIdx.values()) {
             _propagate_ref.call(this, addressSpace, reference, sourceNodeKey);
         }
@@ -1694,7 +1704,7 @@ function _propagate_ref(
     this: BaseNode,
     addressSpace: MinimalistAddressSpace,
     reference: UAReference,
-    sourceNodeKey: string = this.nodeId.toString()
+    sourceNodeKey?: string
 ): void {
     // filter out non  Hierarchical References
     const referenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference);
@@ -1733,9 +1743,12 @@ function _propagate_ref(
 
         // NodeSet2 files declare most references from both ends, so the related node usually
         // holds the inverse as a forward reference of its own already: nothing to add, and no
-        // ReferenceImpl to build for BaseNode_add_backward_reference to throw away
-        const inverseHash = (reference as ReferenceImpl).inverseHash(sourceNodeKey);
-        if (BaseNode_getPrivate(related_node)._referenceIdx.has(inverseHash)) {
+        // ReferenceImpl to build for BaseNode_add_backward_reference to throw away. A node
+        // created at runtime rarely is, and BaseNode_add_backward_reference copes when it is.
+        if (
+            sourceNodeKey !== undefined &&
+            BaseNode_getPrivate(related_node)._referenceIdx.has((reference as ReferenceImpl).inverseHash(sourceNodeKey))
+        ) {
             return;
         }
         (related_node as BaseNodeImpl)._add_backward_reference(
@@ -1962,8 +1975,8 @@ function install_child_as_object_property(parentObj: BaseNode | null, child: Bas
     if (!parentObj || !child) {
         return;
     }
-    const name = childAccessorName(child.browseName.name || "");
-    if (isReservedChildAccessorName(name) || hasSharedChildAccessor(name) || name in parentObj) {
+    const name = BaseNode_getPrivate(child)?._accessorName;
+    if (!name || isReservedChildAccessorName(name) || hasSharedChildAccessor(name) || name in parentObj) {
         return;
     }
     doDebug && debugLog(`Installing property ${name}`, " on ", parentObj.browseName.toString());
@@ -1977,7 +1990,7 @@ function install_child_as_object_property(parentObj: BaseNode | null, child: Bas
 }
 
 function uninstall_child_object_property(parentObj: BaseNode, child: BaseNode): void {
-    const name = childAccessorName(child.browseName.name || "");
+    const name = BaseNode_getPrivate(child)?._accessorName;
     if (!name || hasSharedChildAccessor(name)) {
         return; // the child index already reflects the removal
     }

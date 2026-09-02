@@ -88,6 +88,8 @@ interface BaseNodeCache {
     _parent?: BaseNode | null;
     _back_referenceIdx: Map<string, UAReference>;
     _referenceIdx: Map<string, UAReference>;
+    /** the property name this node is exposed as on its parents (see child_accessors.ts) */
+    _accessorName?: string;
 }
 
 export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {
