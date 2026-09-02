@@ -1,0 +1,142 @@
+{
+  "di": {
+    "uri": "http://opcfoundation.org/UA/DI/",
+    "length": 298109,
+    "sha1": "dcd248953fcd8e10f727e93995216187cce67558"
+  },
+  "adi": {
+    "uri": "http://opcfoundation.org/UA/ADI/",
+    "length": 416476,
+    "sha1": "fb12fcb186dd7c43f1fbb6da6dec97ecd713c47d"
+  },
+  "autoId": {
+    "uri": "http://opcfoundation.org/UA/AutoID/",
+    "length": 304134,
+    "sha1": "a938bc75ef5d802d504af91462fade890be5be24"
+  },
+  "machineVision": {
+    "uri": "http://opcfoundation.org/UA/MachineVision",
+    "length": 832390,
+    "sha1": "92674e31feefe34e0019e9270b77fd0fc92bde85"
+  },
+  "commercialKitchenEquipment": {
+    "uri": "http://opcfoundation.org/UA/CommercialKitchenEquipment/",
+    "length": 583372,
+    "sha1": "713a21e73d2a3be853a66aa03704f55d2d44cc0c"
+  },
+  "amb": {
+    "uri": "http://opcfoundation.org/UA/AMB/",
+    "length": 72571,
+    "sha1": "e20a6a0d3e994259c0b491db61eca7a43d7eb43e"
+  },
+  "gds": {
+    "uri": "http://opcfoundation.org/UA/GDS/",
+    "length": 429597,
+    "sha1": "4150be2ce56a85cc9ce284c214c331bbacd2dc80"
+  },
+  "robotics": {
+    "uri": "http://opcfoundation.org/UA/Robotics/",
+    "length": 396210,
+    "sha1": "b758e49f5c3da6794e0b2c3062f4fd5b4872a511"
+  },
+  "isa95JobControl": {
+    "uri": "http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/",
+    "length": 239065,
+    "sha1": "4898356a15bb6ba231ebda5d33e30c8909573230"
+  },
+  "machineryJobs": {
+    "uri": "http://opcfoundation.org/UA/Machinery/Jobs/",
+    "length": 62425,
+    "sha1": "c55b0042887c9d919abb40edcd31b7e5057fc530"
+  },
+  "machinery": {
+    "uri": "http://opcfoundation.org/UA/Machinery/",
+    "length": 111707,
+    "sha1": "3bd3c798e69167f4c89ceca9547798d2932a4e2e"
+  },
+  "ia": {
+    "uri": "http://opcfoundation.org/UA/IA/",
+    "length": 99497,
+    "sha1": "9532617a4cb3766f54717e6fdc51c9b263943532"
+  },
+  "machineTool": {
+    "uri": "http://opcfoundation.org/UA/MachineTool/",
+    "length": 390364,
+    "sha1": "d0e798d004621cc1a75243f81555de6e48c2d597"
+  },
+  "cnc": {
+    "uri": "http://opcfoundation.org/UA/CNC",
+    "length": 687800,
+    "sha1": "9e6c20bdb868561eeb58302004100935641cce9e"
+  },
+  "woodWorking": {
+    "uri": "http://opcfoundation.org/UA/Woodworking/",
+    "length": 951846,
+    "sha1": "edfd84b178b049a1e89ece1768bad801f171ee64"
+  },
+  "glass": {
+    "uri": "http://opcfoundation.org/UA/Glass/Flat/",
+    "length": 247147,
+    "sha1": "c7fd09bd311ed12541a6f045fc168df6b251be92"
+  },
+  "tightening": {
+    "uri": "http://opcfoundation.org/UA/IJT/Tightening/",
+    "length": 37305,
+    "sha1": "273da2b64af3607bb1bfaa8202b4f11ccd8238ca"
+  },
+  "lads": {
+    "uri": "http://opcfoundation.org/UA/LADS/",
+    "length": 427931,
+    "sha1": "c6325320983ff046edf4ddd6d591bbdded6009f8"
+  },
+  "packML": {
+    "uri": "http://opcfoundation.org/UA/PackML/",
+    "length": 150904,
+    "sha1": "eedb277b790b1686fd53a150e9cc84374e18c8f8"
+  },
+  "iolink": {
+    "uri": "http://opcfoundation.org/UA/IOLink/",
+    "length": 206071,
+    "sha1": "2f916256bde51f7b605f26fca6499a5c04a411f5"
+  },
+  "iolinkIODD": {
+    "uri": "http://opcfoundation.org/UA/IOLink/IODD/",
+    "length": 5758,
+    "sha1": "14f545ea70c9afa475bd852709e54112fb52fa4d"
+  },
+  "irdi": {
+    "uri": "http://opcfoundation.org/UA/Dictionary/IRDI",
+    "length": 149973,
+    "sha1": "312de7b80b9583d1a667f06c3a44ccc0fcd36260"
+  },
+  "padim": {
+    "uri": "http://opcfoundation.org/UA/PADIM/",
+    "length": 657012,
+    "sha1": "c052a8a158ff37cef5a3398de7d6a3ed3ff67890"
+  },
+  "machineryProcessValues": {
+    "uri": "http://opcfoundation.org/UA/Machinery/ProcessValues/",
+    "length": 90751,
+    "sha1": "c81642d4a65caaa5d115f791e7fcf3c855bc7d4e"
+  },
+  "metalForming": {
+    "uri": "http://opcfoundation.org/UA/MetalForming/",
+    "length": 80716,
+    "sha1": "8e94a6dc46694c7c4d5bb808f70f20c1d4dbf70b"
+  },
+  "scales": {
+    "uri": "http://opcfoundation.org/UA/Scales/V2/",
+    "length": 830525,
+    "sha1": "f83a77aa936951e508292e7631b24f98447d4637"
+  },
+  "i4aas": {
+    "uri": "http://opcfoundation.org/UA/I4AAS/",
+    "length": 290237,
+    "sha1": "58bdd5f7cc0bc73e82b16c8875045c4618da9d44"
+  },
+  "weihenstephan": {
+    "uri": "http://opcfoundation.org/UA/Weihenstephan/",
+    "length": 46631,
+    "sha1": "bd6cab48a98004545b7ea8a5a8376bcf6d2fba70"
+  }
+}

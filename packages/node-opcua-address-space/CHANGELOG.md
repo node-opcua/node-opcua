@@ -146,13 +146,14 @@ file's own namespace table. `namespace.toNodesetImage()` and `namespaceToImage(n
 precompiled image whose trailer digest is the SHA-256 of the node lines, so a re-import keys on content. Round trip
 is the identity: a namespace loaded from a file, exported, loaded again from its records and exported once more
 gives the same records, and the two address spaces digest the same; so does a namespace built in code, and
-`toNodeset2XML` of the reloaded one is byte-identical. The walk visits a data type's encodings by NodeId rather
-than by the order their references were added, so two exports agree whatever built the address space.
+`toNodeset2XML` of the reloaded one is byte-identical.
 
 - `opcua-nodeset-image export <file.xml>` exports the last file's namespace from the live address space.
 - The loader reads `UAView` elements and views round-trip; a record applied to an address space is left untouched
   for the next consumer (the applier translates copies of the values it stores).
-- `toNodeset2XML` still holds its own walk; making it a consumer of the records is the next step.
+- `toNodeset2XML` is a consumer of the same walk: the records and the comment markers drive its order, each node's
+  element is still rendered from the node, and `node.dumpXML(writer)` runs that walk from the node. Its output is
+  byte-identical to before on every catalog namespace, pinned by a golden test.
 
 ### Security
 
