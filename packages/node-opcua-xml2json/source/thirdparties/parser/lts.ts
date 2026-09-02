@@ -123,26 +123,32 @@ export class SaxLtx extends EventEmitter {
                 return undefined;
             }
 
+            // Each fast-forward below looks for the end of the record being read. When the chunk
+            // holds no such end, the rest of the chunk belongs to the record: skip to the end at
+            // once. Searching again from every following character made a chunk cost the square
+            // of its unread tail, 6 seconds for a 4 MB text run delivered in 64 KB pieces.
             for (; pos < data.length; pos++) {
                 switch (state) {
                     case STATE_TEXT: {
                         // if we're looping through text, fast-forward using indexOf to
                         // the next '<' character
                         const lt = data.indexOf("<", pos);
-                        if (lt !== -1 && pos !== lt) {
-                            pos = lt;
+                        if (lt === -1) {
+                            pos = data.length;
+                            continue;
                         }
-
+                        pos = lt;
                         break;
                     }
                     case STATE_ATTR_VALUE: {
                         // if we're looping through an attribute, fast-forward using
                         // indexOf to the next end quote character
                         const quot = data.indexOf(attrQuoteChar, pos);
-                        if (quot !== -1) {
-                            pos = quot;
+                        if (quot === -1) {
+                            pos = data.length;
+                            continue;
                         }
-
+                        pos = quot;
                         break;
                     }
                     case STATE_TAG_NAME: {
@@ -151,18 +157,22 @@ export class SaxLtx extends EventEmitter {
                         if (recordStart !== pos) {
                             TAG_NAME_END.lastIndex = pos;
                             const m = TAG_NAME_END.exec(data);
-                            if (m) {
-                                pos = m.index;
+                            if (!m) {
+                                pos = data.length;
+                                continue;
                             }
+                            pos = m.index;
                         }
                         break;
                     }
                     case STATE_ATTR_NAME: {
                         ATTR_NAME_END.lastIndex = pos;
                         const m = ATTR_NAME_END.exec(data);
-                        if (m) {
-                            pos = m.index;
+                        if (!m) {
+                            pos = data.length;
+                            continue;
                         }
+                        pos = m.index;
                         break;
                     }
                     case STATE_IGNORE_COMMENT: {

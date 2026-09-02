@@ -35,4 +35,12 @@ export interface NodeSetLoaderOptions {
      * @default "ignore"
      */
     accessRestrictions?: NodeSetPermissionsPolicy;
+    /**
+     * how much text the loader parses between two turns of the event loop, in characters, when
+     * a nodeset arrives as a stream: a server starting up keeps answering while a large model
+     * loads. A chunk is parsed whole, so a source delivered in one piece never yields. Zero
+     * disables the yield.
+     * @default 8388608 (8 MiB)
+     */
+    yieldEveryBytes?: number;
 }

@@ -194,6 +194,7 @@ function isUninitializedMatrix(value: VariantOptions): boolean {
 
 export interface NodeSet2ParserEngine {
     addNodeSet: (xmlData: string) => Promise<void>;
+    addNodeSetStream: (chunks: AsyncIterable<string>) => Promise<void>;
     terminate: () => Promise<void>;
 }
 
@@ -1276,10 +1277,42 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         parser.parseString(xmlData);
     }
 
+    async function addNodeSetStream(chunks: AsyncIterable<string>): Promise<void> {
+        _reset_namespace_translation();
+        const budget = options.yieldEveryBytes === undefined ? DEFAULT_YIELD_EVERY_BYTES : options.yieldEveryBytes;
+        try {
+            await parser.parseStream(budget > 0 ? paced(chunks, budget) : chunks);
+        } catch (err) {
+            // the address space holds what was loaded before the failure and must be disposed;
+            // it is not left in the middle of a load
+            addressSpace1.suspendBackReference = false;
+            throw err;
+        }
+    }
+
     return {
         addNodeSet,
+        addNodeSetStream,
         terminate
     };
+}
+
+const DEFAULT_YIELD_EVERY_BYTES = 8 * 1024 * 1024;
+
+const yieldToEventLoop = (): Promise<void> =>
+    new Promise<void>((resolve) => (typeof setImmediate === "function" ? setImmediate(resolve) : setTimeout(resolve, 0)));
+
+/** the same chunks, with a turn of the event loop once `budget` characters went by */
+async function* paced(chunks: AsyncIterable<string>, budget: number): AsyncGenerator<string> {
+    let sinceLastYield = 0;
+    for await (const chunk of chunks) {
+        yield chunk;
+        sinceLastYield += chunk.length;
+        if (sinceLastYield >= budget) {
+            sinceLastYield = 0;
+            await yieldToEventLoop();
+        }
+    }
 }
 
 export class NodeSetLoader {
@@ -1290,6 +1323,11 @@ export class NodeSetLoader {
 
     async addNodeSetAsync(xmlData: string): Promise<void> {
         return await this._s.addNodeSet(xmlData);
+    }
+
+    /** load a nodeset delivered as text chunks; see {@link NodesetSource} */
+    async addNodeSetStream(chunks: AsyncIterable<string>): Promise<void> {
+        return await this._s.addNodeSetStream(chunks);
     }
 
     async terminate(): Promise<void> {

@@ -95,14 +95,23 @@ interface LoadSample {
     nodes: number;
 }
 
-async function loadOnce(files: string[]): Promise<LoadSample> {
+type LoadMode = "string" | "stream";
+
+/** the standard nodeset in 256 KB pieces, as the Node.js generateAddressSpace reads a file */
+const fileSource = (file: string) => ({ name: file, source: () => fs.createReadStream(file, { highWaterMark: 256 * 1024 }) });
+
+async function loadOnce(files: string[], mode: LoadMode): Promise<LoadSample> {
     for (const key of Object.keys(counters) as (keyof typeof counters)[]) {
         counters[key] = 0;
     }
     const addressSpace = AddressSpace.create();
     const heap0 = heapUsed();
     const t0 = performance.now();
-    await generateAddressSpaceRaw(addressSpace, files, (f) => fs.promises.readFile(f, "utf-8"), {});
+    if (mode === "string") {
+        await generateAddressSpaceRaw(addressSpace, files, (f) => fs.promises.readFile(f, "utf-8"), {});
+    } else {
+        await generateAddressSpaceRaw(addressSpace, files.map(fileSource), {});
+    }
     const total = performance.now() - t0;
     const heap1 = heapUsed();
     let nodes = 0;
@@ -122,24 +131,27 @@ const scenarios: Record<string, (keyof typeof nodesets)[]> = {
 };
 
 async function benchLoad(runs: number) {
-    for (const [label, names] of Object.entries(scenarios)) {
+    for (const [scenario, names] of Object.entries(scenarios)) {
         const files = names.map((name) => nodesets[name]);
-        let best: LoadSample | undefined;
-        for (let run = 0; run < runs; run++) {
-            const sample = await loadOnce(files);
-            console.log(`  ${label.padEnd(9)} run ${run + 1}: total=${seconds(sample.total)} parse=${seconds(sample.parse)}`);
-            if (!best || sample.total < best.total) {
-                best = sample;
+        for (const mode of ["string", "stream"] as LoadMode[]) {
+            const label = `${scenario}/${mode}`;
+            let best: LoadSample | undefined;
+            for (let run = 0; run < runs; run++) {
+                const sample = await loadOnce(files, mode);
+                console.log(`  ${label.padEnd(16)} run ${run + 1}: total=${seconds(sample.total)} parse=${seconds(sample.parse)}`);
+                if (!best || sample.total < best.total) {
+                    best = sample;
+                }
             }
+            if (!best) continue;
+            const rest = best.total - best.parse - best.terminate;
+            console.log(
+                `${label.padEnd(16)} best of ${runs}: nodes=${best.nodes} total=${seconds(best.total)} ` +
+                    `parse=${seconds(best.parse)} terminate=${seconds(best.terminate)} ` +
+                    `(backRefs=${seconds(best.backRefs)}) other=${seconds(rest)} ` +
+                    `findReferencesEx=${best.findReferencesEx} heap=${gc ? megabytes(best.heap) : "n/a (run with --expose-gc)"}`
+            );
         }
-        if (!best) continue;
-        const rest = best.total - best.parse - best.terminate;
-        console.log(
-            `${label.padEnd(9)} best of ${runs}: nodes=${best.nodes} total=${seconds(best.total)} ` +
-                `parse=${seconds(best.parse)} terminate=${seconds(best.terminate)} ` +
-                `(backRefs=${seconds(best.backRefs)}) other=${seconds(rest)} ` +
-                `findReferencesEx=${best.findReferencesEx} heap=${gc ? megabytes(best.heap) : "n/a (run with --expose-gc)"}`
-        );
     }
 }
 

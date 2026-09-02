@@ -292,6 +292,9 @@ export class Xml2Json {
     private state_stack: Array<IReaderState | null> = [];
     private backup_stack: Array<Record<string, unknown> | null> = [];
     private current_state: IReaderState | null = null;
+    private sax: SaxLtx | null = null;
+    private decoder: TextDecoder | null = null;
+    private atStart = false;
 
     constructor(options: ReaderStateParser) {
         const state = options instanceof ReaderStateBase ? (options as ReaderState) : new ReaderState(options);
@@ -305,6 +308,102 @@ export class Xml2Json {
 
     public parseString(xml_text: string): Record<string, unknown> {
         return this.__parseInternal(xml_text);
+    }
+
+    /**
+     * parse a document that arrives in pieces: text, or UTF-8 bytes decoded as they come (a
+     * multi-byte character or the byte-order mark may straddle two chunks)
+     */
+    public async parseStream(
+        chunks: AsyncIterable<string | Uint8Array> | Iterable<string | Uint8Array>
+    ): Promise<Record<string, unknown>> {
+        this.begin();
+        for await (const chunk of chunks) {
+            this.write(chunk);
+        }
+        return this.end();
+    }
+
+    /** start a document that {@link write} will feed and {@link end} will finish */
+    public begin(): void {
+        this.currentLevel = 0;
+        this.atStart = true;
+        this.decoder = null;
+        // direct handlers rather than events, and the blank runs between tags dropped by the
+        // parser before they are unescaped: see SaxLtxHandlers
+        const sax = new SaxLtx({
+            skipBlankText: true,
+            onStartElement: (name: string, attrs: XmlAttributes) => {
+                const tag_ns = resolve_namespace(name);
+                this.currentLevel += 1;
+                if (this.current_state) {
+                    this.current_state._on_startElement(this.currentLevel, tag_ns.tag, attrs);
+                }
+            },
+            onEndElement: (name: string) => {
+                const tag_ns = resolve_namespace(name);
+                if (this.current_state) {
+                    this.current_state._on_endElement(this.currentLevel, tag_ns.tag);
+                }
+                this.currentLevel -= 1;
+                if (this.currentLevel === 0) {
+                    sax.emit("close");
+                }
+            },
+            onText: (text: string) => {
+                // the reader state trims what it receives; nothing blank reaches this point
+                if (this.current_state) {
+                    this.current_state._on_text(text);
+                }
+            }
+        });
+        this.sax = sax;
+    }
+
+    /** feed the next piece of the document started by {@link begin} */
+    public write(chunk: string | Uint8Array): void {
+        const sax = this.sax;
+        if (!sax) {
+            throw new Error("Xml2Json#write: begin() must be called first");
+        }
+        let text: string;
+        if (typeof chunk === "string") {
+            text = chunk;
+        } else {
+            this.decoder = this.decoder || new TextDecoder("utf-8");
+            text = this.decoder.decode(chunk, { stream: true });
+        }
+        if (text.length === 0) {
+            return;
+        }
+        if (this.atStart) {
+            this.atStart = false;
+            if (text.charCodeAt(0) === 0xfeff) {
+                text = text.slice(1);
+            }
+        }
+        sax.write(text);
+    }
+
+    /** finish the document started by {@link begin} and return what the reader states built */
+    public end(): Record<string, unknown> {
+        const sax = this.sax;
+        if (!sax) {
+            throw new Error("Xml2Json#end: begin() must be called first");
+        }
+        if (this.decoder) {
+            const tail = this.decoder.decode();
+            this.decoder = null;
+            if (tail.length > 0) {
+                sax.write(tail);
+            }
+        }
+        sax.end("");
+        this.sax = null;
+        if (!this.current_state) {
+            return {};
+        }
+        return (this.current_state as unknown as { _pojo: Record<string, unknown> })._pojo;
     }
     /**
      * @private
@@ -368,40 +467,8 @@ export class Xml2Json {
      * @internal
      */
     protected __parseInternal(data: string): Record<string, unknown> {
-        this.currentLevel = 0;
-        // direct handlers rather than events, and the blank runs between tags dropped by the
-        // parser before they are unescaped: see SaxLtxHandlers
-        const parser = new SaxLtx({
-            skipBlankText: true,
-            onStartElement: (name: string, attrs: XmlAttributes) => {
-                const tag_ns = resolve_namespace(name);
-                this.currentLevel += 1;
-                if (this.current_state) {
-                    this.current_state._on_startElement(this.currentLevel, tag_ns.tag, attrs);
-                }
-            },
-            onEndElement: (name: string) => {
-                const tag_ns = resolve_namespace(name);
-                if (this.current_state) {
-                    this.current_state._on_endElement(this.currentLevel, tag_ns.tag);
-                }
-                this.currentLevel -= 1;
-                if (this.currentLevel === 0) {
-                    parser.emit("close");
-                }
-            },
-            onText: (text: string) => {
-                // the reader state trims what it receives; nothing blank reaches this point
-                if (this.current_state) {
-                    this.current_state._on_text(text);
-                }
-            }
-        });
-        parser.write(data);
-        parser.end("");
-        if (!this.current_state) {
-            return {};
-        }
-        return (this.current_state as unknown as { _pojo: Record<string, unknown> })._pojo;
+        this.begin();
+        this.write(data);
+        return this.end();
     }
 }
