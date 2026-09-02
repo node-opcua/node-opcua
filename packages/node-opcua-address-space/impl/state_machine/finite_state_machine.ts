@@ -2,9 +2,11 @@
  * @module node-opcua-address-space
  */
 import chalk from "chalk";
-import type { BaseNode, UAMethod, UAObject, UAObjectType, UAVariable } from "node-opcua-address-space-base";
+import type { BaseNode, UAMethod, UAObject, UAObjectType, UAProperty, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
+import type { UInt32 } from "node-opcua-basic-types";
 import { ObjectTypeIds } from "node-opcua-constants";
+import type { LocalizedText } from "node-opcua-data-model";
 import {
     AttributeIds,
     BrowseDirection,
@@ -15,7 +17,7 @@ import {
 } from "node-opcua-data-model";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
-import type { UAState, UATransition } from "node-opcua-nodeset-ua";
+import type { UAState, UAStateVariable, UATransition } from "node-opcua-nodeset-ua";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import type {
@@ -34,11 +36,13 @@ const warningLog = make_warningLog("finite_state_machine");
 const doDebug = false;
 const debugLog = make_debugLog("finite_state_machine");
 
-export class UATransitionImplBase extends BaseNodeImpl {
+export class UATransitionImplBase extends UAObjectImpl implements UATransitionEx {
+    /** installed as a child node by the address space, not assigned here - hence `declare` */
+    public declare readonly transitionNumber: UAProperty<UInt32, DataType.UInt32>;
     /* intentionnaly empty */
 }
-export type UATransitionImpl = UATransitionImplBase & UATransitionEx;
-export const UATransitionImpl = UATransitionImplBase as unknown as new () => UATransitionImpl;
+export type UATransitionImpl = UATransitionImplBase;
+export const UATransitionImpl = UATransitionImplBase;
 
 function getComponentOfType(typeDef: UAObjectType, typedefinition: UAObjectType): UAObject[] {
     const get = (typeDef: UAObjectType) =>
@@ -122,13 +126,20 @@ export function getFiniteStateMachineTypeStateByName(uaFiniteStateMachineType: U
     return states.length === 1 ? states[0] : null;
 }
 
-const $ = (uaObject: UAStateMachineImplBase) => uaObject as unknown as UAStateMachineEx;
 /*
  *
  * @class StateMachine
  *
  */
-export class UAStateMachineImplBase extends UAObjectImpl {
+export class UAStateMachineImplBase extends UAObjectImpl implements UAStateMachineEx {
+    /**
+     * currentState is installed as a child node by the address space; _currentStateNode is
+     * cached state this class maintains. Neither is assigned by the constructor - hence
+     * `declare`, which emits nothing.
+     */
+    public declare readonly currentState: UAStateVariable<LocalizedText>;
+    public declare _currentStateNode: UAState | null;
+
     public getStates(): UAState[] {
         const typeDef = this.typeDefinitionObj;
         return getFiniteStateMachineTypeStates(typeDef);
@@ -198,7 +209,7 @@ export class UAStateMachineImplBase extends UAObjectImpl {
         if (!this.currentStateNode) {
             return true;
         }
-        const _n = $(this).currentState.readValue();
+        const _n = this.currentState.readValue();
 
         // to be executed there must be a transition from currentState to toState
         const transition = this.findTransitionNode(this.currentStateNode, toStateNode, predicate);
@@ -272,7 +283,7 @@ export class UAStateMachineImplBase extends UAObjectImpl {
     }
 
     public get currentStateNode(): UAState | null {
-        return $(this)._currentStateNode;
+        return this._currentStateNode;
     }
 
     /**
@@ -280,7 +291,7 @@ export class UAStateMachineImplBase extends UAObjectImpl {
      * @type BaseNode
      */
     public set currentStateNode(value: UAState | null) {
-        $(this)._currentStateNode = value;
+        this._currentStateNode = value;
     }
 
     /**
@@ -299,10 +310,7 @@ export class UAStateMachineImplBase extends UAObjectImpl {
     public setState(toStateNode: string | UAState | null, predicate?: TransitionSelector): void {
         if (!toStateNode) {
             this.currentStateNode = null;
-            $(this).currentState.setValueFromSource(
-                { dataType: DataType.LocalizedText, value: null },
-                StatusCodes.BadStateNotActive
-            );
+            this.currentState.setValueFromSource({ dataType: DataType.LocalizedText, value: null }, StatusCodes.BadStateNotActive);
             return;
         }
 
@@ -319,7 +327,7 @@ export class UAStateMachineImplBase extends UAObjectImpl {
         toStateNode = this._coerceNode(toStateNode) as UAState;
         assert(toStateNode.nodeClass === NodeClass.Object);
 
-        $(this).currentState.setValueFromSource(
+        this.currentState.setValueFromSource(
             {
                 dataType: DataType.LocalizedText,
                 value: coerceLocalizedText(toStateNode.displayName[0] || toStateNode.browseName.name || "")
@@ -330,7 +338,7 @@ export class UAStateMachineImplBase extends UAObjectImpl {
         this.currentStateNode = toStateNode;
 
         const applyCurrentStateOptionalProps = () => {
-            const uaId = $(this).currentState.getPropertyByName("Id") as UAVariable;
+            const uaId = this.currentState.getPropertyByName("Id") as UAVariable;
             if (uaId) {
                 uaId.setValueFromSource({
                     dataType: DataType.NodeId,
@@ -338,7 +346,7 @@ export class UAStateMachineImplBase extends UAObjectImpl {
                 });
             }
 
-            const uaName = $(this).currentState.getPropertyByName("Name") as UAVariable;
+            const uaName = this.currentState.getPropertyByName("Name") as UAVariable;
             if (uaName) {
                 uaName.setValueFromSource({
                     dataType: DataType.QualifiedName,
@@ -346,7 +354,7 @@ export class UAStateMachineImplBase extends UAObjectImpl {
                 });
             }
 
-            const uaNumber = $(this).currentState.getPropertyByName("Number") as UAVariable;
+            const uaNumber = this.currentState.getPropertyByName("Number") as UAVariable;
             if (uaNumber) {
                 if (!this.currentStateNode) {
                     const _n = uaNumber.setValueFromSource({
@@ -361,7 +369,7 @@ export class UAStateMachineImplBase extends UAObjectImpl {
                 }
             }
 
-            const uaEffectiveDisplayName = $(this).currentState.getPropertyByName("EffectiveDisplayName") as UAVariable;
+            const uaEffectiveDisplayName = this.currentState.getPropertyByName("EffectiveDisplayName") as UAVariable;
             if (uaEffectiveDisplayName) {
                 uaEffectiveDisplayName.setValueFromSource({
                     dataType: DataType.LocalizedText,
@@ -586,7 +594,7 @@ export class UAStateMachineImplBase extends UAObjectImpl {
         // xx assert(!this.typeDefinitionObj || this.typeDefinitionObj.isSubtypeOf(finiteStateMachineType));
         // get current Status
 
-        const d = $(this).currentState.readValue();
+        const d = this.currentState.readValue();
 
         if (d.statusCode.isNotGood()) {
             this.setState(null);
@@ -628,8 +636,8 @@ export class UAStateMachineImplBase extends UAObjectImpl {
         }
     }
 }
-export type UAStateMachineImpl = UAStateMachineImplBase & UAStateMachineEx;
-export const UAStateMachineImpl = UAStateMachineImplBase as unknown as new () => UAStateMachineImpl;
+export type UAStateMachineImpl = UAStateMachineImplBase;
+export const UAStateMachineImpl = UAStateMachineImplBase;
 export function promoteToStateMachine(node: UAObject): UAStateMachineEx {
     if (node instanceof UAStateMachineImpl) {
         return node; // already promoted
