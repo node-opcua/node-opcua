@@ -5,8 +5,10 @@
  * no Date, Buffer, 64-bit integer or NodeId, so every value type has one written rule here,
  * versioned by {@link NODESET_RECORD_SCHEMA}:
  *
- * - NodeId: `[namespaceIndex, "i" | "s" | "g" | "b", value]`, the index in the file's own table;
- *   an ExpandedNodeId adds `namespaceUri` and `serverIndex` around that tuple
+ * - NodeId: the number alone when numeric in namespace 0, `[namespaceIndex, value]` when numeric
+ *   elsewhere, `[namespaceIndex, "i" | "s" | "g" | "b", value]` otherwise, the index being the
+ *   file's own table; an ExpandedNodeId adds `namespaceUri` and `serverIndex` around it
+ * - a reference: `[isForward ? 1 : 0, referenceType, target]`
  * - QualifiedName: `[namespaceIndex, name]`; LocalizedText: `{ locale, text }`
  * - DateTime: ISO-8601 string, or `{ iso, picoseconds }` when sub-millisecond precision is carried
  * - ByteString: base64; Guid, String, XmlElement: the string
@@ -45,7 +47,13 @@ import {
     XmlExtensionObjectFragment
 } from "./nodeset_record.js";
 
-export type JsonNodeId = [number, "i" | "s" | "g" | "b", number | string];
+/**
+ * a NodeId: the number alone when numeric in namespace 0 (nearly every id of a nodeset),
+ * `[namespaceIndex, value]` when numeric elsewhere, `[namespaceIndex, kind, value]` otherwise
+ */
+export type JsonNodeId = number | [number, number] | [number, "i" | "s" | "g" | "b", number | string];
+/** a reference: `[isForward ? 1 : 0, referenceType, target]` */
+export type JsonReference = [0 | 1, JsonNodeId, JsonNodeId];
 export type JsonQualifiedName = [number, string];
 
 /** what a corrupt or foreign image raises; the loader discards such an image and rebuilds it */
@@ -62,14 +70,23 @@ const TYPE_OF_KIND = { i: NodeIdType.NUMERIC, s: NodeIdType.STRING, g: NodeIdTyp
 
 export function encodeNodeId(nodeId: NodeId): JsonNodeId {
     const kind = KIND_OF_TYPE[nodeId.identifierType];
+    if (kind === "i") {
+        return nodeId.namespace === 0 ? (nodeId.value as number) : [nodeId.namespace, nodeId.value as number];
+    }
     const value = kind === "b" ? Buffer.from(nodeId.value as Buffer).toString("base64") : (nodeId.value as number | string);
     return [nodeId.namespace, kind, value];
 }
 export function decodeNodeId(json: unknown): NodeId {
+    if (typeof json === "number") {
+        return new NodeId(NodeIdType.NUMERIC, json, 0);
+    }
+    if (Array.isArray(json) && json.length === 2 && typeof json[0] === "number" && typeof json[1] === "number") {
+        return new NodeId(NodeIdType.NUMERIC, json[1], json[0]);
+    }
     if (!Array.isArray(json) || json.length !== 3 || typeof json[0] !== "number" || !(json[1] in TYPE_OF_KIND)) {
         throw new NodesetImageError(`not a NodeId: ${JSON.stringify(json)}`);
     }
-    const [namespace, kind, value] = json as JsonNodeId;
+    const [namespace, kind, value] = json as [number, "i" | "s" | "g" | "b", number | string];
     const identifier = kind === "b" ? Buffer.from(value as string, "base64") : value;
     return new NodeId(TYPE_OF_KIND[kind], identifier, namespace);
 }
@@ -419,11 +436,6 @@ export function decodeHeader(json: NodesetImageHeader): NodesetHeaderRecord {
     return { kind: "header", namespaceUris: json.namespaceUris || [], models, aliases };
 }
 
-interface JsonReference {
-    isForward: boolean;
-    referenceType: JsonNodeId;
-    nodeId: JsonNodeId;
-}
 interface JsonField extends Omit<NodesetDefinitionField, "dataType"> {
     dataType?: JsonNodeId | null;
 }
@@ -478,11 +490,9 @@ export function encodeNode(record: NodesetNodeRecord): NodesetImageNode {
         nodeClass: record.nodeClass,
         nodeId: encodeNodeId(record.nodeId),
         browseName: encodeQualifiedName(record.browseName),
-        references: record.references.map((r) => ({
-            isForward: r.isForward,
-            referenceType: encodeNodeId(r.referenceType),
-            nodeId: encodeNodeId(r.nodeId)
-        }))
+        references: record.references.map(
+            (r): JsonReference => [r.isForward ? 1 : 0, encodeNodeId(r.referenceType), encodeNodeId(r.nodeId)]
+        )
     };
     for (const key of OPTIONAL_PLAIN) {
         const v = record[key];
@@ -518,9 +528,9 @@ export function decodeNode(json: NodesetImageNode): NodesetNodeRecord {
         browseName: decodeQualifiedName(json.browseName),
         references: (json.references || []).map(
             (r): NodesetReferenceRecord => ({
-                isForward: r.isForward,
-                referenceType: decodeNodeId(r.referenceType),
-                nodeId: decodeNodeId(r.nodeId)
+                isForward: r[0] === 1,
+                referenceType: decodeNodeId(r[1]),
+                nodeId: decodeNodeId(r[2])
             })
         )
     };
