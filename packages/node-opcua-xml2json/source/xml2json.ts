@@ -209,15 +209,26 @@ export class ReaderState extends ReaderStateBase {
 
 const regexp = /(([^:]+):)?(.*)/;
 
-function resolve_namespace(name: string) {
+interface ResolvedName {
+    ns: string | undefined;
+    tag: string;
+}
+
+// a document uses a few dozen distinct element names, each of them thousands of times
+const resolvedNames = new Map<string, ResolvedName>();
+
+function resolve_namespace(name: string): ResolvedName {
+    const known = resolvedNames.get(name);
+    if (known) {
+        return known;
+    }
     const m = name.match(regexp);
     if (!m) {
         throw new Error("Invalid match");
     }
-    return {
-        ns: m[2],
-        tag: m[3]
-    };
+    const resolved: ResolvedName = { ns: m[2], tag: m[3] };
+    resolvedNames.set(name, resolved);
+    return resolved;
 }
 
 /**
@@ -338,32 +349,33 @@ export class Xml2Json {
      * @internal
      */
     protected __parseInternal(data: string): Record<string, unknown> {
-        const parser = new SaxLtx();
         this.currentLevel = 0;
-        parser.on("startElement", (name: string, attrs: XmlAttributes) => {
-            const tag_ns = resolve_namespace(name);
-            this.currentLevel += 1;
-            if (this.current_state) {
-                this.current_state._on_startElement(this.currentLevel, tag_ns.tag, attrs);
-            }
-        });
-        parser.on("endElement", (name: string) => {
-            const tag_ns = resolve_namespace(name);
-            if (this.current_state) {
-                this.current_state._on_endElement(this.currentLevel, tag_ns.tag);
-            }
-            this.currentLevel -= 1;
-            if (this.currentLevel === 0) {
-                parser.emit("close");
-            }
-        });
-        parser.on("text", (text: string) => {
-            text = text.trim();
-            if (text.length === 0) {
-                return;
-            }
-            if (this.current_state) {
-                this.current_state._on_text(text);
+        // direct handlers rather than events, and the blank runs between tags dropped by the
+        // parser before they are unescaped: see SaxLtxHandlers
+        const parser = new SaxLtx({
+            skipBlankText: true,
+            onStartElement: (name: string, attrs: XmlAttributes) => {
+                const tag_ns = resolve_namespace(name);
+                this.currentLevel += 1;
+                if (this.current_state) {
+                    this.current_state._on_startElement(this.currentLevel, tag_ns.tag, attrs);
+                }
+            },
+            onEndElement: (name: string) => {
+                const tag_ns = resolve_namespace(name);
+                if (this.current_state) {
+                    this.current_state._on_endElement(this.currentLevel, tag_ns.tag);
+                }
+                this.currentLevel -= 1;
+                if (this.currentLevel === 0) {
+                    parser.emit("close");
+                }
+            },
+            onText: (text: string) => {
+                // the reader state trims what it receives; nothing blank reaches this point
+                if (this.current_state) {
+                    this.current_state._on_text(text);
+                }
             }
         });
         parser.write(data);
