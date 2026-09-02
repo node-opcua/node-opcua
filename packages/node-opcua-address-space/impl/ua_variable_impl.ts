@@ -805,7 +805,10 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
      * @internal
      */
     public _setInitialDataValue(variant: VariantLike, statusCode: StatusCode = StatusCodes.Good): void {
-        if (this.$$extensionObjectArray || this.$set_ExtensionObject || this._timestamped_set_func) {
+        // the loader creates every variable with an empty value object, which the constructor
+        // binds, so a bound setter is the norm here and not a reason to take the long path:
+        // setValueFromSource never consults it either. A bound extension object is.
+        if (this.$$extensionObjectArray || this.$set_ExtensionObject) {
             this.setValueFromSource(variant, statusCode);
             return;
         }
