@@ -124,7 +124,7 @@ describe("The XML reader as a record producer", () => {
         should(speed.references[0].isForward).eql(false);
         const ids = nodes[2];
         should(ids.value?.dataType).eql(DataType.NodeId);
-        should((ids.value?.value as NodeId[]).map((n) => n.toString())).eql(["ns=2;i=7", "ns=1;i=1000"]);
+        should(((ids.value?.value ?? []) as NodeId[]).map((n) => n.toString())).eql(["ns=2;i=7", "ns=1;i=1000"]);
     });
 
     it("keeps the release status and the declared permissions, whatever the loader options", () => {
