@@ -56,7 +56,16 @@ export type ChildAccessorResolver<Node> = (node: Node, accessorName: string) => 
  * The mapping is not invertible, hence the registry kept by {@link registerChildName}.
  */
 export function childAccessorName(browseName: string): string {
-    return lowerFirstLetter(browseName);
+    // lowerFirstLetter splits on underscores and lower-cases every part, several passes and a
+    // join for a name it then returns unchanged; a name without an upper-case letter is its own
+    // accessor name, and that is what a model built at runtime mostly carries (tag_0001)
+    for (let i = 0; i < browseName.length; i++) {
+        const code = browseName.charCodeAt(i);
+        if (code >= 65 && code <= 90) {
+            return lowerFirstLetter(browseName);
+        }
+    }
+    return browseName;
 }
 
 export function hasSharedChildAccessor(accessorName: string): boolean {
@@ -76,11 +85,11 @@ export function isReservedChildAccessorName(accessorName: string): boolean {
  * name back to it; with `requestShared`, also queue a shared getter for it, to be defined by the
  * next {@link defineSharedChildAccessors}.
  */
-export function registerChildName(browseName: string | null | undefined, requestShared: boolean): void {
+export function registerChildName(browseName: string | null | undefined, requestShared: boolean): string | undefined {
     if (!browseName) {
-        return;
+        return undefined;
     }
-    const accessorName = lowerFirstLetter(browseName);
+    const accessorName = childAccessorName(browseName);
     if (browseName !== accessorName && browseName !== upperFirstLetter(accessorName)) {
         const known = irregularBrowseNames.get(accessorName);
         if (!known) {
@@ -92,6 +101,7 @@ export function registerChildName(browseName: string | null | undefined, request
     if (requestShared && !sharedAccessors.has(accessorName)) {
         pendingSharedAccessors.add(accessorName);
     }
+    return accessorName;
 }
 
 /**

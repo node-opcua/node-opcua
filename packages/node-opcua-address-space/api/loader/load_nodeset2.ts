@@ -38,7 +38,7 @@ import { DataType, Variant, VariantArrayType, type VariantOptions } from "node-o
 import { _definitionParser, ReaderState, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
 import semver from "semver";
 import type { AddressSpacePrivate } from "../../impl/address_space_private.js";
-import { flushSharedChildAccessors } from "../../impl/base_node_impl.js";
+import { type BaseNodeImpl, flushSharedChildAccessors } from "../../impl/base_node_impl.js";
 import { BaseNode_resetChildIndex } from "../../impl/base_node_private.js";
 import type { NamespacePrivate } from "../../impl/namespace_private.js";
 import type { StructureFieldOptionsEx } from "../../impl/ua_data_type_impl.js";
@@ -55,7 +55,7 @@ const errorLog = make_errorLog("load_nodeset2");
 function __make_back_references(namespace: INamespace) {
     const namespaceP = namespace as NamespacePrivate;
     for (const node of namespaceP.nodeIterator()) {
-        node.propagate_back_references();
+        (node as BaseNodeImpl).propagate_back_references_declared_from_both_ends();
     }
     // Children are reached through shared accessors resolved on the child index (see
     // impl/child_accessors.ts), so there is no per-node property installation to run here any

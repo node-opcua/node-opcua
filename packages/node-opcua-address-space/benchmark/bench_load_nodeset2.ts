@@ -20,6 +20,7 @@
  * The best of N is reported rather than the mean: on a busy machine the distribution is bimodal and the
  * minimum is the estimate of the intrinsic cost.
  */
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import { performance } from "node:perf_hooks";
 import { nodesets } from "node-opcua-nodesets";
@@ -138,8 +139,28 @@ async function benchLoad(runs: number) {
     }
 }
 
-async function benchUniqueNames(countOfNodes: number) {
+/**
+ * each mode in a process of its own: run second in the same process, a scenario inherits the
+ * object shapes the first one warmed up and reports a heap 12MB smaller than it would on its own
+ */
+function benchUniqueNames(countOfNodes: number) {
     for (const frugal of [false, true]) {
+        const result = spawnSync(
+            process.execPath,
+            [...process.execArgv, process.argv[1], "unique-one", String(countOfNodes), frugal ? "1" : "0"],
+            {
+                encoding: "utf-8"
+            }
+        );
+        process.stdout.write(result.stdout);
+        if (result.status !== 0) {
+            process.stderr.write(result.stderr);
+        }
+    }
+}
+
+async function benchUniqueNamesOne(countOfNodes: number, frugal: boolean) {
+    {
         const addressSpace = AddressSpace.create();
         await generateAddressSpaceRaw(addressSpace, [nodesets.standard], (f) => fs.promises.readFile(f, "utf-8"), {});
         addressSpace.isFrugal = frugal;
@@ -174,13 +195,17 @@ async function benchUniqueNames(countOfNodes: number) {
 async function main() {
     // load [runs]  |  unique [count]  |  all [runs] [count]
     const scenario = process.argv[2] || "all";
+    if (scenario === "unique-one") {
+        await benchUniqueNamesOne(Number.parseInt(process.argv[3], 10), process.argv[4] === "1");
+        return;
+    }
     const runs = Number.parseInt(process.argv[3] || "", 10);
     const count = Number.parseInt((scenario === "unique" ? process.argv[3] : process.argv[4]) || "", 10);
     if (scenario === "load" || scenario === "all") {
         await benchLoad(Number.isFinite(runs) ? runs : 5);
     }
     if (scenario === "unique" || scenario === "all") {
-        await benchUniqueNames(Number.isFinite(count) ? count : 20000);
+        benchUniqueNames(Number.isFinite(count) ? count : 20000);
     }
 }
 main().catch((err) => {
