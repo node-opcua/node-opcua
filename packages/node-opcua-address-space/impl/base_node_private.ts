@@ -38,7 +38,7 @@ import { ReferenceDescription, type ReferenceDescriptionOptions } from "node-opc
 import type { AddressSpacePrivate } from "./address_space_private.js";
 import { BaseNodeImpl, getReferenceType } from "./base_node_impl.js";
 import { UANamespace_process_modelling_rule } from "./namespace_private.js";
-import { ReferenceImpl } from "./reference_impl.js";
+import { ReferenceImpl, type ReferenceKey } from "./reference_impl.js";
 import { wipeMemorizedStuff } from "./tool_isSubtypeOf.js";
 
 const errorLog = make_errorLog("address-space:BaseNode");
@@ -82,25 +82,36 @@ interface BaseNodeCache {
     _childByNameMapIncomplete?: boolean;
     __address_space: IAddressSpace | null;
     _browseFilter?: (this: BaseNode, context?: ISessionContext) => boolean;
-    _cache: BaseNodeCacheInner;
+    /** created on first use: a node that is never looked at pays nothing here */
+    _cache?: BaseNodeCacheInner;
     _description?: LocalizedText;
     _displayName: LocalizedText[];
     _parent?: BaseNode | null;
-    _back_referenceIdx: Map<string, UAReference>;
-    _referenceIdx: Map<string, UAReference>;
+    /**
+     * the references other nodes hold to this one; `EMPTY_REFERENCE_INDEX` until the first one
+     * arrives, since a nodeset declares most references from both ends and most nodes never get one
+     */
+    _back_referenceIdx: Map<ReferenceKey, UAReference>;
+    _referenceIdx: Map<ReferenceKey, UAReference>;
     /** the property name this node is exposed as on its parents (see child_accessors.ts) */
     _accessorName?: string;
 }
+
+/**
+ * shared by every node without back references; read like any map, never written to: the first
+ * back reference replaces it with a map of the node's own (BaseNode_add_backward_reference)
+ */
+const EMPTY_REFERENCE_INDEX: Map<ReferenceKey, UAReference> = new Map();
 
 export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {
     const _private: BaseNodeCache = {
         __address_space: null,
 
         _referenceIdx: new Map(),
-        _back_referenceIdx: new Map(),
+        _back_referenceIdx: EMPTY_REFERENCE_INDEX,
 
         _browseFilter: undefined,
-        _cache: {},
+        _cache: undefined,
         _description: undefined,
         _displayName: [],
         _parent: undefined
@@ -114,9 +125,9 @@ export function BaseNode_removePrivate(self: BaseNode): void {
     // the GC will take care of this in due course
     // g_weakMap.delete(self);
     const _private = BaseNode_getPrivate(self);
-    _private._cache = {};
+    _private._cache = undefined;
     _private.__address_space = null;
-    _private._back_referenceIdx = new Map();
+    _private._back_referenceIdx = EMPTY_REFERENCE_INDEX;
     _private._referenceIdx = new Map();
     _private._childByNameMap = undefined;
     _private._description = undefined;
@@ -142,12 +153,16 @@ export function BaseNode_getPrivate(self: BaseNode): BaseNodeCache {
 }
 
 export function BaseNode_getCache(node: BaseNode): BaseNodeCacheInner {
-    return BaseNode_getPrivate(node)._cache;
+    const _private = BaseNode_getPrivate(node);
+    if (!_private._cache) {
+        _private._cache = {};
+    }
+    return _private._cache;
 }
 export function BaseNode_clearCache(node: BaseNode): void {
     const _private = BaseNode_getPrivate(node);
     if (_private?._cache) {
-        _private._cache = {};
+        _private._cache = undefined;
     }
     wipeMemorizedStuff(node);
 }
@@ -1305,8 +1320,8 @@ export function _constructReferenceDescription(
 export function BaseNode_remove_backward_reference(this: BaseNodeImpl, reference: UAReference): void {
     const _private = BaseNode_getPrivate(this);
     _remove_HierarchicalReference(this, reference);
-    const h = (<ReferenceImpl>reference).hash;
-    if (_private._back_referenceIdx?.has(h)) {
+    const h = (<ReferenceImpl>reference).key(this.addressSpace as AddressSpacePrivate);
+    if (_private._back_referenceIdx.has(h)) {
         // note : h may not exist in _back_referenceIdx since we are not indexing
         //        _back_referenceIdx to UAObjectType and UAVariableType for performance reasons
         (<ReferenceImpl>_private._back_referenceIdx.get(h)).dispose();
@@ -1319,8 +1334,7 @@ export function BaseNode_remove_backward_reference(this: BaseNodeImpl, reference
 
 export function BaseNode_add_backward_reference(this: BaseNodeImpl, reference: UAReference): void {
     const _private = BaseNode_getPrivate(this);
-    const h = (<ReferenceImpl>reference).hash;
-    assert(typeof h === "string");
+    const h = (<ReferenceImpl>reference).key(this.addressSpace as AddressSpacePrivate);
     // c8 ignore next
     if (_private._referenceIdx.has(h)) {
         //  the reference exists already in the forward references
@@ -1343,6 +1357,9 @@ export function BaseNode_add_backward_reference(this: BaseNodeImpl, reference: U
         const _stop_here = 1;
     }
     //  assert(reference._referenceType instanceof ReferenceType);
+    if (_private._back_referenceIdx === EMPTY_REFERENCE_INDEX) {
+        _private._back_referenceIdx = new Map();
+    }
     _private._back_referenceIdx.set(h, reference);
     _handle_HierarchicalReference(this, reference);
     BaseNode_clearCache(this);

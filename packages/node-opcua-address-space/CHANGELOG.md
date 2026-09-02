@@ -50,6 +50,14 @@ with it, the change event and the touch of the parents that a variable nobody ha
 reached: the reserved names, the members of its class and its own fields. The generator of the
 `node-opcua-nodeset-*` interfaces escapes exactly those, so the interfaces promise what the runtime exposes.
 
+#### A node allocates what it uses
+
+- References are indexed under a safe integer (direction, a per-address-space ordinal of the reference type,
+  the target NodeId packed) instead of a string built from two `NodeId.toString()` calls; a string key remains for
+  non-numeric identifiers and namespaces above 255. `ReferenceImpl.hash` still exists for callers that want it.
+- The map of back references is shared and empty until the first back reference arrives (a nodeset declares most
+  references from both ends, so most nodes never receive one), and the node cache is created on first use.
+
 #### TranslateBrowsePath and browse filtering cost what they should
 
 - A forward TranslateBrowsePath step naming its target through a hierarchical reference type is answered from the
