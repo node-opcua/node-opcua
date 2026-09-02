@@ -403,47 +403,46 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
         return result;
     };
 
-    /** the ids a value may hold, by data type; everything else passes through */
+    /**
+     * the ids a value may hold, by data type; everything else passes through. A record is not
+     * the applier's to change: another consumer may read it after this one, so what is
+     * translated is a copy
+     */
     private translateValue(value: VariantOptions): VariantOptions {
+        const mapValue = (fix: (e: unknown) => unknown): VariantOptions => ({
+            ...value,
+            value: Array.isArray(value.value) ? value.value.map(fix) : fix(value.value)
+        });
         switch (value.dataType) {
             case DataType.NodeId:
-            case DataType.ExpandedNodeId: {
-                const v = value.value;
-                if (Array.isArray(v)) {
-                    value.value = v.map((e) => (e instanceof NodeId ? this.translate(e) : e));
-                } else if (v instanceof NodeId) {
-                    value.value = this.translate(v);
-                }
-                break;
-            }
-            case DataType.QualifiedName: {
-                const fix = (q: unknown) => {
+            case DataType.ExpandedNodeId:
+                return mapValue((e) => (e instanceof NodeId ? this.translate(e) : e));
+            case DataType.QualifiedName:
+                return mapValue((q) => {
                     if (q && typeof q === "object" && typeof (q as QualifiedName).namespaceIndex === "number") {
-                        (q as QualifiedName).namespaceIndex = this.translateNamespaceIndex((q as QualifiedName).namespaceIndex);
+                        return new QualifiedName({
+                            namespaceIndex: this.translateNamespaceIndex((q as QualifiedName).namespaceIndex),
+                            name: (q as QualifiedName).name
+                        });
                     }
                     return q;
-                };
-                value.value = Array.isArray(value.value) ? value.value.map(fix) : fix(value.value);
-                break;
-            }
-            case DataType.ExtensionObject: {
-                const fix = (e: unknown) => {
+                });
+            case DataType.ExtensionObject:
+                return mapValue((e) => {
                     if (e instanceof Argument && e.dataType instanceof NodeId) {
-                        e.dataType = this.translate(e.dataType);
+                        const argument = new Argument({});
+                        argument.name = e.name;
+                        argument.dataType = this.translate(e.dataType);
+                        argument.valueRank = e.valueRank;
+                        argument.arrayDimensions = e.arrayDimensions;
+                        argument.description = e.description;
+                        return argument;
                     }
                     return e;
-                };
-                if (Array.isArray(value.value)) {
-                    value.value.forEach(fix);
-                } else {
-                    fix(value.value);
-                }
-                break;
-            }
+                });
             default:
-                break;
+                return value;
         }
-        return value;
     }
     // #endregion
 
@@ -560,6 +559,15 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
                     parentNodeId: this.translateOrNull(record.parentNodeId),
                     methodDeclarationId: this.translateOrNull(record.methodDeclarationId),
                     displayName: record.displayName
+                } as CreateNodeOptions);
+                return;
+            case NodeClass.View:
+                this.createNode({
+                    ...this.common(record),
+                    containsNoLoops: record.containsNoLoops,
+                    eventNotifier: record.eventNotifier,
+                    displayName: record.displayName,
+                    description: record.description
                 } as CreateNodeOptions);
                 return;
             default:
