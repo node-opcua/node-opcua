@@ -1,31 +1,14 @@
-import type { IAddressSpace, UAVariable } from "node-opcua-address-space-base";
-import { assert } from "node-opcua-assert";
 import { coerceBoolean, coerceInt64, coerceUInt64, DataType, type Int64, isValidGuid, type UInt64 } from "node-opcua-basic-types";
-import {
-    coerceLocalizedText,
-    coerceQualifiedName,
-    type LocalizedTextOptions,
-    NodeClass,
-    type QualifiedNameOptions
-} from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { coerceLocalizedText, coerceQualifiedName, type LocalizedTextOptions, type QualifiedNameOptions } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { VariantArrayType, type VariantOptions } from "node-opcua-variant";
 import type { IReaderState, ParserLike, ReaderStateParserLike, Xml2Json, XmlAttributes } from "node-opcua-xml2json";
-import {
-    createXMLExtensionObjectDecodingTask,
-    makeExtensionObjectInnerParser,
-    makeExtensionObjectParser
-} from "./extension_object_parser.js";
+import { XmlExtensionObjectFragment } from "../nodeset_record.js";
+import { makeExtensionObjectInnerParser, makeExtensionObjectParser } from "./extension_object_parser.js";
 import { type LocalizedTextParserLikeL1, localizedText_parser } from "./localized_text_parser.js";
 import { makeNodeIdParser } from "./nodeid_parser.js";
 import { makeQualifiedNameParser, type QualifiedNameParserL1 } from "./qualified_name_parser.js";
-
-const debugLog = make_debugLog("variant_parser");
-const doDebug = checkDebugFlag("variant_parser");
-
-export type Task = (addressSpace2: IAddressSpace) => Promise<void>;
 
 type IBasicReaderStateParserLike<T> = ReaderStateParserLike & {
     value: T | undefined;
@@ -76,39 +59,6 @@ interface Parser {
     obj?: { nodeId: NodeId };
 }
 
-interface UAVariableTypeWithVariantValue {
-    value: { value: unknown };
-}
-
-function _installExtensionObjectListInitializationPostTask(
-    postTasks2_AssignedExtensionObjectToDataValue: Task[],
-    element: ListOfExtensionObjectParser
-) {
-    let listExtensionObject: (ExtensionObject | null)[] | undefined = element.listExtensionObject;
-    let nodeId: NodeId | undefined = element.parent.parent?.obj?.nodeId;
-    if (!nodeId) {
-        throw new Error("expecting a nodeid");
-    }
-    const task = async (addressSpace2: IAddressSpace) => {
-        const node = nodeId ? addressSpace2.findNode(nodeId) : null;
-        if (!node) {
-            // c8 ignore next
-            doDebug && debugLog(`Cannot find node with nodeId ${nodeId}. may be the node was marked as deprecated`);
-        } else if (node.nodeClass === NodeClass.Variable) {
-            const v = node as UAVariable;
-            assert(v.getBasicDataType() === DataType.ExtensionObject, "expecting an extension object");
-            v.bindExtensionObject(listExtensionObject as ExtensionObject[], { createMissingProp: false });
-        } else if (node.nodeClass === NodeClass.VariableType) {
-            // no need to bind a variable type
-            (node as unknown as UAVariableTypeWithVariantValue) /*fix me*/.value.value = listExtensionObject;
-        }
-        listExtensionObject?.slice(0);
-        listExtensionObject = undefined;
-        nodeId = undefined;
-    };
-    postTasks2_AssignedExtensionObjectToDataValue.push(task);
-}
-
 export interface ListOfTParser<T> extends Parser {
     listData: T[];
     parent: Parser;
@@ -130,19 +80,42 @@ function parser2(_setValue: (data: VariantOptions) => void, type: string, p: (te
 const parseUInt64 = (str: string): UInt64 => coerceUInt64(str);
 const parseInt64 = (str: string): Int64 => coerceInt64(str);
 
-export interface ListOfExtensionObjectParser extends ListOfTParser<ExtensionObject> {
-    isDeferred: boolean;
-    listExtensionObject: (ExtensionObject | null)[];
-    listExtensionObjectXML: { xmlEncodingNodeId: NodeId; bodyXML: string }[];
+/** an element of an ExtensionObject array as the reader leaves it: decoded, or waiting as its XML */
+export type ExtensionObjectOrFragment = ExtensionObject | XmlExtensionObjectFragment;
+
+export interface ListOfExtensionObjectParser extends ListOfTParser<ExtensionObjectOrFragment> {
+    listExtensionObject: ExtensionObjectOrFragment[];
     parser: {
         ExtensionObject: ParserLike;
     };
 }
 
+/**
+ * an ExtensionObject value whose XML the reader could not decode holds a placeholder; a value
+ * used where only decoded objects can go (a Variant field of a structure) drops it, as before
+ */
+export function withoutXmlFragments(options: VariantOptions): VariantOptions {
+    if (options.dataType !== DataType.ExtensionObject) {
+        return options;
+    }
+    const value = options.value;
+    if (value instanceof XmlExtensionObjectFragment) {
+        return { ...options, value: null };
+    }
+    if (Array.isArray(value) && value.some((e) => e instanceof XmlExtensionObjectFragment)) {
+        return { ...options, value: value.map((e) => (e instanceof XmlExtensionObjectFragment ? null : e)) };
+    }
+    return options;
+}
+
+/**
+ * the reader of a `<Value>` element: `setValue` receives the value as `VariantOptions`, with the
+ * ids it holds resolved through `translateNodeId`; an extension object the reader cannot decode
+ * on the spot is left in the value as an {@link XmlExtensionObjectFragment}, for the consumer of
+ * the record to decode once the data types are known
+ */
 export function makeVariantReader<T extends ReaderStateParserLike>(
     setValue: (self: T, data: VariantOptions) => void,
-    setDeferredValue: (self: T, data: VariantOptions, deferedTask: () => ExtensionObject | ExtensionObject[] | null) => void,
-    postExtensionObjectDecoding: (task: (addressSpace: IAddressSpace) => Promise<void>) => void,
     translateNodeId: (nodeId: string) => NodeId
 ): ReaderStateParserLike {
     let self: T;
@@ -274,82 +247,34 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
                     });
                 },
                 (xmlEncodingNodeId: NodeId, bodyXML: string, _data) => {
-                    let _capturedExtensionObject: ExtensionObject | ExtensionObject[] | null = null;
-                    // extension object creation will be postponed
-                    const task0 = createXMLExtensionObjectDecodingTask(
-                        translateNodeId,
-                        xmlEncodingNodeId,
-                        bodyXML,
-                        (extensionObject: ExtensionObject) => {
-                            _capturedExtensionObject = extensionObject;
-                        }
-                    );
-                    postExtensionObjectDecoding(task0);
-                    setDeferredValue(
-                        self,
-                        {
-                            dataType: DataType.ExtensionObject,
-                            arrayType: VariantArrayType.Scalar,
-                            value: null
-                        },
-                        () => _capturedExtensionObject
-                    );
+                    setValue2({
+                        dataType: DataType.ExtensionObject,
+                        arrayType: VariantArrayType.Scalar,
+                        value: new XmlExtensionObjectFragment(xmlEncodingNodeId, bodyXML)
+                    });
                 }
             ),
 
             ListOfExtensionObject: {
                 init(this: ListOfExtensionObjectParser) {
                     this.listExtensionObject = [];
-                    this.listExtensionObjectXML = [];
-                    this.isDeferred = false;
                 },
                 parser: makeExtensionObjectParser<ListOfExtensionObjectParser>(
                     translateNodeId,
-                    (extensionOject: ExtensionObject, self) => {
-                        // const self = reader.parser!.ListOfExtensionObject as ListOfExtensionObjectParser;
-                        self.listExtensionObject.push(extensionOject);
+                    (extensionObject: ExtensionObject, self) => {
+                        self.listExtensionObject.push(extensionObject);
                     },
                     (xmlEncodingNodeId: NodeId, bodyXML: string, self) => {
-                        // constœ self = reader.parser!.ListOfExtensionObject as ListOfExtensionObjectParser;
-                        self.isDeferred = true;
-                        self.listExtensionObjectXML.push({ xmlEncodingNodeId, bodyXML });
-                        // extension object creation will be postponed
-                        self.listExtensionObject.push(null);
-                        const index = self.listExtensionObject.length - 1;
-                        assert(index >= 0);
-                        const listExtensionObject = self.listExtensionObject;
-                        const task0 = createXMLExtensionObjectDecodingTask(
-                            translateNodeId,
-                            xmlEncodingNodeId,
-                            bodyXML,
-                            (extensionObject: ExtensionObject) => {
-                                listExtensionObject[index] = extensionObject;
-                            }
-                        );
-                        postExtensionObjectDecoding(task0);
+                        self.listExtensionObject.push(new XmlExtensionObjectFragment(xmlEncodingNodeId, bodyXML));
                     }
                 ),
                 finish(this: ListOfExtensionObjectParser) {
-                    if (!this.isDeferred) {
-                        setValue2({
-                            arrayType: VariantArrayType.Array,
-                            dataType: DataType.ExtensionObject,
-                            value: this.listExtensionObject
-                        });
-                    } else {
-                        // postpone the creation of the extension object
-                        const listExtensionObject: ExtensionObject[] = this.listExtensionObject as ExtensionObject[];
-                        setDeferredValue(
-                            self,
-                            {
-                                arrayType: VariantArrayType.Array,
-                                dataType: DataType.ExtensionObject,
-                                value: null
-                            },
-                            () => listExtensionObject
-                        );
-                        this.listExtensionObject = [];
-                    }
+                    setValue2({
+                        arrayType: VariantArrayType.Array,
+                        dataType: DataType.ExtensionObject,
+                        value: this.listExtensionObject
+                    });
+                    this.listExtensionObject = [];
                 }
             },
 

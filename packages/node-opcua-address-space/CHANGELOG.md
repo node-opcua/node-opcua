@@ -98,6 +98,13 @@ each file as a 256 KB stream instead of one string. A load fed in chunks costs t
 - A source that fails half-way rejects the load with the source named and the address space no longer marked as
   loading; it holds what was loaded before the failure and must be disposed.
 - `NodeSetLoader.addNodeSetStream(chunks)` next to `addNodeSetAsync(xml)`.
+- The loader is split in a record producer and a record consumer. The XML reader emits one `NodesetRecord` per
+  node (ids in the file's own namespace table, aliases resolved, an undecodable extension object left as an
+  `XmlExtensionObjectFragment` in the value) and `NodesetRecordApplier` turns the records into nodes, translating
+  ids and applying the loader options; `NodeSetLoader.addRecords(producer)` loads from any producer. The address
+  space built from every nodeset of the catalog is unchanged (`test/test_nodeset_catalog_digests.ts` pins it). One
+  difference on purpose: a method's `ParentNodeId` is now translated to the address space's namespace table like
+  every other id, where it used to be passed through as the file's string.
 
 ### Security
 
