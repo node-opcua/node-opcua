@@ -129,7 +129,6 @@ function decodeFloat(json: Json): number {
 }
 
 function encodeExtensionObject(value: unknown): Json {
-    if (value === null || value === undefined) return null;
     if (value instanceof XmlExtensionObjectFragment) {
         return { $xml: [encodeNodeId(value.typeId), value.bodyXML] };
     }
@@ -169,7 +168,6 @@ function encodeExtensionObject(value: unknown): Json {
     );
 }
 function decodeExtensionObject(json: Json): ExtensionObject | XmlExtensionObjectFragment | null {
-    if (json === null || json === undefined) return null;
     const j = json as Record<string, unknown>;
     if (Array.isArray(j.$xml)) {
         return new XmlExtensionObjectFragment(decodeNodeId(j.$xml[0]), j.$xml[1] as string);

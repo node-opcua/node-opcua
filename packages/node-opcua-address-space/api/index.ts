@@ -162,6 +162,12 @@ export {
 } from "./loader/nodeset_image.js";
 export { decodeValue, encodeValue, type JsonNodeId, type JsonQualifiedName, type JsonValue } from "./loader/nodeset_image_codec.js";
 export {
+    MemoryNodesetImageStore,
+    type NodesetImageStore,
+    nodesetImageKey,
+    sharedMemoryNodesetImageStore
+} from "./loader/nodeset_image_store.js";
+export {
     NODESET_RECORD_SCHEMA,
     type NodesetDataTypeDefinitionRecord,
     type NodesetDefinitionField,
@@ -177,6 +183,7 @@ export {
     XmlExtensionObjectFragment
 } from "./loader/nodeset_record.js";
 export type { NamedNodesetSource, NodesetChunk, NodesetChunkStream, NodesetSource } from "./loader/nodeset_source.js";
+export { type NodesetToImageOptions, nodesetToImage } from "./loader/nodeset_to_image.js";
 export { makeXmlNodesetRecordReader, type XmlNodesetRecordReader, xmlNodesetRecords } from "./loader/nodeset_xml_producer.js";
 export * from "./loader/register_node_promoter.js";
 export * from "./namespace.js";

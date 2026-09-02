@@ -2,7 +2,9 @@
  * @module node-opcua-address-space
  *
  * Where a NodeSet2 document comes from. The loader does not need a file system: it reads a
- * source as a sequence of chunks, text or UTF-8 bytes, and parses them as they arrive.
+ * source as a sequence of chunks, text or UTF-8 bytes, and parses them as they arrive. A source
+ * may hold the XML, or a precompiled image of it (see `nodeset_image.ts`), told apart by the
+ * first bytes.
  */
 
 /** one piece of a NodeSet2 document: text, or UTF-8 bytes */
@@ -19,7 +21,7 @@ export type NodesetChunkStream = AsyncIterable<NodesetChunk> | Iterable<NodesetC
  *   partly consumed cannot be used;
  * - a function opening such a stream, called once when the loader gets to it, so that a
  *   list of files does not hold every descriptor open from the start;
- * - any of the above with a `name`, used in error messages.
+ * - any of the above with a `name`, used in error messages, and optionally an `imageKey`.
  *
  * A byte-order mark at the start is dropped; a multi-byte character may straddle two chunks.
  * Decompression is the caller's business and needs no library support:
@@ -33,15 +35,34 @@ export type NodesetChunkStream = AsyncIterable<NodesetChunk> | Iterable<NodesetC
  *
  * An array given to `generateAddressSpaceRaw` is always a list of documents; chunks of one
  * document held in an array go through the named form: `{ name, source: chunks }`.
+ *
+ * A source may hold a precompiled image instead of the XML; it is recognized by its first
+ * bytes and replayed, whether or not an image store is configured.
  */
 export type NodesetSource = string | Uint8Array | NodesetChunkStream | (() => NodesetChunkStream) | NamedNodesetSource;
 
 export interface NamedNodesetSource {
     name: string;
     source: string | Uint8Array | NodesetChunkStream | (() => NodesetChunkStream);
+    /**
+     * the digest under which an image store holds this document's image. A document given
+     * whole (a string, bytes) is hashed by the loader; a stream is read once, so its digest is
+     * only known after it has been parsed, and the store is consulted for it only when the
+     * caller names the key here (the loader logs the digest it computed, for a later run).
+     */
+    imageKey?: string;
 }
 
 const BOM = 0xfeff;
+
+/** what a source turned out to hold */
+export type NodesetSourceKind = "xml" | "image";
+
+export interface NodesetReaderOptions {
+    /** keep the bytes read so that {@link NodesetReader.digest} can be computed */
+    hash?: boolean;
+    imageKey?: string;
+}
 
 /**
  * reads a source as text, once: the head first, as far as a predicate needs it, then the whole
@@ -51,15 +72,40 @@ const BOM = 0xfeff;
 export class NodesetReader {
     private iterator: AsyncIterator<NodesetChunk> | Iterator<NodesetChunk> | null = null;
     private exhausted = false;
+    /** the chunks read so far and not yet delivered to the body: text once decoded, or raw bytes for an image */
     private head: string[] = [];
+    private rawHead: Uint8Array[] = [];
     private bodyStarted = false;
     private decoder: TextDecoder | null = null;
     private atStart = true;
+    private kind: NodesetSourceKind | undefined;
+    private readonly hashed: Uint8Array[] | null;
+    private bytesRead = 0;
+    private readonly encoder = new TextEncoder();
+    private digestValue: string | undefined;
 
     constructor(
         public readonly name: string,
-        private readonly open: () => NodesetChunkStream
-    ) {}
+        private readonly open: () => NodesetChunkStream,
+        /** true when the whole document is in memory: its digest can be computed before it is parsed */
+        public readonly whole: boolean,
+        private readonly options: NodesetReaderOptions = {}
+    ) {
+        this.hashed = options.hash ? [] : null;
+    }
+
+    /** the key a caller named for this source, if any */
+    public get imageKey(): string | undefined {
+        return this.options.imageKey;
+    }
+
+    /** XML or image: decided on the first bytes */
+    public async probe(): Promise<NodesetSourceKind> {
+        if (this.kind === undefined) {
+            await this.pull();
+        }
+        return this.kind ?? "xml";
+    }
 
     /**
      * read from the start until `complete(text)` holds or the source ends; what was read stays
@@ -69,40 +115,111 @@ export class NodesetReader {
         if (this.bodyStarted) {
             throw new Error(`nodeset source ${this.name}: the head cannot be read once the body has been`);
         }
+        if ((await this.probe()) !== "xml") {
+            throw new Error(`nodeset source ${this.name}: not XML`);
+        }
         let text = this.head.join("");
         while (!complete(text)) {
-            const chunk = await this.next();
+            const chunk = await this.pull();
             if (chunk === undefined) {
                 break;
             }
-            this.head.push(chunk);
-            text += chunk;
+            text += chunk as string;
         }
         return text;
     }
 
     /** the whole document as text chunks, from the start; usable once */
     public async *chunks(): AsyncGenerator<string> {
-        if (this.bodyStarted) {
-            throw new Error(`nodeset source ${this.name}: a source is read once`);
+        this.startBody();
+        if ((await this.probe()) !== "xml") {
+            throw new Error(`nodeset source ${this.name}: not XML`);
         }
-        this.bodyStarted = true;
         const head = this.head;
         this.head = [];
         for (const chunk of head) {
             yield chunk;
         }
         for (;;) {
-            const chunk = await this.next();
+            const chunk = await this.pull();
             if (chunk === undefined) {
                 return;
             }
-            yield chunk;
+            yield chunk as string;
         }
     }
 
-    /** the next non-empty text chunk, or undefined at the end of the source */
-    private async next(): Promise<string | undefined> {
+    /** the whole document as raw bytes, from the start, for a source holding an image; usable once */
+    public async *bytes(): AsyncGenerator<Uint8Array> {
+        this.startBody();
+        if ((await this.probe()) !== "image") {
+            throw new Error(`nodeset source ${this.name}: not an image`);
+        }
+        const head = this.rawHead;
+        this.rawHead = [];
+        for (const chunk of head) {
+            yield chunk;
+        }
+        for (;;) {
+            const chunk = await this.pull();
+            if (chunk === undefined) {
+                return;
+            }
+            yield chunk as Uint8Array;
+        }
+    }
+
+    /** the whole document as one byte array; reads the source to its end and keeps it */
+    public async allBytes(): Promise<Uint8Array> {
+        if (this.bodyStarted) {
+            throw new Error(`nodeset source ${this.name}: a source is read once`);
+        }
+        while ((await this.pull()) !== undefined) {
+            /* read to the end */
+        }
+        const parts = this.kind === "image" ? this.rawHead : this.head.map((t) => this.encoder.encode(t));
+        return concat(parts);
+    }
+
+    /** the bytes read so far; the whole document once it has been read */
+    public get length(): number {
+        return this.bytesRead;
+    }
+
+    /**
+     * the SHA-256 of the bytes of the document, hex; available at any time for a document given
+     * whole, once the body has been read to its end otherwise
+     */
+    public async digest(): Promise<string> {
+        if (this.digestValue !== undefined) {
+            return this.digestValue;
+        }
+        if (!this.hashed) {
+            throw new Error(`nodeset source ${this.name}: the reader was not asked to hash`);
+        }
+        if (this.whole) {
+            while ((await this.pull()) !== undefined) {
+                /* a whole document is one chunk; read it */
+            }
+        } else if (!this.exhausted) {
+            throw new Error(`nodeset source ${this.name}: the digest of a stream is known once it has been read to its end`);
+        }
+        const bytes = concat(this.hashed);
+        this.hashed.length = 0;
+        const hash = await crypto.subtle.digest("SHA-256", bytes as BufferSource);
+        this.digestValue = Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, "0")).join("");
+        return this.digestValue;
+    }
+
+    private startBody(): void {
+        if (this.bodyStarted) {
+            throw new Error(`nodeset source ${this.name}: a source is read once`);
+        }
+        this.bodyStarted = true;
+    }
+
+    /** the next non-empty chunk, kept in the head until the body starts; undefined at the end */
+    private async pull(): Promise<string | Uint8Array | undefined> {
         if (this.exhausted) {
             return undefined;
         }
@@ -116,12 +233,19 @@ export class NodesetReader {
                 const result = await this.iterator.next();
                 if (result.done) {
                     this.exhausted = true;
+                    if (this.kind === undefined) {
+                        this.kind = "xml";
+                    }
                     const tail = this.decoder ? this.decoder.decode() : "";
-                    return tail.length > 0 ? tail : undefined;
+                    if (tail.length > 0) {
+                        if (!this.bodyStarted) this.head.push(tail);
+                        return tail;
+                    }
+                    return undefined;
                 }
-                const text = this.decode(result.value);
-                if (text.length > 0) {
-                    return text;
+                const chunk = this.accept(result.value);
+                if (chunk !== undefined) {
+                    return chunk;
                 }
             }
         } catch (err) {
@@ -131,16 +255,34 @@ export class NodesetReader {
         }
     }
 
-    private decode(chunk: NodesetChunk): string {
+    /** classify on the first chunk, hash, decode; returns the chunk in the form the document has, or undefined when empty */
+    private accept(chunk: NodesetChunk): string | Uint8Array | undefined {
+        if (typeof chunk !== "string" && !(chunk instanceof Uint8Array)) {
+            throw new Error(`a chunk must be a string or a Uint8Array, got ${typeof chunk}`);
+        }
+        if (chunk.length === 0) {
+            return undefined;
+        }
+        if (this.kind === undefined) {
+            this.kind = typeof chunk !== "string" && chunk[0] === 0x1f && chunk[1] === 0x8b ? "image" : "xml";
+        }
+        const raw = typeof chunk === "string" ? this.encoder.encode(chunk) : chunk;
+        this.bytesRead += raw.length;
+        if (this.hashed) {
+            this.hashed.push(raw);
+        }
+        if (this.kind === "image") {
+            const bytes = typeof chunk === "string" ? raw : chunk;
+            if (!this.bodyStarted) this.rawHead.push(bytes);
+            return bytes;
+        }
         let text: string;
         if (typeof chunk === "string") {
             text = chunk;
-        } else if (chunk instanceof Uint8Array) {
+        } else {
             // a streaming decoder: a multi-byte character or the byte-order mark may straddle two chunks
             this.decoder = this.decoder || new TextDecoder("utf-8");
             text = this.decoder.decode(chunk, { stream: true });
-        } else {
-            throw new Error(`a chunk must be a string or a Uint8Array, got ${typeof chunk}`);
         }
         if (this.atStart && text.length > 0) {
             this.atStart = false;
@@ -148,14 +290,31 @@ export class NodesetReader {
                 text = text.slice(1);
             }
         }
+        if (text.length === 0) {
+            return undefined;
+        }
+        if (!this.bodyStarted) this.head.push(text);
         return text;
     }
+}
+
+function concat(parts: Uint8Array[]): Uint8Array {
+    if (parts.length === 1) {
+        return parts[0];
+    }
+    const total = parts.reduce((n, p) => n + p.length, 0);
+    const out = new Uint8Array(total);
+    let offset = 0;
+    for (const part of parts) {
+        out.set(part, offset);
+        offset += part.length;
+    }
+    return out;
 }
 
 function kindOf(source: NamedNodesetSource["source"]): string {
     if (typeof source === "string") return "text";
     if (source instanceof Uint8Array) return "bytes";
-    if (typeof source === "function") return "stream";
     return "stream";
 }
 
@@ -163,9 +322,14 @@ function kindOf(source: NamedNodesetSource["source"]): string {
  * a reader over a source; `index` names an anonymous source in error messages
  * @internal
  */
-export function openNodesetSource(source: NodesetSource, index: number): NodesetReader {
+export function openNodesetSource(
+    source: NodesetSource,
+    index: number,
+    options: { hash?: boolean; whole?: boolean } = {}
+): NodesetReader {
     let name: string;
     let inner: NamedNodesetSource["source"];
+    let imageKey: string | undefined;
     if (
         typeof source === "object" &&
         source !== null &&
@@ -175,10 +339,12 @@ export function openNodesetSource(source: NodesetSource, index: number): Nodeset
     ) {
         name = source.name;
         inner = source.source;
+        imageKey = source.imageKey;
     } else {
         inner = source as NamedNodesetSource["source"];
         name = `#${index + 1} (${kindOf(inner)})`;
     }
+    const whole = options.whole ?? (typeof inner === "string" || inner instanceof Uint8Array);
     const open = (): NodesetChunkStream => {
         if (typeof inner === "string" || inner instanceof Uint8Array) {
             return [inner];
@@ -188,5 +354,5 @@ export function openNodesetSource(source: NodesetSource, index: number): Nodeset
         }
         return inner;
     };
-    return new NodesetReader(name, open);
+    return new NodesetReader(name, open, whole, { hash: options.hash, imageKey });
 }

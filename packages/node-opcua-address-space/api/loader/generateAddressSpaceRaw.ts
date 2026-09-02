@@ -7,7 +7,12 @@ import type { NamespacePrivate } from "../../impl/namespace_private.js";
 import { adjustNamespaceArray } from "../../impl/nodeset_tools/adjust_namespace_array.js";
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.js";
 import { NodeSetLoader } from "./load_nodeset2.js";
+import { imageNodesetRecords, NodesetImageError, NodesetImageWriter, readNodesetImageInfo } from "./nodeset_image.js";
+import { decodeHeader } from "./nodeset_image_codec.js";
+import { type NodesetImageStore, nodesetImageKey, sharedMemoryNodesetImageStore } from "./nodeset_image_store.js";
+import type { NodesetRecord, NodesetRecordConsumer } from "./nodeset_record.js";
 import { type NodesetReader, type NodesetSource, openNodesetSource } from "./nodeset_source.js";
+import { xmlNodesetRecords } from "./nodeset_xml_producer.js";
 
 const doDebug = checkDebugFlag("generateAddressSpaceRaw");
 const debugLog = make_debugLog("generateAddressSpaceRaw");
@@ -101,6 +106,8 @@ interface NodesetSourceDesc {
     index: number;
     reader: NodesetReader;
     namespaceModel: NodesetInfo;
+    /** the bytes of a source that holds an image, read whole */
+    image?: Uint8Array;
 }
 
 /**
@@ -133,11 +140,115 @@ async function preLoadSources(readers: NodesetReader[]): Promise<NodesetSourceDe
     for (let index = 0; index < readers.length; index++) {
         const reader = readers[index];
         doDebug && console.log("---------------------------------------------", reader.name);
+        if ((await reader.probe()) === "image") {
+            // an image is small (a few hundred KB) and its header is line 1: read it whole
+            const image = await reader.allBytes();
+            const { header } = await readNodesetImageInfo(image);
+            const models: Model[] = header.models.map((m) => ({
+                modelUri: m.modelUri,
+                version: m.version,
+                publicationDate: m.publicationDate ? new Date(m.publicationDate) : getMinOPCUADate(),
+                requiredModel: m.requiredModels.map((r) => ({ ...r, publicationDate: new Date(r.publicationDate) }))
+            }));
+            if (models.length === 0 && header.namespaceUris.length >= 1) {
+                models.push({
+                    modelUri: header.namespaceUris[0],
+                    version: "1",
+                    publicationDate: getMinOPCUADate(),
+                    requiredModel: []
+                });
+            }
+            namespaceDesc.push({ reader, namespaceModel: { models, namespaceUris: header.namespaceUris }, index, image });
+            continue;
+        }
         const head = await reader.readHead(headerComplete);
         const namespaceModel = await parseDependencies(sliceHeader(head, reader.name));
         namespaceDesc.push({ reader, namespaceModel, index });
     }
     return namespaceDesc;
+}
+
+/** the same records, seen by a second consumer on their way to the loader */
+async function* tee(records: AsyncIterable<NodesetRecord>, consumer: NodesetRecordConsumer): AsyncGenerator<NodesetRecord> {
+    for await (const record of records) {
+        consumer.apply(record);
+        yield record;
+    }
+}
+
+function resolveImageStore(option: NodesetImageStore | boolean | undefined): NodesetImageStore | undefined {
+    if (!option) return undefined;
+    return option === true ? sharedMemoryNodesetImageStore() : option;
+}
+
+/**
+ * whether an image from the store can be replayed: it inflates to its end (gzip integrity), its
+ * header and trailer parse, the trailer counts the lines and names the expected source. A
+ * corrupt, truncated or foreign image is the store's problem, not the caller's: it is logged
+ * and rebuilt from the XML.
+ */
+const decodeHeaderOrThrow = (info: Awaited<ReturnType<typeof readNodesetImageInfo>>) => decodeHeader(info.header);
+
+async function isReplayable(image: Uint8Array, digest: string, name: string): Promise<boolean> {
+    try {
+        const info = await readNodesetImageInfo(image);
+        if (!info.trailer) {
+            throw new NodesetImageError("the image is truncated: no trailer");
+        }
+        if (info.trailer.nodes !== info.lines) {
+            throw new NodesetImageError(`the image trailer announces ${info.trailer.nodes} nodes, ${info.lines} lines were read`);
+        }
+        if (info.trailer.sourceDigest !== digest) {
+            throw new NodesetImageError("the image was built from another source (digest mismatch)");
+        }
+        // the header parses with the schema this loader reads
+        decodeHeaderOrThrow(info);
+        return true;
+    } catch (err) {
+        if (!(err instanceof NodesetImageError)) {
+            throw err;
+        }
+        debugLog("discarding the image of", name, ":", err.message);
+        return false;
+    }
+}
+
+/**
+ * load one XML source: from its image when the store holds a valid one, from the XML otherwise,
+ * writing the image on the way when there is a store
+ */
+async function loadXmlSource(
+    nodesetLoader: NodeSetLoader,
+    reader: NodesetReader,
+    store: NodesetImageStore | undefined
+): Promise<void> {
+    if (!store) {
+        await nodesetLoader.addNodeSetStream(reader.chunks());
+        return;
+    }
+    // the digest is known up front for a document given whole; a stream must be read first
+    const digest = reader.imageKey ?? (reader.whole ? await reader.digest() : undefined);
+    if (digest !== undefined) {
+        const key = nodesetImageKey(digest);
+        const image = await store.get(key);
+        if (image && (await isReplayable(image, digest, reader.name))) {
+            // a replay that fails half-way would leave nodes behind that the XML would then
+            // collide with; the check above is what makes it safe to commit to the image here
+            await nodesetLoader.addRecords(imageNodesetRecords(image, { expectedDigest: digest }));
+            doDebug && debugLog("loaded", reader.name, "from its image", key);
+            return;
+        }
+    }
+    const writer = new NodesetImageWriter();
+    await nodesetLoader.addRecords(tee(xmlNodesetRecords(reader.chunks()), writer));
+    const sourceDigest = digest ?? (await reader.digest());
+    try {
+        await store.put(nodesetImageKey(sourceDigest), await writer.finish(sourceDigest, reader.length));
+        doDebug && debugLog("loaded", reader.name, "from XML; image written under", nodesetImageKey(sourceDigest));
+    } catch (err) {
+        // a store that cannot write costs a log line, never the load
+        errorLog(`generateAddressSpace: cannot store the image of ${reader.name}: ${(err as Error).message}`);
+    }
 }
 /**
  * Detect order of namespace loading
@@ -235,10 +346,13 @@ export async function generateAddressSpaceRaw(
 ): Promise<void> {
     let readers: NodesetReader[];
     let options: NodeSetLoaderOptions;
+    let store: NodesetImageStore | undefined;
     if (typeof loaderOrOptions === "function") {
         const xmlLoader = loaderOrOptions;
         const uris = (Array.isArray(sourcesOrUris) ? sourcesOrUris : [sourcesOrUris]) as string[];
         options = maybeOptions || {};
+        store = resolveImageStore(options.imageStore);
+        // the loader hands the document whole, so its digest is known before it is parsed
         readers = uris.map((uri, index) =>
             openNodesetSource(
                 {
@@ -247,13 +361,15 @@ export async function generateAddressSpaceRaw(
                         yield await xmlLoader(uri);
                     }
                 },
-                index
+                index,
+                { hash: !!store, whole: true }
             )
         );
     } else {
         const list = (Array.isArray(sourcesOrUris) ? sourcesOrUris : [sourcesOrUris]) as NodesetSource[];
         options = loaderOrOptions || {};
-        readers = list.map(openNodesetSource);
+        store = resolveImageStore(options.imageStore);
+        readers = list.map((source, index) => openNodesetSource(source, index, { hash: !!store }));
     }
     const nodesetLoader = new NodeSetLoader(addressSpace, options);
 
@@ -275,7 +391,11 @@ export async function generateAddressSpaceRaw(
         // c8 ignore next
         doDebug && debugLog(" loading ", nodesetIndex, nodeset.reader.name);
         try {
-            await nodesetLoader.addNodeSetStream(nodeset.reader.chunks());
+            if (nodeset.image) {
+                await nodesetLoader.addRecords(imageNodesetRecords(nodeset.image));
+            } else {
+                await loadXmlSource(nodesetLoader, nodeset.reader, store);
+            }
         } catch (err) {
             const cause = err instanceof Error ? err.message : String(err);
             const message = `generateAddressSpace: loading nodeset ${nodeset.reader.name} failed: ${cause}`;

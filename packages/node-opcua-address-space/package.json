@@ -93,6 +93,10 @@
         "nodesets",
         "testHelpers.js",
         "testHelpers.d.ts",
-        "source_nodejs"
-    ]
+        "source_nodejs",
+        "bin"
+    ],
+    "bin": {
+        "opcua-nodeset-image": "bin/opcua-nodeset-image.js"
+    }
 }

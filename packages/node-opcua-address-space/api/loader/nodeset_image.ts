@@ -18,7 +18,13 @@ import {
     type NodesetImageNode,
     type NodesetImageTrailer
 } from "./nodeset_image_codec.js";
-import { type NodesetRecord, type NodesetRecordConsumer, type NodesetRecordWithBytes, recordBytes } from "./nodeset_record.js";
+import {
+    type NodesetHeaderRecord,
+    type NodesetRecord,
+    type NodesetRecordConsumer,
+    type NodesetRecordWithBytes,
+    recordBytes
+} from "./nodeset_record.js";
 import type { NodesetChunk, NodesetChunkStream } from "./nodeset_source.js";
 
 export { NodesetImageError, type NodesetImageHeader, type NodesetImageTrailer } from "./nodeset_image_codec.js";
@@ -60,7 +66,6 @@ async function gzip(text: string): Promise<Uint8Array> {
 
 /** the lines of a gzip-compressed text, as they inflate */
 async function* inflatedLines(source: Uint8Array | NodesetChunkStream): AsyncGenerator<string> {
-    // the DOM typings of TypeScript 5.7 disagree on the typed-array generic here; the streams are what they are
     const stream = (await toReadableStream(source)).pipeThrough(
         new DecompressionStream("gzip") as unknown as ReadableWritablePair<Uint8Array, Uint8Array>
     );
@@ -110,38 +115,42 @@ export interface NodesetImageWriterOptions extends EncodeHeaderOptions {}
 export class NodesetImageWriter implements NodesetRecordConsumer {
     private readonly lines: string[] = [];
     private nodes = 0;
-    private headerSeen = false;
+    private header: NodesetHeaderRecord | undefined;
 
     constructor(private readonly options: NodesetImageWriterOptions = {}) {}
 
     public apply(record: NodesetRecord): void {
         if (record.kind === "header") {
-            if (this.headerSeen) {
+            if (this.header) {
                 throw new NodesetImageError("an image holds one document: a second header record was applied");
             }
-            this.headerSeen = true;
-            this.lines.push(JSON.stringify(encodeHeader(record, this.options)));
+            this.header = record;
             return;
         }
-        if (!this.headerSeen) {
+        if (!this.header) {
             throw new NodesetImageError("a node record was applied before the header record");
         }
         this.lines.push(JSON.stringify(encodeNode(record)));
         this.nodes += 1;
     }
 
-    /** the uncompressed lines, header first, trailer last */
-    public text(sourceDigest: string): string {
-        if (!this.headerSeen) {
+    /**
+     * the uncompressed lines, header first, trailer last; the header is encoded here because the
+     * length of the source is only known once every chunk went through
+     */
+    public text(sourceDigest: string, sourceLength?: number): string {
+        if (!this.header) {
             throw new NodesetImageError("no document was applied to this writer");
         }
+        const options = sourceLength === undefined ? this.options : { ...this.options, sourceLength };
+        const header = JSON.stringify(encodeHeader(this.header, options));
         const trailer: NodesetImageTrailer = { kind: "trailer", nodes: this.nodes, sourceDigest };
-        return `${this.lines.join("\n")}\n${JSON.stringify(trailer)}\n`;
+        return `${header}\n${this.lines.join("\n")}\n${JSON.stringify(trailer)}\n`;
     }
 
     /** the image: the lines, gzip-compressed */
-    public async finish(sourceDigest: string): Promise<Uint8Array> {
-        return gzip(this.text(sourceDigest));
+    public async finish(sourceDigest: string, sourceLength?: number): Promise<Uint8Array> {
+        return gzip(this.text(sourceDigest, sourceLength));
     }
 }
 
