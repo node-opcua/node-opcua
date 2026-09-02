@@ -27,16 +27,12 @@ import { type DataTypeAndEncodingId, type MapDataTypeAndEncodingIdProvider, pars
 
 import { writeStructuredType } from "./factory_code_generator.js";
 import { LineFile1 } from "./utils/line_file.js";
-import { makeWrite } from "./utils/write_func.js";
+import { makeWrite, type WriteFunc } from "./utils/write_func.js";
 
 const doDebug = checkDebugFlag("generate_extension_object_code");
 const debugLog = make_debugLog("generate_extension_object_code");
 
-const f = new LineFile1();
-
-const write = makeWrite(f);
-
-function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema): void {
+function writeEnumeratedType(write: WriteFunc, enumerationSchema: EnumerationDefinitionSchema): void {
     const arrayValues = Object.keys(enumerationSchema.enumValues)
         .filter((a: string) => a.match("[0-9]+"))
         .map((a: string) => parseInt(a, 10))
@@ -113,7 +109,7 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema): vo
     write(`assert(_enumeration${enumerationSchema.name}.isFlaggable ===  ${isFlaggable});`);
 }
 
-function writeStructuredTypeWithSchema(structuredType: IStructuredTypeSchema) {
+function writeStructuredTypeWithSchema(write: WriteFunc, structuredType: IStructuredTypeSchema) {
     write(`// --------------------------------------------------------------------------------------------`);
 
     write(`const schema${structuredType.name} = buildStructuredType({`);
@@ -139,6 +135,13 @@ function writeStructuredTypeWithSchema(structuredType: IStructuredTypeSchema) {
 }
 
 export async function generate(filename: string, generatedTypescriptFilename: string): Promise<void> {
+    // The output buffer belongs to this call. It used to be module scope, so a second
+    // generate() in the same process appended to the first one's output and emitted every
+    // type twice. node-opcua-types calls this once per process, which is why that never
+    // showed up.
+    const f = new LineFile1();
+    const write = makeWrite(f);
+
     const content = await readFile(filename, "utf-8");
 
     const idProvider: MapDataTypeAndEncodingIdProvider = {
@@ -298,7 +301,7 @@ import {
             return;
         }
         alreadyDone[enumerationSchema.name] = enumerationSchema;
-        writeEnumeratedType(enumerationSchema);
+        writeEnumeratedType(write, enumerationSchema);
     }
 
     function processStructuredType(structuredType: IStructuredTypeSchema): void {
@@ -324,7 +327,7 @@ import {
                 processEnumeratedType(fieldSchema);
             }
         }
-        writeStructuredTypeWithSchema(structuredType);
+        writeStructuredTypeWithSchema(write, structuredType);
     }
 
     //xx processStructuredType(dataTypeFactory.getStructuredTypeSchema("LocalizedText"));
