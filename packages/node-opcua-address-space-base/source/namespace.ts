@@ -19,6 +19,7 @@ import type { IAddressSpace } from "./address_space.js";
 import type { AddReferenceOpts, BaseNode, ConstructNodeIdOptions } from "./base_node.js";
 import type { BindVariableOptions } from "./bind_variable.js";
 import type { ModellingRuleType } from "./modelling_rule_type.js";
+import type { INamespaceIterable } from "./namespace_iteration.js";
 import type { UADataType } from "./ua_data_type.js";
 import type { UAEventType } from "./ua_event_type.js";
 import type { UAMethod } from "./ua_method.js";
@@ -286,7 +287,7 @@ export interface RequiredModel {
     publicationDate: Date;
 }
 
-export declare interface INamespace {
+export declare interface INamespace extends INamespaceIterable {
     version: string;
     publicationDate: Date;
     namespaceUri: string;

@@ -8,8 +8,7 @@ import type {
     CreateNodeOptions,
     INamespace,
     ModellingRuleType,
-    RequiredModel,
-    UADataType
+    RequiredModel
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import type { NodeId } from "node-opcua-nodeid";
@@ -20,8 +19,6 @@ export interface NamespacePrivate extends INamespace {
     addressSpace: AddressSpacePrivate;
 
     setRequiredModels(requiredModels: RequiredModel[]): void;
-
-    nodeIterator(): IterableIterator<BaseNode>;
 
     constructNodeId(options: ConstructNodeIdOptions): NodeId;
 
@@ -35,15 +32,9 @@ export interface NamespacePrivate extends INamespace {
 
     internalCreateNode(options: CreateNodeOptions): BaseNode;
 
-    _dataTypeIterator(): IterableIterator<UADataType>;
-
     registerSymbolicNames: boolean;
 
-    _aliasCount(): number;
-    _objectTypeCount(): number;
-    _variableTypeCount(): number;
-    _dataTypeCount(): number;
-    _referenceTypeCount(): number;
+    // the iteration members used to be redeclared here; INamespace publishes them now
 }
 
 export declare const NamespacePrivate: new (options: unknown) => NamespacePrivate;

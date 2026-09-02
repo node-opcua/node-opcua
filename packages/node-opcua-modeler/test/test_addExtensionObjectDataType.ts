@@ -28,7 +28,6 @@ const doDebug = false;
 
 // reaching into Namespace internals not exposed on the public type, for test diagnostics only
 interface NamespaceWithInternals {
-    nodeIterator(): IterableIterator<BaseNode>;
     _nodeIdManager: { getSymbolCSV(): string };
 }
 
@@ -86,7 +85,7 @@ describe("addExtensionObjectDataType", function (this: Mocha.Suite) {
 
         // c8 ignore next
         if (doDebug) {
-            for (const b of (ns as unknown as NamespaceWithInternals).nodeIterator()) {
+            for (const b of ns.nodeIterator()) {
                 const withTypeDefinition = b as BaseNode & {
                     typeDefinitionObj?: BaseNode;
                     typeDefinition?: { toString(): string };

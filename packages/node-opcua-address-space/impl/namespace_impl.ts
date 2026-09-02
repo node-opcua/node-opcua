@@ -331,40 +331,81 @@ export class NamespaceImpl implements NamespacePrivate {
         return this._nodeid_index.values();
     }
 
-    public _objectTypeIterator(): IterableIterator<UAObjectType> {
+    public objectTypeIterator(): IterableIterator<UAObjectType> {
         return this._objectTypeMap.values();
     }
 
-    public _objectTypeCount(): number {
+    public objectTypeCount(): number {
         return this._objectTypeMap.size;
     }
 
-    public _variableTypeIterator(): IterableIterator<UAVariableType> {
+    public variableTypeIterator(): IterableIterator<UAVariableType> {
         return this._variableTypeMap.values();
     }
 
-    public _variableTypeCount(): number {
+    public variableTypeCount(): number {
         return this._variableTypeMap.size;
     }
 
-    public _dataTypeIterator(): IterableIterator<UADataType> {
+    public dataTypeIterator(): IterableIterator<UADataType> {
         return this._dataTypeMap.values();
     }
 
-    public _dataTypeCount(): number {
+    public dataTypeCount(): number {
         return this._dataTypeMap.size;
     }
 
-    public _referenceTypeIterator(): IterableIterator<UAReferenceType> {
+    public referenceTypeIterator(): IterableIterator<UAReferenceType> {
         return this._referenceTypeMap.values();
     }
 
-    public _referenceTypeCount(): number {
+    public referenceTypeCount(): number {
         return this._referenceTypeMap.size;
     }
 
-    public _aliasCount(): number {
+    public aliasCount(): number {
         return this._aliases.size;
+    }
+
+    // The underscore spellings these had before they were published. Callers reached them
+    // through a cast, so they cannot be removed without warning; they delegate and are
+    // deprecated.
+
+    /** @deprecated use `objectTypeIterator` */
+    public _objectTypeIterator(): IterableIterator<UAObjectType> {
+        return this.objectTypeIterator();
+    }
+    /** @deprecated use `objectTypeCount` */
+    public _objectTypeCount(): number {
+        return this.objectTypeCount();
+    }
+    /** @deprecated use `variableTypeIterator` */
+    public _variableTypeIterator(): IterableIterator<UAVariableType> {
+        return this.variableTypeIterator();
+    }
+    /** @deprecated use `variableTypeCount` */
+    public _variableTypeCount(): number {
+        return this.variableTypeCount();
+    }
+    /** @deprecated use `dataTypeIterator` */
+    public _dataTypeIterator(): IterableIterator<UADataType> {
+        return this.dataTypeIterator();
+    }
+    /** @deprecated use `dataTypeCount` */
+    public _dataTypeCount(): number {
+        return this.dataTypeCount();
+    }
+    /** @deprecated use `referenceTypeIterator` */
+    public _referenceTypeIterator(): IterableIterator<UAReferenceType> {
+        return this.referenceTypeIterator();
+    }
+    /** @deprecated use `referenceTypeCount` */
+    public _referenceTypeCount(): number {
+        return this.referenceTypeCount();
+    }
+    /** @deprecated use `aliasCount` */
+    public _aliasCount(): number {
+        return this.aliasCount();
     }
 
     public findNode2(nodeId: NodeId): BaseNode | null {
