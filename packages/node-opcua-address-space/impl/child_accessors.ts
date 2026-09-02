@@ -27,8 +27,17 @@ import { lowerFirstLetter } from "node-opcua-utils";
  */
 const forbiddenNames = new Set(["then", "catch", "finally", "toJSON", "length", "prototype", "constructor", "__proto__"]);
 
-/** accessor name (`enabledState`) -> browse names mapping to it (`EnabledState`), first seen first */
-const browseNamesByAccessor = new Map<string, string[]>();
+/**
+ * accessor name -> the browse names mapping to it that cannot be derived back from it.
+ * `enabledState` needs no entry (`EnabledState` is the accessor name capitalised, and a name that
+ * is already lower case maps to itself), so a model with a hundred thousand runtime names costs
+ * nothing here; `euRange` does (`EURange`), and so does a name with an underscore.
+ */
+const irregularBrowseNames = new Map<string, string[]>();
+
+function upperFirstLetter(name: string): string {
+    return name.charAt(0).toUpperCase() + name.slice(1);
+}
 
 /** accessor names carried by a shared getter on the prototype */
 const sharedAccessors = new Set<string>();
@@ -72,11 +81,13 @@ export function registerChildName(browseName: string | null | undefined, request
         return;
     }
     const accessorName = lowerFirstLetter(browseName);
-    const known = browseNamesByAccessor.get(accessorName);
-    if (!known) {
-        browseNamesByAccessor.set(accessorName, [browseName]);
-    } else if (!known.includes(browseName)) {
-        known.push(browseName);
+    if (browseName !== accessorName && browseName !== upperFirstLetter(accessorName)) {
+        const known = irregularBrowseNames.get(accessorName);
+        if (!known) {
+            irregularBrowseNames.set(accessorName, [browseName]);
+        } else if (!known.includes(browseName)) {
+            known.push(browseName);
+        }
     }
     if (requestShared && !sharedAccessors.has(accessorName)) {
         pendingSharedAccessors.add(accessorName);
@@ -139,27 +150,39 @@ export interface IndexedChild {
  * is one reached through a structural reference (a component, a property, a subtype, an
  * organized node), not through an event reference such as HasNotifier.
  *
- * When two children map to the same accessor name the first one indexed wins, which is what the
- * own-accessor installation did too.
+ * The capitalised name is tried first, then the accessor name itself, then the irregular
+ * browse names on record; among children sharing a browse name the first one indexed wins,
+ * which is what the own-accessor installation did too.
  */
 export function resolveChildInIndex<Child extends IndexedChild>(
     index: Map<string, Child | Child[]>,
     accessorName: string,
     accept: (reference: Child) => boolean
 ): Child["node"] | undefined {
-    const browseNames = browseNamesByAccessor.get(accessorName);
-    if (!browseNames) {
-        return undefined;
-    }
-    for (const browseName of browseNames) {
+    const lookup = (browseName: string): Child["node"] | undefined => {
         const entry = index.get(browseName);
         if (!entry) {
-            continue;
+            return undefined;
         }
         const references = Array.isArray(entry) ? entry : [entry];
         for (const reference of references) {
             if (reference.node && accept(reference)) {
                 return reference.node;
+            }
+        }
+        return undefined;
+    };
+    const capitalised = upperFirstLetter(accessorName);
+    const found = lookup(capitalised) ?? (capitalised === accessorName ? undefined : lookup(accessorName));
+    if (found) {
+        return found;
+    }
+    const irregular = irregularBrowseNames.get(accessorName);
+    if (irregular) {
+        for (const browseName of irregular) {
+            const node = lookup(browseName);
+            if (node) {
+                return node;
             }
         }
     }

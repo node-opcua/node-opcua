@@ -74,7 +74,6 @@ import {
     BaseNode_getCache,
     BaseNode_getPrivate,
     BaseNode_initPrivate,
-    BaseNode_nodeIdKey,
     BaseNode_remove_backward_reference,
     BaseNode_removePrivate,
     BaseNode_toString,
@@ -103,6 +102,8 @@ const debugLog = make_debugLog("base_node_impl");
 const HasEventSourceReferenceType = resolveNodeId("HasEventSource");
 const HasNotifierReferenceType = resolveNodeId("HasNotifier");
 const HasChildReferenceType = resolveNodeId("HasChild");
+/** a node with more references than this keeps the result of its reference scans */
+const referenceScanMemoThreshold = 8;
 const HasComponentReferenceType = resolveNodeId("HasComponent");
 const HasPropertyReferenceType = resolveNodeId("HasProperty");
 const OrganizesReferenceType = resolveNodeId("Organizes");
@@ -416,29 +417,36 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         }
 
         const isForward = browseDirection === BrowseDirection.Forward;
+        const _private = BaseNode_getPrivate(this);
 
-        // memoized per reference type and direction: a scan touches every reference of the node
-        // and runs checkHasSubtype on each, and the same question is asked over and over (every
-        // child lookup, every browse). The memo goes with the rest of _cache whenever a reference
-        // is added or removed, and when a reference type was created since it was built.
-        const _cache = BaseNode_getCache(this);
-        if (_cache._refExVersion !== referenceTypeVersion.count) {
-            _cache._refEx = undefined;
-            _cache._refExVersion = referenceTypeVersion.count;
-        }
-        if (!_cache._refEx) {
-            _cache._refEx = new Map();
-        }
-        const memo = _cache._refEx;
-        let entry = memo.get(referenceTypeNode);
-        if (!entry) {
-            entry = [undefined, undefined];
-            memo.set(referenceTypeNode, entry);
-        }
+        // Memoized per reference type and direction, on the nodes where a scan is worth remembering:
+        // a scan touches every reference of the node and runs checkHasSubtype on each, and the same
+        // question is asked over and over (every child lookup, every browse) of folders, types and
+        // the Server object. A leaf variable holds three references; scanning them costs less than
+        // the map would, and a model with a hundred thousand of them cannot afford one map each.
+        // The memo goes with the rest of _cache whenever a reference is added or removed, and when
+        // a reference type was created since it was built.
+        const memoize = _private._referenceIdx.size + _private._back_referenceIdx.size > referenceScanMemoThreshold;
+        let entry: [UAReference[] | undefined, UAReference[] | undefined] | undefined;
         const slot = isForward ? 0 : 1;
-        const memoized = entry[slot];
-        if (memoized) {
-            return memoized;
+        if (memoize) {
+            const _cache = BaseNode_getCache(this);
+            if (_cache._refExVersion !== referenceTypeVersion.count) {
+                _cache._refEx = undefined;
+                _cache._refExVersion = referenceTypeVersion.count;
+            }
+            if (!_cache._refEx) {
+                _cache._refEx = new Map();
+            }
+            entry = _cache._refEx.get(referenceTypeNode);
+            if (!entry) {
+                entry = [undefined, undefined];
+                _cache._refEx.set(referenceTypeNode, entry);
+            }
+            const memoized = entry[slot];
+            if (memoized) {
+                return memoized;
+            }
         }
 
         const results: UAReference[] = [];
@@ -449,11 +457,12 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
                 }
             }
         };
-        const _private = BaseNode_getPrivate(this);
         process(_private._referenceIdx);
         process(_private._back_referenceIdx);
-        // callers iterate the result, they never change it; make a regression loud when debugging
-        entry[slot] = doDebug ? (Object.freeze(results) as UAReference[]) : results;
+        if (entry) {
+            // callers iterate the result, they never change it; make a regression loud when debugging
+            entry[slot] = doDebug ? (Object.freeze(results) as UAReference[]) : results;
+        }
         return results;
     }
 
@@ -1243,8 +1252,9 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
             return;
         }
         const addressSpace = this.addressSpace;
+        const sourceNodeKey = this.nodeId.toString();
         for (const reference of _private._referenceIdx.values()) {
-            _propagate_ref.call(this, addressSpace, reference);
+            _propagate_ref.call(this, addressSpace, reference, sourceNodeKey);
         }
     }
 
@@ -1680,7 +1690,12 @@ function _is_massively_used_reference(referenceType: UAReferenceType): boolean {
     return name === "HasTypeDefinition" || name === "HasModellingRule";
 }
 
-function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, reference: UAReference): void {
+function _propagate_ref(
+    this: BaseNode,
+    addressSpace: MinimalistAddressSpace,
+    reference: UAReference,
+    sourceNodeKey: string = this.nodeId.toString()
+): void {
     // filter out non  Hierarchical References
     const referenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference);
 
@@ -1719,7 +1734,7 @@ function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, re
         // NodeSet2 files declare most references from both ends, so the related node usually
         // holds the inverse as a forward reference of its own already: nothing to add, and no
         // ReferenceImpl to build for BaseNode_add_backward_reference to throw away
-        const inverseHash = (reference as ReferenceImpl).inverseHash(BaseNode_nodeIdKey(this));
+        const inverseHash = (reference as ReferenceImpl).inverseHash(sourceNodeKey);
         if (BaseNode_getPrivate(related_node)._referenceIdx.has(inverseHash)) {
             return;
         }
