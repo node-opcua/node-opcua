@@ -11,6 +11,7 @@ import type { VariantOptions } from "node-opcua-variant";
 import type { ConditionInfo } from "../../api/interfaces/alarms_and_conditions/condition_info_i.js";
 import type { InstantiateLimitAlarmOptions } from "../../api/interfaces/alarms_and_conditions/instantiate_limit_alarm_options.js";
 import type { UANonExclusiveLimitAlarmEx } from "../../api/interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_ex.js";
+import type { UATwoStateVariableEx } from "../../api/ua_two_state_variable_ex.js";
 import type { NamespacePrivate } from "../namespace_private.js";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable.js";
 import { ConditionInfoImpl } from "./condition_info_impl.js";
@@ -25,6 +26,15 @@ interface IState {
 
 /** @internal */
 export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implements UANonExclusiveLimitAlarmEx {
+    /**
+     * The four limit states, all optional: which ones exist depends on the limits configured.
+     * Installed as child nodes by the address space, not assigned here - hence `declare`.
+     */
+    public declare readonly highHighState?: UATwoStateVariableEx;
+    public declare readonly highState?: UATwoStateVariableEx;
+    public declare readonly lowState?: UATwoStateVariableEx;
+    public declare readonly lowLowState?: UATwoStateVariableEx;
+
     public static instantiate(
         namespace: NamespacePrivate,
         type: UAEventType | NodeId | string,
@@ -172,20 +182,16 @@ export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implement
 
         UALimitAlarmImpl.prototype._signalNewCondition.call(this, state_str, isActive, value);
     }
-
-    private get $12() {
-        return this as unknown as UANonExclusiveLimitAlarmEx;
-    }
     protected _setStateBasedOnInputValue(value: number): void {
         assert(Number.isFinite(value), "expecting a valid value here");
 
         let isActive = false;
 
         const states: IState = {
-            highHigh: this.$12.highHighState ? this.$12.highHighState.getValue() : "unset",
-            high: this.$12.highState ? this.$12.highState.getValue() : "unset",
-            low: this.$12.lowState ? this.$12.lowState.getValue() : "unset",
-            lowLow: this.$12.lowLowState ? this.$12.lowLowState.getValue() : "unset"
+            highHigh: this.highHighState ? this.highHighState.getValue() : "unset",
+            high: this.highState ? this.highState.getValue() : "unset",
+            low: this.lowState ? this.lowState.getValue() : "unset",
+            lowLow: this.lowLowState ? this.lowLowState.getValue() : "unset"
         };
 
         let count = 0;
@@ -221,6 +227,6 @@ export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implement
 }
 
 /** @internal */
-export type UANonExclusiveLimitAlarmImpl = UANonExclusiveLimitAlarmImplBase & UANonExclusiveLimitAlarmEx;
+export type UANonExclusiveLimitAlarmImpl = UANonExclusiveLimitAlarmImplBase;
 /** @internal */
-export const UANonExclusiveLimitAlarmImpl = UANonExclusiveLimitAlarmImplBase as unknown as new () => UANonExclusiveLimitAlarmImpl;
+export const UANonExclusiveLimitAlarmImpl = UANonExclusiveLimitAlarmImplBase;

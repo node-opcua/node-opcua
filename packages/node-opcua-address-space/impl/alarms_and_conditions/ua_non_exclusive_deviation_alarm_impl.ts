@@ -21,7 +21,15 @@ import { UALimitAlarmImpl } from "./ua_limit_alarm_impl.js";
 import { UANonExclusiveLimitAlarmImpl, UANonExclusiveLimitAlarmImplBase } from "./ua_non_exclusive_limit_alarm_impl.js";
 
 /** @internal */
-export class UANonExclusiveDeviationAlarmImplBase extends UANonExclusiveLimitAlarmImplBase {
+export class UANonExclusiveDeviationAlarmImplBase
+    extends UANonExclusiveLimitAlarmImplBase
+    implements UANonExclusiveDeviationAlarmEx
+{
+    /** installed as child nodes by the address space, not assigned here - hence `declare` */
+    public declare readonly setpointNode: UAVariableT<NodeId, DataType.NodeId>;
+    // required here, though SetPointSupport declares it optional
+    public declare readonly setpointNodeNode: UAVariableT<number, DataType.Double> | UAVariableT<number, DataType.Float>;
+
     public static instantiate(
         namespace: NamespacePrivate,
         type: string | NodeId,
@@ -85,7 +93,6 @@ export class UANonExclusiveDeviationAlarmImplBase extends UANonExclusiveLimitAla
 }
 
 /** @internal */
-export type UANonExclusiveDeviationAlarmImpl = UANonExclusiveDeviationAlarmImplBase & UANonExclusiveDeviationAlarmEx;
+export type UANonExclusiveDeviationAlarmImpl = UANonExclusiveDeviationAlarmImplBase;
 /** @internal */
-export const UANonExclusiveDeviationAlarmImpl =
-    UANonExclusiveDeviationAlarmImplBase as unknown as new () => UANonExclusiveDeviationAlarmImpl;
+export const UANonExclusiveDeviationAlarmImpl = UANonExclusiveDeviationAlarmImplBase;

@@ -2,7 +2,14 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 
-import type { INamespace, ISessionContext, ListenerSignature, RaiseEventData, UAEventType } from "node-opcua-address-space-base";
+import type {
+    INamespace,
+    ISessionContext,
+    ListenerSignature,
+    RaiseEventData,
+    UAEventType,
+    UAMethod
+} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { coerceLocalizedText, LocalizedText, type LocalizedTextLike } from "node-opcua-data-model";
 import { make_debugLog } from "node-opcua-debug";
@@ -15,6 +22,7 @@ import type { ConditionSnapshot } from "../../api/interfaces/alarms_and_conditio
 import type { InstantiateAlarmConditionOptions } from "../../api/interfaces/alarms_and_conditions/instantiate_alarm_condition_options.js";
 import type { UAAcknowledgeableConditionEx } from "../../api/interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex.js";
 import type { UAConditionEvents } from "../../api/interfaces/alarms_and_conditions/ua_condition_ex.js";
+import type { UATwoStateVariableEx } from "../../api/ua_two_state_variable_ex.js";
 import type { AddressSpacePrivate } from "../address_space_private.js";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable.js";
 import { ConditionSnapshotImpl } from "./condition_snapshot_impl.js";
@@ -23,16 +31,26 @@ import { type UAConditionImpl, UAConditionImplBase } from "./ua_condition_impl.j
 const debugLog = make_debugLog("ua_acknowledgeable_condition_impl");
 const doDebug = false;
 
-const $ = (a: UAAcknowledgeableConditionImplBase): UAAcknowledgeableConditionEx => a as unknown as UAAcknowledgeableConditionEx;
-
 export interface UAAcknowegeableConditionEvents extends UAConditionEvents {
     acknowledged: (eventId: Buffer | null, comment: LocalizedText | null, branch: ConditionSnapshot) => void;
     confirmed: (eventId: Buffer | null, comment: LocalizedText | null, branch: ConditionSnapshot) => void;
 }
 /** @internal */
 export class UAAcknowledgeableConditionImplBase<
-    T extends UAAcknowegeableConditionEvents & ListenerSignature<T> = UAAcknowegeableConditionEvents
-> extends UAConditionImplBase<T> {
+        T extends UAAcknowegeableConditionEvents & ListenerSignature<T> = UAAcknowegeableConditionEvents
+    >
+    extends UAConditionImplBase<T>
+    implements UAAcknowledgeableConditionEx<T>
+{
+    /**
+     * Installed as child nodes by the address space, not assigned here - hence `declare`.
+     * The event and condition properties come from the base classes.
+     */
+    public declare readonly ackedState: UATwoStateVariableEx;
+    public declare readonly confirmedState?: UATwoStateVariableEx;
+    public declare readonly acknowledge: UAMethod;
+    public declare readonly confirm?: UAMethod;
+
     /**
      */
 
@@ -186,7 +204,7 @@ export class UAAcknowledgeableConditionImplBase<
             return statusCode;
         }
 
-        if ($(this).confirmedState) {
+        if (this.confirmedState) {
             // alarm has a confirmed state !
             // we should be waiting for confirmation now
             branch.setConfirmedState(false);
@@ -254,7 +272,7 @@ export class UAAcknowledgeableConditionImplBase<
      */
     public autoConfirmBranch(branch: ConditionSnapshot, comment: LocalizedTextLike): void {
         assert(branch instanceof ConditionSnapshotImpl);
-        if (!$(this).confirmedState) {
+        if (!this.confirmedState) {
             // no confirmedState => ignoring
             return;
         }
@@ -279,10 +297,9 @@ export class UAAcknowledgeableConditionImplBase<
 }
 
 /** @internal */
-export type UAAcknowledgeableConditionImpl = UAAcknowledgeableConditionImplBase & UAAcknowledgeableConditionEx;
+export type UAAcknowledgeableConditionImpl = UAAcknowledgeableConditionImplBase;
 /** @internal */
-export const UAAcknowledgeableConditionImpl =
-    UAAcknowledgeableConditionImplBase as unknown as new () => UAAcknowledgeableConditionImpl;
+export const UAAcknowledgeableConditionImpl = UAAcknowledgeableConditionImplBase;
 
 function _acknowledge_method(
     inputArguments: VariantLike[],
