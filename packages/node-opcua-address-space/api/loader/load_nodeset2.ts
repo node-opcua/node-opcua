@@ -42,6 +42,7 @@ import { type BaseNodeImpl, flushSharedChildAccessors } from "../../impl/base_no
 import { BaseNode_resetChildIndex } from "../../impl/base_node_private.js";
 import type { NamespacePrivate } from "../../impl/namespace_private.js";
 import type { StructureFieldOptionsEx } from "../../impl/ua_data_type_impl.js";
+import type { UAVariableImpl } from "../../impl/ua_variable_impl.js";
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.js";
 import { ensureDatatypeExtracted } from "./ensure_datatype_extracted.js";
 import { makeSemverCompatible } from "./make_semver_compatible.js";
@@ -839,7 +840,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                         // c8 ignore next
                         doDebug && debugLog("1 setting value to ", cv.nodeId.toString(), new Variant(capturedValue).toString());
                     }
-                    cv.setValueFromSource(capturedValue as VariantOptions);
+                    (cv as UAVariableImpl)._setInitialDataValue(capturedValue as VariantOptions);
                     capturedValue = undefined;
                     capturedVariable = undefined;
                 };
@@ -870,9 +871,9 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                         // it as Good would put a spec-violating matrix on the wire (ArraySize 0 + non-empty
                         // ArrayDimensions), so flag it as BadWaitingForInitialData like any other missing value.
                         if (value.dataType === DataType.Null || isUninitializedMatrix(value)) {
-                            cv.setValueFromSource(value, StatusCodes.BadWaitingForInitialData);
+                            (cv as UAVariableImpl)._setInitialDataValue(value, StatusCodes.BadWaitingForInitialData);
                         } else {
-                            cv.setValueFromSource(value, StatusCodes.Good);
+                            (cv as UAVariableImpl)._setInitialDataValue(value, StatusCodes.Good);
                         }
                     }
                     capturedVariable = undefined;
