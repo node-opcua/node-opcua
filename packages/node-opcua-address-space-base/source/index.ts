@@ -8,6 +8,7 @@ export * from "./event_notifier_flags.js";
 export * from "./i_event_data.js";
 export * from "./modelling_rule_type.js";
 export * from "./namespace.js";
+export * from "./namespace_iteration.js";
 export * from "./session_context.js";
 export * from "./ua_data_type.js";
 export * from "./ua_dynamic_variable_array.js";

@@ -16,18 +16,6 @@ import { DataType } from "node-opcua-variant";
 import { displayNodeElement } from "./displayNodeElement.js";
 import { TableHelper } from "./tableHelper.js";
 
-interface NamespacePriv2 extends INamespace {
-    nodeIterator(): IterableIterator<BaseNode>;
-    _objectTypeIterator(): IterableIterator<UAObjectType>;
-    _objectTypeCount(): number;
-    _variableTypeIterator(): IterableIterator<UAVariableType>;
-    _variableTypeCount(): number;
-    _dataTypeIterator(): IterableIterator<UADataType>;
-    _dataTypeCount(): number;
-    _referenceTypeIterator(): IterableIterator<UAReferenceType>;
-    _referenceTypeCount(): number;
-    _aliasCount(): number;
-}
 export interface IWriter {
     writeLine(_str: string): void;
 }
@@ -213,12 +201,11 @@ function dumpReferenceType(referenceType: UAReferenceType): string {
 }
 
 export function extractTypes(namespace: INamespace, options?: BuildDocumentationOptions) {
-    const namespacePriv = namespace as unknown as NamespacePriv2;
     if (!options?.node) {
-        const dataTypes = [...namespacePriv._dataTypeIterator()];
-        const objectTypes = [...namespacePriv._objectTypeIterator()];
-        const variableTypes = [...namespacePriv._variableTypeIterator()];
-        const referenceTypes = [...namespacePriv._referenceTypeIterator()];
+        const dataTypes = [...namespace.dataTypeIterator()];
+        const objectTypes = [...namespace.objectTypeIterator()];
+        const variableTypes = [...namespace.variableTypeIterator()];
+        const referenceTypes = [...namespace.referenceTypeIterator()];
         return { dataTypes, variableTypes, objectTypes, referenceTypes };
     }
     const node = options.node;
@@ -252,10 +239,10 @@ export function extractTypes(namespace: INamespace, options?: BuildDocumentation
         return { dataTypes: [], variableTypes, objectTypes: [], dataTypeNode: [], referenceTypes: [] };
     }
 
-    const dataTypes = [...namespacePriv._dataTypeIterator()];
-    const objectTypes = [...namespacePriv._objectTypeIterator()];
-    const variableTypes = [...namespacePriv._variableTypeIterator()];
-    const referenceTypes = [...namespacePriv._referenceTypeIterator()];
+    const dataTypes = [...namespace.dataTypeIterator()];
+    const objectTypes = [...namespace.objectTypeIterator()];
+    const variableTypes = [...namespace.variableTypeIterator()];
+    const referenceTypes = [...namespace.referenceTypeIterator()];
     return { dataTypes, variableTypes, objectTypes, referenceTypes };
 }
 
@@ -265,8 +252,6 @@ export async function buildDocumentation(
     options?: BuildDocumentationOptions
 ): Promise<void> {
     options = options || {};
-
-    const namespacePriv = namespace as unknown as NamespacePriv2;
 
     const namespaceUri = namespace.namespaceUri;
     // -------- Documentation
@@ -278,11 +263,11 @@ export async function buildDocumentation(
     writer.writeLine("");
 
     // -------------- writeReferences
-    if (namespacePriv._referenceTypeCount() > 0) {
+    if (namespace.referenceTypeCount() > 0) {
         writer.writeLine("");
         writer.writeLine("##  References ");
         writer.writeLine("");
-        for (const referenceType of namespacePriv._referenceTypeIterator()) {
+        for (const referenceType of namespace.referenceTypeIterator()) {
             writer.writeLine(`\n\n###  reference ${referenceType.browseName.name ?? ""}`);
             dumpReferenceType(referenceType);
         }
