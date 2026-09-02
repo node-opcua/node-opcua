@@ -793,6 +793,44 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         }
     }
 
+    /**
+     * The initial value of a variable a nodeset file declares, or the default of its data type.
+     *
+     * What setValueFromSource does, minus what a variable nobody has seen yet cannot need: the
+     * clone of the previous value and the comparison with it, the change event and the touch of
+     * the parents. The compatibility checks stay, since a wrong <Value> in a third-party nodeset
+     * is exactly what they catch. A variable that is bound already (an extension object proxy,
+     * a setter) takes the full path.
+     *
+     * @internal
+     */
+    public _setInitialDataValue(variant: VariantLike, statusCode: StatusCode = StatusCodes.Good): void {
+        if (this.$$extensionObjectArray || this.$set_ExtensionObject || this._timestamped_set_func) {
+            this.setValueFromSource(variant, statusCode);
+            return;
+        }
+        try {
+            const variant1 = Variant.coerce(variant);
+            this.verifyVariantCompatibility(variant1);
+            if (variant1.dataType === DataType.ExtensionObject && !this.checkExtensionObjectIsCorrect(variant1.value)) {
+                throw new Error("invalid extension object");
+            }
+            const now = getCurrentClock();
+            this.$dataValue = new DataValue({
+                value: variant1,
+                statusCode,
+                sourceTimestamp: now.timestamp,
+                sourcePicoseconds: now.picoseconds,
+                serverTimestamp: now.timestamp,
+                serverPicoseconds: now.picoseconds
+            });
+        } catch (err) {
+            throw new Error(
+                `UAVariable#_setInitialDataValue ${this.browseName.toString()} ${this.nodeId.toString()}: ${(err as Error).message}`
+            );
+        }
+    }
+
     private adjustDataValueStatusCode(dataValue: DataValue): StatusCode {
         const statusCode = adjustDataValueStatusCode(
             this,
