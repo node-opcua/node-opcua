@@ -7,6 +7,7 @@ import type { NamespacePrivate } from "../../impl/namespace_private.js";
 import { adjustNamespaceArray } from "../../impl/nodeset_tools/adjust_namespace_array.js";
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.js";
 import { NodeSetLoader } from "./load_nodeset2.js";
+import { type NodesetReader, type NodesetSource, openNodesetSource } from "./nodeset_source.js";
 
 const doDebug = checkDebugFlag("generateAddressSpaceRaw");
 const debugLog = make_debugLog("generateAddressSpaceRaw");
@@ -96,6 +97,48 @@ interface NodesetDesc {
     xmlData: string;
     namespaceModel: NodesetInfo;
 }
+interface NodesetSourceDesc {
+    index: number;
+    reader: NodesetReader;
+    namespaceModel: NodesetInfo;
+}
+
+/**
+ * the header of a NodeSet2 file (`NamespaceUris`, `Models`) precedes the aliases and the nodes: the
+ * dependency pre-pass has read enough once both closers were seen, or once the body has begun
+ */
+const BODY_START =
+    /<(Aliases|Extensions|UAObject|UAVariable|UADataType|UAReferenceType|UAObjectType|UAVariableType|UAMethod|UAView)[\s/>]/;
+function headerComplete(text: string): boolean {
+    return (text.includes("</Models>") && text.includes("</NamespaceUris>")) || BODY_START.test(text);
+}
+
+/** the `<UANodeSet ...>` opener up to the end of `</Models>` or `</NamespaceUris>`, whichever comes last */
+function sliceHeader(xmlData: string, name: string): string {
+    const indexStart = xmlData.match(/<UANodeSet/m)?.index;
+    const i1 = (xmlData.match(/<\/Models>/m)?.index || 0) + "</Models>".length;
+    const i2 = (xmlData.match(/<\/NamespaceUris>/m)?.index || 0) + "</NamespaceUris>".length;
+    const indexEnd = Math.max(i1, i2);
+    if (indexStart === undefined) {
+        throw new Error(`nodeset source ${name}: no <UANodeSet> element found`);
+    }
+    return xmlData.substring(indexStart, indexEnd);
+}
+
+/**
+ * Detect the order of namespace loading, reading each source no further than its header
+ */
+async function preLoadSources(readers: NodesetReader[]): Promise<NodesetSourceDesc[]> {
+    const namespaceDesc: NodesetSourceDesc[] = [];
+    for (let index = 0; index < readers.length; index++) {
+        const reader = readers[index];
+        doDebug && console.log("---------------------------------------------", reader.name);
+        const head = await reader.readHead(headerComplete);
+        const namespaceModel = await parseDependencies(sliceHeader(head, reader.name));
+        namespaceDesc.push({ reader, namespaceModel, index });
+    }
+    return namespaceDesc;
+}
 /**
  * Detect order of namespace loading
  */
@@ -105,16 +148,7 @@ export async function preLoad(xmlFiles: string[], xmlLoader: (nodeset2xmlUri: st
     for (let index = 0; index < xmlFiles.length; index++) {
         doDebug && console.log("---------------------------------------------", xmlFiles[index]);
         const xmlData = await xmlLoader(xmlFiles[index]);
-
-        const indexStart = xmlData.match(/<UANodeSet/m)?.index;
-        const i1 = (xmlData.match(/<\/Models>/m)?.index || 0) + "</Models>".length;
-        const i2 = (xmlData.match(/<\/NamespaceUris>/m)?.index || 0) + "</NamespaceUris>".length;
-
-        const indexEnd = Math.max(i1, i2);
-        if (indexStart === undefined || indexEnd === undefined) {
-            throw new Error("Internal Error");
-        }
-        const xmlData2 = xmlData.substring(indexStart, indexEnd);
+        const xmlData2 = sliceHeader(xmlData, xmlFiles[index]);
         doDebug &&
             console.log(
                 xmlData2
@@ -128,7 +162,7 @@ export async function preLoad(xmlFiles: string[], xmlLoader: (nodeset2xmlUri: st
     }
     return namespaceDesc;
 }
-export function findOrder(nodesetDescs: NodesetDesc[]): number[] {
+export function findOrder(nodesetDescs: Array<{ namespaceModel: NodesetInfo }>): number[] {
     // compute the order of loading of the namespaces
     const order: number[] = [];
     const visited: Set<string> = new Set<string>();
@@ -157,7 +191,7 @@ export function findOrder(nodesetDescs: NodesetDesc[]): number[] {
         const alreadyIn = order.indexOf(nodesetIndex) !== -1;
         if (!alreadyIn) order.push(nodesetIndex);
     };
-    const visit2 = (nodesetDesc: NodesetDesc) => {
+    const visit2 = (nodesetDesc: { namespaceModel: NodesetInfo }) => {
         for (const model of nodesetDesc.namespaceModel.models.values()) {
             visit(model);
         }
@@ -169,24 +203,61 @@ export function findOrder(nodesetDescs: NodesetDesc[]): number[] {
     return order;
 }
 /**
+ * populate an address space from NodeSet2 documents, in dependency order whatever the order given
+ *
  * @param addressSpace the addressSpace to populate
- * @xmlFiles: a lis of xml files
- * @param xmlLoader - a helper function to return the content of the xml file
- * @internal
+ * @param sources the documents, each a {@link NodesetSource}: text, bytes, a stream of chunks or a
+ *   function opening one; an array is always a list of documents
+ * @param options
+ */
+export async function generateAddressSpaceRaw(
+    addressSpace: IAddressSpace,
+    sources: NodesetSource | NodesetSource[],
+    options?: NodeSetLoaderOptions
+): Promise<void>;
+/**
+ * @param addressSpace the addressSpace to populate
+ * @param xmlFiles a list of xml file uris
+ * @param xmlLoader a helper function returning the content of a xml file as a string
+ * @param options
  */
 export async function generateAddressSpaceRaw(
     addressSpace: IAddressSpace,
     xmlFiles: string | string[],
     xmlLoader: (nodeset2xmlUri: string) => Promise<string>,
     options: NodeSetLoaderOptions
+): Promise<void>;
+export async function generateAddressSpaceRaw(
+    addressSpace: IAddressSpace,
+    sourcesOrUris: NodesetSource | NodesetSource[] | string | string[],
+    loaderOrOptions?: ((nodeset2xmlUri: string) => Promise<string>) | NodeSetLoaderOptions,
+    maybeOptions?: NodeSetLoaderOptions
 ): Promise<void> {
+    let readers: NodesetReader[];
+    let options: NodeSetLoaderOptions;
+    if (typeof loaderOrOptions === "function") {
+        const xmlLoader = loaderOrOptions;
+        const uris = (Array.isArray(sourcesOrUris) ? sourcesOrUris : [sourcesOrUris]) as string[];
+        options = maybeOptions || {};
+        readers = uris.map((uri, index) =>
+            openNodesetSource(
+                {
+                    name: uri,
+                    source: async function* () {
+                        yield await xmlLoader(uri);
+                    }
+                },
+                index
+            )
+        );
+    } else {
+        const list = (Array.isArray(sourcesOrUris) ? sourcesOrUris : [sourcesOrUris]) as NodesetSource[];
+        options = loaderOrOptions || {};
+        readers = list.map(openNodesetSource);
+    }
     const nodesetLoader = new NodeSetLoader(addressSpace, options);
 
-    if (!Array.isArray(xmlFiles)) {
-        xmlFiles = [xmlFiles];
-    }
-
-    const nodesetDesc = await preLoad(xmlFiles, xmlLoader);
+    const nodesetDesc = await preLoadSources(readers);
     const order = findOrder(nodesetDesc);
 
     // register namespace in the same order as specified in the xmlFiles array
@@ -202,12 +273,14 @@ export async function generateAddressSpaceRaw(
         const nodesetIndex = order[index];
         const nodeset = nodesetDesc[nodesetIndex];
         // c8 ignore next
-        doDebug && debugLog(" loading ", nodesetIndex, nodeset.xmlData.length);
+        doDebug && debugLog(" loading ", nodesetIndex, nodeset.reader.name);
         try {
-            await nodesetLoader.addNodeSetAsync(nodeset.xmlData);
+            await nodesetLoader.addNodeSetStream(nodeset.reader.chunks());
         } catch (err) {
-            errorLog("generateAddressSpace:  Loading xml file ", xmlFiles[index], " failed with error ", (err as Error).message);
-            throw err;
+            const cause = err instanceof Error ? err.message : String(err);
+            const message = `generateAddressSpace: loading nodeset ${nodeset.reader.name} failed: ${cause}`;
+            errorLog(message);
+            throw new Error(message, { cause: err });
         }
     }
 

@@ -4,6 +4,20 @@
 
 ### Changed
 
+#### `Xml2Json` parses a document delivered in pieces
+
+`parseStream(chunks)` takes an async iterable (or an iterable) of strings or UTF-8 bytes, and `begin()` / `write(chunk)` /
+`end()` let a caller drive the pieces itself. Bytes go through a streaming `TextDecoder`, so a multi-byte character or
+the byte-order mark may straddle two chunks; a byte-order mark given as text is dropped too. `parseString` is
+unchanged.
+
+#### A chunk no longer costs the square of its unread tail
+
+When a chunk ended inside a text run, an attribute value or a name, the parser searched for the end of that record
+again from every remaining character, each search scanning to the end of the chunk. A 4 MB text run delivered in
+64 KB pieces took 6 seconds; the standard nodeset in 256 KB pieces took 1.2 seconds where the whole string takes
+60 ms. The parser now skips to the end of the chunk at once and carries the partial record into the next one.
+
 #### Chunked input is now safe whatever the chunk size, and CDATA sections are read
 
 - The start and the end of a CDATA section were tested against the wrong slice of the input, so a section was

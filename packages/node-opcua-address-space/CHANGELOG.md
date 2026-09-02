@@ -83,6 +83,22 @@ kept, and rebuilt when the type, one of its supertypes or one of their children 
 same event now takes 75us, most of it the construction of the caller's Variants. The browse-path index that a
 select clause resolves against is shared by every event of the type; the values stay per event.
 
+#### A nodeset loads from a source, not only from a file
+
+`generateAddressSpaceRaw` takes `NodesetSource` values next to the `uris + xmlLoader` form: the document as a
+string or as UTF-8 bytes, a stream of chunks (a Node.js `Readable`, a web `ReadableStream`, an async generator),
+or a function opening one, each optionally named for error messages. Chunks are parsed as they arrive; the
+dependency pre-pass reads a stream only as far as its `<Models>` and `<NamespaceUris>` header and hands the chunks it
+kept to the body parse, so a stream that cannot be reopened is read exactly once. Decompression stays the caller's:
+wrap `zlib.createGunzip()` or a `DecompressionStream` around the source. The Node.js `generateAddressSpace` now reads
+each file as a 256 KB stream instead of one string. A load fed in chunks costs the same as one fed the whole string.
+
+- New option `yieldEveryBytes` (default 8 MiB): a nodeset arriving in chunks lets the event loop turn once that much
+  text has been parsed, so a server keeps answering while a large model loads.
+- A source that fails half-way rejects the load with the source named and the address space no longer marked as
+  loading; it holds what was loaded before the failure and must be disposed.
+- `NodeSetLoader.addNodeSetStream(chunks)` next to `addNodeSetAsync(xml)`.
+
 ### Security
 
 #### Per-node `RolePermissions` and `AccessRestrictions` are no longer dropped when loading a NodeSet2 file

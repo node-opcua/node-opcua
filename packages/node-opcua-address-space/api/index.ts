@@ -149,6 +149,7 @@ export * from "./interfaces/state_machine/ua_transition_ex.js";
 export * from "./interfaces/ua_subscription_diagnostics_variable_ex.js";
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "./loader/ensure_datatype_extracted.js";
 export * from "./loader/generateAddressSpaceRaw.js";
+export type { NamedNodesetSource, NodesetChunk, NodesetChunkStream, NodesetSource } from "./loader/nodeset_source.js";
 export * from "./loader/register_node_promoter.js";
 export * from "./namespace.js";
 export type { INamespaceAlarmAndCondition } from "./namespace_alarm_and_condition.js";
