@@ -41,7 +41,9 @@ export function addTwoStateDiscreteVariables(namespace: Namespace, parentFolder:
         optionals: ["TransitionTime", "EffectiveDisplayName"]
     });
 
+    // HasTrueSubState is not hierarchical: the folder keeps it browsable
     const twoStateDiscrete003 = namespace.addTwoStateDiscrete({
+        organizedBy: DADiscreteTypeFolder,
         browseName: "twoStateDiscrete003",
         nodeId: "s=TwoStateDiscrete003",
         optionals: ["TransitionTime"],

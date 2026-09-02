@@ -134,6 +134,7 @@ export function _addTwoStateDiscrete(namespace: INamespace, options: AddTwoState
         displayName: options.displayName,
         componentOf: options.componentOf,
         propertyOf: options.propertyOf,
+        organizedBy: options.organizedBy,
         dataType: DataType.Boolean,
         nodeId: options.nodeId,
         typeDefinition: twoStateDiscreteType.nodeId,
