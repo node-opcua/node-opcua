@@ -2426,7 +2426,14 @@ export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl {
         context: ISessionContext | null,
         callback?: CallbackT<DataValueT<T, DT>>
     ): Promise<DataValueT<T, DT>> | undefined {
-        return super.readValueAsync(context, callback as CallbackT<DataValue>) as Promise<DataValueT<T, DT>> | undefined;
+        // forward the arguments we were actually given. The base method is thenified, and
+        // thenify decides between promise and callback form by argument count, so passing an
+        // explicit undefined callback makes it hand that undefined straight through.
+        if (callback === undefined) {
+            return super.readValueAsync(context) as Promise<DataValueT<T, DT>>;
+        }
+        super.readValueAsync(context, callback as CallbackT<DataValue>);
+        return undefined;
     }
 
     public writeValue(
@@ -2447,12 +2454,17 @@ export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl {
         indexRangeOrCallback?: NumericRange | null | StatusCodeCallback,
         callback?: StatusCodeCallback
     ): Promise<StatusCode> | undefined {
-        return (super.writeValue as (...args: unknown[]) => Promise<StatusCode> | undefined)(
-            context,
-            dataValue,
-            indexRangeOrCallback,
-            callback
-        );
+        // same reason as readValueAsync above: forward the arity we were called with, and
+        // keep the call on `super.writeValue` so it stays a method call - binding it to a
+        // local would drop `this`
+        type Write = (...args: unknown[]) => Promise<StatusCode> | undefined;
+        if (callback === undefined) {
+            if (indexRangeOrCallback === undefined) {
+                return (super.writeValue as Write)(context, dataValue);
+            }
+            return (super.writeValue as Write)(context, dataValue, indexRangeOrCallback);
+        }
+        return (super.writeValue as Write)(context, dataValue, indexRangeOrCallback, callback);
     }
 }
 

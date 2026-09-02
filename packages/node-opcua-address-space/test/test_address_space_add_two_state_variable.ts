@@ -1,10 +1,13 @@
 import fs from "node:fs";
+import { coerceLocalizedText } from "node-opcua-data-model";
+import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
+import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
-import { AddressSpace, type BaseNode, type Namespace } from "../dist/api/index.js";
+import { AddressSpace, type BaseNode, type Namespace, SessionContext } from "../dist/api/index.js";
 import { UATwoStateVariableImpl } from "../dist/impl/state_machine/ua_two_state_variable.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
@@ -36,6 +39,24 @@ describe("testing add TwoStateVariable ", function (this: Mocha.Suite) {
     afterEach(function (this: Mocha.Context) {
         clock?.restore();
         clock = null;
+    });
+
+    it("should read and write a TwoStateVariable in promise form", async () => {
+        // UATwoStateVariableImpl extends UAVariableImplT, whose readValue/writeValue
+        // overrides forward to a thenified base. Passing that base an explicit undefined
+        // callback makes it take the callback path with no callback to call, so the promise
+        // form breaks on any class deriving from it.
+        const node = namespace.addTwoStateVariable({ browseName: "TwoStateVariablePromiseForm" });
+        node.setValue(true);
+
+        const dataValue = await node.readValueAsync(SessionContext.defaultContext);
+        should(dataValue.value.value.text).eql("TRUE");
+
+        const statusCode = await node.writeValue(
+            SessionContext.defaultContext,
+            new DataValue({ value: new Variant({ dataType: DataType.LocalizedText, value: coerceLocalizedText("FALSE") }) })
+        );
+        should.exist(statusCode);
     });
 
     it("should add a TwoStateVariableType", () => {
