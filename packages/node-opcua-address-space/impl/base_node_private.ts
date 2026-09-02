@@ -88,17 +88,6 @@ interface BaseNodeCache {
     _parent?: BaseNode | null;
     _back_referenceIdx: Map<string, UAReference>;
     _referenceIdx: Map<string, UAReference>;
-    /** `nodeId.toString()`, computed once: it ends the hash of every reference pointing here */
-    _nodeIdKey?: string;
-}
-
-/** the string the node is identified by in reference hashes, built once per node */
-export function BaseNode_nodeIdKey(node: BaseNode): string {
-    const _private = BaseNode_getPrivate(node);
-    if (_private._nodeIdKey === undefined) {
-        _private._nodeIdKey = node.nodeId.toString();
-    }
-    return _private._nodeIdKey;
 }
 
 export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {

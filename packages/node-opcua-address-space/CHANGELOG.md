@@ -28,7 +28,8 @@ through the namespace API keep the per-parent accessor they had.
 
 #### Reference lookups on the load path stop rescanning and reallocating
 
-- `findReferencesEx` is memoized per reference type and direction, dropped with the rest of the node cache on
+- `findReferencesEx` is memoized per reference type and direction on nodes holding more than eight references (a
+  leaf variable holds three and scans them faster than a map would cost), dropped with the rest of the node cache on
   every reference added or removed and whenever a reference type is created (the callers iterate the result and
   never change it). Removing a back reference now clears the cache of the node that held it, which it never did.
 - `checkHasSubtype` indexes reference types by NodeId value instead of building a string per reference per scan.
