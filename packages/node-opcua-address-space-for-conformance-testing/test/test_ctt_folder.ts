@@ -34,7 +34,7 @@ describe("the CTT folder", function () {
 
     it("mirrors the setting path in the browse path and the NodeId", () => {
         const v = byPath("Static/HA Profile/Arrays/Int162D");
-        v.browseName.name!.should.eql("Int162D");
+        should(v.browseName.name).eql("Int162D");
         // follow the hierarchical references from the CTT folder, segment by segment
         let n: UAObject | UAVariable = ctt;
         for (const segment of ["Static", "HA Profile", "Arrays", "Int162D"]) {
@@ -52,7 +52,11 @@ describe("the CTT folder", function () {
         for (let i = 1; i <= 5; i++) {
             const v = byPath(`Static/All Profiles/Structures/Structure00${i}`);
             v.readValue().value.dataType.should.eql(DataType.ExtensionObject);
-            addressSpace.findDataType(v.dataType)!.isSubtypeOf(addressSpace.findDataType("Structure")!).should.eql(true);
+            const dataType = addressSpace.findDataType(v.dataType);
+            const structure = addressSpace.findDataType("Structure");
+            should.exist(dataType);
+            should.exist(structure);
+            should(dataType?.isSubtypeOf(structure!)).eql(true);
         }
         byPath("Static/All Profiles/Arrays/Variant").valueRank.should.eql(1);
         byPath("Static/All Profiles/Multi-Dimensional-Arrays/Variant").valueRank.should.eql(2);
@@ -60,11 +64,11 @@ describe("the CTT folder", function () {
 
     it("serves the DA arrays and the five ArrayItemTypes with their axis properties", () => {
         const a = byPath("Static/DA Profile/AnalogItemType Arrays/Int16");
-        a.typeDefinitionObj.browseName.name!.should.eql("AnalogItemType");
+        should(a.typeDefinitionObj.browseName.name).eql("AnalogItemType");
         a.valueRank.should.eql(1);
         for (const t of ["YArrayItemType", "XYArrayItemType", "ImageItemType", "CubeItemType", "NDimensionArrayItemType"]) {
             const v = byPath(`Static/DA Profile/ArrayItemType/${t}`);
-            v.typeDefinitionObj.browseName.name!.should.eql(t);
+            should(v.typeDefinitionObj.browseName.name).eql(t);
             should.exist(v.getPropertyByName("Title"), `${t} Title`);
             v.readValue().statusCode.should.eql(StatusCodes.Good);
         }
@@ -92,7 +96,7 @@ describe("the CTT folder", function () {
         const ro = byPath("Static/HA Profile/AccessRights/AccessLevel_ReadOnly");
         (ro.accessLevel & 3).should.eql(1);
         const uw = byPath("Static/HA Profile/AccessRights/UserAccessLevel_WriteOnly");
-        (uw.userAccessLevel & 3).should.eql(2);
+        ((uw.userAccessLevel ?? 0) & 3).should.eql(2);
         (uw.accessLevel & 3).should.eql(3);
     });
 });
