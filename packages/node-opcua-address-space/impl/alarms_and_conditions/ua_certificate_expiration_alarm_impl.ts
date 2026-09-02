@@ -42,7 +42,8 @@ export const TwoWeeksDuration = OneDayDuration * 2 * 7;
  * Certificate is within the ExpirationLimit
  * of expiration. This alarm automatically returns to normal when the certificate is updated.
  */
-class UACertificateExpirationAlarmImplBase extends UASystemOffNormalAlarmImpl {
+class UACertificateExpirationAlarmImplBase extends UASystemOffNormalAlarmImpl implements UACertificateExpirationAlarmEx {
+    /** installed as child nodes by the address space, not assigned here - hence `declare` */
     declare expirationDate: UAProperty<Date, DataType.DateTime>;
     declare expirationLimit: UAProperty<number, DataType.Double> | undefined;
     declare certificateType: UAProperty<NodeId, DataType.NodeId>;
@@ -240,7 +241,6 @@ export function promoteToCertificateExpirationAlarm(node: UAObject): UACertifica
 registerNodePromoter(ObjectTypeIds.CertificateExpirationAlarmType, promoteToCertificateExpirationAlarm, true);
 
 /** @internal */
-export type UACertificateExpirationAlarmImpl = UACertificateExpirationAlarmImplBase & UACertificateExpirationAlarmEx;
+export type UACertificateExpirationAlarmImpl = UACertificateExpirationAlarmImplBase;
 /** @internal */
-export const UACertificateExpirationAlarmImpl: new () => UACertificateExpirationAlarmImpl =
-    UACertificateExpirationAlarmImplBase as unknown as new () => UACertificateExpirationAlarmImpl;
+export const UACertificateExpirationAlarmImpl = UACertificateExpirationAlarmImplBase;

@@ -49,7 +49,33 @@ export interface UAShelvedStateMachineHelper2 extends UAShelvedStateMachineHelpe
     oneShotShelve2?: UAMethod;
 }
 
-export class UAShelvedStateMachineExImplBase extends UAStateMachineImpl {
+export class UAShelvedStateMachineExImplBase extends UAStateMachineImpl implements UAShelvedStateMachineEx {
+    /**
+     * The states, transitions and methods the address space installs as child nodes, plus the
+     * shelving timer this class keeps. None is assigned by the constructor - hence `declare`,
+     * which emits nothing.
+     */
+    public declare readonly unshelveTime: UAProperty<number, DataType.Double>;
+    public declare readonly unshelved: UAState;
+    public declare readonly timedShelved: UAState;
+    public declare readonly oneShotShelved: UAState;
+    public declare readonly unshelvedToTimedShelved: UATransitionEx;
+    public declare readonly unshelvedToOneShotShelved: UATransitionEx;
+    public declare readonly timedShelvedToUnshelved: UATransitionEx;
+    public declare readonly timedShelvedToOneShotShelved: UATransitionEx;
+    public declare readonly oneShotShelvedToUnshelved: UATransitionEx;
+    public declare readonly oneShotShelvedToTimedShelved: UATransitionEx;
+    public declare readonly timedShelve: UAMethod;
+    public declare readonly timedShelve2?: UAMethod;
+    public declare readonly unshelve: UAMethod;
+    public declare readonly unshelve2?: UAMethod;
+    public declare readonly oneShotShelve: UAMethod;
+    public declare readonly oneShotShelve2?: UAMethod;
+    public declare _timer: NodeJS.Timeout | null;
+    public declare _shelvedTime: Date;
+    public declare _unshelvedTime: Date;
+    public declare _duration: number;
+
     public static promote(object: UAObject): UAShelvedStateMachineEx {
         const shelvingState = object as UAShelvedStateMachineExImpl;
         promoteToStateMachine(shelvingState);
@@ -81,8 +107,8 @@ export class UAShelvedStateMachineExImplBase extends UAStateMachineImpl {
         return shelvingState;
     }
 }
-export type UAShelvedStateMachineExImpl = UAShelvedStateMachineExImplBase & UAShelvedStateMachineEx;
-export const UAShelvedStateMachineExImpl = UAShelvedStateMachineExImplBase as unknown as new () => UAShelvedStateMachineExImpl;
+export type UAShelvedStateMachineExImpl = UAShelvedStateMachineExImplBase;
+export const UAShelvedStateMachineExImpl = UAShelvedStateMachineExImplBase;
 
 // The Unshelve Method sets the AlarmCondition to the Unshelved state. Normally, the MethodId found
 // the Shelving child of the Condition instance and the NodeId of the Shelving object as the ObjectId
