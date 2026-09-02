@@ -64,7 +64,7 @@ export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMeth
         return super.parent as UAObject;
     }
 
-    public value?: unknown;
+    public declare value?: unknown;
     public methodDeclarationId: NodeId;
     public _getExecutableFlag?: (this: UAMethod, context: ISessionContext | null) => boolean;
 
@@ -72,7 +72,9 @@ export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMeth
 
     constructor(options: IMethodOptons) {
         super(options);
-        this.value = options.value;
+        if (options.value !== undefined) {
+            this.value = options.value;
+        }
         this.methodDeclarationId = options.methodDeclarationId;
     }
 
