@@ -71,6 +71,10 @@ function count(proto: object, name: string) {
 timeSync(Xml2Json.prototype, "parseString", "parse");
 timeAsync(NodeSetLoader.prototype, "terminate", "terminate");
 timeSync(BaseNodeImpl.prototype, "propagate_back_references", "backRefs");
+if ("propagate_back_references_declared_from_both_ends" in BaseNodeImpl.prototype) {
+    // the loader calls this variant; a tree built before it existed only has the method above
+    timeSync(BaseNodeImpl.prototype, "propagate_back_references_declared_from_both_ends", "backRefs");
+}
 count(BaseNodeImpl.prototype, "findReferencesEx");
 
 const gc: (() => void) | undefined = (globalThis as { gc?: () => void }).gc;
