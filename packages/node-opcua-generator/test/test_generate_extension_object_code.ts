@@ -87,6 +87,31 @@ describe("generating TypeScript from a binary schema", () => {
         syntactic.should.eql([], `expecting the generated code to parse cleanly, got: ${syntactic.join("; ")}`);
     });
 
+    it("should produce the same code when called twice in one process", async () => {
+        // The output buffer used to be module scope, so the second call appended to the
+        // first one's output and every type came out twice. node-opcua-types calls generate
+        // once per process, which is why nothing caught it.
+        const secondFile = path.join(outputFolder, "_generated_sample_types_again.ts");
+        await generate(testFixture("SampleTypes.bsd"), secondFile);
+        const second = fs.readFileSync(secondFile, "utf8");
+
+        // the header carries a timestamp, so compare what follows it
+        const body = (text: string) => text.split("\n").slice(1).join("\n");
+        should(body(second)).eql(body(code));
+    });
+
+    it("should declare each generated type once", async () => {
+        const thirdFile = path.join(outputFolder, "_generated_sample_types_third.ts");
+        await generate(testFixture("SampleTypes.bsd"), thirdFile);
+        const third = fs.readFileSync(thirdFile, "utf8");
+
+        // one `const schemaX = buildStructuredType({` per structured type, however many
+        // times generate() has run before this one
+        const declared = [...third.matchAll(/^const schema(\w+) = buildStructuredType\(\{/gm)].map((m) => m[1]);
+        should(declared.length).be.greaterThan(0, "expecting the fixture to yield structured types");
+        should([...new Set(declared)].length).eql(declared.length, `each type once, got: ${declared.join(", ")}`);
+    });
+
     it("should reject a schema file that is not there", async () => {
         let caught: Error | undefined;
         try {
