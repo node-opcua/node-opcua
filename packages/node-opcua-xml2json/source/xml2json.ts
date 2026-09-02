@@ -29,6 +29,9 @@ function _coerceParser(parser: ParserLike): Parser {
             parser[name] = new ReaderState(tmp);
         }
     }
+    // an element name is looked up in this table for every element of the document; with no
+    // prototype behind it the lookup is one hash probe and cannot find an Object member by mistake
+    Object.setPrototypeOf(parser, null);
     return parser as Parser;
 }
 
@@ -101,7 +104,18 @@ export class ReaderState extends ReaderStateBase {
 
     public parent?: IReaderState;
     public root?: Xml2Json;
-    public data?: Record<string, unknown>;
+    private _data?: Record<string, unknown>;
+
+    /** scratch space for the reader, fresh for every element it reads, allocated on first use */
+    public get data(): Record<string, unknown> {
+        if (!this._data) {
+            this._data = {};
+        }
+        return this._data;
+    }
+    public set data(value: Record<string, unknown> | undefined) {
+        this._data = value;
+    }
 
     constructor(options: ReaderStateParser | ReaderState) {
         super();
@@ -125,7 +139,7 @@ export class ReaderState extends ReaderStateBase {
         this.name = elementName;
         this.parent = parent;
         this.engine = engine;
-        this.data = {};
+        this._data = undefined;
         this.level = level;
         this.currentLevel = this.level;
         this.attrs = attrs;
@@ -155,8 +169,9 @@ export class ReaderState extends ReaderStateBase {
         if (this._startElement) {
             this._startElement(elementName, attrs);
         }
-        if (this.engine && Object.hasOwn(this.parser, elementName)) {
-            this.engine._promote(this.parser[elementName], level, elementName, attrs);
+        const child = this.parser[elementName];
+        if (this.engine && child) {
+            this.engine._promote(child, level, elementName, attrs);
         }
     }
 
@@ -187,7 +202,7 @@ export class ReaderState extends ReaderStateBase {
             this.chunks = [];
             // this is the end
             this._on_finish();
-            if (this.parent instanceof ReaderState && Object.hasOwn(this.parent.parser, elementName)) {
+            if (this.parent instanceof ReaderState && this.parent.parser[elementName]) {
                 this.engine?._demote(this, level, elementName);
             }
         }
@@ -264,17 +279,26 @@ function resolve_namespace(name: string): ResolvedName {
  *       done();
  *   });
  */
+/** how many times a reader state is active at once, kept on the state itself */
+const activations = Symbol("activations");
+interface ActivationCounted {
+    [activations]?: number;
+}
+
 export class Xml2Json {
     public currentLevel = 0;
-    private state_stack: Array<{ state: IReaderState | null; backup: Record<string, unknown> | null }> = [];
+    // two parallel stacks rather than one record per element: an element is pushed and popped
+    // for each of the hundreds of thousands a nodeset carries
+    private state_stack: Array<IReaderState | null> = [];
+    private backup_stack: Array<Record<string, unknown> | null> = [];
     private current_state: IReaderState | null = null;
-    private activation_count: Map<IReaderState, number> = new Map();
 
     constructor(options: ReaderStateParser) {
         const state = options instanceof ReaderStateBase ? (options as ReaderState) : new ReaderState(options);
         state.root = this;
 
         this.state_stack = [];
+        this.backup_stack = [];
         this.current_state = null;
         this._promote(state, 0);
     }
@@ -293,13 +317,12 @@ export class Xml2Json {
         // active at two levels at once. This happens when a data type refers to itself, directly or
         // indirectly: the reader of the nested element is then the very same object as the outer one.
         // In that case only, take a copy of the outer activation and restore it in _demote.
-        const isReentrant = this.activation_count.has(new_state);
-        this.activation_count.set(new_state, (this.activation_count.get(new_state) || 0) + 1);
+        const counted = new_state as ActivationCounted;
+        const active = counted[activations] || 0;
+        counted[activations] = active + 1;
 
-        this.state_stack.push({
-            backup: isReentrant ? { ...(new_state as unknown as Record<string, unknown>) } : null,
-            state: this.current_state
-        });
+        this.state_stack.push(this.current_state);
+        this.backup_stack.push(active > 0 ? { ...(new_state as unknown as Record<string, unknown>) } : null);
 
         const parent = this.current_state;
         this.current_state = new_state;
@@ -316,22 +339,18 @@ export class Xml2Json {
      */
     public _demote(cur_state: IReaderState, level: number, elementName: string): void {
         ///  assert(this.current_state === cur_state);
-        const popped = this.state_stack.pop();
-        if (!popped) {
+        if (this.state_stack.length === 0) {
             throw new Error("_demote called without a matching _promote");
         }
-        const { state, backup } = popped;
+        const state = this.state_stack.pop() as IReaderState | null;
+        const backup = this.backup_stack.pop() as Record<string, unknown> | null;
         this.current_state = state;
         if (this.current_state) {
             this.current_state._on_endElement2(level, elementName);
         }
 
-        const count = (this.activation_count.get(cur_state) || 1) - 1;
-        if (count === 0) {
-            this.activation_count.delete(cur_state);
-        } else {
-            this.activation_count.set(cur_state, count);
-        }
+        const counted = cur_state as ActivationCounted;
+        counted[activations] = (counted[activations] || 1) - 1;
         if (backup) {
             // cur_state was a nested activation of a state that is still active at an outer level:
             // put the outer element back the way it was. The parent has already consumed the nested
