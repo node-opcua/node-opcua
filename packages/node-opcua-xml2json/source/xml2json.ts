@@ -14,26 +14,37 @@ export interface Parser {
 }
 
 /**
- * @static
+ * the reader states of a definition, in a table of this engine's own. A definition is a plain
+ * object the caller may hand to any number of parsers (the shared Definition reader of the
+ * nodeset loader, for one), while a reader state carries the element being read: its parent, its
+ * attributes, its text so far. So the definition is never written to; each parser builds its
+ * states from it. A definition that refers to itself, directly or through a child, gets one state
+ * per engine for the cycle, the one being built when the cycle closes.
  * @private
-
- * @param parser {map<ReaderState|options>}
- * @return {map}
  */
-function _coerceParser(parser: ParserLike): Parser {
-    for (const name of Object.keys(parser)) {
-        if (parser[name] && !(parser[name] instanceof ReaderState)) {
-            // this is to prevent recursion
-            const tmp = parser[name];
-            delete parser[name];
-            parser[name] = new ReaderState(tmp);
-        }
+function _coerceParser(parser: ParserLike | undefined): Parser {
+    // no prototype: an element name is looked up in this table for every element of the document,
+    // one hash probe that cannot find an Object member by mistake
+    const table: Parser = Object.create(null);
+    if (!parser) {
+        return table;
     }
-    // an element name is looked up in this table for every element of the document; with no
-    // prototype behind it the lookup is one hash probe and cannot find an Object member by mistake
-    Object.setPrototypeOf(parser, null);
-    return parser as Parser;
+    for (const name of Object.keys(parser)) {
+        const entry = parser[name];
+        if (!entry) {
+            continue;
+        }
+        table[name] = entry instanceof ReaderState ? entry : (statesUnderConstruction.get(entry) ?? new ReaderState(entry));
+    }
+    return table;
 }
+
+/**
+ * the states being built from a definition, for the duration of one root construction: the way a
+ * definition that closes a cycle finds the state already under way instead of recursing for ever
+ */
+let statesUnderConstruction = new WeakMap<ReaderStateParserLike, ReaderState>();
+let constructionDepth = 0;
 
 export interface XmlAttributes {
     [key: string]: string;
@@ -119,17 +130,24 @@ export class ReaderState extends ReaderStateBase {
 
     constructor(options: ReaderStateParser | ReaderState) {
         super();
-        // ensure options object has only expected properties
-        options.parser = options.parser || {};
-
-        if (!(options instanceof ReaderStateBase)) {
-            this._init = options.init;
-            this._finish = options.finish;
-            this._startElement = options.startElement;
-            this._endElement = options.endElement;
+        if (options instanceof ReaderStateBase) {
+            this.parser = options.parser;
+            return;
         }
-
-        this.parser = _coerceParser(options.parser);
+        this._init = options.init;
+        this._finish = options.finish;
+        this._startElement = options.startElement;
+        this._endElement = options.endElement;
+        if (constructionDepth === 0) {
+            statesUnderConstruction = new WeakMap();
+        }
+        constructionDepth += 1;
+        try {
+            statesUnderConstruction.set(options, this);
+            this.parser = _coerceParser(options.parser);
+        } finally {
+            constructionDepth -= 1;
+        }
     }
 
     /**
