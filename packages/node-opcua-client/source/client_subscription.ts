@@ -255,6 +255,23 @@ export declare interface ClientSubscription {
     on(event: "terminated", eventHandler: () => void): this;
 
     /**
+     * notify the observers that the subscription has been recreated with a new subscriptionId.
+     *
+     * This happens when the client repairs a broken connection and the server could not
+     * transfer the original subscription (TransferSubscriptions not supported or refused,
+     * or the subscription had already timed out and been deleted on the server). In that
+     * case the client silently creates a new subscription on the server, and `subscriptionId`
+     * is updated to reflect it. Since `started` is only emitted once, applications that need
+     * to track the current subscriptionId (for logging, diagnostics, or correlating it with
+     * server-side state) should listen to this event as well.
+     * @event subscriptionId_changed
+     */
+    on(
+        event: "subscriptionId_changed",
+        eventHandler: (subscriptionId: SubscriptionId, previousSubscriptionId: SubscriptionId) => void
+    ): this;
+
+    /**
      * notify the observers that a new monitored item has been added to the subscription.
      * @event  item_added
      */

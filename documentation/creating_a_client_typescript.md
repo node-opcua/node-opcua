@@ -259,6 +259,11 @@ subscription
   })
   .on("terminated", function() {
     console.log("terminated");
+  })
+  .on("subscriptionId_changed", function(subscriptionId, previousSubscriptionId) {
+    // the client had to recreate the subscription on the server while repairing
+    // a broken connection; subscriptionId no longer matches the value seen in "started"
+    console.log("subscriptionId changed from", previousSubscriptionId, "to", subscriptionId);
   });
 
 // install monitored item
