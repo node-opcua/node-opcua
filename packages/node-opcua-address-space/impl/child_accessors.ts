@@ -30,8 +30,10 @@ const forbiddenNames = new Set(["then", "catch", "finally", "toJSON", "length", 
 /**
  * accessor name -> the browse names mapping to it that cannot be derived back from it.
  * `enabledState` needs no entry (`EnabledState` is the accessor name capitalised, and a name that
- * is already lower case maps to itself), so a model with a hundred thousand runtime names costs
- * nothing here; `euRange` does (`EURange`), and so does a name with an underscore.
+ * is already lower case maps to itself); `euRange` does (`EURange`), and so does a name with an
+ * underscore. Only the shared getters read this map, so it holds the names a nodeset declared
+ * and the runtime names those getters resolve: a model with a hundred thousand runtime names
+ * costs nothing here.
  */
 const irregularBrowseNames = new Map<string, string[]>();
 
@@ -90,7 +92,11 @@ export function isReservedChildAccessorName(accessorName: string): boolean {
  * name back to it; with `requestShared`, also queue a shared getter for it, to be defined by the
  * next {@link defineSharedChildAccessors}.
  */
-/** browse name to accessor name, computed once: a nodeset repeats a few hundred names over thousands of nodes */
+/**
+ * browse name to accessor name, computed once for the names a nodeset declares: a nodeset repeats
+ * a few hundred names over thousands of nodes. A name first seen at runtime is computed and not
+ * remembered: it is seen once, and a server naming its nodes per job must leave no trace here.
+ */
 const accessorNameOf = new Map<string, string>();
 
 export function registerChildName(browseName: string | null | undefined, requestShared: boolean): string | undefined {
@@ -98,22 +104,43 @@ export function registerChildName(browseName: string | null | undefined, request
         return undefined;
     }
     let accessorName = accessorNameOf.get(browseName);
-    if (accessorName === undefined) {
-        accessorName = childAccessorName(browseName);
-        if (browseName !== accessorName && browseName !== upperFirstLetter(accessorName)) {
-            const known = irregularBrowseNames.get(accessorName);
-            if (!known) {
-                irregularBrowseNames.set(accessorName, [browseName]);
-            } else if (!known.includes(browseName)) {
-                known.push(browseName);
-            }
-        }
-        accessorNameOf.set(browseName, accessorName);
+    if (accessorName !== undefined) {
+        return accessorName;
     }
-    if (requestShared && !sharedAccessors.has(accessorName)) {
-        pendingSharedAccessors.add(accessorName);
+    accessorName = childAccessorName(browseName);
+    // a shared getter resolves the child by browse name through the index: it must know the
+    // irregular spellings of the names it serves, whether a nodeset or the runtime brought them.
+    // A runtime name with no shared getter is served by an own accessor that holds its child
+    const shared = requestShared || sharedAccessors.has(accessorName);
+    if (shared && browseName !== accessorName && browseName !== upperFirstLetter(accessorName)) {
+        const known = irregularBrowseNames.get(accessorName);
+        if (!known) {
+            irregularBrowseNames.set(accessorName, [browseName]);
+        } else if (!known.includes(browseName)) {
+            known.push(browseName);
+        }
+    }
+    if (requestShared) {
+        accessorNameOf.set(browseName, accessorName);
+        if (!sharedAccessors.has(accessorName)) {
+            pendingSharedAccessors.add(accessorName);
+        }
     }
     return accessorName;
+}
+
+/** how much the registries hold, for the tests that check they stay bounded by the nodeset vocabulary */
+export function childAccessorRegistrySizes(): { accessorNames: number; irregularNames: number; shared: number; pending: number } {
+    let irregularNames = 0;
+    for (const names of irregularBrowseNames.values()) {
+        irregularNames += names.length;
+    }
+    return {
+        accessorNames: accessorNameOf.size,
+        irregularNames,
+        shared: sharedAccessors.size,
+        pending: pendingSharedAccessors.size
+    };
 }
 
 /**
