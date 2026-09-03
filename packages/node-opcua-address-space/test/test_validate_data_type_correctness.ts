@@ -135,6 +135,20 @@ describe("testing validateDataTypeCorrectness", () => {
         validateDataTypeCorrectness(addressSpace, dataType, DataType.QualifiedName, false).should.eql(false);
     });
 
+    // Image (-> ImageBMP/ImageGIF/ImageJPG/ImagePNG) is abstract and its members have no
+    // built-in encoding of their own: a Variant for any of them is stamped with ByteString,
+    // Image's own built-in ancestor - a supertype of Image, never a subtype.
+    it("0:Image: should accept a DataType.ByteString variant", async () => {
+        const dataType = addressSpace.findDataType("Image")!.nodeId;
+        should.exist(dataType);
+        validateDataTypeCorrectness(addressSpace, dataType, DataType.ByteString, false).should.eql(true);
+    });
+    it("0:Image: should reject a DataType.Int32 variant", async () => {
+        const dataType = addressSpace.findDataType("Image")!.nodeId;
+        should.exist(dataType);
+        validateDataTypeCorrectness(addressSpace, dataType, DataType.Int32, false).should.eql(false);
+    });
+
     it("DataType.Null: should accept DataType.Null if allow Null", async () => {
         const ns = addressSpace.getNamespaceIndex("http://myorganisation.org/customTypes");
         ns.should.not.eql(-1);
