@@ -54,7 +54,6 @@ describe("Xml2Json owns its reader states", () => {
 
     it("builds one state per engine for a definition that refers to itself", () => {
         const node: ReaderStateParserLike = { parser: {} };
-        // biome-ignore lint/style/noNonNullAssertion: set two lines above
         node.parser!.Node = node;
         const a = new ReaderState({ parser: { Node: node } });
         const b = new ReaderState({ parser: { Node: node } });
@@ -65,7 +64,15 @@ describe("Xml2Json owns its reader states", () => {
     it("keeps two interleaved documents apart", () => {
         const seenA: Seen = { items: [] };
         const seenB: Seen = { items: [] };
-        const shared = { parser: { Item: { finish(this: { text: string; parent: { seen: Seen } }) { this.parent.seen.items.push(this.text); } } } };
+        const shared = {
+            parser: {
+                Item: {
+                    finish(this: { text: string; parent: { seen: Seen } }) {
+                        this.parent.seen.items.push(this.text);
+                    }
+                }
+            }
+        };
         const make = (seen: Seen) =>
             new Xml2Json({
                 parser: {

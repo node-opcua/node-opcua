@@ -3,12 +3,12 @@
  * answer exactly what a fresh scan answers: with every target that exists resolved, following
  * the reference-type hierarchy as it stands, and without being changed by a caller.
  */
-import { BrowseDirection, NodeClass } from "node-opcua-data-model";
+import { BrowseDirection } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, generateAddressSpaceRaw, type Namespace, type UAObject } from "../dist/api/index.js";
+import { type AddressSpace, generateAddressSpaceRaw, type Namespace, type UAObject } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../test_helpers/get_mini_address_space.js";
 
 describe("the memoized reference scans", function (this: Mocha.Suite) {
@@ -94,7 +94,11 @@ describe("the memoized reference scans", function (this: Mocha.Suite) {
         x.findReferencesEx("NonHierarchicalReferences", BrowseDirection.Forward);
         const y = namespace.addObjectType({ browseName: "Y3", nodeId: lateId, subtypeOf: "BaseObjectType" });
         y.addReference({ referenceType: "HasCause", isForward: false, nodeId: x.nodeId });
-        should(x.findReferencesEx("NonHierarchicalReferences", BrowseDirection.Forward).find((ref) => ref.nodeId.toString() === lateId.toString())?.node).equal(y);
+        should(
+            x
+                .findReferencesEx("NonHierarchicalReferences", BrowseDirection.Forward)
+                .find((ref) => ref.nodeId.toString() === lateId.toString())?.node
+        ).equal(y);
         should(y.findReferencesEx("HasCause", BrowseDirection.Inverse).length).eql(1);
 
         namespace.deleteNode(x);
@@ -148,7 +152,7 @@ describe("the memoized reference scans", function (this: Mocha.Suite) {
     });
 
     it("hands out an array a caller cannot change", () => {
-        const objects = addressSpace.rootFolder.objects;
+        const objects = addressSpace.rootFolder.objects as unknown as UAObject & { getFolderElements(): unknown[] };
         for (let i = 0; i < 15; i++) {
             namespace.addObject({ browseName: `Pad${i}`, organizedBy: objects });
         }
@@ -158,11 +162,9 @@ describe("the memoized reference scans", function (this: Mocha.Suite) {
         should(Object.isFrozen(organizes)).eql(true);
         // in strict code the change throws; in sloppy code it is ignored: either way nothing moves
         should(() => {
-            "use strict";
             organizes.length = 0;
         }).throw(TypeError);
         should(() => {
-            "use strict";
             (organizes as unknown[]).push(null);
         }).throw(TypeError);
         should(objects.findReferencesEx("Organizes").length).eql(organizes.length);

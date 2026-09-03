@@ -251,6 +251,29 @@ can be set to `"deny"` by products that drive access entirely from declared poli
 
 ### Fixed
 
+#### The caches behind the load-time speedups are bounded, invalidated and shared correctly
+
+A review of the memos and registries added with the loading performance work found eight places where
+retained memory or a stale answer could outlive what it described. All are fixed, each with a regression test.
+
+- A memoized `findReferencesEx` scan resolves a target created after the scan: `instantiate` and `deleteNode`
+  read `ref.node` of a target that existed and found `null`.
+- The scan memo and the child index follow a reference type that gains a `HasSubtype` link at runtime (a
+  companion nodeset loaded on a live server, or the namespace API): a node with many references was blind to
+  the new subtype while a small one saw it.
+- `findReferencesEx` and `findReferences` return frozen arrays on a memo hit: a caller that changed one used to
+  change what every later caller saw.
+- The accessor-name registries hold the vocabulary of the loaded nodesets only: a server creating and deleting
+  uniquely named nodes at runtime grew them by one entry per name, for ever.
+- The inflated lines of a nodeset image are released once its replay is done: a `MemoryNodesetImageStore` at
+  its 64 MiB cap could pin twelve times that in text.
+- The `isSubtypeOf` memo is keyed by NodeId, not by the node asked about: a type created and deleted at runtime
+  stayed reachable through the memos of the types it was compared with.
+- An own child accessor (a runtime name) that later gets a shared getter answers through the child index and
+  goes with its child; it used to keep returning the deleted node and hide its replacement.
+- A nodeset loaded into an address space already in use no longer throws "reference exists already in
+  _back_references" from the end-of-load sweep.
+
 #### The `UserAccessLevel` attribute of a `UAVariable` is no longer lost by the NodeSet2 serialisation layer ([#1552](https://github.com/node-opcua/node-opcua/issues/1552))
 
 Sibling of [#1550](https://github.com/node-opcua/node-opcua/issues/1550), in the same two files.
