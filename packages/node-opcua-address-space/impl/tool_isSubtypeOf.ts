@@ -15,7 +15,7 @@ import { NodeClass } from "node-opcua-data-model";
 import { type NodeId, type NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import type { BaseNodeImpl } from "./base_node_impl.js";
 import { BaseNode_getCache } from "./base_node_private.js";
-import { ReferenceImpl } from "./reference_impl.js";
+import { nodeIdKey, ReferenceImpl } from "./reference_impl.js";
 
 const HasSubTypeNodeId = resolveNodeId("HasSubtype");
 
@@ -65,9 +65,10 @@ function _slow_isSubtypeOf<T extends UAType>(this: T, Class: typeof BaseNodeImpl
 
 export type MemberFuncValue<T, P, R> = (this: T, param: P) => R;
 
-// per node, the memo of its isSubtypeOf answers: a node argument keys by identity, a NodeIdLike
-// argument by its string, so that the common call builds no string at all
-const g_WeakMap = new WeakMap<object, Map<string | object, unknown>>();
+// per node, the memo of its isSubtypeOf answers, keyed by the argument's NodeId (a number for a
+// numeric id, so that the common call builds no string): a memo keyed by the node itself would
+// keep every type ever asked about alive, deleted or not
+const g_WeakMap = new WeakMap<object, Map<string | number, unknown>>();
 
 export function wipeMemorizedStuff(node: object) {
     if (g_WeakMap.has(node)) {
@@ -79,18 +80,18 @@ export function wipeMemorizedStuff(node: object) {
 //  http://addyosmani.com/blog/faster-javascript-memoization/
 function wrap_memoize<T extends object, P, R>(
     func: MemberFuncValue<T, P, R>,
-    hashFunc?: (this: T, param: P) => string | object
+    hashFunc?: (this: T, param: P) => string | number
 ): MemberFuncValue<T, P, R> {
-    const effectiveHashFunc: (this: T, param: P) => string | object =
+    const effectiveHashFunc: (this: T, param: P) => string | number =
         hashFunc ??
         function (this: T, param: P) {
             return (param as unknown as object).toString();
         };
     return function memoize(this: T, param: P): R {
-        let memoMap = g_WeakMap.get(this) as Map<string | object, R> | undefined;
+        let memoMap = g_WeakMap.get(this) as Map<string | number, R> | undefined;
         if (!memoMap) {
-            memoMap = new Map<string | object, R>();
-            g_WeakMap.set(this, memoMap as Map<string | object, unknown>);
+            memoMap = new Map<string | number, R>();
+            g_WeakMap.set(this, memoMap as Map<string | number, unknown>);
         }
 
         const hash = effectiveHashFunc.call(this, param);
@@ -103,11 +104,11 @@ function wrap_memoize<T extends object, P, R>(
     };
 }
 
-function hashBaseNode(e: BaseNode | NodeIdLike): string | object {
+function hashBaseNode(e: BaseNode | NodeIdLike): string | number {
     if (e && typeof e === "object" && "nodeId" in e) {
-        return e;
+        return nodeIdKey((e as BaseNode).nodeId);
     }
-    return resolveNodeId(e as NodeIdLike).toString();
+    return nodeIdKey(resolveNodeId(e as NodeIdLike));
 }
 
 export type IsSubtypeOfFunc<T extends UAType> = (this: T, baseType: T) => boolean;
