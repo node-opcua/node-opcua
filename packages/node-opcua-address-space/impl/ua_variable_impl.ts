@@ -42,7 +42,14 @@ import {
     type QualifiedName,
     type QualifiedNameLike
 } from "node-opcua-data-model";
-import { DataValue, type DataValueLike, type DataValueT, extractRange, sameDataValue } from "node-opcua-data-value";
+import {
+    DataValue,
+    type DataValueLike,
+    type DataValueT,
+    extractRange,
+    makeNowDataValue,
+    sameDataValue
+} from "node-opcua-data-value";
 import { coerceClock, getCurrentClock, type PreciseClock } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
@@ -412,7 +419,10 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             return new DataValue({ statusCode: StatusCodes.BadNotReadable });
         }
         if (!isValidDataEncoding(dataEncoding)) {
-            return new DataValue({ statusCode: StatusCodes.BadDataEncodingInvalid });
+            // Table 51: no encoding can be applied to a non-Structure value. The CTT
+            // (Attribute Read 037) still expects the requested timestamps on this Bad
+            // result, and a DataValue may carry them whatever its status.
+            return makeNowDataValue({ statusCode: StatusCodes.BadDataEncodingInvalid });
         }
 
         if (this._timestamped_get_func) {
