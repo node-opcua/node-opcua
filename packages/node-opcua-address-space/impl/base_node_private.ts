@@ -40,7 +40,7 @@ import type { AddressSpacePrivate } from "./address_space_private.js";
 import { BaseNodeImpl, getReferenceType } from "./base_node_impl.js";
 import { UANamespace_process_modelling_rule } from "./namespace_private.js";
 import { ReferenceImpl, type ReferenceKey } from "./reference_impl.js";
-import { referenceTypeVersion } from "./reference_type_version.js";
+import { referenceTypeVersion, typeHierarchyVersion } from "./reference_type_version.js";
 import { wipeMemorizedStuff } from "./tool_isSubtypeOf.js";
 
 const errorLog = make_errorLog("address-space:BaseNode");
@@ -1361,7 +1361,7 @@ export function BaseNode_remove_backward_reference(this: BaseNodeImpl, reference
         _private._back_referenceIdx.delete(h);
         // the memoized reference scans of this node listed the reference just removed
         BaseNode_clearCache(this);
-        noteReferenceTypeChange(this);
+        noteReferenceTypeChange(this, reference);
     }
     (<ReferenceImpl>reference).dispose();
 }
@@ -1370,11 +1370,16 @@ export function BaseNode_remove_backward_reference(this: BaseNodeImpl, reference
  * a reference added to or removed from a reference type may move it in the hierarchy (a
  * HasSubtype link made at runtime): every memo built against the hierarchy is then stale
  */
-export function noteReferenceTypeChange(node: BaseNode): void {
+export function noteReferenceTypeChange(node: BaseNode, reference?: UAReference): void {
     if (node.nodeClass === NodeClass.ReferenceType) {
         referenceTypeVersion.count += 1;
     }
+    if (reference && sameNodeId(reference.referenceType, hasSubtype_ReferenceTypeNodeId)) {
+        // the answer of isSubtypeOf may have changed for every type below this node
+        typeHierarchyVersion.count += 1;
+    }
 }
+const hasSubtype_ReferenceTypeNodeId = resolveNodeId("HasSubtype");
 
 export function BaseNode_add_backward_reference(this: BaseNodeImpl, reference: UAReference): void {
     const _private = BaseNode_getPrivate(this);
@@ -1409,7 +1414,7 @@ export function BaseNode_add_backward_reference(this: BaseNodeImpl, reference: U
         _private._back_referenceIdx = new Map();
     }
     _private._back_referenceIdx.set(h, reference);
-    noteReferenceTypeChange(this);
+    noteReferenceTypeChange(this, reference);
     _handle_HierarchicalReference(this, reference);
     BaseNode_clearCache(this);
 }
