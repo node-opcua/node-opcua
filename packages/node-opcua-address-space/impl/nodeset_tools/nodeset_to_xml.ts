@@ -44,7 +44,7 @@ import {
     constructNamespaceDependency,
     constructNamespacePriorityTable
 } from "./construct_namespace_dependency.js";
-import { type NodesetWalkEvent, namespaceToWalkEvents, nodeToWalkEvents } from "./nodeset_to_records.js";
+import { type NodesetWalkEvent, namespaceToWalkEvents, nodeToWalkEvents, sortByNodeId } from "./nodeset_to_records.js";
 
 const debugLog = make_debugLog("nodeset_to_xml");
 const warningLog = make_warningLog("nodeset_to_xml");
@@ -889,13 +889,6 @@ function _dumpStructureDefinition(
     }
 }
 
-function _dumpEncoding(xw: XmlWriter, uaEncoding: UAObject) {
-    const uaDescription = uaEncoding.findReferencesAsObject("HasDescription")[0];
-    if (uaDescription) {
-        dumpUAVariable(xw, uaDescription as UAVariable);
-    }
-    _dumpUAObject(xw, uaEncoding);
-}
 function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
     const uaDataTypeBase = uaDataType.subtypeOfObj;
 
@@ -1116,58 +1109,6 @@ function resolveDataTypeName(addressSpace: IAddressSpace, dataType: string | Nod
     return dataTypeNode.browseName;
 }
 
-function _buildUpAliases(node: BaseNode, xw: XmlWriter, data: BuildAliasesData) {
-    const addressSpace = node.addressSpace;
-
-    if (!data.aliases_visited) data.aliases_visited = new Set();
-
-    const k = _hash(node);
-    // c8 ignore next
-    if (data.aliases_visited.has(k)) {
-        return;
-    }
-    data.aliases_visited.add(k);
-
-    // put datatype into aliases list
-    if (node.nodeClass === NodeClass.Variable || node.nodeClass === NodeClass.VariableType) {
-        const nodeV = node as UAVariableType | UAVariable;
-
-        if (nodeV.dataType && nodeV.dataType.namespace === 0 && nodeV.dataType.value !== 0) {
-            // name
-            const dataTypeName = b(xw, resolveDataTypeName(addressSpace, nodeV.dataType));
-            if (dataTypeName) {
-                if (!data.aliases[dataTypeName]) {
-                    data.aliases[dataTypeName] = n(xw, nodeV.dataType);
-                }
-            }
-        }
-
-        if (nodeV.dataType && nodeV.dataType.namespace !== 0 && nodeV.dataType.value !== 0) {
-            // name
-            const dataTypeName = b(xw, resolveDataTypeName(addressSpace, nodeV.dataType));
-            if (dataTypeName) {
-                if (!data.aliases[dataTypeName]) {
-                    data.aliases[dataTypeName] = n(xw, nodeV.dataType);
-                }
-            }
-        }
-    }
-
-    function collectReferenceNameInAlias(reference: UAReference) {
-        // reference.referenceType
-        const key = b(xw, getReferenceType(reference).browseName);
-        if (!data.aliases.key) {
-            if (reference.referenceType.namespace === 0) {
-                data.aliases[key] = reference.referenceType.toString().replace("ns=0;", "");
-            } else {
-                data.aliases[key] = n(xw, reference.referenceType);
-            }
-        }
-    }
-
-    node.allReferences().forEach(collectReferenceNameInAlias);
-}
-
 function writeAliases(xw: XmlWriter, aliases: Record<string, NodeIdString>) {
     xw.startElement("Aliases");
 
@@ -1216,16 +1157,8 @@ export function sortByBrowseName(x: BaseNode, y: BaseNode): number {
     }
     return 0;
 }
-function sortByNodeId(a: { nodeId: NodeId }, b: { nodeId: NodeId }) {
-    return a.nodeId.toString() < b.nodeId.toString() ? -1 : 1;
-}
 
 type NodeIdString = string;
-
-export interface BuildAliasesData {
-    aliases: Record<string, NodeIdString>;
-    aliases_visited?: Set<string>;
-}
 
 export type DumpXMLOptions = Record<string, never>;
 

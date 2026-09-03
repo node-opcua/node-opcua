@@ -15,27 +15,13 @@ import should from "should";
 import { AddressSpace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 import { type AddressSpaceDigest, digestAddressSpace } from "../test_helpers/address_space_digest.js";
+import { chainOf } from "../test_helpers/nodeset_chain.js";
 import { packageRoot } from "./paths.js";
 
 const fixtureFile = path.join(packageRoot, "test", "fixtures", "nodeset_catalog_digests.json");
 
 interface Digest extends AddressSpaceDigest {
     files: string[];
-}
-
-/** a nodeset with its dependencies, the standard nodeset first, in load order */
-function chainOf(name: string): string[] {
-    const byName = new Map(nodesetCatalog.map((m) => [m.name as string, m]));
-    const acc: string[] = [];
-    const visit = (n: string) => {
-        const meta = byName.get(n);
-        if (!meta) throw new Error(`unknown nodeset ${n}`);
-        for (const dep of meta.dependencies) visit(dep);
-        if (!acc.includes(n)) acc.push(n);
-    };
-    visit(name);
-    if (!acc.includes("standard")) acc.unshift("standard");
-    return acc;
 }
 
 describe("The catalog loads to the same address spaces as before the record split", function (this: Mocha.Suite) {

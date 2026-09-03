@@ -11,6 +11,7 @@ import { nodesetCatalog, nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { AddressSpace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
+import { chainOf } from "../test_helpers/nodeset_chain.js";
 import { packageRoot } from "./paths.js";
 
 interface XmlDigest {
@@ -20,20 +21,6 @@ interface XmlDigest {
 }
 
 const fixtureFile = path.join(packageRoot, "test", "fixtures", "nodeset_catalog_xml_digests.json");
-
-function chainOf(name: string): string[] {
-    const byName = new Map(nodesetCatalog.map((m) => [m.name as string, m]));
-    const acc: string[] = [];
-    const visit = (n: string) => {
-        const meta = byName.get(n);
-        if (!meta) throw new Error(`unknown nodeset ${n}`);
-        for (const dep of meta.dependencies) visit(dep);
-        if (!acc.includes(n)) acc.push(n);
-    };
-    visit(name);
-    if (!acc.includes("standard")) acc.unshift("standard");
-    return acc;
-}
 
 describe("toNodeset2XML over the record walk writes what it wrote before", function (this: Mocha.Suite) {
     this.timeout(10 * 60 * 1000);

@@ -6,10 +6,10 @@ import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import {
     generateAddressSpaceRaw,
     type NamedNodesetSource,
-    NODESET_RECORD_SCHEMA,
     type NodeSetLoaderOptions,
     type NodesetSource,
     type NodesetToImageOptions,
+    nodesetImageProblem,
     nodesetToImage as nodesetToImageRaw,
     readNodesetImageInfo
 } from "../dist/api/index.js";
@@ -94,14 +94,9 @@ async function siblingOrXml(xmlFile: string): Promise<{ source: NamedNodesetSour
     }
     const digest = createHash("sha256").update(xml).digest("hex");
     try {
-        const info = await readNodesetImageInfo(image);
-        if (info.header.schema !== NODESET_RECORD_SCHEMA) {
-            // a catalog package older or newer than this loader: its XML is still right
-            return asXml(`the image is of schema ${info.header.schema}, this loader reads ${NODESET_RECORD_SCHEMA}`);
-        }
-        if (!info.trailer) return asXml("the image has no trailer");
-        if (info.trailer.sourceDigest !== digest) return asXml("the image is stale: its digest is not the XML's");
-        if (info.trailer.nodes !== info.lines) return asXml("the image is truncated");
+        // a catalog package older or newer than this loader, a stale or truncated image: its XML is still right
+        const problem = nodesetImageProblem(await readNodesetImageInfo(image), digest);
+        if (problem) return asXml(problem);
     } catch (err) {
         return asXml(`the image cannot be read: ${(err as Error).message}`);
     }

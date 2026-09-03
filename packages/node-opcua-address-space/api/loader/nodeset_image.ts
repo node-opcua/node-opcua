@@ -20,6 +20,7 @@ import {
     type NodesetImageTrailer
 } from "./nodeset_image_codec.js";
 import {
+    NODESET_RECORD_SCHEMA,
     type NodesetHeaderRecord,
     type NodesetRecord,
     type NodesetRecordConsumer,
@@ -162,7 +163,6 @@ export interface NodesetImageWriterOptions extends EncodeHeaderOptions {}
 export class NodesetImageWriter implements NodesetRecordConsumer {
     private readonly nodeLines: NodesetImageNode[] = [];
     private lines: string[] | undefined;
-    private nodes = 0;
     private header: NodesetHeaderRecord | undefined;
 
     constructor(private readonly options: NodesetImageWriterOptions = {}) {}
@@ -180,7 +180,6 @@ export class NodesetImageWriter implements NodesetRecordConsumer {
         }
         this.nodeLines.push(encodeNode(record));
         this.lines = undefined;
-        this.nodes += 1;
     }
 
     /**
@@ -223,7 +222,7 @@ export class NodesetImageWriter implements NodesetRecordConsumer {
         }
         const options = sourceLength === undefined ? this.options : { ...this.options, sourceLength };
         const header = JSON.stringify(encodeHeader(this.header, options));
-        const trailer: NodesetImageTrailer = { kind: "trailer", nodes: this.nodes, sourceDigest };
+        const trailer: NodesetImageTrailer = { kind: "trailer", nodes: this.nodeLines.length, sourceDigest };
         return `${header}\n${this.encodedLines().join("\n")}\n${JSON.stringify(trailer)}\n`;
     }
 
@@ -338,6 +337,30 @@ export function* imageLinesToRecords(lines: string[], options: ReadNodesetImageO
         }
     }
     reader.end();
+}
+
+/**
+ * what disqualifies an image from being replayed by this loader, or null: the one verdict the
+ * store path, the sibling path and the catalog check share. `expectedDigest` is the SHA-256 of
+ * the source the image must have been built from, when the caller knows it
+ */
+export function nodesetImageProblem(
+    info: { header: NodesetImageHeader; trailer: NodesetImageTrailer | null; lines: number },
+    expectedDigest?: string
+): string | null {
+    if (info.header.schema !== NODESET_RECORD_SCHEMA) {
+        return `the image is of schema ${info.header.schema}, this loader reads ${NODESET_RECORD_SCHEMA}`;
+    }
+    if (!info.trailer) {
+        return "the image is truncated: no trailer";
+    }
+    if (info.trailer.nodes !== info.lines) {
+        return `the image trailer announces ${info.trailer.nodes} nodes, ${info.lines} lines were read`;
+    }
+    if (expectedDigest !== undefined && info.trailer.sourceDigest !== expectedDigest) {
+        return "the image was built from another source (digest mismatch)";
+    }
+    return null;
 }
 
 /** the header and the trailer of an image; the body lines are inflated but not parsed */
