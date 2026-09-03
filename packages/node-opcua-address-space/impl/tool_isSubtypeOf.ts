@@ -16,6 +16,7 @@ import { type NodeId, type NodeIdLike, resolveNodeId, sameNodeId } from "node-op
 import type { BaseNodeImpl } from "./base_node_impl.js";
 import { BaseNode_getCache } from "./base_node_private.js";
 import { nodeIdKey, ReferenceImpl } from "./reference_impl.js";
+import { typeHierarchyVersion } from "./reference_type_version.js";
 
 const HasSubTypeNodeId = resolveNodeId("HasSubtype");
 
@@ -69,6 +70,8 @@ export type MemberFuncValue<T, P, R> = (this: T, param: P) => R;
 // numeric id, so that the common call builds no string): a memo keyed by the node itself would
 // keep every type ever asked about alive, deleted or not
 const g_WeakMap = new WeakMap<object, Map<string | number, unknown>>();
+/** the typeHierarchyVersion each memo was built against */
+const g_memoVersion = new WeakMap<object, number>();
 
 export function wipeMemorizedStuff(node: object) {
     if (g_WeakMap.has(node)) {
@@ -89,9 +92,11 @@ function wrap_memoize<T extends object, P, R>(
         };
     return function memoize(this: T, param: P): R {
         let memoMap = g_WeakMap.get(this) as Map<string | number, R> | undefined;
-        if (!memoMap) {
+        if (!memoMap || g_memoVersion.get(this) !== typeHierarchyVersion.count) {
+            // no memo yet, or a HasSubtype reference moved somewhere since it was built
             memoMap = new Map<string | number, R>();
             g_WeakMap.set(this, memoMap as Map<string | number, unknown>);
+            g_memoVersion.set(this, typeHierarchyVersion.count);
         }
 
         const hash = effectiveHashFunc.call(this, param);

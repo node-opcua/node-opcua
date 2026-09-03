@@ -10,3 +10,10 @@
  * importing each other at module-evaluation time.
  */
 export const referenceTypeVersion = { count: 0 };
+
+/**
+ * Bumped each time a HasSubtype reference is added to or removed from any node: the memo of
+ * `isSubtypeOf` answers of every type records the value it was built with and starts afresh when
+ * it moved, since re-parenting a type changes the answer for every type below it.
+ */
+export const typeHierarchyVersion = { count: 0 };
