@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- A parser definition handed to several `Xml2Json` instances (the nodeset loader's `Definition` reader is one) was
+  rewritten in place into reader states that every instance then shared; two documents parsed at the same time
+  mixed their elements. Each parser now builds its own reader states, and a definition stays a plain object.
+
 ### Changed
 
 #### `Xml2Json` parses a document delivered in pieces
