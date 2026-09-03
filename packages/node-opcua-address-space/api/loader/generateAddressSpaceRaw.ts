@@ -7,7 +7,13 @@ import type { NamespacePrivate } from "../../impl/namespace_private.js";
 import { adjustNamespaceArray } from "../../impl/nodeset_tools/adjust_namespace_array.js";
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.js";
 import { NodeSetLoader } from "./load_nodeset2.js";
-import { imageNodesetRecords, NodesetImageError, NodesetImageWriter, readNodesetImageInfo } from "./nodeset_image.js";
+import {
+    imageLinesToRecords,
+    inflatedImageLines,
+    NodesetImageError,
+    NodesetImageWriter,
+    readNodesetImageInfo
+} from "./nodeset_image.js";
 import { decodeHeader } from "./nodeset_image_codec.js";
 import { type NodesetImageStore, nodesetImageKey, sharedMemoryNodesetImageStore } from "./nodeset_image_store.js";
 import type { NodesetRecord, NodesetRecordConsumer } from "./nodeset_record.js";
@@ -234,7 +240,7 @@ async function loadXmlSource(
         if (image && (await isReplayable(image, digest, reader.name))) {
             // a replay that fails half-way would leave nodes behind that the XML would then
             // collide with; the check above is what makes it safe to commit to the image here
-            await nodesetLoader.addRecords(imageNodesetRecords(image, { expectedDigest: digest }));
+            await nodesetLoader.addRecords(imageLinesToRecords(await inflatedImageLines(image), { expectedDigest: digest }));
             doDebug && debugLog("loaded", reader.name, "from its image", key);
             return;
         }
@@ -392,7 +398,7 @@ export async function generateAddressSpaceRaw(
         doDebug && debugLog(" loading ", nodesetIndex, nodeset.reader.name);
         try {
             if (nodeset.image) {
-                await nodesetLoader.addRecords(imageNodesetRecords(nodeset.image));
+                await nodesetLoader.addRecords(imageLinesToRecords(await inflatedImageLines(nodeset.image)));
             } else {
                 await loadXmlSource(nodesetLoader, nodeset.reader, store);
             }

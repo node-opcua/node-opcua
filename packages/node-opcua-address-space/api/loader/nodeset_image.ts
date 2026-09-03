@@ -64,8 +64,42 @@ async function gzip(text: string): Promise<Uint8Array> {
     return new Uint8Array(await new Response(compressed).arrayBuffer());
 }
 
+/**
+ * the lines of an image given whole, inflated once and kept as long as the image bytes live: the
+ * sibling check, the header pre-pass and the replay all read the same buffer, and one inflate with
+ * a native split is half the cost of the streaming reader on a 3.5 MB text
+ */
+const imageLines = new WeakMap<Uint8Array, Promise<string[]>>();
+const NEWLINE = String.fromCharCode(10);
+
+export function inflatedImageLines(image: Uint8Array): Promise<string[]> {
+    let lines = imageLines.get(image);
+    if (!lines) {
+        lines = (async () => {
+            let text: string;
+            try {
+                const inflated = new Blob([image as BlobPart])
+                    .stream()
+                    .pipeThrough(new DecompressionStream("gzip") as unknown as ReadableWritablePair<Uint8Array, Uint8Array>);
+                text = new TextDecoder("utf-8").decode(await new Response(inflated).arrayBuffer());
+            } catch (err) {
+                throw new NodesetImageError(`the image cannot be inflated: ${(err as Error).message}`);
+            }
+            return text.split(NEWLINE);
+        })();
+        imageLines.set(image, lines);
+        // a failed inflate is not worth remembering
+        lines.catch(() => imageLines.delete(image));
+    }
+    return lines;
+}
+
 /** the lines of a gzip-compressed text, as they inflate */
 async function* inflatedLines(source: Uint8Array | NodesetChunkStream): AsyncGenerator<string> {
+    if (source instanceof Uint8Array) {
+        yield* await inflatedImageLines(source);
+        return;
+    }
     const stream = (await toReadableStream(source)).pipeThrough(
         new DecompressionStream("gzip") as unknown as ReadableWritablePair<Uint8Array, Uint8Array>
     );
@@ -173,14 +207,34 @@ export async function* imageNodesetRecords(
     image: Uint8Array | NodesetChunkStream,
     options: ReadNodesetImageOptions = {}
 ): AsyncGenerator<NodesetRecord> {
-    let nodes = 0;
-    let trailer: NodesetImageTrailer | undefined;
-    let first = true;
+    if (image instanceof Uint8Array) {
+        yield* imageLinesToRecords(await inflatedImageLines(image), options);
+        return;
+    }
+    const reader = new ImageLineReader(options);
     for await (const line of inflatedLines(image)) {
-        if (line.length === 0) {
-            continue;
+        const record = reader.read(line);
+        if (record) {
+            yield record;
         }
-        if (trailer) {
+    }
+    reader.end();
+}
+
+/** one image line to a record, the trailer checked when it comes; shared by the two iterators */
+class ImageLineReader {
+    private nodes = 0;
+    private trailer: NodesetImageTrailer | undefined;
+    private first = true;
+
+    constructor(private readonly options: ReadNodesetImageOptions) {}
+
+    /** the record of a line, or undefined for a blank line or the trailer */
+    public read(line: string): NodesetRecord | undefined {
+        if (line.length === 0) {
+            return undefined;
+        }
+        if (this.trailer) {
             throw new NodesetImageError("an image carries nothing after its trailer");
         }
         let json: unknown;
@@ -189,34 +243,52 @@ export async function* imageNodesetRecords(
         } catch (err) {
             throw new NodesetImageError(`an image line is not JSON: ${(err as Error).message}`);
         }
-        if (first) {
-            first = false;
+        if (this.first) {
+            this.first = false;
             const record: NodesetRecordWithBytes = decodeHeader(json as NodesetImageHeader);
             record[recordBytes] = line.length;
-            yield record;
-            continue;
+            return record;
         }
         if ((json as { kind?: string }).kind === "trailer") {
-            trailer = json as NodesetImageTrailer;
-            if (trailer.nodes !== nodes) {
-                throw new NodesetImageError(`the image trailer announces ${trailer.nodes} nodes, ${nodes} were read`);
+            const trailer = json as NodesetImageTrailer;
+            if (trailer.nodes !== this.nodes) {
+                throw new NodesetImageError(`the image trailer announces ${trailer.nodes} nodes, ${this.nodes} were read`);
             }
-            if (options.expectedDigest !== undefined && trailer.sourceDigest !== options.expectedDigest) {
+            if (this.options.expectedDigest !== undefined && trailer.sourceDigest !== this.options.expectedDigest) {
                 throw new NodesetImageError("the image was built from another source (digest mismatch)");
             }
-            continue;
+            this.trailer = trailer;
+            return undefined;
         }
         const record: NodesetRecordWithBytes = decodeNode(json as NodesetImageNode);
         record[recordBytes] = line.length;
-        nodes += 1;
-        yield record;
+        this.nodes += 1;
+        return record;
     }
-    if (first) {
-        throw new NodesetImageError("the image is empty");
+
+    public end(): void {
+        if (this.first) {
+            throw new NodesetImageError("the image is empty");
+        }
+        if (!this.trailer) {
+            throw new NodesetImageError("the image is truncated: no trailer");
+        }
     }
-    if (!trailer) {
-        throw new NodesetImageError("the image is truncated: no trailer");
+}
+
+/**
+ * the records of an image given whole, as a synchronous iterator: what the loader consumes
+ * without a turn of the microtask queue per record. The lines come from {@link inflatedImageLines}.
+ */
+export function* imageLinesToRecords(lines: string[], options: ReadNodesetImageOptions = {}): Generator<NodesetRecord> {
+    const reader = new ImageLineReader(options);
+    for (const line of lines) {
+        const record = reader.read(line);
+        if (record) {
+            yield record;
+        }
     }
+    reader.end();
 }
 
 /** the header and the trailer of an image; the body lines are inflated but not parsed */

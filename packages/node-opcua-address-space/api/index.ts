@@ -157,7 +157,9 @@ export * from "./interfaces/ua_subscription_diagnostics_variable_ex.js";
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "./loader/ensure_datatype_extracted.js";
 export * from "./loader/generateAddressSpaceRaw.js";
 export {
+    imageLinesToRecords,
     imageNodesetRecords,
+    inflatedImageLines,
     isNodesetImage,
     NodesetImageError,
     type NodesetImageHeader,

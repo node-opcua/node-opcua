@@ -703,6 +703,16 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
 
         const addressSpace = this.addressSpace;
         let capturedVariable: UAVariable | undefined;
+        // the value can be set now when its data type is already in the address space: nothing
+        // else in the post-load steps runs before it; only an extension object waits for the
+        // data types to be extracted
+        const dataType = this.translateOrNull(record.dataType);
+        const dataTypeReady = dataType !== null && value?.dataType !== DataType.ExtensionObject && this.isDataTypeReady(dataType);
+        if (dataTypeReady) {
+            const variable = this.createNode(params) as UAVariable;
+            this.setInitialValueNow(variable, value);
+            return;
+        }
         if (value && value.dataType !== DataType.Null) {
             let capturedValue: VariantOptions | undefined = value;
             const task = async (_addressSpace2: IAddressSpace) => {
@@ -740,6 +750,49 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
             this.queues.postTasks0_InitializeVariable.push(task);
         }
         capturedVariable = this.createNode(params) as UAVariable;
+    }
+
+    /** a data type node whose basic type resolves: what an initial value needs to be checked against */
+    private isDataTypeReady(dataType: NodeId): boolean {
+        const node = this.addressSpace.findNode(dataType) as UADataType | null;
+        if (!node || node.nodeClass !== NodeClass.DataType) {
+            return false;
+        }
+        try {
+            return node.basicDataType !== undefined;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * what the "initializing simple variables" post task does, done at creation; a value the
+     * variable refuses is logged and skipped, as the post task would
+     */
+    private setInitialValueNow(variable: UAVariable, value: VariantOptions | undefined): void {
+        try {
+            if (value && value.dataType !== DataType.Null) {
+                (variable as UAVariableImpl)._setInitialDataValue(value);
+                return;
+            }
+            const defaultValue = makeDefaultVariant(
+                this.addressSpace,
+                variable.dataType,
+                variable.valueRank,
+                variable.arrayDimensions
+            );
+            if (defaultValue) {
+                if (defaultValue.dataType === DataType.Null || isUninitializedMatrix(defaultValue)) {
+                    (variable as UAVariableImpl)._setInitialDataValue(defaultValue, StatusCodes.BadWaitingForInitialData);
+                } else {
+                    (variable as UAVariableImpl)._setInitialDataValue(defaultValue, StatusCodes.Good);
+                }
+            }
+        } catch (err) {
+            errorLog(
+                `[NODE-OPCUA-W36] generateAddressSpace: post-loading task failed during "initializing simple variables" and was skipped: ${(err as Error).message}`
+            );
+        }
     }
 
     private applyVariableType(record: NodesetNodeRecord): void {

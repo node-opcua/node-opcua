@@ -15,9 +15,9 @@ import type { NamespacePrivate } from "../../impl/namespace_private.js";
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.js";
 import { ensureDatatypeExtracted } from "./ensure_datatype_extracted.js";
 import { promoteObjectsAndVariables } from "./namespace_post_step.js";
-import { type NodesetRecordProducer, type NodesetRecordWithBytes, recordBytes } from "./nodeset_record.js";
+import { type NodesetRecord, type NodesetRecordProducer, type NodesetRecordWithBytes, recordBytes } from "./nodeset_record.js";
 import { type LoaderTaskQueues, makeLoaderTaskQueues, NodesetRecordApplier, type Task } from "./nodeset_record_applier.js";
-import { xmlNodesetRecords } from "./nodeset_xml_producer.js";
+import { makeXmlNodesetRecordReader } from "./nodeset_xml_producer.js";
 
 const doDebug = checkDebugFlag("load_nodeset2");
 const debugLog = make_debugLog("load_nodeset2");
@@ -80,30 +80,72 @@ export class NodeSetLoader {
         await this.addNodeSetStream([xmlData]);
     }
 
-    /** load a document delivered as text chunks; see {@link NodesetSource} */
+    /**
+     * load a document delivered as text chunks; see {@link NodesetSource}. The records a chunk
+     * completes are applied together: one turn of the microtask queue per chunk, not per record
+     */
     async addNodeSetStream(chunks: AsyncIterable<string> | Iterable<string>): Promise<void> {
-        await this.addRecords(xmlNodesetRecords(chunks));
+        const reader = makeXmlNodesetRecordReader();
+        try {
+            for await (const chunk of chunks) {
+                await this.applyAll(reader.write(chunk));
+            }
+            await this.applyAll(reader.end());
+        } catch (err) {
+            this.failed();
+            throw err;
+        }
     }
 
-    /** load a document from any producer of records: the XML reader, or a replayed image */
-    async addRecords(records: NodesetRecordProducer): Promise<void> {
-        const budget = this.yieldEveryBytes;
-        let sinceLastYield = 0;
+    /**
+     * load a document from any producer of records: the XML reader, or a replayed image. A
+     * synchronous iterable (an image given whole) is consumed without a microtask per record.
+     */
+    async addRecords(records: NodesetRecordProducer | Iterable<NodesetRecord>): Promise<void> {
         try {
-            for await (const record of records) {
-                this.applier.apply(record);
-                sinceLastYield += (record as NodesetRecordWithBytes)[recordBytes] ?? 0;
-                if (budget > 0 && sinceLastYield >= budget) {
-                    sinceLastYield = 0;
+            if (Symbol.iterator in records) {
+                await this.applyAll(records as Iterable<NodesetRecord>);
+                return;
+            }
+            for await (const record of records as NodesetRecordProducer) {
+                this.applyOne(record);
+                if (this.yieldDue()) {
                     await yieldToEventLoop();
                 }
             }
         } catch (err) {
-            // the address space holds what was loaded before the failure and must be disposed;
-            // it is not left in the middle of a load
-            this.addressSpace.suspendBackReference = false;
+            this.failed();
             throw err;
         }
+    }
+
+    private sinceLastYield = 0;
+
+    private applyOne(record: NodesetRecord): void {
+        this.applier.apply(record);
+        this.sinceLastYield += (record as NodesetRecordWithBytes)[recordBytes] ?? 0;
+    }
+
+    private yieldDue(): boolean {
+        if (this.yieldEveryBytes > 0 && this.sinceLastYield >= this.yieldEveryBytes) {
+            this.sinceLastYield = 0;
+            return true;
+        }
+        return false;
+    }
+
+    private async applyAll(records: Iterable<NodesetRecord>): Promise<void> {
+        for (const record of records) {
+            this.applyOne(record);
+            if (this.yieldDue()) {
+                await yieldToEventLoop();
+            }
+        }
+    }
+
+    /** the address space holds what was loaded before the failure and must be disposed; it is not left in the middle of a load */
+    private failed(): void {
+        this.addressSpace.suspendBackReference = false;
     }
 
     async terminate(): Promise<void> {
