@@ -26,10 +26,16 @@ async function load(file: string, imageStore?: false): Promise<AddressSpaceDiges
     }
 }
 
-/** an image whose trailer claims the digest of `xmlFile` while its content is `image`'s */
+/**
+ * an image whose header and trailer claim the length and the digest of `xmlFile` while its content
+ * is `image`'s: what only a replay of the sibling image can produce
+ */
 function imageClaiming(image: Uint8Array, xmlFile: string): Uint8Array {
     const digest = createHash("sha256").update(fs.readFileSync(xmlFile)).digest("hex");
     const lines = zlib.gunzipSync(image).toString("utf8").split("\n");
+    const header = JSON.parse(lines[0]);
+    header.sourceLength = fs.statSync(xmlFile).size;
+    lines[0] = JSON.stringify(header);
     const trailerIndex = lines.length - 2; // the text ends with a newline
     const trailer = JSON.parse(lines[trailerIndex]);
     trailer.sourceDigest = digest;
@@ -105,6 +111,50 @@ describe("Sibling images", function (this: Mocha.Suite) {
         const good = await nodesetFileToImage(xmlFile);
         fs.writeFileSync(siblingImageFileOf(xmlFile), good.subarray(0, good.length - 30));
         should(await load(xmlFile)).eql(reference);
+    });
+
+    it("falls back to the XML when the image was built from a document of another length, before hashing", async () => {
+        // the trailer digest is the XML's: only the length check can tell this image apart
+        const image = await nodesetFileToImage(editedXml);
+        const lines = zlib.gunzipSync(image).toString("utf8").split("\n");
+        const trailer = JSON.parse(lines[lines.length - 2]);
+        trailer.sourceDigest = createHash("sha256").update(fs.readFileSync(xmlFile)).digest("hex");
+        lines[lines.length - 2] = JSON.stringify(trailer);
+        fs.writeFileSync(siblingImageFileOf(xmlFile), zlib.gzipSync(lines.join("\n")));
+        should(await load(xmlFile)).eql(reference);
+    });
+
+    it("falls back to the XML when the document changed without changing length", async () => {
+        // an edit that keeps the byte count: the length check passes, the digest decides
+        const xml = fs.readFileSync(xmlFile, "utf8");
+        const sameLength = xml.replace('BrowseName="Objects"', 'BrowseName="ObjectZ"');
+        should(sameLength.length).eql(xml.length);
+        const sameLengthFile = path.join(directory, "sameLength.NodeSet2.xml");
+        fs.writeFileSync(sameLengthFile, sameLength);
+        fs.writeFileSync(siblingImageFileOf(sameLengthFile), await nodesetFileToImage(xmlFile));
+        const info = await readNodesetImageInfo(new Uint8Array(fs.readFileSync(siblingImageFileOf(sameLengthFile))));
+        should(info.header.sourceLength).eql(fs.statSync(sameLengthFile).size);
+        const loaded = await load(sameLengthFile);
+        should(loaded).eql(await load(sameLengthFile, false));
+        should(loaded).not.eql(reference);
+    });
+
+    it("reads the header and the trailer of a whole image from its ends, as the stream reader does", async () => {
+        const image = await nodesetFileToImage(xmlFile);
+        const whole = await readNodesetImageInfo(image);
+        const streamed = await readNodesetImageInfo(
+            (async function* () {
+                for (let i = 0; i < image.length; i += 1000) yield image.subarray(i, i + 1000);
+            })()
+        );
+        should(whole).eql(streamed);
+        should(whole.trailer?.nodes).eql(whole.lines);
+        // a truncated image: no trailer, the lines that are there are counted
+        const lines = zlib.gunzipSync(image).toString("utf8").split("\n");
+        const truncated = new Uint8Array(zlib.gzipSync(lines.slice(0, lines.length - 2).join("\n")));
+        const info = await readNodesetImageInfo(truncated);
+        should(info.trailer).be.null();
+        should(info.lines).eql(whole.lines);
     });
 
     describe("the catalog", () => {

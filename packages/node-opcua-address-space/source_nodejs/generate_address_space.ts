@@ -1,6 +1,7 @@
-import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { promisify } from "node:util";
+import { gunzip } from "node:zlib";
 import type { IAddressSpace } from "node-opcua-address-space-base";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import {
@@ -11,9 +12,16 @@ import {
     type NodesetToImageOptions,
     nodesetImageProblem,
     nodesetToImage as nodesetToImageRaw,
-    readNodesetImageInfo
+    readNodesetImageInfo,
+    setImageInflater,
+    sha256Hex
 } from "../dist/api/index.js";
 import { FileNodesetImageStore } from "./nodeset_image_file_store.js";
+
+// an image given whole inflates through zlib here: a third of the cost of DecompressionStream on
+// a 200 KB image, and in the thread pool, so that the XML hash runs alongside
+const gunzipAsync = promisify(gunzip);
+setImageInflater(async (image) => (await gunzipAsync(image)).toString("utf8"));
 
 const _doDebug = checkDebugFlag("generate_address_space");
 const debugLog = make_debugLog("generate_address_space");
@@ -79,12 +87,17 @@ export function siblingImageFileOf(xmlFile: string): string {
  */
 async function siblingOrXml(xmlFile: string): Promise<{ source: NamedNodesetSource; path: "image" | "xml"; reason?: string }> {
     checkNodeSet2XmlFileExists(xmlFile);
-    const xml = new Uint8Array(fs.readFileSync(xmlFile));
-    const asXml = (reason?: string) => ({
-        source: { name: xmlFile, source: () => [xml] } as NamedNodesetSource,
-        path: "xml" as const,
-        reason
-    });
+    // the XML is read only when it is going to be parsed or hashed; the image decision starts
+    // with what costs nothing: its size
+    let xmlBytes: Promise<Uint8Array> | undefined;
+    const readXml = () => {
+        xmlBytes = xmlBytes || fs.promises.readFile(xmlFile).then((buffer) => new Uint8Array(buffer));
+        return xmlBytes;
+    };
+    const asXml = async (reason?: string) => {
+        const xml = await readXml();
+        return { source: { name: xmlFile, source: () => [xml] } as NamedNodesetSource, path: "xml" as const, reason };
+    };
     const imageFile = siblingImageFileOf(xmlFile);
     let image: Uint8Array;
     try {
@@ -92,10 +105,19 @@ async function siblingOrXml(xmlFile: string): Promise<{ source: NamedNodesetSour
     } catch {
         return asXml("no image next to it");
     }
-    const digest = createHash("sha256").update(xml).digest("hex");
     try {
+        // the inflate (zlib, off the main thread) and the hash of the XML (web crypto, off the
+        // main thread too) run alongside; the digest is what decides, the length only rejects early
+        const infoPending = readNodesetImageInfo(image);
+        const digestPending = readXml().then(sha256Hex);
+        digestPending.catch(() => undefined);
+        const info = await infoPending;
+        const sourceLength = info.header.sourceLength;
+        if (sourceLength !== undefined && sourceLength !== fs.statSync(xmlFile).size) {
+            return asXml(`the image is stale: it was built from ${sourceLength} bytes, the XML has ${fs.statSync(xmlFile).size}`);
+        }
         // a catalog package older or newer than this loader, a stale or truncated image: its XML is still right
-        const problem = nodesetImageProblem(await readNodesetImageInfo(image), digest);
+        const problem = nodesetImageProblem(info, await digestPending);
         if (problem) return asXml(problem);
     } catch (err) {
         return asXml(`the image cannot be read: ${(err as Error).message}`);
