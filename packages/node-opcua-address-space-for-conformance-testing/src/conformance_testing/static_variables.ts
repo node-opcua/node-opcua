@@ -33,6 +33,19 @@ export async function addStaticVariables(namespace: Namespace, scalarFolder: UAO
         addScalarVariable(namespace, staticScalarFolder, dataType, realType, defaultValue, "");
     }
 
+    // CTT View Minimum Continuation Point 01 012 browses the Scalar/Bool setting node
+    // with a NodeClassMask of Variable and needs at least two such references on it
+    const booleanScalar = namespace.findNode("s=Static_Scalar_Boolean") as UAVariable;
+    for (const name of ["Description1", "Description2"]) {
+        namespace.addVariable({
+            propertyOf: booleanScalar,
+            browseName: name,
+            nodeId: `s=Static_Scalar_Boolean_${name}`,
+            dataType: "String",
+            value: { dataType: DataType.String, value: `${name} of the static Boolean` }
+        });
+    }
+
     // Load images
     async function setImage(imageType: string, filename: string): Promise<void> {
         const fullPath = path.join(here, "../../data", filename);
