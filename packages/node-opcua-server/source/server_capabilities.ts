@@ -168,21 +168,23 @@ export const defaultServerCapabilities: IServerCapabilities = {
 
     // Part 5 OperationLimitsType: a limit that is exposed shall be non-zero, and the
     // server answers BadTooManyOperations past it. Every limit the server enforces gets
-    // a real default; the three it does not enforce (history update, node management:
-    // services it does not implement) stay at 0, which means "not exposed".
+    // a real default, generous enough for a client that monitors or reads a few
+    // thousand nodes in one call (the CTT does, so does the crawler); the three limits
+    // it does not enforce (history update, node management: services it does not
+    // implement) stay at 0, which means "not exposed".
     operationLimits: {
-        maxNodesPerBrowse: 1000,
-        maxNodesPerHistoryReadData: 100,
-        maxNodesPerHistoryReadEvents: 100,
+        maxNodesPerBrowse: 10000,
+        maxNodesPerHistoryReadData: 1000,
+        maxNodesPerHistoryReadEvents: 1000,
         maxNodesPerHistoryUpdateData: 0,
         maxNodesPerHistoryUpdateEvents: 0,
-        maxNodesPerMethodCall: 100,
+        maxNodesPerMethodCall: 1000,
         maxNodesPerNodeManagement: 0,
-        maxNodesPerRead: 1000,
-        maxNodesPerRegisterNodes: 1000,
-        maxNodesPerWrite: 1000,
-        maxNodesPerTranslateBrowsePathsToNodeIds: 1000,
-        maxMonitoredItemsPerCall: 1000
+        maxNodesPerRead: 10000,
+        maxNodesPerRegisterNodes: 10000,
+        maxNodesPerWrite: 10000,
+        maxNodesPerTranslateBrowsePathsToNodeIds: 10000,
+        maxMonitoredItemsPerCall: 10000
     },
 
     serverProfileArray: [],
