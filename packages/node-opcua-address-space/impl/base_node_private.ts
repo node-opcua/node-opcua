@@ -40,6 +40,7 @@ import type { AddressSpacePrivate } from "./address_space_private.js";
 import { BaseNodeImpl, getReferenceType } from "./base_node_impl.js";
 import { UANamespace_process_modelling_rule } from "./namespace_private.js";
 import { ReferenceImpl, type ReferenceKey } from "./reference_impl.js";
+import { referenceTypeVersion } from "./reference_type_version.js";
 import { wipeMemorizedStuff } from "./tool_isSubtypeOf.js";
 
 const errorLog = make_errorLog("address-space:BaseNode");
@@ -94,6 +95,11 @@ interface BaseNodeCache {
      * address space yet): the index is rebuilt on the next lookup instead of missing a child
      */
     _childByNameMapIncomplete?: boolean;
+    /**
+     * the reference-type hierarchy the index was built against (referenceTypeVersion.count): a
+     * reference of a type that became hierarchical since is not in it, so it is rebuilt
+     */
+    _childByNameMapVersion?: number;
     __address_space: IAddressSpace | null;
     _browseFilter?: (this: BaseNode, context?: ISessionContext) => boolean;
     /** created on first use: a node that is never looked at pays nothing here */
@@ -1248,7 +1254,11 @@ export function _handle_HierarchicalReference(node: BaseNode, reference: UARefer
  */
 export function _get_HierarchicalReference(node: BaseNode): HierarchicalIndexMap {
     const _private = BaseNode_getPrivate(node);
-    if (_private._childByNameMap && !_private._childByNameMapIncomplete) {
+    if (
+        _private._childByNameMap &&
+        !_private._childByNameMapIncomplete &&
+        _private._childByNameMapVersion === referenceTypeVersion.count
+    ) {
         return _private._childByNameMap;
     }
     const addressSpace = node.addressSpace as AddressSpacePrivate;
@@ -1266,6 +1276,7 @@ export function _get_HierarchicalReference(node: BaseNode): HierarchicalIndexMap
     }
     if (complete && !addressSpace.suspendBackReference) {
         _private._childByNameMap = map;
+        _private._childByNameMapVersion = referenceTypeVersion.count;
     } else {
         _private._childByNameMap = undefined;
     }
@@ -1350,8 +1361,19 @@ export function BaseNode_remove_backward_reference(this: BaseNodeImpl, reference
         _private._back_referenceIdx.delete(h);
         // the memoized reference scans of this node listed the reference just removed
         BaseNode_clearCache(this);
+        noteReferenceTypeChange(this);
     }
     (<ReferenceImpl>reference).dispose();
+}
+
+/**
+ * a reference added to or removed from a reference type may move it in the hierarchy (a
+ * HasSubtype link made at runtime): every memo built against the hierarchy is then stale
+ */
+export function noteReferenceTypeChange(node: BaseNode): void {
+    if (node.nodeClass === NodeClass.ReferenceType) {
+        referenceTypeVersion.count += 1;
+    }
 }
 
 export function BaseNode_add_backward_reference(this: BaseNodeImpl, reference: UAReference): void {
@@ -1368,15 +1390,15 @@ export function BaseNode_add_backward_reference(this: BaseNodeImpl, reference: U
         }
         return;
     }
-    // c8 ignore next
-    if (_private._back_referenceIdx.has(h)) {
-        const opts = { addressSpace: this.addressSpace };
-        warningLog(" Warning !", this.browseName.toString());
-        warningLog("    ", reference.toString(opts));
-        warningLog(" already found in ===>");
-        warningLog([..._private._back_referenceIdx.values()].map((c: UAReference) => c.toString(opts)).join("\n"));
-        warningLog("===>");
-        throw new Error("reference exists already in _back_references");
+    const backward = _private._back_referenceIdx.get(h) as ReferenceImpl | undefined;
+    if (backward) {
+        // installed by an earlier propagation: the end-of-load sweep visits every namespace, so a
+        // nodeset loaded into an address space already in use meets the back references of the
+        // first load. The same back reference twice is nothing to add
+        if (!backward.node) {
+            backward.node = (reference as ReferenceImpl).node || (this.addressSpace.findNode(reference.nodeId) as BaseNode);
+        }
+        return;
     }
 
     if (!getReferenceType(reference)) {
@@ -1387,6 +1409,7 @@ export function BaseNode_add_backward_reference(this: BaseNodeImpl, reference: U
         _private._back_referenceIdx = new Map();
     }
     _private._back_referenceIdx.set(h, reference);
+    noteReferenceTypeChange(this);
     _handle_HierarchicalReference(this, reference);
     BaseNode_clearCache(this);
 }
