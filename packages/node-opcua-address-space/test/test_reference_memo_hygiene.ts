@@ -8,7 +8,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, type Namespace, type UAObject, type UAObjectType, type UAReferenceType } from "../dist/api/index.js";
+import { AddressSpace, generateAddressSpaceRaw, type Namespace, type UAObject } from "../dist/api/index.js";
 import { getMiniAddressSpace } from "../test_helpers/get_mini_address_space.js";
 
 describe("the memoized reference scans", function (this: Mocha.Suite) {
@@ -99,5 +99,51 @@ describe("the memoized reference scans", function (this: Mocha.Suite) {
 
         namespace.deleteNode(x);
         should(y.findReferencesEx("HasCause", BrowseDirection.Inverse).length).eql(0);
+    });
+
+    it("follows a reference type that becomes a subtype of HasComponent at runtime", async () => {
+        const s = busyObject("S5");
+        const child = namespace.addObject({ browseName: "Zz5" });
+        const hasZz = namespace.addReferenceType({ browseName: "HasZz5", inverseName: "ZzOf5" });
+        s.addReference({ referenceType: hasZz, nodeId: child.nodeId });
+        should(s.findReferencesEx("HasComponent").map((ref) => ref.node)).not.containEql(child);
+        should(s.getComponentByName("Zz5")).be.null();
+        should(s.getComponents()).not.containEql(child);
+
+        hasZz.addReference({ referenceType: "HasSubtype", isForward: false, nodeId: resolveNodeId("HasComponent") });
+
+        should(s.findReferencesEx("HasComponent").map((ref) => ref.node)).containEql(child);
+        should(s.getComponents()).containEql(child);
+        should(s.getComponentByName("Zz5")).equal(child);
+    });
+
+    it("follows a reference type a companion nodeset loaded at runtime declares", async () => {
+        const s = busyObject("S6");
+        s.findReferencesEx("HasComponent");
+        should(s.getComponentByName("Zz6")).be.null();
+        const uri = "urn:test:zz6";
+        // the file's namespace table: 1 is the namespace S6 lives in, 2 the companion's own
+        const xml = `<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+  <NamespaceUris><Uri>${namespace.namespaceUri}</Uri><Uri>${uri}</Uri></NamespaceUris>
+  <Models><Model ModelUri="${uri}" Version="1.0.0" PublicationDate="2026-01-01T00:00:00Z"/></Models>
+  <UAReferenceType NodeId="ns=2;i=1" BrowseName="2:HasZz6">
+    <DisplayName>HasZz6</DisplayName>
+    <References><Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference></References>
+    <InverseName>ZzOf6</InverseName>
+  </UAReferenceType>
+  <UAObject NodeId="ns=2;i=2" BrowseName="2:Zz6">
+    <DisplayName>Zz6</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+      <Reference ReferenceType="ns=2;i=1" IsForward="false">ns=1;i=${s.nodeId.value}</Reference>
+    </References>
+  </UAObject>
+</UANodeSet>`;
+        await generateAddressSpaceRaw(addressSpace, [xml], {});
+        const child = addressSpace.findNode(`ns=${addressSpace.getNamespaceIndex(uri)};i=2`);
+        should(child).not.be.null();
+        should(s.findReferencesEx("HasComponent").map((ref) => ref.node)).containEql(child);
+        should(s.getComponentByName("Zz6", addressSpace.getNamespaceIndex(uri))).equal(child);
     });
 });

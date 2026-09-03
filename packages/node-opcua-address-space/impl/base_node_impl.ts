@@ -77,6 +77,7 @@ import {
     BaseNode_removePrivate,
     BaseNode_toString,
     type HierarchicalIndexMap,
+    noteReferenceTypeChange,
     type ReferenceScanMemo,
     ToStringBuilder
 } from "./base_node_private.js";
@@ -1114,6 +1115,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
             _remove_HierarchicalReference(this, reference);
             this.uninstall_extra_properties(reference);
             this._clear_caches();
+            noteReferenceTypeChange(this);
         } else if (_private._back_referenceIdx.has(h)) {
             relatedNode.removeReference(backwardReference);
         } else {
@@ -1514,6 +1516,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         _handle_HierarchicalReference(this, reference);
         if (clearCaches) {
             this._clear_caches();
+            noteReferenceTypeChange(this);
         }
         return reference;
     }
