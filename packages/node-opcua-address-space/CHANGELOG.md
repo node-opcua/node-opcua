@@ -155,6 +155,18 @@ gives the same records, and the two address spaces digest the same; so does a na
   element is still rendered from the node, and `node.dumpXML(writer)` runs that walk from the node. Its output is
   byte-identical to before on every catalog namespace, pinned by a golden test.
 
+#### Replaying an image inflates it once, and initial values are set as the variables are created
+
+The default path inflated a catalog image three times (the sibling check, the header pre-pass and the replay) and
+parsed it through a streaming reader with one turn of the microtask queue per record. An image given whole is now
+inflated once, kept as lines for as long as its bytes live, and replayed through a synchronous iterator; the XML
+path applies the records a chunk completes together, one turn per chunk. A variable whose data type is already in
+the address space gets its initial value (or its default) when it is created instead of through a post-load task;
+an extension object still waits for the data types to be extracted, and a refused value is logged and skipped as
+the task did. Standard nodeset, best of 7 alternating: from its image 82 ms against 149 ms from the XML (45%, was
+29%); the Node.js `generateAddressSpace` default path 98 ms against 144 ms (32%, was 13%); a six-file chain 42% and
+33%.
+
 ### Security
 
 #### Per-node `RolePermissions` and `AccessRestrictions` are no longer dropped when loading a NodeSet2 file
