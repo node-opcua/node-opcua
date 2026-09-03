@@ -211,8 +211,6 @@ function isMassivelyUsedReferenceType(referenceType: NodeId): boolean {
 }
 
 export class NodesetRecordApplier implements NodesetRecordConsumer {
-    /** what references() found about the record being applied, consumed by createNode */
-    private lastReferences: { pending: UAReference[]; unknown: boolean } | undefined;
     /** the back references the load owes, and the nodes it owes nothing else for; see takePendingBackReferences */
     private pending: PendingBackReferences = { settled: new Set(), references: [] };
 
@@ -516,31 +514,40 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
         };
     }
 
-    /**
-     * the node's references as the node will hold them, and what the end of the load must do about
-     * their inverses: a reference the document marks as not declared from the other end is kept for
-     * one propagation, and the node is settled; a node whose references carry no such information
-     * is left to the end-of-load sweep, which propagates it whole
-     */
+    /** the node's references as the node will hold them, one per reference of the record, in its order */
     private references(record: NodesetNodeRecord): UAReference[] {
-        const references: UAReference[] = [];
+        return record.references.map(
+            (r) =>
+                new ReferenceImpl({
+                    isForward: r.isForward,
+                    nodeId: this.translate(r.nodeId),
+                    referenceType: this.translate(r.referenceType)
+                })
+        );
+    }
+
+    /**
+     * what the end of the load must do about the inverses of a node's references: a reference the
+     * document marks as not declared from the other end is kept for one propagation, and the node
+     * is settled; a node whose references carry no such information is left to the end-of-load
+     * sweep, which propagates it whole. `references` are those built by {@link references} from
+     * the same record, in the same order.
+     */
+    private settle(node: BaseNode, record: NodesetNodeRecord, references: UAReference[]): void {
         const pending: UAReference[] = [];
-        let unknown = false;
-        for (const r of record.references) {
-            const reference = new ReferenceImpl({
-                isForward: r.isForward,
-                nodeId: this.translate(r.nodeId),
-                referenceType: this.translate(r.referenceType)
-            });
-            references.push(reference);
-            if (r.inverseDeclared === undefined) {
-                unknown = true;
-            } else if (!r.inverseDeclared && !isMassivelyUsedReferenceType(reference.referenceType)) {
-                pending.push(reference);
+        for (let i = 0; i < references.length; i++) {
+            const declared = record.references[i].inverseDeclared;
+            if (declared === undefined) {
+                return;
+            }
+            if (!declared && !isMassivelyUsedReferenceType(references[i].referenceType)) {
+                pending.push(references[i]);
             }
         }
-        this.lastReferences = { pending, unknown };
-        return references;
+        this.pending.settled.add(node);
+        for (const reference of pending) {
+            this.pending.references.push([node, reference]);
+        }
     }
 
     /**
@@ -555,25 +562,14 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
         return pending;
     }
 
-    private createNode(params: CreateNodeOptions): BaseNode {
+    private createNode(params: CreateNodeOptions, record: NodesetNodeRecord): BaseNode {
         // c8 ignore next
         if (!(params.nodeId instanceof NodeId)) {
             throw new Error("invalid param expecting a valid nodeId");
         } // already translated
         const namespace = this.addressSpace.getNamespace(params.nodeId.namespace);
         const node = namespace.internalCreateNode(params) as BaseNode;
-        const last = this.lastReferences;
-        // c8 ignore next
-        if (!last) {
-            throw new Error("internal error: createNode without the record's references");
-        }
-        this.lastReferences = undefined;
-        if (!last.unknown) {
-            this.pending.settled.add(node);
-            for (const reference of last.pending) {
-                this.pending.references.push([node, reference]);
-            }
-        }
+        this.settle(node, record, params.references as UAReference[]);
         return node;
     }
 
@@ -583,23 +579,29 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
         }
         switch (record.nodeClass) {
             case NodeClass.Object:
-                this.createNode({
-                    ...this.common(record),
-                    isAbstract: record.isAbstract,
-                    eventNotifier: record.eventNotifier,
-                    symbolicName: record.symbolicName ?? null,
-                    displayName: record.displayName,
-                    description: record.description
-                } as CreateNodeOptions);
+                this.createNode(
+                    {
+                        ...this.common(record),
+                        isAbstract: record.isAbstract,
+                        eventNotifier: record.eventNotifier,
+                        symbolicName: record.symbolicName ?? null,
+                        displayName: record.displayName,
+                        description: record.description
+                    } as CreateNodeOptions,
+                    record
+                );
                 return;
             case NodeClass.ObjectType:
-                this.createNode({
-                    ...this.common(record),
-                    isAbstract: record.isAbstract,
-                    eventNotifier: record.eventNotifier,
-                    displayName: record.displayName,
-                    description: record.description
-                } as CreateNodeOptions);
+                this.createNode(
+                    {
+                        ...this.common(record),
+                        isAbstract: record.isAbstract,
+                        eventNotifier: record.eventNotifier,
+                        displayName: record.displayName,
+                        description: record.description
+                    } as CreateNodeOptions,
+                    record
+                );
                 return;
             case NodeClass.ReferenceType: {
                 const params = {
@@ -613,7 +615,8 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
                 if (!(params.nodeId instanceof NodeId)) {
                     throw new Error("invalid param");
                 } // already translated
-                this.addressSpace.getNamespace(params.nodeId.namespace).addReferenceType(params);
+                const node = this.addressSpace.getNamespace(params.nodeId.namespace).addReferenceType(params);
+                this.settle(node, record, params.references as UAReference[]);
                 return;
             }
             case NodeClass.DataType:
@@ -626,21 +629,27 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
                 this.applyVariableType(record);
                 return;
             case NodeClass.Method:
-                this.createNode({
-                    ...this.common(record),
-                    parentNodeId: this.translateOrNull(record.parentNodeId),
-                    methodDeclarationId: this.translateOrNull(record.methodDeclarationId),
-                    displayName: record.displayName
-                } as CreateNodeOptions);
+                this.createNode(
+                    {
+                        ...this.common(record),
+                        parentNodeId: this.translateOrNull(record.parentNodeId),
+                        methodDeclarationId: this.translateOrNull(record.methodDeclarationId),
+                        displayName: record.displayName
+                    } as CreateNodeOptions,
+                    record
+                );
                 return;
             case NodeClass.View:
-                this.createNode({
-                    ...this.common(record),
-                    containsNoLoops: record.containsNoLoops,
-                    eventNotifier: record.eventNotifier,
-                    displayName: record.displayName,
-                    description: record.description
-                } as CreateNodeOptions);
+                this.createNode(
+                    {
+                        ...this.common(record),
+                        containsNoLoops: record.containsNoLoops,
+                        eventNotifier: record.eventNotifier,
+                        displayName: record.displayName,
+                        description: record.description
+                    } as CreateNodeOptions,
+                    record
+                );
                 return;
             default:
                 throw new Error(`NodesetRecordApplier: unexpected node class ${record.nodeClass}`);
@@ -662,7 +671,7 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
             partialDefinition: fields
         } as unknown as CreateNodeOptions;
 
-        let capturedDataTypeNode: UADataType | undefined = this.createNode(params) as UADataType;
+        let capturedDataTypeNode: UADataType | undefined = this.createNode(params, record) as UADataType;
         const queues = this.queues;
         const processBasicDataType = async (_addressSpace2: IAddressSpace) => {
             if (!capturedDataTypeNode) return;
@@ -782,7 +791,7 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
         const dataType = this.translateOrNull(record.dataType);
         const dataTypeReady = dataType !== null && value?.dataType !== DataType.ExtensionObject && this.isDataTypeReady(dataType);
         if (dataTypeReady) {
-            const variable = this.createNode(params) as UAVariable;
+            const variable = this.createNode(params, record) as UAVariable;
             this.setInitialValueNow(variable, value);
             return;
         }
@@ -822,7 +831,7 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
             };
             this.queues.postTasks0_InitializeVariable.push(task);
         }
-        capturedVariable = this.createNode(params) as UAVariable;
+        capturedVariable = this.createNode(params, record) as UAVariable;
     }
 
     /** a data type node whose basic type resolves: what an initial value needs to be checked against */
@@ -883,7 +892,7 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
                 record.description !== undefined ? (coerceLocalizedText(record.description || "") ?? undefined) : undefined,
             value
         } as unknown as CreateNodeOptions;
-        this.createNode(params);
+        this.createNode(params, record);
     }
     // #endregion
 }
