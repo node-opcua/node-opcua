@@ -1654,6 +1654,7 @@ describe("testing ServerEngine", () => {
             await pause(100);
             clock.tick(1000);
             const readRequest = new ReadRequest({
+                maxAge,
                 timestampsToReturn: TimestampsToReturn.Both,
                 nodesToRead: [
                     new ReadValueId({
@@ -1725,7 +1726,7 @@ describe("testing ServerEngine", () => {
                 should(refreshFuncSpy?.callCount).eql(2);
             }
         });
-        it("MAXA-2 should set serverTimestamp to current time on none updated variable - server time should be stable then ", async () => {
+        it("MAXA-2 should keep the serverTimestamp of a static variable while younger than MaxAge, and refresh it once older (CTT Attribute Read 006)", async () => {
             const ns = engine.addressSpace?.getOwnNamespace();
             if (!ns) return;
             const nss = ns as INamespace;
@@ -1743,25 +1744,32 @@ describe("testing ServerEngine", () => {
             dataValue.value.value.should.eql(42);
 
             await pause(100);
-            const dataValue1 = await when_I_read_the_value_with_max_age(nodeId, 4000);
+            // the fake clock of this suite moves 5 s per read: 10 s is "younger than MaxAge"
+            const dataValue1 = await when_I_read_the_value_with_max_age(nodeId, 10000);
             //xx console.log(dataValue1.toString());
             dataValue1.value.value.should.eql(42);
             should(dataValue1.serverTimestamp?.getTime()).eql(dataValue.serverTimestamp?.getTime());
             should(dataValue1.sourceTimestamp?.getTime()).eql(refSourceTimestamp);
 
+            // 2 s later with MaxAge = 500: the cached value is older than MaxAge, so the
+            // server re-verifies it and ServerTimestamp is the time it did (Part 4 5.10.2);
+            // the SourceTimestamp is the source's business and does not move
             await pause(2000);
             const dataValue2 = await when_I_read_the_value_with_max_age(nodeId, 500);
-            //xx console.log(dataValue2.toString());
             dataValue2.value.value.should.eql(42);
-            should(dataValue2.serverTimestamp?.getTime()).eql(dataValue1.serverTimestamp?.getTime());
+            should(dataValue2.serverTimestamp?.getTime()).be.greaterThan(dataValue1.serverTimestamp?.getTime() ?? 0);
             should(dataValue2.sourceTimestamp?.getTime()).eql(refSourceTimestamp);
 
+            // MaxAge = 0 asks for a fresh read: same thing
             await pause(2000);
             const dataValue3 = await when_I_read_the_value_with_max_age(nodeId, 0);
-            //xx console.log(dataValue3.toString());
             dataValue3.value.value.should.eql(42);
-            should(dataValue3.serverTimestamp?.getTime()).eql(dataValue2.serverTimestamp?.getTime());
+            should(dataValue3.serverTimestamp?.getTime()).be.greaterThan(dataValue2.serverTimestamp?.getTime() ?? 0);
             should(dataValue3.sourceTimestamp?.getTime()).eql(refSourceTimestamp);
+
+            // a MaxAge of Int32 max asks for the cached value as is
+            const dataValue4 = await when_I_read_the_value_with_max_age(nodeId, 0x7fffffff);
+            should(dataValue4.serverTimestamp?.getTime()).eql(dataValue3.serverTimestamp?.getTime());
         });
     });
 
