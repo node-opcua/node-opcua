@@ -4,6 +4,20 @@
 
 ### Changed
 
+#### The default image path costs what the image path costs
+
+The Node.js `generateAddressSpace` replays the image next to a NodeSet2 file after checking it against the XML.
+That check used to read the XML whole and hash it on the main thread before anything else, and the image was
+inflated through `DecompressionStream` and scanned line by line twice for its header and trailer.
+
+- The XML's size is compared with the length the image header records first: a different length rejects the
+  image with no read. On a match the XML is hashed with web crypto while the image inflates; the digest still
+  decides, so an edit that keeps the byte count is caught as before. The file's timestamp is not a signal.
+- An image given whole inflates through zlib in Node.js (`setImageInflater`, a third of the cost, off the main
+  thread) and its header and trailer are read from its two ends whatever its size.
+- Measured on the standard nodeset: sibling path 98 to 94 ms, six-file chain 134 to 117 ms, against 151 and
+  194 ms from the XML; the explicit image path gains the same inflate and reader (93 to 89 ms, 125 to 110 ms).
+
 #### Loader and exporter cleanup
 
 One helper each for the nodeset dependency chain of the tests, the SHA-256 hex digest, the NodeId order of the
