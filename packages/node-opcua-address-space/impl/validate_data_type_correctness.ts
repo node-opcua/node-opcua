@@ -104,7 +104,17 @@ export function validateDataTypeCorrectness(
     // The value supplied for the attribute is not of the same type as the  value.
     const variantUADataType = _dataType_toUADataType(addressSpace, variantDataType);
 
-    const dest_isSubTypeOf_variant = variantUADataType.isSubtypeOf(builtInUADataType);
+    let dest_isSubTypeOf_variant = variantUADataType.isSubtypeOf(builtInUADataType);
+
+    // A family such as Image (-> ImageBMP/ImageGIF/ImageJPG/ImagePNG) is abstract, so the
+    // check above compares against Image itself; but none of its members have their own
+    // built-in encoding, so a Variant for one of them is always stamped with Image's own
+    // built-in ancestor (ByteString) - a supertype of Image, not a subtype of it, and the
+    // check above always fails for it. Accept a variant that matches that resolved ancestor.
+    if (!dest_isSubTypeOf_variant && destUADataType.isAbstract) {
+        const resolvedBuiltInType = addressSpace.findCorrespondingBasicDataType(destUADataType);
+        dest_isSubTypeOf_variant = resolvedBuiltInType !== DataType.Null && resolvedBuiltInType === variantDataType;
+    }
 
     // c8 ignore next
     if (doDebug) {
