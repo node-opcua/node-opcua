@@ -89,7 +89,13 @@ import {
     reservedChildAccessorNames,
     resolveChildInIndex
 } from "./child_accessors.js";
-import { type MinimalistAddressSpace, nodeIdKey, ReferenceImpl, type ReferenceKey } from "./reference_impl.js";
+import {
+    isMassivelyUsedReferenceType,
+    type MinimalistAddressSpace,
+    nodeIdKey,
+    ReferenceImpl,
+    type ReferenceKey
+} from "./reference_impl.js";
 import { referenceTypeVersion } from "./reference_type_version.js";
 import { coerceRolePermissions } from "./role_permissions.js";
 
@@ -1128,7 +1134,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
             // "Cannot find reference to remove: ns=0;i=40" lines per run came from. The
             // absence is the designed state, not a fault worth reporting.
             const referenceType = resolveReferenceType(addressSpace, reference);
-            if (!reference.isForward && referenceType && _is_massively_used_reference(referenceType)) {
+            if (!reference.isForward && referenceType && isMassivelyUsedReferenceType(referenceType.nodeId)) {
                 return;
             }
             warningLog(`Cannot find reference to remove: ${reference.toString()}`);
@@ -1791,11 +1797,6 @@ function _select_by_browse_name(map: HierarchicalIndexMap, browseName: Qualified
 
 let displayWarningReferencePointingToItSelf = true;
 
-function _is_massively_used_reference(referenceType: UAReferenceType): boolean {
-    const name = referenceType.browseName.toString();
-    return name === "HasTypeDefinition" || name === "HasModellingRule";
-}
-
 function _propagate_ref(
     this: BaseNode,
     addressSpace: MinimalistAddressSpace,
@@ -1816,7 +1817,7 @@ function _propagate_ref(
     // var referenceNode = Reference.resolveReferenceNode(addressSpace,reference);
     // ignore propagation on back reference to UAVariableType or UAObject Type reference
     // because there are too many !
-    if (!referenceType || _is_massively_used_reference(referenceType)) {
+    if (!referenceType || isMassivelyUsedReferenceType(referenceType.nodeId)) {
         return;
     }
 
