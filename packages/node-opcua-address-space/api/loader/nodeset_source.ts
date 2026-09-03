@@ -7,6 +7,8 @@
  * first bytes.
  */
 
+import { isNodesetImage } from "./nodeset_image.js";
+
 /** one piece of a NodeSet2 document: text, or UTF-8 bytes */
 export type NodesetChunk = string | Uint8Array;
 
@@ -72,9 +74,11 @@ export interface NodesetReaderOptions {
 export class NodesetReader {
     private iterator: AsyncIterator<NodesetChunk> | Iterator<NodesetChunk> | null = null;
     private exhausted = false;
-    /** the chunks read so far and not yet delivered to the body: text once decoded, or raw bytes for an image */
-    private head: string[] = [];
-    private rawHead: Uint8Array[] = [];
+    /**
+     * the chunks read so far and not yet delivered to the body, in the form the document has:
+     * text once decoded for XML, raw bytes for an image (the kind is fixed by the first chunk)
+     */
+    private head: Array<string | Uint8Array> = [];
     private bodyStarted = false;
     private decoder: TextDecoder | null = null;
     private atStart = true;
@@ -118,7 +122,7 @@ export class NodesetReader {
         if ((await this.probe()) !== "xml") {
             throw new Error(`nodeset source ${this.name}: not XML`);
         }
-        let text = this.head.join("");
+        let text = (this.head as string[]).join("");
         while (!complete(text)) {
             const chunk = await this.pull();
             if (chunk === undefined) {
@@ -135,7 +139,7 @@ export class NodesetReader {
         if ((await this.probe()) !== "xml") {
             throw new Error(`nodeset source ${this.name}: not XML`);
         }
-        const head = this.head;
+        const head = this.head as string[];
         this.head = [];
         for (const chunk of head) {
             yield chunk;
@@ -155,8 +159,8 @@ export class NodesetReader {
         if ((await this.probe()) !== "image") {
             throw new Error(`nodeset source ${this.name}: not an image`);
         }
-        const head = this.rawHead;
-        this.rawHead = [];
+        const head = this.head as Uint8Array[];
+        this.head = [];
         for (const chunk of head) {
             yield chunk;
         }
@@ -177,7 +181,7 @@ export class NodesetReader {
         while ((await this.pull()) !== undefined) {
             /* read to the end */
         }
-        const parts = this.kind === "image" ? this.rawHead : this.head.map((t) => this.encoder.encode(t));
+        const parts = this.head.map((chunk) => (typeof chunk === "string" ? this.encoder.encode(chunk) : chunk));
         return concat(parts);
     }
 
@@ -206,8 +210,7 @@ export class NodesetReader {
         }
         const bytes = concat(this.hashed);
         this.hashed.length = 0;
-        const hash = await crypto.subtle.digest("SHA-256", bytes as BufferSource);
-        this.digestValue = Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, "0")).join("");
+        this.digestValue = await sha256Hex(bytes);
         return this.digestValue;
     }
 
@@ -264,7 +267,7 @@ export class NodesetReader {
             return undefined;
         }
         if (this.kind === undefined) {
-            this.kind = typeof chunk !== "string" && chunk[0] === 0x1f && chunk[1] === 0x8b ? "image" : "xml";
+            this.kind = typeof chunk !== "string" && isNodesetImage(chunk) ? "image" : "xml";
         }
         const raw = typeof chunk === "string" ? this.encoder.encode(chunk) : chunk;
         this.bytesRead += raw.length;
@@ -273,7 +276,7 @@ export class NodesetReader {
         }
         if (this.kind === "image") {
             const bytes = typeof chunk === "string" ? raw : chunk;
-            if (!this.bodyStarted) this.rawHead.push(bytes);
+            if (!this.bodyStarted) this.head.push(bytes);
             return bytes;
         }
         let text: string;
@@ -296,6 +299,12 @@ export class NodesetReader {
         if (!this.bodyStarted) this.head.push(text);
         return text;
     }
+}
+
+/** the SHA-256 of `bytes`, lower-case hex: the digest a nodeset image carries for its source */
+export async function sha256Hex(bytes: Uint8Array): Promise<string> {
+    const hash = await crypto.subtle.digest("SHA-256", bytes as BufferSource);
+    return Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 function concat(parts: Uint8Array[]): Uint8Array {

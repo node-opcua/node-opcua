@@ -59,6 +59,7 @@ import {
     type NodesetReferenceRecord,
     XmlExtensionObjectFragment
 } from "../../api/loader/nodeset_record.js";
+import { sha256Hex } from "../../api/loader/nodeset_source.js";
 import type { XmlWriter } from "../../api/xml_writer.js";
 import { type BaseNodeImpl, getReferenceType } from "../base_node_impl.js";
 import { NamespaceImpl } from "../namespace_impl.js";
@@ -92,7 +93,9 @@ export interface ToNodesetRecordsOptions {
     includeDeprecated?: boolean;
 }
 
-const sortByNodeId = (a: { nodeId: NodeId }, b: { nodeId: NodeId }) => (a.nodeId.toString() < b.nodeId.toString() ? -1 : 1);
+/** the order the exporters list nodes in: by NodeId string, what the XML writer sorted by all along */
+export const sortByNodeId = (a: { nodeId: NodeId }, b: { nodeId: NodeId }): number =>
+    a.nodeId.toString() < b.nodeId.toString() ? -1 : 1;
 const currentReadFlag = makeAccessLevelFlag("CurrentRead");
 
 /** what the exporter cannot turn into a record: named by the node so that the caller can act */
@@ -813,10 +816,7 @@ export function namespaceToRecords(namespace: INamespace, _options: ToNodesetRec
 export interface NamespaceToImageOptions extends Pick<NodesetImageWriterOptions, "addressSpaceVersion" | "createdAt"> {}
 
 /** the sha256 of the lines the digest covers, hex */
-async function sha256(text: string): Promise<string> {
-    const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text) as BufferSource);
-    return Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, "0")).join("");
-}
+const sha256 = (text: string): Promise<string> => sha256Hex(new TextEncoder().encode(text));
 
 /**
  * the precompiled image of a namespace: the records, JSON Lines, gzip; the trailer digest is the

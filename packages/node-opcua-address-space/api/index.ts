@@ -166,6 +166,7 @@ export {
     type NodesetImageTrailer,
     NodesetImageWriter,
     type NodesetImageWriterOptions,
+    nodesetImageProblem,
     type ReadNodesetImageOptions,
     readNodesetImageInfo
 } from "./loader/nodeset_image.js";

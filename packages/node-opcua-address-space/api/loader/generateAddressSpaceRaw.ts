@@ -12,6 +12,7 @@ import {
     inflatedImageLines,
     NodesetImageError,
     NodesetImageWriter,
+    nodesetImageProblem,
     readNodesetImageInfo,
     releaseInflatedImageLines
 } from "./nodeset_image.js";
@@ -194,22 +195,15 @@ function resolveImageStore(option: NodesetImageStore | boolean | undefined): Nod
  * corrupt, truncated or foreign image is the store's problem, not the caller's: it is logged
  * and rebuilt from the XML.
  */
-const decodeHeaderOrThrow = (info: Awaited<ReturnType<typeof readNodesetImageInfo>>) => decodeHeader(info.header);
-
 async function isReplayable(image: Uint8Array, digest: string, name: string): Promise<boolean> {
     try {
         const info = await readNodesetImageInfo(image);
-        if (!info.trailer) {
-            throw new NodesetImageError("the image is truncated: no trailer");
-        }
-        if (info.trailer.nodes !== info.lines) {
-            throw new NodesetImageError(`the image trailer announces ${info.trailer.nodes} nodes, ${info.lines} lines were read`);
-        }
-        if (info.trailer.sourceDigest !== digest) {
-            throw new NodesetImageError("the image was built from another source (digest mismatch)");
+        const problem = nodesetImageProblem(info, digest);
+        if (problem) {
+            throw new NodesetImageError(problem);
         }
         // the header parses with the schema this loader reads
-        decodeHeaderOrThrow(info);
+        decodeHeader(info.header);
         return true;
     } catch (err) {
         if (!(err instanceof NodesetImageError)) {
