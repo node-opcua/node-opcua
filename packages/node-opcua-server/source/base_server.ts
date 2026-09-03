@@ -38,7 +38,7 @@ import { FindServersRequest, FindServersResponse } from "node-opcua-service-disc
 import { ApplicationDescription, ApplicationType, GetEndpointsResponse } from "node-opcua-service-endpoints";
 import { ServiceFault } from "node-opcua-service-secure-channel";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
-import type { ApplicationDescriptionOptions, EndpointDescription, GetEndpointsRequest } from "node-opcua-types";
+import { type ApplicationDescriptionOptions, EndpointDescription, type GetEndpointsRequest } from "node-opcua-types";
 import { checkFileExistsAndIsNotEmpty, matchUri } from "node-opcua-utils";
 import type { IChannelData } from "./i_channel_data.js";
 import type { ISocketData } from "./i_socket_data.js";
@@ -833,12 +833,22 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
             );
         }
 
-        // adjust locale on ApplicationName to match requested local or provide
-        // a string with neutral locale (locale === null)
-        // TODO: find a better way to handle this
-        response.endpoints.forEach((endpoint: EndpointDescription) => {
-            endpoint.server.applicationName.locale = "en-US";
-        });
+        // The ApplicationName is served in the first locale the client asked for: there is
+        // one text only, and Part 4 5.4.4 lets the server pick the best available locale.
+        // Without a request locale the name keeps its own (CTT Discovery Get Endpoints 002).
+        // The descriptions are the endpoint's own shared instances: answer with copies.
+        const requestedLocale = (request.localeIds || []).find((l) => typeof l === "string" && l.length > 0);
+        if (requestedLocale) {
+            response.endpoints = response.endpoints.map((endpoint: EndpointDescription) => {
+                const copy = new EndpointDescription(endpoint);
+                copy.server = new ApplicationDescription(endpoint.server);
+                copy.server.applicationName = coerceLocalizedText({
+                    locale: requestedLocale,
+                    text: endpoint.server.applicationName.text
+                })!;
+                return copy;
+            });
+        }
 
         channel.send_response("MSG", response, message, emptyCallback);
     }
