@@ -66,11 +66,23 @@ async function gzip(text: string): Promise<Uint8Array> {
 }
 
 /**
- * the lines of an image given whole, inflated once and kept as long as the image bytes live: the
- * sibling check, the header pre-pass and the replay all read the same buffer, and one inflate with
- * a native split is half the cost of the streaming reader on a 3.5 MB text
+ * the lines of an image given whole, inflated once and kept for the load: the sibling check, the
+ * header pre-pass and the replay all read the same buffer, and one inflate with a native split is
+ * half the cost of the streaming reader on a 3.5 MB text. The replay releases them (see
+ * {@link releaseInflatedImageLines}): the bytes may live on in an image store, which is sized by
+ * what it holds compressed, and the lines are twelve times as large
  */
 const imageLines = new WeakMap<Uint8Array, Promise<string[]>>();
+
+/** forget the inflated lines of `image`; the next reader inflates again */
+export function releaseInflatedImageLines(image: Uint8Array): void {
+    imageLines.delete(image);
+}
+
+/** whether the inflated lines of `image` are being kept, for the tests */
+export function hasInflatedImageLines(image: Uint8Array): boolean {
+    return imageLines.has(image);
+}
 const NEWLINE = String.fromCharCode(10);
 
 export function inflatedImageLines(image: Uint8Array): Promise<string[]> {
@@ -241,7 +253,11 @@ export async function* imageNodesetRecords(
     options: ReadNodesetImageOptions = {}
 ): AsyncGenerator<NodesetRecord> {
     if (image instanceof Uint8Array) {
-        yield* imageLinesToRecords(await inflatedImageLines(image), options);
+        try {
+            yield* imageLinesToRecords(await inflatedImageLines(image), options);
+        } finally {
+            releaseInflatedImageLines(image);
+        }
         return;
     }
     const reader = new ImageLineReader(options);

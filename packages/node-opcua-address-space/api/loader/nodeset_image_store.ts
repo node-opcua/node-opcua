@@ -21,7 +21,11 @@ export function nodesetImageKey(sourceDigest: string): string {
     return `${NODESET_RECORD_SCHEMA}-${sourceDigest}`;
 }
 
-/** an in-memory store: for browsers, tests, and a process that loads the same files repeatedly */
+/**
+ * an in-memory store: for browsers, tests, and a process that loads the same files repeatedly.
+ * The size cap counts the compressed bytes, which is all the store retains per entry: the loader
+ * inflates an image for one load and lets the lines go afterwards
+ */
 export class MemoryNodesetImageStore implements NodesetImageStore {
     private readonly images = new Map<string, Uint8Array>();
 

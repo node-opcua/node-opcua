@@ -21,6 +21,7 @@ import {
     nodesetToImage,
     readNodesetImageInfo
 } from "../dist/api/index.js";
+import { hasInflatedImageLines, imageNodesetRecords } from "../dist/api/loader/nodeset_image.js";
 import { FileNodesetImageStore, generateAddressSpace } from "../distNodeJS/index.js";
 import { type AddressSpaceDigest, digestAddressSpace } from "../test_helpers/address_space_digest.js";
 import { get_mini_nodeset_filename } from "../test_helpers/get_mini_address_space.js";
@@ -204,5 +205,31 @@ describe("Loading through an image store", function (this: Mocha.Suite) {
                 else process.env.NODE_OPCUA_NODESET_IMAGE_DIR = previous;
             }
         });
+    });
+});
+
+describe("what a memory image store retains", function (this: Mocha.Suite) {
+    this.timeout(60000);
+
+    it("is the compressed bytes only: the inflated lines go once the replay is done", async () => {
+        const store = new MemoryNodesetImageStore();
+        const file = get_mini_nodeset_filename();
+        for (let i = 0; i < 2; i++) {
+            const addressSpace = AddressSpace.create();
+            await generateAddressSpace(addressSpace, [file], { imageStore: store });
+            addressSpace.dispose();
+        }
+        should(store.size).eql(1);
+        const image = (await store.get(store.keys()[0])) as Uint8Array;
+        should(image).not.be.undefined();
+        should(hasInflatedImageLines(image)).eql(false);
+
+        // the record iterator over whole bytes releases them as well
+        let records = 0;
+        for await (const _record of imageNodesetRecords(image)) {
+            records += 1;
+        }
+        should(records).be.greaterThan(10);
+        should(hasInflatedImageLines(image)).eql(false);
     });
 });
