@@ -8,7 +8,7 @@ import {
 } from "node-opcua-address-space";
 import type { BaseNode, ContinuationData, ISessionContext, UAVariable } from "node-opcua-address-space-base";
 import assert from "node-opcua-assert";
-import type { AttributeIds } from "node-opcua-basic-types";
+import { AttributeIds } from "node-opcua-basic-types";
 import { apply_timestamps_no_copy, coerceTimestampsToReturn, DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock, isMinDate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -32,6 +32,9 @@ import {
 } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import type { IAddressSpaceAccessor } from "./i_address_space_accessor.js";
+
+/** Part 4 5.10.2: a MaxAge of Int32 max or more asks for the cached value as is */
+const MAX_AGE_CACHED = 0x7fffffff;
 
 const doDebug = checkDebugFlag("addressSpace_accessor");
 const debugLog = make_debugLog("addressSpace_accessor");
@@ -251,7 +254,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
     public async readNode(
         context: ISessionContext,
         nodeToRead: ReadValueIdOptions,
-        _maxAge: number,
+        maxAge: number,
         timestampsToReturn?: TimestampsToReturn
     ): Promise<DataValue> {
         assert(context instanceof SessionContext);
@@ -291,13 +294,27 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
                 dataValue.sourceTimestamp = null;
                 dataValue.sourcePicoseconds = 0;
             }
-            if (
-                (timestampsToReturn === TimestampsToReturn.Both || timestampsToReturn === TimestampsToReturn.Server) &&
-                (!dataValue.serverTimestamp || isMinDate(dataValue.serverTimestamp))
-            ) {
-                const t: Date = context.currentTime ? context.currentTime.timestamp : getCurrentClock().timestamp;
-                dataValue.serverTimestamp = t;
-                dataValue.serverPicoseconds = 0; // context.currentTime.picoseconds;
+            if (timestampsToReturn === TimestampsToReturn.Both || timestampsToReturn === TimestampsToReturn.Server) {
+                const now = context.currentTime || getCurrentClock();
+                if (!dataValue.serverTimestamp || isMinDate(dataValue.serverTimestamp)) {
+                    dataValue.serverTimestamp = now.timestamp;
+                    dataValue.serverPicoseconds = 0; // context.currentTime.picoseconds;
+                } else if (maxAge < MAX_AGE_CACHED && now.timestamp.getTime() - dataValue.serverTimestamp.getTime() > maxAge) {
+                    // Part 4 5.10.2: with a MaxAge the client wants a value no older than that;
+                    // a value without a data source is re-verified from the cache at read
+                    // time, and ServerTimestamp is the time the server (re)obtained it
+                    // (CTT Attribute Read 006, 018, 023).
+                    dataValue.serverTimestamp = now.timestamp;
+                    dataValue.serverPicoseconds = now.picoseconds;
+                    // the cache moves with it, so that a later read within MaxAge never
+                    // reports an older ServerTimestamp than this one
+                    const cached =
+                        attributeId === AttributeIds.Value ? (obj as unknown as { $dataValue?: DataValue }).$dataValue : undefined;
+                    if (cached && cached.statusCode.isGoodish()) {
+                        cached.serverTimestamp = now.timestamp;
+                        cached.serverPicoseconds = now.picoseconds;
+                    }
+                }
             }
 
             return dataValue;
