@@ -40,19 +40,22 @@ export class ServerOperationLimits {
     public maxNodesPerHistoryUpdateEvents: number;
     public maxNodesPerTranslateBrowsePathsToNodeIds: number;
 
+    // a limit left undefined takes the default; an explicit 0 means "no limit, not exposed"
     constructor(options: OperationLimitsOptions) {
-        this.maxNodesPerRead = options.maxNodesPerRead || 0;
-        this.maxNodesPerWrite = options.maxNodesPerWrite || 0;
-        this.maxNodesPerMethodCall = options.maxNodesPerMethodCall || 0;
-        this.maxNodesPerBrowse = options.maxNodesPerBrowse || 0;
-        this.maxNodesPerRegisterNodes = options.maxNodesPerRegisterNodes || 0;
-        this.maxNodesPerNodeManagement = options.maxNodesPerNodeManagement || 0;
-        this.maxMonitoredItemsPerCall = options.maxMonitoredItemsPerCall || 0;
-        this.maxNodesPerHistoryReadData = options.maxNodesPerHistoryReadData || 0;
-        this.maxNodesPerHistoryReadEvents = options.maxNodesPerHistoryReadEvents || 0;
-        this.maxNodesPerHistoryUpdateData = options.maxNodesPerHistoryUpdateData || 0;
-        this.maxNodesPerHistoryUpdateEvents = options.maxNodesPerHistoryUpdateEvents || 0;
-        this.maxNodesPerTranslateBrowsePathsToNodeIds = options.maxNodesPerTranslateBrowsePathsToNodeIds || 0;
+        const d = defaultServerCapabilities.operationLimits as Required<OperationLimitsOptions>;
+        this.maxNodesPerRead = options.maxNodesPerRead ?? d.maxNodesPerRead;
+        this.maxNodesPerWrite = options.maxNodesPerWrite ?? d.maxNodesPerWrite;
+        this.maxNodesPerMethodCall = options.maxNodesPerMethodCall ?? d.maxNodesPerMethodCall;
+        this.maxNodesPerBrowse = options.maxNodesPerBrowse ?? d.maxNodesPerBrowse;
+        this.maxNodesPerRegisterNodes = options.maxNodesPerRegisterNodes ?? d.maxNodesPerRegisterNodes;
+        this.maxNodesPerNodeManagement = options.maxNodesPerNodeManagement ?? d.maxNodesPerNodeManagement;
+        this.maxMonitoredItemsPerCall = options.maxMonitoredItemsPerCall ?? d.maxMonitoredItemsPerCall;
+        this.maxNodesPerHistoryReadData = options.maxNodesPerHistoryReadData ?? d.maxNodesPerHistoryReadData;
+        this.maxNodesPerHistoryReadEvents = options.maxNodesPerHistoryReadEvents ?? d.maxNodesPerHistoryReadEvents;
+        this.maxNodesPerHistoryUpdateData = options.maxNodesPerHistoryUpdateData ?? d.maxNodesPerHistoryUpdateData;
+        this.maxNodesPerHistoryUpdateEvents = options.maxNodesPerHistoryUpdateEvents ?? d.maxNodesPerHistoryUpdateEvents;
+        this.maxNodesPerTranslateBrowsePathsToNodeIds =
+            options.maxNodesPerTranslateBrowsePathsToNodeIds ?? d.maxNodesPerTranslateBrowsePathsToNodeIds;
     }
 }
 
@@ -163,19 +166,23 @@ export const defaultServerCapabilities: IServerCapabilities = {
 
     minSupportedSampleRate: 100,
 
+    // Part 5 OperationLimitsType: a limit that is exposed shall be non-zero, and the
+    // server answers BadTooManyOperations past it. Every limit the server enforces gets
+    // a real default; the three it does not enforce (history update, node management:
+    // services it does not implement) stay at 0, which means "not exposed".
     operationLimits: {
-        maxNodesPerBrowse: 0,
-        maxNodesPerHistoryReadData: 0,
-        maxNodesPerHistoryReadEvents: 0,
+        maxNodesPerBrowse: 1000,
+        maxNodesPerHistoryReadData: 100,
+        maxNodesPerHistoryReadEvents: 100,
         maxNodesPerHistoryUpdateData: 0,
         maxNodesPerHistoryUpdateEvents: 0,
-        maxNodesPerMethodCall: 0,
+        maxNodesPerMethodCall: 100,
         maxNodesPerNodeManagement: 0,
-        maxNodesPerRead: 0,
-        maxNodesPerRegisterNodes: 0,
-        maxNodesPerWrite: 0,
-        maxNodesPerTranslateBrowsePathsToNodeIds: 0,
-        maxMonitoredItemsPerCall: 0
+        maxNodesPerRead: 1000,
+        maxNodesPerRegisterNodes: 1000,
+        maxNodesPerWrite: 1000,
+        maxNodesPerTranslateBrowsePathsToNodeIds: 1000,
+        maxMonitoredItemsPerCall: 1000
     },
 
     serverProfileArray: [],
