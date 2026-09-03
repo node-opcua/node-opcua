@@ -2112,6 +2112,10 @@ export function defineSharedChildAccessors(browseNames: string[]): void {
  *
  * This is the runtime fallback of child_accessors.ts, for names no loaded nodeset declared.
  */
+/** the child an own accessor was installed for, kept on the getter itself */
+const installedFor = Symbol("installedFor");
+type OwnChildAccessor = { [installedFor]?: BaseNode };
+
 function install_child_as_object_property(parentObj: BaseNode | null, child: BaseNode | null): void {
     // the parent may be unresolvable while a nodeset is still loading
     if (!parentObj || !child) {
@@ -2122,24 +2126,29 @@ function install_child_as_object_property(parentObj: BaseNode | null, child: Bas
         return;
     }
     doDebug && debugLog(`Installing property ${name}`, " on ", parentObj.browseName.toString());
+    const get: (() => BaseNode | undefined) & OwnChildAccessor = () =>
+        // an own property wins over the prototype: should the name get a shared getter later
+        // (a nodeset loaded afterwards declares it), this accessor answers what the getter
+        // would, through the child index, rather than the child it was installed for
+        hasSharedChildAccessor(name) ? resolveChildAccessor(parentObj, name) : child;
+    get[installedFor] = child;
     Object.defineProperty(parentObj, name, {
         configurable: true, // so that uninstall_child_object_property can remove it
         enumerable: true,
-        get() {
-            return child;
-        }
+        get
     });
 }
 
 function uninstall_child_object_property(parentObj: BaseNode, child: BaseNode): void {
     const name = BaseNode_getPrivate(child)?._accessorName;
-    if (!name || hasSharedChildAccessor(name)) {
-        return; // the child index already reflects the removal
+    if (!name) {
+        return;
     }
-    // only an accessor installed above goes; a field or a method of the same name stays, and so
-    // does an accessor designating another child of the same name
+    // only an accessor installed above goes, whether or not the name has a shared getter by now;
+    // a field or a method of the same name stays, and so does an accessor for another child of
+    // the same name. The getter is asked for the child it was installed for, not what it resolves
     const descriptor = Object.getOwnPropertyDescriptor(parentObj, name);
-    if (!descriptor?.get || !descriptor.configurable || descriptor.get.call(parentObj) !== child) {
+    if (!descriptor?.get || !descriptor.configurable || (descriptor.get as OwnChildAccessor)[installedFor] !== child) {
         return;
     }
     delete (parentObj as unknown as Record<string, unknown>)[name];
