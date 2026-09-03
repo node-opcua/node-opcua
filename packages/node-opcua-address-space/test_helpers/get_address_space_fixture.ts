@@ -3,7 +3,6 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { findUp } from "node-opcua-test-helpers";
 
 /**
  * The one place this package's tests resolve a fixture.
@@ -13,7 +12,26 @@ import { findUp } from "node-opcua-test-helpers";
  * behind it. Anchoring on the package root removes the question, and at the ESM flip
  * `__dirname` becomes `import.meta.dirname` here and nowhere else.
  */
-const packageRoot = findUp(__dirname, "package.json");
+const packageRoot = findPackageRoot(__dirname);
+
+/**
+ * The nearest ancestor holding a package.json. Kept local on purpose: this file
+ * ships in distHelpers, and node-opcua-test-helpers is private to the monorepo,
+ * so a consumer installing the package must not need it.
+ */
+function findPackageRoot(from: string): string {
+    let dir = from;
+    for (;;) {
+        if (fs.existsSync(path.join(dir, "package.json"))) {
+            return dir;
+        }
+        const parent = path.dirname(dir);
+        if (parent === dir) {
+            throw new Error(`cannot find package.json at or above ${from}`);
+        }
+        dir = parent;
+    }
+}
 
 /** nodesets shipped by this package */
 const nodesetsFolder = path.join(packageRoot, "nodesets");
