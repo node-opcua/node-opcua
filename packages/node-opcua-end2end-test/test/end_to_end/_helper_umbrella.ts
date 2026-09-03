@@ -123,7 +123,10 @@ export async function beforeTest(test: UmbrellaTestContext) {
         silent: true,
         nodeset_filename: [nodesets.standard],
         serverCapabilities: {
-            operationLimits: {}
+            // the client is bare and does not batch on the advertised limits (that is the
+            // optimized client, sterfive/optimized-client, territory): the umbrella tests
+            // monitor ~5000 nodes in one call, so the server must allow that
+            operationLimits: { maxMonitoredItemsPerCall: 10000 }
         },
         server_sourcefile: ""
     };
