@@ -900,6 +900,9 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         assert(typeof callback === "function");
 
         options.nodeset_filename = options.nodeset_filename || nodesets.standard;
+        const nodesetFiles = Array.isArray(options.nodeset_filename) ? options.nodeset_filename : [options.nodeset_filename];
+        // files and sources load in one call, so that a dependency may cross from one list to the other
+        const nodesetDocuments = [...nodesetFiles, ...(options.nodesetSources || [])];
 
         const startTime = new Date();
 
@@ -915,12 +918,9 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             const serverNamespace = this.addressSpace.registerNamespace(this.serverNamespaceUrn);
             assert(serverNamespace.index === 1);
         }
-        generateAddressSpace(this.addressSpace, options.nodeset_filename)
-            .catch((err) => {
-                console.log(err.message);
-                callback(err);
-            })
-            .then(() => {
+        // a load that fails reports once, through the callback, and the setup below is skipped
+        generateAddressSpace(this.addressSpace, nodesetDocuments, options.nodesetLoaderOptions).then(
+            () => {
                 /* c8 ignore next */
                 if (!this.addressSpace) {
                     throw new Error("Internal error");
@@ -1584,7 +1584,12 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 this._internalState = "initialized";
                 this.setServerState(ServerState.Running);
                 setImmediate(() => callback());
-            });
+            },
+            (err: Error) => {
+                errorLog(err.message);
+                callback(err);
+            }
+        );
     }
 
     public async browseWithAutomaticExpansion(

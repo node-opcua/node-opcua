@@ -3,10 +3,12 @@ import { getMinOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import type { CallbackT } from "node-opcua-status-code";
 import { type ReaderStateParser, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
+import semver from "semver";
 import type { NamespacePrivate } from "../../impl/namespace_private.js";
 import { adjustNamespaceArray } from "../../impl/nodeset_tools/adjust_namespace_array.js";
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.js";
 import { NodeSetLoader } from "./load_nodeset2.js";
+import { makeSemverCompatible } from "./make_semver_compatible.js";
 import {
     imageLinesToRecords,
     inflatedImageLines,
@@ -278,7 +280,48 @@ export async function preLoad(xmlFiles: string[], xmlLoader: (nodeset2xmlUri: st
     }
     return namespaceDesc;
 }
-export function findOrder(nodesetDescs: Array<{ namespaceModel: NodesetInfo }>): number[] {
+/**
+ * whether a model required by a document of this call, and provided by none of them, is
+ * satisfied anyway: the predicate says so for a model the address space already holds
+ * (see {@link loadedModelSatisfies}); by default nothing outside the call counts
+ */
+export type RequiredModelPredicate = (requiredModel: RequiredModel, requiredBy: string) => boolean;
+
+/**
+ * a required model that the address space already holds, from an earlier call or from an
+ * earlier `registerNamespace`: satisfied when the namespace is registered with a version at
+ * least the required one. A lower version is an error naming both versions; an absent
+ * namespace is not satisfied, and left to the caller to report as missing.
+ */
+export function loadedModelSatisfies(addressSpace: IAddressSpace): RequiredModelPredicate {
+    return (requiredModel: RequiredModel, requiredBy: string): boolean => {
+        const namespace = addressSpace.getNamespace(requiredModel.modelUri);
+        if (!namespace) {
+            return false;
+        }
+        const loaded = makeSemverCompatible(namespace.version);
+        const required = makeSemverCompatible(requiredModel.version);
+        if (semver.lt(loaded, required)) {
+            throw new Error(
+                `Namespace ${requiredModel.modelUri} is loaded with version ${namespace.version || "unknown"}` +
+                    ` but ${requiredBy} requires version ${requiredModel.version} or later`
+            );
+        }
+        return true;
+    };
+}
+
+/**
+ * the order in which the documents of one call load, each after the documents it requires
+ *
+ * @param nodesetDescs the documents of the call, each with the models it defines and requires
+ * @param isSatisfied a required model that no document of the call defines is an error unless
+ *   this says it is satisfied, typically because the address space holds it already
+ */
+export function findOrder(
+    nodesetDescs: Array<{ namespaceModel: NodesetInfo }>,
+    isSatisfied: RequiredModelPredicate = () => false
+): number[] {
     // compute the order of loading of the namespaces
     const order: number[] = [];
     const visited: Set<string> = new Set<string>();
@@ -296,6 +339,9 @@ export function findOrder(nodesetDescs: Array<{ namespaceModel: NodesetInfo }>):
         for (const requiredModel of model.requiredModel) {
             const requiredModelIndex = findNodesetIndex(requiredModel.modelUri);
             if (requiredModelIndex === -1) {
+                if (isSatisfied(requiredModel, model.modelUri)) {
+                    continue;
+                }
                 throw new Error(`Cannot find namespace for ${requiredModel.modelUri}`);
             }
             const nd = nodesetDescs[requiredModelIndex];
@@ -319,7 +365,9 @@ export function findOrder(nodesetDescs: Array<{ namespaceModel: NodesetInfo }>):
     return order;
 }
 /**
- * populate an address space from NodeSet2 documents, in dependency order whatever the order given
+ * populate an address space from NodeSet2 documents, in dependency order whatever the order given.
+ * A model that a document requires may come from the same call or from an earlier one: what
+ * the address space already holds, with a sufficient version, counts as loaded.
  *
  * @param addressSpace the addressSpace to populate
  * @param sources the documents, each a {@link NodesetSource}: text, bytes, a stream of chunks or a
@@ -379,7 +427,7 @@ export async function generateAddressSpaceRaw(
     const nodesetLoader = new NodeSetLoader(addressSpace, options);
 
     const nodesetDesc = await preLoadSources(readers);
-    const order = findOrder(nodesetDesc);
+    const order = findOrder(nodesetDesc, loadedModelSatisfies(addressSpace));
 
     // register namespace in the same order as specified in the xmlFiles array
     for (let index = 0; index < order.length; index++) {

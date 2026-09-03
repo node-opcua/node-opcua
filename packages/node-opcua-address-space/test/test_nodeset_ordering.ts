@@ -1,8 +1,9 @@
+import fs from "node:fs";
+import zlib from "node:zlib";
 import { nodesets } from "node-opcua-nodesets";
 import { getFixture } from "node-opcua-test-fixtures";
-// import fs from "fs";
 import should from "should";
-import { AddressSpace, findOrder, generateAddressSpaceRaw, preLoad } from "../dist/api/index.js";
+import { AddressSpace, findOrder, generateAddressSpaceRaw, type NodesetSource, preLoad } from "../dist/api/index.js";
 import { readNodeSet2XmlFile } from "../nodeJS.js";
 import { getAddressSpaceFixture } from "../test_helpers/get_address_space_fixture.js";
 
@@ -80,5 +81,75 @@ describe("Ordering NodeSet2 files", () => {
         }
         should(_err!).be.instanceOf(Error);
         should(_err?.message).match(/Cannot find namespace for http:\/\/opcfoundation.org\/UA\/DI\//);
+    });
+
+    const UA = "http://opcfoundation.org/UA/";
+    const DI = "http://opcfoundation.org/UA/DI/";
+
+    /** a nodeset file as a gzip stream, the way a compressed model reaches a server */
+    const gzipStreamOf = (file: string): NodesetSource => ({
+        name: `${file}.gz`,
+        source: () => fs.createReadStream(file).pipe(zlib.createGzip()).pipe(zlib.createGunzip())
+    });
+
+    it("NSO-6 should order a document whose required model is satisfied outside the call", async () => {
+        const [di] = await preLoad([nodesets.di], readNodeSet2XmlFile);
+        di.xmlData = "";
+        should(() => findOrder([di])).throw(/Cannot find namespace for http:\/\/opcfoundation.org\/UA\//);
+        findOrder([di], (requiredModel) => requiredModel.modelUri === UA).should.eql([0]);
+    });
+
+    it("NSO-7 should load a companion nodeset in a second call, after the standard nodeset", async () => {
+        // a server has loaded Opc.Ua.NodeSet2.xml in initialize(); a model arrives later, as a gzip stream
+        const addressSpace = AddressSpace.create();
+        try {
+            await generateAddressSpaceRaw(addressSpace, [nodesets.standard], readNodeSet2XmlFile, {});
+            should(addressSpace.getNamespaceIndex(DI)).eql(-1);
+
+            await generateAddressSpaceRaw(addressSpace, [gzipStreamOf(nodesets.di)], {});
+
+            const diNamespace = addressSpace.getNamespace(DI);
+            should.exist(diNamespace);
+            diNamespace.findNode("i=5001")!.browseName.name!.should.eql("DeviceSet");
+            const deviceSet = addressSpace.rootFolder.objects.getFolderElementByName("DeviceSet", diNamespace.index);
+            should.exist(deviceSet, "DeviceSet is organized by Objects, across the two calls");
+            should(diNamespace.getRequiredModels()!.map((m) => m.modelUri)).eql([UA]);
+        } finally {
+            addressSpace.dispose();
+        }
+    });
+
+    it("NSO-8 should still report a model that neither call provides", async () => {
+        const addressSpace = AddressSpace.create();
+        try {
+            await generateAddressSpaceRaw(addressSpace, [nodesets.standard], readNodeSet2XmlFile, {});
+            // ADI requires DI, which is neither loaded nor in this call
+            await generateAddressSpaceRaw(addressSpace, [gzipStreamOf(nodesets.adi)], {}).should.be.rejectedWith(
+                /Cannot find namespace for http:\/\/opcfoundation.org\/UA\/DI\//
+            );
+            should(addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/")).eql(-1, "nothing of ADI was loaded");
+        } finally {
+            addressSpace.dispose();
+        }
+    });
+
+    it("NSO-9 should reject a loaded model whose version is lower than the one required", async () => {
+        const addressSpace = AddressSpace.create();
+        try {
+            await generateAddressSpaceRaw(addressSpace, [nodesets.standard], readNodeSet2XmlFile, {});
+            const ua = addressSpace.getNamespace(UA);
+            const loadedVersion = ua.version;
+            ua.version = "1.03";
+            await generateAddressSpaceRaw(addressSpace, [gzipStreamOf(nodesets.di)], {}).should.be.rejectedWith(
+                /Namespace http:\/\/opcfoundation.org\/UA\/ is loaded with version 1.03 but http:\/\/opcfoundation.org\/UA\/DI\/ requires version [0-9.]+ or later/
+            );
+            should(addressSpace.getNamespaceIndex(DI)).eql(-1);
+            // the version it has is enough
+            ua.version = loadedVersion;
+            await generateAddressSpaceRaw(addressSpace, [gzipStreamOf(nodesets.di)], {});
+            should(addressSpace.getNamespaceIndex(DI)).not.eql(-1);
+        } finally {
+            addressSpace.dispose();
+        }
     });
 });

@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Added
+
+#### A nodeset loads after the models it requires, whatever call loaded them
+
+`generateAddressSpaceRaw` resolved each `RequiredModel` among the documents of the current call only, and failed
+with `Cannot find namespace for http://opcfoundation.org/UA/` when a companion nodeset was given in a second call,
+after `server.initialize()` had loaded `Opc.Ua.NodeSet2.xml`. A required model that the address space already
+holds now counts as loaded when its version is at least the required one; a lower version is an error naming both
+versions, and a model that neither the address space nor the call provides is still reported as missing.
+`findOrder` takes the predicate as an optional second argument (`loadedModelSatisfies(addressSpace)`).
+
+- The Node.js `generateAddressSpace` accepts `NodesetSource` values in its list next to file paths: a string is a
+  path, anything else is a source (a gzip stream, an HTTP response, a string of XML through `{ name, source }`).
+- `OPCUAServer` takes `nodesetSources?: NodesetSource[]`, loaded in the same call as `nodeset_filename` so a
+  dependency may cross from one list to the other, and `nodesetLoaderOptions?: NodeSetLoaderOptions`
+  (`yieldEveryBytes`, `imageStore`, `permissions`, `accessRestrictions`). The standard nodeset is still the
+  default when `nodeset_filename` is absent; `nodeset_filename: []` leaves it to the sources.
+
 ### Changed
 
 #### The default image path costs what the image path costs
