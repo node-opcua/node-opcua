@@ -1282,8 +1282,14 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
             params.referenceType = params.referenceType as UAReferenceTypeImpl;
             params.referenceType = params.referenceType.nodeId;
         } else if (typeof params.referenceType === "string") {
-            const inv = this.findReferenceTypeFromInverseName(params.referenceType);
-            if (inv) {
+            // the browse name first: a reference type whose inverse name is its own browse name
+            // (GeneratesEvent in some nodesets) names the forward direction, not the inverse
+            const byName = isNodeIdString(params.referenceType) ? null : this.findReferenceType(params.referenceType);
+            const inv = byName ? null : this.findReferenceTypeFromInverseName(params.referenceType);
+            if (byName) {
+                params.referenceType = byName.nodeId;
+                params._referenceType = byName;
+            } else if (inv) {
                 params.referenceType = inv.nodeId;
                 params._referenceType = inv;
                 params.isForward = !params.isForward;
