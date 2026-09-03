@@ -15,7 +15,7 @@ import should from "should";
 import { AddressSpace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 import { type AddressSpaceDigest, digestAddressSpace } from "../test_helpers/address_space_digest.js";
-import { chainOf } from "../test_helpers/nodeset_chain.js";
+import { chainOf } from "./nodeset_chain.js";
 import { packageRoot } from "./paths.js";
 
 const fixtureFile = path.join(packageRoot, "test", "fixtures", "nodeset_catalog_digests.json");

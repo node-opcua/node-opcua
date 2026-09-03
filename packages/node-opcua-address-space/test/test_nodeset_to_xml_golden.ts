@@ -11,7 +11,7 @@ import { nodesetCatalog, nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { AddressSpace } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
-import { chainOf } from "../test_helpers/nodeset_chain.js";
+import { chainOf } from "./nodeset_chain.js";
 import { packageRoot } from "./paths.js";
 
 interface XmlDigest {
