@@ -1278,6 +1278,14 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                             const nodeId = makeNodeId((VariableIds as unknown as Record<string, number>)[uid]);
                             assert(!nodeId.isEmpty());
 
+                            // Part 5 OperationLimitsType: a limit property that is provided shall be
+                            // non-zero. 0 means "no limit" here, so the optional property is not
+                            // exposed at all (CTT 1.05 Base Info Server Capabilities 2 015).
+                            if (!(operationLimits as unknown as Record<string, number>)[key]) {
+                                const limitNode = addressSpace.findNode(nodeId);
+                                if (limitNode) addressSpace.deleteNode(limitNode);
+                                return;
+                            }
                             bindStandardScalar((VariableIds as unknown as Record<string, number>)[uid], DataType.UInt32, () => {
                                 return (operationLimits as unknown as Record<string, unknown>)[key];
                             });
