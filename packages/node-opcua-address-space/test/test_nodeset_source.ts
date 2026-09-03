@@ -179,6 +179,19 @@ describe("Loading a nodeset from a source", function (this: Mocha.Suite) {
         addressSpace.dispose();
     });
 
+    it("through generateAddressSpace, a list mixing file paths and sources", async () => {
+        // a string is a path here; a source stands for what is not a file
+        const gunzip = () => fs.createReadStream(nodesets.di).pipe(zlib.createGzip()).pipe(zlib.createGunzip());
+        const expected = await load(null, [nodesets.standard, nodesets.di]);
+        const addressSpace = AddressSpace.create();
+        try {
+            await generateAddressSpace(addressSpace, [nodesets.standard, { name: "di.gz", source: gunzip }]);
+            should(digest(addressSpace)).eql(expected);
+        } finally {
+            addressSpace.dispose();
+        }
+    });
+
     it("turns the event loop while a chunked nodeset loads, as often as the budget says", async () => {
         const bytes = fs.readFileSync(nodesets.standard);
         const ticks = async (yieldEveryBytes: number) => {

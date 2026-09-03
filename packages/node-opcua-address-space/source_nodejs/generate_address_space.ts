@@ -136,23 +136,29 @@ export function addressSpacePackageVersion(): string {
 }
 
 /**
- * load NodeSet2 files into an address space. A file with a valid precompiled image next to it
- * (`<name>.ndjson.gz`, the catalog ships one for every nodeset) is replayed from the image, with
- * nothing to configure. With `imageStore`, a file without one is hashed and its image replayed
- * when the store has it, written otherwise; `true` selects the per-user file store
- * ({@link FileNodesetImageStore}). `imageStore: false` disables the sibling images too and
- * streams the XML, for tests and for bisecting.
+ * load NodeSet2 documents into an address space: file paths, and {@link NodesetSource} values
+ * for a document that is not a file (a gzip stream, an HTTP response, a string of XML). A
+ * string in the list is always a path here; content and streams go through a source.
+ *
+ * A file with a valid precompiled image next to it (`<name>.ndjson.gz`, the catalog ships one
+ * for every nodeset) is replayed from the image, with nothing to configure. With `imageStore`,
+ * a file without one is hashed and its image replayed when the store has it, written
+ * otherwise; `true` selects the per-user file store ({@link FileNodesetImageStore}).
+ * `imageStore: false` disables the sibling images too and streams the XML, for tests and for
+ * bisecting. The documents load in dependency order whatever the order given; a model one of
+ * them requires may also be one the address space holds already, from an earlier call.
  */
 export async function generateAddressSpace(
     addressSpace: IAddressSpace,
-    xmlFiles: string | string[],
+    xmlFiles: string | Array<string | NodesetSource>,
     options?: NodeSetLoaderOptions
 ): Promise<void> {
-    const files = Array.isArray(xmlFiles) ? xmlFiles : [xmlFiles];
+    const documents = Array.isArray(xmlFiles) ? xmlFiles : [xmlFiles];
     const loaderOptions: NodeSetLoaderOptions = { ...(options || {}) };
     if (loaderOptions.imageStore === false) {
         // no sibling images, no store: the XML files, streamed
-        await generateAddressSpaceRaw(addressSpace, files.map(nodesetSourceFromFile), { ...loaderOptions, imageStore: undefined });
+        const sources = documents.map((document) => (typeof document === "string" ? nodesetSourceFromFile(document) : document));
+        await generateAddressSpaceRaw(addressSpace, sources, { ...loaderOptions, imageStore: undefined });
         return;
     }
     if (loaderOptions.imageStore === true) {
@@ -161,9 +167,13 @@ export async function generateAddressSpace(
     // the sibling store first: a catalog image is replayed with nothing to configure; what has
     // no valid image next to it goes through the XML, and through the store when there is one
     const sources: NodesetSource[] = [];
-    for (const file of files) {
-        const { source, path: taken, reason } = await siblingOrXml(file);
-        debugLog(`generateAddressSpace: ${path.basename(file)} from ${taken}${reason ? ` (${reason})` : ""}`);
+    for (const document of documents) {
+        if (typeof document !== "string") {
+            sources.push(document);
+            continue;
+        }
+        const { source, path: taken, reason } = await siblingOrXml(document);
+        debugLog(`generateAddressSpace: ${path.basename(document)} from ${taken}${reason ? ` (${reason})` : ""}`);
         sources.push(source);
     }
     await generateAddressSpaceRaw(addressSpace, sources, loaderOptions);

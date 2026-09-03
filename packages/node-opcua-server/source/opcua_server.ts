@@ -13,6 +13,8 @@ import {
     type ISessionContext,
     innerBrowse,
     innerBrowseNext,
+    type NodeSetLoaderOptions,
+    type NodesetSource,
     type PseudoVariant,
     type PseudoVariantBoolean,
     type PseudoVariantByteString,
@@ -892,6 +894,33 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
     nodeset_filename?: string[] | string;
 
     /**
+     * NodeSet2 documents that are not files: a gzip file decompressed on the way, an HTTP
+     * response, a string of XML. Each is a {@link NodesetSource}; they load in the same call as
+     * `nodeset_filename`, in dependency order, so a source may require a model given as a file
+     * and the other way round. The standard nodeset is still loaded by default when
+     * `nodeset_filename` is absent; pass `nodeset_filename: []` to provide it as a source.
+     *
+     * example:
+     *
+     * ```javascript
+     * const server = new OPCUAServer({
+     *     nodesetSources: [
+     *         { name: modelFile, source: () => fs.createReadStream(modelFile).pipe(zlib.createGunzip()) }
+     *     ],
+     *     nodesetLoaderOptions: { yieldEveryBytes: 1024 * 1024 }
+     * });
+     * ```
+     */
+    nodesetSources?: NodesetSource[];
+
+    /**
+     * how the nodesets load: `yieldEveryBytes` keeps the process responsive while a streamed
+     * model loads, `imageStore` replays precompiled images, `permissions` and
+     * `accessRestrictions` say what of the declared access policy is applied.
+     */
+    nodesetLoaderOptions?: NodeSetLoaderOptions;
+
+    /**
      * the server Info
      *
      * this object contains the value that will populate the
@@ -1598,7 +1627,11 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         this.performPreInitialization()
             .then(() => {
                 OPCUAServer.registry.register(this);
-                this.engine.initialize(this.options, () => {
+                this.engine.initialize(this.options, (err?: Error | null) => {
+                    if (err) {
+                        done(err);
+                        return;
+                    }
                     if (!this.engine.addressSpace) {
                         done(new Error("no addressSpace"));
                         return;
