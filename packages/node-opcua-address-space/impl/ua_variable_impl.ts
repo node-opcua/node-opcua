@@ -916,8 +916,11 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             return;
         }
 
+        // isWritable() and the role permission above already passed, so a false result
+        // here can only come from the UserAccessLevel attribute withholding CurrentWrite
+        // for this user (Part 3 5.6.3): that is an access decision, not an unsupported call.
         if (!this.isUserWritable(context)) {
-            callback?.(null, StatusCodes.BadWriteNotSupported);
+            callback?.(null, StatusCodes.BadUserAccessDenied);
             return;
         }
 
