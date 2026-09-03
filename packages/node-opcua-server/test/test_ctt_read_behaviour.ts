@@ -9,6 +9,8 @@ import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { OPCUAServer, ServerEngine } from "../dist/index.js";
 
+const port = 5796;
+
 const buildInfo = {
     manufacturerName: "<Manufacturer>",
     productName: "NODEOPCUA-SERVER",
@@ -141,7 +143,7 @@ describe("Read behaviour checked by the CTT", function () {
         });
         it("a limit set to 0 in the OPCUAServer constructor is not advertised as a node", async () => {
             const server = new OPCUAServer({
-                port: 0,
+                port,
                 nodeset_filename: nodesets.standard,
                 serverCapabilities: { operationLimits: { maxNodesPerRead: 0 } }
             });
