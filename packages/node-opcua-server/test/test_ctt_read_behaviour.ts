@@ -7,7 +7,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { ReadRequest } from "node-opcua-service-read";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
-import { ServerEngine } from "../dist/index.js";
+import { OPCUAServer, ServerEngine } from "../dist/index.js";
 
 const buildInfo = {
     manufacturerName: "<Manufacturer>",
@@ -18,7 +18,7 @@ const buildInfo = {
 
 async function makeEngine(operationLimits?: Record<string, number>): Promise<ServerEngine> {
     const engine = new ServerEngine({ applicationUri: "URI:NODEOPCUA-SERVER", buildInfo, serverCapabilities: { operationLimits } });
-    await new Promise<void>((resolve) => engine.initialize({ nodeset_filename: nodesets.standard }, resolve));
+    await new Promise<void>((resolve) => engine.initialize({ nodeset_filename: nodesets.standard }, () => resolve()));
     return engine;
 }
 
@@ -104,6 +104,63 @@ describe("Read behaviour checked by the CTT", function () {
     });
 
     describe("OperationLimits (CTT 1.05 Base Info Server Capabilities 2 015)", () => {
+        it("exposes a non-zero default for every limit the server enforces, and none for the others", async () => {
+            const engine = await makeEngine();
+            try {
+                const limit = (name: string) =>
+                    engine.addressSpace!.findNode(
+                        makeNodeId(
+                            (VariableIds as unknown as Record<string, number>)[`Server_ServerCapabilities_OperationLimits_${name}`]
+                        )
+                    ) as UAVariable | null;
+                for (const name of [
+                    "MaxNodesPerRead",
+                    "MaxNodesPerWrite",
+                    "MaxNodesPerBrowse",
+                    "MaxNodesPerRegisterNodes",
+                    "MaxNodesPerTranslateBrowsePathsToNodeIds",
+                    "MaxNodesPerMethodCall",
+                    "MaxMonitoredItemsPerCall",
+                    "MaxNodesPerHistoryReadData",
+                    "MaxNodesPerHistoryReadEvents"
+                ]) {
+                    const node = limit(name);
+                    should.exist(node, name);
+                    should(node!.readValue().value.value).be.greaterThan(0, name);
+                }
+                for (const name of [
+                    "MaxNodesPerHistoryUpdateData",
+                    "MaxNodesPerHistoryUpdateEvents",
+                    "MaxNodesPerNodeManagement"
+                ]) {
+                    should.not.exist(limit(name), name);
+                }
+            } finally {
+                await engine.shutdown();
+            }
+        });
+        it("a limit set to 0 in the OPCUAServer constructor is not advertised as a node", async () => {
+            const server = new OPCUAServer({
+                port: 0,
+                nodeset_filename: nodesets.standard,
+                serverCapabilities: { operationLimits: { maxNodesPerRead: 0 } }
+            });
+            await server.initialize();
+            try {
+                const addressSpace = server.engine.addressSpace!;
+                should.not.exist(
+                    addressSpace.findNode(makeNodeId(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead))
+                );
+                // the other limits keep their defaults
+                const perWrite = addressSpace.findNode(
+                    makeNodeId(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite)
+                ) as UAVariable;
+                should.exist(perWrite);
+                should(perWrite.readValue().value.value).be.greaterThan(0);
+            } finally {
+                await server.shutdown();
+            }
+        });
         it("does not expose a limit property whose value would be 0", async () => {
             const engine = await makeEngine({ maxNodesPerRead: 100, maxNodesPerTranslateBrowsePathsToNodeIds: 0 });
             try {
