@@ -873,45 +873,40 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
     maxConnectionsPerEndpoint?: number;
 
     /**
-     * the nodeset.xml file(s) to load
+     * the NodeSet2 documents to load: file paths, and {@link NodesetSource} values for a
+     * document that is not a file. A string is a path, as it was in `nodeset_filename`;
+     * anything else is a source: a gzip file inflated on the way, an HTTP response, a string of
+     * XML. They load in one call, in dependency order whatever the order given, so a source may
+     * require a model given as a path and the other way round.
      *
-     * node-opcua comes with pre-installed node-set files that can be used
+     * When neither `nodesets` nor `nodeset_filename` is given, the standard nodeset is loaded.
      *
      * example:
      *
      * ```javascript
-     * import { nodesets } from "node-opcua-nodesets";
+     * import { nodesets, nodesetSourceFromGzipFile, nodesetSourceFromUrl, OPCUAServer } from "node-opcua";
      * const server = new OPCUAServer({
-     *     nodeset_filename: [
+     *     nodesets: [
      *         nodesets.standard,
      *         nodesets.di,
-     *         nodesets.adi,
-     *         nodesets.machinery,
-     *     ],
-     * });
-     * ```
-     */
-    nodeset_filename?: string[] | string;
-
-    /**
-     * NodeSet2 documents that are not files: a gzip file decompressed on the way, an HTTP
-     * response, a string of XML. Each is a {@link NodesetSource}; they load in the same call as
-     * `nodeset_filename`, in dependency order, so a source may require a model given as a file
-     * and the other way round. The standard nodeset is still loaded by default when
-     * `nodeset_filename` is absent; pass `nodeset_filename: []` to provide it as a source.
-     *
-     * example:
-     *
-     * ```javascript
-     * const server = new OPCUAServer({
-     *     nodesetSources: [
-     *         { name: modelFile, source: () => fs.createReadStream(modelFile).pipe(zlib.createGunzip()) }
+     *         nodesetSourceFromGzipFile("plant_model.xml.gz"),
+     *         nodesetSourceFromUrl("https://models.example.com/plant.xml")
      *     ],
      *     nodesetLoaderOptions: { yieldEveryBytes: 1024 * 1024 }
      * });
      * ```
      */
-    nodesetSources?: NodesetSource[];
+    nodesets?: string | Array<string | NodesetSource>;
+
+    /**
+     * the nodeset.xml file(s) to load
+     *
+     * @deprecated use {@link OPCUAServerOptions.nodesets}: it takes the same file paths, plus
+     * {@link NodesetSource} values for a gzip stream, an HTTP response or a string of XML.
+     * Renaming the key is the whole migration. Still honoured; entries given here load
+     * before those of `nodesets`.
+     */
+    nodeset_filename?: string[] | string;
 
     /**
      * how the nodesets load: `yieldEveryBytes` keeps the process responsive while a streamed

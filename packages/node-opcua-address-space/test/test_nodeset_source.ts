@@ -5,14 +5,29 @@
  */
 import { createHash } from "node:crypto";
 import fs from "node:fs";
+import http from "node:http";
+import os from "node:os";
+import path from "node:path";
 import { Readable } from "node:stream";
 import zlib from "node:zlib";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace, generateAddressSpaceRaw, type NodesetSource, type UAVariable } from "../dist/api/index.js";
+import {
+    AddressSpace,
+    generateAddressSpaceRaw,
+    type NodesetSource,
+    nodesetSourceFromStream,
+    nodesetSourceFromUrl,
+    type UAVariable
+} from "../dist/api/index.js";
 import type { AddressSpacePrivate } from "../dist/impl/address_space_private.js";
-import { generateAddressSpace, nodesetSourceFromFile, readNodeSet2XmlFile } from "../distNodeJS/index.js";
+import {
+    generateAddressSpace,
+    nodesetSourceFromFile,
+    nodesetSourceFromGzipFile,
+    readNodeSet2XmlFile
+} from "../distNodeJS/index.js";
 import { get_mini_nodeset_filename } from "../test_helpers/get_mini_address_space.js";
 
 interface Digest {
@@ -190,6 +205,75 @@ describe("Loading a nodeset from a source", function (this: Mocha.Suite) {
         } finally {
             addressSpace.dispose();
         }
+    });
+
+    describe("the source helpers", () => {
+        let tmp: string;
+        let gzipFile: string;
+        let httpServer: http.Server;
+        let baseUrl: string;
+        before(async () => {
+            tmp = fs.mkdtempSync(path.join(os.tmpdir(), "nodeset-helpers-"));
+            gzipFile = path.join(tmp, "Opc.Ua.NodeSet2.xml.gz");
+            fs.writeFileSync(gzipFile, zlib.gzipSync(fs.readFileSync(nodesets.standard)));
+            // /plain.xml: the XML; /packed.xml.gz: gzip served as is; /encoded.xml: gzip with Content-Encoding
+            httpServer = http.createServer((req, res) => {
+                if (req.url === "/plain.xml") {
+                    fs.createReadStream(nodesets.standard).pipe(res);
+                } else if (req.url === "/packed.xml.gz") {
+                    fs.createReadStream(gzipFile).pipe(res);
+                } else if (req.url === "/encoded.xml") {
+                    res.setHeader("content-encoding", "gzip");
+                    fs.createReadStream(gzipFile).pipe(res);
+                } else {
+                    res.statusCode = 404;
+                    res.end("no such model");
+                }
+            });
+            await new Promise<void>((resolve) => httpServer.listen(0, "127.0.0.1", resolve));
+            baseUrl = `http://127.0.0.1:${(httpServer.address() as { port: number }).port}`;
+        });
+        after(async () => {
+            await new Promise<void>((resolve) => httpServer.close(() => resolve()));
+            fs.rmSync(tmp, { recursive: true, force: true });
+        });
+
+        it("nodesetSourceFromGzipFile inflates a .xml.gz file", async () => {
+            should(await load([nodesetSourceFromGzipFile(gzipFile)])).eql(reference);
+        });
+
+        it("nodesetSourceFromGzipFile names a file that does not exist when the loader opens it", async () => {
+            const source = nodesetSourceFromGzipFile(path.join(tmp, "missing.xml.gz"));
+            await load([source]).should.be.rejectedWith(/missing\.xml\.gz/);
+        });
+
+        it("nodesetSourceFromUrl fetches the XML", async () => {
+            should(await load([nodesetSourceFromUrl(`${baseUrl}/plain.xml`)])).eql(reference);
+        });
+
+        it("nodesetSourceFromUrl inflates a .gz url, and a body fetch inflates on its own", async () => {
+            should(await load([nodesetSourceFromUrl(`${baseUrl}/packed.xml.gz`)])).eql(reference);
+            should(await load([nodesetSourceFromUrl(`${baseUrl}/encoded.xml`)])).eql(reference);
+            should(await load([nodesetSourceFromUrl(`${baseUrl}/plain.xml`, { gzip: false })])).eql(reference);
+        });
+
+        it("nodesetSourceFromUrl rejects with the status and the url, when the loader gets to it", async () => {
+            const before = nodesetSourceFromUrl(`${baseUrl}/nowhere.xml`, { init: { headers: { "x-test": "1" } } });
+            await load([before]).should.be.rejectedWith(/cannot fetch http:\/\/127\.0\.0\.1:\d+\/nowhere\.xml: 404/);
+        });
+
+        it("nodesetSourceFromStream names a factory", async () => {
+            const bytes = fs.readFileSync(nodesets.standard);
+            let opened = 0;
+            const source = nodesetSourceFromStream("pieces", () => {
+                opened += 1;
+                return bytePieces(bytes, 65536);
+            });
+            should(opened).eql(0);
+            should(await load([source])).eql(reference);
+            should(await load([source])).eql(reference, "the same value can be loaded again");
+            should(opened).eql(2);
+        });
     });
 
     it("turns the event loop while a chunked nodeset loads, as often as the budget says", async () => {

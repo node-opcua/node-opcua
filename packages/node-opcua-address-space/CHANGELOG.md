@@ -15,10 +15,18 @@ versions, and a model that neither the address space nor the call provides is st
 
 - The Node.js `generateAddressSpace` accepts `NodesetSource` values in its list next to file paths: a string is a
   path, anything else is a source (a gzip stream, an HTTP response, a string of XML through `{ name, source }`).
-- `OPCUAServer` takes `nodesetSources?: NodesetSource[]`, loaded in the same call as `nodeset_filename` so a
-  dependency may cross from one list to the other, and `nodesetLoaderOptions?: NodeSetLoaderOptions`
-  (`yieldEveryBytes`, `imageStore`, `permissions`, `accessRestrictions`). The standard nodeset is still the
-  default when `nodeset_filename` is absent; `nodeset_filename: []` leaves it to the sources.
+- `OPCUAServer` takes `nodesets?: string | Array<string | NodesetSource>`, the same mix, loaded in one call in
+  dependency order, and `nodesetLoaderOptions?: NodeSetLoaderOptions` (`yieldEveryBytes`, `imageStore`,
+  `permissions`, `accessRestrictions`). The standard nodeset is still loaded when nothing is given.
+- Helpers for the common sources, each lazy and reusable: `nodesetSourceFromGzipFile(path)` in the Node.js build;
+  `nodesetSourceFromUrl(url, { init?, gzip? })`, which rejects the load with the status on a response that is not
+  ok and inflates a `.gz` url, and `nodesetSourceFromStream(name, open)` in the core build, browser included.
+
+### Deprecated
+
+- `OPCUAServerOptions.nodeset_filename`, in favour of `nodesets`, which accepts the same paths and, in the same
+  list, `NodesetSource` values. Renaming the key is the whole migration; the old key keeps working, and when both
+  are given they load together, `nodeset_filename` entries first.
 
 ### Changed
 

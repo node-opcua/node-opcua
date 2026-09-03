@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
-import { gunzip } from "node:zlib";
+import zlib, { gunzip } from "node:zlib";
 import type { IAddressSpace } from "node-opcua-address-space-base";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import {
@@ -60,6 +60,20 @@ export function nodesetSourceFromFile(xmlFile: string): NamedNodesetSource {
                 debugLog(" parsing ", xmlFile);
             }
             return fs.createReadStream(xmlFile, { highWaterMark: FILE_CHUNK_SIZE });
+        }
+    };
+}
+
+/**
+ * a gzip-compressed NodeSet2 file (`<name>.xml.gz`), inflated on the way, opened when the loader
+ * gets to it
+ */
+export function nodesetSourceFromGzipFile(gzipFile: string): NamedNodesetSource {
+    return {
+        name: gzipFile,
+        source: () => {
+            checkNodeSet2XmlFileExists(gzipFile);
+            return fs.createReadStream(gzipFile, { highWaterMark: FILE_CHUNK_SIZE }).pipe(zlib.createGunzip());
         }
     };
 }
