@@ -30,7 +30,9 @@ export const imageFileOf = (xmlFile) => xmlFile.replace(/\.xml$/i, ".ndjson.gz")
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
 async function main() {
-    const { readNodesetImageInfo } = await import(pathToFileURL(path.join(addressSpace, "dist", "api", "index.js")).href);
+    const { NODESET_RECORD_SCHEMA, readNodesetImageInfo } = await import(
+        pathToFileURL(path.join(addressSpace, "dist", "api", "index.js")).href
+    );
     const { nodesetFileToImage } = await import(pathToFileURL(path.join(addressSpace, "distNodeJS", "index.js")).href);
 
     const xmlFiles = fs
@@ -48,7 +50,8 @@ async function main() {
         if (fs.existsSync(imageFile)) {
             try {
                 const info = await readNodesetImageInfo(new Uint8Array(fs.readFileSync(imageFile)));
-                current = info.trailer?.sourceDigest === digest;
+                // the schema the loader reads is part of being current: a bump rebuilds every image
+                current = info.trailer?.sourceDigest === digest && info.header.schema === NODESET_RECORD_SCHEMA;
             } catch {
                 current = false;
             }

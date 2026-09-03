@@ -184,7 +184,7 @@ describe("Nodeset image", function (this: Mocha.Suite) {
             should(isNodesetImage(new TextEncoder().encode("<?xml"))).eql(false);
             should(image.length).be.lessThan(400 * 1024);
             const info = await readNodesetImageInfo(image);
-            should(info.header.schema).eql(1);
+            should(info.header.schema).eql(2);
             should(info.header.addressSpaceVersion).eql("test");
             should(info.header.models[0].modelUri).eql("http://opcfoundation.org/UA/");
             should(info.trailer?.nodes).eql(records.length - 1);
@@ -218,7 +218,7 @@ describe("Nodeset image", function (this: Mocha.Suite) {
             await collect(image, "some-other-digest").should.be.rejectedWith(/digest/);
             const writer = new NodesetImageWriter();
             writer.apply(records[0]);
-            const text = writer.text("x").replace('"schema":1', '"schema":999');
+            const text = writer.text("x").replace('"schema":2', '"schema":999');
             const gz = new Uint8Array(
                 await new Response(new Blob([text]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer()
             );

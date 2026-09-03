@@ -4,7 +4,7 @@
 
 import { types } from "node:util";
 import chalk from "chalk";
-import type { IAddressSpace, INamespace } from "node-opcua-address-space-base";
+import type { BaseNode, IAddressSpace, INamespace } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { DataType, VariantArrayType } from "node-opcua-variant";
@@ -16,6 +16,7 @@ import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.
 import { ensureDatatypeExtracted } from "./ensure_datatype_extracted.js";
 import { promoteObjectsAndVariables } from "./namespace_post_step.js";
 import { type NodesetRecord, type NodesetRecordProducer, type NodesetRecordWithBytes, recordBytes } from "./nodeset_record.js";
+import type { PendingBackReferences } from "./nodeset_record_applier.js";
 import { type LoaderTaskQueues, makeLoaderTaskQueues, NodesetRecordApplier, type Task } from "./nodeset_record_applier.js";
 import { makeXmlNodesetRecordReader } from "./nodeset_xml_producer.js";
 
@@ -23,10 +24,12 @@ const doDebug = checkDebugFlag("load_nodeset2");
 const debugLog = make_debugLog("load_nodeset2");
 const errorLog = make_errorLog("load_nodeset2");
 
-function __make_back_references(namespace: INamespace) {
+function __make_back_references(namespace: INamespace, settled: Set<BaseNode>) {
     const namespaceP = namespace as NamespacePrivate;
     for (const node of namespaceP.nodeIterator()) {
-        (node as BaseNodeImpl).propagate_back_references_declared_from_both_ends();
+        if (!settled.has(node)) {
+            (node as BaseNodeImpl).propagate_back_references_declared_from_both_ends();
+        }
     }
     // Children are reached through shared accessors resolved on the child index (see
     // impl/child_accessors.ts), so there is no per-node property installation to run here any
@@ -38,12 +41,24 @@ function __make_back_references(namespace: INamespace) {
     }
 }
 
-function make_back_references(addressSpace: IAddressSpace): void {
+/**
+ * the back references of the load: a NodeSet2 file declares most references from both ends, so
+ * only the references a document marked as one-sided are propagated, one by one (see
+ * NodesetReferenceRecord.inverseDeclared); a node whose document said nothing, or that the
+ * applier created through another helper, is propagated whole by the sweep, each of its
+ * references checked against its target
+ */
+function make_back_references(addressSpace: IAddressSpace, pending: PendingBackReferences): void {
     const addressSpacePrivate = addressSpace as AddressSpacePrivate;
     addressSpacePrivate.suspendBackReference = false;
     // the getters of every browse name the files declared, in one batch (see child_accessors.ts)
     flushSharedChildAccessors();
-    addressSpace.getNamespaceArray().map(__make_back_references);
+    for (const [node, reference] of pending.references) {
+        (node as BaseNodeImpl).propagate_back_reference_declared_from_both_ends(reference);
+    }
+    for (const namespace of addressSpace.getNamespaceArray()) {
+        __make_back_references(namespace, pending.settled);
+    }
 }
 
 const DEFAULT_YIELD_EVERY_BYTES = 8 * 1024 * 1024;
@@ -151,7 +166,7 @@ export class NodeSetLoader {
     async terminate(): Promise<void> {
         const addressSpace1 = this.addressSpace;
         const queues = this.queues;
-        make_back_references(addressSpace1);
+        make_back_references(addressSpace1, this.applier.takePendingBackReferences());
 
         // setting up Server_NamespaceArray
 

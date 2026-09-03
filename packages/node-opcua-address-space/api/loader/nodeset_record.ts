@@ -20,7 +20,7 @@ import type { VariantOptions } from "node-opcua-variant";
 import type { EnumFieldOptions, StructureFieldOptions } from "node-opcua-xml2json";
 
 /** bumped whenever the record shape changes; the precompiled image carries it */
-export const NODESET_RECORD_SCHEMA = 1;
+export const NODESET_RECORD_SCHEMA = 2;
 
 export interface NodesetModelRecord {
     modelUri: string;
@@ -44,6 +44,14 @@ export interface NodesetReferenceRecord {
     isForward: boolean;
     referenceType: NodeId;
     nodeId: NodeId;
+    /**
+     * whether the target's own record, in the same document, declares the inverse of this
+     * reference. A NodeSet2 file declares most references from both ends, and a back reference is
+     * only needed where it does not; a producer that has seen the whole document (the image) sets
+     * this so the loader propagates the few that need it instead of checking every one. Left
+     * undefined by a streaming producer: the loader then checks at the end of the load.
+     */
+    inverseDeclared?: boolean;
 }
 
 export interface NodesetRolePermissionRecord {

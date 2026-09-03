@@ -14,6 +14,7 @@ import {
     AddressSpace,
     generateAddressSpaceRaw,
     MemoryNodesetImageStore,
+    NODESET_RECORD_SCHEMA,
     type NodesetImageStore,
     type NodesetSource,
     nodesetImageKey,
@@ -81,7 +82,7 @@ describe("Loading through an image store", function (this: Mocha.Suite) {
     });
 
     it("keys the image by the record schema and the digest of the bytes", () => {
-        should(nodesetImageKey(miniDigest)).eql(`1-${miniDigest}`);
+        should(nodesetImageKey(miniDigest)).eql(`${NODESET_RECORD_SCHEMA}-${miniDigest}`);
     });
 
     it("discards a corrupt image and rebuilds it", async () => {

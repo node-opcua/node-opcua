@@ -179,6 +179,20 @@ and a setter (five closures) on every variable; an unbound variable reads and wr
 from an options object. Standard nodeset from its image, ten loads on an idle machine: the record application
 phase 72 ms to 37 ms, the whole load 144 ms to 87 ms; the XML path gains the same constructor time.
 
+#### The end of a load propagates only the back references the document needs
+
+A NodeSet2 file declares most references from both ends, so a back reference is only needed where
+it does not. The image now records, per reference, whether the target's record declares the inverse
+(a fourth element `0` on the references that need a back reference; record schema 2, the catalog
+images are rebuilt and an image of another schema is skipped for its XML). Replaying an image, the
+loader propagates those few references one by one and skips the sweep over every reference of every
+node; the XML path, whose producer streams and cannot know, keeps the sweep. The sweep used to
+resolve the target node and the type of every reference as a side effect; the lookups
+(`findReferencesEx`, `findReferences`, `allReferences`) now resolve a target on first use, and the
+exporters resolve the types they read. Standard nodeset from its image, CPU profile over 25 loads:
+the back-reference phase 6.8 ms to 3.4 ms per load. The nodes a load settled are remembered in a
+set that lives for the load only, not on the nodes.
+
 ### Security
 
 #### Per-node `RolePermissions` and `AccessRestrictions` are no longer dropped when loading a NodeSet2 file

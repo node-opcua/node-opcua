@@ -7,8 +7,9 @@ import type { ExtensionObject } from "node-opcua-extension-object";
 import type { StructureField } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import type { TranslationTable } from "../../api/xml_writer.js";
-import { type BaseNodeImpl, getReferenceType } from "../base_node_impl.js";
+import type { BaseNodeImpl } from "../base_node_impl.js";
 import type { NamespacePrivate } from "../namespace_private.js";
+import { ReferenceImpl } from "../reference_impl.js";
 import type { UAVariableImpl } from "../ua_variable_impl.js";
 
 const warningLog = make_warningLog("construct_namespace_dependency");
@@ -219,7 +220,8 @@ export function _getCompleteRequiredModelsFromValuesAndReferences(
         const references = (<BaseNodeImpl>node).allReferences();
         for (const reference of references) {
             // check referenceId
-            const namespaceIndexOfReferenceType = getReferenceType(reference)?.nodeId.namespace;
+            // resolved here: a reference nobody has looked at since the load carries only the NodeId of its type
+            const namespaceIndexOfReferenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference)?.nodeId.namespace;
             if (namespaceIndexOfReferenceType !== 0 && namespaceIndexOfReferenceType !== namespace.index) {
                 const refPriority = priorityList[namespaceIndexOfReferenceType];
                 if (refPriority <= thisPriority) {
@@ -232,7 +234,7 @@ export function _getCompleteRequiredModelsFromValuesAndReferences(
                 if (refPriority <= thisPriority) {
                     consider(namespaceIndexOfTargetNode);
                 } else {
-                    const referenceType = getReferenceType(reference);
+                    const referenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference);
                     if (referenceType) {
                         // For forward NonHierarchicalReferences (e.g. HasInterface),
                         // always include the target namespace as a dependency

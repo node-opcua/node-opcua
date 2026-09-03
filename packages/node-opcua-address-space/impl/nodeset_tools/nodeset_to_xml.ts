@@ -33,7 +33,7 @@ import { SessionContext } from "../../api/session_context.js";
 import type { XmlWriter } from "../../api/xml_writer.js";
 import { BaseNodeImpl, getReferenceType } from "../base_node_impl.js";
 import { NamespaceImpl } from "../namespace_impl.js";
-import type { ReferenceImpl } from "../reference_impl.js";
+import { ReferenceImpl } from "../reference_impl.js";
 import { UAMethodImpl } from "../ua_method_impl.js";
 import { UAObjectImpl } from "../ua_object_impl.js";
 import { UAObjectTypeImpl } from "../ua_object_type_impl.js";
@@ -131,7 +131,8 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
     const hasEventSourceReferenceType = _mustFindReferenceType(addressSpace, "HasEventSource");
 
     function referenceToKeep(reference: UAReference): boolean {
-        const referenceType = (reference as ReferenceImpl)._referenceType;
+        // resolved here: a reference nobody has looked at since the load carries only the NodeId of its type
+        const referenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference);
         if (!referenceType) {
             return false;
         }

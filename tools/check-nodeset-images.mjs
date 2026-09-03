@@ -15,6 +15,15 @@ import zlib from "node:zlib";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const catalogDir = path.join(root, "packages", "node-opcua-nodesets", "nodesets");
 
+// the schema the loader reads, taken from the source so that no package needs building here
+const recordSource = fs.readFileSync(path.join(root, "packages", "node-opcua-address-space", "api", "loader", "nodeset_record.ts"), "utf8");
+const schemaMatch = recordSource.match(/export const NODESET_RECORD_SCHEMA = (\d+);/);
+if (!schemaMatch) {
+    console.error("check-nodeset-images: cannot read NODESET_RECORD_SCHEMA from nodeset_record.ts");
+    process.exit(1);
+}
+const expectedSchema = Number(schemaMatch[1]);
+
 const xmlFiles = fs
     .readdirSync(catalogDir)
     .filter((name) => /\.xml$/i.test(name))
@@ -36,6 +45,7 @@ for (const name of xmlFiles) {
         const header = JSON.parse(lines[0]);
         const trailer = JSON.parse(lines[lines.length - 1]);
         if (header.kind !== "header") verdict = "no header line";
+        else if (header.schema !== expectedSchema) verdict = `stale: schema ${header.schema}, the loader reads ${expectedSchema}`;
         else if (trailer.kind !== "trailer") verdict = "no trailer line";
         else if (trailer.nodes !== lines.length - 2) verdict = `trailer announces ${trailer.nodes} nodes, ${lines.length - 2} lines`;
         else if (trailer.sourceDigest !== createHash("sha256").update(fs.readFileSync(xmlFile)).digest("hex")) verdict = "stale: digest differs from the XML";

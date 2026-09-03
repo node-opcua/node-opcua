@@ -89,6 +89,16 @@ describe("Sibling images", function (this: Mocha.Suite) {
         should(await load(xmlFile)).eql(reference);
     });
 
+    it("falls back to the XML when the image is of another schema, silently", async () => {
+        const good = await nodesetFileToImage(xmlFile);
+        const lines = zlib.gunzipSync(good).toString("utf8").split("\n");
+        const header = JSON.parse(lines[0]);
+        header.schema = header.schema + 1;
+        lines[0] = JSON.stringify(header);
+        fs.writeFileSync(siblingImageFileOf(xmlFile), zlib.gzipSync(lines.join("\n")));
+        should(await load(xmlFile)).eql(reference);
+    });
+
     it("falls back to the XML when the image is corrupt", async () => {
         fs.writeFileSync(siblingImageFileOf(xmlFile), Buffer.from([0x1f, 0x8b, 8, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3]));
         should(await load(xmlFile)).eql(reference);
