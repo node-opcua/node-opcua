@@ -4,6 +4,14 @@
 
 ### Changed
 
+#### Loader and exporter cleanup
+
+One helper each for the nodeset dependency chain of the tests, the SHA-256 hex digest, the NodeId order of the
+exporters, the gzip magic test and the "massively used reference type" predicate; one `nodesetImageProblem`
+verdict shared by the image store path and the sibling path (the catalog check tool words its verdicts the same
+way); the dead alias and encoding writers of the XML exporter removed; the image writer counts its lines and
+the source reader keeps one prefix buffer. The XML export is byte-identical (golden test).
+
 #### Child properties (`server.serverStatus.currentTime`) are inherited accessors, no longer installed on every node
 
 Loading a nodeset used to end with a sweep that turned every hierarchical child into an own accessor of its
@@ -250,6 +258,14 @@ the new `IServerBase.unresolvedPermissionPolicy`, which defaults to `"allow"` â€
 can be set to `"deny"` by products that drive access entirely from declared policy.
 
 ### Fixed
+
+#### Two type lookups corrected
+
+- `addReference({ referenceType: "GeneratesEvent" })` kept the direction given only when the type's inverse name
+  differed from its browse name; a reference type declaring its own name as inverse name (as some nodesets do)
+  made the reference an inverse one. The browse name is looked up before the inverse name.
+- The `isSubtypeOf` memo of a type now starts afresh when a `HasSubtype` reference moves anywhere: re-parenting
+  a type used to leave its subtypes answering for the old parent.
 
 #### The caches behind the load-time speedups are bounded, invalidated and shared correctly
 
