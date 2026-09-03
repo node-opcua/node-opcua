@@ -124,6 +124,24 @@ describe("Loading a nodeset from a source", function (this: Mocha.Suite) {
         should(await load([textPieces(`﻿${text}`, 7)])).eql(expected);
     });
 
+    it("keeps two loads that run at the same time apart", async () => {
+        // two servers in one process, each fed in chunks: the parsers must not share a reader state
+        const text = fs.readFileSync(nodesets.standard, "utf8");
+        const two = AddressSpace.create();
+        const one = AddressSpace.create();
+        try {
+            await Promise.all([
+                generateAddressSpaceRaw(one, [{ name: "one", source: () => textPieces(text, 1024) }], {}),
+                generateAddressSpaceRaw(two, [{ name: "two", source: () => textPieces(text, 1061) }], {})
+            ]);
+            should(digest(one)).eql(reference);
+            should(digest(two)).eql(reference);
+        } finally {
+            one.dispose();
+            two.dispose();
+        }
+    });
+
     it("orders the documents by their dependencies whatever the order given", async () => {
         const expected = await load(null, [nodesets.standard, nodesets.di]);
         should(await load([nodesetSourceFromFile(nodesets.di), nodesetSourceFromFile(nodesets.standard)])).eql(expected);
