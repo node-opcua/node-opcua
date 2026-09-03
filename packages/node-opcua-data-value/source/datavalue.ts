@@ -466,6 +466,33 @@ export function apply_timestamps(
  * @param now an optional current clock to be used to set the serverTimestamp
  * @returns
  */
+export type DataValueOptionsWithoutTimestamps = Omit<
+    DataValueOptions,
+    "sourceTimestamp" | "sourcePicoseconds" | "serverTimestamp" | "serverPicoseconds"
+>;
+
+/**
+ * A DataValue built at read time and stamped with the clock of that moment, both
+ * timestamps included. The natural shape for an operation result the server makes
+ * up on the spot, a Bad one included: a DataValue may carry timestamps whatever its
+ * status, and the CTT expects the requested ones on every result.
+ *
+ * @param options everything but the timestamps
+ * @param now the clock to stamp with, the current one by default
+ */
+export function makeNowDataValue(
+    options: DataValueOptionsWithoutTimestamps = {},
+    now: PreciseClock = getCurrentClock()
+): DataValue {
+    return new DataValue({
+        ...options,
+        sourceTimestamp: now.timestamp,
+        sourcePicoseconds: now.picoseconds,
+        serverTimestamp: now.timestamp,
+        serverPicoseconds: now.picoseconds
+    });
+}
+
 export function apply_timestamps_no_copy(
     dataValue: DataValue,
     timestampsToReturn: TimestampsToReturn,
@@ -489,6 +516,9 @@ export function apply_timestamps_no_copy(
             }
             break;
         case TimestampsToReturn.Source:
+            // Part 4 7.40: only the requested timestamps are returned (CTT Attribute Read 007)
+            dataValue.serverTimestamp = null;
+            dataValue.serverPicoseconds = 0;
             break;
         default:
             assert(timestampsToReturn === TimestampsToReturn.Both);
