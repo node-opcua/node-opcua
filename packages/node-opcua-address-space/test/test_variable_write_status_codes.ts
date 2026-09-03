@@ -1,4 +1,5 @@
 import { AttributeIds } from "node-opcua-data-model";
+import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
@@ -20,6 +21,24 @@ describe("testing the StatusCode returned when a Variable write is rejected", ()
     });
     after(() => {
         addressSpace.dispose();
+    });
+
+    it("should reject a Value write with BadUserAccessDenied when UserAccessLevel withholds CurrentWrite", async () => {
+        const namespace = addressSpace.getOwnNamespace();
+        const variable = namespace.addVariable({
+            browseName: "RestrictedToRead",
+            dataType: DataType.Double,
+            organizedBy: addressSpace.rootFolder.objects,
+            accessLevel: "CurrentRead | CurrentWrite",
+            userAccessLevel: "CurrentRead",
+            value: { dataType: DataType.Double, value: 0 }
+        }) as UAVariable;
+
+        const dataValue = new DataValue({ value: { dataType: DataType.Double, value: 42 } });
+        const statusCode = await variable.writeValue(context, dataValue);
+        // AccessLevel allows the write in general; it is this user's UserAccessLevel that
+        // forbids it here, which is an access decision, not "writing is unsupported".
+        statusCode.should.eql(StatusCodes.BadUserAccessDenied);
     });
 
     it("should reject a Historizing write with BadNotWritable when the node has no HA Configuration", async () => {
