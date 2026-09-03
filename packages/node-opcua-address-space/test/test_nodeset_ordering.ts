@@ -110,7 +110,7 @@ describe("Ordering NodeSet2 files", () => {
 
             const diNamespace = addressSpace.getNamespace(DI);
             should.exist(diNamespace);
-            diNamespace.findNode("i=5001")!.browseName.name!.should.eql("DeviceSet");
+            should(diNamespace.findNode("i=5001")?.browseName.name).eql("DeviceSet");
             const deviceSet = addressSpace.rootFolder.objects.getFolderElementByName("DeviceSet", diNamespace.index);
             should.exist(deviceSet, "DeviceSet is organized by Objects, across the two calls");
             should(diNamespace.getRequiredModels()!.map((m) => m.modelUri)).eql([UA]);
