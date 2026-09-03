@@ -167,6 +167,18 @@ the task did. Standard nodeset, best of 7 alternating: from its image 82 ms agai
 29%); the Node.js `generateAddressSpace` default path 98 ms against 144 ms (32%, was 13%); a six-file chain 42% and
 33%.
 
+#### Nodes are cheaper to build
+
+The private record of a node is a symbol-keyed property instead of an entry in a module-wide `WeakMap`, so every
+access to a node's references, cache or names is a property read rather than a hash lookup. A node's display
+name and description are kept as given and turned into `LocalizedText` on first read; most of the 5 000 nodes of
+the standard nodeset are never asked. The accessor name of a browse name is computed once per distinct name. The
+loader no longer passes an empty value to the variables it creates, which made the constructor install a getter
+and a setter (five closures) on every variable; an unbound variable reads and writes through the defaults, and
+`clone()` still binds its copy. The initial `DataValue` of a variable is built from a null `Variant` rather than
+from an options object. Standard nodeset from its image, ten loads on an idle machine: the record application
+phase 72 ms to 37 ms, the whole load 144 ms to 87 ms; the XML path gains the same constructor time.
+
 ### Security
 
 #### Per-node `RolePermissions` and `AccessRestrictions` are no longer dropped when loading a NodeSet2 file

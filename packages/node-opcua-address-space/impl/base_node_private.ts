@@ -28,6 +28,7 @@ import {
     coerceLocalizedText,
     coerceQualifiedName,
     type LocalizedText,
+    type LocalizedTextLike,
     NodeClass,
     ResultMask
 } from "node-opcua-data-model";
@@ -46,7 +47,13 @@ const doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = errorLog;
 const warningLog = make_warningLog("address-space:BaseNode");
 
-const g_weakMap = new WeakMap();
+/**
+ * the private record hangs on the node itself under a symbol: as hidden from consumers as the
+ * WeakMap it replaces, but a property read rather than a hash lookup, on every access to every
+ * node field, in construction and in every browse and read after
+ */
+const PRIVATE = Symbol("BaseNodePrivate");
+type WithPrivate = { [PRIVATE]?: BaseNodeCache };
 
 interface BaseNodeCacheInner {
     typeDefinition?: NodeId;
@@ -84,8 +91,12 @@ interface BaseNodeCache {
     _browseFilter?: (this: BaseNode, context?: ISessionContext) => boolean;
     /** created on first use: a node that is never looked at pays nothing here */
     _cache?: BaseNodeCacheInner;
+    /** built from _descriptionRaw on first read */
     _description?: LocalizedText;
-    _displayName: LocalizedText[];
+    _descriptionRaw?: LocalizedTextLike | null;
+    /** built from _displayNameRaw on first read */
+    _displayName?: LocalizedText[];
+    _displayNameRaw?: LocalizedTextLike | LocalizedTextLike[];
     _parent?: BaseNode | null;
     /**
      * the references other nodes hold to this one; `EMPTY_REFERENCE_INDEX` until the first one
@@ -113,10 +124,12 @@ export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {
         _browseFilter: undefined,
         _cache: undefined,
         _description: undefined,
-        _displayName: [],
+        _descriptionRaw: undefined,
+        _displayName: undefined,
+        _displayNameRaw: undefined,
         _parent: undefined
     };
-    g_weakMap.set(self, _private);
+    (self as unknown as WithPrivate)[PRIVATE] = _private;
     return _private;
 }
 
@@ -131,7 +144,9 @@ export function BaseNode_removePrivate(self: BaseNode): void {
     _private._referenceIdx = new Map();
     _private._childByNameMap = undefined;
     _private._description = undefined;
-    _private._displayName = [];
+    _private._descriptionRaw = undefined;
+    _private._displayName = undefined;
+    _private._displayNameRaw = undefined;
 }
 
 /**
@@ -149,7 +164,7 @@ export function BaseNode_resetChildIndex(node: BaseNode): void {
 }
 
 export function BaseNode_getPrivate(self: BaseNode): BaseNodeCache {
-    return g_weakMap.get(self);
+    return (self as unknown as WithPrivate)[PRIVATE] as BaseNodeCache;
 }
 
 export function BaseNode_getCache(node: BaseNode): BaseNodeCacheInner {

@@ -233,6 +233,11 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
 
     public get displayName(): LocalizedText[] {
         const _private = BaseNode_getPrivate(this);
+        if (!_private._displayName) {
+            const raw = _private._displayNameRaw ?? "";
+            const displayNames: LocalizedTextLike[] = Array.isArray(raw) ? raw : [raw];
+            _private._displayName = displayNames.map(coerceLocalizedText) as LocalizedText[];
+        }
         return _private._displayName;
     }
 
@@ -252,7 +257,10 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
 
     public get description(): LocalizedText {
         const _private = BaseNode_getPrivate(this);
-        return _private._description || new LocalizedText({ text: "" });
+        if (!_private._description) {
+            _private._description = coerceLocalizedText(_private._descriptionRaw ?? null) || new LocalizedText({ text: "" });
+        }
+        return _private._description;
     }
 
     public setDescription(value: LocalizedTextLike | null): void {
@@ -376,7 +384,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         const _private = BaseNode_initPrivate(this);
         _private.__address_space = options.addressSpace;
 
-        this.nodeId = resolveNodeId(options.nodeId);
+        this.nodeId = options.nodeId instanceof NodeId ? options.nodeId : resolveNodeId(options.nodeId);
 
         // QualifiedName
         /**
@@ -424,8 +432,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
     }
 
     public getDisplayName(_locale?: string): string {
-        const _private = BaseNode_getPrivate(this);
-        return _private._displayName[0].text || "";
+        return this.displayName[0].text || "";
     }
 
     public get namespace(): INamespace {
@@ -1483,17 +1490,17 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         return reference;
     }
 
+    /** kept as given; the LocalizedText objects are built on first read (most nodes are never asked) */
     private _setDisplayName(displayName: LocalizedTextLike | LocalizedTextLike[]) {
-        const displayNames: LocalizedTextLike[] = Array.isArray(displayName) ? displayName : [displayName];
-        const _displayNames = displayNames.map(coerceLocalizedText) as LocalizedText[];
         const _private = BaseNode_getPrivate(this);
-        _private._displayName = _displayNames;
+        _private._displayNameRaw = displayName;
+        _private._displayName = undefined;
     }
 
     private _setDescription(description: LocalizedTextLike | null): void {
-        const __description = coerceLocalizedText(description);
         const _private = BaseNode_getPrivate(this);
-        _private._description = __description || new LocalizedText({ text: "" });
+        _private._descriptionRaw = description;
+        _private._description = undefined;
     }
 
     private _notifyAttributeChange(attributeId: AttributeIds): void {
