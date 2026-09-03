@@ -22,11 +22,12 @@ const restrictedPermissions = [
     { roleId: WellKnownRoles.Supervisor, permissions: allPermissions },
     { roleId: WellKnownRoles.Operator, permissions: makePermissionFlag("Browse") },
     { roleId: WellKnownRoles.Engineer, permissions: makePermissionFlag("Browse") },
-    { roleId: WellKnownRoles.Observer, permissions: makePermissionFlag("Browse") }
-    /*
+    { roleId: WellKnownRoles.Observer, permissions: makePermissionFlag("Browse") },
+    // Every session may see the structure: the mandatory children of the well-known
+    // roles (Identities ...) must stay browsable (CTT Base Info Core Structure 001).
+    // Values remain readable only by the roles above, on a signed and encrypted channel.
     { roleId: WellKnownRoles.Anonymous, permissions: makePermissionFlag("Browse") },
-    { roleId: WellKnownRoles.AuthenticatedUser, permissions: makePermissionFlag("Browse") },
-*/
+    { roleId: WellKnownRoles.AuthenticatedUser, permissions: makePermissionFlag("Browse") }
 ];
 const restrictedAccessFlag = makeAccessRestrictionsFlag("SigningRequired | EncryptionRequired");
 /**
