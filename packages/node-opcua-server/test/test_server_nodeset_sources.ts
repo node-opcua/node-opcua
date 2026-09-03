@@ -34,7 +34,7 @@ describe("OPCUAServer loading nodesets from sources", function (this: Mocha.Suit
         const addressSpace = server.engine.addressSpace!;
         const diNamespace = addressSpace.getNamespace(DI);
         should.exist(diNamespace, "the DI namespace comes from the stream");
-        diNamespace.findNode("i=5001")!.browseName.name!.should.eql("DeviceSet");
+        should(diNamespace.findNode("i=5001")?.browseName.name).eql("DeviceSet");
         should(addressSpace.getNamespaceArray()[1].namespaceUri).match(/^urn:/, "the server's own namespace stays at index 1");
     };
 
