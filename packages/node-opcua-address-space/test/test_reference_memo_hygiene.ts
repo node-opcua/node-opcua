@@ -146,4 +146,27 @@ describe("the memoized reference scans", function (this: Mocha.Suite) {
         should(s.findReferencesEx("HasComponent").map((ref) => ref.node)).containEql(child);
         should(s.getComponentByName("Zz6", addressSpace.getNamespaceIndex(uri))).equal(child);
     });
+
+    it("hands out an array a caller cannot change", () => {
+        const objects = addressSpace.rootFolder.objects;
+        for (let i = 0; i < 15; i++) {
+            namespace.addObject({ browseName: `Pad${i}`, organizedBy: objects });
+        }
+        const elements = objects.getFolderElements().length;
+        const organizes = objects.findReferencesEx("Organizes");
+        should(organizes.length).be.greaterThan(8);
+        should(Object.isFrozen(organizes)).eql(true);
+        // in strict code the change throws; in sloppy code it is ignored: either way nothing moves
+        should(() => {
+            "use strict";
+            organizes.length = 0;
+        }).throw(TypeError);
+        should(() => {
+            "use strict";
+            (organizes as unknown[]).push(null);
+        }).throw(TypeError);
+        should(objects.findReferencesEx("Organizes").length).eql(organizes.length);
+        should(objects.getFolderElements().length).eql(elements);
+        should(Object.isFrozen(objects.findReferences("Organizes"))).eql(true);
+    });
 });

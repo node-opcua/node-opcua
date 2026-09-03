@@ -514,7 +514,9 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         process(_private._referenceIdx);
         process(_private._back_referenceIdx);
         if (entry) {
-            entry[slot] = results;
+            // the array is handed out again on every hit: frozen, so that a caller changing it
+            // fails loudly rather than changing what every later caller sees
+            entry[slot] = Object.freeze(results) as UAReference[];
             entry[slot + 2] = unresolved;
         }
         return results;
@@ -561,7 +563,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         if (doDebug && !this.addressSpace.findReferenceType(referenceTypeNode.nodeId)) {
             throw new Error(`expecting valid reference name ${referenceType}`);
         }
-        const result = this.findReferences_no_cache(referenceTypeNode, isForward);
+        const result = Object.freeze(this.findReferences_no_cache(referenceTypeNode, isForward)) as UAReference[];
         _cache._ref.set(hash, result);
         return result;
     }
