@@ -90,18 +90,25 @@ export function isReservedChildAccessorName(accessorName: string): boolean {
  * name back to it; with `requestShared`, also queue a shared getter for it, to be defined by the
  * next {@link defineSharedChildAccessors}.
  */
+/** browse name to accessor name, computed once: a nodeset repeats a few hundred names over thousands of nodes */
+const accessorNameOf = new Map<string, string>();
+
 export function registerChildName(browseName: string | null | undefined, requestShared: boolean): string | undefined {
     if (!browseName) {
         return undefined;
     }
-    const accessorName = childAccessorName(browseName);
-    if (browseName !== accessorName && browseName !== upperFirstLetter(accessorName)) {
-        const known = irregularBrowseNames.get(accessorName);
-        if (!known) {
-            irregularBrowseNames.set(accessorName, [browseName]);
-        } else if (!known.includes(browseName)) {
-            known.push(browseName);
+    let accessorName = accessorNameOf.get(browseName);
+    if (accessorName === undefined) {
+        accessorName = childAccessorName(browseName);
+        if (browseName !== accessorName && browseName !== upperFirstLetter(accessorName)) {
+            const known = irregularBrowseNames.get(accessorName);
+            if (!known) {
+                irregularBrowseNames.set(accessorName, [browseName]);
+            } else if (!known.includes(browseName)) {
+                known.push(browseName);
+            }
         }
+        accessorNameOf.set(browseName, accessorName);
     }
     if (requestShared && !sharedAccessors.has(accessorName)) {
         pendingSharedAccessors.add(accessorName);

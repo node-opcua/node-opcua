@@ -276,7 +276,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
 
         this.historizing = !!options.historizing; // coerced to boolean"
 
-        this.$dataValue = new DataValue({ statusCode: StatusCodes.UncertainInitialValue, value: { dataType: DataType.Null } });
+        // a Variant built from null takes the constructor's short path; the options form costs twice as much
+        this.$dataValue = new DataValue({ statusCode: StatusCodes.UncertainInitialValue, value: new Variant(null) });
 
         if (options.value) {
             this.bindVariable(options.value);

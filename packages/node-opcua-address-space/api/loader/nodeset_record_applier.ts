@@ -696,9 +696,10 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
             ...this.variableCommon(record),
             historizing: record.historizing ?? false,
             accessLevel,
-            userAccessLevel: convertUserAccessLevel(record.userAccessLevel, accessLevel),
-            // the value is set by a post task, once every data type is known
-            value: Object.create(null)
+            userAccessLevel: convertUserAccessLevel(record.userAccessLevel, accessLevel)
+            // no value here: an empty one made the constructor bind a getter and a setter on every
+            // variable, five closures each; an unbound variable reads and writes through the
+            // defaults, and the value is set below or by a post task once its data type is known
         } as unknown as CreateNodeOptions;
 
         const addressSpace = this.addressSpace;
