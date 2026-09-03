@@ -4,6 +4,7 @@
 import chalk from "chalk";
 import type { AddReferenceOpts, BaseNode, IAddressSpace, UAReference, UAReferenceType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
+import { ReferenceTypeIds } from "node-opcua-constants";
 import { coerceNodeId, NodeId, type NodeIdLike, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { isNullOrUndefined } from "node-opcua-utils";
 
@@ -83,6 +84,17 @@ const MAX_PACKED_ORDINAL = 4096; // (2 * 4096) * 2^40 = 2^53, the safe-integer l
  * the key of a node in reference indexes: a number below 2^40 for a numeric NodeId in a namespace
  * below 256, which is what nodesets carry, a string for the rest
  */
+/**
+ * HasTypeDefinition and HasModellingRule never get a back reference: there would be thousands
+ * per type or modelling rule, and nothing browses them that way
+ */
+export function isMassivelyUsedReferenceType(referenceType: NodeId): boolean {
+    return (
+        referenceType.namespace === 0 &&
+        (referenceType.value === ReferenceTypeIds.HasTypeDefinition || referenceType.value === ReferenceTypeIds.HasModellingRule)
+    );
+}
+
 export function nodeIdKey(nodeId: NodeId): number | string {
     if (nodeId.identifierType === NodeIdType.NUMERIC && nodeId.namespace < 256) {
         return nodeId.namespace * 0x100000000 + (nodeId.value as number);

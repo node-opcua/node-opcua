@@ -18,7 +18,6 @@ import type {
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { StatusCodes } from "node-opcua-basic-types";
-import { ReferenceTypeIds } from "node-opcua-constants";
 import {
     type AccessLevelFlag,
     type AccessRestrictionsFlag,
@@ -37,7 +36,7 @@ import { DataType, VariantArrayType, type VariantOptions } from "node-opcua-vari
 import semver from "semver";
 import type { AddressSpacePrivate } from "../../impl/address_space_private.js";
 import type { NamespacePrivate } from "../../impl/namespace_private.js";
-import { ReferenceImpl } from "../../impl/reference_impl.js";
+import { isMassivelyUsedReferenceType, ReferenceImpl } from "../../impl/reference_impl.js";
 import type { UAVariableImpl } from "../../impl/ua_variable_impl.js";
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.js";
 import { makeSemverCompatible } from "./make_semver_compatible.js";
@@ -200,14 +199,6 @@ export interface PendingBackReferences {
     settled: Set<BaseNode>;
     /** the one-sided references, with the node holding each */
     references: Array<[BaseNode, UAReference]>;
-}
-
-/** HasTypeDefinition and HasModellingRule never get a back reference: there would be thousands per type */
-function isMassivelyUsedReferenceType(referenceType: NodeId): boolean {
-    return (
-        referenceType.namespace === 0 &&
-        (referenceType.value === ReferenceTypeIds.HasTypeDefinition || referenceType.value === ReferenceTypeIds.HasModellingRule)
-    );
 }
 
 export class NodesetRecordApplier implements NodesetRecordConsumer {
