@@ -1,6 +1,6 @@
 import { BinaryStream } from "node-opcua-binary-stream";
+import should from "should";
 import { coerceDateTime, decodeDateTime, encodeDateTime, getMinOPCUADate, isMinDate, isValidDateTime } from "../dist/index.js";
-import "should";
 
 describe("encode/decode DateTime", () => {
     it("should encode and decode min date", () => {
@@ -39,5 +39,27 @@ describe("encode/decode DateTime", () => {
     it("(coerceDateTime(", () => {
         const date = coerceDateTime("1789-07-14");
         isMinDate(date).should.eql(false);
+    });
+});
+
+describe("encode/decode DateTime keeps the sub-millisecond ticks", () => {
+    // an OPC UA DateTime counts 100 ns ticks; the remainder a Date cannot hold travels
+    // as a `picoseconds` property on the Date (CTT Attribute Write Values 003)
+    it("should round-trip a Date carrying picoseconds", () => {
+        const stream = new BinaryStream();
+        const date = new Date(Date.UTC(2026, 8, 3, 10, 0, 0, 123)) as Date & { picoseconds?: number };
+        date.picoseconds = 456700000; // 456.7 microseconds = 4567 ticks
+        encodeDateTime(date, stream);
+        stream.rewind();
+        const reloaded = decodeDateTime(stream) as Date & { picoseconds?: number };
+        reloaded.getTime().should.eql(date.getTime());
+        should(reloaded.picoseconds).eql(456700000);
+    });
+    it("should not add a picoseconds property to a whole-millisecond Date", () => {
+        const stream = new BinaryStream();
+        encodeDateTime(new Date(Date.UTC(2026, 8, 3, 10, 0, 0, 123)), stream);
+        stream.rewind();
+        const reloaded = decodeDateTime(stream) as Date & { picoseconds?: number };
+        should(reloaded.picoseconds).eql(undefined);
     });
 });

@@ -47,8 +47,16 @@ export function encodeHighAccuracyDateTime(date: Date | null, picoseconds: numbe
     stream.writeInteger(hi);
 }
 
+/**
+ * A javascript Date holds milliseconds; an OPC UA DateTime counts 100 ns ticks. The
+ * remainder travels as a `picoseconds` property hung on the Date (the convention the
+ * Variant clone and the historical-access nodes already use), so a value written with
+ * sub-millisecond precision reads back identical (CTT Attribute Write Values 003).
+ */
+type DateWithPicoseconds = Date & { picoseconds?: number };
+
 export function encodeDateTime(date: Date | null, stream: OutputBinaryStream) {
-    encodeHighAccuracyDateTime(date, 0, stream);
+    encodeHighAccuracyDateTime(date, (date as DateWithPicoseconds | null)?.picoseconds ?? 0, stream);
 }
 
 /**
@@ -57,7 +65,11 @@ export function encodeDateTime(date: Date | null, stream: OutputBinaryStream) {
  * @returns {Date}
  */
 export function decodeDateTime(stream: BinaryStream, _value?: Date | null): Date {
-    return decodeHighAccuracyDateTime(stream, _value)[0];
+    const [date, picoseconds] = decodeHighAccuracyDateTime(stream, _value);
+    if (picoseconds) {
+        (date as DateWithPicoseconds).picoseconds = picoseconds;
+    }
+    return date;
 }
 export function decodeHighAccuracyDateTime(stream: BinaryStream, _value?: Date | null): [Date, number] {
     const lo = stream.readInteger();
