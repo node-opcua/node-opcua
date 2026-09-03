@@ -30,6 +30,9 @@ import {
 } from "../distNodeJS/index.js";
 import { get_mini_nodeset_filename } from "../test_helpers/get_mini_address_space.js";
 
+// the local HTTP server that stands in for a model repository, in the source-helpers tests
+const httpPort = 5813;
+
 interface Digest {
     nodes: number;
     references: number;
@@ -211,7 +214,6 @@ describe("Loading a nodeset from a source", function (this: Mocha.Suite) {
         let tmp: string;
         let gzipFile: string;
         let httpServer: http.Server;
-        const httpPort = 5797;
         const baseUrl = `http://127.0.0.1:${httpPort}`;
         before(async () => {
             tmp = fs.mkdtempSync(path.join(os.tmpdir(), "nodeset-helpers-"));
