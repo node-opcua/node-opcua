@@ -309,7 +309,8 @@ class RecordExporter {
         const hasEventSource = must("HasEventSource");
 
         const keep = (reference: UAReference): boolean => {
-            const referenceType = (reference as ReferenceImpl)._referenceType;
+            // resolved here: a reference nobody has looked at since the load carries only the NodeId of its type
+            const referenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference);
             if (!referenceType) return false;
             if (
                 referenceType.isSubtypeOf(aggregates) &&

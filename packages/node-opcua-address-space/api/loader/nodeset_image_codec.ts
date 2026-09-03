@@ -8,7 +8,8 @@
  * - NodeId: the number alone when numeric in namespace 0, `[namespaceIndex, value]` when numeric
  *   elsewhere, `[namespaceIndex, "i" | "s" | "g" | "b", value]` otherwise, the index being the
  *   file's own table; an ExpandedNodeId adds `namespaceUri` and `serverIndex` around it
- * - a reference: `[isForward ? 1 : 0, referenceType, target]`
+ * - a reference: `[isForward ? 1 : 0, referenceType, target]`, with a fourth element `0` when the
+ *   target's record does not declare the inverse (the loader adds a back reference for those)
  * - QualifiedName: `[namespaceIndex, name]`; LocalizedText: `{ locale, text }`
  * - DateTime: ISO-8601 string, or `{ iso, picoseconds }` when sub-millisecond precision is carried
  * - ByteString: base64; Guid, String, XmlElement: the string
@@ -52,8 +53,8 @@ import {
  * `[namespaceIndex, value]` when numeric elsewhere, `[namespaceIndex, kind, value]` otherwise
  */
 export type JsonNodeId = number | [number, number] | [number, "i" | "s" | "g" | "b", number | string];
-/** a reference: `[isForward ? 1 : 0, referenceType, target]` */
-export type JsonReference = [0 | 1, JsonNodeId, JsonNodeId];
+/** a reference: `[isForward ? 1 : 0, referenceType, target]`, plus `0` when the inverse is not declared by the target */
+export type JsonReference = [0 | 1, JsonNodeId, JsonNodeId] | [0 | 1, JsonNodeId, JsonNodeId, 0];
 export type JsonQualifiedName = [number, string];
 
 /** what a corrupt or foreign image raises; the loader discards such an image and rebuilds it */
@@ -500,7 +501,10 @@ export function encodeNode(record: NodesetNodeRecord): NodesetImageNode {
         nodeId: encodeNodeId(record.nodeId),
         browseName: encodeQualifiedName(record.browseName),
         references: record.references.map(
-            (r): JsonReference => [r.isForward ? 1 : 0, encodeNodeId(r.referenceType), encodeNodeId(r.nodeId)]
+            (r): JsonReference =>
+                r.inverseDeclared
+                    ? [r.isForward ? 1 : 0, encodeNodeId(r.referenceType), encodeNodeId(r.nodeId)]
+                    : [r.isForward ? 1 : 0, encodeNodeId(r.referenceType), encodeNodeId(r.nodeId), 0]
         )
     };
     for (const key of OPTIONAL_PLAIN) {
@@ -539,7 +543,8 @@ export function decodeNode(json: NodesetImageNode): NodesetNodeRecord {
             (r): NodesetReferenceRecord => ({
                 isForward: r[0] === 1,
                 referenceType: decodeNodeId(r[1]),
-                nodeId: decodeNodeId(r[2])
+                nodeId: decodeNodeId(r[2]),
+                inverseDeclared: r.length === 3
             })
         )
     };

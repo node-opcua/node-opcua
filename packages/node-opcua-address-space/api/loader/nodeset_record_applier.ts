@@ -12,11 +12,13 @@ import type {
     CreateNodeOptions,
     IAddressSpace,
     UADataType,
+    UAReference,
     UAVariable,
     UAVariableType
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { StatusCodes } from "node-opcua-basic-types";
+import { ReferenceTypeIds } from "node-opcua-constants";
 import {
     type AccessLevelFlag,
     type AccessRestrictionsFlag,
@@ -35,6 +37,7 @@ import { DataType, VariantArrayType, type VariantOptions } from "node-opcua-vari
 import semver from "semver";
 import type { AddressSpacePrivate } from "../../impl/address_space_private.js";
 import type { NamespacePrivate } from "../../impl/namespace_private.js";
+import { ReferenceImpl } from "../../impl/reference_impl.js";
 import type { UAVariableImpl } from "../../impl/ua_variable_impl.js";
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.js";
 import { makeSemverCompatible } from "./make_semver_compatible.js";
@@ -191,7 +194,28 @@ interface INodePermissions {
     rolePermissions?: RolePermissionTypeOptions[];
 }
 
+/** see NodesetRecordApplier.takePendingBackReferences */
+export interface PendingBackReferences {
+    /** nodes whose document said which of their references are one-sided: nothing else to propagate */
+    settled: Set<BaseNode>;
+    /** the one-sided references, with the node holding each */
+    references: Array<[BaseNode, UAReference]>;
+}
+
+/** HasTypeDefinition and HasModellingRule never get a back reference: there would be thousands per type */
+function isMassivelyUsedReferenceType(referenceType: NodeId): boolean {
+    return (
+        referenceType.namespace === 0 &&
+        (referenceType.value === ReferenceTypeIds.HasTypeDefinition || referenceType.value === ReferenceTypeIds.HasModellingRule)
+    );
+}
+
 export class NodesetRecordApplier implements NodesetRecordConsumer {
+    /** what references() found about the record being applied, consumed by createNode */
+    private lastReferences: { pending: UAReference[]; unknown: boolean } | undefined;
+    /** the back references the load owes, and the nodes it owes nothing else for; see takePendingBackReferences */
+    private pending: PendingBackReferences = { settled: new Set(), references: [] };
+
     private readonly addressSpace: AddressSpacePrivate;
     private readonly applyRolePermissions: boolean;
     private readonly applyAccessRestrictions: boolean;
@@ -487,13 +511,48 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
             nodeClass: record.nodeClass,
             nodeId: record.nodeId.isEmpty() ? null : this.translate(record.nodeId),
             browseName: this.translateQualifiedName(record.browseName),
-            references: record.references.map((r) => ({
+            references: this.references(record),
+            ...this.permissions(record)
+        };
+    }
+
+    /**
+     * the node's references as the node will hold them, and what the end of the load must do about
+     * their inverses: a reference the document marks as not declared from the other end is kept for
+     * one propagation, and the node is settled; a node whose references carry no such information
+     * is left to the end-of-load sweep, which propagates it whole
+     */
+    private references(record: NodesetNodeRecord): UAReference[] {
+        const references: UAReference[] = [];
+        const pending: UAReference[] = [];
+        let unknown = false;
+        for (const r of record.references) {
+            const reference = new ReferenceImpl({
                 isForward: r.isForward,
                 nodeId: this.translate(r.nodeId),
                 referenceType: this.translate(r.referenceType)
-            })),
-            ...this.permissions(record)
-        };
+            });
+            references.push(reference);
+            if (r.inverseDeclared === undefined) {
+                unknown = true;
+            } else if (!r.inverseDeclared && !isMassivelyUsedReferenceType(reference.referenceType)) {
+                pending.push(reference);
+            }
+        }
+        this.lastReferences = { pending, unknown };
+        return references;
+    }
+
+    /**
+     * what the end of the load must do about back references: the one-sided references of the
+     * settled nodes, to propagate one by one, and the settled nodes themselves, which the sweep
+     * over every node skips. Taken once by the loader's terminate step and dropped after it: the
+     * set lives for the load, not on the nodes
+     */
+    public takePendingBackReferences(): PendingBackReferences {
+        const pending = this.pending;
+        this.pending = { settled: new Set(), references: [] };
+        return pending;
     }
 
     private createNode(params: CreateNodeOptions): BaseNode {
@@ -502,7 +561,20 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
             throw new Error("invalid param expecting a valid nodeId");
         } // already translated
         const namespace = this.addressSpace.getNamespace(params.nodeId.namespace);
-        return namespace.internalCreateNode(params) as BaseNode;
+        const node = namespace.internalCreateNode(params) as BaseNode;
+        const last = this.lastReferences;
+        // c8 ignore next
+        if (!last) {
+            throw new Error("internal error: createNode without the record's references");
+        }
+        this.lastReferences = undefined;
+        if (!last.unknown) {
+            this.pending.settled.add(node);
+            for (const reference of last.pending) {
+                this.pending.references.push([node, reference]);
+            }
+        }
+        return node;
     }
 
     private applyNode(record: NodesetNodeRecord): void {

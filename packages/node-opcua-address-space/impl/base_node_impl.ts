@@ -490,9 +490,15 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         }
 
         const results: UAReference[] = [];
+        const addressSpace = this.addressSpace;
         const process = (referenceIdx: Map<ReferenceKey, UAReference>) => {
             for (const ref of referenceIdx.values()) {
                 if (ref.isForward === isForward && referenceTypeNode.checkHasSubtype(ref.referenceType)) {
+                    // callers read ref.node: resolved here, once per reference, for the references a
+                    // load left unresolved (the end-of-load sweep no longer visits every one)
+                    if (!(ref as ReferenceImpl).node) {
+                        resolveReferenceNode(addressSpace, ref);
+                    }
                     results.push(ref);
                 }
             }
@@ -509,20 +515,20 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
     public findReferences_no_cache(referenceTypeNode: UAReferenceType, isForward = true): UAReference[] {
         const _private = BaseNode_getPrivate(this);
         const result: UAReference[] = [];
+        const addressSpace = this.addressSpace;
+        const keep = (ref: UAReference) => {
+            if (ref.isForward === isForward && sameNodeId(ref.referenceType, referenceTypeNode.nodeId)) {
+                if (!(ref as ReferenceImpl).node) {
+                    resolveReferenceNode(addressSpace, ref);
+                }
+                result.push(ref);
+            }
+        };
         for (const ref of _private._referenceIdx.values()) {
-            if (ref.isForward === isForward) {
-                if (sameNodeId(ref.referenceType, referenceTypeNode.nodeId)) {
-                    result.push(ref);
-                }
-            }
+            keep(ref);
         }
-
         for (const ref of _private._back_referenceIdx.values()) {
-            if (ref.isForward === isForward) {
-                if (sameNodeId(ref.referenceType, referenceTypeNode.nodeId)) {
-                    result.push(ref);
-                }
-            }
+            keep(ref);
         }
         return result;
     }
@@ -1033,7 +1039,14 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
 
     public allReferences(): UAReference[] {
         const _private = BaseNode_getPrivate(this);
-        return [..._private._referenceIdx.values(), ..._private._back_referenceIdx.values()];
+        const references = [..._private._referenceIdx.values(), ..._private._back_referenceIdx.values()];
+        const addressSpace = this.addressSpace;
+        for (const ref of references) {
+            if (!(ref as ReferenceImpl).node) {
+                resolveReferenceNode(addressSpace, ref);
+            }
+        }
+        return references;
     }
 
     /**
@@ -1316,6 +1329,14 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
      */
     public propagate_back_references_declared_from_both_ends(): void {
         this._propagate_back_references(nodeIdKey(this.nodeId));
+    }
+
+    /** one reference of a node a NodeSet2 file declared, see propagate_back_references_declared_from_both_ends */
+    public propagate_back_reference_declared_from_both_ends(reference: UAReference): void {
+        if ((this.addressSpace as AddressSpacePrivate).suspendBackReference) {
+            return;
+        }
+        _propagate_ref.call(this, this.addressSpace, reference, nodeIdKey(this.nodeId));
     }
 
     private _propagate_back_references(sourceNodeKey: number | string | undefined): void {

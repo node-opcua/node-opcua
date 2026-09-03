@@ -13,6 +13,7 @@ import {
     type EncodeHeaderOptions,
     encodeHeader,
     encodeNode,
+    type JsonNodeId,
     NodesetImageError,
     type NodesetImageHeader,
     type NodesetImageNode,
@@ -147,7 +148,8 @@ export interface NodesetImageWriterOptions extends EncodeHeaderOptions {}
  * image is written in the same pass as the parse, whatever the source
  */
 export class NodesetImageWriter implements NodesetRecordConsumer {
-    private readonly lines: string[] = [];
+    private readonly nodeLines: NodesetImageNode[] = [];
+    private lines: string[] | undefined;
     private nodes = 0;
     private header: NodesetHeaderRecord | undefined;
 
@@ -164,8 +166,39 @@ export class NodesetImageWriter implements NodesetRecordConsumer {
         if (!this.header) {
             throw new NodesetImageError("a node record was applied before the header record");
         }
-        this.lines.push(JSON.stringify(encodeNode(record)));
+        this.nodeLines.push(encodeNode(record));
+        this.lines = undefined;
         this.nodes += 1;
+    }
+
+    /**
+     * the node lines, each reference marked when the target's record in this document does not
+     * declare the inverse (see NodesetReferenceRecord.inverseDeclared): decided here, over the
+     * whole document, whatever the producer knew
+     */
+    private encodedLines(): string[] {
+        if (this.lines) {
+            return this.lines;
+        }
+        const idKey = (id: JsonNodeId): string => (typeof id === "number" ? String(id) : id.join(","));
+        const declared = new Set<string>();
+        for (const node of this.nodeLines) {
+            const source = idKey(node.nodeId);
+            for (const r of node.references) {
+                declared.add(`${source}|${r[0]}|${idKey(r[1])}|${idKey(r[2])}`);
+            }
+        }
+        for (const node of this.nodeLines) {
+            const source = idKey(node.nodeId);
+            for (const r of node.references) {
+                r.length = 3;
+                if (!declared.has(`${idKey(r[2])}|${1 - r[0]}|${idKey(r[1])}|${source}`)) {
+                    (r as unknown[]).push(0);
+                }
+            }
+        }
+        this.lines = this.nodeLines.map((node) => JSON.stringify(node));
+        return this.lines;
     }
 
     /**
@@ -179,12 +212,12 @@ export class NodesetImageWriter implements NodesetRecordConsumer {
         const options = sourceLength === undefined ? this.options : { ...this.options, sourceLength };
         const header = JSON.stringify(encodeHeader(this.header, options));
         const trailer: NodesetImageTrailer = { kind: "trailer", nodes: this.nodes, sourceDigest };
-        return `${header}\n${this.lines.join("\n")}\n${JSON.stringify(trailer)}\n`;
+        return `${header}\n${this.encodedLines().join("\n")}\n${JSON.stringify(trailer)}\n`;
     }
 
     /** the node lines alone, what an exported namespace's digest covers (the header carries a timestamp) */
     public bodyText(): string {
-        return `${this.lines.join("\n")}\n`;
+        return `${this.encodedLines().join("\n")}\n`;
     }
 
     /** the image: the lines, gzip-compressed */
