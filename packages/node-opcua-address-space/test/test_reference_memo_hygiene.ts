@@ -160,13 +160,23 @@ describe("the memoized reference scans", function (this: Mocha.Suite) {
         const organizes = objects.findReferencesEx("Organizes");
         should(organizes.length).be.greaterThan(8);
         should(Object.isFrozen(organizes)).eql(true);
-        // in strict code the change throws; in sloppy code it is ignored: either way nothing moves
-        should(() => {
+        // strict code sees a TypeError, sloppy code a silent no-op (the test files are compiled both
+        // ways): either way nothing moves
+        const attempt = (change: () => void) => {
+            try {
+                change();
+            } catch (err) {
+                should(err).be.instanceOf(TypeError);
+            }
+        };
+        const before = organizes.length;
+        attempt(() => {
             organizes.length = 0;
-        }).throw(TypeError);
-        should(() => {
+        });
+        attempt(() => {
             (organizes as unknown[]).push(null);
-        }).throw(TypeError);
+        });
+        should(organizes.length).eql(before);
         should(objects.findReferencesEx("Organizes").length).eql(organizes.length);
         should(objects.getFolderElements().length).eql(elements);
         should(Object.isFrozen(objects.findReferences("Organizes"))).eql(true);
