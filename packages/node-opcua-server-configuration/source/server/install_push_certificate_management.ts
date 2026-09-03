@@ -315,6 +315,58 @@ export async function installPushCertificateManagementOnServer(
         });
     });
 
+    // ── Report an out-of-band TrustList change as trustListUpdated ─────
+    //
+    // The TrustList server methods (AddCertificate, CloseAndUpdate) are not
+    // the only way a server's TrustList can go from empty to populated: an
+    // administrator, a provisioning script, or a Pull-model client can
+    // write a certificate straight into serverCertificateManager's
+    // trusted-certs folder. Only the method path emits "trustListUpdated",
+    // so a consumer waiting on it to learn that the server has been
+    // provisioned - to leave NoConfiguration, say - would never hear about
+    // a TrustList populated the other way.
+    //
+    // This deliberately does NOT emit "applyChangesCompleted": that event
+    // means "a certificate rotation was applied" and carries channel
+    // teardown plus endpoint suspend/resume with it. Trusting a new peer
+    // changes nothing about the server's own certificate and must not
+    // disturb established channels.
+    //
+    // CertificateManager also fires "certificateAdded" from its own
+    // chokidar file watcher, which looked like the natural signal to relay
+    // - but that watcher's detection latency depends on the filesystem and
+    // OS (native fs events vs. a polling fallback), and was observed to
+    // never fire within 10s in a Linux CI container while resolving
+    // reliably in well under a second on Windows. isTrustListEmpty() itself
+    // has no such dependency: trustCertificate()/rejectCertificate() update
+    // the manager's in-memory index synchronously, so polling it directly
+    // is the robust choice, portable across every filesystem and OS.
+    //
+    // The poll exists only while it has something to detect: it is not
+    // started at all when the TrustList is already populated, and it stops
+    // itself the moment it sees the empty -> populated transition. Shutdown
+    // is only the fallback for a server that was never provisioned.
+    if (cm.isTrustListEmpty()) {
+        const stopPolling = () => {
+            clearInterval(trustListPoll);
+            server.engine.removeListener("serverStateChanged", onStateChanged);
+        };
+        const onStateChanged = (_oldState: ServerState, newState: ServerState) => {
+            if (newState === ServerState.Shutdown) {
+                stopPolling();
+            }
+        };
+        const trustListPoll = setInterval(() => {
+            if (cm.isTrustListEmpty()) {
+                return;
+            }
+            stopPolling();
+            serverConfigurationPriv.$pushCertificateManager?.emit("trustListUpdated", "DefaultApplicationGroup");
+        }, 1000);
+        trustListPoll.unref();
+        server.engine.on("serverStateChanged", onStateChanged);
+    }
+
     // ── Install NoConfiguration certificate relaxation ─────────
     //
     // When the server is in NoConfiguration state (awaiting GDS
