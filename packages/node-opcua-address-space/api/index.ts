@@ -195,6 +195,7 @@ export {
 } from "./loader/nodeset_record.js";
 export type { NamedNodesetSource, NodesetChunk, NodesetChunkStream, NodesetSource } from "./loader/nodeset_source.js";
 export { sha256Hex } from "./loader/nodeset_source.js";
+export * from "./loader/nodeset_source_helpers.js";
 export { type NodesetToImageOptions, nodesetToImage } from "./loader/nodeset_to_image.js";
 export { makeXmlNodesetRecordReader, type XmlNodesetRecordReader, xmlNodesetRecords } from "./loader/nodeset_xml_producer.js";
 export * from "./loader/register_node_promoter.js";

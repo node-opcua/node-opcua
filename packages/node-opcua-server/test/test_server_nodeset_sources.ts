@@ -1,10 +1,14 @@
 /**
- * A server loads its models from files (`nodeset_filename`) and from sources (`nodesetSources`):
- * a gzip stream here, in one call with the files, so the standard nodeset given as a file
- * satisfies what the streamed companion model requires. `nodesetLoaderOptions` reaches the loader.
+ * A server loads its models through `nodesets`: file paths and sources in one list, loaded in
+ * one call, so the standard nodeset given as a path satisfies what a streamed companion model
+ * requires. The deprecated `nodeset_filename` still works and merges into the same load.
+ * `nodesetLoaderOptions` reaches the loader.
  */
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import zlib from "node:zlib";
+import { nodesetSourceFromGzipFile } from "node-opcua-address-space/nodeJS";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
@@ -16,35 +20,56 @@ const DI = "http://opcfoundation.org/UA/DI/";
 describe("OPCUAServer loading nodesets from sources", function (this: Mocha.Suite) {
     this.timeout(60000);
 
-    it("loads a companion model given as a gzip stream next to the standard nodeset file", async () => {
+    let diGzipFile: string;
+    before(() => {
+        const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "nodeset-gz-"));
+        diGzipFile = path.join(tmp, "Opc.Ua.Di.NodeSet2.xml.gz");
+        fs.writeFileSync(diGzipFile, zlib.gzipSync(fs.readFileSync(nodesets.di)));
+    });
+    after(() => {
+        fs.rmSync(path.dirname(diGzipFile), { recursive: true, force: true });
+    });
+
+    const expectDeviceSet = (server: OPCUAServer) => {
+        const addressSpace = server.engine.addressSpace!;
+        const diNamespace = addressSpace.getNamespace(DI);
+        should.exist(diNamespace, "the DI namespace comes from the stream");
+        diNamespace.findNode("i=5001")!.browseName.name!.should.eql("DeviceSet");
+        should(addressSpace.getNamespaceArray()[1].namespaceUri).match(/^urn:/, "the server's own namespace stays at index 1");
+    };
+
+    it("loads a companion model given as a gzip file next to the standard nodeset path", async () => {
         const server = new OPCUAServer({
             port,
-            nodeset_filename: [nodesets.standard],
-            nodesetSources: [
-                {
-                    name: "Opc.Ua.Di.NodeSet2.xml.gz",
-                    source: () => fs.createReadStream(nodesets.di).pipe(zlib.createGzip()).pipe(zlib.createGunzip())
-                }
-            ],
+            nodesets: [nodesets.standard, nodesetSourceFromGzipFile(diGzipFile)],
             nodesetLoaderOptions: { yieldEveryBytes: 64 * 1024 }
         });
         try {
             await server.initialize();
-            const addressSpace = server.engine.addressSpace!;
-            const diNamespace = addressSpace.getNamespace(DI);
-            should.exist(diNamespace, "the DI namespace comes from the stream");
-            diNamespace.findNode("i=5001")!.browseName.name!.should.eql("DeviceSet");
-            should(addressSpace.getNamespaceArray()[1].namespaceUri).match(/^urn:/, "the server's own namespace stays at index 1");
+            expectDeviceSet(server);
         } finally {
             await server.shutdown();
         }
     });
 
-    it("names the missing model when a source requires one that no file provides", async () => {
+    it("merges the deprecated nodeset_filename with nodesets", async () => {
         const server = new OPCUAServer({
             port,
             nodeset_filename: [nodesets.standard],
-            nodesetSources: [{ name: "adi.xml", source: () => fs.createReadStream(nodesets.adi) }]
+            nodesets: [nodesetSourceFromGzipFile(diGzipFile)]
+        });
+        try {
+            await server.initialize();
+            expectDeviceSet(server);
+        } finally {
+            await server.shutdown();
+        }
+    });
+
+    it("names the missing model when a source requires one that no path provides", async () => {
+        const server = new OPCUAServer({
+            port,
+            nodesets: [nodesets.standard, { name: "adi.xml", source: () => fs.createReadStream(nodesets.adi) }]
         });
         try {
             await server.initialize().should.be.rejectedWith(/Cannot find namespace for http:\/\/opcfoundation.org\/UA\/DI\//);

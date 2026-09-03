@@ -15,6 +15,7 @@ import {
     type IServerBase,
     type ISessionContext,
     type MethodFunctor,
+    type NodesetSource,
     removeElement,
     type SessionContext,
     type UADynamicVariableArray,
@@ -899,15 +900,19 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         options = options || {};
         assert(typeof callback === "function");
 
-        options.nodeset_filename = options.nodeset_filename || nodesets.standard;
-        const nodesetFiles = Array.isArray(options.nodeset_filename) ? options.nodeset_filename : [options.nodeset_filename];
-        // files and sources load in one call, so that a dependency may cross from one list to the other
-        const nodesetDocuments = [...nodesetFiles, ...(options.nodesetSources || [])];
+        const asList = <T>(value: T | T[] | undefined): T[] => (value === undefined ? [] : Array.isArray(value) ? value : [value]);
+        // the deprecated `nodeset_filename` and `nodesets` load in one call, the former first, so
+        // that a dependency may cross from one list to the other; nothing given means the standard nodeset
+        const nodesetDocuments: Array<string | NodesetSource> = [...asList(options.nodeset_filename), ...asList(options.nodesets)];
+        if (nodesetDocuments.length === 0) {
+            nodesetDocuments.push(nodesets.standard);
+        }
+        const nodesetNames = nodesetDocuments.map((d) => (typeof d === "string" ? d : (d as { name?: string }).name || "(source)"));
 
         const startTime = new Date();
 
         // c8 ignore next
-        doDebug && debugLog("Loading ", options.nodeset_filename, "...");
+        doDebug && debugLog("Loading ", nodesetNames, "...");
 
         this.addressSpace = AddressSpace.create();
 
@@ -929,8 +934,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
                 const endTime = new Date();
                 // c8 ignore next
-                doDebug &&
-                    debugLog("Loading ", options.nodeset_filename, " done : ", endTime.getTime() - startTime.getTime(), " ms");
+                doDebug && debugLog("Loading ", nodesetNames, " done : ", endTime.getTime() - startTime.getTime(), " ms");
 
                 const bindVariableIfPresent = (nodeId: NodeId, opts?: BindVariableOptions) => {
                     assert(!nodeId.isEmpty());
