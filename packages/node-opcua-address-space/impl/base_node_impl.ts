@@ -77,6 +77,7 @@ import {
     BaseNode_removePrivate,
     BaseNode_toString,
     type HierarchicalIndexMap,
+    type ReferenceScanMemo,
     ToStringBuilder
 } from "./base_node_private.js";
 import {
@@ -467,7 +468,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         // The memo goes with the rest of _cache whenever a reference is added or removed, and when
         // a reference type was created since it was built.
         const memoize = _private._referenceIdx.size + _private._back_referenceIdx.size > referenceScanMemoThreshold;
-        let entry: [UAReference[] | undefined, UAReference[] | undefined] | undefined;
+        let entry: ReferenceScanMemo | undefined;
         const slot = isForward ? 0 : 1;
         if (memoize) {
             const _cache = BaseNode_getCache(this);
@@ -480,24 +481,30 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
             }
             entry = _cache._refEx.get(referenceTypeNode);
             if (!entry) {
-                entry = [undefined, undefined];
+                entry = [undefined, undefined, false, false];
                 _cache._refEx.set(referenceTypeNode, entry);
             }
             const memoized = entry[slot];
             if (memoized) {
+                if (entry[slot + 2]) {
+                    // a reference was scanned before its target existed: the same answer as a
+                    // fresh scan, which resolves every target it can
+                    entry[slot + 2] = resolveScannedReferences(this.addressSpace, memoized);
+                }
                 return memoized;
             }
         }
 
         const results: UAReference[] = [];
         const addressSpace = this.addressSpace;
+        let unresolved = false;
         const process = (referenceIdx: Map<ReferenceKey, UAReference>) => {
             for (const ref of referenceIdx.values()) {
                 if (ref.isForward === isForward && referenceTypeNode.checkHasSubtype(ref.referenceType)) {
                     // callers read ref.node: resolved here, once per reference, for the references a
                     // load left unresolved (the end-of-load sweep no longer visits every one)
-                    if (!(ref as ReferenceImpl).node) {
-                        resolveReferenceNode(addressSpace, ref);
+                    if (!(ref as ReferenceImpl).node && !resolveReferenceNode(addressSpace, ref)) {
+                        unresolved = true;
                     }
                     results.push(ref);
                 }
@@ -506,8 +513,8 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         process(_private._referenceIdx);
         process(_private._back_referenceIdx);
         if (entry) {
-            // callers iterate the result, they never change it; make a regression loud when debugging
-            entry[slot] = doDebug ? (Object.freeze(results) as UAReference[]) : results;
+            entry[slot] = results;
+            entry[slot + 2] = unresolved;
         }
         return results;
     }
@@ -1829,13 +1836,16 @@ function _propagate_ref(
         // holds the inverse as a forward reference of its own already: nothing to add, and no
         // ReferenceImpl to build for BaseNode_add_backward_reference to throw away. A node
         // created at runtime rarely is, and BaseNode_add_backward_reference copes when it is.
-        if (
-            sourceNodeKey !== undefined &&
-            BaseNode_getPrivate(related_node)._referenceIdx.has(
+        if (sourceNodeKey !== undefined) {
+            const inverse = BaseNode_getPrivate(related_node)._referenceIdx.get(
                 (reference as ReferenceImpl).inverseKey(addressSpace as AddressSpacePrivate, sourceNodeKey)
-            )
-        ) {
-            return;
+            ) as ReferenceImpl | undefined;
+            if (inverse) {
+                if (!inverse.node) {
+                    inverse.node = this;
+                }
+                return;
+            }
         }
         (related_node as BaseNodeImpl)._add_backward_reference(
             new ReferenceImpl({
@@ -1847,6 +1857,17 @@ function _propagate_ref(
             })
         );
     } // else addressSpace may be incomplete and under construction (while loading a nodeset.xml file for instance)
+}
+
+/** resolve what can be; true when a reference still has no target */
+function resolveScannedReferences(addressSpace: IAddressSpace, references: UAReference[]): boolean {
+    let unresolved = false;
+    for (const ref of references) {
+        if (!(ref as ReferenceImpl).node && !resolveReferenceNode(addressSpace, ref)) {
+            unresolved = true;
+        }
+    }
+    return unresolved;
 }
 
 function nodeid_is_nothing(nodeid: NodeId): boolean {

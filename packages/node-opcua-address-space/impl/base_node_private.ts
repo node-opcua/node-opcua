@@ -67,7 +67,7 @@ interface BaseNodeCacheInner {
      * dropped with the rest of the cache on every reference added or removed, and when the
      * reference-type hierarchy moved (`_refExVersion`)
      */
-    _refEx?: Map<UAReferenceType, [UAReference[] | undefined, UAReference[] | undefined]>;
+    _refEx?: Map<UAReferenceType, ReferenceScanMemo>;
     _refExVersion?: number;
     _encoding?: Map<string, UAObject | null>;
     _subtype_idx?: Map<number | string, UAReferenceType> | null;
@@ -79,6 +79,13 @@ interface BaseNodeCacheInner {
 
 export type UAReferenceWithNodeRef = UAReference & { node: BaseNode };
 export type HierarchicalIndexMap = Map<string, UAReferenceWithNodeRef | UAReferenceWithNodeRef[]>;
+
+/**
+ * the memoized scans of one node for one reference type: forward, inverse, and for each whether
+ * a reference in it still waits for its target (the target may be created after the scan; the
+ * memo then resolves it on the next hit rather than hand out a reference without a node)
+ */
+export type ReferenceScanMemo = [UAReference[] | undefined, UAReference[] | undefined, boolean, boolean];
 
 interface BaseNodeCache {
     _childByNameMap?: HierarchicalIndexMap;
@@ -1351,10 +1358,14 @@ export function BaseNode_add_backward_reference(this: BaseNodeImpl, reference: U
     const _private = BaseNode_getPrivate(this);
     const h = (<ReferenceImpl>reference).key(this.addressSpace as AddressSpacePrivate);
     // c8 ignore next
-    if (_private._referenceIdx.has(h)) {
-        //  the reference exists already in the forward references
-        //  this append for instance when the XML NotSetFile has redundant <UAReference>
-        //  in this case there is nothing to do
+    const forward = _private._referenceIdx.get(h) as ReferenceImpl | undefined;
+    if (forward) {
+        // the reference exists already among the forward references: a NodeSet2 file declares
+        // most references from both ends. Nothing to add, but the forward reference may have
+        // been added before its target existed (and memoized as such): the target is here now
+        if (!forward.node) {
+            forward.node = (reference as ReferenceImpl).node || (this.addressSpace.findNode(reference.nodeId) as BaseNode);
+        }
         return;
     }
     // c8 ignore next
