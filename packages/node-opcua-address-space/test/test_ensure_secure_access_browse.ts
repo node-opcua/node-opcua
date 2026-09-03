@@ -47,4 +47,22 @@ describe("ensureObjectIsSecure keeps the structure browsable", () => {
         const admin = makeMockSessionContext({ userName: "root", server: serverFor(makeRoles([WellKnownRoles.SecurityAdmin])) });
         admin.checkPermission(identities, PermissionType.Read).should.eql(true);
     });
+
+    it("hideStructure hides the nodes from a session without an authorised role", () => {
+        const namespace = addressSpace.getOwnNamespace();
+        const secret = namespace.addObject({ browseName: "Vault", organizedBy: addressSpace.rootFolder.objects });
+        const key = namespace.addVariable({ browseName: "Key", dataType: "String", componentOf: secret });
+        ensureObjectIsSecure(secret, { hideStructure: true });
+
+        const anonymous = makeMockSessionContext({
+            userName: "anonymous",
+            server: serverFor(makeRoles([WellKnownRoles.Anonymous]))
+        });
+        anonymous.isBrowseAccessRestricted(secret).should.eql(true);
+        anonymous.isBrowseAccessRestricted(key).should.eql(true);
+
+        const observer = makeMockSessionContext({ userName: "olga", server: serverFor(makeRoles([WellKnownRoles.Observer])) });
+        observer.isBrowseAccessRestricted(key).should.eql(false);
+        observer.checkPermission(key, PermissionType.Read).should.eql(false);
+    });
 });

@@ -16,43 +16,63 @@ function _isChannelSecure(channel: IChannelBase): boolean {
  * @param node
 
 */
-const restrictedPermissions = [
+const adminPermissions = [
     { roleId: WellKnownRoles.SecurityAdmin, permissions: allPermissions },
     { roleId: WellKnownRoles.ConfigureAdmin, permissions: allPermissions },
     { roleId: WellKnownRoles.Supervisor, permissions: allPermissions },
     { roleId: WellKnownRoles.Operator, permissions: makePermissionFlag("Browse") },
     { roleId: WellKnownRoles.Engineer, permissions: makePermissionFlag("Browse") },
-    { roleId: WellKnownRoles.Observer, permissions: makePermissionFlag("Browse") },
-    // Every session may see the structure: the mandatory children of the well-known
-    // roles (Identities ...) must stay browsable (CTT Base Info Core Structure 001).
-    // Values remain readable only by the roles above, on a signed and encrypted channel.
+    { roleId: WellKnownRoles.Observer, permissions: makePermissionFlag("Browse") }
+];
+// the structure stays visible to every session: the mandatory children of the
+// well-known roles (Identities ...) must be browsable by the anonymous session the
+// CTT uses (Base Info Core Structure 001). Values remain readable only by the roles
+// above, on a signed and encrypted channel.
+const restrictedPermissions = [
+    ...adminPermissions,
     { roleId: WellKnownRoles.Anonymous, permissions: makePermissionFlag("Browse") },
     { roleId: WellKnownRoles.AuthenticatedUser, permissions: makePermissionFlag("Browse") }
 ];
+// hideStructure: unauthorised sessions do not even see the nodes
+const hiddenPermissions = adminPermissions;
+
 const restrictedAccessFlag = makeAccessRestrictionsFlag("SigningRequired | EncryptionRequired");
+
+export interface EnsureObjectIsSecureOptions {
+    /**
+     * When true, a session without one of the authorised roles cannot browse the nodes
+     * either: the structure itself is hidden. The default (false) leaves the structure
+     * browsable by everyone, which is what the OPC UA conformance tests expect of the
+     * mandatory children of the well-known roles; only the values are protected.
+     */
+    hideStructure?: boolean;
+}
+
 /**
  * this method install the access right restriction on the given node and its children
  * values will only be available to user with role Administrator or supervisor and
  * with a signed and encrypted channel.
  *
  * @param node the node which permissions are to be adjusted
+ * @param options `hideStructure` to also hide the nodes from unauthorised sessions
  */
-export function ensureObjectIsSecure(node: BaseNode): void {
+export function ensureObjectIsSecure(node: BaseNode, options: EnsureObjectIsSecureOptions = {}): void {
+    const permissions = options.hideStructure ? hiddenPermissions : restrictedPermissions;
     node.setAccessRestrictions(restrictedAccessFlag);
     if (node.nodeClass === NodeClass.Variable) {
         const variable = node as UAVariable;
-        variable.setRolePermissions(restrictedPermissions);
+        variable.setRolePermissions(permissions);
     }
     if (node.nodeClass === NodeClass.Method) {
         const method = node as UAMethod;
-        method.setRolePermissions(restrictedPermissions);
+        method.setRolePermissions(permissions);
     }
     if (node.nodeClass === NodeClass.Object) {
         const object = node as UAObject;
-        object.setRolePermissions(restrictedPermissions);
+        object.setRolePermissions(permissions);
     }
     const children = node.findReferencesExAsObject("Aggregates", BrowseDirection.Forward);
     for (const child of children) {
-        ensureObjectIsSecure(child);
+        ensureObjectIsSecure(child, options);
     }
 }
