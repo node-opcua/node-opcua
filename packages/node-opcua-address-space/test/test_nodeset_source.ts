@@ -211,7 +211,8 @@ describe("Loading a nodeset from a source", function (this: Mocha.Suite) {
         let tmp: string;
         let gzipFile: string;
         let httpServer: http.Server;
-        let baseUrl: string;
+        const httpPort = 5797;
+        const baseUrl = `http://127.0.0.1:${httpPort}`;
         before(async () => {
             tmp = fs.mkdtempSync(path.join(os.tmpdir(), "nodeset-helpers-"));
             gzipFile = path.join(tmp, "Opc.Ua.NodeSet2.xml.gz");
@@ -230,8 +231,7 @@ describe("Loading a nodeset from a source", function (this: Mocha.Suite) {
                     res.end("no such model");
                 }
             });
-            await new Promise<void>((resolve) => httpServer.listen(0, "127.0.0.1", resolve));
-            baseUrl = `http://127.0.0.1:${(httpServer.address() as { port: number }).port}`;
+            await new Promise<void>((resolve) => httpServer.listen(httpPort, "127.0.0.1", resolve));
         });
         after(async () => {
             await new Promise<void>((resolve) => httpServer.close(() => resolve()));
