@@ -141,6 +141,7 @@ interface ScenarioResult {
     reconnected: boolean;
     lastValueBeforeBreak: number;
     valuesAfterRecovery: number[];
+    subscriptionIdChangedEvents: Array<{ subscriptionId: number; previousSubscriptionId: number }>;
 }
 
 /**
@@ -181,6 +182,11 @@ async function runReconnectionScenario(handle: ServerHandle): Promise<ScenarioRe
             TimestampsToReturn.Both
         );
 
+        const subscriptionIdChangedEvents: Array<{ subscriptionId: number; previousSubscriptionId: number }> = [];
+        subscription.on("subscriptionId_changed", (subscriptionId, previousSubscriptionId) => {
+            subscriptionIdChangedEvents.push({ subscriptionId, previousSubscriptionId });
+        });
+
         // 1) make sure the subscription is live and delivering notifications
         const valuesBefore = await collectValueChanges(
             monitoredItem,
@@ -208,7 +214,7 @@ async function runReconnectionScenario(handle: ServerHandle): Promise<ScenarioRe
         );
         const after = subscription.subscriptionId;
 
-        return { before, after, reconnected, lastValueBeforeBreak, valuesAfterRecovery };
+        return { before, after, reconnected, lastValueBeforeBreak, valuesAfterRecovery, subscriptionIdChangedEvents };
     } finally {
         await client.disconnect();
     }
@@ -247,6 +253,17 @@ describe("GHTR1 - transferred-vs-rebuilt subscription after reconnection (OPC UA
                 .some((s) => /BadUserAccessDenied/.test(s))
                 .should.eql(true, `server should have refused the transfer, got: ${handle.transferStatuses.join(", ")}`);
             result.after.should.not.eql(result.before, "subscription should have been rebuilt with a new subscriptionId");
+
+            // the application must be notified of the new subscriptionId (GITHUB ISSUE #1368): "started"
+            // is only emitted once, so a rebuild that happens later needs its own event.
+            result.subscriptionIdChangedEvents
+                .some((event) => event.subscriptionId === result.after && event.previousSubscriptionId === result.before)
+                .should.eql(
+                    true,
+                    `expected a subscriptionId_changed event from ${result.before} to ${result.after}, got: ${JSON.stringify(
+                        result.subscriptionIdChangedEvents
+                    )}`
+                );
         } finally {
             await handle.stop();
         }
@@ -266,6 +283,10 @@ describe("GHTR1 - transferred-vs-rebuilt subscription after reconnection (OPC UA
                 .some((s) => /^Good/.test(s))
                 .should.eql(true, `server should have accepted the transfer, got: ${handle.transferStatuses.join(", ")}`);
             result.after.should.eql(result.before, "subscription should have been transferred keeping its subscriptionId");
+            result.subscriptionIdChangedEvents.should.eql(
+                [],
+                "no subscriptionId_changed event should fire when the subscriptionId did not change"
+            );
         } finally {
             await handle.stop();
         }

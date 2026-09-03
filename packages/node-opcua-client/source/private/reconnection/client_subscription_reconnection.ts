@@ -65,6 +65,10 @@ export async function recreateSubscriptionAndMonitoredItem(_subscription: Client
         throw _err;
     }
 
+    if (subscription.subscriptionId !== oldSubscriptionId) {
+        subscription.emit("subscriptionId_changed", subscription.subscriptionId, oldSubscriptionId);
+    }
+
     const _test = subscription.publishEngine.getSubscription(subscription.subscriptionId);
 
     // c8 ignore next
