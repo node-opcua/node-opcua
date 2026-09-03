@@ -1073,9 +1073,11 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                     break;
                 }
 
-                // if the variable has no historizing in place reject
+                // Historizing is a real, writable attribute of a Variable (Part 3 5.6.2); a node
+                // without an HA Configuration simply cannot honour it right now, which is
+                // BadNotWritable, not BadNotSupported (that would mean the attribute never applies).
                 if (!this.getChildByName("HA Configuration")) {
-                    callback(null, StatusCodes.BadNotSupported);
+                    callback(null, StatusCodes.BadNotWritable);
                     break;
                 }
                 // check if user is allowed to do that !
