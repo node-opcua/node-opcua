@@ -3,7 +3,7 @@ import type { IAddressSpace, UADataType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { DataType } from "node-opcua-basic-types";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import type { NodeId } from "node-opcua-nodeid";
+import { makeNodeId, type NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog("validate_data_type_correctness");
 const doDebug = checkDebugFlag("validate_data_type_correctness");
@@ -12,7 +12,15 @@ function _dataType_toUADataType(addressSpace: IAddressSpace, dataType: DataType)
     assert(addressSpace);
     assert(dataType !== DataType.Null);
 
-    const dataTypeNode = addressSpace.findDataType(DataType[dataType]);
+    // Resolved by NodeId rather than by name: a built-in type's enum value is its
+    // ns=0 identifier, whereas the DataType enum's names do not all match the
+    // nodeset's browse names. DataType[24] is "Variant" but node i=24 is
+    // "BaseDataType", and DataType[22] is "ExtensionObject" but node i=22 is
+    // "Structure" - so a by-name lookup threw for any Variant-encoded value, and
+    // the escaping exception surfaced to the client as BadInternalError. (The
+    // ExtensionObject case is caught by an earlier branch and never reached here.)
+    const dataTypeNode =
+        addressSpace.findDataType(makeNodeId(dataType as number, 0)) ?? addressSpace.findDataType(DataType[dataType]);
     /* c8 ignore next */
     if (!dataTypeNode) {
         throw new Error(` Cannot find DataType ${DataType[dataType]} in address Space`);

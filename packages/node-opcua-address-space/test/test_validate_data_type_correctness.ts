@@ -149,6 +149,21 @@ describe("testing validateDataTypeCorrectness", () => {
         validateDataTypeCorrectness(addressSpace, dataType, DataType.Int32, false).should.eql(false);
     });
 
+    // The DataType enum's names do not all match the nodeset's browse names: 24 is
+    // "Variant" in the enum but "BaseDataType" as a node, 22 is "ExtensionObject" but
+    // "Structure". Resolving the incoming type by name therefore threw for any
+    // Variant-encoded value, and the escaping exception reached the client as
+    // BadInternalError - a server could not even write back a value it had just served.
+    it("0:BaseDataType: should accept a DataType.Variant variant", async () => {
+        const dataType = addressSpace.findDataType("BaseDataType")!.nodeId;
+        should.exist(dataType);
+        validateDataTypeCorrectness(addressSpace, dataType, DataType.Variant, false).should.eql(true);
+    });
+    it("0:BaseDataType: should accept a DataType.Variant variant without throwing", async () => {
+        const dataType = addressSpace.findDataType("BaseDataType")!.nodeId;
+        (() => validateDataTypeCorrectness(addressSpace, dataType, DataType.Variant, false)).should.not.throw();
+    });
+
     it("DataType.Null: should accept DataType.Null if allow Null", async () => {
         const ns = addressSpace.getNamespaceIndex("http://myorganisation.org/customTypes");
         ns.should.not.eql(-1);
