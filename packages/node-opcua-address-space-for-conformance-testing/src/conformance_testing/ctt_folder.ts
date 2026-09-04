@@ -116,11 +116,27 @@ function addVariantVariables(ctt: CttFolder): void {
     // "Variant" in CTT terms: a Variable whose DataType attribute is BaseDataType
     const scalar = new Variant({ dataType: DataType.Double, value: 3.14 });
     ctt.variable("Static/All Profiles/Scalar/Variant", "BaseDataType", -1, scalar, null);
+    // The array is the one case the CTT actually type-checks: Attribute Read 023.js
+    // asserts AssertUaValueOfType(BuiltInType.Variant, ...) against this node, so the
+    // *value* has to be Variant-encoded (BuiltInType 24), not merely stored on a
+    // BaseDataType-typed Variable. A Float64Array reads back as Double (11) and fails
+    // that assertion. Mixed element types are also the point of the type, and exercise
+    // the encoder the way the test intends.
     ctt.variable(
         "Static/All Profiles/Arrays/Variant",
         "BaseDataType",
         1,
-        new Variant({ dataType: DataType.Double, arrayType: VariantArrayType.Array, value: new Float64Array([1, 2, 3, 4, 5]) }),
+        new Variant({
+            dataType: DataType.Variant,
+            arrayType: VariantArrayType.Array,
+            value: [
+                new Variant({ dataType: DataType.Double, value: 1 }),
+                new Variant({ dataType: DataType.UInt32, value: 2 }),
+                new Variant({ dataType: DataType.String, value: "three" }),
+                new Variant({ dataType: DataType.Boolean, value: true }),
+                new Variant({ dataType: DataType.Float, value: 5.5 })
+            ]
+        }),
         [5]
     );
     ctt.variable(
