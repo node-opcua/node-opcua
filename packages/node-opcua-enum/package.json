@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-enum",
-    "version": "2.179.0",
+    "version": "2.181.0",
     "description": "pure nodejs OPCUA SDK - module enum",
     "scripts": {
         "build": "tsc -b",
@@ -13,7 +13,7 @@
     "@types": "./dist/index.d.ts",
     "devDependencies": {
         "enum": "3.0.4",
-        "node-opcua-benchmarker": "2.179.0"
+        "node-opcua-benchmarker": "2.181.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
