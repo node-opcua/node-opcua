@@ -594,10 +594,15 @@ describe("ServerEngine Subscriptions service", function (this: ITestContext) {
             publishResponse2.responseHeader.requestHandle.should.eql(101);
 
             // verify that the first keep alive message was sent after  1 time publishing interval milliseconds
+            // This asserted approximately(0) while the test title and the line above both said one
+            // publishing interval: the assertion had been fitted to a server that answered the first
+            // PublishRequest at once. OPC 10000-4 5.13.1 sends the first Message "at the end of the
+            // first publishing cycle", and CTT Subscription Basic 018 measured 19 ms where it
+            // required one RevisedPublishingInterval.
             const resultDate1 = publishResponse1.responseHeader.timestamp!;
             const delayBetweenCreateAndFirstKeepAlive = resultDate1.getTime() - creationDate.getTime();
             console.log("delayBetweenCreateAndFirstKeepAlive", delayBetweenCreateAndFirstKeepAlive);
-            delayBetweenCreateAndFirstKeepAlive.should.be.approximately(0, 100);
+            delayBetweenCreateAndFirstKeepAlive.should.be.approximately(subscription1.publishingInterval, 100);
 
             // verify that the delay between the first and second keep alive is approximately 10 x publishingInterval
             const resultDate2 = publishResponse2.responseHeader.timestamp!;

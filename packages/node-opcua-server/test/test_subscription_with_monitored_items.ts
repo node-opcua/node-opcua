@@ -401,7 +401,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: ITestContext)
 
         simulate_client_adding_publish_request(subscription.publishEngine);
 
-        test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
+        // The queued request is answered by the first keep-alive, which now goes out
+        // at the end of the first publishing cycle rather than at once (OPC 10000-4
+        // 5.13.1). Starvation therefore arrives one interval later, so the keep-alive
+        // budget plus that first cycle is needed before the subscription is LATE.
+        test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount + 1));
         subscription.state.should.eql(SubscriptionState.LATE);
 
         // Monitored item will report a new value every tick => 100 ms
