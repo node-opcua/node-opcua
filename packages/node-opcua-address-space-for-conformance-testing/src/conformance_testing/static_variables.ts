@@ -7,6 +7,7 @@ import type { Namespace, UAObject, UAVariable } from "node-opcua-address-space";
 import { make_errorLog } from "node-opcua-debug";
 import { DataType, Variant } from "node-opcua-variant";
 
+import { type CustomExtensionObject, initialValueFor } from "./custom_extension_object.js";
 import { addArrayVariable, addMultiDimensionalArrayVariable, addScalarVariable } from "./helpers.js";
 import { typeAndDefaultValue } from "./type_defaults.js";
 
@@ -17,7 +18,11 @@ const errorLog = make_errorLog("static_variables");
 // has this single line to change rather than several scattered uses.
 const here = __dirname;
 
-export async function addStaticVariables(namespace: Namespace, scalarFolder: UAObject): Promise<void> {
+export async function addStaticVariables(
+    namespace: Namespace,
+    scalarFolder: UAObject,
+    custom?: CustomExtensionObject
+): Promise<void> {
     const staticScalarFolder = namespace.addObject({
         organizedBy: scalarFolder,
         browseName: "Scalars",
@@ -29,22 +34,12 @@ export async function addStaticVariables(namespace: Namespace, scalarFolder: UAO
     for (const e of typeAndDefaultValue) {
         const dataType = e.type;
         const realType = e.realType || dataType;
-        const defaultValue = typeof e.defaultValue === "function" ? e.defaultValue() : e.defaultValue;
-        addScalarVariable(namespace, staticScalarFolder, dataType, realType, defaultValue, "");
+        addScalarVariable(namespace, staticScalarFolder, dataType, realType, initialValueFor(e, custom), "");
     }
 
-    // CTT View Minimum Continuation Point 01 012 browses the Scalar/Bool setting node
-    // with a NodeClassMask of Variable and needs at least two such references on it
-    const booleanScalar = namespace.findNode("s=Static_Scalar_Boolean") as UAVariable;
-    for (const name of ["Description1", "Description2"]) {
-        namespace.addVariable({
-            propertyOf: booleanScalar,
-            browseName: name,
-            nodeId: `s=Static_Scalar_Boolean_${name}`,
-            dataType: "String",
-            value: { dataType: DataType.String, value: `${name} of the static Boolean` }
-        });
-    }
+    // The two Description properties View Minimum Continuation Point 01 012 needs
+    // now live on the node that actually serves Static/All Profiles/Scalar/Bool -
+    // see addBooleanScalarAndArray() in ctt_folder.ts.
 
     // Load images
     async function setImage(imageType: string, filename: string): Promise<void> {
@@ -73,7 +68,7 @@ export async function addStaticVariables(namespace: Namespace, scalarFolder: UAO
     });
     for (const e of typeAndDefaultValue) {
         const realType = e.realType || e.type;
-        addArrayVariable(namespace, staticArraysFolders, e.type, e.defaultValue, realType, 10, "");
+        addArrayVariable(namespace, staticArraysFolders, e.type, initialValueFor(e, custom), realType, 10, "");
     }
 
     // Multi-dimensional array variables
@@ -86,6 +81,15 @@ export async function addStaticVariables(namespace: Namespace, scalarFolder: UAO
     });
     for (const e of typeAndDefaultValue) {
         const realType = e.realType || e.type;
-        addMultiDimensionalArrayVariable(namespace, staticMultiDimensionalArrays, e.type, e.defaultValue, realType, 2, 3, "");
+        addMultiDimensionalArrayVariable(
+            namespace,
+            staticMultiDimensionalArrays,
+            e.type,
+            initialValueFor(e, custom),
+            realType,
+            2,
+            3,
+            ""
+        );
     }
 }

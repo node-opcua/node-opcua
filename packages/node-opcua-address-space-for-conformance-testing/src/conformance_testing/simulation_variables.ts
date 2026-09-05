@@ -6,10 +6,11 @@ import { assert } from "node-opcua-assert";
 import { isValidBoolean, isValidUInt16 } from "node-opcua-basic-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
+import { type CustomExtensionObject, initialValueFor } from "./custom_extension_object.js";
 import { addVariable, findDataType, getRandomFuncForType } from "./helpers.js";
 import { typeAndDefaultValue } from "./type_defaults.js";
 
-export function addSimulationVariables(namespace: Namespace, scalarFolder: UAObject): void {
+export function addSimulationVariables(namespace: Namespace, scalarFolder: UAObject, custom?: CustomExtensionObject): void {
     let values_to_change: { dataType: DataType; randomFunc: () => unknown; variable: UAVariable }[] = [];
 
     function add_simulation_variable(
@@ -20,7 +21,7 @@ export function addSimulationVariables(namespace: Namespace, scalarFolder: UAObj
     ): UAVariable {
         realTypeName = realTypeName || dataTypeName;
         const dataType = findDataType(realTypeName);
-        const randomFunc = getRandomFuncForType(dataType);
+        const randomFunc = getRandomFuncForType(dataType, custom);
 
         // c8 ignore next
         if (typeof randomFunc !== "function") {
@@ -41,9 +42,8 @@ export function addSimulationVariables(namespace: Namespace, scalarFolder: UAObj
 
     for (const e of typeAndDefaultValue) {
         const dataType = e.type;
-        const defaultValue = typeof e.defaultValue === "function" ? e.defaultValue() : e.defaultValue;
         const realType = e.realType || dataType;
-        add_simulation_variable(simulation, dataType, defaultValue, realType);
+        add_simulation_variable(simulation, dataType, initialValueFor(e, custom), realType);
     }
 
     // Management nodes

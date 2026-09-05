@@ -8,6 +8,7 @@ import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers";
 import { addAccessRightVariables } from "./conformance_testing/access_right_variables.js";
 import { addAnalogDataItems } from "./conformance_testing/analog_data_items.js";
 import { addCttFolder } from "./conformance_testing/ctt_folder.js";
+import { type CustomExtensionObjectOptions, resolveCustomExtensionObject } from "./conformance_testing/custom_extension_object.js";
 import {
     addMultiStateDiscreteVariable,
     addMultiStateValueDiscreteVariables,
@@ -23,14 +24,29 @@ import { addSimulationVariables } from "./conformance_testing/simulation_variabl
 import { addStaticVariables } from "./conformance_testing/static_variables.js";
 import { addTriggerNodes } from "./conformance_testing/trigger_nodes.js";
 
+export type { CustomExtensionObjectOptions } from "./conformance_testing/custom_extension_object.js";
+
+export interface BuildAddressSpaceForConformanceTestingOptions {
+    mass_variable?: boolean;
+    mass_variables?: boolean;
+    /**
+     * The concrete structure the ExtensionObject variables hold. Namespace zero
+     * has none worth exercising, so a caller that has loaded a companion nodeset
+     * passes one in; without it those variables keep a null ExtensionObject.
+     * See ./conformance_testing/custom_extension_object.ts.
+     */
+    extensionObject?: CustomExtensionObjectOptions;
+}
+
 export async function build_address_space_for_conformance_testing(
     addressSpace: AddressSpace,
-    options?: { mass_variable?: boolean; mass_variables?: boolean }
+    options?: BuildAddressSpaceForConformanceTestingOptions
 ): Promise<void> {
     const namespace = addressSpace.registerNamespace("urn://node-opcua-simulator");
 
     options = options || {};
     options.mass_variable = options.mass_variable || false;
+    const custom = resolveCustomExtensionObject(addressSpace, options.extensionObject);
 
     const objectsFolder = addressSpace.findNode("ObjectsFolder") as UAObject;
 
@@ -50,19 +66,19 @@ export async function build_address_space_for_conformance_testing(
     });
 
     // Scalars/Array/MultiDim array of all sorts
-    await addStaticVariables(namespace, allProfileFolder);
+    await addStaticVariables(namespace, allProfileFolder, custom);
 
     if (options.mass_variables) {
-        addMassVariables(namespace, allProfileFolder);
+        addMassVariables(namespace, allProfileFolder, custom);
     }
     addAnalogDataItems(namespace, allProfileFolder);
 
     const dynamicVariablesFolder = namespace.addFolder(simulationFolder, {
         browseName: "Dynamic"
     });
-    addSimulationVariables(namespace, dynamicVariablesFolder);
+    addSimulationVariables(namespace, dynamicVariablesFolder, custom);
 
-    addVeryLargeArrayVariables(namespace, staticVariablesFolder);
+    addVeryLargeArrayVariables(namespace, staticVariablesFolder, custom);
 
     addPath10Deep(namespace, simulationFolder);
 

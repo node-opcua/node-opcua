@@ -83,6 +83,59 @@ describe("the CTT folder", function () {
         for (let i = 1; i <= 5; i++) names.should.containEql(i === 3 ? "twoStateDiscrete003" : `TwoStateDiscrete00${i}`);
     });
 
+    it("serves the two Bool settings itself, so the browse-name step cannot claim them", () => {
+        // Static/HA Profile/Scalar/Bool is browse-named `Bool` and would otherwise be
+        // matched by name against Static/All Profiles/Scalar|Arrays/Bool
+        const scalar = byPath("Static/All Profiles/Scalar/Bool");
+        scalar.dataType.toString().should.eql("ns=0;i=1");
+        scalar.valueRank.should.eql(-1);
+        scalar.historizing.should.eql(false);
+        // View Minimum Continuation Point 01 012 browses this node for Variables
+        should.exist(scalar.getPropertyByName("Description1"));
+        should.exist(scalar.getPropertyByName("Description2"));
+        const array = byPath("Static/All Profiles/Arrays/Bool");
+        array.valueRank.should.eql(1);
+        array.historizing.should.eql(false);
+    });
+
+    it("serves the alarm input nodes, each watched by an alarm of its type", () => {
+        const group = "Server Test/Alarms and Conditions/Supported Condition Types";
+        const expected: [string, string][] = [
+            ["AlarmConditionType Input Nodes", "AlarmConditionType"],
+            ["LimitAlarmType Input Nodes", "LimitAlarmType"],
+            ["ExclusiveLimitAlarmType Input Nodes", "ExclusiveLimitAlarmType"],
+            ["ExclusiveLevelAlarmType Input Nodes", "ExclusiveLevelAlarmType"],
+            ["ExclusiveRateOfChangeAlarmType Input Nodes", "ExclusiveRateOfChangeAlarmType"],
+            ["ExclusiveDeviationAlarmType Input Nodes", "ExclusiveDeviationAlarmType"],
+            ["NonExclusiveLimitAlarmType Input Nodes", "NonExclusiveLimitAlarmType"],
+            ["NonExclusiveLevelAlarmType Input Nodes", "NonExclusiveLevelAlarmType"],
+            ["NonExclusiveRateOfChangeAlarmType Input Nodes", "NonExclusiveRateOfChangeAlarmType"],
+            ["NonExclusiveDeviationAlarmType Input Nodes", "NonExclusiveDeviationAlarmType"],
+            ["DiscreteAlarmType Input Nodes", "DiscreteAlarmType"],
+            ["OffNormalAlarmType Input Nodes", "OffNormalAlarmType"],
+            ["SystemOffNormalAlarmType Input Nodes", "SystemOffNormalAlarmType"]
+        ];
+        // every alarm's InputNode property must point back at the setting's node
+        const inputNodeOf = new Map<string, string>();
+        const ns = addressSpace.getNamespaceIndex("urn://node-opcua-simulator");
+        const alarmSource = addressSpace.findNode(`ns=${ns};s=CTT/Server Test/Alarms and Conditions/AlarmSource`) as UAObject;
+        should.exist(alarmSource);
+        for (const alarm of alarmSource.findReferencesExAsObject("HasCondition") as UAObject[]) {
+            const inputNode = (alarm as unknown as { inputNode: UAVariable }).inputNode;
+            inputNodeOf.set(inputNode.readValue().value.value.toString(), alarm.typeDefinitionObj.browseName.name!);
+        }
+        for (const [leaf, typeName] of expected) {
+            const v = byPath(`${group}/${leaf}`);
+            v.valueRank.should.eql(-1);
+            (v.accessLevel & 3).should.eql(3, `${leaf} must be writable`);
+            should(inputNodeOf.get(v.nodeId.toString())).eql(typeName, `${leaf} must be watched by a ${typeName}`);
+        }
+        // the two setpoint settings are the deviation alarms' setpoints, not input nodes
+        for (const leaf of ["Exclusive Deviation Setpoint Source", "NonExclusive Deviation Setpoint Source"]) {
+            byPath(`${group}/${leaf}`).dataType.toString().should.eql("ns=0;i=11");
+        }
+    });
+
     it("serves historizing scalars, arrays and access-right variables", () => {
         const v = byPath("Static/HA Profile/Scalar/Bool");
         v.historizing.should.eql(true);
