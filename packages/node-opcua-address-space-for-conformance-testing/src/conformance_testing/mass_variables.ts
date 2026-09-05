@@ -3,6 +3,7 @@
  */
 import type { Namespace, UAObject } from "node-opcua-address-space";
 
+import { type CustomExtensionObject, initialValueFor } from "./custom_extension_object.js";
 import { addVariable } from "./helpers.js";
 import { typeAndDefaultValue } from "./type_defaults.js";
 
@@ -28,7 +29,7 @@ function addMassVariablesOfType(
     }
 }
 
-export function addMassVariables(namespace: Namespace, scalarFolder: UAObject): void {
+export function addMassVariables(namespace: Namespace, scalarFolder: UAObject, custom?: CustomExtensionObject): void {
     const scalarMass = namespace.addFolder(scalarFolder, {
         browseName: "Scalar_Mass",
         description: "This folder will contain 100 items per supported data-type.",
@@ -37,6 +38,6 @@ export function addMassVariables(namespace: Namespace, scalarFolder: UAObject): 
 
     for (const e of typeAndDefaultValue) {
         const realType = e.realType || e.type;
-        addMassVariablesOfType(namespace, scalarMass, e.type, e.defaultValue, realType);
+        addMassVariablesOfType(namespace, scalarMass, e.type, initialValueFor(e, custom), realType);
     }
 }

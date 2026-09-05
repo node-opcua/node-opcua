@@ -5,10 +5,13 @@ import type { Namespace, UAObject, UAVariable } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import * as ec from "node-opcua-basic-types";
 import { randomString } from "node-opcua-basic-types";
-import { AccessLevelFlag, LocalizedText, makeAccessLevelFlag, QualifiedName } from "node-opcua-data-model";
+import { AccessLevelFlag, DiagnosticInfo, LocalizedText, makeAccessLevelFlag, QualifiedName } from "node-opcua-data-model";
+import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { findBuiltInType } from "node-opcua-factory";
 import { buildVariantArray, DataType, Variant, VariantArrayType } from "node-opcua-variant";
+
+import type { CustomExtensionObject } from "./custom_extension_object.js";
 
 const debugLog = make_debugLog("helpers");
 const doDebug = checkDebugFlag("helpers");
@@ -25,7 +28,7 @@ export function getValidatorFuncForType(dataType: DataType): (value: unknown) =>
     return (f as (value: unknown) => boolean) || defaultValidator;
 }
 
-export function getRandomFuncForType(dataType: DataType): () => unknown {
+export function getRandomFuncForType(dataType: DataType, custom?: CustomExtensionObject): () => unknown {
     const dataTypeName = DataType[dataType];
     const f = (ec as Record<string, unknown>)[`random${dataTypeName}`];
 
@@ -35,9 +38,26 @@ export function getRandomFuncForType(dataType: DataType): () => unknown {
 
     switch (dataTypeName) {
         case "Variant":
+            // the value of a Variant-typed variable is itself a Variant
             return () => {
-                return new Variant();
+                return new Variant({ dataType: DataType.Double, value: Math.random() * 100 });
             };
+        case "DataValue":
+            return () => {
+                return new DataValue({
+                    value: new Variant({ dataType: DataType.Double, value: Math.random() * 100 }),
+                    sourceTimestamp: new Date()
+                });
+            };
+        case "DiagnosticInfo":
+            return () => {
+                return new DiagnosticInfo({ additionalInfo: randomString() });
+            };
+        case "ExtensionObject":
+            // the one type with no namespace-zero answer: without a concrete
+            // structure from the caller the only valid value is a null
+            // ExtensionObject, which never changes - see ./custom_extension_object.ts
+            return custom ? () => custom.random() : () => null;
         case "QualifiedName":
             return () => {
                 return new QualifiedName({ name: randomString() });

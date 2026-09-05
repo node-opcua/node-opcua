@@ -3,6 +3,7 @@
  */
 import type { Namespace, UAObject } from "node-opcua-address-space";
 
+import { type CustomExtensionObject, initialValueFor } from "./custom_extension_object.js";
 import { addArrayVariable } from "./helpers.js";
 import { typeAndDefaultValue } from "./type_defaults.js";
 
@@ -21,7 +22,7 @@ export function addPath10Deep(namespace: Namespace, simulation_folder: UAObject)
     }
 }
 
-export function addVeryLargeArrayVariables(namespace: Namespace, objectsFolder: UAObject): void {
+export function addVeryLargeArrayVariables(namespace: Namespace, objectsFolder: UAObject, custom?: CustomExtensionObject): void {
     const scalarStaticLargeArray = namespace.addObject({
         organizedBy: objectsFolder,
         browseName: "Static_Scalar_Large_Array",
@@ -30,6 +31,6 @@ export function addVeryLargeArrayVariables(namespace: Namespace, objectsFolder: 
     });
     for (const e of typeAndDefaultValue) {
         const realType = e.realType || e.type;
-        addArrayVariable(namespace, scalarStaticLargeArray, e.type, e.defaultValue, realType, 50 * 1024, "");
+        addArrayVariable(namespace, scalarStaticLargeArray, e.type, initialValueFor(e, custom), realType, 50 * 1024, "");
     }
 }

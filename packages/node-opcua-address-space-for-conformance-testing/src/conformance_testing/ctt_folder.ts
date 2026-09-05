@@ -8,107 +8,28 @@
  * is served by
  *   Objects/CTT/Static/HA Profile/Arrays/Int162D   (NodeId s=CTT/Static/HA Profile/Arrays/Int162D)
  * so a CTT project generator can fill the setting by browsing, without any
- * hand-maintained map. Only settings the rest of this address space does not
- * already serve are built here.
+ * hand-maintained map. See ./ctt_tree.ts for how a setting outside that prefix
+ * is keyed. Only settings the rest of this address space does not already serve
+ * are built here - plus the two Bool settings, see addBooleanScalarAndArray().
  *
- * Not covered (the server needs more than an address space for them):
- * Decimal, the HA Aggregates nodes, NodeDoesNotSupportServerTimestamp,
- * NodeManagement/RootNode, the alarm input nodes.
+ * Not covered, and why:
+ *   Decimal                             deprecated in OPC UA 1.05
+ *   the HA Aggregates nodes             need node-opcua-aggregates and a seeded
+ *                                       history matching the CTT's StartOfBadData*
+ *   NodeDoesNotSupportServerTimestamp   needs the variable read path to omit it
+ *   NodeManagement/RootNode             the server has no AddNodes service
+ *   Chattering Alarms                   needs an alarm that flips state on its own
+ *   DiscrepancyAlarmType Input Nodes    see ./alarm_input_nodes.ts
  */
 import fs from "node:fs";
 import path from "node:path";
 import type { AddressSpace, Namespace, UAObject, UAVariable } from "node-opcua-address-space";
 import { standardUnits } from "node-opcua-data-access";
-import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
+import { AccessLevelFlag } from "node-opcua-data-model";
 import { buildVariantArray, DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
-import { typeAndDefaultValue } from "./type_defaults.js";
-
-const readWrite = makeAccessLevelFlag("CurrentRead | CurrentWrite");
-
-/** setting leaf -> OPC UA DataType name */
-const TYPE_ALIAS: Record<string, string> = { Bool: "Boolean" };
-
-function defaultValueOf(dataTypeName: string): unknown {
-    const e = typeAndDefaultValue.find((t) => t.type === dataTypeName);
-    if (!e) throw new Error(`no default value for ${dataTypeName}`);
-    return typeof e.defaultValue === "function" ? e.defaultValue() : e.defaultValue;
-}
-
-function variantFor(dataTypeName: string, valueRank: number): { variant: Variant; arrayDimensions: number[] | null } {
-    const dataType = DataType[dataTypeName as keyof typeof DataType];
-    const defaultValue = defaultValueOf(dataTypeName);
-    if (valueRank === -1) {
-        return {
-            variant: new Variant({ dataType, arrayType: VariantArrayType.Scalar, value: defaultValue }),
-            arrayDimensions: null
-        };
-    }
-    const dimensions = valueRank === 1 ? [5] : [2, 3];
-    const length = dimensions.reduce((a, b) => a * b, 1);
-    return {
-        variant: new Variant({
-            dataType,
-            arrayType: valueRank === 1 ? VariantArrayType.Array : VariantArrayType.Matrix,
-            dimensions: valueRank === 1 ? null : dimensions,
-            value: buildVariantArray(dataType, length, defaultValue)
-        }),
-        arrayDimensions: dimensions
-    };
-}
-
-class CttFolder {
-    private readonly folders = new Map<string, UAObject>();
-
-    constructor(
-        readonly namespace: Namespace,
-        root: UAObject
-    ) {
-        this.folders.set("", root);
-    }
-
-    get addressSpace(): AddressSpace {
-        return this.namespace.addressSpace as AddressSpace;
-    }
-
-    /** the folder for a setting group, created on demand, e.g. "Static/HA Profile/Arrays" */
-    folder(relPath: string): UAObject {
-        const existing = this.folders.get(relPath);
-        if (existing) return existing;
-        const i = relPath.lastIndexOf("/");
-        const parent = this.folder(i < 0 ? "" : relPath.slice(0, i));
-        const browseName = i < 0 ? relPath : relPath.slice(i + 1);
-        const f = this.namespace.addFolder(parent, { browseName, nodeId: `s=CTT/${relPath}` });
-        this.folders.set(relPath, f);
-        return f;
-    }
-
-    nodeId(relPath: string): string {
-        return `s=CTT/${relPath}`;
-    }
-
-    /** a plain read/write variable at the given setting path */
-    variable(relPath: string, dataType: string, valueRank: number, value: Variant, arrayDimensions: number[] | null): UAVariable {
-        const i = relPath.lastIndexOf("/");
-        return this.namespace.addVariable({
-            componentOf: this.folder(relPath.slice(0, i)),
-            browseName: relPath.slice(i + 1),
-            nodeId: this.nodeId(relPath),
-            description: `CTT setting ${relPath}`,
-            dataType,
-            valueRank,
-            arrayDimensions,
-            accessLevel: readWrite,
-            userAccessLevel: readWrite,
-            value
-        });
-    }
-
-    typedVariable(relPath: string, dataTypeName: string, valueRank: number): UAVariable {
-        const { variant, arrayDimensions } = variantFor(dataTypeName, valueRank);
-        return this.variable(relPath, dataTypeName, valueRank, variant, arrayDimensions);
-    }
-}
+import { addAlarmInputNodes } from "./alarm_input_nodes.js";
+import { CttFolder, readWrite, TYPE_ALIAS } from "./ctt_tree.js";
 
 // ─── Static / All Profiles ──────────────────────────────────────────────
 
@@ -151,6 +72,40 @@ function addVariantVariables(ctt: CttFolder): void {
         }),
         [2, 3]
     );
+}
+
+/**
+ * `Static/All Profiles/Scalar/Bool` and `.../Arrays/Bool`, which the Simulation
+ * folder would otherwise serve.
+ *
+ * A generator resolves a setting by overlay, then convention, then the CTT's own
+ * default, then by *browse name*, then by rule. The HA Profile nodes below are
+ * browse-named after their setting leaf, so `Static/HA Profile/Scalar/Bool` is
+ * literally named `Bool` - and the name step matches it against the All Profiles
+ * `Bool` settings, for which there is no convention node, while the Simulation
+ * node named `Boolean` matches neither. The name step runs before the rule step,
+ * so those two settings would silently resolve to a historizing node. Every other
+ * type name is safe: `Byte`, `Double` and the rest match both nodes and the rule
+ * scoring then prefers the non-historizing one.
+ *
+ * Building the two nodes here makes the convention step answer first, which is
+ * both deterministic and where the CTT-specific extras belong - hence the two
+ * Description properties, which View Minimum Continuation Point 01 012 needs
+ * (it browses the Scalar/Bool setting node with a NodeClassMask of Variable and
+ * wants at least two such references).
+ */
+function addBooleanScalarAndArray(ctt: CttFolder): void {
+    const scalar = ctt.typedVariable("Static/All Profiles/Scalar/Bool", "Boolean", -1);
+    for (const name of ["Description1", "Description2"]) {
+        ctt.namespace.addVariable({
+            propertyOf: scalar,
+            browseName: name,
+            nodeId: ctt.nodeId(`Static/All Profiles/Scalar/Bool/${name}`),
+            dataType: "String",
+            value: new Variant({ dataType: DataType.String, value: `${name} of the static Boolean` })
+        });
+    }
+    ctt.typedVariable("Static/All Profiles/Arrays/Bool", "Boolean", 1);
 }
 
 function addImageVariable(ctt: CttFolder): void {
@@ -474,10 +429,12 @@ export function addCttFolder(namespace: Namespace, objectsFolder: UAObject): UAO
     });
     const ctt = new CttFolder(namespace, root);
     addVariantVariables(ctt);
+    addBooleanScalarAndArray(ctt);
     addImageVariable(ctt);
     addStructureVariables(ctt);
     addAnalogItemArrays(ctt);
     addArrayItems(ctt);
     addHistorizingVariables(ctt);
+    addAlarmInputNodes(ctt);
     return root;
 }

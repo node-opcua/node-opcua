@@ -4,8 +4,10 @@
 
 import * as ec from "node-opcua-basic-types";
 import { emptyGuid } from "node-opcua-basic-types";
-import { LocalizedText, QualifiedName } from "node-opcua-data-model";
+import { DiagnosticInfo, LocalizedText, QualifiedName } from "node-opcua-data-model";
+import { DataValue } from "node-opcua-data-value";
 import { coerceNodeId } from "node-opcua-nodeid";
+import { DataType, Variant } from "node-opcua-variant";
 
 export const typeAndDefaultValue = [
     { type: "Boolean", defaultValue: false },
@@ -57,5 +59,32 @@ export const typeAndDefaultValue = [
     { type: "ImageBMP", realType: "ByteString", defaultValue: null },
     { type: "ImageGIF", realType: "ByteString", defaultValue: null },
     { type: "ImageJPG", realType: "ByteString", defaultValue: null },
-    { type: "ImagePNG", realType: "ByteString", defaultValue: null }
+    { type: "ImagePNG", realType: "ByteString", defaultValue: null },
+    // The last four built-in types. `type` is the browse name *and* the DataType
+    // attribute, so it has to be a DataType the address space can resolve, while
+    // `realType` names the built-in encoding of the value. Two of them differ:
+    // the Variant DataType node is BaseDataType (i=24) and the ExtensionObject
+    // one is Structure (i=22) - "Variant" and "ExtensionObject" are encodings,
+    // not browse names, and addVariable() rejects them as DataTypes.
+    {
+        type: "BaseDataType",
+        realType: "Variant",
+        defaultValue() {
+            return new Variant({ dataType: DataType.Double, value: 0.0 });
+        }
+    },
+    // a null ExtensionObject: TypeId 0, no body - what an unassigned Structure is
+    { type: "Structure", realType: "ExtensionObject", defaultValue: null },
+    {
+        type: "DataValue",
+        defaultValue() {
+            return new DataValue({ value: new Variant({ dataType: DataType.Double, value: 0.0 }) });
+        }
+    },
+    {
+        type: "DiagnosticInfo",
+        defaultValue() {
+            return new DiagnosticInfo({});
+        }
+    }
 ];
