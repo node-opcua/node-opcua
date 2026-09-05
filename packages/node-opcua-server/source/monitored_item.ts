@@ -492,12 +492,17 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     }
 
     public setMonitoringMode(monitoringMode: MonitoringMode): StatusCode {
-        if (monitoringMode === this.monitoringMode) {
-            // nothing to do
-            return StatusCodes.BadNothingToDo;
-        }
         if (monitoringMode === MonitoringMode.Invalid) {
             return StatusCodes.BadInvalidArgument;
+        }
+        if (monitoringMode === this.monitoringMode) {
+            // Already in that mode: the request is satisfied, so the operation is
+            // Good. OPC 10000-4 5.12.4 lists Good and Bad_MonitoredItemIdInvalid as
+            // the *operation* results of SetMonitoringMode; Bad_NothingToDo is a
+            // *service* result, for a request carrying no monitoredItemIds at all.
+            // Returning it per item made an idempotent set fail: CTT Monitor Basic
+            // 020 sets an already disabled item to Disabled and requires Good.
+            return StatusCodes.Good;
         }
         const old_monitoringMode = this.monitoringMode;
 
