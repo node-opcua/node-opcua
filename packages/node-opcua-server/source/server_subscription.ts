@@ -20,7 +20,8 @@ import { assert } from "node-opcua-assert";
 import type { Byte, UInt32 } from "node-opcua-basic-types";
 import { SubscriptionDiagnosticsDataType } from "node-opcua-common";
 import { AttributeIds, isValidDataEncoding, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
-import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
+import type { TimestampsToReturn } from "node-opcua-data-value";
+import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
@@ -60,6 +61,14 @@ const debugLog = make_debugLog("server_subscription");
 const doDebug = checkDebugFlag("server_subscription");
 const warningLog = make_warningLog("server_subscription");
 const maxNotificationMessagesInQueue = 100;
+
+/**
+ * Bytes reserved for everything in a PublishResponse that is not a notification:
+ * the response and notification-message headers, the DataChangeNotification
+ * wrapper and the diagnostic-info arrays. Deliberately generous - overshooting
+ * the budget costs one extra message, exceeding it costs the whole message.
+ */
+const notificationMessageOverhead = 2048;
 
 export interface SubscriptionDiagnosticsDataTypePriv extends SubscriptionDiagnosticsDataType {
     $subscription: Subscription;
@@ -558,6 +567,25 @@ export class Subscription extends EventEmitter {
 
     public messageSent: boolean;
     public $session?: ServerSession;
+
+    /**
+     * Byte budget for one NotificationMessage, or 0 when there is no limit to
+     * respect. Taken from the maxMessageSize the client declared when it opened
+     * the channel: a response longer than that is refused by the client, which
+     * surfaces as a transport error on a Publish whose service result was Good.
+     *
+     * Overridable so a test can state a budget without a channel behind it, and
+     * so an application can be stricter than the transport if it wants to.
+     */
+    public maxNotificationMessageSizeOverride = 0;
+    public get maxNotificationMessageSize(): number {
+        if (this.maxNotificationMessageSizeOverride) {
+            return this.maxNotificationMessageSizeOverride;
+        }
+        const negotiated = this.$session?.channel?.getTransportSettings?.()?.maxMessageSize ?? 0;
+        // 0 means "no limit announced" on the wire, and is passed through as such
+        return negotiated > notificationMessageOverhead ? negotiated : 0;
+    }
     /**
      * Snapshot of the identity of the Session that owns this Subscription. It is retained when the
      * Subscription loses its Session (e.g. when it is moved to the orphan publish engine after a
@@ -1787,9 +1815,47 @@ export class Subscription extends EventEmitter {
 
         this._pending_notifications.push({
             monitoredItemId,
-            notification: notificationData,
+            notification: this._degradeIfUndeliverable(notificationData),
             publishTime: new Date(),
             start_tick: this.publishIntervalCount
+        });
+    }
+
+    /**
+     * A value larger than the whole message budget can never reach this client:
+     * it will not fit even alone in a message. Sending it anyway makes the
+     * transport tear the channel down, taking every other subscription on that
+     * channel with it, and dropping it silently leaves the client waiting for a
+     * value that will never come.
+     *
+     * So the notification is kept and only its payload is replaced: same
+     * clientHandle, same timestamps, a status of BadResponseTooLarge - "the
+     * response message size exceeds limits set by the client or server", which
+     * is exactly what happened - and no value. The client learns which item
+     * failed, the subscription lives, and the item recovers by itself when its
+     * value next fits, the status change being a change like any other.
+     */
+    private _degradeIfUndeliverable(notificationData: QueueItem | StatusChangeNotification): QueueItem | StatusChangeNotification {
+        const budget = this.maxNotificationMessageSize;
+        if (!budget || !(notificationData instanceof MonitoredItemNotification)) {
+            return notificationData;
+        }
+        // measured against an empty message, not the remaining room: a value that
+        // would have fitted alone must not be degraded, only deferred
+        if (notificationData.binaryStoreSize() + notificationMessageOverhead <= budget) {
+            return notificationData;
+        }
+        warningLog(
+            `a value for monitored item clientHandle=${notificationData.clientHandle} is ${notificationData.binaryStoreSize()} bytes,` +
+                ` more than this channel can carry (${budget}); reporting BadResponseTooLarge instead`
+        );
+        return new MonitoredItemNotification({
+            clientHandle: notificationData.clientHandle,
+            value: new DataValue({
+                statusCode: StatusCodes.BadResponseTooLarge,
+                sourceTimestamp: notificationData.value?.sourceTimestamp,
+                serverTimestamp: notificationData.value?.serverTimestamp
+            })
         });
     }
 
@@ -1827,12 +1893,33 @@ export class Subscription extends EventEmitter {
         let hasEventFieldList = 0;
         let hasMonitoredItemNotification = 0;
         const m = this.maxNotificationsPerPublish;
+        // The count is only half the bound. What a client actually refuses is a
+        // message longer than the maxMessageSize it declared in its Hello, and a
+        // count cannot express that: a Boolean notification and one carrying a
+        // 64 kB ByteString differ by four orders of magnitude, so no constant is
+        // right for both. Bytes are therefore accumulated too, and whichever
+        // limit is reached first ends the message; the rest stays queued and
+        // goes out on the next publish under moreNotifications.
+        const budget = this.maxNotificationMessageSize;
+        let bytes = budget ? notificationMessageOverhead : 0;
         while (i < m && this._pending_notifications.size > 0) {
             if (hasEventFieldList || hasMonitoredItemNotification) {
                 const notification1 = this._pending_notifications.first()?.notification;
                 if (notification1 instanceof StatusChangeNotification) {
                     break;
                 }
+            }
+            if (budget) {
+                const next = this._pending_notifications.first()?.notification;
+                const size = next && !(next instanceof StatusChangeNotification) ? next.binaryStoreSize() : 0;
+                // `i > 0` is what guarantees progress: the first notification of
+                // a message is always taken, however heavy it is, so an outsized
+                // value leads the next message rather than being deferred for
+                // ever behind an empty one.
+                if (i > 0 && bytes + size > budget) {
+                    break;
+                }
+                bytes += size;
             }
             const notification = this._pending_notifications.shift()?.notification;
             if (notification instanceof MonitoredItemNotification) {
