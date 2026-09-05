@@ -85,24 +85,24 @@ export class UAConditionImplBase<T extends UAConditionEvents & ListenerSignature
      * The condition's own child nodes, on top of the ones UABaseEventImplBase declares.
      * Installed by the address space, not by this constructor - hence `declare`.
      */
-    public declare readonly conditionClassId: UAProperty<NodeId, DataType.NodeId>;
-    public declare readonly conditionClassName: UAProperty<LocalizedText, DataType.LocalizedText>;
-    public declare readonly conditionSubClassId?: UAProperty<NodeId[], DataType.NodeId>;
-    public declare readonly conditionSubClassName?: UAProperty<LocalizedText[], DataType.LocalizedText>;
-    public declare readonly conditionName: UAProperty<UAString, DataType.String>;
-    public declare readonly branchId: UAProperty<NodeId, DataType.NodeId>;
-    public declare readonly retain: UAProperty<boolean, DataType.Boolean>;
-    public declare readonly supportsFilteredRetain: UAProperty<boolean, DataType.Boolean>;
-    public declare readonly enabledState: UATwoStateVariableEx;
-    public declare readonly quality: UAConditionVariable<StatusCode, DataType.StatusCode>;
-    public declare readonly lastSeverity: UAConditionVariable<UInt16, DataType.UInt16>;
-    public declare readonly comment: UAConditionVariable<LocalizedText, DataType.LocalizedText>;
-    public declare readonly clientUserId: UAProperty<UAString, DataType.String>;
-    public declare readonly disable: UAMethod;
-    public declare readonly enable: UAMethod;
-    public declare readonly addComment: UAMethod;
-    public declare readonly conditionRefresh: UAMethod;
-    public declare readonly conditionRefresh2: UAMethod;
+    declare public readonly conditionClassId: UAProperty<NodeId, DataType.NodeId>;
+    declare public readonly conditionClassName: UAProperty<LocalizedText, DataType.LocalizedText>;
+    declare public readonly conditionSubClassId?: UAProperty<NodeId[], DataType.NodeId>;
+    declare public readonly conditionSubClassName?: UAProperty<LocalizedText[], DataType.LocalizedText>;
+    declare public readonly conditionName: UAProperty<UAString, DataType.String>;
+    declare public readonly branchId: UAProperty<NodeId, DataType.NodeId>;
+    declare public readonly retain: UAProperty<boolean, DataType.Boolean>;
+    declare public readonly supportsFilteredRetain: UAProperty<boolean, DataType.Boolean>;
+    declare public readonly enabledState: UATwoStateVariableEx;
+    declare public readonly quality: UAConditionVariable<StatusCode, DataType.StatusCode>;
+    declare public readonly lastSeverity: UAConditionVariable<UInt16, DataType.UInt16>;
+    declare public readonly comment: UAConditionVariable<LocalizedText, DataType.LocalizedText>;
+    declare public readonly clientUserId: UAProperty<UAString, DataType.String>;
+    declare public readonly disable: UAMethod;
+    declare public readonly enable: UAMethod;
+    declare public readonly addComment: UAMethod;
+    declare public readonly conditionRefresh: UAMethod;
+    declare public readonly conditionRefresh2: UAMethod;
 
     public static defaultSeverity = 250;
     public static typeDefinition = resolveNodeId("ConditionType");

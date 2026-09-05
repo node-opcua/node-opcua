@@ -47,7 +47,7 @@ export declare interface UAOffNormalAlarmEx
  */
 export class UAOffNormalAlarmImplBase extends UADiscreteAlarmImplBase implements UAOffNormalAlarmEx {
     /** installed as a child node by the address space, not assigned here - hence `declare` */
-    public declare readonly normalState: UAProperty<NodeId, DataType.NodeId>;
+    declare public readonly normalState: UAProperty<NodeId, DataType.NodeId>;
 
     /**
      * When the value of inputNode doesn't match the normalState node value, then the alarm is raised.

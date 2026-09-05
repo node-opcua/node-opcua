@@ -94,8 +94,8 @@ export class UAMultiStateValueDiscreteImplBase<T extends Number, DT extends Data
      * Properties installed as child nodes by the address space rather than assigned by this
      * constructor - hence `declare`, which emits nothing.
      */
-    public declare readonly enumValues: UAProperty<DTEnumValue[], DataType.ExtensionObject>;
-    public declare readonly valueAsText: UAProperty<LocalizedText, DataType.LocalizedText>;
+    declare public readonly enumValues: UAProperty<DTEnumValue[], DataType.ExtensionObject>;
+    declare public readonly valueAsText: UAProperty<LocalizedText, DataType.LocalizedText>;
     public setValue(value: string | number | Int64, options?: ISetStateOptions): void {
         if (typeof value === "string") {
             const enumValues = this.enumValues.readValue().value.value;

@@ -64,7 +64,7 @@ export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMeth
         return super.parent as UAObject;
     }
 
-    public declare value?: unknown;
+    declare public value?: unknown;
     public methodDeclarationId: NodeId;
     public _getExecutableFlag?: (this: UAMethod, context: ISessionContext | null) => boolean;
 

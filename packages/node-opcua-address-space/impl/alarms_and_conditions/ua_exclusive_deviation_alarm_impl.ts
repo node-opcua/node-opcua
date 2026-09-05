@@ -28,8 +28,8 @@ import { UALimitAlarmImpl } from "./ua_limit_alarm_impl.js";
 /** @internal */
 export class UAExclusiveDeviationAlarmImplBase extends UAExclusiveLimitAlarmImplBase implements UAExclusiveDeviationAlarmEx {
     /** installed as child nodes by the address space, not assigned here - hence `declare` */
-    public declare readonly setpointNode: UAVariableT<NodeId, DataType.NodeId>;
-    public declare readonly setpointNodeNode?: UAVariableT<number, DataType.Double> | UAVariableT<number, DataType.Float>;
+    declare public readonly setpointNode: UAVariableT<NodeId, DataType.NodeId>;
+    declare public readonly setpointNodeNode?: UAVariableT<number, DataType.Double> | UAVariableT<number, DataType.Float>;
 
     public static instantiate(
         namespace: NamespacePrivate,

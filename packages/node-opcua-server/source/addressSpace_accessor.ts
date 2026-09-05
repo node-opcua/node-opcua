@@ -310,7 +310,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
                     // reports an older ServerTimestamp than this one
                     const cached =
                         attributeId === AttributeIds.Value ? (obj as unknown as { $dataValue?: DataValue }).$dataValue : undefined;
-                    if (cached && cached.statusCode.isGoodish()) {
+                    if (cached?.statusCode.isGoodish()) {
                         cached.serverTimestamp = now.timestamp;
                         cached.serverPicoseconds = now.picoseconds;
                     }

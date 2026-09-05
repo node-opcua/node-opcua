@@ -127,7 +127,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements 
     public arrayDimensions: UInt32[] | null;
     public readonly minimumSamplingInterval: number;
     // declare-only: an emitted field would hide, on a type without a default value, a child named Value
-    public declare readonly value: unknown;
+    declare public readonly value: unknown;
     public historizing: boolean;
 
     constructor(options: UAVariableTypeOptions) {

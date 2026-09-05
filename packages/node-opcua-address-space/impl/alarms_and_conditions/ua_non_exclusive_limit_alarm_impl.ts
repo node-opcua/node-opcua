@@ -30,10 +30,10 @@ export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implement
      * The four limit states, all optional: which ones exist depends on the limits configured.
      * Installed as child nodes by the address space, not assigned here - hence `declare`.
      */
-    public declare readonly highHighState?: UATwoStateVariableEx;
-    public declare readonly highState?: UATwoStateVariableEx;
-    public declare readonly lowState?: UATwoStateVariableEx;
-    public declare readonly lowLowState?: UATwoStateVariableEx;
+    declare public readonly highHighState?: UATwoStateVariableEx;
+    declare public readonly highState?: UATwoStateVariableEx;
+    declare public readonly lowState?: UATwoStateVariableEx;
+    declare public readonly lowLowState?: UATwoStateVariableEx;
 
     public static instantiate(
         namespace: NamespacePrivate,

@@ -41,15 +41,15 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
      * Installed as child nodes by the address space, not assigned here - hence `declare`.
      * enabledState, ackedState and confirmedState come from the base classes.
      */
-    public declare readonly activeState: UATwoStateVariableEx;
-    public declare readonly inputNode: UAProperty<NodeId, DataType.NodeId>;
-    public declare readonly suppressedOrShelved: UAProperty<boolean, DataType.Boolean>;
-    public declare readonly suppressedState?: UATwoStateVariableEx;
-    public declare readonly outOfServiceState?: UATwoStateVariableEx;
-    public declare readonly shelvingState?: UAShelvedStateMachineEx;
-    public declare readonly silenceState?: UATwoStateVariableEx;
-    public declare readonly latchedState?: UATwoStateVariableEx;
-    public declare readonly maxTimeShelved?: UAProperty<number, DataType.Double>;
+    declare public readonly activeState: UATwoStateVariableEx;
+    declare public readonly inputNode: UAProperty<NodeId, DataType.NodeId>;
+    declare public readonly suppressedOrShelved: UAProperty<boolean, DataType.Boolean>;
+    declare public readonly suppressedState?: UATwoStateVariableEx;
+    declare public readonly outOfServiceState?: UATwoStateVariableEx;
+    declare public readonly shelvingState?: UAShelvedStateMachineEx;
+    declare public readonly silenceState?: UATwoStateVariableEx;
+    declare public readonly latchedState?: UATwoStateVariableEx;
+    declare public readonly maxTimeShelved?: UAProperty<number, DataType.Double>;
 
     public static MaxDuration = 2 ** 31;
 

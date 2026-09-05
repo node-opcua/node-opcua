@@ -14,7 +14,7 @@ const validState = ["HighHigh", "High", "Low", "LowLow", null];
 /** @internal */
 export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implements UAExclusiveLimitAlarmEx {
     /** installed as a child node by the address space, not assigned here - hence `declare` */
-    public declare readonly limitState: UAExclusiveLimitStateMachineEx;
+    declare public readonly limitState: UAExclusiveLimitStateMachineEx;
 
     /***
      *
