@@ -50,16 +50,24 @@ export interface ICertificateManager {
 
 export interface OPCUACertificateManagerOptions {
     /**
-     * where to store the PKI
-     * default %APPDATA%/node-opcua-default
+     * The folder that **is** the PKI store: `own/`, `trusted/`, `issuers/` and
+     * `rejected/` are created directly under it. `name` is not appended.
+     *
+     * Two managers given the same `rootFolder` share one store and one
+     * private key, whatever their `name`. Give every application, and every
+     * side of an application (server side, client side), a folder of its own.
+     *
+     * @defaultValue the per-user config folder of node-opcua
+     *   (`%APPDATA%/node-opcua-default` on Windows, `~/.config/node-opcua-default` elsewhere)
      */
     rootFolder?: null | string;
 
     automaticallyAcceptUnknownCertificate?: boolean;
     /**
-     * the name of the pki store( default value = "pki" )
-     *
-     * the PKI folder will be <rootFolder>/<name>
+     * A label for this store. It does **not** change where the store lives:
+     * the folder is `rootFolder` alone. Callers that want one store per name
+     * build the path themselves, as {@link getDefaultCertificateManager} does
+     * with `rootFolder: path.join(config, name)`.
      */
     name?: string;
 

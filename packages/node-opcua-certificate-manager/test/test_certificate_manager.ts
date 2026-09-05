@@ -462,3 +462,38 @@ describe("OPCUACertificateManager with privateKeyPassphrase", function (this: Mo
         }
     });
 });
+
+describe("OPCUACertificateManager rootFolder and name", function (this: Mocha.Suite) {
+    this.timeout(Math.max(40000, this.timeout()));
+
+    it("RF01- rootFolder is the store itself: name is not appended to the path", async () => {
+        const rootFolder = path.join(_tmpFolder, "testing_root_folder_is_store");
+        fs.rmSync(rootFolder, { recursive: true, force: true });
+        const cm = new OPCUACertificateManager({ rootFolder, name: "SomeName" });
+        try {
+            await cm.initialize();
+            path.resolve(cm.rootDir).should.eql(path.resolve(rootFolder));
+            fs.existsSync(path.join(rootFolder, "own", "private", "private_key.pem")).should.eql(true);
+            fs.existsSync(path.join(rootFolder, "SomeName")).should.eql(false);
+        } finally {
+            await cm.dispose();
+        }
+    });
+
+    it("RF02- two managers with the same rootFolder and different names share one store and one private key", async () => {
+        const rootFolder = path.join(_tmpFolder, "testing_root_folder_shared");
+        fs.rmSync(rootFolder, { recursive: true, force: true });
+        const cm1 = new OPCUACertificateManager({ rootFolder, name: "first" });
+        const cm2 = new OPCUACertificateManager({ rootFolder, name: "second" });
+        try {
+            await cm1.initialize();
+            await cm2.initialize();
+            cm1.rootDir.should.eql(cm2.rootDir);
+            cm1.privateKey.should.eql(cm2.privateKey);
+            fs.readFileSync(cm1.privateKey, "utf-8").should.eql(fs.readFileSync(cm2.privateKey, "utf-8"));
+        } finally {
+            await cm1.dispose();
+            await cm2.dispose();
+        }
+    });
+});
