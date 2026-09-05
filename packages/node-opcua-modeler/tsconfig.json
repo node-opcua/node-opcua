@@ -12,6 +12,7 @@
             "path": "./tsconfig_nodejs.json"
         }
     ],
+    "files": [],
     "include": [],
     "exclude": [
         "node_modules",
