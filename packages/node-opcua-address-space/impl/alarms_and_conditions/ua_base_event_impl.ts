@@ -24,15 +24,15 @@ export class UABaseEventImplBase<T extends UABaseEventEvents & ListenerSignature
      * assigned by this constructor - hence `declare`, which emits nothing. Subclasses inherit
      * these, so the condition and alarm implementations get them too.
      */
-    public declare readonly eventId: UAProperty<Buffer, DataType.ByteString>;
-    public declare readonly eventType: UAProperty<NodeId, DataType.NodeId>;
-    public declare readonly sourceNode: UAProperty<NodeId, DataType.NodeId>;
-    public declare readonly sourceName: UAProperty<UAString, DataType.String>;
-    public declare readonly time: UAProperty<Date, DataType.DateTime>;
-    public declare readonly receiveTime: UAProperty<Date, DataType.DateTime>;
-    public declare readonly localTime?: UAProperty<DTTimeZone, DataType.ExtensionObject>;
-    public declare readonly message: UAProperty<LocalizedText, DataType.LocalizedText>;
-    public declare readonly severity: UAProperty<UInt16, DataType.UInt16>;
+    declare public readonly eventId: UAProperty<Buffer, DataType.ByteString>;
+    declare public readonly eventType: UAProperty<NodeId, DataType.NodeId>;
+    declare public readonly sourceNode: UAProperty<NodeId, DataType.NodeId>;
+    declare public readonly sourceName: UAProperty<UAString, DataType.String>;
+    declare public readonly time: UAProperty<Date, DataType.DateTime>;
+    declare public readonly receiveTime: UAProperty<Date, DataType.DateTime>;
+    declare public readonly localTime?: UAProperty<DTTimeZone, DataType.ExtensionObject>;
+    declare public readonly message: UAProperty<LocalizedText, DataType.LocalizedText>;
+    declare public readonly severity: UAProperty<UInt16, DataType.UInt16>;
 
     /**
      */

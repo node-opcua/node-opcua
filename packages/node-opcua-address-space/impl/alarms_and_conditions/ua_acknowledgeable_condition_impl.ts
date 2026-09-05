@@ -46,10 +46,10 @@ export class UAAcknowledgeableConditionImplBase<
      * Installed as child nodes by the address space, not assigned here - hence `declare`.
      * The event and condition properties come from the base classes.
      */
-    public declare readonly ackedState: UATwoStateVariableEx;
-    public declare readonly confirmedState?: UATwoStateVariableEx;
-    public declare readonly acknowledge: UAMethod;
-    public declare readonly confirm?: UAMethod;
+    declare public readonly ackedState: UATwoStateVariableEx;
+    declare public readonly confirmedState?: UATwoStateVariableEx;
+    declare public readonly acknowledge: UAMethod;
+    declare public readonly confirm?: UAMethod;
 
     /**
      */

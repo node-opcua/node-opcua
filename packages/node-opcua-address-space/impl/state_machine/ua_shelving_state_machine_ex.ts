@@ -55,26 +55,26 @@ export class UAShelvedStateMachineExImplBase extends UAStateMachineImpl implemen
      * shelving timer this class keeps. None is assigned by the constructor - hence `declare`,
      * which emits nothing.
      */
-    public declare readonly unshelveTime: UAProperty<number, DataType.Double>;
-    public declare readonly unshelved: UAState;
-    public declare readonly timedShelved: UAState;
-    public declare readonly oneShotShelved: UAState;
-    public declare readonly unshelvedToTimedShelved: UATransitionEx;
-    public declare readonly unshelvedToOneShotShelved: UATransitionEx;
-    public declare readonly timedShelvedToUnshelved: UATransitionEx;
-    public declare readonly timedShelvedToOneShotShelved: UATransitionEx;
-    public declare readonly oneShotShelvedToUnshelved: UATransitionEx;
-    public declare readonly oneShotShelvedToTimedShelved: UATransitionEx;
-    public declare readonly timedShelve: UAMethod;
-    public declare readonly timedShelve2?: UAMethod;
-    public declare readonly unshelve: UAMethod;
-    public declare readonly unshelve2?: UAMethod;
-    public declare readonly oneShotShelve: UAMethod;
-    public declare readonly oneShotShelve2?: UAMethod;
-    public declare _timer: NodeJS.Timeout | null;
-    public declare _shelvedTime: Date;
-    public declare _unshelvedTime: Date;
-    public declare _duration: number;
+    declare public readonly unshelveTime: UAProperty<number, DataType.Double>;
+    declare public readonly unshelved: UAState;
+    declare public readonly timedShelved: UAState;
+    declare public readonly oneShotShelved: UAState;
+    declare public readonly unshelvedToTimedShelved: UATransitionEx;
+    declare public readonly unshelvedToOneShotShelved: UATransitionEx;
+    declare public readonly timedShelvedToUnshelved: UATransitionEx;
+    declare public readonly timedShelvedToOneShotShelved: UATransitionEx;
+    declare public readonly oneShotShelvedToUnshelved: UATransitionEx;
+    declare public readonly oneShotShelvedToTimedShelved: UATransitionEx;
+    declare public readonly timedShelve: UAMethod;
+    declare public readonly timedShelve2?: UAMethod;
+    declare public readonly unshelve: UAMethod;
+    declare public readonly unshelve2?: UAMethod;
+    declare public readonly oneShotShelve: UAMethod;
+    declare public readonly oneShotShelve2?: UAMethod;
+    declare public _timer: NodeJS.Timeout | null;
+    declare public _shelvedTime: Date;
+    declare public _unshelvedTime: Date;
+    declare public _duration: number;
 
     public static promote(object: UAObject): UAShelvedStateMachineEx {
         const shelvingState = object as UAShelvedStateMachineExImpl;

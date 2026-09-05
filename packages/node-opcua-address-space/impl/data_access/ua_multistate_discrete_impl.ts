@@ -43,7 +43,7 @@ export class UAMultiStateDiscreteImplBase<T, DT extends DataType>
      * The EnumStrings property, installed as a child node by the address space rather than
      * assigned by this constructor - hence `declare`, which emits nothing.
      */
-    public declare readonly enumStrings: UAProperty<LocalizedText[], DataType.LocalizedText>;
+    declare public readonly enumStrings: UAProperty<LocalizedText[], DataType.LocalizedText>;
 
     public getValue(): number {
         // MultiStateDiscrete fixes its value to UInt32 (OPC 10000-8), whatever T says

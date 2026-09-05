@@ -31,22 +31,22 @@ export class UALimitAlarmImplBase extends UAAlarmConditionImplBase implements UA
      * The limits, all optional: which ones exist depends on the alarm type instantiated.
      * Installed as child nodes by the address space, not assigned here - hence `declare`.
      */
-    public declare readonly highHighLimit?: UAProperty<number, DataType.Double>;
-    public declare readonly highLimit?: UAProperty<number, DataType.Double>;
-    public declare readonly lowLimit?: UAProperty<number, DataType.Double>;
-    public declare readonly lowLowLimit?: UAProperty<number, DataType.Double>;
-    public declare readonly baseHighHighLimit?: UAProperty<number, DataType.Double>;
-    public declare readonly baseHighLimit?: UAProperty<number, DataType.Double>;
-    public declare readonly baseLowLimit?: UAProperty<number, DataType.Double>;
-    public declare readonly baseLowLowLimit?: UAProperty<number, DataType.Double>;
-    public declare readonly severityHighHigh?: UAProperty<UInt16, DataType.UInt16>;
-    public declare readonly severityHigh?: UAProperty<UInt16, DataType.UInt16>;
-    public declare readonly severityLow?: UAProperty<UInt16, DataType.UInt16>;
-    public declare readonly severityLowLow?: UAProperty<UInt16, DataType.UInt16>;
-    public declare readonly highHighDeadband?: UAProperty<number, DataType.Double>;
-    public declare readonly highDeadband?: UAProperty<number, DataType.Double>;
-    public declare readonly lowDeadband?: UAProperty<number, DataType.Double>;
-    public declare readonly lowLowDeadband?: UAProperty<number, DataType.Double>;
+    declare public readonly highHighLimit?: UAProperty<number, DataType.Double>;
+    declare public readonly highLimit?: UAProperty<number, DataType.Double>;
+    declare public readonly lowLimit?: UAProperty<number, DataType.Double>;
+    declare public readonly lowLowLimit?: UAProperty<number, DataType.Double>;
+    declare public readonly baseHighHighLimit?: UAProperty<number, DataType.Double>;
+    declare public readonly baseHighLimit?: UAProperty<number, DataType.Double>;
+    declare public readonly baseLowLimit?: UAProperty<number, DataType.Double>;
+    declare public readonly baseLowLowLimit?: UAProperty<number, DataType.Double>;
+    declare public readonly severityHighHigh?: UAProperty<UInt16, DataType.UInt16>;
+    declare public readonly severityHigh?: UAProperty<UInt16, DataType.UInt16>;
+    declare public readonly severityLow?: UAProperty<UInt16, DataType.UInt16>;
+    declare public readonly severityLowLow?: UAProperty<UInt16, DataType.UInt16>;
+    declare public readonly highHighDeadband?: UAProperty<number, DataType.Double>;
+    declare public readonly highDeadband?: UAProperty<number, DataType.Double>;
+    declare public readonly lowDeadband?: UAProperty<number, DataType.Double>;
+    declare public readonly lowLowDeadband?: UAProperty<number, DataType.Double>;
 
     public static instantiate(
         namespace: NamespacePrivate,

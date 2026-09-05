@@ -24,8 +24,8 @@ export class UATwoStateDiscreteImplBase extends UAVariableImplT<boolean, DataTyp
      * Properties installed as child nodes by the address space rather than assigned by this
      * constructor - hence `declare`, which emits nothing.
      */
-    public declare readonly falseState: UAProperty<LocalizedText, DataType.LocalizedText>;
-    public declare readonly trueState: UAProperty<LocalizedText, DataType.LocalizedText>;
+    declare public readonly falseState: UAProperty<LocalizedText, DataType.LocalizedText>;
+    declare public readonly trueState: UAProperty<LocalizedText, DataType.LocalizedText>;
     /*
      * @private
      */

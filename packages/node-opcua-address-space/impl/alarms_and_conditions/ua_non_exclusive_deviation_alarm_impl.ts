@@ -26,9 +26,9 @@ export class UANonExclusiveDeviationAlarmImplBase
     implements UANonExclusiveDeviationAlarmEx
 {
     /** installed as child nodes by the address space, not assigned here - hence `declare` */
-    public declare readonly setpointNode: UAVariableT<NodeId, DataType.NodeId>;
+    declare public readonly setpointNode: UAVariableT<NodeId, DataType.NodeId>;
     // required here, though SetPointSupport declares it optional
-    public declare readonly setpointNodeNode: UAVariableT<number, DataType.Double> | UAVariableT<number, DataType.Float>;
+    declare public readonly setpointNodeNode: UAVariableT<number, DataType.Double> | UAVariableT<number, DataType.Float>;
 
     public static instantiate(
         namespace: NamespacePrivate,

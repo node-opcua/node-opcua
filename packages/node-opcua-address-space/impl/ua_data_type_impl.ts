@@ -89,8 +89,8 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     // the EnumStrings / EnumValues children, reached through the child accessors: declared for the
     // type checker only, since an emitted class field would sit on the instance and hide the
     // accessor inherited from the prototype
-    private declare enumStrings?: UAVariable;
-    private declare enumValues?: UAVariable;
+    declare private enumStrings?: UAVariable;
+    declare private enumValues?: UAVariable;
     private $partialDefinition?: StructureFieldOptionsEx[] | EnumFieldOptions[];
     private $fullDefinition?: StructureDefinition | EnumDefinition;
 

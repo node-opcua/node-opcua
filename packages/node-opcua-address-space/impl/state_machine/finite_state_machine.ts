@@ -38,7 +38,7 @@ const debugLog = make_debugLog("finite_state_machine");
 
 export class UATransitionImplBase extends UAObjectImpl implements UATransitionEx {
     /** installed as a child node by the address space, not assigned here - hence `declare` */
-    public declare readonly transitionNumber: UAProperty<UInt32, DataType.UInt32>;
+    declare public readonly transitionNumber: UAProperty<UInt32, DataType.UInt32>;
     /* intentionnaly empty */
 }
 export type UATransitionImpl = UATransitionImplBase;
@@ -137,8 +137,8 @@ export class UAStateMachineImplBase extends UAObjectImpl implements UAStateMachi
      * cached state this class maintains. Neither is assigned by the constructor - hence
      * `declare`, which emits nothing.
      */
-    public declare readonly currentState: UAStateVariable<LocalizedText>;
-    public declare _currentStateNode: UAState | null;
+    declare public readonly currentState: UAStateVariable<LocalizedText>;
+    declare public _currentStateNode: UAState | null;
 
     public getStates(): UAState[] {
         const typeDef = this.typeDefinitionObj;
