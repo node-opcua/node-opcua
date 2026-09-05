@@ -346,7 +346,10 @@ describe("test reconnection when server stops and change it privateKey and certi
             await server.shutdown();
         }
         should.exist(_capturedError);
-        should(_capturedError?.message).match(/BadUserAccessDenied|BadIdentityTokenRejected/);
+        // the ciphertext is corrupted, so the blob either fails to decrypt or decrypts to
+        // garbage that carries no serverNonce: either way the token is malformed, and the
+        // server names that rather than claiming the credentials were refused.
+        should(_capturedError?.message).match(/BadIdentityTokenInvalid/);
         hacked.should.eql(true);
     });
     it("T6 - server shall not crash if the user identity token is corrupted ActivateSession", async () => {
