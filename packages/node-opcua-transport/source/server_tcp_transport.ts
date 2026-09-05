@@ -77,11 +77,16 @@ export function adjustLimitsWithParameters(helloMessage: IHelloAckLimits, params
         params.minBufferSize,
         params.maxBufferSize
     );
-    const maxMessageSize = clamp_value(
-        helloMessage.maxMessageSize || params.defaultMaxMessageSize,
-        params.minMaxMessageSize,
-        params.maxMaxMessageSize
-    );
+    // MaxMessageSize in the Hello is the largest response the *client* is willing
+    // to receive (OPC 10000-6 7.1.2.3), so it is a ceiling the server must not
+    // raise. clamp_value applies a floor as well, which turned a client asking
+    // for less than minMaxMessageSize into a server sending up to that floor -
+    // and the client then refusing what it had already said was too big. The
+    // floor still applies to the server's own default, chosen when the client
+    // announces no limit at all by sending zero.
+    const maxMessageSize = helloMessage.maxMessageSize
+        ? Math.min(helloMessage.maxMessageSize, params.maxMaxMessageSize)
+        : clamp_value(params.defaultMaxMessageSize, params.minMaxMessageSize, params.maxMaxMessageSize);
 
     if (!helloMessage.maxChunkCount && sendBufferSize) {
         helloMessage.maxChunkCount = Math.ceil(helloMessage.maxMessageSize / Math.min(sendBufferSize, receiveBufferSize));
