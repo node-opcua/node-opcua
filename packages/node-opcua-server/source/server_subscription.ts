@@ -1527,6 +1527,18 @@ export class Subscription extends EventEmitter {
     }
 
     private _process_keepAlive() {
+        // Still inside the very first publishing cycle: nothing may be sent yet.
+        // OPC 10000-4 5.13.1 has the first Message go out "at the end of the first
+        // publishing cycle", and _start_timer pre-loads the keep-alive counter to
+        // maxKeepAliveCount - 1 precisely so the first *tick* emits it. A
+        // PublishRequest arriving before that tick reaches here through
+        // process_subscription and would find the counter already at its limit,
+        // sending the keep-alive immediately: CTT Subscription Basic 018 asks for
+        // the first Publish response after 1 RevisedPublishingInterval and measured
+        // 19 ms. publishIntervalCount is 0 until the first tick.
+        if (this.publishIntervalCount === 0) {
+            return;
+        }
         this.increaseKeepAliveCounter();
 
         if (this.keepAliveCounterHasExpired) {

@@ -519,13 +519,25 @@ describe("Subscriptions", function (this: Mocha.Suite) {
             // in this case the subscription received a first publish request before the first tick is processed
 
             simulate_client_adding_publish_request(subscription.publishEngine);
-            subscription.state.should.eql(SubscriptionState.KEEPALIVE);
+            // The request is queued, but the subscription is still inside its first
+            // publishing cycle and nothing may go out yet: OPC 10000-4 5.13.1 sends
+            // the first Message "at the end of the first publishing cycle". This
+            // previously read KEEPALIVE, which is only reachable by having already
+            // sent the keep-alive - CTT Subscription Basic 018 measured that first
+            // response at 19 ms instead of one RevisedPublishingInterval.
+            subscription.state.should.eql(SubscriptionState.CREATING);
+            keepalive_event_spy.callCount.should.eql(0);
 
             test.clock.tick(subscription.publishingInterval);
             subscription.state.should.eql(SubscriptionState.KEEPALIVE);
             keepalive_event_spy.callCount.should.eql(1);
 
-            test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount - 1));
+            // the queued request was consumed by that keep-alive; with none left the
+            // subscription starves and goes LATE once the keep-alive budget expires.
+            // A full maxKeepAliveCount of intervals is needed, not one less: the
+            // first keep-alive now lands at the end of cycle 1 rather than at t=0,
+            // so everything after it shifts by one interval.
+            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
             subscription.state.should.eql(SubscriptionState.LATE);
             keepalive_event_spy.callCount.should.eql(1);
 
