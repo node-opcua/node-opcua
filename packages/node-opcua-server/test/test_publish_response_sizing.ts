@@ -55,28 +55,43 @@ function makeBareSubscription() {
     // the budget a client would have negotiated; stated directly because this
     // subscription deliberately has no channel behind it
     subscription.maxNotificationMessageSizeOverride = 64 * 1024;
-    return subscription as Subscription & {
-        _pending_notifications: { push(v: unknown): void; size: number };
-        _popNotificationToSend(): { notificationData?: unknown[]; binaryStoreSize(): number };
-        _addNotificationMessage(n: unknown, id?: number): void;
-    };
+    return subscription;
 }
 
+/**
+ * The batching internals are private, and intersecting Subscription with a type
+ * that re-declares them reduces to `never`. These accessors cast once, in one
+ * place, and keep the tests reading like ordinary code.
+ */
+interface SubscriptionInternals {
+    _pending_notifications: { push(v: unknown): void; size: number };
+    _popNotificationToSend(): NotificationMessageLike;
+    _addNotificationMessage(n: unknown, id?: number): void;
+}
+interface NotificationMessageLike {
+    notificationData?: unknown[];
+    binaryStoreSize(): number;
+}
+const internals = (s: Subscription) => s as unknown as SubscriptionInternals;
+const pending = (s: Subscription) => internals(s)._pending_notifications;
+const popMessage = (s: Subscription) => internals(s)._popNotificationToSend();
+const addNotification = (s: Subscription, n: unknown, id?: number) => internals(s)._addNotificationMessage(n, id);
+
 /** the DataChangeNotification items inside an assembled message */
-function monitoredItems(message: { notificationData?: unknown[] }): MonitoredItemNotification[] {
+function monitoredItems(message: NotificationMessageLike): MonitoredItemNotification[] {
     const dcn = (message.notificationData ?? []).find((n) => n instanceof DataChangeNotification) as
         | DataChangeNotification
         | undefined;
     return (dcn?.monitoredItems ?? []) as MonitoredItemNotification[];
 }
 
-function countItems(message: { notificationData?: unknown[] }): number {
+function countItems(message: NotificationMessageLike): number {
     return monitoredItems(message).length;
 }
 
-function queueNotifications(subscription: ReturnType<typeof makeBareSubscription>, count: number, bytesEach: number) {
+function queueNotifications(subscription: Subscription, count: number, bytesEach: number) {
     for (let i = 0; i < count; i++) {
-        subscription._pending_notifications.push({
+        pending(subscription).push({
             monitoredItemId: i + 1,
             notification: new MonitoredItemNotification({ clientHandle: i + 1, value: dataValueOfSize(bytesEach) }),
             publishTime: new Date(),
@@ -96,14 +111,14 @@ describe("PRS - a PublishResponse is sized to the channel, not to a count", () =
         // takes all of them and produces one oversized message
         queueNotifications(subscription, 20, 8 * 1024);
 
-        const message = subscription._popNotificationToSend();
+        const message = popMessage(subscription);
         const size = message.binaryStoreSize();
 
         size.should.be.belowOrEqual(
             MAX_MESSAGE_SIZE,
             `one message carried ${size} bytes, more than the ${MAX_MESSAGE_SIZE} the client negotiated`
         );
-        subscription._pending_notifications.size.should.be.greaterThan(0, "the remainder must stay queued");
+        pending(subscription).size.should.be.greaterThan(0, "the remainder must stay queued");
 
         subscription.terminate();
         subscription.dispose();
@@ -116,8 +131,8 @@ describe("PRS - a PublishResponse is sized to the channel, not to a count", () =
         // drain the way the publish engine would, weighing every message
         const sizes: number[] = [];
         let guard = 0;
-        while (subscription._pending_notifications.size > 0 && guard++ < 1000) {
-            sizes.push(subscription._popNotificationToSend().binaryStoreSize());
+        while (pending(subscription).size > 0 && guard++ < 1000) {
+            sizes.push(popMessage(subscription).binaryStoreSize());
         }
 
         guard.should.be.below(1000, "draining did not terminate - the subscription made no progress");
@@ -137,13 +152,13 @@ describe("PRS - a PublishResponse is sized to the channel, not to a count", () =
         queueNotifications(subscription, 1, 1024);
         queueNotifications(subscription, 1, 63000);
 
-        const first = subscription._popNotificationToSend();
-        const second = subscription._popNotificationToSend();
+        const first = popMessage(subscription);
+        const second = popMessage(subscription);
 
         countItems(first).should.eql(1, "the small value goes out on its own");
         countItems(second).should.eql(1, "the large one leads the next message, it is not dropped");
         second.binaryStoreSize().should.be.belowOrEqual(MAX_MESSAGE_SIZE);
-        subscription._pending_notifications.size.should.eql(0, "nothing left behind");
+        pending(subscription).size.should.eql(0, "nothing left behind");
 
         subscription.terminate();
         subscription.dispose();
@@ -152,12 +167,9 @@ describe("PRS - a PublishResponse is sized to the channel, not to a count", () =
     it("PRS-4 reports BadResponseTooLarge for a value that cannot fit at all", () => {
         const subscription = makeBareSubscription();
         // bigger than the whole budget: undeliverable on this channel at any split
-        subscription._addNotificationMessage(
-            new MonitoredItemNotification({ clientHandle: 42, value: dataValueOfSize(200 * 1024) }),
-            42
-        );
+        addNotification(subscription, new MonitoredItemNotification({ clientHandle: 42, value: dataValueOfSize(200 * 1024) }), 42);
 
-        const message = subscription._popNotificationToSend();
+        const message = popMessage(subscription);
         const items = monitoredItems(message);
 
         items.length.should.eql(1, "the notification is still delivered");
@@ -174,14 +186,11 @@ describe("PRS - a PublishResponse is sized to the channel, not to a count", () =
         const subscription = makeBareSubscription();
         // every one of these is far too large to share, and one is undeliverable
         queueNotifications(subscription, 3, 60 * 1024);
-        subscription._addNotificationMessage(
-            new MonitoredItemNotification({ clientHandle: 99, value: dataValueOfSize(300 * 1024) }),
-            99
-        );
+        addNotification(subscription, new MonitoredItemNotification({ clientHandle: 99, value: dataValueOfSize(300 * 1024) }), 99);
 
         let guard = 0;
-        while (subscription._pending_notifications.size > 0 && guard++ < 100) {
-            const message = subscription._popNotificationToSend();
+        while (pending(subscription).size > 0 && guard++ < 100) {
+            const message = popMessage(subscription);
             countItems(message).should.be.greaterThan(0, "an empty message would never drain the queue");
         }
         guard.should.be.below(100, "the queue drained instead of looping for ever");
@@ -192,15 +201,12 @@ describe("PRS - a PublishResponse is sized to the channel, not to a count", () =
 
     it("PRS-6 a degraded item reports normally again once its value fits", () => {
         const subscription = makeBareSubscription();
-        subscription._addNotificationMessage(
-            new MonitoredItemNotification({ clientHandle: 7, value: dataValueOfSize(200 * 1024) }),
-            7
-        );
-        subscription._popNotificationToSend();
+        addNotification(subscription, new MonitoredItemNotification({ clientHandle: 7, value: dataValueOfSize(200 * 1024) }), 7);
+        popMessage(subscription);
 
         // the same item, now with a value that fits: nothing sticky about the degradation
-        subscription._addNotificationMessage(new MonitoredItemNotification({ clientHandle: 7, value: dataValueOfSize(512) }), 7);
-        const items = monitoredItems(subscription._popNotificationToSend());
+        addNotification(subscription, new MonitoredItemNotification({ clientHandle: 7, value: dataValueOfSize(512) }), 7);
+        const items = monitoredItems(popMessage(subscription));
 
         items.length.should.eql(1);
         items[0].value.statusCode.should.eql(StatusCodes.Good, "recovery needs no special handling");
