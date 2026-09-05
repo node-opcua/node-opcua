@@ -899,9 +899,13 @@ describe("Server Side MonitoredItem", () => {
         statusCode1.should.eql(StatusCodes.Good);
         monitoredItem.monitoringMode.should.eql(MonitoringMode.Disabled);
 
-        // set mode to disabled again
+        // set mode to disabled again: idempotent, and Good. Bad_NothingToDo is a
+        // service result for a request carrying no monitoredItemIds, not an
+        // operation result of SetMonitoringMode (OPC 10000-4 5.12.4), and CTT
+        // Monitor Basic 020 sets an already disabled item to Disabled and
+        // requires Good.
         const statusCode1b = monitoredItem.setMonitoringMode(MonitoringMode.Disabled);
-        statusCode1b.should.eql(StatusCodes.BadNothingToDo);
+        statusCode1b.should.eql(StatusCodes.Good);
         monitoredItem.monitoringMode.should.eql(MonitoringMode.Disabled);
 
         // set mode to reporting
@@ -913,14 +917,14 @@ describe("Server Side MonitoredItem", () => {
         const statusCode3 = monitoredItem.setMonitoringMode(MonitoringMode.Sampling);
         statusCode3.should.eql(StatusCodes.Good);
 
-        // set mode to sampling againg
+        // set mode to sampling again: still Good, and still Sampling
         const statusCode4 = monitoredItem.setMonitoringMode(MonitoringMode.Sampling);
-        statusCode4.should.eql(StatusCodes.BadNothingToDo);
+        statusCode4.should.eql(StatusCodes.Good);
         monitoredItem.monitoringMode.should.eql(MonitoringMode.Sampling);
 
-        // set mode to sampling againg
+        // and again, to show it stays idempotent rather than degrading
         const statusCode5 = monitoredItem.setMonitoringMode(MonitoringMode.Sampling);
-        statusCode5.should.eql(StatusCodes.BadNothingToDo);
+        statusCode5.should.eql(StatusCodes.Good);
         monitoredItem.monitoringMode.should.eql(MonitoringMode.Sampling);
 
         const statusCode6 = monitoredItem.setMonitoringMode(MonitoringMode.Invalid);
@@ -931,9 +935,10 @@ describe("Server Side MonitoredItem", () => {
         statusCode8.should.eql(StatusCodes.BadInternalError);
         monitoredItem.monitoringMode.should.not.eql(MonitoringMode.Invalid);
 
+        // and after a rejected mode, setting the current one is still Good
         const statusCode9 = monitoredItem.setMonitoringMode(MonitoringMode.Sampling);
         monitoredItem.monitoringMode.should.eql(MonitoringMode.Sampling);
-        statusCode9.should.eql(StatusCodes.BadNothingToDo);
+        statusCode9.should.eql(StatusCodes.Good);
 
         monitoredItem.terminate();
         monitoredItem.dispose();
