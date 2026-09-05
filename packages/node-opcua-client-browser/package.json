@@ -35,7 +35,7 @@
         "node-opcua-transport": "2.180.0"
     },
     "devDependencies": {
-        "@playwright/test": "^1.62.1",
+        "@playwright/test": "^1.63.0",
         "@types/ws": "^8.18.1",
         "buffer": "^6.0.3",
         "esbuild": "^0.28.2",
