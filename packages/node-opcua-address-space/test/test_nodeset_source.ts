@@ -280,19 +280,28 @@ describe("Loading a nodeset from a source", function (this: Mocha.Suite) {
 
     it("turns the event loop while a chunked nodeset loads, as often as the budget says", async () => {
         const bytes = fs.readFileSync(nodesets.standard);
-        const ticks = async (yieldEveryBytes: number) => {
+        // the loader yields with setImmediate(): count those calls directly instead of sampling
+        // with a wall-clock timer, which races against parsing speed and flakes under CI load.
+        const yields = async (yieldEveryBytes: number) => {
             let count = 0;
-            const timer = setInterval(() => count++, 20);
-            const addressSpace = AddressSpace.create();
-            await generateAddressSpaceRaw(addressSpace, [{ name: "paced", source: () => bytePieces(bytes, 65536) }], {
-                yieldEveryBytes
-            });
-            addressSpace.dispose();
-            clearInterval(timer);
+            const originalSetImmediate = global.setImmediate;
+            global.setImmediate = ((callback: (...args: unknown[]) => void, ...args: unknown[]) => {
+                count++;
+                return originalSetImmediate(callback, ...args);
+            }) as typeof setImmediate;
+            try {
+                const addressSpace = AddressSpace.create();
+                await generateAddressSpaceRaw(addressSpace, [{ name: "paced", source: () => bytePieces(bytes, 65536) }], {
+                    yieldEveryBytes
+                });
+                addressSpace.dispose();
+            } finally {
+                global.setImmediate = originalSetImmediate;
+            }
             return count;
         };
         // the post-load steps turn the loop a few times on their own: measure against that
-        const quiet = await ticks(0);
-        should(await ticks(64 * 1024)).be.greaterThan(quiet + 4);
+        const quiet = await yields(0);
+        should(await yields(64 * 1024)).be.greaterThan(quiet);
     });
 });
