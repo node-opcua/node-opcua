@@ -2111,7 +2111,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         session: ServerSession,
         userTokenPolicy: UserTokenPolicy,
         userIdentityToken: UserNameIdentityToken,
-        callback: (err: Error | null, isAuthorized?: boolean) => void
+        callback: (err: Error | null, isAuthorized?: boolean, statusCode?: StatusCode) => void
     ): void {
         assert(userIdentityToken instanceof UserNameIdentityToken);
         // assert(this.isValidUserNameIdentityToken(channel, session, userTokenPolicy, userIdentityToken));
@@ -2160,15 +2160,18 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             (buff) => {
                 const result = extractPasswordFromDecryptedBlob(buff, serverNonce);
                 if (!result.valid) {
-                    return callback(null, false);
+                    // OPC UA Part 4 - Token Encryption and Proof of Possession:
+                    // the serverNonce must be appended to the password before
+                    // encryption. A blob that does not carry it is a malformed
+                    // token, not a wrong credential.
+                    return callback(null, false, StatusCodes.BadIdentityTokenInvalid);
                 }
                 validateUser(result.password);
             },
             () => {
-                // an undecryptable password blob is an authentication failure,
-                // not a server error (same observable outcome as the legacy
-                // decrypt-to-garbage-then-fail-validation path)
-                callback(null, false);
+                // an undecryptable password blob is a malformed identity token,
+                // not a server error
+                callback(null, false, StatusCodes.BadIdentityTokenInvalid);
             }
         );
     }
@@ -2224,7 +2227,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         channel: ServerSecureChannelLayer,
         session: ServerSession,
         userIdentityToken: UserIdentityToken,
-        callback: (err: Error | null, isAuthorized?: boolean) => void
+        callback: (err: Error | null, isAuthorized?: boolean, statusCode?: StatusCode) => void
     ): void {
         assert(userIdentityToken);
         assert(typeof callback === "function");
@@ -2674,14 +2677,14 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                     channel,
                     session,
                     request.userIdentityToken as UserIdentityToken,
-                    (err1: Error | null, authorized?: boolean) => {
+                    (err1: Error | null, authorized?: boolean, statusCode?: StatusCode) => {
                         /* c8 ignore next */
                         if (err1) {
                             return rejectConnection(this, StatusCodes.BadInternalError);
                         }
 
                         if (!authorized) {
-                            return rejectConnection(this, StatusCodes.BadUserAccessDenied);
+                            return rejectConnection(this, statusCode || StatusCodes.BadUserAccessDenied);
                         } else {
                             if (session.status === "active") {
                                 moveSessionToChannel(session, channel);
