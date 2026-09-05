@@ -22,7 +22,7 @@ import {
 } from "node-opcua-common";
 import { PrivateKeyPassphraseRequiredError } from "node-opcua-crypto";
 import { exploreCertificate } from "node-opcua-crypto/web";
-import { coerceLocalizedText } from "node-opcua-data-model";
+import { coerceLocalizedText, coerceLocalizedTextStrict } from "node-opcua-data-model";
 import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, displayTraceFromThisProjectOnly, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import {
@@ -842,10 +842,10 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
             response.endpoints = response.endpoints.map((endpoint: EndpointDescription) => {
                 const copy = new EndpointDescription(endpoint);
                 copy.server = new ApplicationDescription(endpoint.server);
-                copy.server.applicationName = coerceLocalizedText({
+                copy.server.applicationName = coerceLocalizedTextStrict({
                     locale: requestedLocale,
                     text: endpoint.server.applicationName.text
-                })!;
+                });
                 return copy;
             });
         }
