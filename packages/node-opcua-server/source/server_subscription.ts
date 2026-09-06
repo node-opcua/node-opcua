@@ -445,6 +445,8 @@ export interface InternalNotification {
     notification: QueueItem | StatusChangeNotification;
     publishTime: Date;
     start_tick: number;
+    /** encoded size, measured once when the notification was queued; see _degradeIfUndeliverable */
+    size?: number;
 }
 
 export interface InternalCreateMonitoredItemResult {
@@ -1843,9 +1845,11 @@ export class Subscription extends EventEmitter {
         // c8 ignore next
         doDebug && debugLog(chalk.yellow("Subscription#_addNotificationMessage"), notificationData.toString());
 
+        const { notification, size } = this._degradeIfUndeliverable(notificationData);
         this._pending_notifications.push({
             monitoredItemId,
-            notification: this._degradeIfUndeliverable(notificationData),
+            notification,
+            size,
             publishTime: new Date(),
             start_tick: this.publishIntervalCount
         });
@@ -1865,21 +1869,29 @@ export class Subscription extends EventEmitter {
      * failed, the subscription lives, and the item recovers by itself when its
      * value next fits, the status change being a change like any other.
      */
-    private _degradeIfUndeliverable(notificationData: QueueItem | StatusChangeNotification): QueueItem | StatusChangeNotification {
+    private _degradeIfUndeliverable(notificationData: QueueItem | StatusChangeNotification): {
+        notification: QueueItem | StatusChangeNotification;
+        size: number | undefined;
+    } {
         const budget = this.maxNotificationMessageSize;
         if (!budget || !(notificationData instanceof MonitoredItemNotification)) {
-            return notificationData;
+            return { notification: notificationData, size: undefined };
         }
-        // measured against an empty message, not the remaining room: a value that
-        // would have fitted alone must not be degraded, only deferred
-        if (notificationData.binaryStoreSize() + notificationMessageOverhead <= budget) {
-            return notificationData;
+        // Measured once, here, and carried on the queue entry: binaryStoreSize
+        // walks the whole structure, and the batching loop needs the same number
+        // later. Cheap per notification - a traversal, no copying - but it is the
+        // hottest path in the server and there is no reason to walk twice.
+        const size = notificationData.binaryStoreSize();
+        // compared against an empty message, not the remaining room: a value that
+        // would have fitted alone must be deferred, never degraded
+        if (size + notificationMessageOverhead <= budget) {
+            return { notification: notificationData, size };
         }
         warningLog(
-            `a value for monitored item clientHandle=${notificationData.clientHandle} is ${notificationData.binaryStoreSize()} bytes,` +
+            `a value for monitored item clientHandle=${notificationData.clientHandle} is ${size} bytes,` +
                 ` more than this channel can carry (${budget}); reporting BadResponseTooLarge instead`
         );
-        return new MonitoredItemNotification({
+        const degraded = new MonitoredItemNotification({
             clientHandle: notificationData.clientHandle,
             value: new DataValue({
                 statusCode: StatusCodes.BadResponseTooLarge,
@@ -1887,6 +1899,7 @@ export class Subscription extends EventEmitter {
                 serverTimestamp: notificationData.value?.serverTimestamp
             })
         });
+        return { notification: degraded, size: degraded.binaryStoreSize() };
     }
 
     /**
@@ -1940,8 +1953,11 @@ export class Subscription extends EventEmitter {
                 }
             }
             if (budget) {
-                const next = this._pending_notifications.first()?.notification;
-                const size = next && !(next instanceof StatusChangeNotification) ? next.binaryStoreSize() : 0;
+                const entry = this._pending_notifications.first();
+                const next = entry?.notification;
+                // measured at capture; recomputed only if this entry predates a
+                // channel that announced a limit, when none was measured then
+                const size = next && !(next instanceof StatusChangeNotification) ? (entry?.size ?? next.binaryStoreSize()) : 0;
                 // `i > 0` is what guarantees progress: the first notification of
                 // a message is always taken, however heavy it is, so an outsized
                 // value leads the next message rather than being deferred for
