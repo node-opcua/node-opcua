@@ -184,6 +184,10 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
     private _publish_request_queue: PublishData[] = [];
     private _subscriptions: { [key: string]: Subscription };
     private _closed_subscriptions: IClosedOrTransferredSubscription[] = [];
+    // used by feedReadySubscriptions to arbitrate fairly, by priority then turn order, across
+    // subscriptions of this session instead of letting whichever one ticks first monopolize the queue
+    #serveSequence = 0;
+    #lastServedAt = new WeakMap<Subscription, number>();
 
     constructor(options?: ServerSidePublishEngineOptions) {
         super();
@@ -472,6 +476,51 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             this.#_feed_late_subscription();
 
             this.#_handle_too_many_requests();
+        }
+    }
+
+    #_pickMostDeservingReadySubscription(): Subscription | null {
+        let best: Subscription | null = null;
+        let bestLastServed = Number.POSITIVE_INFINITY;
+        for (const subscription of this.subscriptions) {
+            if (!subscription.publishingEnabled) {
+                continue;
+            }
+            if (!subscription.hasPendingNotifications && !subscription.hasUncollectedMonitoredItemNotifications) {
+                continue;
+            }
+            const lastServed = this.#lastServedAt.get(subscription) ?? -1;
+            if (
+                !best ||
+                subscription.priority > best.priority ||
+                (subscription.priority === best.priority && lastServed < bestLastServed)
+            ) {
+                best = subscription;
+                bestLastServed = lastServed;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Feed every queued PublishRequest to the most deserving ready subscription of this session
+     * (highest priority, then whoever has waited longest since its last turn), instead of letting
+     * a subscription serve itself from server_subscription.ts#_tick just because its own timer
+     * happened to fire first. See FEAT-24.
+     */
+    public feedReadySubscriptions(): void {
+        while (this.pendingPublishRequestCount > 0) {
+            const subscription = this.#_pickMostDeservingReadySubscription();
+            if (!subscription) {
+                break;
+            }
+            const countBefore = this.pendingPublishRequestCount;
+            subscription.process_subscription();
+            if (this.pendingPublishRequestCount >= countBefore) {
+                // no progress: avoid spinning forever on a subscription that cannot actually consume a slot
+                break;
+            }
+            this.#lastServedAt.set(subscription, ++this.#serveSequence);
         }
     }
 

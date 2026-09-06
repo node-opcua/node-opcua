@@ -17,6 +17,13 @@ export interface IServerSidePublishEngine {
     _on_tick(): void;
     send_keep_alive_response(subscriptionId: number, future_sequence_number: number): boolean;
     _send_response(subscription: Subscription, options: PublishResponseOptions): void;
+    /**
+     * Arbitrate across every subscription this engine owns and feed the queued PublishRequests
+     * to whichever ready subscription (highest priority, then longest since last served) deserves
+     * them, instead of letting a subscription serve itself just because its own timer fired first.
+     * Optional so lightweight test doubles that only ever drive a single subscription need not implement it.
+     */
+    feedReadySubscriptions?(): void;
 }
 
 export interface IClosedOrTransferredSubscription {

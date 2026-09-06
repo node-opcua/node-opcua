@@ -1759,11 +1759,18 @@ export class Subscription extends EventEmitter {
         }
 
         if (publishEngine.pendingPublishRequestCount > 0) {
-            if (this.hasPendingNotifications) {
-                // simply pop pending notification and send it
-                this.process_subscription();
-            } else if (this.hasUncollectedMonitoredItemNotifications) {
-                this.process_subscription();
+            if (this.hasPendingNotifications || this.hasUncollectedMonitoredItemNotifications) {
+                // A sibling subscription on this same session may deserve the next queued
+                // PublishRequest more (higher priority, or waited longer at equal priority).
+                // Let the engine arbitrate across every ready subscription it owns instead of
+                // this one serving itself just because its own timer fired first (FEAT-24).
+                // Fall back to self-service for lightweight engine doubles (unit tests) that
+                // only ever attach a single subscription.
+                if (publishEngine.feedReadySubscriptions) {
+                    publishEngine.feedReadySubscriptions();
+                } else {
+                    this.process_subscription();
+                }
             } else {
                 this._process_keepAlive();
             }
