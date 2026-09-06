@@ -491,5 +491,80 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
             }
             test.server.engine.currentSessionCount.should.eql(0);
         });
+
+        // CTT 1.05.513 Session Services / Session Multiple / Err-001.js
+        // A Session belongs to the SecureChannel that created it. ActivateSession is the
+        // only Service allowed to move it to a different SecureChannel. CloseSession sent
+        // over an unrelated SecureChannel - even carrying a valid SessionId and
+        // AuthenticationToken - must be rejected with Bad_SessionIdInvalid, otherwise any
+        // peer that learns another Client's SessionId/AuthenticationToken could terminate
+        // that Client's Session.
+        it("RQB11 - server should reject a CloseSession sent from a different channel than the one owning the session (not activated)", async () => {
+            const client1 = OPCUAClient.create({});
+            await client1.connect(test.endpointUrl);
+            const client2 = OPCUAClient.create({});
+            await client2.connect(test.endpointUrl);
+            try {
+                // create a session using client1, without activating it
+                const session1 = await _createSession(client1);
+                test.server.engine.currentSessionCount.should.eql(1);
+
+                // send CloseSession for session1 over client2's (unrelated) channel
+                const request = new CloseSessionRequest({
+                    deleteSubscriptions: true
+                });
+                request.requestHeader.authenticationToken = session1.authenticationToken as import("node-opcua").NodeId;
+
+                await should(perform(client2, request))
+                    .be.rejectedWith(/BadSessionIdInvalid/)
+                    .then((err) => {
+                        err.response.should.be.instanceOf(ServiceFault);
+                        err.response.responseHeader.serviceResult.should.eql(StatusCodes.BadSessionIdInvalid);
+                    });
+
+                // the session must still be alive, and closeable from its own channel
+                test.server.engine.currentSessionCount.should.eql(1);
+                await should(client1.closeSession(session1, /* deleteSubscriptions =*/ true)).be.fulfilled();
+            } finally {
+                await client1.disconnect();
+                await client2.disconnect();
+            }
+            test.server.engine.currentSessionCount.should.eql(0);
+        });
+
+        it("RQB12 - server should reject a CloseSession sent from a different channel than the one owning the session (activated)", async () => {
+            const client1 = OPCUAClient.create({});
+            await client1.connect(test.endpointUrl);
+            const client2 = OPCUAClient.create({});
+            await client2.connect(test.endpointUrl);
+            try {
+                // create and activate a session using client1
+                const session1 = await _createSession(client1);
+                const userIdentityInfo: UserIdentityInfo = { type: UserTokenType.Anonymous };
+                await _activateSession(client1, session1, userIdentityInfo);
+                test.server.engine.currentSessionCount.should.eql(1);
+
+                // send CloseSession for session1 over client2's (unrelated) channel
+                const request = new CloseSessionRequest({
+                    deleteSubscriptions: true
+                });
+                request.requestHeader.authenticationToken = session1.authenticationToken as import("node-opcua").NodeId;
+
+                await should(perform(client2, request))
+                    .be.rejectedWith(/BadSessionIdInvalid/)
+                    .then((err) => {
+                        err.response.should.be.instanceOf(ServiceFault);
+                        err.response.responseHeader.serviceResult.should.eql(StatusCodes.BadSessionIdInvalid);
+                    });
+
+                // the session must still be alive, and closeable from its own channel
+                test.server.engine.currentSessionCount.should.eql(1);
+                await should(client1.closeSession(session1, /* deleteSubscriptions =*/ true)).be.fulfilled();
+            } finally {
+                await client1.disconnect();
+                await client2.disconnect();
+            }
+            test.server.engine.currentSessionCount.should.eql(0);
+        });
     });
 }
