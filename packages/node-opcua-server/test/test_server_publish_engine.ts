@@ -981,6 +981,141 @@ describe("Testing the server publish engine", function (this: Mocha.Suite) {
         }
     });
 
+    it("FEAT-24 a higher priority subscription should be served before a lower priority one when both compete for a scarce PublishRequest on the same session", () => {
+        const publish_server = new ServerSidePublishEngine();
+
+        // maxNotificationsPerPublish: 1 makes each serve drain exactly one backlogged item, so a
+        // subscription with several items queued stays ready across several serves in a row - this
+        // keeps the test's outcome independent of exactly how many times a tick or its self-retrigger
+        // (server_subscription.ts's process_subscription) happens to run.
+        const low = makeSubscription({
+            id: 1,
+            publishingInterval: 1000,
+            lifeTimeCount: 1000,
+            maxKeepAliveCount: 20,
+            priority: 0,
+            maxNotificationsPerPublish: 1,
+            publishEngine: publish_server,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        });
+        publish_server.add_subscription(low);
+
+        const high = makeSubscription({
+            id: 2,
+            publishingInterval: 1000,
+            lifeTimeCount: 1000,
+            maxKeepAliveCount: 20,
+            priority: 10,
+            maxNotificationsPerPublish: 1,
+            publishEngine: publish_server,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        });
+        publish_server.add_subscription(high);
+
+        const lowItem = add_mock_monitored_item(low);
+        const highItem = add_mock_monitored_item(high);
+
+        try {
+            // let both subscriptions send their initial value and reach steady state (NORMAL, messageSent)
+            publish_server._on_PublishRequest(new PublishRequest());
+            publish_server._on_PublishRequest(new PublishRequest());
+            test.clock.tick(low.publishingInterval);
+            low.sentNotificationMessageCount.should.eql(1);
+            high.sentNotificationMessageCount.should.eql(1);
+
+            // give both a deep backlog (5 changes each, drained one at a time) then starve them of
+            // requests: only 3 for 5+5 demand. Priority alone must decide who is served; `low` must
+            // not get a single one of the 3, since `high` never runs out of backlog to justify a switch.
+            for (let k = 0; k < 5; k++) {
+                lowItem.simulateMonitoredItemAddingNotification();
+                highItem.simulateMonitoredItemAddingNotification();
+            }
+            publish_server._on_PublishRequest(new PublishRequest());
+            publish_server._on_PublishRequest(new PublishRequest());
+            publish_server._on_PublishRequest(new PublishRequest());
+            test.clock.tick(low.publishingInterval);
+            test.clock.tick(0); // let any trailing re-trigger settle
+
+            high.sentNotificationMessageCount.should.eql(1 + 3);
+            low.sentNotificationMessageCount.should.eql(1);
+            publish_server.pendingPublishRequestCount.should.eql(0);
+        } finally {
+            low.terminate();
+            low.dispose();
+            high.terminate();
+            high.dispose();
+            publish_server.shutdown();
+            publish_server.dispose();
+        }
+    });
+
+    it("FEAT-24 a subscription must not be able to starve a higher priority sibling merely because its own timer fires first", () => {
+        const publish_server = new ServerSidePublishEngine();
+
+        // `low` is added (and so starts its setInterval) before `high`: on a real server, sibling
+        // subscriptions' timers are never coordinated, and this is the registration order that let
+        // whichever ticked first monopolize the queue regardless of priority (FEAT-24).
+        const low = makeSubscription({
+            id: 1,
+            publishingInterval: 1000,
+            lifeTimeCount: 1000,
+            maxKeepAliveCount: 20,
+            priority: 0,
+            publishEngine: publish_server,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        });
+        publish_server.add_subscription(low);
+
+        const high = makeSubscription({
+            id: 2,
+            publishingInterval: 1000,
+            lifeTimeCount: 1000,
+            maxKeepAliveCount: 20,
+            priority: 10,
+            publishEngine: publish_server,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        });
+        publish_server.add_subscription(high);
+
+        const lowItem = add_mock_monitored_item(low);
+        const highItem = add_mock_monitored_item(high);
+
+        try {
+            // let both subscriptions send their initial value and reach steady state, fully drained
+            publish_server._on_PublishRequest(new PublishRequest());
+            publish_server._on_PublishRequest(new PublishRequest());
+            test.clock.tick(low.publishingInterval);
+            low.sentNotificationMessageCount.should.eql(1);
+            high.sentNotificationMessageCount.should.eql(1);
+
+            // queue exactly one PublishRequest while NEITHER subscription is ready: it just sits there.
+            publish_server._on_PublishRequest(new PublishRequest());
+            flushPending();
+            publish_server.pendingPublishRequestCount.should.eql(1);
+
+            // now make both ready, then let their independent timers fire (low's registered first).
+            // it must still be `high` that gets served: fairness must not depend on tick order.
+            lowItem.simulateMonitoredItemAddingNotification();
+            highItem.simulateMonitoredItemAddingNotification();
+            test.clock.tick(low.publishingInterval);
+
+            high.sentNotificationMessageCount.should.eql(2);
+            low.sentNotificationMessageCount.should.eql(1);
+            publish_server.pendingPublishRequestCount.should.eql(0);
+        } finally {
+            low.terminate();
+            low.dispose();
+            high.terminate();
+            high.dispose();
+            publish_server.shutdown();
+            publish_server.dispose();
+        }
+    });
+
     it("ZDZ-J PublishRequest timeout, the publish engine shall return a publish response with serviceResult = BadTimeout when Publish requests have timed out", () => {
         const publish_server = new ServerSidePublishEngine();
 
