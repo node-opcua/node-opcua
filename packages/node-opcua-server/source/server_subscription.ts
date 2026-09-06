@@ -849,8 +849,8 @@ export class Subscription extends EventEmitter {
         doDebug && debugLog("terminating Subscription  ", this.id, " with ", this.monitoredItemCount, " monitored items");
 
         // dispose all monitoredItem
-        for (const monitoredItemId of [...this.monitoredItems.keys()]) {
-            const status = this.removeMonitoredItem(monitoredItemId);
+        // one pass over the pending list for the whole set, not one per item
+        for (const status of this.removeMonitoredItems([...this.monitoredItems.keys()])) {
             assert(status === StatusCodes.Good);
         }
         assert(this.monitoredItemCount === 0);
@@ -1197,6 +1197,39 @@ export class Subscription extends EventEmitter {
      * @param monitoredItemId : the id of the monitored item to get.
      */
     public removeMonitoredItem(monitoredItemId: number): StatusCode {
+        const status = this._detachMonitoredItem(monitoredItemId);
+        if (status === StatusCodes.Good) {
+            this._removePendingNotificationsFor(monitoredItemId);
+        }
+        return status;
+    }
+
+    /**
+     * Remove several monitored items, purging their queued notifications in one
+     * pass over the pending list.
+     *
+     * Removing them one at a time costs O(items x pending): dropping the queued
+     * notifications of a single item walks the whole pending list, and that walk
+     * is repeated for every item. The product is what hurts - it is invisible at
+     * ten items and grows quadratically when a subscription with a large backlog
+     * is torn down wholesale, which is exactly what DeleteMonitoredItems and
+     * terminate() do.
+     */
+    public removeMonitoredItems(monitoredItemIds: number[]): StatusCode[] {
+        const statuses = monitoredItemIds.map((id) => this._detachMonitoredItem(id));
+        const removed = new Set(monitoredItemIds.filter((_id, i) => statuses[i] === StatusCodes.Good));
+        if (removed.size) {
+            const n = this._pending_notifications.filterOut(
+                (e) => e.monitoredItemId !== undefined && removed.has(e.monitoredItemId)
+            );
+            // c8 ignore next
+            doDebug && debugLog(`Removed ${n} notifications for ${removed.size} monitored items`);
+        }
+        return statuses;
+    }
+
+    /** everything removing a monitored item does, except purging its pending notifications */
+    private _detachMonitoredItem(monitoredItemId: number): StatusCode {
         // c8 ignore next
         doDebug && debugLog("Removing monitoredIem ", monitoredItemId);
         const monitoredItem = this.monitoredItems.get(monitoredItemId);
@@ -1218,9 +1251,6 @@ export class Subscription extends EventEmitter {
         this.monitoredItems.delete(monitoredItemId);
         this.globalCounter.totalMonitoredItemCount -= 1;
 
-        this._removePendingNotificationsFor(monitoredItemId);
-        // flush pending notifications
-        // assert(this._pending_notifications.size === 0);
         return StatusCodes.Good;
     }
 
