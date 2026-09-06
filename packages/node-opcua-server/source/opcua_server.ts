@@ -3674,18 +3674,20 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                     }
                 }
 
-                const resultsPromises = request.monitoredItemIds.map(async (monitoredItemId: number) => {
+                try {
+                    // The onDeleteMonitoredItem hook is per item and may be async, so it
+                    // still runs one at a time. The removal itself is done for the whole
+                    // batch, in a single pass over the pending notifications instead of
+                    // one pass per item.
                     if (this.options.onDeleteMonitoredItem) {
-                        const monitoredItem = subscription.getMonitoredItem(monitoredItemId);
-                        if (monitoredItem) {
-                            await this.options.onDeleteMonitoredItem(subscription, monitoredItem);
+                        for (const monitoredItemId of request.monitoredItemIds) {
+                            const monitoredItem = subscription.getMonitoredItem(monitoredItemId);
+                            if (monitoredItem) {
+                                await this.options.onDeleteMonitoredItem(subscription, monitoredItem);
+                            }
                         }
                     }
-                    return subscription.removeMonitoredItem(monitoredItemId);
-                });
-
-                try {
-                    const results = await Promise.all(resultsPromises);
+                    const results = subscription.removeMonitoredItems(request.monitoredItemIds);
 
                     const response = new DeleteMonitoredItemsResponse({
                         diagnosticInfos: undefined,
