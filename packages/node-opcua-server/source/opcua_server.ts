@@ -3026,8 +3026,19 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         // this._apply_on_SessionObject(CloseSessionResponse, message, channel, function (session) {
         // });
 
-        const session = message.session;
+        const session = message.session as ServerSession | undefined;
         if (!session) {
+            sendError(StatusCodes.BadSessionIdInvalid);
+            return;
+        }
+
+        // OPC 10000-4 §5.6.4: a Session belongs to the SecureChannel that created it (or
+        // that ActivateSession last rebound it to); ActivateSession is the only Service
+        // allowed to move it. A CloseSession arriving on any other channel must be
+        // rejected with Bad_SessionIdInvalid, otherwise a peer that merely learns another
+        // Client's SessionId/AuthenticationToken could terminate that Client's Session
+        // from an unrelated channel.
+        if (session.channel !== channel) {
             sendError(StatusCodes.BadSessionIdInvalid);
             return;
         }
