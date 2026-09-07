@@ -523,6 +523,14 @@ no exceptions and nothing excluded. That is the claim this specification makes a
 Alongside it runs an **element census**: every element name is counted in the source document and
 in the regenerated one, and the two counts must agree. It exists because of §9.3.
 
+Neither check needs a model, so neither needs the tooling of §9.2. The conversion itself is one
+command:
+
+```
+npx opcua-nodeset-image xml <file.ndjson.gz>     # a document back to NodeSet2 XML
+npx opcua-nodeset-image diff <a> <b>             # two documents, record by record, either form
+```
+
 ### 9.2 An implementation: the loop through an address space
 
 The other round trip is the one that matters to somebody handing an implementation a nodeset they
@@ -542,7 +550,7 @@ resolved through *its own document's* namespace table into `<namespace uri>;i=<n
 only spelling of an id that two documents can be held to.
 
 ```
-npx opcua-nodeset-equivalence <file.xml>...
+npx opcua-nodeset-live equivalence <file.xml>...
 ```
 
 1. **records**: XML to records to NDJSON to records, field by field.

@@ -1,4 +1,9 @@
 {
+  "standard": {
+    "uri": "http://opcfoundation.org/UA/",
+    "length": 4219230,
+    "sha1": "b6c1ecd29e0c187549b24be2267ff3c12c9be6f6"
+  },
   "di": {
     "uri": "http://opcfoundation.org/UA/DI/",
     "length": 299604,

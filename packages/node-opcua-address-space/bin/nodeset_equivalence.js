@@ -1,10 +1,10 @@
-#!/usr/bin/env node
 /**
- * opcua-nodeset-equivalence: does the NDJSON form carry everything the NodeSet2 XML form carries,
- * and nothing of its own? The two forms are equipotent when the answer to both halves is yes, and
- * this tool answers them by construction rather than by inspection.
+ * The equivalence checks, run by `opcua-nodeset-live equivalence`: does the NDJSON form carry
+ * everything the NodeSet2 XML form carries, and nothing of its own? The two forms are equipotent
+ * when the answer to both halves is yes, and this answers them by construction rather than by
+ * inspection.
  *
- *   opcua-nodeset-equivalence <file.xml>... [--require <file.xml>]... [--dump <dir>] [--quiet]
+ *   opcua-nodeset-live equivalence <file.xml>... [--require <file.xml>]... [--dump <dir>] [--quiet]
  *
  * Every intermediate is kept: A, B and the two regenerated XML documents are written to --dump, or
  * to a directory under the system temp when none is given, and the path is printed. A failing
@@ -76,7 +76,7 @@ const { digestAddressSpace } = require("../distNodeJS/index.js");
 const { asFile, dependencyChain } = require("./nodeset_tool_common.js");
 
 const usage = () => {
-    console.error("usage: opcua-nodeset-equivalence <file.xml>... [--require <file.xml>]... [--dump <dir>] [--quiet]");
+    console.error("usage: opcua-nodeset-live equivalence <file.xml>... [--require <file.xml>]... [--dump <dir>] [--quiet]");
     process.exit(2);
 };
 
@@ -357,7 +357,7 @@ const sample = (items, n = 3) => [...items].slice(0, n).map((i) => JSON.stringif
  * chooses it, and without one they land under the system temp directory
  */
 function makeDump(dir) {
-    const target = dir ?? path.join(os.tmpdir(), "opcua-nodeset-equivalence");
+    const target = dir ?? path.join(os.tmpdir(), "opcua-nodeset-live-equivalence");
     let made = false;
     const written = new Set();
     return {
@@ -711,8 +711,8 @@ async function checkFile(file, options) {
     return report;
 }
 
-async function main() {
-    const { files, options } = parseArgs(process.argv.slice(2));
+async function main(argv) {
+    const { files, options } = parseArgs(argv);
     if (files.length === 0) usage();
     const dump = makeDump(options.dump);
     options.dump = dump;
@@ -747,10 +747,4 @@ async function main() {
     return failed > 0 ? 1 : 0;
 }
 
-main().then(
-    (code) => process.exit(code),
-    (err) => {
-        console.error(err.stack || err.message);
-        process.exit(1);
-    }
-);
+module.exports = { equivalence: main };

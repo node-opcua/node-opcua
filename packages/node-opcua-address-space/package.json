@@ -97,7 +97,7 @@
         "bin"
     ],
     "bin": {
-        "opcua-nodeset-equivalence": "bin/opcua-nodeset-equivalence.js",
-        "opcua-nodeset-image": "bin/opcua-nodeset-image.js"
+        "opcua-nodeset-image": "bin/opcua-nodeset-image.js",
+        "opcua-nodeset-live": "bin/opcua-nodeset-live.js"
     }
 }

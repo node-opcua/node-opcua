@@ -37,8 +37,8 @@ describe("toNodeset2XML over the record walk writes what it wrote before", funct
 
     for (const meta of nodesetCatalog) {
         const name = meta.name as string;
-        if (name === "standard" || (!update && !fixture[name])) {
-            // the UA namespace itself is not exported; a namespace absent from the fixture failed to export before
+        if (!update && !fixture[name]) {
+            // a namespace absent from the fixture failed to export before
             continue;
         }
         const files = chainOf(name).map((n) => nodesets[n as keyof typeof nodesets]);
