@@ -54,7 +54,7 @@ export interface ReaderStateParser {
     parser?: ParserLike;
     init?: (this: IReaderState, name: string, attrs: XmlAttributes, parent: IReaderState, engine: Xml2Json) => void;
     finish?: (this: IReaderState) => void;
-    startElement?: (this: IReaderState, name: string, attrs: XmlAttributes) => void;
+    startElement?: (this: IReaderState, name: string, attrs: XmlAttributes, qualifiedName?: string) => void;
     endElement?: (this: IReaderState, name: string) => void;
 }
 
@@ -72,7 +72,7 @@ export interface ReaderStateParserLike {
     // biome-ignore lint/suspicious/noExplicitAny: see comment above
     finish?: (this: any) => void;
     // biome-ignore lint/suspicious/noExplicitAny: see comment above
-    startElement?: (this: any, name: string, attrs: XmlAttributes) => void;
+    startElement?: (this: any, name: string, attrs: XmlAttributes, qualifiedName?: string) => void;
     // biome-ignore lint/suspicious/noExplicitAny: see comment above
     endElement?: (this: any, name: string) => void;
 }
@@ -82,9 +82,9 @@ export interface IReaderState {
 
     _on_finish(): void;
 
-    _on_startElement(level: number, elementName: string, attrs: XmlAttributes): void;
+    _on_startElement(level: number, elementName: string, attrs: XmlAttributes, qualifiedName?: string): void;
 
-    _on_endElement(level: number, elementName: string): void;
+    _on_endElement(level: number, elementName: string, qualifiedName?: string): void;
 
     _on_endElement2(level: number, elementName: string): void;
 
@@ -100,7 +100,7 @@ export interface ReaderStateBase extends IReaderState {}
 export class ReaderState extends ReaderStateBase {
     public _init?: (name: string, attrs: XmlAttributes, parent: IReaderState, engine: Xml2Json) => void;
     public _finish?: () => void;
-    public _startElement?: (name: string, attrs: XmlAttributes) => void;
+    public _startElement?: (name: string, attrs: XmlAttributes, qualifiedName?: string) => void;
     public _endElement?: (name: string) => void;
 
     public parser: Parser;
@@ -178,14 +178,14 @@ export class ReaderState extends ReaderStateBase {
     /**
      * @protected
      */
-    public _on_startElement(level: number, elementName: string, attrs: XmlAttributes): void {
+    public _on_startElement(level: number, elementName: string, attrs: XmlAttributes, qualifiedName?: string): void {
         this.currentLevel = level;
 
         this.chunks = [];
         this.text = "";
 
         if (this._startElement) {
-            this._startElement(elementName, attrs);
+            this._startElement(elementName, attrs, qualifiedName);
         }
         const child = this.parser[elementName];
         if (this.engine && child) {
@@ -355,13 +355,16 @@ export class Xml2Json {
                 const tag_ns = resolve_namespace(name);
                 this.currentLevel += 1;
                 if (this.current_state) {
-                    this.current_state._on_startElement(this.currentLevel, tag_ns.tag, attrs);
+                    // the stripped tag is what every parser matches on; the qualified name rides
+                    // alongside for the one reader that must reproduce the document, the fragment
+                    // cloner, which would otherwise turn <ua:ModelInfo> into <ModelInfo>
+                    this.current_state._on_startElement(this.currentLevel, tag_ns.tag, attrs, name);
                 }
             },
             onEndElement: (name: string) => {
                 const tag_ns = resolve_namespace(name);
                 if (this.current_state) {
-                    this.current_state._on_endElement(this.currentLevel, tag_ns.tag);
+                    this.current_state._on_endElement(this.currentLevel, tag_ns.tag, name);
                 }
                 this.currentLevel -= 1;
                 if (this.currentLevel === 0) {

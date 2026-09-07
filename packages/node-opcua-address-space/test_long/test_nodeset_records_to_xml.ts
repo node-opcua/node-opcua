@@ -2,6 +2,10 @@
  * The two ways a NodeSet-NDJSON document can become NodeSet2 XML again, and the claim each one
  * supports (see documentation/rfc/nodeset-ndjson.md, section 9).
  *
+ * These run over the whole published catalogue and take minutes rather than seconds, which is
+ * why they sit here and not in `test/`: `pnpm test` should stay short enough that nobody thinks
+ * twice about running it. Run them with `pnpm run test:long`, and let CI run them on every push.
+ *
  *   RTX-1  records -> XML -> records, with no address space anywhere in the loop. This is the
  *          claim about the *format*: if a record survives it unchanged, the two spellings carry
  *          the same document. It must hold for every catalog nodeset, with nothing excluded.
@@ -28,7 +32,7 @@ import {
     recordsToNodeset2XML
 } from "../dist/api/index.js";
 import { digestAddressSpace, nodesetFileToImage } from "../distNodeJS/index.js";
-import { chainOf } from "./nodeset_chain.js";
+import { chainOf } from "../test/nodeset_chain.js";
 
 /**
  * the address-space export loses something on these two, so the two ways round do not meet.
@@ -96,8 +100,8 @@ describe("NodeSet2 XML written straight from the records", function (this: Mocha
                     continue;
                 }
                 for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
-                    const left = JSON.stringify((a as Record<string, unknown>)[k]);
-                    const right = JSON.stringify((b as Record<string, unknown>)[k]);
+                    const left = JSON.stringify((a as unknown as Record<string, unknown>)[k]);
+                    const right = JSON.stringify((b as unknown as Record<string, unknown>)[k]);
                     if (left !== right) {
                         differences.push(`${key(a)}.${k}: ${String(left).slice(0, 120)} != ${String(right).slice(0, 120)}`);
                     }

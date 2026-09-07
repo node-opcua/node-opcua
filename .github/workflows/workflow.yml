@@ -149,6 +149,28 @@ jobs:
   #
   # A deliberate ephemeral port stays legal - mark it, with a reason:
   #     // check-test-ports: dynamic-ok - asks the OS for a free port, then closes it
+  nodeset_roundtrip:
+    # The conformance checks of documentation/rfc/nodeset-ndjson.md, section 9: every
+    # published nodeset through records -> NodeSet2 XML -> records, an element census of
+    # each source document against the regenerated one, and the two ways back to XML
+    # compared. They run over the whole catalogue and take minutes, which is why they are
+    # not in `pnpm test`: the standard suite has to stay short enough that nobody thinks
+    # twice about running it. They still gate, because what they protect - that the
+    # format carries the document - is not visible in any smaller test.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm run build:all
+      - name: NodeSet-NDJSON round trip over the published catalogue
+        run: pnpm --filter node-opcua-address-space run test:long
+
   check_test_ports:
     runs-on: ubuntu-latest
     timeout-minutes: 10

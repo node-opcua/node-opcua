@@ -2,7 +2,8 @@
     "extends": "../../tsconfig.test.json",
     "include": [
         "../api/**/*.ts",
-        "./**/*.ts"
+        "./**/*.ts",
+        "../test_long/**/*.ts"
     ],
     "exclude": [
         "../node_modules",

@@ -20,13 +20,15 @@ export class InternalFragmentClonerReaderState implements IReaderState {
     public initLevel = 0;
     public engine?: Xml2Json;
 
-    public _on_startElement(_level: number, elementName: string, attrs: XmlAttributes): void {
-        this._xw.startElement(elementName);
+    // the qualified name, not the stripped tag: this reader exists to reproduce a document, and
+    // `<ua:ModelInfo>` written back as `<ModelInfo>` is an element in a different namespace
+    public _on_startElement(_level: number, elementName: string, attrs: XmlAttributes, qualifiedName?: string): void {
+        this._xw.startElement(qualifiedName ?? elementName);
         for (const [attName, attValue] of Object.entries(attrs)) {
             this._xw.writeAttribute(attName, attValue);
         }
     }
-    public _on_endElement(level: number, elementName: string): void {
+    public _on_endElement(level: number, elementName: string, _qualifiedName?: string): void {
         this._xw.endElement();
         if (this.initLevel === level) {
             this.value = this._xw.toString();
