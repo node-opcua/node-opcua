@@ -76,6 +76,16 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
         }
 
         options.optionals = options.optionals || [];
+        // ActiveState is a TwoStateVariable whose texts and transition times an alarm client
+        // expects, as UAConditionImpl requests them for EnabledState. A subtype that re-declares
+        // ActiveState with only Id (ExclusiveLimitAlarmType does) would otherwise get only Id.
+        options.optionals.push(
+            "ActiveState.TrueState",
+            "ActiveState.FalseState",
+            "ActiveState.TransitionTime",
+            "ActiveState.EffectiveTransitionTime",
+            "ActiveState.EffectiveDisplayName"
+        );
         if (Object.hasOwn(options, "maxTimeShelved")) {
             options.optionals.push("MaxTimeShelved");
             assert(Number.isFinite(options.maxTimeShelved));
