@@ -1519,6 +1519,93 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: ITestContext)
             }
         });
     });
+
+    // OPC 10000-4 5.12.1.2: a requested 0 asks for the fastest practical rate, and the revised value
+    // is never below the MinSupportedSampleRate the server advertises. CTT Monitor Basic 038 warns
+    // when the answer is 0. A Variable whose MinimumSamplingInterval is 0 is still delivered on change,
+    // with the changes of one interval coalesced.
+    describe("SM1-E requested samplingInterval 0 (CTT Monitor Basic 038)", () => {
+        let uaExceptionBased: UAVariable;
+        before(() => {
+            uaExceptionBased = namespace.addVariable({
+                organizedBy: "RootFolder",
+                browseName: "ExceptionBasedVariable",
+                dataType: "UInt32",
+                value: { dataType: DataType.UInt32, value: 0 }
+            });
+            uaExceptionBased.minimumSamplingInterval.should.eql(0, "a variable without a getter is exception-based");
+        });
+
+        async function createItem(minSupportedSampleRate?: number) {
+            const subscription = makeSubscription({
+                publishingInterval: 1000,
+                maxKeepAliveCount: 20,
+                publishEngine: fake_publish_engine,
+                globalCounter: { totalMonitoredItemCount: 0 },
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000, minSupportedSampleRate }
+            });
+            const samplingFunc = install_spying_samplingFunc();
+            subscription.on("monitoredItem", (monitoredItem) => {
+                monitoredItem.samplingFunc = samplingFunc;
+            });
+            const createResult = await subscription.createMonitoredItem(
+                addressSpace,
+                TimestampsToReturn.Both,
+                new MonitoredItemCreateRequest({
+                    itemToMonitor: { nodeId: uaExceptionBased.nodeId, attributeId: AttributeIds.Value },
+                    monitoringMode: MonitoringMode.Reporting,
+                    requestedParameters: { queueSize: 100, samplingInterval: 0 }
+                })
+            );
+            createResult.statusCode.should.eql(StatusCodes.Good);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId)!;
+            // data collection is done asynchronously => let give some time for this to happen
+            test.clock.tick(5);
+            monitoredItem.queue.length.should.eql(1, "the initial value");
+            return { subscription, createResult, monitoredItem, samplingFunc };
+        }
+        const values = (monitoredItem: MonitoredItem) =>
+            monitoredItem.queue.slice(1).map((a) => (a as MonitoredItemNotification).value.value.value);
+
+        it("SM1-E-1 answers the advertised MinSupportedSampleRate and coalesces the changes of one interval", async () => {
+            const { subscription, createResult, monitoredItem, samplingFunc } = await createItem();
+            try {
+                createResult.revisedSamplingInterval.should.eql(MonitoredItem.minimumSamplingInterval);
+                monitoredItem.isExceptionBased.should.eql(true);
+
+                for (const v of [1, 2, 3, 4, 5]) {
+                    uaExceptionBased.setValueFromSource({ dataType: DataType.UInt32, value: v });
+                }
+                values(monitoredItem).should.eql([1], "the first change at once, the others folded");
+                test.clock.tick(MonitoredItem.minimumSamplingInterval);
+                values(monitoredItem).should.eql([1, 5], "the latest value when the window ends");
+
+                test.clock.tick(2 * MonitoredItem.minimumSamplingInterval);
+                uaExceptionBased.setValueFromSource({ dataType: DataType.UInt32, value: 6 });
+                values(monitoredItem).should.eql([1, 5, 6], "after a quiet window, at once again");
+
+                samplingFunc.callCount.should.eql(0, "no sampling timer");
+            } finally {
+                subscription.terminate();
+                subscription.dispose();
+            }
+        });
+
+        it("SM1-E-2 answers 0 when the server advertises MinSupportedSampleRate 0, and reports every change", async () => {
+            const { subscription, createResult, monitoredItem } = await createItem(0);
+            try {
+                createResult.revisedSamplingInterval.should.eql(0);
+                monitoredItem.isExceptionBased.should.eql(true);
+                for (const v of [7, 8, 9]) {
+                    uaExceptionBased.setValueFromSource({ dataType: DataType.UInt32, value: v });
+                }
+                values(monitoredItem).should.eql([7, 8, 9]);
+            } finally {
+                subscription.terminate();
+                subscription.dispose();
+            }
+        });
+    });
 });
 
 describe("SM2 - MonitoredItem advanced", function (this: ITestContext) {

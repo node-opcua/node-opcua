@@ -73,13 +73,29 @@ const doDebug = checkDebugFlag("monitored_item");
 const doDebug2 = doDebug && false;
 const warningLog = make_warningLog("monitored_item");
 
-function _adjust_sampling_interval(samplingInterval: number, node_minimumSamplingInterval: number): number {
+/**
+ * @param samplingInterval the requested sampling interval
+ * @param node_minimumSamplingInterval the MinimumSamplingInterval attribute of the monitored Variable (0 = exception-based)
+ * @param minSupportedSampleRate the MinSupportedSampleRate the server advertises in ServerCapabilities
+ */
+function _adjust_sampling_interval(
+    samplingInterval: number,
+    node_minimumSamplingInterval: number,
+    minSupportedSampleRate: number
+): number {
     assert(typeof node_minimumSamplingInterval === "number", "expecting a number");
 
     if (samplingInterval === 0) {
-        return node_minimumSamplingInterval === 0
-            ? samplingInterval
-            : Math.max(MonitoredItem.minimumSamplingInterval, node_minimumSamplingInterval);
+        // OPC 10000-4 5.12.1.2: 0 asks for the fastest practical rate, and the revised value is
+        // never below the MinSupportedSampleRate the server advertises (CTT Monitor Basic 038).
+        // A Variable whose MinimumSamplingInterval is 0 is still served exception-based, without a
+        // sampling timer (see MonitoredItem#isExceptionBased): the revised interval is then the
+        // window over which value changes are coalesced, the bound on how stale a reported value
+        // can be. Only a server that advertises 0 answers 0, and then delivers every change.
+        if (node_minimumSamplingInterval === 0) {
+            return minSupportedSampleRate;
+        }
+        return Math.max(MonitoredItem.minimumSamplingInterval, node_minimumSamplingInterval);
     }
     assert(samplingInterval >= 0, " this case should have been prevented outside");
     samplingInterval = samplingInterval || MonitoredItem.defaultSamplingInterval;
@@ -320,6 +336,11 @@ export interface MonitoredItemOptions extends MonitoringParameters {
     monitoredItemId: number;
     itemToMonitor?: ReadValueIdOptions;
     timestampsToReturn?: TimestampsToReturn;
+    /**
+     * the MinSupportedSampleRate the server advertises: the floor of the revised sampling
+     * interval when 0 is requested. Defaults to MonitoredItem.minimumSamplingInterval.
+     */
+    minSupportedSampleRate?: number;
 
     // MonitoringParameters
     filter: ExtensionObject | null;
@@ -436,6 +457,19 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     private _linkedItems?: number[];
     private _triggeredNotifications?: QueueItem[];
 
+    private readonly _minSupportedSampleRate: number;
+    /**
+     * true when the Value is delivered on change (value_changed listener, no sampling timer):
+     * 0 was requested on a Variable whose MinimumSamplingInterval is 0.
+     */
+    private _exceptionBased = false;
+    /**
+     * the coalescing window of an exception-based item: while it is open, further changes are
+     * folded into _pendingDataValue and the latest one is recorded when the window ends.
+     */
+    private _coalesceTimer: NodeJS.Timeout | null = null;
+    private _pendingDataValue: DataValue | null = null;
+
     constructor(options: MonitoredItemOptions) {
         super();
 
@@ -443,7 +477,10 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         assert(!options.monitoringMode, "use setMonitoring mode explicitly to activate the monitored item");
 
         options.itemToMonitor = options.itemToMonitor || defaultItemToMonitor;
+        // _set_parameters reads the attributeId: an item on a non-Value attribute keeps a requested 0
+        this.itemToMonitor = options.itemToMonitor as ReadValueIdOptions & { attributeId: AttributeIds };
 
+        this._minSupportedSampleRate = options.minSupportedSampleRate ?? MonitoredItem.minimumSamplingInterval;
         this._samplingId = undefined;
         this.clientHandle = 0; // invalid
         this.filter = null;
@@ -460,8 +497,6 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         this.#monitoringMode = MonitoringMode.Invalid;
 
         this.timestampsToReturn = coerceTimestampsToReturn(options.timestampsToReturn);
-
-        this.itemToMonitor = options.itemToMonitor as ReadValueIdOptions & { attributeId: AttributeIds };
 
         this._node = null;
         this._semantic_version = 0;
@@ -568,6 +603,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         this.removeAllListeners();
 
         assert(!this._samplingId);
+        assert(!this._coalesceTimer);
         assert(!this._value_changed_callback);
         assert(!this._semantic_changed_callback);
         assert(!this._attribute_changed_callback);
@@ -584,6 +620,15 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             typeof this._value_changed_callback === "function" ||
             typeof this._attribute_changed_callback === "function"
         );
+    }
+
+    /**
+     * true when the Value attribute is delivered on change rather than sampled by a timer:
+     * the client requested a samplingInterval of 0 on a Variable whose MinimumSamplingInterval
+     * is 0. The revised samplingInterval is then the coalescing window (0 = every change).
+     */
+    public get isExceptionBased(): boolean {
+        return this._exceptionBased;
     }
 
     public toJSON(): Record<string, string | number | undefined> {
@@ -841,6 +886,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         assert(monitoringParameters instanceof MonitoringParameters);
 
         const old_samplingInterval = this.samplingInterval;
+        const old_exceptionBased = this._exceptionBased;
 
         this.timestampsToReturn = timestampsToReturn || this.timestampsToReturn;
 
@@ -852,7 +898,13 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 statusCode: StatusCodes.Good
             });
         }
-        if (old_samplingInterval !== 0 && monitoringParameters.samplingInterval === 0) {
+        if (
+            this.itemToMonitor.attributeId === AttributeIds.Value &&
+            !old_exceptionBased &&
+            monitoringParameters.samplingInterval === 0
+        ) {
+            // a sampled item stays sampled: 0 asks for the fastest timer, not for on-change delivery
+            // (an item on another attribute is never sampled: it keeps the 0 it asked for)
             monitoringParameters.samplingInterval = MonitoredItem.minimumSamplingInterval; // fastest possible
         }
 
@@ -862,7 +914,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
 
         this._adjust_queue_to_match_new_queue_size();
 
-        this._adjustSampling(old_samplingInterval);
+        this._adjustSampling(old_samplingInterval, old_exceptionBased);
 
         if (monitoringParameters.filter) {
             if (!this.node) {
@@ -1021,13 +1073,13 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         }
 
         if (this._value_changed_callback) {
-            // samplingInterval was 0 for a exception-based data Item
-            // we setup a event listener that we need to unwind here
+            // exception-based data item: we setup a event listener that we need to unwind here
             assert(typeof this._value_changed_callback === "function");
             assert(!this._samplingId);
 
             (this.node as UAVariable).removeListener("value_changed", this._value_changed_callback);
             this._value_changed_callback = null;
+            this._close_coalesce_window();
         }
 
         if (this._semantic_changed_callback) {
@@ -1041,6 +1093,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         }
 
         assert(!this._samplingId);
+        assert(!this._coalesceTimer);
         assert(!this._value_changed_callback);
         assert(!this._semantic_changed_callback);
         assert(!this._attribute_changed_callback);
@@ -1050,6 +1103,70 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     private _on_value_changed(dataValue: DataValue, indexRange?: NumericRange | null) {
         assert(dataValue instanceof DataValue);
         this.recordValue(dataValue, false, indexRange ?? undefined);
+    }
+
+    /**
+     * the value_changed listener of an exception-based item.
+     *
+     * At most one notification per revised samplingInterval: the first change after a quiet
+     * period is recorded at once and opens a window; changes inside the window are folded, the
+     * latest one being recorded when the window ends - what a sampling server would deliver
+     * at that instant. The DataChangeFilter and the queue logic are applied by recordValue as
+     * usual. This also bounds the cost of a fast writer, which the queue alone did not.
+     */
+    private _on_value_changed_exception_based(dataValue: DataValue, indexRange?: NumericRange | null) {
+        if (this.samplingInterval <= 0) {
+            // the server advertises MinSupportedSampleRate 0: every change goes out
+            this._on_value_changed(dataValue, indexRange);
+            return;
+        }
+        if (!this._coalesceTimer) {
+            this._on_value_changed(dataValue, indexRange);
+            this._coalesceTimer = setTimeout(() => this._on_coalesce_window_end(), this.samplingInterval);
+            return;
+        }
+        // inside the window: recordValue would ignore a write outside the monitored range, so do not
+        // let it stand for the value at the end of the window
+        if (
+            indexRange &&
+            this.itemToMonitor.indexRange &&
+            !NumericRange.overlap(indexRange as NumericalRange0, this.itemToMonitor.indexRange as NumericalRange0)
+        ) {
+            return;
+        }
+        this._pendingDataValue = dataValue;
+    }
+
+    private _on_coalesce_window_end() {
+        this._coalesceTimer = null;
+        if (!this._pendingDataValue) {
+            return; // a quiet window: the next change is recorded at once
+        }
+        this._record_pending_value();
+        // something was folded: open the next window, so a steady writer stays at one
+        // notification per interval instead of two (the flush, then the next change at once)
+        this._coalesceTimer = setTimeout(() => this._on_coalesce_window_end(), this.samplingInterval);
+    }
+
+    private _record_pending_value() {
+        const dataValue = this._pendingDataValue;
+        this._pendingDataValue = null;
+        if (dataValue && this.itemToMonitor) {
+            // the folded writes all overlap the monitored range: let recordValue compare the values
+            this._on_value_changed(dataValue);
+        }
+    }
+
+    /**
+     * ends the coalescing window; a folded value is recorded rather than lost, so that
+     * a modify() restarting the item, or a disable, sees the latest value in the queue.
+     */
+    private _close_coalesce_window() {
+        if (this._coalesceTimer) {
+            clearTimeout(this._coalesceTimer);
+            this._coalesceTimer = null;
+        }
+        this._record_pending_value();
     }
 
     private _on_semantic_changed() {
@@ -1186,12 +1303,12 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             return;
         }
 
-        if (this.samplingInterval === 0) {
+        if (this._exceptionBased) {
             // we have a exception-based dataItem : event based model, so we do not need a timer
-            // rather , we setup the "value_changed_event";
+            // rather , we setup the "value_changed_event"; samplingInterval is the coalescing window
             if (!this._value_changed_callback) {
                 assert(!this._semantic_changed_callback);
-                this._value_changed_callback = this._on_value_changed.bind(this);
+                this._value_changed_callback = this._on_value_changed_exception_based.bind(this);
                 this._semantic_changed_callback = this._on_semantic_changed.bind(this);
                 if (this.node.nodeClass === NodeClass.Variable) {
                     this.node.on("value_changed", this._value_changed_callback);
@@ -1238,15 +1355,23 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         // exception-based model. The fastest supported sampling interval may be equal to 0, which indicates
         // that the data item is exception-based rather than being sampled at some period. An exception-based
         // model means that the underlying system does not require sampling and reports data changes.
-        if (this.node && this.node.nodeClass === NodeClass.Variable) {
-            const variable = this.node as UAVariable;
-            this.samplingInterval = _adjust_sampling_interval(
-                monitoredParameters.samplingInterval,
-                variable.minimumSamplingInterval || 0
-            );
-        } else {
-            this.samplingInterval = _adjust_sampling_interval(monitoredParameters.samplingInterval, 0);
-        }
+        //
+        // A requested 0 on a Variable whose MinimumSamplingInterval is 0 selects the exception-based model;
+        // the revised samplingInterval is still floored by the advertised MinSupportedSampleRate and is
+        // then the window over which changes are coalesced (see _on_value_changed_exception_based).
+        //
+        // That floor is about sampling a Value. An item on any other attribute is delivered on change
+        // whatever it requested (see _start_sampling), and OPC 10000-4 5.12.1.2 says a Client shall
+        // request 0 when it subscribes for Events: such an item is answered the 0 it asked for.
+        const requestedSamplingInterval = monitoredParameters.samplingInterval;
+        const isValueAttribute = this.itemToMonitor.attributeId === AttributeIds.Value;
+        const node_minimumSamplingInterval =
+            this.node && this.node.nodeClass === NodeClass.Variable ? (this.node as UAVariable).minimumSamplingInterval || 0 : 0;
+        this.samplingInterval =
+            !isValueAttribute && requestedSamplingInterval === 0
+                ? 0
+                : _adjust_sampling_interval(requestedSamplingInterval, node_minimumSamplingInterval, this._minSupportedSampleRate);
+        this._exceptionBased = isValueAttribute && requestedSamplingInterval === 0 && node_minimumSamplingInterval === 0;
         this.discardOldest = monitoredParameters.discardOldest;
         this.queueSize = _adjust_queue_size(monitoredParameters.queueSize);
 
@@ -1470,13 +1595,16 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         assert(this.queue.length <= this.queueSize);
     }
 
-    private _adjustSampling(old_samplingInterval: number) {
-        if (old_samplingInterval !== this.samplingInterval) {
+    private _adjustSampling(old_samplingInterval: number, old_exceptionBased: boolean) {
+        // a sampled item and an exception-based one can report the same interval: compare the mode too
+        if (old_samplingInterval !== this.samplingInterval || old_exceptionBased !== this._exceptionBased) {
             this._start_sampling(false);
         }
     }
 
     private _on_node_disposed(node: BaseNode) {
+        // a folded value must not land behind the BadNodeIdInvalid one
+        this._close_coalesce_window();
         this._on_value_changed(
             new DataValue({
                 sourceTimestamp: new Date(),

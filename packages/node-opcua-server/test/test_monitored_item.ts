@@ -94,6 +94,8 @@ const createMonitoredItem = (options: {
     timestampsToReturn?: TimestampsToReturn;
     discardOldest?: boolean;
     filter?: DataChangeFilter;
+    minSupportedSampleRate?: number;
+    itemToMonitor?: { attributeId: AttributeIds };
 }) => {
     const monitoredItem = new MonitoredItem(options as unknown as MonitoredItemOptions);
     return monitoredItem as unknown as Omit<MonitoredItem, "queue" | "$subscription"> & {
@@ -942,6 +944,209 @@ describe("Server Side MonitoredItem", () => {
 
         monitoredItem.terminate();
         monitoredItem.dispose();
+    });
+});
+
+// OPC 10000-4 5.12.1.2: a requested samplingInterval of 0 asks for the fastest practical rate and
+// the revised value is never below the MinSupportedSampleRate the server advertises (50 ms by
+// default). CTT Monitor Basic 038 warns on a revised 0. The fake node has no MinimumSamplingInterval,
+// so it counts as exception-based (0): the item is still delivered on change, without a timer,
+// the revised interval being the window over which changes are coalesced.
+describe("MonitoredItem requested with samplingInterval 0 (CTT Monitor Basic 038)", () => {
+    beforeEach(function (this: Mocha.Context) {
+        this.clock = sinon.useFakeTimers();
+    });
+
+    afterEach(function (this: Mocha.Context) {
+        this.clock.restore();
+    });
+
+    function makeExceptionBasedItem(extra: { minSupportedSampleRate?: number; filter?: DataChangeFilter } = {}) {
+        const monitoredItem = createMonitoredItem({
+            clientHandle: 1,
+            discardOldest: true,
+            queueSize: 100,
+            samplingInterval: 0,
+            // added by the server:
+            monitoredItemId: 50,
+            ...extra
+        });
+        monitoredItem.$subscription = fakeSubscription;
+        monitoredItem.setNode(fakeNode);
+        return monitoredItem;
+    }
+
+    // the recorded values, without the initial one (BadInvalidArgument from the fake node)
+    const values = (monitoredItem: IMonitoredItem) => monitoredItem.queue.slice(1).map((a) => a.value.value.value);
+
+    const change = (value: number) => {
+        fakeNode.emit("value_changed", new DataValue({ value: { dataType: DataType.UInt32, value } }));
+    };
+
+    it("answers the advertised MinSupportedSampleRate, not 0, and still delivers on change without a timer", function (this: Mocha.Context) {
+        const monitoredItem = makeExceptionBasedItem();
+        monitoredItem.samplingInterval.should.eql(MonitoredItem.minimumSamplingInterval);
+        monitoredItem.isExceptionBased.should.eql(true);
+
+        monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
+        this.clock.tick(1);
+        monitoredItem.isSampling.should.eql(true);
+        should.not.exist(monitoredItem._samplingId);
+        fakeNode.listenerCount("value_changed").should.eql(1);
+
+        monitoredItem.terminate();
+        monitoredItem.isSampling.should.eql(false);
+        fakeNode.listenerCount("value_changed").should.eql(0);
+        monitoredItem.dispose();
+    });
+
+    it("answers 0 when the server advertises MinSupportedSampleRate 0, and then reports every change", function (this: Mocha.Context) {
+        const monitoredItem = makeExceptionBasedItem({ minSupportedSampleRate: 0 });
+        monitoredItem.samplingInterval.should.eql(0);
+        monitoredItem.isExceptionBased.should.eql(true);
+
+        monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
+        this.clock.tick(1);
+        change(1);
+        change(2);
+        change(3);
+        values(monitoredItem).should.eql([1, 2, 3]);
+
+        monitoredItem.terminate();
+        monitoredItem.dispose();
+    });
+
+    it("coalesces the changes of one interval: the first at once, then the latest when the window ends", function (this: Mocha.Context) {
+        const monitoredItem = makeExceptionBasedItem();
+        monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
+        this.clock.tick(1);
+        monitoredItem.queue.length.should.eql(1, "the initial value");
+
+        // a burst inside one interval
+        for (const v of [1, 2, 3, 4, 5]) {
+            change(v);
+        }
+        values(monitoredItem).should.eql([1], "the first change goes out at once, the others are folded");
+        this.clock.tick(MonitoredItem.minimumSamplingInterval);
+        values(monitoredItem).should.eql([1, 5], "the latest value of the window, not the three in between");
+
+        // the flush opened the next window: a steady writer gets one notification per interval
+        change(6);
+        change(7);
+        values(monitoredItem).should.eql([1, 5]);
+        this.clock.tick(MonitoredItem.minimumSamplingInterval);
+        values(monitoredItem).should.eql([1, 5, 7]);
+
+        // a quiet window closes: the next change is again recorded at once
+        this.clock.tick(MonitoredItem.minimumSamplingInterval);
+        change(8);
+        values(monitoredItem).should.eql([1, 5, 7, 8]);
+
+        monitoredItem.terminate();
+        monitoredItem.dispose();
+    });
+
+    it("applies the DataChangeFilter to the coalesced value, as to a sampled one", function (this: Mocha.Context) {
+        const monitoredItem = makeExceptionBasedItem({
+            filter: new DataChangeFilter({
+                trigger: DataChangeTrigger.StatusValue,
+                deadbandType: DeadbandType.Absolute,
+                deadbandValue: 8
+            })
+        });
+        monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
+        this.clock.tick(1);
+
+        change(1);
+        change(5); // folded, and 5 - 1 is inside the deadband
+        this.clock.tick(MonitoredItem.minimumSamplingInterval);
+        values(monitoredItem).should.eql([1]);
+
+        change(20); // folded, and 20 - 1 is outside
+        this.clock.tick(MonitoredItem.minimumSamplingInterval);
+        values(monitoredItem).should.eql([1, 20]);
+
+        monitoredItem.terminate();
+        monitoredItem.dispose();
+    });
+
+    it("terminate() inside a window clears the deferred timer and the listener, and keeps the folded value", function (this: Mocha.Context) {
+        const monitoredItem = makeExceptionBasedItem();
+        monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
+        this.clock.tick(1);
+
+        change(1);
+        change(2);
+        values(monitoredItem).should.eql([1]);
+
+        monitoredItem.terminate();
+        should.not.exist((monitoredItem as unknown as { _coalesceTimer: unknown })._coalesceTimer);
+        monitoredItem.isSampling.should.eql(false);
+        fakeNode.listenerCount("value_changed").should.eql(0);
+        values(monitoredItem).should.eql([1, 2], "the folded value is recorded rather than lost");
+
+        change(3);
+        this.clock.tick(10 * MonitoredItem.minimumSamplingInterval);
+        values(monitoredItem).should.eql([1, 2], "nothing is recorded after terminate");
+
+        monitoredItem.dispose();
+    });
+
+    it("modify: 0 keeps an exception-based item on change at the advertised interval, and a sampled item on the fastest timer", () => {
+        const monitoredItem = makeExceptionBasedItem();
+        const params = (samplingInterval: number) =>
+            new MonitoringParameters({ clientHandle: 1, discardOldest: true, queueSize: 10, samplingInterval });
+
+        let result = monitoredItem.modify(null, params(0));
+        result.revisedSamplingInterval.should.eql(MonitoredItem.minimumSamplingInterval);
+        monitoredItem.isExceptionBased.should.eql(true);
+
+        result = monitoredItem.modify(null, params(200));
+        result.revisedSamplingInterval.should.eql(200);
+        monitoredItem.isExceptionBased.should.eql(false);
+
+        result = monitoredItem.modify(null, params(0));
+        result.revisedSamplingInterval.should.eql(MonitoredItem.minimumSamplingInterval);
+        monitoredItem.isExceptionBased.should.eql(false, "a sampled item stays sampled");
+
+        monitoredItem.terminate();
+        monitoredItem.dispose();
+    });
+
+    it("an EventNotifier item requested with 0 answers 0 (create and modify): the floor only applies to a Value", () => {
+        // OPC 10000-4 5.12.1.2: a Client shall define a sampling interval of 0 when it subscribes for Events
+        const eventNode = new FakeNode();
+        eventNode.nodeClass = NodeClass.Object;
+        const eventItem = createMonitoredItem({
+            clientHandle: 1,
+            discardOldest: true,
+            queueSize: 100,
+            samplingInterval: 0,
+            monitoredItemId: 51,
+            itemToMonitor: { attributeId: AttributeIds.EventNotifier }
+        });
+        eventItem.$subscription = fakeSubscription;
+        eventItem.setNode(eventNode);
+        eventItem.samplingInterval.should.eql(0);
+        eventItem.isExceptionBased.should.eql(false, "on-change delivery of a Value only");
+
+        const params = (samplingInterval: number) =>
+            new MonitoringParameters({ clientHandle: 1, discardOldest: true, queueSize: 10, samplingInterval });
+        let result = eventItem.modify(null, params(0));
+        result.revisedSamplingInterval.should.eql(0);
+        result = eventItem.modify(null, params(200));
+        result.revisedSamplingInterval.should.eql(200);
+        result = eventItem.modify(null, params(0));
+        result.revisedSamplingInterval.should.eql(0, "an event item is never sampled: it keeps the 0 it asked for");
+        eventItem.terminate();
+        eventItem.dispose();
+
+        // the same request on a Value whose MinimumSamplingInterval is 0 is floored to the advertised rate
+        const valueItem = makeExceptionBasedItem();
+        valueItem.samplingInterval.should.eql(MonitoredItem.minimumSamplingInterval);
+        valueItem.modify(null, params(0)).revisedSamplingInterval.should.eql(MonitoredItem.minimumSamplingInterval);
+        valueItem.terminate();
+        valueItem.dispose();
     });
 });
 describe("MonitoredItem with DataChangeFilter", () => {
