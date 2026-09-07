@@ -448,6 +448,7 @@ export interface NodesetImageHeader {
         accessRestrictions?: string;
     }>;
     aliases: Record<string, JsonNodeId>;
+    extensions?: string[];
 }
 
 export interface NodesetImageTrailer {
@@ -495,6 +496,7 @@ export function encodeHeader(record: NodesetHeaderRecord, options: EncodeHeaderO
         }),
         aliases
     };
+    if (record.extensions?.length) header.extensions = record.extensions;
     if (options.sourceLength !== undefined) header.sourceLength = options.sourceLength;
     return header;
 }
@@ -525,7 +527,9 @@ export function decodeHeader(json: NodesetImageHeader): NodesetHeaderRecord {
         if (m.accessRestrictions !== undefined) model.accessRestrictions = m.accessRestrictions;
         return model;
     });
-    return { kind: "header", namespaceUris: json.namespaceUris || [], models, aliases };
+    const header: NodesetHeaderRecord = { kind: "header", namespaceUris: json.namespaceUris || [], models, aliases };
+    if (json.extensions?.length) header.extensions = json.extensions;
+    return header;
 }
 
 interface JsonField extends Omit<NodesetDefinitionField, "dataType"> {
@@ -537,6 +541,8 @@ export interface NodesetImageNode {
     browseName: JsonQualifiedName;
     displayName?: string;
     description?: string;
+    category?: string[];
+    documentation?: string;
     references: JsonReference[];
     releaseStatus?: "Draft" | "Deprecated";
     symbolicName?: string;
@@ -564,6 +570,8 @@ export interface NodesetImageNode {
 const OPTIONAL_PLAIN: Array<keyof NodesetNodeRecord & keyof NodesetImageNode> = [
     "displayName",
     "description",
+    "category",
+    "documentation",
     "releaseStatus",
     "symbolicName",
     "accessRestrictions",

@@ -209,6 +209,23 @@ function writeHeader(xw: XmlWriter, header: NodesetHeaderRecord): void {
         xw.endElement();
     }
     xw.endElement();
+
+    // whatever a tool stamped on the document, back as the XML it was
+    //
+    // LIMITATION of this implementation, not of the format: the record holds what the reader
+    // re-serialised, and the reader resolves a namespace prefix away at the SAX boundary, so
+    // `<ua:ModelInfo xmlns:ua="...">` comes back as `<ModelInfo xmlns:ua="...">`. The declaration
+    // survives, the binding of the element to it does not. Carrying the source bytes untouched
+    // would need the prefix kept in xml2json, which every other reader shares.
+    if (header.extensions?.length) {
+        xw.startElement("Extensions");
+        for (const extension of header.extensions) {
+            xw.startElement("Extension");
+            writeRaw(xw, extension);
+            xw.endElement();
+        }
+        xw.endElement();
+    }
 }
 
 // #region nodes
@@ -317,6 +334,12 @@ function writeCommonElements(xw: XmlWriter, record: NodesetNodeRecord): void {
     }
     if (record.nodeClass === NodeClass.ReferenceType && record.inverseName !== undefined) {
         xw.startElement("InverseName").text(record.inverseName).endElement();
+    }
+    for (const category of record.category ?? []) {
+        xw.startElement("Category").text(category).endElement();
+    }
+    if (record.documentation !== undefined) {
+        xw.startElement("Documentation").text(record.documentation).endElement();
     }
     writeReferences(xw, record.references);
     if (record.rolePermissions && record.rolePermissions.length > 0) {
@@ -542,7 +565,10 @@ function writeDecodedExtensionObject(xw: XmlWriter, value: ExtensionObject): voi
     };
     const text = (name: string, content: string) => element(name, () => xw.text(content));
     const localizedText = (name: string, v: { locale?: string | null; text?: string | null } | null | undefined) => {
-        if (!v || (v.locale === undefined && v.text === undefined)) return;
+        // null, not undefined: a LocalizedText that carried nothing comes back from the codec with
+        // null fields rather than absent ones, and testing for undefined wrote an empty
+        // <Description> onto every Argument that never had one
+        if (!v || (!v.text && !v.locale)) return;
         element(name, () => _dumpLocalizedText(xw, v as Parameters<typeof _dumpLocalizedText>[1]));
     };
 

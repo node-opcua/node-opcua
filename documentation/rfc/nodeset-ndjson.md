@@ -18,18 +18,25 @@ It is defined to be *equipotent* with the NodeSet2 XML schema
 (`Opc.Ua.NodeSet2.xsd`): every NodeSet2 document has a NodeSet-NDJSON form that carries
 the same information model, and every NodeSet-NDJSON document can be written back as
 NodeSet2 XML with no loss. It is not a new information model, a new profile, or a
-replacement for NodeSet2 XML. It is the same document in a form that a machine can read
-an order of magnitude faster and store an order of magnitude smaller.
+replacement for NodeSet2 XML. It is the same document in a form that is markedly smaller
+and markedly faster to read.
 
-Over the 33 published nodesets shipped by node-opcua, the NodeSet-NDJSON form is
-**668 647 bytes gzipped against 961 258 bytes for the same documents as gzipped XML —
-30 % smaller, a factor of 1.44** (Appendix A). Uncompressed it is 40 % of the XML, and it
-parses about three times faster, which makes a whole address space load about one and a
-half times faster: parsing is not what dominates a load (Appendix C).
+Over the 33 published nodesets shipped by node-opcua (Appendix A), comparing each form
+against the other in the same state:
 
-Those are useful numbers rather than dramatic ones, and they are deliberately quoted
-against gzipped XML: comparing a compressed form against an uncompressed one would show a
-factor of 22.7 and would mean nothing, since anyone shipping 15 MB of XML can gzip it.
+| | NodeSet2 XML | NodeSet-NDJSON | |
+|---|---|---|---|
+| uncompressed | 15 209 385 B | 6 117 110 B | **60 % smaller** |
+| gzipped | 961 258 B | 669 399 B | **30 % smaller** |
+
+Which of the two matters depends on where the bytes sit: an embedded device parsing from
+flash pays the uncompressed cost, a CDN pays the gzipped one. Parsing is **67 % faster**,
+which makes a whole address space load about **33 % faster** — less than the parse figure,
+because parsing is not what dominates a load (Appendix C).
+
+Both size figures compare like with like. A compressed form against an uncompressed one
+would show 95 % and would mean nothing, since anyone shipping 15 MB of XML can gzip it,
+and no number in this document is quoted that way.
 **The strongest argument for this format is not its size but its canonicality** (§9):
 NodeSet2 XML has no byte-level identity, and this does.
 
