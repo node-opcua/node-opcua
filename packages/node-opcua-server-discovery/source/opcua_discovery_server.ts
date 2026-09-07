@@ -307,12 +307,11 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
 
         // c8 ignore next
         doDebug && debugLog("Shutting down Discovery Server");
+        // OPCUAServerEndPoint#shutdown only calls back once the listening socket has emitted
+        // 'close', so the port is free when this resolves: no extra delay is needed.
         await new Promise<void>((resolve, reject) => super.shutdown((err) => (err ? reject(err) : resolve())));
         // c8 ignore next
         doDebug && debugLog("stopping announcement of LDS on mDNS - DONE");
-        // add a extra delay to ensure that the port is really closed
-        // and registered server propagated the fact that LDS is not here anymore
-        await new Promise<void>((resolve) => setTimeout(resolve, 1000));
     }
 
     /**
