@@ -39,7 +39,14 @@ import {
     SubscriptionDiagnosticsDataType
 } from "node-opcua-common";
 import { DataTypeIds, MethodIds, ObjectIds, VariableIds } from "node-opcua-constants";
-import { AttributeIds, coerceLocalizedText, type LocalizedTextLike, makeAccessLevelFlag, NodeClass } from "node-opcua-data-model";
+import {
+    AttributeIds,
+    coerceLocalizedText,
+    coerceQualifiedName,
+    type LocalizedTextLike,
+    makeAccessLevelFlag,
+    NodeClass
+} from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
 import { getCurrentClock, getMinOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog, traceFromThisProjectOnly } from "node-opcua-debug";
@@ -1222,9 +1229,19 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxWhereClauseParameters, DataType.UInt32, () => {
                         return this.serverCapabilities.maxWhereClauseParameters;
                     });
-                    //bindStandardArray(VariableIds.Server_ServerCapabilities_ConformanceUnits, DataType.QualifiedName, () => {
-                    //    return this.serverCapabilities.conformanceUnits;
-                    //});
+                    // ConformanceUnits (i=24101, new in 1.05): the conformance units the server claims.
+                    // Part 7 wants the list limited to the units the server supports in its current
+                    // configuration, so it is read live from serverCapabilities.conformanceUnits and an
+                    // application can fill it after the server has started. An empty list must still
+                    // reach the wire as a typed empty QualifiedName array, never as a Null variant: the
+                    // CTT (Base Info Core Structure 2 / 001.js) checks the Value's DataType against the
+                    // Attribute's. Elements are coerced because encodeQualifiedName needs real instances.
+                    bindStandardArray(
+                        VariableIds.Server_ServerCapabilities_ConformanceUnits,
+                        DataType.QualifiedName,
+                        "QualifiedName",
+                        () => this.serverCapabilities.conformanceUnits.map((unit) => coerceQualifiedName(unit))
+                    );
                     bindStandardScalar(
                         VariableIds.Server_ServerCapabilities_MaxMonitoredItemsPerSubscription,
                         DataType.UInt32,

@@ -1738,4 +1738,21 @@ describe("Preserving  null in Arrays or Matrices", () => {
         const v_reloaded = encode_decode_round_trip_test(v) as Variant;
         should(v_reloaded.value).eql(null);
     });
+    it("it should encode an empty QualifiedName array as a typed empty array, not as a Null variant", () => {
+        // Server/ServerCapabilities/ConformanceUnits (i=24101) is served empty by default; a
+        // conformance checker still expects the Value's DataType to be QualifiedName, which
+        // only the encoding byte can tell it when there is no element to look at.
+        const v = new Variant({ dataType: DataType.QualifiedName, value: [], arrayType: VariantArrayType.Array });
+        should(v.value).eql([]);
+        const v_reloaded = encode_decode_round_trip_test(v, (buffer: Buffer) => {
+            buffer.length.should.equal(5);
+            // encoding byte: DataType.QualifiedName with the array flag set
+            buffer[0].should.equal(DataType.QualifiedName | 0x80);
+            // array length 0, not 0xffffffff (the null array)
+            buffer.readUInt32LE(1).should.equal(0);
+        }) as Variant;
+        v_reloaded.dataType.should.eql(DataType.QualifiedName);
+        v_reloaded.arrayType.should.eql(VariantArrayType.Array);
+        should(v_reloaded.value).eql([]);
+    });
 });
