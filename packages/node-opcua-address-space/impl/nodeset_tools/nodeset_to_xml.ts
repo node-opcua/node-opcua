@@ -38,6 +38,7 @@ import {
     findXsdNamespaceUri,
     getPrefix,
     initXmlWriterEx,
+    int64ToDecimalString,
     makeTypeXsd,
     n,
     restoreDefaultNamespace,
@@ -364,7 +365,7 @@ function _dumpVariantInnerValue(
             break;
         case DataType.Int64:
         case DataType.UInt64:
-            xw.text((value as [number, number])[1].toString());
+            xw.text(int64ToDecimalString(value as Int64, dataType === DataType.Int64));
             break;
         case DataType.Boolean:
         case DataType.SByte:

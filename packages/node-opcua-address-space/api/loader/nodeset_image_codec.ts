@@ -13,7 +13,7 @@
  * - QualifiedName: `[namespaceIndex, name]`; LocalizedText: `{ locale, text }`
  * - DateTime: ISO-8601 string, or `{ iso, picoseconds }` when sub-millisecond precision is carried
  * - ByteString: base64; Guid, String, XmlElement: the string
- * - Int64 and UInt64: `[high, low]`; Float and Double: JSON numbers, `NaN`, `Infinity` and
+ * - Int64 and UInt64: a decimal string; Float and Double: JSON numbers, `NaN`, `Infinity` and
  *   `-Infinity` as strings; StatusCode: the numeric code
  * - the extension objects the XML reader decodes itself (Argument, EUInformation, Range,
  *   EnumValueType): `{ "$class": name, ...fields }` with the rules above; every other extension
@@ -27,7 +27,8 @@
  * on the raw text -- except for `displayName`, which repeats the browse name on 97% of the nodes
  * of the published nodesets and is the one omission that carries real entropy away.
  */
-import { coerceInt64, coerceUInt64, type Int64, type UInt64 } from "node-opcua-basic-types";
+import type { Int64, UInt64 } from "node-opcua-basic-types";
+import { int64ToDecimalString } from "./nodeset_xml_primitives.js";
 import { Range } from "node-opcua-data-access";
 import {
     coerceLocalizedText,
@@ -203,6 +204,26 @@ const isEmptyText = (text: JsonLocalizedText | null | undefined): boolean =>
 
 // #endregion
 
+// #region 64-bit integers
+//
+// on the wire a 64-bit integer is a decimal string, the spelling Part 6 uses and the only one that
+// says what it means. In memory it stays node-opcua's `[high, low]` pair, whose halves are
+// unsigned: Int64 -1 and UInt64 18446744073709551615 are the *same* pair, so the pair cannot be
+// read without knowing the signedness from somewhere else, and Int64 min has two equally defensible
+// spellings ([2147483648,0] and [-2147483648,0]) which would give one value two documents.
+
+const TWO_64 = 1n << 64n;
+
+const encodeInt64 = int64ToDecimalString;
+
+function decodeInt64(json: Json): Int64 {
+    let unsigned = BigInt(json as string);
+    if (unsigned < 0n) unsigned += TWO_64;
+    return [Number(unsigned >> 32n), Number(unsigned & 0xffffffffn)] as Int64;
+}
+
+// #endregion
+
 function encodeExtensionObject(value: unknown): Json {
     if (value instanceof XmlExtensionObjectFragment) {
         return { $xml: [encodeNodeId(value.typeId), value.bodyXML] };
@@ -233,7 +254,7 @@ function encodeExtensionObject(value: unknown): Json {
         return { $class: "Range", low: encodeFloat(value.low), high: encodeFloat(value.high) };
     }
     if (value instanceof EnumValueType) {
-        const out: Record<string, Json> = { $class: "EnumValueType", value: value.value };
+        const out: Record<string, Json> = { $class: "EnumValueType", value: encodeInt64(value.value, true) };
         const displayName = encodeLocalizedText(value.displayName);
         const description = encodeLocalizedText(value.description);
         if (!isEmptyText(displayName)) out.displayName = displayName;
@@ -279,7 +300,7 @@ function decodeExtensionObject(json: Json): ExtensionObject | XmlExtensionObject
         }
         case "EnumValueType":
             return new EnumValueType({
-                value: coerceInt64(j.value as Int64),
+                value: decodeInt64(j.value as Json),
                 displayName: decodeLocalizedText(j.displayName),
                 description: decodeLocalizedText(j.description)
             });
@@ -320,8 +341,12 @@ function encodeElement(dataType: DataType, value: unknown): Json {
         case DataType.DataValue:
         case DataType.DiagnosticInfo:
             throw new NodesetImageError(`an image cannot carry a ${DataType[dataType]} value`);
+        case DataType.Int64:
+            return encodeInt64(value as Int64, true);
+        case DataType.UInt64:
+            return encodeInt64(value as UInt64, false);
         default:
-            // Boolean, the integer families (Int64 and UInt64 are already [high, low]), String, Guid, XmlElement
+            // Boolean, the 32-bit-and-under integer families, String, Guid, XmlElement
             return value;
     }
 }
@@ -355,9 +380,8 @@ function decodeElement(dataType: DataType, json: Json): unknown {
         case DataType.Variant:
             return new Variant(decodeValue(json as JsonValue));
         case DataType.Int64:
-            return coerceInt64(json as Int64);
         case DataType.UInt64:
-            return coerceUInt64(json as UInt64);
+            return decodeInt64(json);
         default:
             return json;
     }

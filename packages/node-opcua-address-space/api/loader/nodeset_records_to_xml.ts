@@ -26,6 +26,7 @@
  *   decode, kept verbatim. Nothing else can be in there -- the image codec refuses to carry a
  *   decoded anything-else -- so writing a value back never needs to look a structure up.
  */
+import type { Int64 } from "node-opcua-basic-types";
 import { NodeClass } from "node-opcua-data-model";
 import { make_errorLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
@@ -49,6 +50,7 @@ import {
     getPrefix,
     identityTranslationTable,
     initXmlWriterEx,
+    int64ToDecimalString,
     makeTypeXsd,
     n,
     restoreDefaultNamespace,
@@ -465,7 +467,7 @@ function writeScalar(xw: XmlWriter, dataType: DataType, value: unknown): void {
             break;
         case DataType.Int64:
         case DataType.UInt64:
-            xw.text(Array.isArray(value) ? (value as [number, number])[1].toString() : String(value));
+            xw.text(int64ToDecimalString(value as Int64, dataType === DataType.Int64));
             break;
         case DataType.ByteString: {
             const base64 = Buffer.from(value as Uint8Array).toString("base64");
