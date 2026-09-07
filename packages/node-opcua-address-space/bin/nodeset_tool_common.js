@@ -54,4 +54,19 @@ async function dependencyChain(file, requireFiles = []) {
     return order;
 }
 
-module.exports = { asFile, dependencyChain, imageFileOf, kb };
+/**
+ * the record stream of a document, whichever form it is in. A gzip stream starts `1f 8b`, a
+ * NodeSet2 XML document `<`, and an uncompressed NodeSet-NDJSON document `{`, so the three are
+ * told apart by their first byte with no filename and no metadata to trust.
+ */
+async function recordsOfFile(file) {
+    const { imageNodesetRecords } = require("../dist/api/index.js");
+    const { nodesetFileToImage } = require("../distNodeJS/index.js");
+    const bytes = new Uint8Array(fs.readFileSync(file));
+    const image = bytes[0] === 0x1f && bytes[1] === 0x8b ? bytes : await nodesetFileToImage(file);
+    const out = [];
+    for await (const record of imageNodesetRecords(image)) out.push(record);
+    return out;
+}
+
+module.exports = { asFile, dependencyChain, imageFileOf, kb, recordsOfFile };
