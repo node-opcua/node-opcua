@@ -560,18 +560,26 @@ class RecordExporter {
             const baseNode = node.subtypeOfObj as UADataType | null;
             const base = baseNode?.isStructure() ? baseNode.getStructureDefinition() : null;
             const nbFieldsInBase = base ? base.fields?.length || 0 : 0;
+            // Part 3 8.51: in a *WithSubtypedValues structure, isOptional does not mean optional --
+            // it is where "subtyping allowed" is held. The document spells that AllowSubTypes, and
+            // says nothing about IsOptional there, so the two must be swapped back on the way out
+            const subtypedValues =
+                definition.structureType === StructureType.StructureWithSubtypedValues ||
+                definition.structureType === StructureType.UnionWithSubtypedValues;
             const fields: NodesetDefinitionField[] = [];
             const all = definition.fields || [];
             for (let index = nbFieldsInBase; index < all.length; index++) {
                 const f = all[index];
                 const field: NodesetDefinitionField = {
                     name: f.name as string,
-                    allowSubTypes: !!(f as unknown as { allowSubTypes?: boolean }).allowSubTypes
+                    allowSubTypes: subtypedValues
+                        ? !!f.isOptional
+                        : !!(f as unknown as { allowSubTypes?: boolean }).allowSubTypes
                 };
                 if (f.description?.text?.length) field.description = { text: f.description.text } as unknown as string;
                 field.valueRank = f.valueRank === undefined || f.valueRank === -1 ? -1 : f.valueRank;
                 if (f.arrayDimensions && f.arrayDimensions.length > 0) field.arrayDimensions = f.arrayDimensions;
-                if (f.isOptional) field.isOptional = f.isOptional;
+                if (f.isOptional && !subtypedValues) field.isOptional = f.isOptional;
                 if (f.maxStringLength !== undefined && f.maxStringLength !== 0) field.maxStringLength = f.maxStringLength;
                 field.dataType = f.dataType && !f.dataType.isEmpty() ? this.t(f.dataType) : baseDataType;
                 fields.push(field);

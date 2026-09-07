@@ -51,8 +51,8 @@
   },
   "machineryResult": {
     "uri": "http://opcfoundation.org/UA/Machinery/Result/",
-    "length": 136932,
-    "sha1": "b672cba961d4bbe194816d91e95e21c1f5022c20"
+    "length": 136935,
+    "sha1": "ab889d59ad77d29561a6f6a6c20549ddbe391179"
   },
   "machinery": {
     "uri": "http://opcfoundation.org/UA/Machinery/",
@@ -86,8 +86,8 @@
   },
   "ijtBase": {
     "uri": "http://opcfoundation.org/UA/IJT/Base/",
-    "length": 974555,
-    "sha1": "f86a3c30fe13a3f85696df368977c13f50769e0e"
+    "length": 974561,
+    "sha1": "cdfa39a64cb674b5d80e50de05066919cfdf318f"
   },
   "tightening": {
     "uri": "http://opcfoundation.org/UA/IJT/Tightening/",
@@ -121,8 +121,8 @@
   },
   "padim": {
     "uri": "http://opcfoundation.org/UA/PADIM/",
-    "length": 675745,
-    "sha1": "1ec200ed5b7fffcba3b1ae994552b5cc4ef5b311"
+    "length": 675748,
+    "sha1": "87ece8d45857706a7063b5ad84066345640e884e"
   },
   "machineryProcessValues": {
     "uri": "http://opcfoundation.org/UA/Machinery/ProcessValues/",
@@ -131,8 +131,8 @@
   },
   "metalForming": {
     "uri": "http://opcfoundation.org/UA/MetalForming/",
-    "length": 80787,
-    "sha1": "6994ee8cc2b8a3c6c66ffc4f8d12b02c70d5e132"
+    "length": 80793,
+    "sha1": "f237658dc43fddf8ecca730b2b810243f5512c12"
   },
   "scales": {
     "uri": "http://opcfoundation.org/UA/Scales/V2/",

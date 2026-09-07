@@ -367,7 +367,11 @@ export function _constructNamespaceTranslationTable(dependency: INamespace[], ex
     let counter = 0;
     translationTable.set(dependency[0].index, counter++);
     //
-    if (exportedNamespace) {
+    // the exported namespace goes next, at 1 -- unless it *is* the UA namespace, which the line
+    // above has already placed at 0. Overwriting it there sent every ns0 id to ns=1, an index the
+    // <NamespaceUris> of such a document never declares, which is why exporting the UA namespace
+    // used to produce a document that could not be loaded back
+    if (exportedNamespace && !translationTable.has(exportedNamespace.index)) {
         translationTable.set(exportedNamespace.index, counter++);
     }
     for (let i = 1; i < dependency.length; i++) {
