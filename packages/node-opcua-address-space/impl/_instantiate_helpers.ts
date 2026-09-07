@@ -6,6 +6,7 @@ import {
     CloneHelper,
     reconstructFunctionalGroupType,
     reconstructNonHierarchicalReferences,
+    reconstructSharedHierarchicalReferences,
     type UAMethod,
     type UAObject,
     type UAObjectType,
@@ -153,6 +154,8 @@ export function initialize_properties_and_components<
     reconstructFunctionalGroupType(extraInfo);
 
     reconstructNonHierarchicalReferences(extraInfo);
+
+    reconstructSharedHierarchicalReferences(extraInfo);
 }
 
 function instantiate_interface_children<B extends UAObject | UAVariable | UAMethod>(

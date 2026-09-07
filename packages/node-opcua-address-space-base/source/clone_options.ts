@@ -79,4 +79,13 @@ export interface CloneOptions /* extends ConstructNodeIdOptions */ {
 
     copyAlsoModellingRules?: boolean;
     ignoreChildren?: boolean;
+
+    /**
+     * the declarations of this same child on the supertypes of the type being instantiated,
+     * nearest supertype first. Their children are merged into the clone before its own type
+     * definition is explored, so that what a subtype re-declares (OPC 40702 re-declares
+     * Monitoring to add Health and Process) keeps what the base declaration carries (Status).
+     * @private set by the instantiation walk
+     */
+    baseDeclarations?: BaseNode[];
 }

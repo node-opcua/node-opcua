@@ -30,6 +30,7 @@ import {
     type LocalizedText,
     type LocalizedTextLike,
     NodeClass,
+    type QualifiedName,
     ResultMask
 } from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
@@ -516,7 +517,7 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
 }
 
 /**
- *
+ * A subtype (or an instance) may re-declare a child that its base type already declares:
  *
  *    MyDeriveType  ------------------- -> MyBaseType    --------------> TopologyElementType
  *        |                                   |                                   |
@@ -525,137 +526,71 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
  *                  +- Foo1                            |
  *                                                     +- Bar
  *
- *    Instance
- *
- * @param newParent
- * @param node
- * @param copyAlsoModellingRules
- * @param optionalFilter
- * @param extraInfo
- * @param browseNameMap
- * @returns
+ * The instance gets ONE ParameterSet, cloned from the nearest declaration (Foo1), into which the
+ * base declarations are merged (Bar): see _base_declarations_of and _merge_base_declaration.
  */
-function _clone_children_on_template(
-    nodeToClone: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
-    newParent: BaseNode,
-    node: BaseNode,
+/**
+ * the declarations, on the supertypes of `type`, of the child that `type` declares under
+ * `browseName`, nearest supertype first; none when `type` is not a type
+ */
+function _base_declarations_of(type: BaseNode, browseName: QualifiedName): BaseNode[] {
+    if (type.nodeClass !== NodeClass.ObjectType && type.nodeClass !== NodeClass.VariableType) {
+        return [];
+    }
+    const result: BaseNode[] = [];
+    let base = (type as UAObjectType | UAVariableType).subtypeOfObj;
+    while (base) {
+        // aggregates only: a child lookup would also follow HasSubtype (issue #1326)
+        const declaration = base.getAggregates().find((n) => n.browseName.equals(browseName));
+        if (declaration) {
+            result.push(declaration);
+        }
+        base = base.subtypeOfObj;
+    }
+    return result;
+}
+
+/**
+ * record `cloned` as the clone of `original` and, by browse name, each child the clone already
+ * has as the clone of the matching child of `original`, recursively: a later reference to any
+ * of them then lands on the existing node instead of a second copy
+ */
+function _register_existing_children(original: BaseNode, cloned: BaseNode, extraInfo: CloneExtraInfo): void {
+    extraInfo.registerClonedObject({ originalNode: original, clonedNode: cloned });
+    for (const ref of original.findReferencesEx("Aggregates", BrowseDirection.Forward)) {
+        const child = ref.node;
+        if (!child) continue;
+        const existing = cloned.getChildByName(child.browseName);
+        if (!existing) continue;
+        _register_existing_children(child, existing, extraInfo);
+    }
+}
+
+/**
+ * `clonedNode` was cloned from a declaration that shadows `baseDeclaration` (a subtype or an
+ * instance re-declaring a child of a base type). What the clone already has is recorded as the
+ * clone of the base declaration's same-named children; what the base declaration adds is cloned
+ * in, subject to the same filter and the same browse-name guard as the clone's own children.
+ */
+function _merge_base_declaration(
+    baseDeclaration: BaseNode,
+    clonedNode: BaseNode,
     copyAlsoModellingRules: boolean,
     optionalFilter: CloneFilter,
-    extraInfo: CloneExtraInfo
-) {
-    /**
-     * the type definition node of the node to clone
-     */
-    const nodeToCloneTypeDefinition =
-        nodeToClone.nodeClass === NodeClass.ObjectType || nodeToClone.nodeClass === NodeClass.VariableType
-            ? nodeToClone.subtypeOfObj
-            : null;
-    if (!nodeToCloneTypeDefinition) return;
-
+    extraInfo: CloneExtraInfo,
+    browseNameMap: Set<string>
+): void {
     // c8 ignore next
-    doTrace &&
-        traceLog(
-            extraInfo?.pad(),
-            chalk.gray(
-                "-------------------- now cloning children on template ",
-                node.browseName.toString(),
-                node.nodeId.toString(),
-                nodeToCloneTypeDefinition.browseName.toString()
-            )
-        );
-
-    const namespace = newParent.namespace;
-
-    /**
-     * the child node of the new parent that match the node to clone or enrich
-     */
-    const newParentChild = newParent.getChildByName(node.browseName);
-    if (!newParentChild) {
-        return;
-    }
-    // we have found a matching child on the new parent.
-    // the mission is to enrich this child node with components and properties that
-    // exist also in the template
-
-    let typeDefinitionNode: UAVariableType | UAObjectType | null = nodeToCloneTypeDefinition;
-    while (typeDefinitionNode) {
-        // c8 ignore next
-        doTrace &&
-            traceLog(
-                extraInfo?.pad(),
-                chalk.green(
-                    "-------------------- now cloning children on ",
-                    newParentChild.browseName.toString(),
-                    newParentChild.nodeId.toString(),
-                    " (child of ",
-                    node.browseName.toString(),
-                    node.nodeId.toString(),
-                    ") from ",
-                    typeDefinitionNode.browseName.toString()
-                )
-            );
-
-        // Find aggregates with same browseName as node. Do not search children as this includes nodes with HasSubType relation which we do
-        // not want. See issue #1326.
-        const aggregates = typeDefinitionNode.getAggregates().filter((n) => n.browseName.equals(node.browseName));
-        const typeDefinitionChild = aggregates.length > 0 ? aggregates[0] : null;
-        if (typeDefinitionChild) {
-            const references = typeDefinitionChild.findReferencesEx("Aggregates", BrowseDirection.Forward);
-
-            for (const ref of references) {
-                const grandChild = ref.node as UAVariable | UAObject | UAMethod;
-                if (grandChild.modellingRule === "MandatoryPlaceholder" || grandChild.modellingRule === "OptionalPlaceholder")
-                    continue;
-                // if not already node present in new Parent => just ignore
-                const hasAlready = newParentChild.getChildByName(grandChild.browseName) !== null;
-                if (!hasAlready) {
-                    if (optionalFilter && node && !optionalFilter.shouldKeep(node)) {
-                        // c8 ignore next
-                        doTrace &&
-                            traceLog(
-                                extraInfo.pad(),
-                                "skipping optional ",
-                                node.browseName.toString(),
-                                "that doesn't appear in the filter"
-                            );
-                        continue; // skip this node
-                    }
-
-                    const options = {
-                        namespace,
-                        references: [
-                            new ReferenceImpl({
-                                referenceType: ref.referenceType,
-                                isForward: false,
-                                nodeId: newParentChild.nodeId
-                            })
-                        ],
-                        copyAlsoModellingRules
-                    };
-
-                    const alreadyCloned = extraInfo.getCloned({
-                        originalParent: nodeToClone,
-                        clonedParent: newParent,
-                        originalNode: grandChild
-                    });
-                    if (alreadyCloned) {
-                        alreadyCloned.addReference({
-                            referenceType: ref.referenceType,
-                            isForward: false,
-                            nodeId: newParentChild.nodeId
-                        });
-                    } else {
-                        const clonedGrandChild = grandChild.clone(options, optionalFilter, extraInfo);
-                        extraInfo.registerClonedObject({
-                            originalNode: grandChild,
-                            clonedNode: clonedGrandChild
-                        });
-                    }
-                }
-            }
-        }
-        typeDefinitionNode = typeDefinitionNode.subtypeOfObj;
-    }
+    doTrace && traceLog(extraInfo.pad(), "merging base declaration ", fullPath2(baseDeclaration), " into ", fullPath2(clonedNode));
+    _register_existing_children(baseDeclaration, clonedNode, extraInfo);
+    _clone_hierarchical_references(
+        baseDeclaration as UAObject | UAVariable | UAMethod,
+        clonedNode as UAObject | UAVariable | UAMethod,
+        copyAlsoModellingRules,
+        optionalFilter,
+        extraInfo,
+        browseNameMap
+    );
 }
 
 /*
@@ -707,27 +642,31 @@ function _clone_collection_new(
         }
         const key = `${newParent.nodeId.toString()}(${newParent.browseName.toString()})/${node.browseName.toString()}`;
         if (browseNameMap?.has(key)) {
-            _clone_children_on_template(nodeToClone, newParent, node, copyAlsoModellingRules, optionalFilter, extraInfo);
-            doTrace &&
-                traceLog(
-                    extraInfo.pad(),
-                    "skipping required node with same browseName",
-                    fullPath2(node),
-                    "because it has already been cloned",
-                    "key=",
-                    key
+            // a same-named child was cloned already, from a nearer declaration: this one is a
+            // base declaration of it, merge what it adds
+            doTrace && traceLog(extraInfo.pad(), "node with same browseName already cloned, merging", fullPath2(node), "key=", key);
+            const existing = newParent.getChildByName(node.browseName);
+            if (existing) {
+                _merge_base_declaration(
+                    node,
+                    existing,
+                    copyAlsoModellingRules,
+                    optionalFilter.filterFor(existing as UAObject | UAVariable | UAMethod),
+                    extraInfo,
+                    new Set<string>()
                 );
-
+            }
             continue; // skipping node with same browseName
         }
         browseNameMap?.add(key);
 
         // assert(reference.isForward);
         // assert(reference.referenceType instanceof NodeId, "" + reference.referenceType.toString());
-        const options = {
+        const options: CloneOptions = {
             namespace,
             references: [new ReferenceImpl({ referenceType: reference.referenceType, isForward: false, nodeId: newParent.nodeId })],
-            copyAlsoModellingRules
+            copyAlsoModellingRules,
+            baseDeclarations: _base_declarations_of(nodeToClone, node.browseName)
         };
 
         const alreadyCloned = extraInfo.getCloned({ originalParent: nodeToClone, clonedParent: newParent, originalNode: node });
@@ -746,8 +685,10 @@ function _clone_collection_new(
                     fullPath2(newParent)
                 );
 
-            const hasReference =
-                alreadyCloned.findReferencesExAsObject(reference.referenceType, BrowseDirection.Inverse).length > 0;
+            // this parent, not any parent: a shared child may already hang under another one
+            const hasReference = alreadyCloned
+                .findReferences(reference.referenceType, false)
+                .some((r) => sameNodeId(r.nodeId, newParent.nodeId));
             if (!hasReference) {
                 alreadyCloned.addReference({
                     referenceType: reference.referenceType,
@@ -790,10 +731,6 @@ function _clone_collection_new(
                     clonedNode.nodeId.toString(),
                     `${fullPath2(clonedNode)}`
                 );
-
-            extraInfo.level++;
-            _clone_children_on_template(nodeToClone, newParent, node, copyAlsoModellingRules, optionalFilter, extraInfo);
-            extraInfo.level--;
 
             // also clone or instantiate interface members that may be required in the optionals
             extraInfo.level++;
@@ -1122,6 +1059,20 @@ export function _clone<T extends UAObject | UAVariable | UAMethod, O>(
             extraInfo,
             browseNameMap
         );
+
+        // what the base types declare under the same name, before the type definition is explored:
+        // the base declaration overrides the type definition's children, so the later walk of the
+        // type definition finds them present instead of cloning them a second time
+        for (const baseDeclaration of options.baseDeclarations || []) {
+            _merge_base_declaration(
+                baseDeclaration,
+                clonedNode,
+                options.copyAlsoModellingRules,
+                newFilter,
+                extraInfo,
+                browseNameMap
+            );
+        }
 
         if (originalNode.nodeClass === NodeClass.Object || originalNode.nodeClass === NodeClass.Variable) {
             let typeDefinitionNode: UAVariableType | UAObjectType | null = originalNode.typeDefinitionObj;
