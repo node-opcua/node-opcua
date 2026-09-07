@@ -174,6 +174,7 @@ export {
     setImageInflater
 } from "./loader/nodeset_image.js";
 export { decodeValue, encodeValue, type JsonNodeId, type JsonQualifiedName, type JsonValue } from "./loader/nodeset_image_codec.js";
+export { recordsToNodeset2XML, type RecordsToNodeset2XMLOptions } from "./loader/nodeset_records_to_xml.js";
 export {
     MemoryNodesetImageStore,
     type NodesetImageStore,
