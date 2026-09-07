@@ -299,6 +299,17 @@ can be set to `"deny"` by products that drive access entirely from declared poli
 
 ### Fixed
 
+#### The mandatory methods of `Server/PublishSubscribe/SecurityGroups` are browsable again
+
+`Opc.Ua.NodeSet2.xml` reserves Browse of eleven nodes under `Server/PublishSubscribe` - the methods of
+`SecurityGroups` and `KeyPushTargets`, with their arguments - to the `SecurityKeyServerAdmin` role, and since
+2.180.0 the loader applies the RolePermissions a nodeset declares. No user manager of node-opcua assigns that
+role, so no session could see them, and `SecurityGroups`, browsable by everyone, showed an instance without the
+mandatory methods of `SecurityGroupFolderType` (CTT Base Info Core Structure 002, FEAT-30). The loader is
+faithful to the document and stays so; `ensureStructureIsBrowsable` grants Browse to Anonymous and
+AuthenticatedUser on such nodes, leaving Read, Write and Call with the roles the nodeset named, and
+`OPCUAServer` applies it to `Server/PublishSubscribe` at initialization, next to the RoleSet.
+
 #### Two type lookups corrected
 
 - `addReference({ referenceType: "GeneratesEvent" })` kept the direction given only when the type's inverse name
