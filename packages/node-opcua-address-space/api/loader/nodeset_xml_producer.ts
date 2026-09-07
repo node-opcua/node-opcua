@@ -163,7 +163,10 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
     const category_parser = {
         finish(this: State) {
             const obj = (this.parent as NodeState).obj;
-            (obj.category ??= []).push(this.text);
+            if (!obj.category) {
+                obj.category = [];
+            }
+            obj.category.push(this.text);
         }
     };
     const documentation_parser = {
@@ -356,12 +359,7 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
                     // whatever a tool put in here is foreign XML: clone the element verbatim, under
                     // the name the document gave it, prefix included
                     this._cloneFragment = new InternalFragmentClonerReaderState();
-                    this.engine?._promote(
-                        this._cloneFragment,
-                        this.engine?.currentLevel,
-                        qualifiedName ?? elementName,
-                        attrs
-                    );
+                    this.engine?._promote(this._cloneFragment, this.engine?.currentLevel, qualifiedName ?? elementName, attrs);
                 },
                 finish(this: State) {
                     const xml = this._cloneFragment?.value;

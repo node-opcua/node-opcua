@@ -30,17 +30,12 @@ import type { Int64 } from "node-opcua-basic-types";
 import { NodeClass } from "node-opcua-data-model";
 import { make_errorLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
-import { NodeId } from "node-opcua-nodeid";
+import type { NodeId } from "node-opcua-nodeid";
 import { Argument, EnumValueType, EUInformation, Range } from "node-opcua-types";
-import { DataType, type VariantOptions, VariantArrayType } from "node-opcua-variant";
+import { DataType, VariantArrayType, type VariantOptions } from "node-opcua-variant";
 import XMLWriter from "xml-writer";
 import type { XmlWriter } from "../xml_writer.js";
-import type {
-    NodesetHeaderRecord,
-    NodesetNodeRecord,
-    NodesetRecord,
-    NodesetReferenceRecord
-} from "./nodeset_record.js";
+import type { NodesetHeaderRecord, NodesetNodeRecord, NodesetRecord, NodesetReferenceRecord } from "./nodeset_record.js";
 import { XmlExtensionObjectFragment } from "./nodeset_record.js";
 import {
     _dumpLocalizedText,
@@ -105,7 +100,7 @@ const ELEMENT_OF_NODE_CLASS: Partial<Record<NodeClass, string>> = {
  */
 export function recordsToNodeset2XML(records: readonly NodesetRecord[], options: RecordsToNodeset2XMLOptions = {}): string {
     const header = records[0];
-    if (!header || header.kind !== "header") {
+    if (header?.kind !== "header") {
         throw new Error("recordsToNodeset2XML: the records must start with the header record");
     }
     // index 0 is always the UA namespace and is never listed in <NamespaceUris>; the declared uris

@@ -572,9 +572,7 @@ class RecordExporter {
                 const f = all[index];
                 const field: NodesetDefinitionField = {
                     name: f.name as string,
-                    allowSubTypes: subtypedValues
-                        ? !!f.isOptional
-                        : !!(f as unknown as { allowSubTypes?: boolean }).allowSubTypes
+                    allowSubTypes: subtypedValues ? !!f.isOptional : !!(f as unknown as { allowSubTypes?: boolean }).allowSubTypes
                 };
                 if (f.description?.text?.length) field.description = { text: f.description.text } as unknown as string;
                 field.valueRank = f.valueRank === undefined || f.valueRank === -1 ? -1 : f.valueRank;
@@ -628,7 +626,7 @@ class RecordExporter {
     }
 
     private arrayDimensionsOf(node: UAVariable | UAVariableType, record: NodesetNodeRecord): void {
-    // ArrayDimensions="0" is written only when the document declared it: node-opcua synthesizes [0]
+        // ArrayDimensions="0" is written only when the document declared it: node-opcua synthesizes [0]
         // on the variables it generates, so writing it unconditionally would invent the attribute on
         // every generated node. See arrayDimensionsWereDeclared in nodeset_record_applier
         if (!node.arrayDimensions || node.valueRank <= 0) return;

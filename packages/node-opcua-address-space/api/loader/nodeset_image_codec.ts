@@ -28,7 +28,6 @@
  * of the published nodesets and is the one omission that carries real entropy away.
  */
 import type { Int64, UInt64 } from "node-opcua-basic-types";
-import { int64ToDecimalString } from "./nodeset_xml_primitives.js";
 import { Range } from "node-opcua-data-access";
 import {
     coerceLocalizedText,
@@ -54,6 +53,7 @@ import {
     type NodesetReferenceRecord,
     XmlExtensionObjectFragment
 } from "./nodeset_record.js";
+import { int64ToDecimalString } from "./nodeset_xml_primitives.js";
 
 /**
  * a NodeId: the number alone when numeric in namespace 0 (nearly every id of a nodeset),
