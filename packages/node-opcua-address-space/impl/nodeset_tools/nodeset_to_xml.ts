@@ -28,6 +28,25 @@ import { EnumDefinition, StructureDefinition, StructureType } from "node-opcua-t
 import { isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import XMLWriter from "xml-writer";
+import {
+    _dumpLocalizedText,
+    _dumpNodeId,
+    _dumpQualifiedName,
+    _dumpXmlElement,
+    b,
+    coerceInt64ToInt32,
+    findXsdNamespaceUri,
+    getPrefix,
+    initXmlWriterEx,
+    makeTypeXsd,
+    n,
+    restoreDefaultNamespace,
+    setDefaultNamespace,
+    startElementEx,
+    translateBrowseName,
+    translateNodeId,
+    UAX_TYPES_XSD
+} from "../../api/loader/nodeset_xml_primitives.js";
 import { makeDefinitionMap } from "../../api/loader/decode_xml_extension_object.js";
 import type { DefinitionMap2 } from "../../api/loader/make_xml_extension_object_parser.js";
 import { SessionContext } from "../../api/session_context.js";
@@ -46,6 +65,8 @@ import {
     constructNamespacePriorityTable
 } from "./construct_namespace_dependency.js";
 import { type NodesetWalkEvent, namespaceToWalkEvents, nodeToWalkEvents, sortByNodeId } from "./nodeset_to_records.js";
+
+export { coerceInt64ToInt32, initXmlWriterEx, makeTypeXsd } from "../../api/loader/nodeset_xml_primitives.js";
 
 const debugLog = make_debugLog("nodeset_to_xml");
 const warningLog = make_warningLog("nodeset_to_xml");
@@ -69,28 +90,6 @@ function _dumpDescription(xw: XmlWriter, node: { description?: LocalizedText }):
         desc = desc || "";
         xw.startElement("Description").text(desc).endElement();
     }
-}
-
-function translateNodeId(xw: XmlWriter, nodeId: NodeId): NodeId {
-    assert(nodeId instanceof NodeId);
-    const nn = xw.translationTable.get(nodeId.namespace);
-    const translatedNode = new NodeId(nodeId.identifierType, nodeId.value, nn);
-    return translatedNode;
-}
-
-function n(xw: XmlWriter, nodeId: NodeId): string {
-    return translateNodeId(xw, nodeId).toString().replace("ns=0;", "");
-}
-
-function translateBrowseName(xw: XmlWriter, browseName: QualifiedName): QualifiedName {
-    assert(browseName instanceof QualifiedName);
-    const nn = xw.translationTable.get(browseName.namespaceIndex);
-    const translatedBrowseName = new QualifiedName({ namespaceIndex: nn, name: browseName.name });
-    return translatedBrowseName;
-}
-
-function b(xw: XmlWriter, browseName: QualifiedName): string {
-    return translateBrowseName(xw, browseName).toString().replace("ns=0;", "");
 }
 
 function hasHigherPriorityThan(namespaceIndex1: number, namespaceIndex2: number, priorityTable: number[]) {
@@ -210,36 +209,6 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
     }
     xw.endElement();
 }
-function _dumpLocalizedText(xw: XmlWriter, v: LocalizedText) {
-    const uax = getPrefix(xw, "http://opcfoundation.org/UA/2008/02/Types.xsd");
-    if (v.locale?.length) {
-        xw.startElement(`${uax}Locale`);
-        xw.text(v.locale);
-        xw.endElement();
-    }
-    xw.startElement(`${uax}Text`);
-    if (v.text) {
-        xw.text(v.text);
-    }
-    xw.endElement();
-}
-function _dumpQualifiedName(xw: XmlWriter, v: QualifiedName) {
-    const uax = getPrefix(xw, "http://opcfoundation.org/UA/2008/02/Types.xsd");
-    const t = translateBrowseName(xw, v);
-    if (t.name) {
-        xw.startElement(`${uax}Name`);
-        xw.text(t.name);
-        xw.endElement();
-    }
-    if (t.namespaceIndex) {
-        xw.startElement(`${uax}NamespaceIndex`);
-        xw.text(t.namespaceIndex.toString());
-        xw.endElement();
-    }
-}
-function _dumpXmlElement(xw: XmlWriter, v: string) {
-    xw.text(v);
-}
 /*
 <uax:ExtensionObject>
     <uax:TypeId>
@@ -257,78 +226,6 @@ function _dumpXmlElement(xw: XmlWriter, v: string) {
     </uax:Body>
 </uax:ExtensionObject>
 */
-type XmlNamespaceUri = string;
-type NamespaceUri = string;
-type XmlNs = string;
-interface XmlWriterEx extends XmlWriter {
-    map: Record<XmlNamespaceUri, XmlNs>;
-    stackMap: Record<XmlNamespaceUri, XmlNs>[];
-    namespaceArray: NamespaceUri[];
-}
-export function initXmlWriterEx(xw: XmlWriter, map: Record<XmlNamespaceUri, XmlNs>, namespaceArray: NamespaceUri[]): void {
-    const xwe = xw as XmlWriterEx;
-    xwe.map = map;
-    xwe.stackMap = [];
-    xwe.namespaceArray = namespaceArray;
-}
-function findXsdNamespaceUri(xw: XmlWriter, nodeId: NodeId): string {
-    const xwe = xw as XmlWriterEx;
-    if (!xwe.namespaceArray) {
-        return "";
-    }
-    const namespace = xwe.namespaceArray[nodeId.namespace];
-    if (namespace === "http://opcfoundation.org/UA/") {
-        return "http://opcfoundation.org/UA/2008/02/Types.xsd";
-    }
-    // c8 ignore next
-    if (!namespace) {
-        return "";
-    }
-    return `${namespace.replace(/\/$/, "")}/Types.xsd`;
-}
-
-function getPrefix(xw: XmlWriter, namespace: XmlNamespaceUri): XmlNs {
-    const xwe = xw as XmlWriterEx;
-    if (!xwe.map) return "";
-    const p = xwe.map[namespace] || "";
-    return p ? `${p}:` : "";
-}
-
-function restoreDefaultNamespace(xw: XmlWriter) {
-    const xwe = xw as XmlWriterEx;
-    if (!xwe.map) return;
-    const previousMap = xwe.stackMap.pop();
-    if (previousMap) {
-        xwe.map = previousMap;
-    }
-}
-
-function setDefaultNamespace(xw: XmlWriter, namespace: XmlNamespaceUri): void {
-    const xwe = xw as XmlWriterEx;
-    if (!xwe.map) return;
-    if (xwe.map[namespace] !== "") {
-        xw.writeAttribute("xmlns", namespace);
-    }
-
-    xwe.stackMap.push({
-        ...xwe.map
-    });
-    xwe.map[namespace] = "";
-}
-
-function startElementEx(xw: XmlWriter, _ns: XmlNs, name: string, defaultNamespace: XmlNamespaceUri) {
-    const _xwe = xw as XmlWriterEx;
-    xw.startElement(name);
-    setDefaultNamespace(xw, defaultNamespace);
-}
-
-function _dumpNodeId(xw: XmlWriter, v: NodeId) {
-    const xmlns = getPrefix(xw, "http://opcfoundation.org/UA/2008/02/Types.xsd");
-    xw.startElement(`${xmlns}Identifier`);
-    xw.text(n(xw, v));
-    xw.endElement();
-}
-
 function _dumpVariantValue(xw: XmlWriter, dataTypeNodeId: NodeId, dataType: DataType, addressSpace: IAddressSpace, value: unknown) {
     if (value === undefined || value === null) {
         return;
@@ -871,19 +768,6 @@ function dumpCommonElements(xw: XmlWriter, node: BaseNode) {
     _dumpRolePermissions(xw, node);
 }
 
-export function coerceInt64ToInt32(int64: Int64): number {
-    if (typeof int64 === "number") {
-        return int64 as number;
-    }
-    if (int64[0] === 0xffffffff && int64[1] === 0xffffffff) {
-        return 0xffffffff;
-    }
-    if (int64[0] !== 0) {
-        warningLog("coerceInt64ToInt32 , loosing high word in conversion");
-    }
-    return int64[1];
-}
-
 function _dumpEnumDefinition(xw: XmlWriter, enumDefinition: EnumDefinition) {
     enumDefinition.fields = enumDefinition.fields || [];
 
@@ -1329,10 +1213,6 @@ BaseNodeImpl.prototype.dumpXML = function (this: BaseNodeImpl, xw: XmlWriter) {
     xw.translationTable = xw.translationTable || translationTable;
     writeWalkEvents(xw, this.addressSpace, translationTable, events);
 };
-
-export function makeTypeXsd(namespaceUri: string): string {
-    return `${namespaceUri.replace(/\/$/, "")}/Type.xsd`;
-}
 
 NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     const namespaceArrayNode = this.addressSpace.findNode(VariableIds.Server_NamespaceArray);
