@@ -164,6 +164,7 @@ import type { IChannelData } from "./i_channel_data.js";
 import type { IRegisterServerManager } from "./i_register_server_manager.js";
 import type { ISocketData } from "./i_socket_data.js";
 import { MonitoredItem } from "./monitored_item.js";
+import { ensurePublishSubscribeIsBrowsable } from "./publish_subscribe_structure.js";
 import { RegisterServerManager } from "./register_server_manager.js";
 import { RegisterServerManagerHidden } from "./register_server_manager_hidden.js";
 import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only.js";
@@ -1632,6 +1633,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                         return;
                     }
                     bindRoleSet(this.userManager, this.engine.addressSpace);
+                    ensurePublishSubscribeIsBrowsable(this.engine.addressSpace);
                     setImmediate(() => {
                         this.emit("post_initialize");
                         done();

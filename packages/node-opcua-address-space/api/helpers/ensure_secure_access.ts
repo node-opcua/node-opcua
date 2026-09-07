@@ -1,6 +1,13 @@
 import type { BaseNode, IChannelBase, UAMethod, UAObject, UAVariable } from "node-opcua-address-space-base";
-import { allPermissions, BrowseDirection, makeAccessRestrictionsFlag, makePermissionFlag, NodeClass } from "node-opcua-data-model";
-import { MessageSecurityMode } from "node-opcua-types";
+import {
+    allPermissions,
+    BrowseDirection,
+    makeAccessRestrictionsFlag,
+    makePermissionFlag,
+    NodeClass,
+    PermissionFlag
+} from "node-opcua-data-model";
+import { MessageSecurityMode, type RolePermissionType } from "node-opcua-types";
 import { WellKnownRoles } from "../session_context.js";
 
 function _isChannelSecure(channel: IChannelBase): boolean {
@@ -74,5 +81,49 @@ export function ensureObjectIsSecure(node: BaseNode, options: EnsureObjectIsSecu
     const children = node.findReferencesExAsObject("Aggregates", BrowseDirection.Forward);
     for (const child of children) {
         ensureObjectIsSecure(child, options);
+    }
+}
+
+/** the two Roles every Session's permissions are evaluated against, granted Browse and nothing else */
+const browseForEverySession = [
+    { roleId: WellKnownRoles.Anonymous, permissions: makePermissionFlag("Browse") },
+    { roleId: WellKnownRoles.AuthenticatedUser, permissions: makePermissionFlag("Browse") }
+];
+
+function grantsBrowseToEverySession(rolePermissions: RolePermissionType[]): boolean {
+    return rolePermissions.some(
+        ({ roleId, permissions }) =>
+            (permissions & PermissionFlag.Browse) !== 0 &&
+            roleId.namespace === 0 &&
+            (roleId.value === WellKnownRoles.Anonymous || roleId.value === WellKnownRoles.AuthenticatedUser)
+    );
+}
+
+/**
+ * keep the structure of `node` and its aggregates browsable by every session, leaving every
+ * other permission as declared.
+ *
+ * A node whose RolePermissions grant Browse to neither Anonymous nor AuthenticatedUser is
+ * hidden from any session that holds none of the roles it names. Where those roles are ones
+ * the server never assigns, nobody sees the node, and its parent - browsable by everyone -
+ * shows an instance missing the mandatory children of its type. `Opc.Ua.NodeSet2.xml` does
+ * this to eleven nodes under Server/PublishSubscribe (the methods of SecurityGroups and
+ * KeyPushTargets, with their arguments), reserved to the SecurityKeyServerAdmin role
+ * (CTT Base Info Core Structure 002, FEAT-30).
+ *
+ * Such a node gains Browse for Anonymous and AuthenticatedUser, which every session's
+ * permissions are evaluated against; Read, Write and Call stay with the roles it named. A
+ * node without RolePermissions, or that already grants Browse to one of the two, is left as
+ * it is.
+ *
+ * @param node the node whose structure, and whose aggregates' structure, must stay visible
+ */
+export function ensureStructureIsBrowsable(node: BaseNode): void {
+    const rolePermissions = node.rolePermissions;
+    if (rolePermissions && !grantsBrowseToEverySession(rolePermissions)) {
+        node.setRolePermissions([...rolePermissions, ...browseForEverySession]);
+    }
+    for (const child of node.findReferencesExAsObject("Aggregates", BrowseDirection.Forward)) {
+        ensureStructureIsBrowsable(child);
     }
 }
