@@ -30,9 +30,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
 import zlib from "node:zlib";
-import { nodesets } from "node-opcua-nodesets";
+import { nodesetCatalog, nodesets } from "node-opcua-nodesets";
 import { AddressSpace, generateAddressSpaceRaw, imageNodesetRecords, xmlNodesetRecords } from "../dist/api/index.js";
 import "../distNodeJS/index.js";
+import { chainOf } from "../test/nodeset_chain.js";
 
 const [section = "all", runsArg] = process.argv.slice(2);
 const runs = runsArg ? Number.parseInt(runsArg, 10) : undefined;
@@ -42,16 +43,24 @@ const imageOf = (xmlFile: string) => xmlFile.replace(/\.xml$/i, ".ndjson.gz");
 const asSource = (file: string) => ({ name: file, source: () => [new Uint8Array(fs.readFileSync(file))] });
 const kb = (n: number) => n.toLocaleString("en-US");
 
-/** the chains worth timing: each is a file plus everything it requires, in load order */
+/**
+ * the chains worth timing: each is a nodeset plus everything it requires, in load order.
+ *
+ * Resolved from the catalog rather than listed by hand. The hand-written list silently went
+ * stale -- MachineTool grew a dependency on isa95JobControl and machineryJobs, and the chain
+ * that omitted them threw "Cannot find namespace" instead of producing a number, which is how
+ * the longest chains quietly stopped being measured at all.
+ */
 const CHAINS: Array<{ label: string; files: string[] }> = [
-    { label: "standard", files: [nodesets.standard] },
-    { label: "standard + DI", files: [nodesets.standard, nodesets.di] },
-    { label: "+ Machinery", files: [nodesets.standard, nodesets.di, nodesets.ia, nodesets.machinery] },
-    {
-        label: "+ MachineTool",
-        files: [nodesets.standard, nodesets.di, nodesets.ia, nodesets.machinery, nodesets.machineTool]
-    }
-].filter((c) => c.files.every((f) => f && fs.existsSync(f) && fs.existsSync(imageOf(f))));
+    { label: "standard", name: "standard" },
+    { label: "standard + DI", name: "di" },
+    { label: "+ IA + Machinery", name: "machinery" },
+    { label: "+ MachineTool", name: "machineTool" },
+    { label: "+ Woodworking", name: "woodworking" }
+]
+    .filter(({ name }) => nodesetCatalog.some((m) => m.name === name))
+    .map(({ label, name }) => ({ label, files: chainOf(name).map((n) => nodesets[n as keyof typeof nodesets]) }))
+    .filter((c) => c.files.every((f) => f && fs.existsSync(f) && fs.existsSync(imageOf(f))));
 
 async function best<T>(n: number, fn: () => Promise<T>): Promise<{ ms: number; last: T }> {
     let ms = Number.POSITIVE_INFINITY;
