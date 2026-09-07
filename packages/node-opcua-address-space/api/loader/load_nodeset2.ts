@@ -15,6 +15,7 @@ import type { NamespacePrivate } from "../../impl/namespace_private.js";
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.js";
 import { ensureDatatypeExtracted } from "./ensure_datatype_extracted.js";
 import { promoteObjectsAndVariables } from "./namespace_post_step.js";
+import { narrowInstanceDataTypes } from "./narrow_instance_datatypes.js";
 import { type NodesetRecord, type NodesetRecordProducer, type NodesetRecordWithBytes, recordBytes } from "./nodeset_record.js";
 import type { PendingBackReferences } from "./nodeset_record_applier.js";
 import { type LoaderTaskQueues, makeLoaderTaskQueues, NodesetRecordApplier, type Task } from "./nodeset_record_applier.js";
@@ -256,6 +257,10 @@ export class NodeSetLoader {
                 "assigning extension objects to variables",
                 queues.postTasks2_AssignedExtensionObjectToDataValue
             );
+
+            doDebug && debugLog(chalk.bgGreenBright("Narrowing instance DataTypes to their declaration ---------------------"));
+            // after the values are in: a value that would not fit the declared type keeps the variable as it is
+            narrowInstanceDataTypes(addressSpace1);
 
             doDebug && debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
             // awaited: a promoter that throws must reject generateAddressSpace, not surface later

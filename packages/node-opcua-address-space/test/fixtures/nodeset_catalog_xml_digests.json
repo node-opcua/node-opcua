@@ -6,8 +6,8 @@
   },
   "di": {
     "uri": "http://opcfoundation.org/UA/DI/",
-    "length": 299604,
-    "sha1": "38772a7a9d56c702fadae32f449d342ad3ea0a60"
+    "length": 299680,
+    "sha1": "ff730d196bc29100df4d2c9c8703b0345a39097a"
   },
   "adi": {
     "uri": "http://opcfoundation.org/UA/ADI/",
