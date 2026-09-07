@@ -216,8 +216,15 @@ and an absent key mean the same thing and a writer MUST omit the key.
 
 ### 6.4 Numbers
 
-- `Int64` and `UInt64` are `[high, low]`, two 32-bit halves, because JSON numbers cannot
-  carry 64 bits exactly.
+- `Int64` and `UInt64` are a **decimal string**: `"-1"`, `"18446744073709551615"`. JSON numbers
+  cannot carry 64 bits exactly, and a pair of 32-bit halves — the obvious alternative, and what
+  the reference implementation holds in memory — cannot be read without knowing the signedness
+  from somewhere else: as halves, `Int64 -1` and `UInt64 18446744073709551615` are the same two
+  numbers. It would also give one value two spellings, since `Int64` min is `[2147483648, 0]` with
+  unsigned halves and `[-2147483648, 0]` with signed ones, which no canonical form can allow.
+  A writer MUST emit no leading zeros, `-` only for a negative value, and never `+`.
+  This is also the spelling the OPC UA JSON encoding of Part 6 uses, so it is one divergence
+  fewer (§12).
 - `Float` and `Double` are JSON numbers, except that the three values JSON has no literal
   for are written as the strings `"NaN"`, `"Infinity"` and `"-Infinity"`. A reader MUST
   accept both a number and one of those three strings wherever a float is expected.
@@ -242,7 +249,7 @@ that they are given a decoded form:
 {"$class":"Argument","name":"Handle","dataType":7,"description":{"text":"the handle"}}
 {"$class":"EUInformation","namespaceUri":"http://...","unitId":4408652,"displayName":{"text":"°C"}}
 {"$class":"Range","low":0,"high":100}
-{"$class":"EnumValueType","value":[0,3],"displayName":{"text":"Off"}}
+{"$class":"EnumValueType","value":"3","displayName":{"text":"Off"}}
 ```
 
 Every other extension object is carried as the XML fragment the source held, with the
@@ -557,7 +564,7 @@ A bump is also the only way to invalidate stored documents when a *producer* bec
 — when a reader learns to read something it used to drop. Every document written before is still
 valid under its schema and still parses; it is simply less faithful than the file it came from, and
 neither its `sourceDigest` nor its `sourceLength` can reveal that, because the source did not
-change. Schema 4 was bumped for exactly that reason.
+change. Part of schema 3 was bumped for exactly that reason.
 
 Version history:
 
@@ -565,8 +572,7 @@ Version history:
 |---|---|
 | 1 | initial |
 | 2 | the §7.2 inverse-declaration hint |
-| 3 | the default table of §7.1 |
-| 4 | `definition.isOptionSet` and `definition.isUnion`, which the reader had been dropping; DateTime values, which it had not been reading at all |
+| 3 | the default table of §7.1; `definition.isOptionSet`, which the reader had been dropping; DateTime values, which it had not been reading at all |
 
 ## 11. Security considerations
 

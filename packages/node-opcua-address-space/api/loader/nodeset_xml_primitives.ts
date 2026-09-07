@@ -11,7 +11,7 @@
  * helper that reached for a node would be usable by only one of them.
  */
 import { assert } from "node-opcua-assert";
-import type { Int64 } from "node-opcua-basic-types";
+import type { Int64, UInt64 } from "node-opcua-basic-types";
 import { type LocalizedText, QualifiedName } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
@@ -130,6 +130,26 @@ export function identityTranslationTable(size: number): Map<number, number> {
 }
 
 // #endregion
+
+const TWO_64 = 1n << 64n;
+const TWO_63 = 1n << 63n;
+
+/**
+ * a 64-bit integer as one decimal number, the only spelling that says what it means.
+ *
+ * In memory node-opcua holds one as `[high, low]` with unsigned halves, so Int64 -1 and UInt64
+ * 18446744073709551615 are the very same pair and only `signed` tells them apart. Writing the low
+ * half alone -- which both XML writers used to do -- silently truncates anything past 2^32 and
+ * turns -1 into 4294967295.
+ */
+export function int64ToDecimalString(value: Int64 | UInt64 | number | string, signed: boolean): string {
+    if (typeof value === "number" || typeof value === "string") {
+        return value.toString();
+    }
+    const [high, low] = value as [number, number];
+    const unsigned = (BigInt(high >>> 0) << 32n) | BigInt(low >>> 0);
+    return (signed && unsigned >= TWO_63 ? unsigned - TWO_64 : unsigned).toString();
+}
 
 export function coerceInt64ToInt32(int64: Int64): number {
     if (typeof int64 === "number") {

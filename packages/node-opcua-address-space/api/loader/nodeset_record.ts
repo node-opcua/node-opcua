@@ -29,7 +29,7 @@ import type { EnumFieldOptions, StructureFieldOptions } from "node-opcua-xml2jso
  * was built from, and nothing else would ever invalidate it. The source digest cannot: the source
  * did not change. This number is the only lever.
  */
-export const NODESET_RECORD_SCHEMA = 4;
+export const NODESET_RECORD_SCHEMA = 3;
 
 export interface NodesetModelRecord {
     modelUri: string;
