@@ -2,6 +2,7 @@
  * @module node-opcua-address-space
  */
 import type {
+    AddReferenceOpts,
     AddVariableOptions,
     BaseNode,
     BaseNodeEvents,
@@ -12,6 +13,7 @@ import type {
     UAMethod,
     UAObject,
     UAObjectType,
+    UAReferenceType,
     UAVariable,
     UAVariableType
 } from "node-opcua-address-space-base";
@@ -48,10 +50,47 @@ const errorLog = make_errorLog("ua_variable_type_impl");
 interface InstantiateS {
     propertyOf?: NodeIdLike | UAObject | UAObjectType | UAVariable | UAVariableType | UAMethod;
     componentOf?: NodeIdLike | BaseNode;
+    references?: AddReferenceOpts[];
     modellingRule?: ModellingRuleType;
     copyAlsoModellingRules?: boolean;
     copyAlsoAllOptionals?: boolean;
 }
+
+/**
+ * the parent given through `options.references` as an inverse aggregate
+ * reference (HasOrderedComponent, HasPhysicalComponent ...), if any.
+ * See InstantiateOptions.references.
+ */
+export function findAggregateParentInReferences(
+    addressSpace: AddressSpacePrivate,
+    references: AddReferenceOpts[] | undefined
+): BaseNode | null {
+    if (!references || references.length === 0) {
+        return null;
+    }
+    const aggregates = addressSpace.findReferenceType("Aggregates");
+    if (!aggregates) {
+        return null;
+    }
+    for (const ref of references) {
+        if (ref.isForward !== false) {
+            continue;
+        }
+        const referenceType =
+            typeof ref.referenceType === "object" && "nodeClass" in (ref.referenceType as object)
+                ? (ref.referenceType as UAReferenceType)
+                : addressSpace.findReferenceType(ref.referenceType as NodeIdLike);
+        if (!referenceType?.isSubtypeOf(aggregates)) {
+            continue;
+        }
+        const parent = addressSpace._coerceNode(ref.nodeId as BaseNode | NodeIdLike);
+        if (parent) {
+            return parent;
+        }
+    }
+    return null;
+}
+
 export function topMostParentIsObjectTypeOrVariableType(addressSpace: AddressSpacePrivate, options: InstantiateS): boolean {
     if (options.copyAlsoModellingRules) {
         return true;
@@ -60,7 +99,7 @@ export function topMostParentIsObjectTypeOrVariableType(addressSpace: AddressSpa
         return true;
     }
 
-    const parent = options.propertyOf || options.componentOf;
+    const parent = options.propertyOf || options.componentOf || findAggregateParentInReferences(addressSpace, options.references);
     if (!parent) {
         return false;
     }
@@ -292,6 +331,9 @@ export class UAVariableTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements 
             nodeId: options.nodeId,
             notifierOf: options.notifierOf,
             organizedBy: options.organizedBy,
+            // see InstantiateOptions.references: created with the node so the
+            // NodeIdManager derives the symbolic name from that parent
+            references: options.references,
             typeDefinition: this.nodeId,
             value: options.value || defaultValue,
             valueRank
@@ -353,7 +395,11 @@ function hasChildWithBrowseName(parent: BaseNode, childBrowseName: QualifiedName
 }
 
 function getParent(addressSpace: IAddressSpace, options: InstantiateVariableOptions) {
-    const parent = options.componentOf || options.organizedBy;
+    const parent =
+        options.componentOf ||
+        options.organizedBy ||
+        findAggregateParentInReferences(addressSpace as AddressSpacePrivate, options.references) ||
+        undefined;
     if (parent instanceof NodeId) {
         return addressSpace.findNode(parent as NodeId);
     }

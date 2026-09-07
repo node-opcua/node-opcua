@@ -1,6 +1,6 @@
 import type { LocalizedTextLike, QualifiedNameLike } from "node-opcua-data-model";
 import type { NodeIdLike } from "node-opcua-nodeid";
-import type { BaseNode } from "./base_node.js";
+import type { AddReferenceOpts, BaseNode } from "./base_node.js";
 import type { ModellingRuleType } from "./modelling_rule_type.js";
 import type { INamespace } from "./namespace.js";
 
@@ -67,6 +67,24 @@ export interface InstantiateOptions {
      * @default: []
      */
     optionals?: string[];
+    /**
+     * additional references to create on the new node at construction time.
+     *
+     * Use it to link the instance to a parent through an aggregate reference
+     * that has no dedicated option (HasOrderedComponent, HasPhysicalComponent,
+     * HasContainedComponent, HasAttachedComponent ...):
+     *
+     * ```javascript
+     *   references: [{ referenceType: "HasOrderedComponent", isForward: false, nodeId: listNode }]
+     * ```
+     *
+     * Because the reference exists when the node is created, the NodeIdManager
+     * derives the symbolic name from that parent (`List_First`), exactly as it
+     * does for `componentOf`; adding the reference afterwards would leave the
+     * node named without its parent. Such a parent also counts when deciding
+     * whether modelling rules are copied (an instance declared inside a type).
+     */
+    references?: AddReferenceOpts[];
     /**
      * modellingRule
      */

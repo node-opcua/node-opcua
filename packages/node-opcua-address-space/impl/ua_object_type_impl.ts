@@ -4,12 +4,12 @@
 
 import type {
     AddObjectOptions,
+    AddReferenceOpts,
     BaseNodeEvents,
     InstantiateObjectOptions,
     ISessionContext,
     UAObject,
-    UAObjectType,
-    UAReference
+    UAObjectType
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { AttributeIds, type LocalizedTextLike, NodeClass } from "node-opcua-data-model";
@@ -128,7 +128,10 @@ export class UAObjectTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements UA
         const baseObjectType = addressSpace.findObjectType("BaseObjectType") as UAObjectType;
         assert(baseObjectType, "BaseObjectType must be defined in the address space");
 
-        const references: UAReference[] = [];
+        // caller-supplied references (typically an inverse aggregate reference to a
+        // parent that has no dedicated option, e.g. HasOrderedComponent) are created
+        // with the node, so the NodeIdManager sees the parent when naming it.
+        const references: AddReferenceOpts[] = options.references ? [...options.references] : [];
 
         const copyAlsoModellingRules = topMostParentIsObjectTypeOrVariableType(addressSpace, options);
 
