@@ -1746,10 +1746,14 @@ export class Subscription extends EventEmitter {
         // c8 ignore next
         doDebug && debugLog("Subscription#_tick  self._pending_notifications= ", this._pending_notifications.size);
 
-        if (
-            publishEngine.pendingPublishRequestCount === 0 &&
-            (this.hasPendingNotifications || this.hasUncollectedMonitoredItemNotifications)
-        ) {
+        // A disabled subscription holds its notifications back (SetPublishingMode, Part 4 5.13.4)
+        // and owes nothing but its keep-alive, under its own id: what its monitored items have
+        // queued must neither make it LATE nor send it to the engine's arbitration, which only
+        // serves subscriptions that may publish (FEAT-35: CTT Subscription Basic 014/044/046/048).
+        const hasNotificationsToPublish =
+            this.publishingEnabled && (this.hasPendingNotifications || this.hasUncollectedMonitoredItemNotifications);
+
+        if (publishEngine.pendingPublishRequestCount === 0 && hasNotificationsToPublish) {
             // c8 ignore next
             doDebug &&
                 debugLog(
@@ -1764,7 +1768,7 @@ export class Subscription extends EventEmitter {
         }
 
         if (publishEngine.pendingPublishRequestCount > 0) {
-            if (this.hasPendingNotifications || this.hasUncollectedMonitoredItemNotifications) {
+            if (hasNotificationsToPublish) {
                 // A sibling subscription on this same session may deserve the next queued
                 // PublishRequest more (higher priority, or waited longer at equal priority).
                 // Let the engine arbitrate across every ready subscription it owns instead of
