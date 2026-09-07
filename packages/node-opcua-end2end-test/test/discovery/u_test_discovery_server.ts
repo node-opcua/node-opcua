@@ -1,21 +1,31 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import chalk from "chalk";
 import {
     ApplicationType,
     findServers,
     findServersOnNetwork,
+    MessageSecurityMode,
+    makeApplicationUrn,
     OPCUAClient,
     type OPCUADiscoveryServer,
     OPCUAServer,
+    RegisterServer2Request,
+    RegisterServer2Response,
     RegisterServerRequest,
     RegisterServerResponse,
+    type RegistrationRefusedInfo,
+    SecurityPolicy,
     ServiceFault,
     StatusCodes
 } from "node-opcua";
 import { assert } from "node-opcua-assert";
-import { exploreCertificate } from "node-opcua-crypto";
+import { exploreCertificate, readCertificate } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
+import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager.js";
 import { stepLog, waitUntilCondition } from "../../test_helpers/utils.js";
 import {
     addServerCertificateToTrustedCertificateInDiscoveryServer,
@@ -32,11 +42,11 @@ import {
 
 // RegisterServer is sent over the client's secure channel directly, without a session,
 // so performMessageTransaction here is deliberately outside the public OPCUAClient surface.
+type RegisterRequest = RegisterServerRequest | RegisterServer2Request;
+type RegisterResponse = RegisterServerResponse | RegisterServer2Response;
+type RegisteredServerOptions = NonNullable<NonNullable<ConstructorParameters<typeof RegisterServerRequest>[0]>["server"]>;
 interface ClientWithTransaction {
-    performMessageTransaction(
-        request: RegisterServerRequest,
-        callback: (err: Error | null, response?: RegisterServerResponse) => void
-    ): void;
+    performMessageTransaction(request: RegisterRequest, callback: (err: Error | null, response?: RegisterResponse) => void): void;
 }
 
 interface ErrorWithServiceFaultResponse extends Error {
@@ -83,12 +93,18 @@ export function t(test: TestHarness) {
             server = undefined;
         });
 
-        beforeEach(async () => {
-            await cleanUpmDNSandSanityCheck();
-            discovery_server = await makeDiscoveryServer(port_discovery, test);
+        async function startDiscoveryServer(options?: { allowUnsecuredRegistration?: boolean }) {
+            discovery_server = await makeDiscoveryServer(port_discovery, test, options);
             await discovery_server.start();
             discoveryServerEndpointUrl = discovery_server.getEndpointUrl();
             debugLog(" discovery_server_endpointUrl = ", discoveryServerEndpointUrl);
+            // the LDS only accepts registrations from applications it trusts (OPC UA Part 4 §5.5.5)
+            await addServerCertificateToTrustedCertificateInDiscoveryServer(server!, discovery_server);
+        }
+
+        beforeEach(async () => {
+            await cleanUpmDNSandSanityCheck();
+            await startDiscoveryServer();
         });
 
         afterEach(async () => {
@@ -96,32 +112,104 @@ export function t(test: TestHarness) {
             discovery_server = undefined;
         });
 
+        interface RegistrantIdentity {
+            certificateFile: string;
+            privateKeyFile: string;
+            applicationUri: string;
+        }
+        /** the identity of the (trusted) OPCUAServer created in `before` */
+        function trustedIdentity(): RegistrantIdentity {
+            return {
+                certificateFile: server!.certificateFile,
+                privateKeyFile: server!.privateKeyFile,
+                applicationUri: server!.serverInfo.applicationUri!
+            };
+        }
+
+        interface SendOptions {
+            securityMode?: MessageSecurityMode;
+            securityPolicy?: SecurityPolicy;
+            identity?: RegistrantIdentity;
+        }
+
+        /**
+         * open a SecureChannel to the LDS and send a raw RegisterServer(2) request on it.
+         * By default the channel is SignAndEncrypt with the trusted server identity.
+         */
         async function send_registered_server_request(
             discoveryServerEndpointUrl: string,
-            registerServerRequest: RegisterServerRequest,
-            externalFunc: (err: Error | null, response?: RegisterServerResponse) => void
+            registerServerRequest: RegisterRequest,
+            externalFunc: (err: Error | null, response?: RegisterResponse) => void,
+            options?: SendOptions
         ): Promise<void> {
+            const securityMode = options?.securityMode ?? MessageSecurityMode.SignAndEncrypt;
+            const securityPolicy = options?.securityPolicy ?? SecurityPolicy.Basic256Sha256;
+            const identity = options?.identity ?? trustedIdentity();
+
+            // a dedicated store that auto-accepts the LDS certificate; the identity is passed explicitly
+            const clientCertificateManager = await createServerCertificateManager(port0);
+
             const client = OPCUAClient.create({
                 endpointMustExist: false,
-                clientName: "u_test_discovery_server"
+                clientName: "u_test_discovery_server",
+                securityMode,
+                securityPolicy,
+                clientCertificateManager,
+                // a refused OpenSecureChannel must surface immediately, not retry forever
+                connectionStrategy: { maxRetry: 0 },
+                ...identity
             });
             client.on("backoff", () => {
                 debugLog(`cannot connect to ${discoveryServerEndpointUrl}`);
             });
 
             await client.connect(discoveryServerEndpointUrl);
-
-            await new Promise<void>((resolve) => {
-                (client as unknown as ClientWithTransaction).performMessageTransaction(registerServerRequest, (err, response) => {
-                    if (!err) {
-                        // RegisterServerResponse
-                        assert(response instanceof RegisterServerResponse);
-                    }
-                    externalFunc(err, response);
-                    resolve();
+            try {
+                await new Promise<void>((resolve, reject) => {
+                    (client as unknown as ClientWithTransaction).performMessageTransaction(
+                        registerServerRequest,
+                        (err, response) => {
+                            // an assertion failure inside the callback must fail the test, not hang it
+                            try {
+                                if (!err) {
+                                    assert(
+                                        response instanceof RegisterServerResponse || response instanceof RegisterServer2Response
+                                    );
+                                }
+                                externalFunc(err, response);
+                                resolve();
+                            } catch (assertionError) {
+                                reject(assertionError as Error);
+                            }
+                        }
+                    );
                 });
-            });
-            await client.disconnect();
+            } finally {
+                await client.disconnect();
+            }
+        }
+
+        function expectServiceFault(expected: (typeof StatusCodes)[keyof typeof StatusCodes]) {
+            return (err: Error | null, response?: RegisterResponse) => {
+                should.exist(err);
+                should.not.exist(response);
+                should((err as ErrorWithServiceFaultResponse).response).be.instanceOf(ServiceFault);
+                should((err as ErrorWithServiceFaultResponse).response?.responseHeader.serviceResult).eql(expected);
+            };
+        }
+
+        /** a well-formed registration for the trusted identity */
+        function validRegisteredServer(): RegisteredServerOptions {
+            return {
+                serverUri: trustedIdentity().applicationUri,
+                productUri: "productUri",
+                serverNames: [{ text: "some name" }],
+                serverType: ApplicationType.Server,
+                gatewayServerUri: null,
+                discoveryUrls: ["opc.tcp://localhost:2500"],
+                semaphoreFilePath: null,
+                isOnline: false
+            };
         }
 
         it("DISCO1-1 should fail to register server if discovery url is not specified (Bad_DiscoveryUrlMissing)", async () => {
@@ -129,7 +217,7 @@ export function t(test: TestHarness) {
                 server: {
                     // The globally unique identifier for the Server instance. The serverUri matches
                     // the applicationUri from the ApplicationDescription defined in 7.1.
-                    serverUri: "uri:MyServerURI",
+                    serverUri: trustedIdentity().applicationUri,
 
                     // The globally unique identifier for the Server product.
                     productUri: "productUri",
@@ -144,7 +232,7 @@ export function t(test: TestHarness) {
                 }
             });
 
-            function check_error_response(err: Error | null, response?: RegisterServerResponse): void {
+            function check_error_response(err: Error | null, response?: RegisterResponse): void {
                 should.exist(err);
                 should.not.exist(response);
                 should((err as ErrorWithServiceFaultResponse).response).be.instanceOf(ServiceFault);
@@ -161,7 +249,7 @@ export function t(test: TestHarness) {
                 server: {
                     // The globally unique identifier for the Server instance. The serverUri matches
                     // the applicationUri from the ApplicationDescription defined in 7.1.
-                    serverUri: "uri:MyServerURI",
+                    serverUri: trustedIdentity().applicationUri,
 
                     // The globally unique identifier for the Server product.
                     productUri: "productUri",
@@ -176,7 +264,7 @@ export function t(test: TestHarness) {
                 }
             });
 
-            function check_error_response(err: Error | null, response?: RegisterServerResponse) {
+            function check_error_response(err: Error | null, response?: RegisterResponse) {
                 should.exist(err);
                 should.not.exist(response);
                 //xx debugLog(response.toString());
@@ -194,7 +282,7 @@ export function t(test: TestHarness) {
                 server: {
                     // The globally unique identifier for the Server instance. The serverUri matches
                     // the applicationUri from the ApplicationDescription defined in 7.1.
-                    serverUri: "uri:MyServerURI",
+                    serverUri: trustedIdentity().applicationUri,
 
                     // The globally unique identifier for the Server product.
                     productUri: "productUri",
@@ -209,7 +297,7 @@ export function t(test: TestHarness) {
                 }
             });
 
-            function check_error_response(err: Error | null, response?: RegisterServerResponse) {
+            function check_error_response(err: Error | null, response?: RegisterResponse) {
                 should.exist(err);
                 should.not.exist(response);
                 should((err as ErrorWithServiceFaultResponse).response).be.instanceOf(ServiceFault);
@@ -219,6 +307,172 @@ export function t(test: TestHarness) {
             }
 
             await send_registered_server_request(discoveryServerEndpointUrl, request, check_error_response);
+        });
+
+        // ---------------------------------------------------------------------------------------------------
+        // RegisterServer(2) must only be accepted from an authenticated SecureChannel
+        // whose certificate ApplicationUri matches serverUri (OPC UA Part 4 §5.5.5 / §5.5.6)
+        // ---------------------------------------------------------------------------------------------------
+
+        it("DISCO1-4 should accept a well-formed RegisterServer over an authenticated SecureChannel", async () => {
+            const request = new RegisterServerRequest({ server: { ...validRegisteredServer(), isOnline: true } });
+
+            const refused: RegistrationRefusedInfo[] = [];
+            discovery_server!.on("onRegistrationRefused", (_server, info) => refused.push(info));
+
+            await send_registered_server_request(discoveryServerEndpointUrl, request, (err, response) => {
+                should.not.exist(err);
+                should(response).be.instanceOf(RegisterServerResponse);
+            });
+            refused.length.should.eql(0);
+            discovery_server!.registeredServerCount.should.eql(1);
+        });
+
+        it("DISCO1-5 should refuse RegisterServer over a MessageSecurityMode.None channel (BadSecurityModeInsufficient)", async () => {
+            const request = new RegisterServerRequest({ server: { ...validRegisteredServer(), isOnline: true } });
+
+            const refused: RegistrationRefusedInfo[] = [];
+            discovery_server!.on("onRegistrationRefused", (_server, info) => refused.push(info));
+
+            await send_registered_server_request(
+                discoveryServerEndpointUrl,
+                request,
+                expectServiceFault(StatusCodes.BadSecurityModeInsufficient),
+                { securityMode: MessageSecurityMode.None, securityPolicy: SecurityPolicy.None }
+            );
+
+            discovery_server!.registeredServerCount.should.eql(0);
+            refused.length.should.eql(1);
+            refused[0].statusCode.should.eql(StatusCodes.BadSecurityModeInsufficient);
+            refused[0].securityMode.should.eql(MessageSecurityMode.None);
+            refused[0].certificateApplicationUris.should.eql([]);
+            refused[0].remoteAddress.should.be.a.String();
+        });
+
+        it("DISCO1-6 should refuse RegisterServer2 over a MessageSecurityMode.None channel (BadSecurityModeInsufficient)", async () => {
+            const request = new RegisterServer2Request({
+                server: { ...validRegisteredServer(), isOnline: true },
+                discoveryConfiguration: []
+            });
+
+            await send_registered_server_request(
+                discoveryServerEndpointUrl,
+                request,
+                expectServiceFault(StatusCodes.BadSecurityModeInsufficient),
+                { securityMode: MessageSecurityMode.None, securityPolicy: SecurityPolicy.None }
+            );
+            discovery_server!.registeredServerCount.should.eql(0);
+        });
+
+        it("DISCO1-7 should accept an unsecured RegisterServer when allowUnsecuredRegistration is explicitly enabled", async () => {
+            await discovery_server!.shutdown();
+            await startDiscoveryServer({ allowUnsecuredRegistration: true });
+
+            const request = new RegisterServerRequest({ server: { ...validRegisteredServer(), isOnline: true } });
+            await send_registered_server_request(
+                discoveryServerEndpointUrl,
+                request,
+                (err, response) => {
+                    should.not.exist(err);
+                    should(response).be.instanceOf(RegisterServerResponse);
+                },
+                { securityMode: MessageSecurityMode.None, securityPolicy: SecurityPolicy.None }
+            );
+            discovery_server!.registeredServerCount.should.eql(1);
+        });
+
+        it("DISCO1-8 should refuse a registration whose serverUri does not match the certificate ApplicationUri (BadServerUriInvalid)", async () => {
+            const request = new RegisterServerRequest({
+                server: { ...validRegisteredServer(), serverUri: "urn:some:other:server", isOnline: true }
+            });
+
+            const refused: RegistrationRefusedInfo[] = [];
+            discovery_server!.on("onRegistrationRefused", (_server, info) => refused.push(info));
+
+            await send_registered_server_request(
+                discoveryServerEndpointUrl,
+                request,
+                expectServiceFault(StatusCodes.BadServerUriInvalid)
+            );
+
+            discovery_server!.registeredServerCount.should.eql(0);
+            refused.length.should.eql(1);
+            refused[0].statusCode.should.eql(StatusCodes.BadServerUriInvalid);
+            refused[0].securityMode.should.eql(MessageSecurityMode.SignAndEncrypt);
+            refused[0].certificateApplicationUris.should.eql([trustedIdentity().applicationUri]);
+        });
+
+        it("DISCO1-9 should refuse a registrant with an unknown certificate at OpenSecureChannel, and accept it once trusted", async () => {
+            // an application the LDS has never seen, with a certificate whose ApplicationUri matches its serverUri
+            const unknownCertificateManager = await createServerCertificateManager(port5);
+            const unknownApplicationUri = makeApplicationUrn(os.hostname(), "UnknownRegistrant");
+            const unknownCertificateFile = path.join(unknownCertificateManager.rootDir, "certificate_unknown_registrant.pem");
+            if (!fs.existsSync(unknownCertificateFile)) {
+                await unknownCertificateManager.createSelfSignedCertificate({
+                    applicationUri: unknownApplicationUri,
+                    dns: [os.hostname(), "localhost"],
+                    outputFile: unknownCertificateFile,
+                    subject: "/CN=UnknownRegistrant",
+                    startDate: new Date(),
+                    validity: 365
+                });
+            }
+            const unknownCertificate = readCertificate(unknownCertificateFile);
+            const unknownIdentity: RegistrantIdentity = {
+                certificateFile: unknownCertificateFile,
+                privateKeyFile: unknownCertificateManager.privateKey as string,
+                applicationUri: unknownApplicationUri
+            };
+            // make sure a previous run has not left it trusted
+            await test.discoveryServerCertificateManager.rejectCertificate(unknownCertificate);
+
+            const request = new RegisterServerRequest({
+                server: { ...validRegisteredServer(), serverUri: unknownApplicationUri, isOnline: true }
+            });
+
+            stepLog("1. the unknown registrant cannot even open a SecureChannel to the LDS");
+            let connectError: Error | null = null;
+            try {
+                await send_registered_server_request(discoveryServerEndpointUrl, request, () => {}, {
+                    identity: unknownIdentity
+                });
+            } catch (err) {
+                connectError = err as Error;
+            }
+            should.exist(connectError, "expecting OpenSecureChannel to be refused");
+            // the LDS answers BadSecurityChecksFailed and closes the socket; depending on timing the
+            // client sees either the status code or only the dropped connection
+            connectError!.message.should.match(/BadSecurityChecksFailed|BadCertificateUntrusted|rejected by server/);
+            discovery_server!.registeredServerCount.should.eql(0);
+
+            stepLog("2. its certificate has been placed in the rejected folder");
+            (await test.discoveryServerCertificateManager.getTrustStatus(unknownCertificate)).should.eql(
+                StatusCodes.BadCertificateUntrusted
+            );
+            const rejectedFolder = path.join(test.discoveryServerCertificateManager.rootDir, "rejected");
+            fs.readdirSync(rejectedFolder).length.should.be.greaterThan(0);
+
+            stepLog("3. once the administrator trusts the certificate, the registration succeeds");
+            await test.discoveryServerCertificateManager.trustCertificate(unknownCertificate);
+
+            const registered: Array<{ serverUri: string | null; firstTime: boolean }> = [];
+            discovery_server!.on("onRegisterServer", (s, firstTime) => registered.push({ serverUri: s.serverUri, firstTime }));
+
+            await send_registered_server_request(
+                discoveryServerEndpointUrl,
+                request,
+                (err, response) => {
+                    should.not.exist(err);
+                    should(response).be.instanceOf(RegisterServerResponse);
+                },
+                { identity: unknownIdentity }
+            );
+            discovery_server!.registeredServerCount.should.eql(1);
+            registered.should.eql([{ serverUri: unknownApplicationUri, firstTime: true }]);
+
+            // leave the store as we found it
+            await test.discoveryServerCertificateManager.rejectCertificate(unknownCertificate);
+            await unknownCertificateManager.dispose();
         });
     });
 

@@ -17,6 +17,7 @@
         "node-opcua-basic-types": "2.181.0",
         "node-opcua-certificate-manager": "2.181.0",
         "node-opcua-common": "2.181.0",
+        "node-opcua-crypto": "5.10.1",
         "node-opcua-debug": "2.181.0",
         "node-opcua-object-registry": "2.181.0",
         "node-opcua-secure-channel": "2.181.1",

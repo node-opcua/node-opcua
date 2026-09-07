@@ -3694,6 +3694,9 @@ importers:
       node-opcua-common:
         specifier: 2.181.0
         version: link:../node-opcua-common
+      node-opcua-crypto:
+        specifier: 5.10.1
+        version: 5.10.1
       node-opcua-debug:
         specifier: 2.181.0
         version: link:../node-opcua-debug

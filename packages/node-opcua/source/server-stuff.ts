@@ -6,4 +6,8 @@ export * from "node-opcua-address-space";
 export * from "node-opcua-certificate-manager";
 export * from "node-opcua-server";
 
-export { OPCUADiscoveryServer } from "node-opcua-server-discovery";
+export {
+    OPCUADiscoveryServer,
+    type OPCUADiscoveryServerOptions,
+    type RegistrationRefusedInfo
+} from "node-opcua-server-discovery";
