@@ -300,7 +300,16 @@ const regexNamespaceS = /ns=([0-9]+);s=(.*)/;
 const regexNamespaceB = /ns=([0-9]+);b=(.*)/;
 const regexNamespaceG = /ns=([0-9]+);g=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/;
 
-const regexNSU = /nsu=(.*);(.*)/;
+/**
+ * `nsu=<namespace uri>;<identifier>`.
+ *
+ * The uri stops at the FIRST semicolon, not the last. A namespace uri may not contain one (OPC
+ * 10000-6 5.1.12, and the canonical encoding the OPC Foundation NodeSet tooling writes relies on
+ * it), but a string identifier may contain as many as it likes, and a greedy match handed those
+ * to the uri: `nsu=urn:x;s=a;b` looked up a namespace called `urn:x;s=a` and threw. The form was
+ * written correctly by toString and could not be read back.
+ */
+const regexNSU = /^nsu=([^;]*);([\s\S]*)$/;
 
 /**
  *
