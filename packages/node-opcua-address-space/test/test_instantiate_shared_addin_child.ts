@@ -49,12 +49,10 @@ function expectShared(root: BaseNode, pathA: string, pathB: string) {
     const b = byPath(root, pathB);
     should.exist(a, `${pathA} must exist`);
     should.exist(b, `${pathB} must exist`);
-    a!.nodeId
-        .toString()
-        .should.eql(
-            b!.nodeId.toString(),
-            `${pathA} and ${pathB} must be the same node, got parents ${parentsOf(a!)} vs ${parentsOf(b!)}`
-        );
+    should(a!.nodeId.toString()).eql(
+        b!.nodeId.toString(),
+        `${pathA} and ${pathB} must be the same node, got parents ${parentsOf(a!)} vs ${parentsOf(b!)}`
+    );
     return a!;
 }
 

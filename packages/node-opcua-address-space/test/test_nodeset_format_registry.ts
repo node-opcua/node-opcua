@@ -64,11 +64,11 @@ describe("NodesetFormat registry", () => {
     it("NFR-1 recognises NodeSet2 XML as the fallback format", () => {
         const format = findNodesetFormat(headOf(MINIMAL_XML));
         should.exist(format);
-        format?.name.should.eql(NODESET2_XML_FORMAT);
+        should(format?.name).eql(NODESET2_XML_FORMAT);
     });
 
     it("NFR-2 recognises one of our own images by its header record, not by its first byte", () => {
-        findNodesetFormat(headOf(OUR_HEADER))?.name.should.eql(NDJSON_IMAGE_FORMAT);
+        should(findNodesetFormat(headOf(OUR_HEADER))?.name).eql(NDJSON_IMAGE_FORMAT);
         isNdjsonHeaderLine(OUR_HEADER).should.eql(true);
     });
 
@@ -76,16 +76,16 @@ describe("NodesetFormat registry", () => {
         // the bug this registry exists to fix: their document also begins with a brace, and the
         // old sniffer looked no further than that
         isNdjsonHeaderLine(THEIR_HEADER).should.eql(false);
-        findNodesetFormat(headOf(THEIR_HEADER))?.name.should.not.eql(NDJSON_IMAGE_FORMAT);
+        should(findNodesetFormat(headOf(THEIR_HEADER))?.name).not.eql(NDJSON_IMAGE_FORMAT);
     });
 
     it("NFR-4 does not claim an arbitrary gzip stream as one of our images", () => {
         // a .jsonl.gz or a .uanodeset tar.gz inflates to something that is not ours; a sniffer is
         // shown the *inflated* head, so the gzip wrapper decides nothing on its own
-        findNodesetFormat(headOf(THEIR_HEADER, true))?.name.should.not.eql(NDJSON_IMAGE_FORMAT);
+        should(findNodesetFormat(headOf(THEIR_HEADER, true))?.name).not.eql(NDJSON_IMAGE_FORMAT);
 
         const tarHeader = `${"member.json".padEnd(257, "\0")}ustar\0`;
-        findNodesetFormat(headOf(tarHeader, true))?.name.should.not.eql(NDJSON_IMAGE_FORMAT);
+        should(findNodesetFormat(headOf(tarHeader, true))?.name).not.eql(NDJSON_IMAGE_FORMAT);
     });
 
     it("NFR-5 lets a format be registered from outside, and taken away again", async () => {
@@ -109,13 +109,13 @@ describe("NodesetFormat registry", () => {
         try {
             should.exist(nodesetFormatByName("test-fake"));
             nodesetFormats()[0].name.should.eql("test-fake", "the strongest claim is asked first");
-            findNodesetFormat(headOf("FAKE nodeset"))?.name.should.eql("test-fake");
+            should(findNodesetFormat(headOf("FAKE nodeset"))?.name).eql("test-fake");
         } finally {
             unregister();
         }
         should.not.exist(nodesetFormatByName("test-fake"));
         // with the format gone the document falls back to XML rather than staying claimed
-        findNodesetFormat(headOf("FAKE nodeset"))?.name.should.eql(NODESET2_XML_FORMAT);
+        should(findNodesetFormat(headOf("FAKE nodeset"))?.name).eql(NODESET2_XML_FORMAT);
         seen.length.should.eql(0);
     });
 
@@ -138,7 +138,7 @@ describe("NodesetFormat registry", () => {
         const unregister = registerNodesetFormat(preambled);
         const addressSpace = AddressSpace.create();
         try {
-            findNodesetFormat(headOf(preambledXml))?.name.should.eql("test-preamble");
+            should(findNodesetFormat(headOf(preambledXml))?.name).eql("test-preamble");
             await generateAddressSpaceRaw(addressSpace, [{ name: "preambled", source: preambledXml }], {
                 imageStore: false
             });
