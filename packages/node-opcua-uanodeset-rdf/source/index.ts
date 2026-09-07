@@ -1,0 +1,424 @@
+/**
+ * An OPC UA information model as JSON-LD, for loading into a SPARQL store.
+ *
+ * This is unlike the Annex I formats in every way that matters, which is why it lives in a
+ * package of its own.
+ *
+ * It is **not in the specification**. OPC 10000-6 Annex I runs I.1 to I.24 and has no RDF
+ * section. The vocabulary belongs to the reference implementation, whose `rdf_prototype.md` no
+ * longer describes what it emits, so its output is the specification. What we reverse-engineered
+ * is written down in `VOCABULARY.md` beside this file.
+ *
+ * It is **one-way**. There is no reader, so none of the checks that make the Annex I formats
+ * trustworthy apply: no round trip, no fixpoint, no digest equivalence. A diff against the
+ * reference implementation is the only oracle, which is why matching it exactly matters more here
+ * than for a format that can be checked against itself.
+ *
+ * And it needs a **live address space** rather than records: a type's IRI is its BrowseName,
+ * including types from other models, so the exporter must resolve NodeIds it never read.
+ */
+
+import type { BaseNode, IAddressSpace, UAReferenceType, UAVariable } from "node-opcua-address-space";
+import { NodeClass } from "node-opcua-data-model";
+import { JsonEncoderMode105, opcuaJsonEncodeVariant105 } from "node-opcua-json";
+import { type NodeId, NodeIdType } from "node-opcua-nodeid";
+import { Variant } from "node-opcua-variant";
+
+/** the vocabulary the reference implementation writes its own terms under */
+export const UARDF = "http://opcfoundation.org/rdf/uacore#";
+/** the OPC UA base namespace, always abbreviated `opcua` */
+export const OPCUA_NAMESPACE = "http://opcfoundation.org/UA/";
+
+/** `DataTypeDictionaryType`: the legacy OPC Binary dictionaries, which are dropped */
+const DATA_TYPE_DICTIONARY_TYPE = 72;
+/** `DataTypeDescriptionType`: the per-type entries inside them, also dropped */
+const DATA_TYPE_DESCRIPTION_TYPE = 69;
+
+/** the terms every document declares, in the order the reference implementation writes them */
+const PROPERTY_TERMS: Array<[string, unknown]> = [
+    ["xsd", "http://www.w3.org/2001/XMLSchema#"],
+    ["rdfs", "http://www.w3.org/2000/01/rdf-schema#"],
+    ["uardf", UARDF],
+    ["browseName", "uardf:browseName"],
+    ["name", "uardf:name"],
+    ["symbolicName", "uardf:symbolicName"],
+    ["description", { "@id": "rdfs:comment", "@container": "@language" }],
+    ["displayName", { "@id": "rdfs:label", "@container": "@language" }],
+    ["inverseName", { "@id": "uardf:inverseName", "@container": "@language" }],
+    ["releaseStatus", "uardf:releaseStatus"],
+    ["valueRank", { "@id": "uardf:valueRank", "@type": "xsd:integer" }],
+    ["arrayDimensions", "uardf:arrayDimensions"],
+    ["value", { "@id": "uardf:value", "@type": "@json" }],
+    ["accessRestrictions", { "@id": "uardf:accessRestrictions", "@type": "xsd:integer" }],
+    ["definition", "uardf:definition"],
+    ["fields", "uardf:fields"],
+    ["fieldName", "uardf:fieldName"],
+    ["isUnion", { "@id": "uardf:isUnion", "@type": "xsd:boolean" }],
+    ["isOptional", { "@id": "uardf:isOptional", "@type": "xsd:boolean" }],
+    ["allowSubTypes", { "@id": "uardf:allowSubTypes", "@type": "xsd:boolean" }],
+    ["dataType", { "@id": "uardf:hasDataType", "@type": "@id" }],
+    ["typeDefinition", { "@id": "opcua:HasTypeDefinition", "@type": "@id" }],
+    ["parent", { "@id": "uardf:hasParent", "@type": "@id" }],
+    ["modellingRule", { "@id": "opcua:HasModellingRule", "@type": "@id" }],
+    ["fieldValue", { "@id": "uardf:fieldValue", "@type": "xsd:integer" }],
+    ["fieldDataType", { "@id": "uardf:fieldDataType", "@type": "@id" }],
+    ["rolePermissions", "uardf:rolePermissions"],
+    ["roleId", { "@id": "uardf:roleId", "@type": "@id" }],
+    ["permissions", { "@id": "uardf:permissions", "@type": "xsd:integer" }],
+    ["modelUri", { "@id": "uardf:modelUri", "@type": "@id" }],
+    ["version", "uardf:version"],
+    ["modelVersion", "uardf:modelVersion"],
+    ["publicationDate", { "@id": "uardf:publicationDate", "@type": "xsd:dateTime" }],
+    ["xmlSchemaUri", { "@id": "uardf:xmlSchemaUri", "@type": "@id" }],
+    ["requiredModels", "uardf:requiredModels"],
+    ["namespaceUri", { "@id": "uardf:namespaceUri", "@type": "@id" }],
+    ["owl", "http://www.w3.org/2002/07/owl#"],
+    ["nodeId", "uardf:nodeId"],
+    ["references", "uardf:references"],
+    ["referenceType", { "@id": "uardf:referenceType", "@type": "@id" }],
+    ["target", { "@id": "uardf:target", "@type": "@id" }],
+    ["label", "rdfs:label"],
+    ["inverseOf", { "@id": "owl:inverseOf", "@type": "@id" }],
+    ["subPropertyOf", { "@id": "rdfs:subPropertyOf", "@type": "@id" }],
+    ["subClassOf", { "@id": "rdfs:subClassOf", "@type": "@id" }],
+    ["symmetric", { "@id": "uardf:symmetric", "@type": "xsd:boolean" }]
+];
+
+const RDF_TYPE_OF: Record<number, string> = {
+    [NodeClass.Object]: "uardf:UAObject",
+    [NodeClass.Variable]: "uardf:UAVariable",
+    [NodeClass.Method]: "uardf:UAMethod",
+    [NodeClass.ObjectType]: "uardf:UAObjectType",
+    [NodeClass.VariableType]: "uardf:UAVariableType",
+    [NodeClass.ReferenceType]: "uardf:UAReferenceType",
+    [NodeClass.DataType]: "uardf:UADataType",
+    [NodeClass.View]: "uardf:UAView"
+};
+
+/** the NodeClasses named by their BrowseName, because they become OWL classes */
+const IS_TYPE = new Set<number>([NodeClass.ObjectType, NodeClass.VariableType, NodeClass.ReferenceType, NodeClass.DataType]);
+
+/** base64url without padding: a NodeId carries `=`, `;`, `:` and `/`, none legal in an IRI segment */
+function base64Url(text: string): string {
+    return Buffer.from(text, "utf8").toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/** the prefix a namespace uri is abbreviated to: its last non-empty segment, lowercased */
+export function prefixOfNamespace(uri: string): string {
+    if (uri === OPCUA_NAMESPACE) {
+        return "opcua";
+    }
+    const segment =
+        uri
+            .replace(/[/#]+$/, "")
+            .split(/[/:#]/)
+            .filter(Boolean)
+            .pop() ?? "ns";
+    return segment.toLowerCase();
+}
+
+/** a BrowseName naming a placeholder rather than a node, which never becomes a predicate */
+const isPlaceholder = (name: string) => name.startsWith("<");
+
+export interface JsonLdOptions {
+    /** the model to export; the default is the last namespace the address space holds */
+    modelUri?: string;
+    /**
+     * two fields of the ontology node the address space does not retain.
+     *
+     * They are written in the source document's `Models` element and dropped by the loader, so a
+     * caller that wants them in the output supplies them again.
+     */
+    model?: { xmlSchemaUri?: string; modelVersion?: string };
+}
+
+interface NamespaceLike {
+    namespaceUri: string;
+    version?: string;
+    publicationDate?: Date;
+    index: number;
+    getRequiredModels?(): Array<{ modelUri: string; version?: string; publicationDate?: Date }> | undefined;
+}
+
+/** a namespace of an address space as a JSON-LD document */
+export function addressSpaceToJsonLd(addressSpace: IAddressSpace, options: JsonLdOptions = {}): Record<string, unknown> {
+    const namespaces = addressSpace.getNamespaceArray();
+    const target = (options.modelUri
+        ? namespaces.find((n) => n.namespaceUri === options.modelUri)
+        : namespaces[namespaces.length - 1]) as unknown as NamespaceLike | undefined;
+    if (!target) {
+        throw new Error(`the address space holds no namespace ${options.modelUri}`);
+    }
+
+    const uriOf = (index: number) => namespaces[index]?.namespaceUri ?? "";
+    const prefixOf = (index: number) => prefixOfNamespace(uriOf(index));
+
+    const identifierOf = (nodeId: NodeId): string => {
+        switch (nodeId.identifierType) {
+            case NodeIdType.NUMERIC:
+                return `i=${nodeId.value as number}`;
+            case NodeIdType.STRING:
+                return `s=${nodeId.value as string}`;
+            case NodeIdType.GUID:
+                return `g=${nodeId.value as string}`;
+            default:
+                return `b=${Buffer.from(nodeId.value as Uint8Array).toString("base64")}`;
+        }
+    };
+    const canonical = (nodeId: NodeId): string =>
+        nodeId.namespace === 0 ? identifierOf(nodeId) : `nsu=${uriOf(nodeId.namespace)};${identifierOf(nodeId)}`;
+
+    const curie = (node: BaseNode): string => {
+        const prefix = prefixOf(node.nodeId.namespace);
+        return IS_TYPE.has(node.nodeClass as number)
+            ? `${prefix}:${node.browseName.name}`
+            : `${prefix}:${base64Url(canonical(node.nodeId))}`;
+    };
+    const curieOfType = (node: BaseNode) => `${prefixOf(node.nodeId.namespace)}:${node.browseName.name}`;
+
+    const targetNamespace = namespaces[target.index];
+    const nodesOf = () => targetNamespace.nodeIterator();
+
+    // the legacy OPC Binary machinery is dropped: a dictionary, its descriptions, and everything
+    // they own. The structure DataTypes stay; only the encoding blobs go.
+    const dropped = new Set<string>();
+    const markDropped = (node: BaseNode) => {
+        if (dropped.has(node.nodeId.toString())) return;
+        dropped.add(node.nodeId.toString());
+        for (const reference of node.allReferences()) {
+            if (!reference.isForward) continue;
+            const child = addressSpace.findNode(reference.nodeId);
+            const referenceType = addressSpace.findNode(reference.referenceType) as UAReferenceType | null;
+            if (child && referenceType && isHierarchical(referenceType)) markDropped(child);
+        }
+    };
+    for (const node of nodesOf()) {
+        const id = (node as { typeDefinitionObj?: BaseNode }).typeDefinitionObj?.nodeId;
+        if (id?.namespace === 0 && (id.value === DATA_TYPE_DICTIONARY_TYPE || id.value === DATA_TYPE_DESCRIPTION_TYPE)) {
+            markDropped(node);
+        }
+    }
+
+    const context: Record<string, unknown> = { opcua: OPCUA_NAMESPACE };
+    context[prefixOfNamespace(target.namespaceUri)] = target.namespaceUri;
+    for (const [term, value] of PROPERTY_TERMS) {
+        context[term] = value;
+    }
+
+    /** reference types used as predicates, and child predicates minted from BrowseNames */
+    const referenceTerms = new Map<string, string>();
+    const childTerms = new Map<string, string>();
+    const graph: Record<string, unknown>[] = [ontologyNode(target, options)];
+    /** children this model hangs on a node it does not own, which cannot be stated in @graph */
+    const foreign = new Map<string, Record<string, unknown>>();
+
+    for (const node of nodesOf()) {
+        if (dropped.has(node.nodeId.toString())) continue;
+
+        const entry: Record<string, unknown> = {
+            "@id": curie(node),
+            "@type": rdfTypesOf(node, curie),
+            nodeId: canonical(node.nodeId),
+            namespaceUri: target.namespaceUri,
+            browseName:
+                node.browseName.namespaceIndex === 0
+                    ? (node.browseName.name ?? "")
+                    : `nsu=${uriOf(node.browseName.namespaceIndex)};${node.browseName.name}`,
+            name: node.browseName.name ?? ""
+        };
+
+        variableFields(node, entry, (id) => {
+            const found = addressSpace.findNode(id);
+            return found ? curie(found) : undefined;
+        });
+        const symbolicName = (node as { symbolicName?: string }).symbolicName;
+        if (symbolicName) entry.symbolicName = symbolicName;
+        const description = node.description?.text;
+        if (description) {
+            entry.description = { [node.description?.locale || "@none"]: description };
+        }
+
+        for (const reference of node.allReferences()) {
+            const referenceType = addressSpace.findNode(reference.referenceType) as UAReferenceType | null;
+            const other = addressSpace.findNode(reference.nodeId);
+            if (!referenceType || !other || dropped.has(other.nodeId.toString())) continue;
+            const name = referenceType.browseName.name ?? "";
+
+            if (!reference.isForward) {
+                if (name === "HasSubtype") entry.subClassOf = curie(other);
+                // a parent in another model is stated where that model's node is, in @included:
+                // this document does not get to add fields to a node it does not own
+                else if (isHierarchical(referenceType) && entry.parent === undefined && other.nodeId.namespace === target.index)
+                    entry.parent = curie(other);
+                continue;
+            }
+            if (name === "HasTypeDefinition" || name === "HasModellingRule" || name === "HasSubtype") continue;
+
+            if (isHierarchical(referenceType)) {
+                const childName = other.browseName.name ?? "";
+                if (isPlaceholder(childName)) continue;
+                const term = `${prefixOf(other.browseName.namespaceIndex)}:${childName}`;
+                childTerms.set(term, curieOfType(referenceType));
+                addValue(entry, term, curie(other));
+            } else {
+                referenceTerms.set(name, curieOfType(referenceType));
+                addValue(entry, name, curie(other));
+            }
+        }
+        graph.push(entry);
+    }
+
+    for (const node of nodesOf()) {
+        if (dropped.has(node.nodeId.toString())) continue;
+        for (const reference of node.allReferences()) {
+            if (reference.isForward) continue;
+            const parent = addressSpace.findNode(reference.nodeId);
+            const referenceType = addressSpace.findNode(reference.referenceType) as UAReferenceType | null;
+            if (!parent || !referenceType || !isHierarchical(referenceType)) continue;
+            // HasSubtype is hierarchical but expresses derivation, not ownership, and is already
+            // written as subClassOf; treating it as an attachment invents a predicate per type
+            if (referenceType.browseName.name === "HasSubtype") continue;
+            if (parent.nodeId.namespace === target.index) continue;
+            const childName = node.browseName.name ?? "";
+            if (isPlaceholder(childName)) continue;
+            const term = `${prefixOf(node.browseName.namespaceIndex)}:${childName}`;
+            childTerms.set(term, curieOfType(referenceType));
+            const key = curie(parent);
+            const entry = foreign.get(key) ?? { "@id": key };
+            addValue(entry, term, curie(node));
+            foreign.set(key, entry);
+        }
+    }
+
+    for (const term of [...referenceTerms.keys()].sort()) {
+        context[term] = { "@id": referenceTerms.get(term), "@type": "@id" };
+    }
+    for (const term of [...childTerms.keys()].sort()) {
+        context[term] = { "@type": "@id" };
+    }
+
+    const included: Record<string, unknown>[] = [];
+    for (const node of nodesOf()) {
+        if (node.nodeClass !== NodeClass.ReferenceType) continue;
+        included.push(objectPropertyOf(node as UAReferenceType, curie, prefixOf));
+    }
+    for (const term of [...childTerms.keys()].sort()) {
+        included.push({ "@id": term, "@type": "owl:ObjectProperty", subPropertyOf: childTerms.get(term) });
+    }
+    included.push(...foreign.values());
+
+    const document: Record<string, unknown> = { "@context": context, "@graph": graph };
+    if (included.length) document["@included"] = included;
+    return document;
+}
+
+function rdfTypesOf(node: BaseNode, curie: (node: BaseNode) => string): string | string[] {
+    const base = RDF_TYPE_OF[node.nodeClass as number] ?? "uardf:UANode";
+    if (IS_TYPE.has(node.nodeClass as number)) return [base, "owl:Class"];
+    const typeDefinition = (node as { typeDefinitionObj?: BaseNode }).typeDefinitionObj;
+    return typeDefinition ? [base, curie(typeDefinition)] : base;
+}
+
+function variableFields(node: BaseNode, entry: Record<string, unknown>, curieOfId: (nodeId: NodeId) => string | undefined): void {
+    if (node.nodeClass !== NodeClass.Variable && node.nodeClass !== NodeClass.VariableType) return;
+    const variable = node as UAVariable;
+    if (variable.dataType) {
+        const dataType = curieOfId(variable.dataType);
+        if (dataType) entry.dataType = dataType;
+    }
+    if (variable.valueRank !== undefined && variable.valueRank !== -1) entry.valueRank = variable.valueRank;
+    if (variable.arrayDimensions?.length) entry.arrayDimensions = variable.arrayDimensions.join(",");
+    try {
+        const dataValue = variable.readValue();
+        if (dataValue?.value && dataValue.value.dataType !== 0) {
+            entry.value = opcuaJsonEncodeVariant105(new Variant(dataValue.value), JsonEncoderMode105.Verbose, []);
+        }
+    } catch {
+        // a value that cannot be read contributes none, which is not an error for an export
+    }
+}
+
+/** whether a reference type expresses ownership rather than an arbitrary relation */
+function isHierarchical(referenceType: UAReferenceType): boolean {
+    let current: UAReferenceType | null = referenceType;
+    const seen = new Set<string>();
+    while (current) {
+        const name = current.browseName.name ?? "";
+        if (name === "HierarchicalReferences") return true;
+        if (name === "NonHierarchicalReferences") return false;
+        const id = current.nodeId.toString();
+        if (seen.has(id)) return false;
+        seen.add(id);
+        current = (current as { subtypeOfObj?: UAReferenceType }).subtypeOfObj ?? null;
+    }
+    return false;
+}
+
+function addValue(entry: Record<string, unknown>, term: string, value: string): void {
+    const existing = entry[term];
+    if (existing === undefined) entry[term] = value;
+    else if (Array.isArray(existing)) existing.push(value);
+    else entry[term] = [existing, value];
+}
+
+function objectPropertyOf(
+    referenceType: UAReferenceType,
+    curie: (node: BaseNode) => string,
+    prefixOf: (index: number) => string
+): Record<string, unknown> {
+    const symmetric = !!(referenceType as { symmetric?: boolean }).symmetric;
+    const entry: Record<string, unknown> = {
+        "@id": curie(referenceType),
+        "@type": "owl:ObjectProperty",
+        label: referenceType.browseName.name ?? "",
+        symmetric
+    };
+    const inverseName = referenceType.inverseName?.text;
+    if (symmetric) {
+        entry.inverseOf = curie(referenceType);
+    } else if (inverseName) {
+        entry.inverseOf = `${prefixOf(referenceType.nodeId.namespace)}:${inverseName}`;
+        entry.inverseName = { "@none": inverseName };
+    }
+    const supertype = (referenceType as { subtypeOfObj?: BaseNode }).subtypeOfObj;
+    if (supertype) entry.subPropertyOf = curie(supertype);
+    return entry;
+}
+
+function ontologyNode(namespace: NamespaceLike, options: JsonLdOptions): Record<string, unknown> {
+    const entry: Record<string, unknown> = {
+        "@id": namespace.namespaceUri,
+        "@type": ["uardf:UANodeSet", "owl:Ontology"],
+        modelUri: namespace.namespaceUri
+    };
+    if (options.model?.xmlSchemaUri) entry.xmlSchemaUri = options.model.xmlSchemaUri;
+    if (namespace.version) entry.version = namespace.version;
+    const modelVersion = options.model?.modelVersion;
+    if (modelVersion) {
+        entry.modelVersion = modelVersion;
+        entry["owl:versionInfo"] = modelVersion;
+        entry["owl:versionIRI"] = { "@id": `${namespace.namespaceUri}${modelVersion}` };
+    }
+    const iso = (date: Date | undefined) =>
+        date instanceof Date && !Number.isNaN(date.getTime()) ? date.toISOString().replace(/\.\d{3}Z$/, "Z") : undefined;
+    const published = iso(namespace.publicationDate);
+    if (published) entry.publicationDate = published;
+
+    const required = namespace.getRequiredModels?.();
+    if (required?.length) {
+        entry.requiredModels = required.map((model) => {
+            const out: Record<string, unknown> = { modelUri: model.modelUri };
+            if (model.version) out.version = model.version;
+            const date = iso(model.publicationDate);
+            if (date) out.publicationDate = date;
+            return out;
+        });
+        entry["owl:imports"] = required.map((model) => ({ "@id": model.modelUri }));
+    }
+    return entry;
+}
+
+/** a namespace of an address space as a JSON-LD document, serialised */
+export function addressSpaceToJsonLdText(addressSpace: IAddressSpace, options: JsonLdOptions = {}): string {
+    return `${JSON.stringify(addressSpaceToJsonLd(addressSpace, options), null, 2)}\n`;
+}
