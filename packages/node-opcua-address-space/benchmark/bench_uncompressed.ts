@@ -94,7 +94,9 @@ async function load(name: string, bytes: Uint8Array): Promise<number> {
     console.log(`\n--- standard nodeset, warm, best of ${N}, ${nodes.xml} nodes ---\n`);
     console.log(`${w("input")}${"size".padStart(9)}${"parse".padStart(11)}${"whole load".padStart(11)}${"apply".padStart(11)}`);
     console.log(`${w("NodeSet2 XML")}${kb(xmlBytes.length)}${ms(parseXml)}${ms(loadXml)}${ms(loadXml - parseXml)}`);
-    console.log(`${w("NodeSet2 XML, gzip (inflate included)")}${kb(xmlGzBytes.length)}${ms(parseXml + inflateXml)}${ms(loadXmlGz)}${ms(loadXmlGz - parseXml - inflateXml)}`);
+    console.log(
+        `${w("NodeSet2 XML, gzip (inflate included)")}${kb(xmlGzBytes.length)}${ms(parseXml + inflateXml)}${ms(loadXmlGz)}${ms(loadXmlGz - parseXml - inflateXml)}`
+    );
     console.log(`${w("NodeSet-NDJSON, gzip")}${kb(gzBytes.length)}${ms(parseGz)}${ms(loadGz)}${ms(loadGz - parseGz)}`);
     console.log(`${w("NodeSet-NDJSON, uncompressed")}${kb(rawBytes.length)}${ms(parseRaw)}${ms(loadRaw)}${ms(loadRaw - parseRaw)}`);
     console.log("");

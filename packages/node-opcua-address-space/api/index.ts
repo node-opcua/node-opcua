@@ -174,7 +174,6 @@ export {
     setImageInflater
 } from "./loader/nodeset_image.js";
 export { decodeValue, encodeValue, type JsonNodeId, type JsonQualifiedName, type JsonValue } from "./loader/nodeset_image_codec.js";
-export { recordsToNodeset2XML, type RecordsToNodeset2XMLOptions } from "./loader/nodeset_records_to_xml.js";
 export {
     MemoryNodesetImageStore,
     type NodesetImageStore,
@@ -196,6 +195,7 @@ export {
     recordBytes,
     XmlExtensionObjectFragment
 } from "./loader/nodeset_record.js";
+export { type RecordsToNodeset2XMLOptions, recordsToNodeset2XML } from "./loader/nodeset_records_to_xml.js";
 export type { NamedNodesetSource, NodesetChunk, NodesetChunkStream, NodesetSource } from "./loader/nodeset_source.js";
 export { sha256Hex } from "./loader/nodeset_source.js";
 export * from "./loader/nodeset_source_helpers.js";

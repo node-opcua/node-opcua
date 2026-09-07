@@ -18,16 +18,18 @@ import type {
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { AttributeIds, type Int64, isMinDate, type StatusCode } from "node-opcua-basic-types";
-import { StatusCodes } from "node-opcua-status-code";
 import { VariableIds } from "node-opcua-constants";
 import { type LocalizedText, makeAccessLevelFlag, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
 import { EnumDefinition, StructureDefinition, StructureType } from "node-opcua-types";
 import { isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import XMLWriter from "xml-writer";
+import { makeDefinitionMap } from "../../api/loader/decode_xml_extension_object.js";
+import type { DefinitionMap2 } from "../../api/loader/make_xml_extension_object_parser.js";
 import {
     _dumpLocalizedText,
     _dumpNodeId,
@@ -42,14 +44,8 @@ import {
     makeTypeXsd,
     n,
     restoreDefaultNamespace,
-    setDefaultNamespace,
-    startElementEx,
-    translateBrowseName,
-    translateNodeId,
-    UAX_TYPES_XSD
+    startElementEx
 } from "../../api/loader/nodeset_xml_primitives.js";
-import { makeDefinitionMap } from "../../api/loader/decode_xml_extension_object.js";
-import type { DefinitionMap2 } from "../../api/loader/make_xml_extension_object_parser.js";
 import { SessionContext } from "../../api/session_context.js";
 import type { XmlWriter } from "../../api/xml_writer.js";
 import { BaseNodeImpl, getReferenceType } from "../base_node_impl.js";
@@ -648,8 +644,8 @@ function _dumpArrayDimensionsAttribute(xw: XmlWriter, node: UAVariableType | UAV
     // every generated node. See arrayDimensionsWereDeclared in nodeset_record_applier
     if (!node.arrayDimensions || node.valueRank <= 0) return;
     // all-zero dimensions are what node-opcua synthesizes when nobody declared any, at whatever
-        // rank: [0] for a one-dimensional value, [0,0] for a matrix
-        const degenerate = node.arrayDimensions.every((d) => d === 0);
+    // rank: [0] for a one-dimensional value, [0,0] for a matrix
+    const degenerate = node.arrayDimensions.every((d) => d === 0);
     if (degenerate && !(node as unknown as { arrayDimensionsWereDeclared?: boolean }).arrayDimensionsWereDeclared) return;
     xw.writeAttribute("ArrayDimensions", node.arrayDimensions.join(","));
 }
@@ -721,11 +717,7 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
     // EventNotifier lives on UAObject, UAObjectType and UAView in the XSD. 0 is the default and is
     // left unwritten; anything else the document declared. It was written nowhere at all until now,
     // so every node that declared one lost it on the way out
-    if (
-        node.nodeClass === NodeClass.Object ||
-        node.nodeClass === NodeClass.ObjectType ||
-        node.nodeClass === NodeClass.View
-    ) {
+    if (node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.ObjectType || node.nodeClass === NodeClass.View) {
         // typeof, not truthiness: a node with a child called "EventNotifier" resolves the name to
         // that child through the shared child accessors, so `node.eventNotifier` is a BaseNode
         // there and not the attribute. PublishedEventsType is one, and stringifying it wrote a
