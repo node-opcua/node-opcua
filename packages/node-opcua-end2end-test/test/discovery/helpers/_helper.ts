@@ -10,12 +10,13 @@ import {
     makeApplicationUrn,
     makeSubject,
     type OPCUABaseServer,
+    type OPCUACertificateManager,
     OPCUADiscoveryServer,
     type OPCUADiscoveryServerOptions,
     OPCUAServer,
     RegisterServerMethod
 } from "node-opcua";
-import { readCertificateChain } from "node-opcua-crypto";
+import { publicKeyAndPrivateKeyMatches, readCertificate, readCertificateChain } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import "should";
 
@@ -29,27 +30,50 @@ const { yellow, cyan } = chalk;
 
 export const pause = wait;
 
+/**
+ * Create `certificateFile` as a self-signed certificate for the store's private key, unless a
+ * matching one already exists.
+ *
+ * The stores under `os.tmpdir()/node-opcua-tmp/server<port>` persist across test runs while their
+ * private key can be regenerated (store layout change, wiped `own/` folder, ...). A certificate left
+ * over from a previous run then no longer matches the key and `OPCUAServer.initializeCM()` fails
+ * with NODE-OPCUA-E01 for that name only, which showed up as a "random" failure in the
+ * frequent-restart tests (DISCO4-J) once earlier tests had consumed the fresh names.
+ */
+async function ensureSelfSignedCertificate(
+    certificateManager: OPCUACertificateManager,
+    certificateFile: string,
+    params: { applicationUri: string; subject: string }
+): Promise<void> {
+    if (fs.existsSync(certificateFile)) {
+        const privateKey = await certificateManager.getPrivateKey();
+        if (publicKeyAndPrivateKeyMatches(readCertificate(certificateFile), privateKey)) {
+            return;
+        }
+        debugLog(`stale certificate ${certificateFile} does not match the store private key: recreating it`);
+        fs.unlinkSync(certificateFile);
+    }
+    await certificateManager.createSelfSignedCertificate({
+        applicationUri: params.applicationUri,
+        dns: [os.hostname(), "localhost"],
+        outputFile: certificateFile,
+        subject: params.subject,
+        startDate: new Date(),
+        validity: 365 * 10
+    });
+}
+
 export async function createDiscovery(port: number): Promise<OPCUADiscoveryServer> {
     assert(typeof port === "number", "expecting a port number");
     const serverCertificateManager = await createServerCertificateManager(port);
 
-    const _privateKeyFile = serverCertificateManager.privateKey;
     const certificateFile = path.join(serverCertificateManager.rootDir, "certificate_discovery_server.pem");
 
     const applicationUri = `urn:localhost:LDS-${port}`;
-    if (!fs.existsSync(certificateFile)) {
-        await serverCertificateManager.createSelfSignedCertificate({
-            applicationUri,
-            dns: [os.hostname(), "localhost"],
-            // dns: argv.alternateHostname ? [argv.alternateHostname, fqdn] : [fqdn],
-            // ip: await getIpAddresses(),
-            outputFile: certificateFile,
-            subject: "/CN=Sterfive/DC=NodeOPCUA-LocalDiscoveryServer",
-
-            startDate: new Date(),
-            validity: 365 * 10
-        });
-    }
+    await ensureSelfSignedCertificate(serverCertificateManager, certificateFile, {
+        applicationUri,
+        subject: "/CN=Sterfive/DC=NodeOPCUA-LocalDiscoveryServer"
+    });
 
     const discoveryServer = new OPCUADiscoveryServer({
         port,
@@ -132,18 +156,10 @@ export async function createServerThatRegistersItselfToTheDiscoveryServer(
     const applicationName = name;
     const applicationUri = makeApplicationUrn(os.hostname(), name);
 
-    if (!fs.existsSync(certificateFile)) {
-        await serverCertificateManager.createSelfSignedCertificate({
-            applicationUri,
-            dns: [os.hostname(), "localhost"],
-            // dns: argv.alternateHostname ? [argv.alternateHostname, fqdn] : [fqdn],
-            // ip: await getIpAddresses(),
-            outputFile: certificateFile,
-            subject: makeSubject(applicationName, os.hostname()),
-            startDate: new Date(),
-            validity: 365 * 10
-        });
-    }
+    await ensureSelfSignedCertificate(serverCertificateManager, certificateFile, {
+        applicationUri,
+        subject: makeSubject(applicationName, os.hostname())
+    });
 
     const server = new OPCUAServer({
         port,
