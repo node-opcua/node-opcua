@@ -336,7 +336,7 @@ describe("testing NodeSet XML file loading", function (this: Mocha.Suite) {
             <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6450</Reference>
         </References>
-        <Definition Name="1:DeviceHealthEnumeration">
+        <Definition Name="DeviceHealthEnumeration">
             <Field Name="NORMAL" Value="0">
                 <Description>This device functions normally.</Description>
             </Field>

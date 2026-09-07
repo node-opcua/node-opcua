@@ -185,6 +185,16 @@ function isUninitializedMatrix(value: VariantOptions): boolean {
     return product > 0;
 }
 
+/**
+ * a <Definition> Name worth keeping on the node: one the document spelled bare. A "<n>:Name" is a
+ * namespace index into the writing document's own table, which means nothing in any other document,
+ * so it is dropped here and rebuilt from the browse name when a document is written back out.
+ */
+function definitionNameToKeep(name: string | undefined): string | undefined {
+    if (!name || /^[0-9]+:/.test(name)) return undefined;
+    return name;
+}
+
 const UA_NAMESPACE_URI = "http://opcfoundation.org/UA/";
 const reg = /ns=([0-9]+);(.*)/;
 
@@ -679,7 +689,12 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
             // the address space models no OptionSet, so the flag and the fields above are all that
             // is left of the declaration; without them the DataType cannot be written back out
             isOptionSet: record.definition?.isOptionSet,
-            isUnion: record.definition?.isUnion
+            isUnion: record.definition?.isUnion,
+            // the <Definition> Name, but only when the document spelled it bare. The catalogue uses
+            // both spellings, and a "<n>:Name" prefix is an index into the table of the document
+            // that wrote it -- carrying it into another document would name a different namespace,
+            // so a prefixed name is left to be recomputed from the browse name on the way out
+            definitionName: definitionNameToKeep(record.definition?.name)
         } as unknown as CreateNodeOptions;
 
         let capturedDataTypeNode: UADataType | undefined = this.createNode(params, record) as UADataType;

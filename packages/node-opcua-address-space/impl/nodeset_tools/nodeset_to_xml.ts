@@ -950,10 +950,14 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
     const asImpl = uaDataType as unknown as {
         isOptionSetDataType?: boolean;
         declaredDefinitionFields?: Array<{ name?: string | null; value?: number; description?: unknown }>;
+        declaredDefinitionName?: string;
     };
+    // what the document called this definition, or -- for a DataType built here, which never had a
+    // declaration -- the browse name, which is the only name available
+    const definitionName = asImpl.declaredDefinitionName ?? b(xw, uaDataType.browseName);
     if (asImpl.isOptionSetDataType && asImpl.declaredDefinitionFields) {
         xw.startElement("Definition");
-        xw.writeAttribute("Name", b(xw, uaDataType.browseName));
+        xw.writeAttribute("Name", definitionName);
         xw.writeAttribute("IsOptionSet", "true");
         for (const field of asImpl.declaredDefinitionFields) {
             xw.startElement("Field");
@@ -970,7 +974,7 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
 
     if (uaDataType.isEnumeration()) {
         xw.startElement("Definition");
-        xw.writeAttribute("Name", b(xw, uaDataType.browseName));
+        xw.writeAttribute("Name", definitionName);
         _dumpEnumDefinition(xw, uaDataType.getEnumDefinition());
         xw.endElement();
         return;
@@ -989,7 +993,7 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
             // which has no definition at all. Asking it for one threw, and took the whole export with it
             const baseDefinition = uaDataTypeBase?.isStructure() ? uaDataTypeBase.getStructureDefinition() : null;
             xw.startElement("Definition");
-            xw.writeAttribute("Name", b(xw, uaDataType.browseName));
+            xw.writeAttribute("Name", definitionName);
             if (definition.structureType === StructureType.Union) {
                 xw.writeAttribute("IsUnion", "true");
             }
