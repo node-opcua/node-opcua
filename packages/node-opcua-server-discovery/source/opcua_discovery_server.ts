@@ -11,10 +11,11 @@ import { assert } from "node-opcua-assert";
 import type { UAString } from "node-opcua-basic-types";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { makeApplicationUrn } from "node-opcua-common";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { exploreCertificate, split_der } from "node-opcua-crypto";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import {
     type Message,
-    type MessageSecurityMode,
+    MessageSecurityMode,
     type Response,
     type SecurityPolicy,
     type ServerSecureChannelLayer,
@@ -49,6 +50,7 @@ import { MDNSResponder } from "./mdns_responder.js";
 const debugLog = make_debugLog("LDSSERVER");
 const doDebug = checkDebugFlag("LDSSERVER");
 const errorLog = make_errorLog("LDSSERVER");
+const warningLog = make_warningLog("LDSSERVER");
 
 function hasCapabilities(serverCapabilities: UAString[] | null, serverCapabilityFilter: string): boolean {
     if (serverCapabilities == null) {
@@ -67,6 +69,40 @@ export interface OPCUADiscoveryServerOptions extends OPCUABaseServerOptions {
     securityPolicies?: SecurityPolicy[];
     securityModes?: MessageSecurityMode[];
     hostname?: string;
+
+    /**
+     * Accept `RegisterServer` / `RegisterServer2` over a SecureChannel with
+     * `MessageSecurityMode.None`, i.e. from a caller that presented no
+     * application certificate.
+     *
+     * OPC UA Part 4 §5.5.5 / §5.5.6 require these services to be invoked
+     * over a SecureChannel that authenticates the caller. Enable only for
+     * legacy registrants that cannot open a secured channel, on a network
+     * you control.
+     *
+     * The `FindServers`, `FindServersOnNetwork` and `GetEndpoints` services
+     * are not affected: they stay available without message security, as
+     * Part 4 §5.5.1 requires.
+     *
+     * @default false
+     */
+    allowUnsecuredRegistration?: boolean;
+
+    /**
+     * Trust any unknown application certificate presented by a registrant.
+     * Only used when `serverCertificateManager` is not provided.
+     *
+     * When false (the default), a registrant whose certificate is not in the
+     * trusted folder is refused at `OpenSecureChannel` and its certificate is
+     * placed in the rejected folder; an administrator moves it to the trusted
+     * folder to allow the registration. This matches the OPC Foundation
+     * UA-LDS default and OPC UA Part 12 §5.3.5, which makes the
+     * administrator-managed trust list the primary mechanism for establishing
+     * trust between applications.
+     *
+     * @default false
+     */
+    automaticallyAcceptUnknownCertificate?: boolean;
 }
 
 interface RegisteredServerExtended extends RegisteredServer {
@@ -88,22 +124,50 @@ const defaultApplicationUri = makeApplicationUrn(os.hostname(), defaultProductUr
 
 let _discoveryDefaultCertificateManager: OPCUACertificateManager | undefined;
 
-function getDefaultCertificateManager(): OPCUACertificateManager {
+function getDefaultCertificateManager(automaticallyAcceptUnknownCertificate: boolean): OPCUACertificateManager {
     if (!_discoveryDefaultCertificateManager) {
         const config = envPaths(defaultProductUri).config;
         _discoveryDefaultCertificateManager = new OPCUACertificateManager({
             name: "PKI",
             rootFolder: path.join(config, "PKI"),
-            automaticallyAcceptUnknownCertificate: true
+            automaticallyAcceptUnknownCertificate
         });
     }
     _discoveryDefaultCertificateManager.referenceCounter++;
     return _discoveryDefaultCertificateManager;
 }
 
+/**
+ * ApplicationUri(s) carried by the SubjectAltName extension of the leaf certificate.
+ * Returns `null` when the certificate cannot be parsed.
+ */
+function extractApplicationUris(certificateChain: Buffer): string[] | null {
+    try {
+        const leaf = split_der(certificateChain)[0];
+        const info = exploreCertificate(leaf);
+        return info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier ?? [];
+    } catch (_err) {
+        return null;
+    }
+}
+
+export interface RegistrationRefusedInfo {
+    statusCode: StatusCode;
+    remoteAddress: string;
+    remotePort: number;
+    securityMode: MessageSecurityMode;
+    /** ApplicationUri(s) found in the caller's certificate, empty when no certificate was presented */
+    certificateApplicationUris: string[];
+}
+
 export interface OPCUADiscoveryServerEvents extends OPCUABaseServerEvents {
     onUnregisterServer: [server: RegisteredServer, forced: boolean];
     onRegisterServer: [server: RegisteredServer, firstTime: boolean];
+    /**
+     * a `RegisterServer` / `RegisterServer2` request was refused before reaching the registry.
+     * (OPC UA Part 4 requires Discovery Servers to audit failed registrations.)
+     */
+    onRegistrationRefused: [server: RegisteredServer, info: RegistrationRefusedInfo];
 }
 
 // const weakMap = new WeakMap<MdnsDiscoveryConfiguration, BonjourHolder>;
@@ -114,6 +178,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
     public readonly registeredServers: RegisterServerMap;
 
     private _delayInit?: () => Promise<void>;
+
+    readonly #allowUnsecuredRegistration: boolean;
 
     constructor(options: OPCUADiscoveryServerOptions) {
         options.serverInfo = options.serverInfo || {};
@@ -134,9 +200,12 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         serverInfo.discoveryProfileUri = serverInfo.discoveryProfileUri || "";
         serverInfo.discoveryUrls = serverInfo.discoveryUrls || [];
 
-        options.serverCertificateManager = options.serverCertificateManager || getDefaultCertificateManager();
+        options.serverCertificateManager =
+            options.serverCertificateManager || getDefaultCertificateManager(!!options.automaticallyAcceptUnknownCertificate);
 
         super(options);
+
+        this.#allowUnsecuredRegistration = !!options.allowUnsecuredRegistration;
 
         // see OPC UA Spec 1.2 part 6 : 7.4 Well Known Addresses
         // opc.tcp://localhost:4840/UADiscovery
@@ -187,6 +256,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         });
 
         await new Promise<void>((resolve, reject) => super.start((err?: Error | null) => (err ? reject(err) : resolve())));
+
+        this.#logRegistrationPolicy();
 
         const endpointUri = this.getEndpointUrl();
         const { hostname } = new URL(endpointUri);
@@ -264,11 +335,97 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         return servers;
     }
 
+    #logRegistrationPolicy(): void {
+        const cm = this.serverCertificateManager as OPCUACertificateManager;
+        if (!cm.automaticallyAcceptUnknownCertificate) {
+            warningLog(
+                `LDS: registrations from applications with an unknown certificate are refused.\n` +
+                    `     To allow a server, move its certificate from ${path.join(cm.rootDir, "rejected")}\n` +
+                    `     to ${path.join(cm.rootDir, "trusted", "certs")}`
+            );
+        } else {
+            warningLog(
+                "LDS: automaticallyAcceptUnknownCertificate is enabled: any application certificate is trusted (not recommended)"
+            );
+        }
+        if (this.#allowUnsecuredRegistration) {
+            warningLog(
+                "LDS: allowUnsecuredRegistration is enabled: RegisterServer over MessageSecurityMode.None is accepted (not conformant to OPC UA Part 4 §5.5.5)"
+            );
+        }
+    }
+
+    /**
+     * Enforce OPC UA Part 4 §5.5.5 / §5.5.6 on a registration request:
+     *
+     *  - "This Service can only be invoked via SecureChannels that support Client authentication."
+     *    A `MessageSecurityMode.None` channel carries no certificate (Part 4 §5.6.2), so it is refused
+     *    with `Bad_SecurityModeInsufficient` unless `allowUnsecuredRegistration` is set.
+     *    `Bad_ServiceUnsupported` is deliberately not used: Part 4 §5.5.6 tells the caller to fall back
+     *    to `RegisterServer` on that code, which is the wrong signal here.
+     *
+     *  - "Discovery Servers shall reject registrations if the serverUri provided does not match the
+     *    applicationUri in the Certificate used to create the SecureChannel." -> `Bad_ServerUriInvalid`.
+     *
+     * The certificate on `channel` was already validated against the trust list at `OpenSecureChannel`.
+     */
+    #checkRegistrationChannel(channel: ServerSecureChannelLayer, server: RegisteredServer): StatusCode {
+        const clientCertificate = channel.clientCertificate;
+
+        if (channel.securityMode === MessageSecurityMode.None || !clientCertificate || clientCertificate.length === 0) {
+            if (this.#allowUnsecuredRegistration) {
+                warningLog(`LDS: accepting unauthenticated registration of ${server.serverUri} (allowUnsecuredRegistration)`);
+                return StatusCodes.Good;
+            }
+            return StatusCodes.BadSecurityModeInsufficient;
+        }
+
+        const uris = extractApplicationUris(clientCertificate);
+        if (uris === null) {
+            return StatusCodes.BadCertificateInvalid;
+        }
+        if (!server.serverUri || !uris.includes(server.serverUri)) {
+            return StatusCodes.BadServerUriInvalid;
+        }
+        return StatusCodes.Good;
+    }
+
+    #refuseRegistration(
+        message: Message,
+        channel: ServerSecureChannelLayer,
+        server: RegisteredServer,
+        statusCode: StatusCode
+    ): void {
+        const uris = (channel.clientCertificate && extractApplicationUris(channel.clientCertificate)) || [];
+        const info: RegistrationRefusedInfo = {
+            statusCode,
+            remoteAddress: channel.remoteAddress,
+            remotePort: channel.remotePort,
+            securityMode: channel.securityMode,
+            certificateApplicationUris: uris
+        };
+        warningLog(
+            `LDS: registration refused ${statusCode.toString()}: serverUri=${server.serverUri} ` +
+                `serverNames=[${(server.serverNames || []).map((n) => n.text).join(", ")}] ` +
+                `discoveryUrls=[${(server.discoveryUrls || []).join(", ")}] ` +
+                `from ${info.remoteAddress}:${info.remotePort} securityMode=${MessageSecurityMode[info.securityMode]} ` +
+                `certificateApplicationUris=[${uris.join(", ")}]`
+        );
+        this.emit("onRegistrationRefused", server, info);
+        const response = new ServiceFault({ responseHeader: { serviceResult: statusCode } });
+        channel.send_response("MSG", response, message);
+    }
+
     protected _on_RegisterServer2Request(message: Message, channel: ServerSecureChannelLayer) {
         assert(message.request instanceof RegisterServer2Request);
         const request = message.request as RegisterServer2Request;
 
         assert(request.schema.name === "RegisterServer2Request");
+
+        const gate = this.#checkRegistrationChannel(channel, request.server);
+        if (gate.isNotGood()) {
+            return this.#refuseRegistration(message, channel, request.server, gate);
+        }
 
         request.discoveryConfiguration = request.discoveryConfiguration || [];
         this.#internalRegisterServer(
@@ -299,6 +456,12 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         assert(message.request instanceof RegisterServerRequest);
         const request = message.request as RegisterServerRequest;
         assert(request.schema.name === "RegisterServerRequest");
+
+        const gate = this.#checkRegistrationChannel(channel, request.server);
+        if (gate.isNotGood()) {
+            return this.#refuseRegistration(message, channel, request.server, gate);
+        }
+
         this.#internalRegisterServer(RegisterServerResponse, request.server, undefined)
             .then((response) => {
                 channel.send_response("MSG", response, message);
@@ -464,7 +627,10 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         // serverCapabilities [] String  The set of Server capabilities supported by the Server.
         //                               A Server capability is a short identifier for a feature
         //                               The set of allowed Server capabilities are defined in Part 12.
-        discoveryConfiguration.mdnsServerName ??= server1.serverNames?.[0].text || null;
+        // an absent name may be null, undefined or "" (the structure default), all mean "not specified"
+        if (!discoveryConfiguration.mdnsServerName) {
+            discoveryConfiguration.mdnsServerName = server1.serverNames?.[0]?.text || null;
+        }
 
         serverInfo.discoveryUrls ??= [];
 
@@ -636,8 +802,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
             return sendError(StatusCodes.BadDiscoveryUrlMissing);
         }
 
-        // BadServerUriInvalid
-        // TODO
+        // BadServerUriInvalid (serverUri vs certificate ApplicationUri) is enforced
+        // by #checkRegistrationChannel before we get here.
         // #endregion
 
         if (!discoveryConfigurations) {

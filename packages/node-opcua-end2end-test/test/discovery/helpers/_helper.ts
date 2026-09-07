@@ -11,6 +11,7 @@ import {
     makeSubject,
     type OPCUABaseServer,
     OPCUADiscoveryServer,
+    type OPCUADiscoveryServerOptions,
     OPCUAServer,
     RegisterServerMethod
 } from "node-opcua";
@@ -69,8 +70,13 @@ export async function startDiscovery(port: number): Promise<OPCUADiscoveryServer
     return discoveryServer;
 }
 
-export const makeDiscoveryServer = async (port_discovery: number, test: TestHarness) => {
+export const makeDiscoveryServer = async (
+    port_discovery: number,
+    test: TestHarness,
+    options?: Partial<OPCUADiscoveryServerOptions>
+) => {
     const discoveryServer = new OPCUADiscoveryServer({
+        ...options,
         port: port_discovery,
         serverCertificateManager: test.discoveryServerCertificateManager
     });

@@ -1,4 +1,29 @@
 
+Local Discovery Server: registration conformance (OPC UA Part 4 §5.5.5 / §5.5.6)
+================================================================================
+
+  - **breaking** `OPCUADiscoveryServer` no longer accepts `RegisterServer` / `RegisterServer2`
+    from unauthenticated callers. As required by OPC UA Part 4 §5.5.5 / §5.5.6:
+    - a registration over a `MessageSecurityMode.None` SecureChannel (no client certificate) is refused
+      with `Bad_SecurityModeInsufficient`
+    - a registration whose `serverUri` does not match the ApplicationUri of the certificate that opened
+      the SecureChannel is refused with `Bad_ServerUriInvalid`
+    - the default certificate manager of the LDS no longer trusts unknown certificates: an unknown
+      registrant is refused at `OpenSecureChannel` and its certificate is placed in the `rejected` folder;
+      move it to `trusted/certs` to allow the registration (the LDS logs both paths at startup).
+      This is the OPC Foundation UA-LDS default and what Part 12 §5.3.5 describes as the primary
+      mechanism for establishing trust between applications.
+  - `FindServers`, `FindServersOnNetwork` and `GetEndpoints` are unchanged and remain available without
+    message security (Part 4 §5.5.1)
+  - migration: after upgrading, each server that registers with a node-opcua LDS must have its
+    certificate trusted by the LDS once. `OPCUAServer` already registers over `SignAndEncrypt`, so no
+    change is needed on the server side.
+  - legacy opt-ins on `OPCUADiscoveryServerOptions`, both disabled by default, both relaxing the Part 4
+    requirements: `allowUnsecuredRegistration: true` and `automaticallyAcceptUnknownCertificate: true`
+  - new `onRegistrationRefused` event on `OPCUADiscoveryServer` (Part 4 asks Discovery Servers to audit
+    failed registrations); refusals are also logged with the caller's address, security mode and
+    certificate ApplicationUri
+
 Private key passphrase protection
 ==================================
 
