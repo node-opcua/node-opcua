@@ -1573,6 +1573,9 @@ describe("Subscription#adjustSamplingInterval", () => {
     });
 
     it("should leave sampling interval to 0 when requested sampling interval === 0 ( 0 means Event Based mode)", () => {
+        // 0 here selects the exception-based mode of the MonitoredItem; the item itself then floors the
+        // revised samplingInterval it answers at the advertised MinSupportedSampleRate (CTT Monitor Basic 038,
+        // see test_monitored_item.ts)
         const subscription = makeSubscription({
             publishingInterval: 1234,
             publishEngine: fake_publish_engine,

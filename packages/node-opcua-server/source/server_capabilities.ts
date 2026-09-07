@@ -66,6 +66,15 @@ export interface IServerCapabilities {
     maxArrayLength: number;
     maxByteStringLength: number;
     maxQueryContinuationPoints: number;
+    /**
+     * MinSupportedSampleRate, in milliseconds: the fastest sampling interval the server
+     * supports, and the floor of the revisedSamplingInterval it answers to a requested 0.
+     * Defaults to MonitoredItem.minimumSamplingInterval (50 ms). A Variable whose
+     * MinimumSamplingInterval is 0 is still delivered on change, the revised interval being
+     * the window over which changes are coalesced. Set it to 0 to claim exception-based
+     * acquisition: such items are then answered with a revisedSamplingInterval of 0 and every
+     * change is reported (the CTT flags this for manual verification).
+     */
     minSupportedSampleRate: Double;
     operationLimits: OperationLimitsOptions;
 
@@ -279,7 +288,7 @@ export class ServerCapabilities implements IServerCapabilities {
 
         this.operationLimits = new ServerOperationLimits(options.operationLimits);
 
-        this.minSupportedSampleRate = options.minSupportedSampleRate || defaultServerCapabilities.minSupportedSampleRate; // to do adjust me
+        this.minSupportedSampleRate = options.minSupportedSampleRate ?? defaultServerCapabilities.minSupportedSampleRate;
 
         // new in 1.05
         this.maxSessions = options.maxSessions || defaultServerCapabilities.maxSessions;

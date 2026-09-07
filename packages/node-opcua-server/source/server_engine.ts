@@ -487,9 +487,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             // new SignedSoftwareCertificate({})
         ];
 
-        // make sure minSupportedSampleRate matches MonitoredItem.minimumSamplingInterval
+        // make sure minSupportedSampleRate matches MonitoredItem.minimumSamplingInterval unless configured;
+        // ?? and not ||, so that a server can claim 0 (exception-based items are then answered with 0)
         Object.defineProperty(this.serverCapabilities, "minSupportedSampleRate", {
-            get: () => options.serverCapabilities?.minSupportedSampleRate || MonitoredItem.minimumSamplingInterval,
+            get: () => options.serverCapabilities?.minSupportedSampleRate ?? MonitoredItem.minimumSamplingInterval,
             configurable: true
         });
 

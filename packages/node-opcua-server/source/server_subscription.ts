@@ -473,6 +473,11 @@ export interface ServerCapabilitiesPartial {
     maxMonitoredItemsPerSubscription: UInt32;
     maxWhereClauseParameters?: UInt32;
     maxSelectClauseParameters?: UInt32;
+    /**
+     * the advertised MinSupportedSampleRate: the floor of a revised samplingInterval when 0 is
+     * requested (undefined = MonitoredItem.minimumSamplingInterval)
+     */
+    minSupportedSampleRate?: number;
 }
 
 export interface IReadAttributeCapable {
@@ -2060,6 +2065,7 @@ export class Subscription extends EventEmitter {
 
         options.monitoredItemId = monitoredItemId;
         options.itemToMonitor = itemToMonitor;
+        options.minSupportedSampleRate = this.serverCapabilities.minSupportedSampleRate;
 
         const monitoredItem = new MonitoredItem(options);
         monitoredItem.timestampsToReturn = timestampsToReturn;
