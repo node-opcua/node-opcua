@@ -56,6 +56,18 @@ cache:
 #   image: node:20
 
 
+# The conformance checks of documentation/rfc/nodeset-ndjson.md, section 9: every published
+# nodeset through records -> NodeSet2 XML -> records, an element census of each source
+# document against the regenerated one, and the two ways back to XML compared. Kept out of
+# `pnpm test` because they run over the whole catalogue and take minutes; kept in CI because
+# what they protect, that the format carries the document, is invisible to any smaller test.
+nodeset_roundtrip:
+  <<: *build_template
+  image: node:24
+  script:
+    - pnpm run build:all
+    - pnpm --filter node-opcua-address-space run test:long
+
 build_and_test_node_22:
   <<: *build_template
   image: node:22

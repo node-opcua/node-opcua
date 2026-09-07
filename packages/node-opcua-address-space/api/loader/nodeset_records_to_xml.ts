@@ -210,13 +210,8 @@ function writeHeader(xw: XmlWriter, header: NodesetHeaderRecord): void {
     }
     xw.endElement();
 
-    // whatever a tool stamped on the document, back as the XML it was
-    //
-    // LIMITATION of this implementation, not of the format: the record holds what the reader
-    // re-serialised, and the reader resolves a namespace prefix away at the SAX boundary, so
-    // `<ua:ModelInfo xmlns:ua="...">` comes back as `<ModelInfo xmlns:ua="...">`. The declaration
-    // survives, the binding of the element to it does not. Carrying the source bytes untouched
-    // would need the prefix kept in xml2json, which every other reader shares.
+    // whatever a tool stamped on the document, back as the XML it was, prefix included: the
+    // reader keeps the qualified name for the fragment cloner precisely so that this survives
     if (header.extensions?.length) {
         xw.startElement("Extensions");
         for (const extension of header.extensions) {

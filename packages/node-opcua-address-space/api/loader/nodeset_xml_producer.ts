@@ -352,10 +352,16 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
         },
         parser: {
             Extension: {
-                startElement(this: State, elementName: string, attrs: XmlAttributes) {
-                    // whatever a tool put in here is foreign XML: clone the element verbatim
+                startElement(this: State, elementName: string, attrs: XmlAttributes, qualifiedName?: string) {
+                    // whatever a tool put in here is foreign XML: clone the element verbatim, under
+                    // the name the document gave it, prefix included
                     this._cloneFragment = new InternalFragmentClonerReaderState();
-                    this.engine?._promote(this._cloneFragment, this.engine?.currentLevel, elementName, attrs);
+                    this.engine?._promote(
+                        this._cloneFragment,
+                        this.engine?.currentLevel,
+                        qualifiedName ?? elementName,
+                        attrs
+                    );
                 },
                 finish(this: State) {
                     const xml = this._cloneFragment?.value;
