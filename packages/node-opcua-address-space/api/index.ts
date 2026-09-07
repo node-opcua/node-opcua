@@ -157,6 +157,23 @@ export * from "./interfaces/ua_subscription_diagnostics_variable_ex.js";
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "./loader/ensure_datatype_extracted.js";
 export * from "./loader/generateAddressSpaceRaw.js";
 export {
+    isNdjsonHeaderLine,
+    NDJSON_IMAGE_FORMAT,
+    NODESET2_XML_FORMAT,
+    registerBuiltinNodesetFormats
+} from "./loader/nodeset_builtin_formats.js";
+export {
+    findNodesetFormat,
+    type NodesetDocument,
+    type NodesetFormat,
+    type NodesetHead,
+    type NodesetModel,
+    type NodesetModelInfo,
+    nodesetFormatByName,
+    nodesetFormats,
+    registerNodesetFormat
+} from "./loader/nodeset_format.js";
+export {
     type ImageDeflater,
     imageLinesToRecords,
     imageNodesetRecords,
@@ -196,10 +213,18 @@ export {
     XmlExtensionObjectFragment
 } from "./loader/nodeset_record.js";
 export { type RecordsToNodeset2XMLOptions, recordsToNodeset2XML } from "./loader/nodeset_records_to_xml.js";
-export type { NamedNodesetSource, NodesetChunk, NodesetChunkStream, NodesetSource } from "./loader/nodeset_source.js";
+export type {
+    NamedNodesetSource,
+    NodesetChunk,
+    NodesetChunkStream,
+    NodesetContainer,
+    NodesetSource,
+    NodesetSourceKind
+} from "./loader/nodeset_source.js";
 export { sha256Hex } from "./loader/nodeset_source.js";
 export * from "./loader/nodeset_source_helpers.js";
 export { type NodesetToImageOptions, nodesetToImage } from "./loader/nodeset_to_image.js";
+export { headerComplete, parseDependencies, sliceHeader } from "./loader/nodeset_xml_header.js";
 export { makeXmlNodesetRecordReader, type XmlNodesetRecordReader, xmlNodesetRecords } from "./loader/nodeset_xml_producer.js";
 export * from "./loader/register_node_promoter.js";
 export * from "./namespace.js";

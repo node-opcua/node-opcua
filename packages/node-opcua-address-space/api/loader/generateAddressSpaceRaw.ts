@@ -1,14 +1,20 @@
 import type { IAddressSpace, RequiredModel } from "node-opcua-address-space-base";
-import { getMinOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import type { CallbackT } from "node-opcua-status-code";
-import { type ReaderStateParser, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
 import semver from "semver";
 import type { NamespacePrivate } from "../../impl/namespace_private.js";
 import { adjustNamespaceArray } from "../../impl/nodeset_tools/adjust_namespace_array.js";
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.js";
 import { NodeSetLoader } from "./load_nodeset2.js";
 import { makeSemverCompatible } from "./make_semver_compatible.js";
+import { NDJSON_IMAGE_FORMAT, registerBuiltinNodesetFormats } from "./nodeset_builtin_formats.js";
+import {
+    type NodesetModel as Model,
+    type NodesetDocument,
+    type NodesetFormat,
+    type NodesetModelInfo as NodesetInfo,
+    nodesetFormatByName
+} from "./nodeset_format.js";
 import {
     imageLinesToRecords,
     inflatedImageLines,
@@ -21,92 +27,17 @@ import {
 import { decodeHeader } from "./nodeset_image_codec.js";
 import { type NodesetImageStore, nodesetImageKey, sharedMemoryNodesetImageStore } from "./nodeset_image_store.js";
 import type { NodesetRecord, NodesetRecordConsumer } from "./nodeset_record.js";
-import { type NodesetReader, type NodesetSource, openNodesetSource } from "./nodeset_source.js";
-import { xmlNodesetRecords } from "./nodeset_xml_producer.js";
+import { type NodesetReader, type NodesetSource, nodesetDocumentOf, openNodesetSource } from "./nodeset_source.js";
+import { parseDependencies, sliceHeader } from "./nodeset_xml_header.js";
+
+// the loader reads NodeSet2 XML and its own NDJSON images out of the box: registering them is
+// what makes that true, and it has to happen before any source is sniffed
+registerBuiltinNodesetFormats();
 
 const doDebug = checkDebugFlag("generateAddressSpaceRaw");
 const debugLog = make_debugLog("generateAddressSpaceRaw");
 const errorLog = make_errorLog("generateAddressSpaceRaw");
 
-interface Model extends RequiredModel {
-    requiredModel: RequiredModel[];
-}
-interface NodesetInfo {
-    namespaceUris: string[];
-    models: Model[];
-}
-
-async function parseDependencies(xmlData: string): Promise<NodesetInfo> {
-    const namespaceUris: string[] = [];
-
-    const models: Model[] = [];
-    let currentModel: Model | undefined;
-    const state0: ReaderStateParser = {
-        parser: {
-            UANodeSet: {
-                parser: {
-                    NamespaceUris: {
-                        parser: {
-                            Uri: <ReaderStateParserLike & { text: string }>{
-                                finish(this: ReaderStateParserLike & { text: string }) {
-                                    namespaceUris.push(this.text);
-                                }
-                            }
-                        }
-                    },
-                    Models: {
-                        parser: {
-                            Model: {
-                                init(_elementName: string, attrs: XmlAttributes) {
-                                    const modelUri = attrs.ModelUri;
-                                    const version = attrs.Version;
-                                    const publicationDate = new Date(Date.parse(attrs.PublicationDate));
-                                    currentModel = {
-                                        modelUri,
-                                        version,
-                                        publicationDate,
-                                        requiredModel: []
-                                    };
-                                    doDebug && console.log(`currentModel = ${JSON.stringify(currentModel)}`);
-                                    models.push(currentModel);
-                                },
-                                parser: {
-                                    RequiredModel: {
-                                        init(_elementName: string, attrs: XmlAttributes) {
-                                            const modelUri = attrs.ModelUri;
-                                            const version = attrs.Version;
-                                            const publicationDate = new Date(Date.parse(attrs.PublicationDate));
-
-                                            if (!currentModel) {
-                                                throw new Error("Internal Error");
-                                            }
-                                            currentModel.requiredModel.push({
-                                                modelUri,
-                                                version,
-                                                publicationDate
-                                            });
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    };
-    const parser = new Xml2Json(state0);
-    parser.parseString(xmlData);
-    if (models.length === 0 && namespaceUris.length >= 1) {
-        models.push({
-            modelUri: namespaceUris[0],
-            version: "1",
-            publicationDate: getMinOPCUADate(),
-            requiredModel: []
-        });
-    }
-    return { models, namespaceUris: namespaceUris };
-}
 interface NodesetDesc {
     index: number;
     xmlData: string;
@@ -116,30 +47,10 @@ interface NodesetSourceDesc {
     index: number;
     reader: NodesetReader;
     namespaceModel: NodesetInfo;
-    /** the bytes of a source that holds an image, read whole */
-    image?: Uint8Array;
-}
-
-/**
- * the header of a NodeSet2 file (`NamespaceUris`, `Models`) precedes the aliases and the nodes: the
- * dependency pre-pass has read enough once both closers were seen, or once the body has begun
- */
-const BODY_START =
-    /<(Aliases|Extensions|UAObject|UAVariable|UADataType|UAReferenceType|UAObjectType|UAVariableType|UAMethod|UAView)[\s/>]/;
-function headerComplete(text: string): boolean {
-    return (text.includes("</Models>") && text.includes("</NamespaceUris>")) || BODY_START.test(text);
-}
-
-/** the `<UANodeSet ...>` opener up to the end of `</Models>` or `</NamespaceUris>`, whichever comes last */
-function sliceHeader(xmlData: string, name: string): string {
-    const indexStart = xmlData.match(/<UANodeSet/m)?.index;
-    const i1 = (xmlData.match(/<\/Models>/m)?.index || 0) + "</Models>".length;
-    const i2 = (xmlData.match(/<\/NamespaceUris>/m)?.index || 0) + "</NamespaceUris>".length;
-    const indexEnd = Math.max(i1, i2);
-    if (indexStart === undefined) {
-        throw new Error(`nodeset source ${name}: no <UANodeSet> element found`);
-    }
-    return xmlData.substring(indexStart, indexEnd);
+    /** the format that claimed this source */
+    format: NodesetFormat;
+    /** the source seen as a document, so the read and the inflate are shared with the pre-pass */
+    document: NodesetDocument;
 }
 
 /**
@@ -150,30 +61,15 @@ async function preLoadSources(readers: NodesetReader[]): Promise<NodesetSourceDe
     for (let index = 0; index < readers.length; index++) {
         const reader = readers[index];
         doDebug && console.log("---------------------------------------------", reader.name);
-        if ((await reader.probe()) === "image") {
-            // an image is small (a few hundred KB) and its header is line 1: read it whole
-            const image = await reader.allBytes();
-            const { header } = await readNodesetImageInfo(image);
-            const models: Model[] = header.models.map((m) => ({
-                modelUri: m.modelUri,
-                version: m.version,
-                publicationDate: m.publicationDate ? new Date(m.publicationDate) : getMinOPCUADate(),
-                requiredModel: m.requiredModels.map((r) => ({ ...r, publicationDate: new Date(r.publicationDate ?? Number.NaN) }))
-            }));
-            if (models.length === 0 && header.namespaceUris.length >= 1) {
-                models.push({
-                    modelUri: header.namespaceUris[0],
-                    version: "1",
-                    publicationDate: getMinOPCUADate(),
-                    requiredModel: []
-                });
-            }
-            namespaceDesc.push({ reader, namespaceModel: { models, namespaceUris: header.namespaceUris }, index, image });
-            continue;
+        const format = nodesetFormatByName(await reader.probe());
+        // probe() only returns a name it found in the registry, so this cannot be missing; the
+        // check is here because a caller may unregister a format between the probe and the load
+        if (!format) {
+            throw new Error(`nodeset source ${reader.name}: its format is no longer registered`);
         }
-        const head = await reader.readHead(headerComplete);
-        const namespaceModel = await parseDependencies(sliceHeader(head, reader.name));
-        namespaceDesc.push({ reader, namespaceModel, index });
+        const document = nodesetDocumentOf(reader);
+        const namespaceModel = await format.readModels(document);
+        namespaceDesc.push({ reader, document, format, namespaceModel, index });
     }
     return namespaceDesc;
 }
@@ -217,16 +113,23 @@ async function isReplayable(image: Uint8Array, digest: string, name: string): Pr
 }
 
 /**
- * load one XML source: from its image when the store holds a valid one, from the XML otherwise,
- * writing the image on the way when there is a store
+ * load one source through the image cache: from its image when the store holds a valid one, by
+ * parsing it otherwise, writing the image on the way when there is a store.
+ *
+ * This used to be the XML path, because XML was the only thing worth caching a parse of. It is
+ * now every format except the image itself: the cache is keyed on the digest of the bytes that
+ * were read, and nothing about that reasoning was ever specific to XML. A published nodeset in
+ * any format therefore gets a cache sibling on first read and loads at image speed after it.
  */
-async function loadXmlSource(
+async function loadThroughCache(
     nodesetLoader: NodeSetLoader,
+    format: NodesetFormat,
+    document: NodesetDocument,
     reader: NodesetReader,
     store: NodesetImageStore | undefined
 ): Promise<void> {
     if (!store) {
-        await nodesetLoader.addNodeSetStream(reader.chunks());
+        await nodesetLoader.addRecords(format.records(document));
         return;
     }
     // the digest is known up front for a document given whole; a stream must be read first
@@ -247,7 +150,7 @@ async function loadXmlSource(
         }
     }
     const writer = new NodesetImageWriter();
-    await nodesetLoader.addRecords(tee(xmlNodesetRecords(reader.chunks()), writer));
+    await nodesetLoader.addRecords(tee(format.records(document), writer));
     const sourceDigest = digest ?? (await reader.digest());
     try {
         await store.put(nodesetImageKey(sourceDigest), await writer.finish(sourceDigest, reader.length));
@@ -444,14 +347,16 @@ export async function generateAddressSpaceRaw(
         // c8 ignore next
         doDebug && debugLog(" loading ", nodesetIndex, nodeset.reader.name);
         try {
-            if (nodeset.image) {
+            if (nodeset.format.name === NDJSON_IMAGE_FORMAT) {
+                // an image is already the cache: replaying it through the cache would be storing
+                // a copy of what was just read
                 try {
-                    await nodesetLoader.addRecords(imageLinesToRecords(await inflatedImageLines(nodeset.image)));
+                    await nodesetLoader.addRecords(nodeset.format.records(nodeset.document));
                 } finally {
-                    releaseInflatedImageLines(nodeset.image);
+                    releaseInflatedImageLines(await nodeset.document.rawBytes());
                 }
             } else {
-                await loadXmlSource(nodesetLoader, nodeset.reader, store);
+                await loadThroughCache(nodesetLoader, nodeset.format, nodeset.document, nodeset.reader, store);
             }
         } catch (err) {
             const cause = err instanceof Error ? err.message : String(err);

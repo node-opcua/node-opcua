@@ -7,7 +7,8 @@
  * first bytes.
  */
 
-import { isNodesetImage } from "./nodeset_image.js";
+import { findNodesetFormat, type NodesetDocument, type NodesetHead } from "./nodeset_format.js";
+import { inflatedImageLines, isGzip, isNodesetImage } from "./nodeset_image.js";
 
 /** one piece of a NodeSet2 document: text, or UTF-8 bytes */
 export type NodesetChunk = string | Uint8Array;
@@ -57,8 +58,26 @@ export interface NamedNodesetSource {
 
 const BOM = 0xfeff;
 
-/** what a source turned out to hold */
-export type NodesetSourceKind = "xml" | "image";
+/** how many characters of a document a format sniffer is shown */
+const HEAD_CHARS = 4096;
+
+/**
+ * how a document arrived, before anything has been decided about what it says: as text, or as
+ * bytes that are not text until something inflates or decodes them.
+ *
+ * This is not the format. It is the one thing that can be settled synchronously on a first
+ * chunk, and it decides only whether the reader decodes as it goes or keeps the bytes intact.
+ */
+export type NodesetContainer = "text" | "bytes";
+
+/**
+ * the name of the format a source turned out to be written in.
+ *
+ * This used to be a closed pair, XML or image. It is now whatever is registered, so that a
+ * format the loader has never heard of can identify itself; the two built-ins go on reading the
+ * documents they always did.
+ */
+export type NodesetSourceKind = string;
 
 export interface NodesetReaderOptions {
     /** keep the bytes read so that {@link NodesetReader.digest} can be computed */
@@ -82,7 +101,9 @@ export class NodesetReader {
     private bodyStarted = false;
     private decoder: TextDecoder | null = null;
     private atStart = true;
-    private kind: NodesetSourceKind | undefined;
+    private container: NodesetContainer | undefined;
+    private formatName: NodesetSourceKind | undefined;
+    private allBytesValue: Uint8Array | undefined;
     private readonly hashed: Uint8Array[] | null;
     private bytesRead = 0;
     private readonly encoder = new TextEncoder();
@@ -103,12 +124,66 @@ export class NodesetReader {
         return this.options.imageKey;
     }
 
-    /** XML or image: decided on the first bytes */
-    public async probe(): Promise<NodesetSourceKind> {
-        if (this.kind === undefined) {
+    /**
+     * how this document arrived: as text, or as bytes. Settled on the first chunk, and never a
+     * statement about which format the document is written in.
+     */
+    public async probeContainer(): Promise<NodesetContainer> {
+        if (this.container === undefined) {
             await this.pull();
         }
-        return this.kind ?? "xml";
+        return this.container ?? "text";
+    }
+
+    /**
+     * which registered format claims this document.
+     *
+     * Two stages, because one is not enough. The container is decided synchronously on the first
+     * chunk; the format is decided from the head of the document *after* it has been inflated,
+     * which is the only way to tell one gzipped serialisation from another. The loader used to
+     * skip that second stage and take any gzip stream for one of its own images, so a foreign
+     * compressed nodeset was not rejected but misread.
+     */
+    public async probe(): Promise<NodesetSourceKind> {
+        if (this.formatName !== undefined) {
+            return this.formatName;
+        }
+        const head = await this.sniffHead();
+        const format = findNodesetFormat(head);
+        if (!format) {
+            throw new Error(`nodeset source ${this.name}: no registered format recognises this document`);
+        }
+        this.formatName = format.name;
+        return this.formatName;
+    }
+
+    /**
+     * the beginning of the document as a sniffer sees it: inflated when it arrived gzipped, so
+     * that no format has to know how a document happened to be stored.
+     *
+     * A byte document is read whole. That is not a concession: every format that arrives as bytes
+     * is line-delimited or an archive, and reads whole anyway, and the bytes are kept so the read
+     * is not repeated. Text streams on, and is sniffed on as much of the head as has arrived.
+     */
+    private async sniffHead(): Promise<NodesetHead> {
+        if ((await this.probeContainer()) === "bytes") {
+            const all = await this.allBytes();
+            const gzip = isGzip(all);
+            const text = gzip
+                ? ((await inflatedImageLines(all))[0] ?? "")
+                : new TextDecoder("utf-8").decode(all.subarray(0, HEAD_CHARS));
+            return makeHead(this.name, text, gzip);
+        }
+        while (this.headTextLength() < HEAD_CHARS) {
+            if ((await this.pull()) === undefined) break;
+        }
+        return makeHead(this.name, (this.head as string[]).join("").slice(0, HEAD_CHARS), false);
+    }
+
+    private headTextLength(): number {
+        let total = 0;
+        for (const chunk of this.head as string[]) total += chunk.length;
+        return total;
     }
 
     /**
@@ -119,8 +194,8 @@ export class NodesetReader {
         if (this.bodyStarted) {
             throw new Error(`nodeset source ${this.name}: the head cannot be read once the body has been`);
         }
-        if ((await this.probe()) !== "xml") {
-            throw new Error(`nodeset source ${this.name}: not XML`);
+        if ((await this.probeContainer()) !== "text") {
+            throw new Error(`nodeset source ${this.name}: the head of a byte document is not text`);
         }
         let text = (this.head as string[]).join("");
         while (!complete(text)) {
@@ -133,13 +208,14 @@ export class NodesetReader {
         return text;
     }
 
-    /** the whole document as text chunks, from the start; usable once */
-    public async *chunks(): AsyncGenerator<string> {
+    /**
+     * the whole document from the start, usable once: text chunks for a document that arrived as
+     * text, byte chunks for one that did not. A caller that wants text either way decodes.
+     */
+    public async *chunks(): AsyncGenerator<NodesetChunk> {
         this.startBody();
-        if ((await this.probe()) !== "xml") {
-            throw new Error(`nodeset source ${this.name}: not XML`);
-        }
-        const head = this.head as string[];
+        await this.probeContainer();
+        const head = this.head as NodesetChunk[];
         this.head = [];
         for (const chunk of head) {
             yield chunk;
@@ -149,15 +225,15 @@ export class NodesetReader {
             if (chunk === undefined) {
                 return;
             }
-            yield chunk as string;
+            yield chunk;
         }
     }
 
-    /** the whole document as raw bytes, from the start, for a source holding an image; usable once */
+    /** the whole document as raw bytes, from the start, for a source holding bytes; usable once */
     public async *bytes(): AsyncGenerator<Uint8Array> {
         this.startBody();
-        if ((await this.probe()) !== "image") {
-            throw new Error(`nodeset source ${this.name}: not an image`);
+        if ((await this.probeContainer()) !== "bytes") {
+            throw new Error(`nodeset source ${this.name}: not a byte document`);
         }
         const head = this.head as Uint8Array[];
         this.head = [];
@@ -175,6 +251,9 @@ export class NodesetReader {
 
     /** the whole document as one byte array; reads the source to its end and keeps it */
     public async allBytes(): Promise<Uint8Array> {
+        if (this.allBytesValue !== undefined) {
+            return this.allBytesValue;
+        }
         if (this.bodyStarted) {
             throw new Error(`nodeset source ${this.name}: a source is read once`);
         }
@@ -182,7 +261,10 @@ export class NodesetReader {
             /* read to the end */
         }
         const parts = this.head.map((chunk) => (typeof chunk === "string" ? this.encoder.encode(chunk) : chunk));
-        return concat(parts);
+        // kept, so that the sniff and the format that follows it share one array: the inflated
+        // lines are cached against the identity of these bytes, and a second concat would miss
+        this.allBytesValue = concat(parts);
+        return this.allBytesValue;
     }
 
     /** the bytes read so far; the whole document once it has been read */
@@ -214,6 +296,16 @@ export class NodesetReader {
         return this.digestValue;
     }
 
+    /**
+     * the digest if it has already been computed, without computing one.
+     *
+     * A format may want to record what it read from, but must never be the thing that forces a
+     * stream to be drained to find out.
+     */
+    public digestIfKnown(): string | undefined {
+        return this.digestValue;
+    }
+
     private startBody(): void {
         if (this.bodyStarted) {
             throw new Error(`nodeset source ${this.name}: a source is read once`);
@@ -236,8 +328,8 @@ export class NodesetReader {
                 const result = await this.iterator.next();
                 if (result.done) {
                     this.exhausted = true;
-                    if (this.kind === undefined) {
-                        this.kind = "xml";
+                    if (this.container === undefined) {
+                        this.container = "text";
                     }
                     const tail = this.decoder ? this.decoder.decode() : "";
                     if (tail.length > 0) {
@@ -266,15 +358,16 @@ export class NodesetReader {
         if (chunk.length === 0) {
             return undefined;
         }
-        if (this.kind === undefined) {
-            this.kind = typeof chunk !== "string" && isNodesetImage(chunk) ? "image" : "xml";
+        if (this.container === undefined) {
+            // text unless the bytes say otherwise; a string chunk is text by construction
+            this.container = typeof chunk !== "string" && isNodesetImage(chunk) ? "bytes" : "text";
         }
         const raw = typeof chunk === "string" ? this.encoder.encode(chunk) : chunk;
         this.bytesRead += raw.length;
         if (this.hashed) {
             this.hashed.push(raw);
         }
-        if (this.kind === "image") {
+        if (this.container === "bytes") {
             const bytes = typeof chunk === "string" ? raw : chunk;
             if (!this.bodyStarted) this.head.push(bytes);
             return bytes;
@@ -364,4 +457,70 @@ export function openNodesetSource(
         return inner;
     };
     return new NodesetReader(name, open, whole, { hash: options.hash, imageKey });
+}
+
+/** the head a sniffer is shown, with its first line split out for the line-delimited formats */
+function makeHead(name: string, text: string, gzip: boolean): NodesetHead {
+    const newline = text.indexOf("\n");
+    const firstLine = newline < 0 ? text : text.slice(0, newline);
+    return { name, text, gzip, firstLine: firstLine.endsWith("\r") ? firstLine.slice(0, -1) : firstLine };
+}
+
+/**
+ * a {@link NodesetDocument} over a reader: what a format is handed.
+ *
+ * The point of the facade is that a format never touches the reader. It asks for the document in
+ * the shape it wants -- lines, text, bytes, a stream -- and the reader answers each of those once
+ * and shares the answer, so a format that wants both the lines and the raw bytes pays for one
+ * read and one inflate rather than two.
+ *
+ * @internal
+ */
+export function nodesetDocumentOf(reader: NodesetReader): NodesetDocument {
+    let inflatedBytes: Promise<Uint8Array> | undefined;
+    let textValue: Promise<string> | undefined;
+    let linesValue: Promise<string[]> | undefined;
+
+    const rawBytes = () => reader.allBytes();
+
+    const bytes = () => {
+        if (!inflatedBytes) {
+            inflatedBytes = (async () => {
+                const raw = await rawBytes();
+                if (!isGzip(raw)) return raw;
+                // one inflate, shared with lines(): both go through the cache keyed on these bytes
+                return new TextEncoder().encode((await inflatedImageLines(raw)).join("\n"));
+            })();
+        }
+        return inflatedBytes;
+    };
+
+    const lines = () => {
+        if (!linesValue) {
+            linesValue = (async () => {
+                const raw = await rawBytes();
+                if (isGzip(raw)) return await inflatedImageLines(raw);
+                return new TextDecoder("utf-8").decode(raw).split("\n");
+            })();
+        }
+        return linesValue;
+    };
+
+    const text = () => {
+        if (!textValue) {
+            textValue = (async () => (await lines()).join("\n"))();
+        }
+        return textValue;
+    };
+
+    return {
+        name: reader.name,
+        bytes,
+        text,
+        lines,
+        rawBytes,
+        chunks: () => reader.chunks(),
+        readHead: (complete: (t: string) => boolean) => reader.readHead(complete),
+        digest: () => reader.digestIfKnown()
+    };
 }
