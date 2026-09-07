@@ -25,6 +25,8 @@ export type NodesetName =
     | "padim"
     | "robotics"
     | "scales"
+    | "surfaceTechnologyGeneralTypes"
+    | "surfaceTechnologyOctMss"
     | "tightening"
     | "lads"
     | "i4aas"
@@ -270,6 +272,32 @@ export const nodesetCatalog: NodesetMeta[] = [
         uri: "http://opcfoundation.org/UA/MetalForming/",
         xmlFile: "Opc.Ua.MetalForming.NodeSet2.xml",
         dependencies: ["di", "ia", "machinery", "irdi", "padim", "machineryProcessValues", "machineTool"],
+        licence: "DUAL"
+    },
+    {
+        name: "surfaceTechnologyGeneralTypes",
+        packageName: "surface-technology-general-types",
+        uri: "http://opcfoundation.org/UA/SurfaceTechnology/GeneralTypes/",
+        xmlFile: "Opc.Ua.STGeneralTypes.NodeSet2.xml",
+        dependencies: ["di", "ia", "machinery", "isa95JobControl", "machineryJobs"],
+        licence: "DUAL"
+    },
+    {
+        name: "surfaceTechnologyOctMss",
+        packageName: "surface-technology-oct-mss",
+        uri: "http://opcfoundation.org/UA/SurfaceTechnology/OCT-MSS/",
+        xmlFile: "Opc.Ua.ST-Mss.NodeSet2.xml",
+        dependencies: [
+            "di",
+            "ia",
+            "machinery",
+            "isa95JobControl",
+            "machineryJobs",
+            "irdi",
+            "padim",
+            "machineryProcessValues",
+            "surfaceTechnologyGeneralTypes"
+        ],
         licence: "DUAL"
     },
     {

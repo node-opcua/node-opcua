@@ -302,6 +302,38 @@
     "references": 31759,
     "hash": "b0dc6cc146171ddc01aa0bf20cb4d8846e63aadd"
   },
+  "surfaceTechnologyGeneralTypes": {
+    "files": [
+      "standard",
+      "di",
+      "ia",
+      "machinery",
+      "isa95JobControl",
+      "machineryJobs",
+      "surfaceTechnologyGeneralTypes"
+    ],
+    "nodes": 6672,
+    "references": 23823,
+    "hash": "6e8b2f726901ebfc754ea6d688f200c5db6c41aa"
+  },
+  "surfaceTechnologyOctMss": {
+    "files": [
+      "standard",
+      "di",
+      "ia",
+      "machinery",
+      "isa95JobControl",
+      "machineryJobs",
+      "irdi",
+      "padim",
+      "machineryProcessValues",
+      "surfaceTechnologyGeneralTypes",
+      "surfaceTechnologyOctMss"
+    ],
+    "nodes": 8120,
+    "references": 30224,
+    "hash": "f0a0e9cf3fae58c7ef95e98854ae50a865221248"
+  },
   "scales": {
     "files": [
       "standard",

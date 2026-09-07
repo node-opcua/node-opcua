@@ -139,6 +139,16 @@
     "length": 80793,
     "sha1": "f237658dc43fddf8ecca730b2b810243f5512c12"
   },
+  "surfaceTechnologyGeneralTypes": {
+    "uri": "http://opcfoundation.org/UA/SurfaceTechnology/GeneralTypes/",
+    "length": 72460,
+    "sha1": "8562dacb17d99a8d58ab5865ebf25cef2143fa1d"
+  },
+  "surfaceTechnologyOctMss": {
+    "uri": "http://opcfoundation.org/UA/SurfaceTechnology/OCT-MSS/",
+    "length": 142791,
+    "sha1": "aa2b4ddc0b7ffb2e03a180d9d94a7dc5bf27bf7a"
+  },
   "scales": {
     "uri": "http://opcfoundation.org/UA/Scales/V2/",
     "length": 815179,
