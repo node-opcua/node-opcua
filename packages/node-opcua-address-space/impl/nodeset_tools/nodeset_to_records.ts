@@ -527,7 +527,11 @@ class RecordExporter {
         const asImpl = node as unknown as {
             isOptionSetDataType?: boolean;
             declaredDefinitionFields?: NodesetDefinitionField[];
+            declaredDefinitionName?: string;
         };
+        // what the document called this definition, or -- for a DataType built here, which never
+        // had a declaration -- the browse name, which is the only name available
+        const definitionName = asImpl.declaredDefinitionName ?? this.b(node.browseName);
         if (asImpl.isOptionSetDataType && asImpl.declaredDefinitionFields) {
             const fields = asImpl.declaredDefinitionFields.map((f) => {
                 const field: NodesetDefinitionField = { ...f, allowSubTypes: f.allowSubTypes ?? false };
@@ -535,7 +539,7 @@ class RecordExporter {
                 field.dataType = f.dataType ? this.t(f.dataType as unknown as NodeId) : baseDataType;
                 return field;
             });
-            return { name: this.b(node.browseName), isOptionSet: true, fields };
+            return { name: definitionName, isOptionSet: true, fields };
         }
         if (node.isEnumeration()) {
             const enumDefinition = node.getEnumDefinition();
@@ -547,7 +551,7 @@ class RecordExporter {
                 field.dataType = baseDataType;
                 return field;
             });
-            return { name: this.b(node.browseName), fields };
+            return { name: definitionName, fields };
         }
         if (node.isStructure()) {
             const definition = node.getStructureDefinition();
@@ -572,7 +576,7 @@ class RecordExporter {
                 field.dataType = f.dataType && !f.dataType.isEmpty() ? this.t(f.dataType) : baseDataType;
                 fields.push(field);
             }
-            const record: NodesetDataTypeDefinitionRecord = { name: this.b(node.browseName), fields };
+            const record: NodesetDataTypeDefinitionRecord = { name: definitionName, fields };
             if (definition.structureType === StructureType.Union) record.isUnion = true;
             return record;
         }

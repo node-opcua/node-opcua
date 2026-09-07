@@ -54,6 +54,8 @@ export interface UADataTypeOptions extends InternalBaseNodeOptions {
     isUnion?: boolean;
     /** the DataType is a bit mask, not an enumeration; see UADataTypeImpl.isOptionSet */
     isOptionSet?: boolean;
+    /** the <Definition> Name as declared; see UADataTypeImpl.declaredDefinitionName */
+    definitionName?: string;
     isAbstract?: boolean;
     symbolicName?: string;
 }
@@ -105,6 +107,14 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
      */
     public isOptionSetDataType = false;
 
+    /**
+     * the Name attribute of the <Definition> element as the nodeset spelled it. The published
+     * catalogue uses both spellings -- 467 bare names and 211 namespace-prefixed ones -- so there
+     * is no form to normalise to: recomputing it from the browse name rewrote every bare one.
+     * Undefined for a DataType this address space built itself, which has no declaration to keep.
+     */
+    public declaredDefinitionName?: string;
+
     /** the fields of the <Definition> as declared, for a DataType the address space models no further */
     public get declaredDefinitionFields(): StructureFieldOptionsEx[] | EnumFieldOptions[] | undefined {
         return this.$partialDefinition;
@@ -116,6 +126,9 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
             this.$partialDefinition = options.partialDefinition;
         }
         this.isOptionSetDataType = !!options.isOptionSet;
+        if (options.definitionName) {
+            this.declaredDefinitionName = options.definitionName;
+        }
         this.isAbstract = options.isAbstract === undefined || options.isAbstract === null ? false : options.isAbstract;
         this.symbolicName = options.symbolicName || this.browseName.name || "";
     }
