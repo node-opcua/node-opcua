@@ -31,7 +31,7 @@ against the other in the same state:
 
 Which of the two matters depends on where the bytes sit: an embedded device parsing from
 flash pays the uncompressed cost, a CDN pays the gzipped one. Parsing is **67 % faster**,
-which makes a whole address space load about **33 % faster**, less than the parse figure,
+which makes a whole address space load about **25 % faster**, less than the parse figure,
 because parsing is not what dominates a load (Appendix C).
 
 Both size figures compare like with like. A compressed form against an uncompressed one
@@ -778,42 +778,45 @@ the model is in doubt.
 
 ## Appendix C. Loading performance in node-opcua
 
-Measured on the reference implementation, node-opcua 2.181 on Node.js 22.22, Windows 11,
+Measured on the reference implementation, node-opcua 2.181 on Node.js 22.22.3, Windows 11,
 loading each nodeset with its full dependency chain and the sibling-image cache disabled so
 that each form is read from disk on every run.
+
+Two caveats a reader should have before the numbers. They were taken on a machine that was
+not otherwise idle, so they understate the gain rather than overstate it; and they were taken
+after the format grew to carry Category, Documentation and Extensions, so they are lower than
+an earlier draft of this document reported. Both directions of that error are the safe one.
 
 **A whole address space, in a fresh process**: one load per process, JIT warm-up included,
 best of three processes. This is what a server start pays.
 
 | Loaded | Files | Nodes | XML | NDJSON | faster by |
 |---|---|---|---|---|---|
-| the standard nodeset alone | 1 | 5 476 | 399 ms | 237 ms | 41 % |
-| standard + DI | 2 | 5 923 | 416 ms | 280 ms | 33 % |
-| standard + DI + Machinery | 4 | 6 225 | 425 ms | 291 ms | 32 % |
-| + IA + MachineTool | 7 | 7 132 | 511 ms | 351 ms | 31 % |
-| + Woodworking + Eumabois | 7 | 8 359 | 506 ms | 365 ms | 28 % |
+| the standard nodeset alone | 1 | 5 476 | 350 ms | 248 ms | 29 % |
+| standard + DI | 2 | 5 923 | 384 ms | 285 ms | 26 % |
+| standard + DI + Machinery | 4 | 6 225 | 384 ms | 300 ms | 22 % |
 
-**The same, warm**: best of five loads in one process, so the JIT has settled: 154 → 76 ms
-for the standard nodeset, 240 → 132 ms for the Woodworking chain, 45 % to 51 % faster
-throughout.
+Longer chains are not quoted. The benchmark that produces this table cannot currently resolve
+a dependency past Machinery, and a figure this document cannot reproduce on demand has no place
+in it.
 
 **The parse phase alone**: source bytes to the record stream, no address space built:
 
 | Document | Records | XML | NDJSON | faster by |
 |---|---|---|---|---|
-| `Opc.Ua.NodeSet2` | 5 477 | 71 ms | 22 ms | 69 % |
-| `Opc.Ua.Woodworking.NodeSet2` | 1 817 | 20 ms | 9 ms | 55 % |
-| `Opc.Ua.Scales.NodeSet2` | 1 349 | 18 ms | 6 ms | 67 % |
-| `Opc.Ua.Di.NodeSet2` | 448 | 6 ms | 2 ms | 67 % |
+| `Opc.Ua.NodeSet2` | 5 477 | 72 ms | 24 ms | 67 % |
+| `Opc.Ua.Scales.NodeSet2` | 1 349 | 18 ms | 7 ms | 61 % |
+| `Opc.Ua.Di.NodeSet2` | 448 | 6 ms | 3 ms | 50 % |
 
-Read those three tables together and they say something worth stating plainly, because it
-bears on what this format is for.
+Read the two tables together and they say something worth stating plainly, because it bears on
+what this format is for.
 
-**Parsing is about 67 % faster, and that buys about a third off a whole load, because parsing
-is not what dominates a load.** What dominates is building it: creating nodes, resolving and
-installing references, binding extension object values, running the post-load passes. That work
-is identical whichever form the records came from. On the standard nodeset the parse is
-71 ms of a 399 ms load: even an instantaneous parser could not take more than a fifth off.
+**Parsing is about 67 % faster on the largest document, and that buys about a quarter off a
+whole load, because parsing is not what dominates a load.** What dominates is building it:
+creating nodes, resolving and installing references, binding extension object values, running
+the post-load passes. That work is identical whichever form the records came from. On the
+standard nodeset the parse is 72 ms of a 350 ms load: even an instantaneous parser could not
+take more than a fifth off.
 
 So the case for NodeSet-NDJSON does not rest on load time. It rests on **canonicality**
 (§9.4), which is not a performance property at all, and secondarily on **size**: 58 %
