@@ -1,11 +1,11 @@
-# RFC: NodeSet-NDJSON — a line-oriented interchange form for OPC UA NodeSet2 documents
+# RFC: NodeSet-NDJSON, a line-oriented interchange form for OPC UA NodeSet2 documents
 
 | | |
 |---|---|
-| **Status** | Draft for discussion — proposed to the OPC Foundation |
+| **Status** | Draft for discussion, proposed to the OPC Foundation |
 | **Version** | 3 (`schema: 3`) |
-| **Authors** | Sterfive SAS — the node-opcua project |
-| **Reference implementation** | `node-opcua-address-space`, `api/loader/nodeset_image_codec.ts` |
+| **Authors** | Sterfive SAS, the node-opcua project |
+| **Reference implementation** | `node-opcua-address-space`: `api/loader/nodeset_record.ts` (the record), `nodeset_image_codec.ts` (this encoding), `nodeset_xml_producer.ts` (NodeSet2 XML in), `nodeset_records_to_xml.ts` (NodeSet2 XML out) |
 | **Date** | 2026-09-06 |
 
 ## Abstract
@@ -26,12 +26,12 @@ against the other in the same state:
 
 | | NodeSet2 XML | NodeSet-NDJSON | |
 |---|---|---|---|
-| uncompressed | 15 209 385 B | 6 117 110 B | **60 % smaller** |
-| gzipped | 961 258 B | 669 399 B | **30 % smaller** |
+| uncompressed | 15 209 385 B | 6 408 671 B | **58 % smaller** |
+| gzipped | 961 258 B | 694 687 B | **28 % smaller** |
 
 Which of the two matters depends on where the bytes sit: an embedded device parsing from
 flash pays the uncompressed cost, a CDN pays the gzipped one. Parsing is **67 % faster**,
-which makes a whole address space load about **33 % faster** — less than the parse figure,
+which makes a whole address space load about **33 % faster**, less than the parse figure,
 because parsing is not what dominates a load (Appendix C).
 
 Both size figures compare like with like. A compressed form against an uncompressed one
@@ -72,21 +72,22 @@ the reading:
   order. Nothing in the XML schema says which spelling is canonical, so no two tools agree
   on a byte-level identity for a nodeset.
 
-NodeSet-NDJSON addresses all four without changing the information model. The design
-constraint throughout was: **anything the XML can say, this must say; anything this can
-say, the XML must be able to say.**
+NodeSet-NDJSON addresses all four without changing the information model, though the fourth only
+in its canonical form (§9.4), since this format leaves document order free too and has to be
+told not to. The design constraint throughout was: **anything the XML can say, this must say;
+anything this can say, the XML must be able to say.**
 
 ## 3. Terminology
 
 The key words MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT, RECOMMENDED,
 MAY and OPTIONAL are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119).
 
-- **Document** — one NodeSet-NDJSON file: one header, zero or more node lines, one trailer.
-- **Writer** — a program that produces a document.
-- **Reader** — a program that consumes one.
-- **Local namespace index** — an index into *this document's own* namespace table, never
+- **Document**: one NodeSet-NDJSON file: one header, zero or more node lines, one trailer.
+- **Writer**: a program that produces a document.
+- **Reader**: a program that consumes one.
+- **Local namespace index**: an index into *this document's own* namespace table, never
   into the namespace array of the address space that is loading it (§5.1).
-- **Default** — the value a reader assigns to an absent key (§7).
+- **Default**: the value a reader assigns to an absent key (§7).
 
 ## 4. File form
 
@@ -163,6 +164,7 @@ line n        the trailer record         {"kind":"trailer", ...}
 | `aliases` | object | REQUIRED | the `<Aliases>` of the source: alias name to encoded NodeId (§6.1) |
 | `addressSpaceVersion` | string | OPTIONAL | what wrote the document; informative only, and a reader MUST NOT reject a document for it |
 | `createdAt` | ISO-8601 string | OPTIONAL | when it was written; informative only |
+| `extensions` | array of string | OPTIONAL | the `<Extension>` elements of the source's document-level `<Extensions>`, each as the XML it is |
 | `sourceLength` | integer | OPTIONAL | the byte length of the document this was derived from, where there was one (§8.3) |
 
 A model is `{modelUri, version, publicationDate, requiredModels[], symbolicName?, accessRestrictions?}`,
@@ -224,8 +226,8 @@ and an absent key mean the same thing and a writer MUST omit the key.
 ### 6.4 Numbers
 
 - `Int64` and `UInt64` are a **decimal string**: `"-1"`, `"18446744073709551615"`. JSON numbers
-  cannot carry 64 bits exactly, and a pair of 32-bit halves — the obvious alternative, and what
-  the reference implementation holds in memory — cannot be read without knowing the signedness
+  cannot carry 64 bits exactly, and a pair of 32-bit halves (the obvious alternative, and what
+  the reference implementation holds in memory) cannot be read without knowing the signedness
   from somewhere else: as halves, `Int64 -1` and `UInt64 18446744073709551615` are the same two
   numbers. It would also give one value two spellings, since `Int64` min is `[2147483648, 0]` with
   unsigned halves and `[-2147483648, 0]` with signed ones, which no canonical form can allow.
@@ -259,7 +261,8 @@ that they are given a decoded form:
 {"$class":"EnumValueType","value":"3","displayName":{"text":"Off"}}
 ```
 
-Every other extension object is carried as the XML fragment the source held, with the
+Those four, and no others. **A writer MUST NOT emit a decoded form for any other extension
+object type**; every other one MUST be carried as the XML fragment the source held, with the
 NodeId of its `Default XML` encoding:
 
 ```json
@@ -273,6 +276,12 @@ lets a reader defer the decode to the point where it is possible, exactly as an 
 must, and guarantees that a value the reader cannot understand is still preserved byte for
 byte on the way out. **A reader MUST NOT reject a document because of an `$xml` fragment it
 cannot decode**, unless it is asked for the value it holds.
+
+The restriction is what makes the format cheap to convert *out of*. Because the only things a
+value can hold are the four types above and opaque XML, **writing a document back as NodeSet2 XML
+needs no DataType definitions at all**: not the document's own, not those of the namespaces it
+depends on. A converter needs no information model, no address space and no catalogue: it is a
+transcription between two spellings, and §9 measures it as one.
 
 ### 6.8 Variant
 
@@ -308,6 +317,8 @@ A node record is a JSON object with no `kind` key.
 | `references` | array of reference | REQUIRED, MAY be empty (§7.2) |
 | `displayName` | string | see §7.1 |
 | `description` | string | |
+| `category` | array of string | the `<Category>` elements, in order; a node may declare several |
+| `documentation` | string | the `<Documentation>` element: at most one |
 | `symbolicName`, `inverseName` | string | |
 | `releaseStatus` | `"Draft"` \| `"Deprecated"` | absent means `Released` |
 | `accessRestrictions`, `accessLevel`, `userAccessLevel` | string | as declared in the source, uninterpreted |
@@ -359,7 +370,7 @@ too; the XML simply has no incentive to leave them out, and this format does.
 
 The exception is `displayName`, whose default is not a constant but the node's own browse
 name. It is called out because it is by far the most valuable of the rules: **on the 33
-published nodesets, 19 237 of 19 859 nodes — 96.9 % — have a DisplayName that is exactly
+published nodesets, 19 237 of 19 859 nodes (96.9 %) have a DisplayName that is exactly
 their BrowseName.** It is also the only default a reader must materialise rather than
 merely assume, since a consumer reads `displayName` directly.
 
@@ -369,7 +380,9 @@ DEFLATE already codes a string repeated verbatim 13 676 times in a couple of bit
 default table removes 26 % of the raw text and 11 % of the compressed bytes, and 7.6 of
 those 11 points are `displayName` alone, because a browse name repeated is entropy and a
 constant repeated is not. The table is in this specification for **canonicality** more than
-for size: with it, two writers given the same model produce the same bytes.
+for size: with it, two writers given the same model agree on the content of every line. Fixing
+the order of the lines as well is what §9.4 adds, and the two together are what make a document
+a byte-level identity for a nodeset.
 
 ### 7.2 References
 
@@ -391,9 +404,14 @@ and let every reader skip the check; a streaming writer that has not seen the wh
 MUST omit the hint, and a reader that finds it omitted MUST fall back to checking for itself
 at the end of the load.
 
+A writer MUST NOT put any other value in the fourth position: values other than `0` are
+reserved, and a reader that meets one MUST reject the document rather than guess at a meaning a
+later revision may give it.
+
 The hint is therefore **not information about the model**. Two documents that differ only in
 their hints describe the same model, and a conformance test MUST NOT compare them. It is
-stated here because it is on the wire and a reader must know what it means.
+stated here because it is on the wire and a reader must know what it means. A document in
+canonical form omits it (§9.4).
 
 ### 7.3 DataType definitions
 
@@ -438,7 +456,7 @@ The trailer is what makes truncation detectable. A JSON document that is cut in 
 invalid JSON and any parser will say so; an NDJSON document that is cut in half is a
 perfectly valid, shorter NDJSON document. Without a trailer, a nodeset truncated by a full
 disk, a killed process or a half-written cache entry loads silently as a nodeset missing
-half its nodes — which is very much worse than failing.
+half its nodes, which is very much worse than failing.
 
 A reader MUST reject a document whose last line is not a trailer, and MUST reject one whose
 `nodes` count does not match the number of node records it read.
@@ -447,14 +465,18 @@ A reader MUST reject a document whose last line is not a trailer, and MUST rejec
 
 A hash of the node lines would catch more, but it would also make the format's identity
 depend on the exact bytes of every line, and so freeze every future writer into reproducing
-them. The count catches the failure mode that actually happens — truncation — at no cost to
+them. The count catches the failure mode that actually happens (truncation) at no cost to
 a streaming writer, which knows the count only at the end and knows a content hash only by
 buffering the whole document.
 
+An implementation that wants a content hash after all can have one without this specification
+providing it: the digest of a document in canonical form (§9.4) is exactly that, and it is
+computed over bytes any conforming writer reproduces.
+
 ### 8.3 `sourceDigest` and derived documents
 
-Where a document was derived from another representation of the same nodeset — typically the
-NodeSet2 XML file it was compiled from — `sourceDigest` MAY carry a digest of that source's
+Where a document was derived from another representation of the same nodeset (typically the
+NodeSet2 XML file it was compiled from), `sourceDigest` MAY carry a digest of that source's
 bytes, and the header's `sourceLength` its length.
 
 This lets an implementation treat a NodeSet-NDJSON file as a **cache** of an XML file: it
@@ -471,14 +493,40 @@ know how a digest was computed MUST ignore it rather than reject the document.
 ## 9. Equivalence with NodeSet2 XML
 
 The claim this format makes is that it is equipotent with NodeSet2 XML. That claim is
-falsifiable, and the reference implementation ships the tool that tries to falsify it:
+falsifiable, and the reference implementation ships the tools that try to falsify it.
+
+There are two different questions here, and they are worth keeping apart, because only the
+first is about the format:
+
+1. does the NodeSet-NDJSON form of a document carry the document? (§9.1)
+2. does a given implementation lose anything when it loads one and writes it back? (§9.2)
+
+### 9.1 The format: a round trip with no information model in it
+
+A NodeSet-NDJSON document can be written back as NodeSet2 XML **directly**, from the records,
+with no address space, no DataType definitions and no catalogue, for the reason given in §6.7.
+That makes the tightest possible test available:
 
 ```
-npx opcua-nodeset-equivalence <file.xml>...
+    NodeSet2.xml  ->  records  ->  NodeSet2.xml  ->  records
+                        A                              B
+                                A == B
 ```
 
-The round trip it runs is the one that matters to somebody handing an implementation a nodeset
-they did not write:
+Nothing in that loop knows what an information model is. If `A == B`, then every key a writer
+left out is a key a reader put back, and the two spellings carry the same document.
+
+Over the 33 published nodesets (**19 892 records, 19 859 nodes**), `A == B` holds exactly:
+same namespaces, same nodes, same references, same value for every attribute of every node, with
+no exceptions and nothing excluded. That is the claim this specification makes about itself.
+
+Alongside it runs an **element census**: every element name is counted in the source document and
+in the regenerated one, and the two counts must agree. It exists because of §9.3.
+
+### 9.2 An implementation: the loop through an address space
+
+The other round trip is the one that matters to somebody handing an implementation a nodeset they
+did not write, and what it measures is *that implementation*:
 
 ```
   <third party>/NodeSet2.xml  ->  NodeSet-NDJSON (A)  ->  address space
@@ -488,70 +536,100 @@ they did not write:
                                   A == B
 ```
 
-`A` is what the third party's document says; `B` is what the implementation's own document says
-after the model has been all the way round. If the two agree, nothing was lost anywhere in the
-loop — and NodeSet-NDJSON is the place to compare, because it is the only one of the four forms
-with a canonical spelling (§7.1).
-
 `==` is not byte equality, and could not be: two documents are free to order their namespace
 tables and their node lines differently. `A` and `B` are compared after every identifier has been
 resolved through *its own document's* namespace table into `<namespace uri>;i=<n>`, which is the
-only spelling of an id that two documents can be held to. The comparison is then exact — same
-namespaces, same set of nodes, same set of references, same value for every attribute of every
-node.
+only spelling of an id that two documents can be held to.
 
-Eight checks per document:
+```
+npx opcua-nodeset-equivalence <file.xml>...
+```
 
-1. **records** — XML → records → NDJSON → records. The two record streams must agree field by
-   field, once the defaults of §7.1 are applied to both. This is the check that a key a writer
-   leaves out is a key a reader puts back.
-2. **lines** — those records re-encoded must reproduce the very bytes of the NDJSON. The encoding
-   is canonical, so a writer and a reader cannot drift apart silently.
-3. **address space** — the address space built from the XML and the one built from the NDJSON must
-   have the same digest: same nodes, same references, same values.
-4. **xml** — the NodeSet2 XML written back out from each of those two address spaces must be the
+1. **records**: XML to records to NDJSON to records, field by field.
+2. **lines**: those records re-encoded must reproduce the very bytes of the NDJSON.
+3. **address space**: the address space built from the XML and the one built from the NDJSON
+   must have the same digest.
+4. **xml**: the NodeSet2 XML written back out from each of those two address spaces must be the
    same bytes.
-5. **A==B nodes** — `A` against `B`: same namespaces, same set of nodes, same set of references.
-6. **A==B attrs** — `A` against `B` again, this time every attribute of every node.
-7. **fixpoint** — a second pass over the exporter's own XML, which reaches constructs a
-   hand-written file may not, must again say the same thing either way.
-8. **xml-idempotent** — information rather than a verdict: whether the XML pipeline alone is
+5. **A==B nodes**: same namespaces, same set of nodes, same set of references.
+6. **A==B attrs**: every attribute of every node.
+7. **fixpoint**: a second pass over the exporter's own XML must again say the same thing.
+8. **xml-idempotent**: information rather than a verdict, whether the XML pipeline alone is
    idempotent.
 
-Checks 1 to 4 isolate the format: they say the NDJSON reproduces the document exactly. Checks 5
-and 6 then measure the whole loop, so a difference that shows up only there is the *XML writer*
-of the implementation under test dropping something, rather than the format losing it — which is
-why the tool prints the attribution alongside the difference instead of leaving the reader to
+Checks 1 to 4 isolate the format; 5 and 6 measure the whole loop. A difference that shows up only
+in 5 and 6 is the *implementation's XML writer* dropping something rather than the format losing
+it, and the tool prints that attribution alongside the difference instead of leaving the reader to
 guess.
 
-Three things are reported apart from the verdict, because each is a difference of spelling and
-not of model, and each is provably harmless once ids are fully qualified:
+A useful calibration of what the address space costs: of the 33 nodesets, the document written
+directly from the records and the document written from a loaded address space load into a
+**byte-identical address space for 31 of them**. Where they differ it is the address space that
+lost something, and §9.1 says which side to believe.
 
-- **the order of the namespace table** — which namespaces a document draws on is model; the order
+Three things are reported apart from the verdict, because each is a difference of spelling and not
+of model, and each is provably harmless once ids are fully qualified:
+
+- **the order of the namespace table**: which namespaces a document draws on is model; the order
   it happens to list them in is a local choice, exactly as document order is (§4.3);
-- **`ParentNodeId`** — derivable from the aggregating reference, and a node reachable from two
-  parents has more than one correct answer, so two documents may name different parents and
-  describe the same model;
+- **`ParentNodeId`**: derivable from the aggregating reference, and a node reachable from two
+  parents has more than one correct answer;
 - **the §7.2 inverse-declaration hint**, for the reason given there.
 
-The tool deliberately does **not** claim that the regenerated XML is byte-identical to the
-file on disk, and no honest tool could: a NodeSet2 document carries comments, attribute
-order, entity spellings, indentation, alias choices and node order that the information
-model does not define. Two files may say exactly the same thing and differ in bytes. Check 4
-compares the two documents at the first point where a canonical spelling exists — the
-exporter's own — and check 5 shows that spelling is a fixpoint.
+The tool deliberately does **not** claim that the regenerated XML is byte-identical to the file on
+disk, and no honest tool could: a NodeSet2 document carries comments, attribute order, entity
+spellings, indentation, alias choices and node order that the information model does not define.
 
-Turning that around gives the strongest statement the format can support, and the one this
-RFC makes:
+### 9.3 What a round trip cannot prove
 
-> **NodeSet-NDJSON is a canonical form for NodeSet2.** Two NodeSet2 documents describe the
-> same information model if and only if they have the same NodeSet-NDJSON form, modulo the
-> §7.2 hint and document order. Nothing is lost in either direction; only the freedom the
-> XML syntax leaves is.
+A round trip is a fixpoint test, and a fixpoint proves less than it appears to. **If a reader and
+a writer are lossy in the same place, the loop closes and the loss is invisible.**
 
-This is worth having on its own, quite apart from size and speed. It gives the Foundation a
-byte-level identity for a nodeset — something to hash, sign, cache, diff and compare across
-implementations — which NodeSet2 XML by itself cannot provide.
+This is not hypothetical. Until the revision that produced this text, the reference implementation
+dropped `<Category>`, `<Documentation>` and `<Extensions>`: 2415 Documentation and 2048 Category
+elements across the published catalogue, including the Foundation's own cross-references into its
+specification text. Every check in §9.2 passed throughout, because both sides dropped them
+alike. No comparison of records could ever have found it.
+
+What found it was counting elements in the source document. An implementation claiming conformance
+SHOULD therefore run an element census as well as a round trip, and any future extension of this
+specification SHOULD state which elements of `UANodeSet` it does not carry, rather than leaving
+the question to a test that cannot ask it.
+
+### 9.4 Canonical form
+
+§4.3 leaves document order free, and §7.2's hint is not information about the model. A
+document is therefore not *by itself* a byte-level identity for a nodeset: two conforming writers
+given the same model may legitimately produce different bytes.
+
+A document is in **canonical form** when, in addition to conforming to the rest of this
+specification:
+
+1. node records appear in ascending order of `nodeId`: by namespace index first, then by
+   identifier type in the order numeric, string, GUID, opaque, then by identifier, numerically
+   for a numeric identifier and by Unicode code point for the others;
+2. within a node record, references appear in that same order of their target, ties broken by
+   reference type and then by `isForward`, forward first;
+3. the keys of every JSON object appear in the order this specification lists them;
+4. `aliases` keys appear in ascending Unicode code point order;
+5. the §7.2 hint is omitted.
+
+A writer MAY produce a canonical document; a reader MUST NOT require one, since order carries no
+meaning and rule 5 discards a hint that is only ever an optimisation.
+
+What the rules buy is the statement this specification actually wants to make:
+
+> **Two NodeSet2 documents describe the same information model if and only if their canonical
+> NodeSet-NDJSON forms are byte-identical.**
+
+That is stronger than "nothing is lost", and it is a statement NodeSet2 XML cannot make at all. It
+gives the Foundation a byte-level identity for a nodeset: something to hash, to sign, to cache by
+content, to diff between two revisions of a companion specification, and to compare across
+implementations, where today two files that say exactly the same thing may differ in bytes for
+reasons no reader is allowed to care about.
+
+It also makes §8.2 cheap to satisfy for anyone who wants more than a node count: the digest of a
+canonical document is a content hash, and publishing one costs a writer nothing.
 
 ## 10. Versioning
 
@@ -567,8 +645,8 @@ form of an existing key does.
 Where documents are cached, the `schema` SHOULD be part of the cache key, so that a version
 bump invalidates every cached document rather than requiring them to be found and deleted.
 
-A bump is also the only way to invalidate stored documents when a *producer* becomes more faithful
-— when a reader learns to read something it used to drop. Every document written before is still
+A bump is also the only way to invalidate stored documents when a *producer* becomes more faithful,
+that is, when a reader learns to read something it used to drop. Every document written before is still
 valid under its schema and still parses; it is simply less faithful than the file it came from, and
 neither its `sourceDigest` nor its `sourceLength` can reveal that, because the source did not
 change. Part of schema 3 was bumped for exactly that reason.
@@ -599,17 +677,20 @@ executable content. The considerations are those of any parsed input:
 
 ## 12. Relationship to other work
 
-- **NodeSet2 XML** (`Opc.Ua.NodeSet2.xsd`) — the normative form. This specification is
+- **NodeSet2 XML** (`Opc.Ua.NodeSet2.xsd`): the normative form. This specification is
   defined by reference to it and adds nothing to the information model.
-- **OPC UA JSON encoding** (Part 6) — a wire encoding for *values and messages*, not for
+- **OPC UA JSON encoding** (Part 6): a wire encoding for *values and messages*, not for
   documents. It does not describe nodes, references or a nodeset, and NodeSet-NDJSON does
   not attempt to be a superset of it. Where the two describe the same thing they agree in
   substance and differ in spelling: Part 6 optimises for a general JSON consumer, this
   format for a nodeset that is 5 000 lines long. A future revision of this document could
-  align §6 on Part 6's spellings if the Foundation preferred one JSON dialect over two; the
-  cost would be roughly a doubling of the compressed size, and it is a trade the Foundation
-  should make rather than an implementation.
-- **UA Binary** — smaller still, and unreadable. A nodeset is a document that people review
+  align §6 on Part 6's spellings if the Foundation preferred one JSON dialect over two. That
+  would cost size (Part 6 spells a NodeId as an object with named fields where §6.1 spells the
+  common case as one number, and it has no equivalent of the §7.1 default table), but this
+  document does not put a figure on it, because none has been measured. It is a trade the
+  Foundation should make rather than an implementation, and it should be measured first.
+  §6.4 already adopts Part 6's spelling for 64-bit integers, where doing so costs nothing.
+- **UA Binary**: smaller still, and unreadable. A nodeset is a document that people review
   and diff, and a text format that a human can `grep` has value that a binary one does not.
   NDJSON keeps that: one node per line means `grep` finds a node.
 
@@ -620,7 +701,7 @@ NodeSet2 XML reader had to do first.
 
 ---
 
-## Appendix A — Measurements
+## Appendix A. Measurements
 
 The 33 nodesets published with node-opcua 2.181, 19 859 nodes in total.
 
@@ -628,25 +709,32 @@ Both forms compressed the same way, gzip level 9, so the comparison is like for 
 
 | | XML | XML gzip | NDJSON | NDJSON gzip |
 |---|---|---|---|---|
-| total | 15 209 385 | 961 258 | 6 115 205 | **668 647** |
-| vs raw XML | 100 % | 6.3 % | 40.2 % | 4.4 % |
-| vs gzipped XML | — | 100 % | — | **69.6 %** |
+| total | 15 209 385 | 961 258 | 6 408 671 | **694 687** |
+| smaller than the XML in the same state | - | - | **58 %** | **28 %** |
 
-| Nodeset | XML gzip | NDJSON gzip | |
+The seven largest documents, gzipped both ways:
+
+| Nodeset | XML gzip | NDJSON gzip | smaller by |
 |---|---|---|---|
-| `Opc.Ua.NodeSet2` | 261 455 | 180 578 | 0.69× |
-| `Opc.Ua.Ijt.Base.NodeSet2` | 68 637 | 45 902 | 0.67× |
-| `Opc.Ua.Woodworking.NodeSet2` | 57 263 | 43 342 | 0.76× |
-| `Opc.Ua.Scales.NodeSet2` | 57 338 | 39 004 | 0.68× |
-| `Opc.Ua.CNC.NodeSet` | 37 786 | 27 005 | 0.71× |
-| `Opc.Ua.MachineVision.NodeSet2` | 37 955 | 25 544 | 0.67× |
-| `Opc.Ua.PADIM.NodeSet2` | 29 332 | 18 274 | 0.62× |
-| **all 33** | **961 258** | **668 647** | **0.70×** |
+| `Opc.Ua.NodeSet2` | 261 455 | 188 569 | 28 % |
+| `Opc.Ua.Ijt.Base.NodeSet2` | 68 637 | 48 405 | 29 % |
+| `Opc.Ua.Scales.NodeSet2` | 57 338 | 39 951 | 30 % |
+| `Opc.Ua.Woodworking.NodeSet2` | 57 263 | 44 064 | 23 % |
+| `Opc.Ua.MachineVision.NodeSet2` | 37 955 | 26 461 | 30 % |
+| `Opc.Ua.CNC.NodeSet` | 37 786 | 27 334 | 28 % |
+| `Opc.Ua.LADS.NodeSet2` | 35 683 | 27 535 | 23 % |
+| **all 33** | **961 258** | **694 687** | **28 %** |
 
-The honest reading: a consistent 30 % against the fair baseline, never better than 0.62×
-on any single document. Worth having, not worth reorganising a specification for on its
-own. Uncompressed — which is what a parser and a browser cache actually work on — the
-margin is wider, 40.2 % of the XML.
+The honest reading: 28 % over the catalogue against the fair baseline, and between 8 % and
+48 % on an individual document, depending on how much of it is markup and how much is prose
+a compressor cannot help with. Worth having; not, on its own, worth reorganising a
+specification for. Uncompressed, which is what a parser and an embedded device actually
+work on, it is 58 % smaller.
+
+These figures are lower than an earlier draft of this document reported, and deliberately
+so: that draft dropped `<Category>`, `<Documentation>` and `<Extensions>` (§9.3).
+Carrying them costs about four points of compressed size, which is the correct price for a
+format that claims to carry the document.
 
 Contribution of the §7.1 default table, measured over the whole catalogue by applying each
 rule alone to the schema-2 documents:
@@ -665,56 +753,7 @@ rule alone to the schema-2 documents:
 | null NodeId keys | −0.29 % | −0.14 % |
 | **all** | **−26.2 %** | **−11.3 %** |
 
-## Appendix C — Loading performance in node-opcua
-
-Measured on the reference implementation, node-opcua 2.181 on Node.js 22.22, Windows 11,
-loading each nodeset with its full dependency chain and the sibling-image cache disabled so
-that each form is read from disk on every run.
-
-**A whole address space, in a fresh process** — one load per process, JIT warm-up included,
-best of three processes. This is what a server start pays.
-
-| Loaded | Files | Nodes | XML | NDJSON | |
-|---|---|---|---|---|---|
-| the standard nodeset alone | 1 | 5 476 | 399 ms | 237 ms | ×1.7 |
-| standard + DI | 2 | 5 923 | 416 ms | 280 ms | ×1.5 |
-| standard + DI + Machinery | 4 | 6 225 | 425 ms | 291 ms | ×1.5 |
-| + IA + MachineTool | 7 | 7 132 | 511 ms | 351 ms | ×1.5 |
-| + Woodworking + Eumabois | 7 | 8 359 | 506 ms | 365 ms | ×1.4 |
-
-**The same, warm** — best of five loads in one process, so the JIT has settled: 154 → 76 ms
-for the standard nodeset, 240 → 132 ms for the Woodworking chain, ×1.7 to ×2.1 throughout.
-
-**The parse phase alone** — source bytes to the record stream, no address space built:
-
-| Document | Records | XML | NDJSON | |
-|---|---|---|---|---|
-| `Opc.Ua.NodeSet2` | 5 477 | 71 ms | 22 ms | ×3.2 |
-| `Opc.Ua.Woodworking.NodeSet2` | 1 817 | 20 ms | 9 ms | ×2.3 |
-| `Opc.Ua.Scales.NodeSet2` | 1 349 | 18 ms | 6 ms | ×3.2 |
-| `Opc.Ua.Di.NodeSet2` | 448 | 6 ms | 2 ms | ×3.8 |
-
-Read those three tables together and they say something worth stating plainly, because it
-bears on what this format is for.
-
-**Parsing is roughly three times faster, and that buys about one and a half times on a whole
-load, because parsing is not what dominates a load.** Building the address space is — creating
-nodes, resolving and installing references, binding extension object values, running the
-post-load passes — and that work is identical whichever form the records came from. On the
-standard nodeset the parse is 71 ms of a 399 ms load: even an instantaneous parser could not
-take more than a fifth off.
-
-So the case for NodeSet-NDJSON does not rest on load time. It rests on **size**, where the
-factor is 22.7 and not 1.5, and on **canonicality** (§9), which is not a performance property
-at all. The load-time gain is real, consistent, and secondary; an implementation choosing this
-format to make its server start faster is choosing it for the smallest of its three benefits.
-
-A note for implementers, since it was worth two of the milliseconds above: gzip inflation is
-about a third of the NDJSON parse phase. Inflating a whole image once with the platform's
-native zlib, rather than streaming it, is measurably cheaper on a document of this size, and
-it moves the work off the main thread where the runtime supports it.
-
-## Appendix B — A complete small document
+## Appendix B. A complete small document
 
 ```json
 {"kind":"header","schema":3,"addressSpaceVersion":"2.181.1","createdAt":"2026-09-06T17:51:21.556Z","namespaceUris":["http://acme.example/UA/"],"models":[{"modelUri":"http://acme.example/UA/","version":"1.0.0","publicationDate":"2026-01-01T00:00:00.000Z","requiredModels":[{"modelUri":"http://opcfoundation.org/UA/","version":"1.05.04","publicationDate":"2025-05-01T00:00:00.000Z"}]}],"aliases":{"Double":11,"HasComponent":47,"HasTypeDefinition":40,"HasSubtype":45}}
@@ -728,3 +767,53 @@ no event notifier, and displays as `PumpType`; `Pressure` is a scalar with no ar
 dimensions, a sampling interval of 0, no historizing, and displays as `Pressure`. Fourteen
 keys that a NodeSet2 XML file would have spelled out are simply not there, and nothing about
 the model is in doubt.
+
+## Appendix C. Loading performance in node-opcua
+
+Measured on the reference implementation, node-opcua 2.181 on Node.js 22.22, Windows 11,
+loading each nodeset with its full dependency chain and the sibling-image cache disabled so
+that each form is read from disk on every run.
+
+**A whole address space, in a fresh process**: one load per process, JIT warm-up included,
+best of three processes. This is what a server start pays.
+
+| Loaded | Files | Nodes | XML | NDJSON | faster by |
+|---|---|---|---|---|---|
+| the standard nodeset alone | 1 | 5 476 | 399 ms | 237 ms | 41 % |
+| standard + DI | 2 | 5 923 | 416 ms | 280 ms | 33 % |
+| standard + DI + Machinery | 4 | 6 225 | 425 ms | 291 ms | 32 % |
+| + IA + MachineTool | 7 | 7 132 | 511 ms | 351 ms | 31 % |
+| + Woodworking + Eumabois | 7 | 8 359 | 506 ms | 365 ms | 28 % |
+
+**The same, warm**: best of five loads in one process, so the JIT has settled: 154 → 76 ms
+for the standard nodeset, 240 → 132 ms for the Woodworking chain, 45 % to 51 % faster
+throughout.
+
+**The parse phase alone**: source bytes to the record stream, no address space built:
+
+| Document | Records | XML | NDJSON | faster by |
+|---|---|---|---|---|
+| `Opc.Ua.NodeSet2` | 5 477 | 71 ms | 22 ms | 69 % |
+| `Opc.Ua.Woodworking.NodeSet2` | 1 817 | 20 ms | 9 ms | 55 % |
+| `Opc.Ua.Scales.NodeSet2` | 1 349 | 18 ms | 6 ms | 67 % |
+| `Opc.Ua.Di.NodeSet2` | 448 | 6 ms | 2 ms | 67 % |
+
+Read those three tables together and they say something worth stating plainly, because it
+bears on what this format is for.
+
+**Parsing is about 67 % faster, and that buys about a third off a whole load, because parsing
+is not what dominates a load.** What dominates is building it: creating nodes, resolving and
+installing references, binding extension object values, running the post-load passes. That work
+is identical whichever form the records came from. On the standard nodeset the parse is
+71 ms of a 399 ms load: even an instantaneous parser could not take more than a fifth off.
+
+So the case for NodeSet-NDJSON does not rest on load time. It rests on **canonicality**
+(§9.4), which is not a performance property at all, and secondarily on **size**: 58 %
+uncompressed, 28 % gzipped, against the same document in the same state. The load-time gain is
+real, consistent, and the smallest of the three; an implementation adopting this format to make
+its server start faster is adopting it for the least of what it offers.
+
+A note for implementers, since it was worth two of the milliseconds above: gzip inflation is
+about a third of the NDJSON parse phase. Inflating a whole image once with the platform's
+native zlib, rather than streaming it, is measurably cheaper on a document of this size, and
+it moves the work off the main thread where the runtime supports it.
