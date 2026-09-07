@@ -1,0 +1,51 @@
+{
+    "name": "node-opcua-uanodeset-rdf",
+    "version": "2.181.1",
+    "description": "pure nodejs OPCUA SDK - a one-way JSON-LD (RDF) export of an OPC UA information model",
+    "scripts": {
+        "build": "tsc -b",
+        "lint": "biome check --no-errors-on-unmatched .",
+        "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
+        "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "devEngines": {
+        "node": ">=18.x",
+        "npm": ">=10.x"
+    },
+    "dependencies": {
+        "node-opcua-address-space": "2.181.1",
+        "node-opcua-data-model": "2.181.0",
+        "node-opcua-json": "2.181.1",
+        "node-opcua-nodeid": "2.181.0",
+        "node-opcua-variant": "2.181.0"
+    },
+    "devDependencies": {
+        "node-opcua-nodesets": "2.181.0"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things",
+        "rdf",
+        "json-ld",
+        "sparql"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "files": [
+        "dist",
+        "source",
+        "VOCABULARY.md"
+    ]
+}

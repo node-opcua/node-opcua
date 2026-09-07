@@ -4306,6 +4306,28 @@ importers:
         specifier: 2.181.0
         version: link:../node-opcua-nodesets
 
+  packages/node-opcua-uanodeset-rdf:
+    dependencies:
+      node-opcua-address-space:
+        specifier: 2.181.1
+        version: link:../node-opcua-address-space
+      node-opcua-data-model:
+        specifier: 2.181.0
+        version: link:../node-opcua-data-model
+      node-opcua-json:
+        specifier: 2.181.1
+        version: link:../node-opcua-json
+      node-opcua-nodeid:
+        specifier: 2.181.0
+        version: link:../node-opcua-nodeid
+      node-opcua-variant:
+        specifier: 2.181.0
+        version: link:../node-opcua-variant
+    devDependencies:
+      node-opcua-nodesets:
+        specifier: 2.181.0
+        version: link:../node-opcua-nodesets
+
   packages/node-opcua-units:
     dependencies:
       node-opcua-data-access:

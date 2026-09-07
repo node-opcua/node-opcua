@@ -70,6 +70,7 @@
         { "path": "node-opcua-nodeset-woodworking" },
         { "path": "node-opcua-json" },
         { "path": "node-opcua-uanodeset-json" },
+        { "path": "node-opcua-uanodeset-rdf" },
         { "path": "node-opcua-nodesets" },
         { "path": "node-opcua-pseudo-session" },
         { "path": "node-opcua-role-set-admin" },
