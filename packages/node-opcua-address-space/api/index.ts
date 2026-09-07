@@ -156,6 +156,7 @@ export * from "./interfaces/state_machine/ua_transition_ex.js";
 export * from "./interfaces/ua_subscription_diagnostics_variable_ex.js";
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "./loader/ensure_datatype_extracted.js";
 export * from "./loader/generateAddressSpaceRaw.js";
+export { type NarrowedDataType, narrowInstanceDataTypes } from "./loader/narrow_instance_datatypes.js";
 export {
     isNdjsonHeaderLine,
     NDJSON_IMAGE_FORMAT,
