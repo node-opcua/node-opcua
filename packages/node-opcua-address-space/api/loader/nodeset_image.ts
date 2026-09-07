@@ -59,11 +59,28 @@ async function toReadableStream(source: Uint8Array | NodesetChunkStream): Promis
     });
 }
 
-async function gzip(text: string): Promise<Uint8Array> {
+/** how the text of an image is compressed; see {@link setImageDeflater} */
+export type ImageDeflater = (text: string) => Promise<Uint8Array>;
+
+const deflateWithCompressionStream: ImageDeflater = async (text) => {
     const compressed = new Blob([text])
         .stream()
         .pipeThrough(new CompressionStream("gzip") as unknown as ReadableWritablePair<Uint8Array, Uint8Array>);
     return new Uint8Array(await new Response(compressed).arrayBuffer());
+};
+
+let gzip: ImageDeflater = deflateWithCompressionStream;
+
+/**
+ * how an image is compressed: CompressionStream everywhere by default, which offers no way to ask
+ * for a compression level and so writes at the default one; the Node.js entry point installs zlib
+ * at level 9, four percent smaller on the published nodesets for no change to the reader -- every
+ * gzip stream inflates the same whatever level wrote it. Returns the deflater installed before.
+ */
+export function setImageDeflater(deflater: ImageDeflater): ImageDeflater {
+    const previous = gzip;
+    gzip = deflater;
+    return previous;
 }
 
 /**

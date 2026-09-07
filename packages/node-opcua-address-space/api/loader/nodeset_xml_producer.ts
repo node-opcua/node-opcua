@@ -13,6 +13,7 @@ import { NodeClass, type QualifiedName, stringToQualifiedName } from "node-opcua
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { _definitionParser, ReaderState, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
 import {
+    type NodesetDataTypeDefinitionRecord,
     type NodesetDefinitionField,
     type NodesetHeaderRecord,
     type NodesetModelRecord,
@@ -203,6 +204,8 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
             if (attrs.SymbolicName !== undefined) this.obj.symbolicName = attrs.SymbolicName;
             this.definitionFields = [];
             this.definitionName = undefined;
+            this.definitionIsUnion = undefined;
+            this.definitionIsOptionSet = undefined;
         },
         finish(this: State) {
             const fields = this.definitionFields as Array<Record<string, unknown>>;
@@ -216,7 +219,11 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
                     if (field.allowSubTypes) field.allowSubTypes = coerceBoolean(field.allowSubTypes as string | boolean);
                     return field as unknown as NodesetDefinitionField;
                 });
-                (this.obj as NodesetNodeRecord).definition = { name: this.definitionName, fields: converted };
+                const definition: NodesetDataTypeDefinitionRecord = { name: this.definitionName, fields: converted };
+                // the <Definition> flags, which the definition parser leaves on this state
+                if (this.definitionIsUnion) definition.isUnion = true;
+                if (this.definitionIsOptionSet) definition.isOptionSet = true;
+                (this.obj as NodesetNodeRecord).definition = definition;
             }
             pending.push(this.obj);
         },

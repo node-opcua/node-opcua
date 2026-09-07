@@ -20,6 +20,12 @@
  *   object is the XML fragment the reader captured: `{ "$xml": [typeId, body] }`
  *
  * A value is `{ dataType, arrayType?, dimensions?, value }`; `arrayType` is omitted for a scalar.
+ *
+ * Every key whose value is the one it would take anyway is left out; {@link NODE_DEFAULTS} is the
+ * table, and a reader that does not find a key applies the default from it. gzip already codes a
+ * key repeated verbatim in a couple of bits, so this is worth far less compressed than it looks
+ * on the raw text -- except for `displayName`, which repeats the browse name on 97% of the nodes
+ * of the published nodesets and is the one omission that carries real entropy away.
  */
 import { coerceInt64, coerceUInt64, type Int64, type UInt64 } from "node-opcua-basic-types";
 import { Range } from "node-opcua-data-access";
@@ -146,39 +152,93 @@ function decodeFloat(json: Json): number {
     return json as number;
 }
 
+// #region defaults
+/**
+ * what a key of a node record means when the image leaves it out: the value the reader would have
+ * produced anyway. A writer omits a key whose encoded value is its default here; a reader that
+ * does not find a key applies the default. The XML reader synthesizes every one of these from an
+ * absent attribute (see `nodeset_xml_producer`) and the address space export already omitted most
+ * of them, so this table is also what makes the two record producers agree.
+ *
+ * `displayName` is not in the table: its default is the node's own browse name rather than a
+ * constant, and it is the only key a reader must put back rather than infer, since a consumer
+ * reads it directly. It is also the only omission worth much once gzipped -- a constant repeated
+ * verbatim on every line costs a couple of bits, a browse name repeated does not.
+ */
+const NODE_DEFAULTS: Readonly<Record<string, unknown>> = {
+    valueRank: -1,
+    arrayDimensions: null,
+    minimumSamplingInterval: 0,
+    historizing: false,
+    isAbstract: false,
+    symmetric: false,
+    containsNoLoops: false,
+    hasNoPermissions: false,
+    eventNotifier: 0,
+    parentNodeId: null,
+    dataType: null,
+    methodDeclarationId: null
+};
+
+/** the same, for one field of a DataType definition; an absent DataType attribute is BaseDataType */
+const FIELD_DEFAULT_VALUE_RANK = -1;
+const FIELD_DEFAULT_ALLOW_SUBTYPES = false;
+const FIELD_DEFAULT_DATA_TYPE: JsonNodeId = 24; // i=24, BaseDataType
+
+/** an absent ValueRank on an Argument, as on any other node */
+const ARGUMENT_DEFAULT_VALUE_RANK = -1;
+
+/** drop from `out` every key whose value is the one a reader would assume anyway */
+function omitDefaults(out: Record<string, unknown>): void {
+    for (const [key, fallback] of Object.entries(NODE_DEFAULTS)) {
+        if (key in out && out[key] === fallback) {
+            delete out[key];
+        }
+    }
+}
+
+/** whether a localized text carries nothing: the reader's `{}` for an absent Description */
+const isEmptyText = (text: JsonLocalizedText | null | undefined): boolean =>
+    text === null || text === undefined || (text.locale === undefined && text.text === undefined);
+
+// #endregion
+
 function encodeExtensionObject(value: unknown): Json {
     if (value instanceof XmlExtensionObjectFragment) {
         return { $xml: [encodeNodeId(value.typeId), value.bodyXML] };
     }
     if (value instanceof Argument) {
-        return {
-            $class: "Argument",
-            name: value.name,
-            dataType: encodeNodeId(value.dataType),
-            valueRank: value.valueRank,
-            arrayDimensions: value.arrayDimensions,
-            description: encodeLocalizedText(value.description)
-        };
+        const out: Record<string, Json> = { $class: "Argument", name: value.name, dataType: encodeNodeId(value.dataType) };
+        if (value.valueRank !== ARGUMENT_DEFAULT_VALUE_RANK) out.valueRank = value.valueRank;
+        // an empty arrayDimensions is what a scalar argument carries and is left out; a `null` one
+        // is not the same thing to the reader that put it there, and is written
+        if (value.arrayDimensions === null || value.arrayDimensions.length > 0) out.arrayDimensions = value.arrayDimensions;
+        const description = encodeLocalizedText(value.description);
+        if (!isEmptyText(description)) out.description = description;
+        return out;
     }
     if (value instanceof EUInformation) {
-        return {
+        const out: Record<string, Json> = {
             $class: "EUInformation",
             namespaceUri: value.namespaceUri,
-            unitId: value.unitId,
-            displayName: encodeLocalizedText(value.displayName),
-            description: encodeLocalizedText(value.description)
+            unitId: value.unitId
         };
+        const displayName = encodeLocalizedText(value.displayName);
+        const description = encodeLocalizedText(value.description);
+        if (!isEmptyText(displayName)) out.displayName = displayName;
+        if (!isEmptyText(description)) out.description = description;
+        return out;
     }
     if (value instanceof Range) {
         return { $class: "Range", low: encodeFloat(value.low), high: encodeFloat(value.high) };
     }
     if (value instanceof EnumValueType) {
-        return {
-            $class: "EnumValueType",
-            value: value.value,
-            displayName: encodeLocalizedText(value.displayName),
-            description: encodeLocalizedText(value.description)
-        };
+        const out: Record<string, Json> = { $class: "EnumValueType", value: value.value };
+        const displayName = encodeLocalizedText(value.displayName);
+        const description = encodeLocalizedText(value.description);
+        if (!isEmptyText(displayName)) out.displayName = displayName;
+        if (!isEmptyText(description)) out.description = description;
+        return out;
     }
     const name = (value as ExtensionObject).constructor?.name ?? typeof value;
     throw new NodesetImageError(
@@ -197,8 +257,10 @@ function decodeExtensionObject(json: Json): ExtensionObject | XmlExtensionObject
             const argument = new Argument({});
             argument.name = j.name as string;
             argument.dataType = decodeNodeId(j.dataType);
-            argument.valueRank = j.valueRank as number;
-            argument.arrayDimensions = (j.arrayDimensions as number[] | null) ?? null;
+            argument.valueRank = (j.valueRank as number | undefined) ?? ARGUMENT_DEFAULT_VALUE_RANK;
+            // an absent arrayDimensions is the empty one the reader leaves on a scalar argument;
+            // an explicit `null` is the one the address space export writes, and is kept apart
+            argument.arrayDimensions = j.arrayDimensions === undefined ? [] : (j.arrayDimensions as number[] | null);
             argument.description = decodeLocalizedText(j.description);
             return argument;
         }
@@ -472,7 +534,7 @@ export interface NodesetImageNode {
     userAccessLevel?: string;
     value?: JsonValue;
     methodDeclarationId?: JsonNodeId | null;
-    definition?: { name?: string; isUnion?: boolean; fields: JsonField[] };
+    definition?: { name?: string; isUnion?: boolean; isOptionSet?: boolean; fields: JsonField[] };
 }
 
 const OPTIONAL_PLAIN: Array<keyof NodesetNodeRecord & keyof NodesetImageNode> = [
@@ -521,13 +583,35 @@ export function encodeNode(record: NodesetNodeRecord): NodesetImageNode {
     if (record.methodDeclarationId !== undefined) out.methodDeclarationId = encodeNodeIdOrNull(record.methodDeclarationId);
     if (record.value !== undefined) out.value = encodeValue(record.value);
     if (record.definition) {
-        out.definition = {
-            fields: record.definition.fields.map((f) => ({ ...f, dataType: encodeNodeIdOrNull(f.dataType) }))
-        };
+        out.definition = { fields: record.definition.fields.map(encodeDefinitionField) };
         if (record.definition.name !== undefined) out.definition.name = record.definition.name;
         if (record.definition.isUnion !== undefined) out.definition.isUnion = record.definition.isUnion;
+        if (record.definition.isOptionSet !== undefined) out.definition.isOptionSet = record.definition.isOptionSet;
     }
+    if (out.displayName !== undefined && out.displayName === out.browseName[1]) {
+        // the browse name over again on nearly every node of a published nodeset; a reader puts it back
+        delete out.displayName;
+    }
+    omitDefaults(out as unknown as Record<string, unknown>);
     return out;
+}
+
+function encodeDefinitionField(field: NodesetDefinitionField): JsonField {
+    const out = { ...field, dataType: encodeNodeIdOrNull(field.dataType) } as JsonField & Record<string, unknown>;
+    if (out.valueRank === FIELD_DEFAULT_VALUE_RANK) delete out.valueRank;
+    if (out.allowSubTypes === FIELD_DEFAULT_ALLOW_SUBTYPES) delete out.allowSubTypes;
+    if (out.dataType === FIELD_DEFAULT_DATA_TYPE) delete out.dataType;
+    return out;
+}
+
+function decodeDefinitionField(json: JsonField): NodesetDefinitionField {
+    const field = {
+        ...json,
+        valueRank: json.valueRank ?? FIELD_DEFAULT_VALUE_RANK,
+        allowSubTypes: json.allowSubTypes ?? FIELD_DEFAULT_ALLOW_SUBTYPES,
+        dataType: decodeNodeIdOrNull(json.dataType ?? FIELD_DEFAULT_DATA_TYPE)
+    };
+    return field as unknown as NodesetDefinitionField;
 }
 
 export function decodeNode(json: NodesetImageNode): NodesetNodeRecord {
@@ -554,6 +638,10 @@ export function decodeNode(json: NodesetImageNode): NodesetNodeRecord {
             (record as unknown as Record<string, unknown>)[key] = v;
         }
     }
+    // an absent displayName is the browse name: what the writer left out because it was the same
+    if (record.displayName === undefined) {
+        record.displayName = record.browseName.name ?? "";
+    }
     if (json.rolePermissions) {
         record.rolePermissions = json.rolePermissions.map((p) => ({ roleId: decodeNodeId(p.roleId), permissions: p.permissions }));
     }
@@ -563,12 +651,11 @@ export function decodeNode(json: NodesetImageNode): NodesetNodeRecord {
     if (json.value !== undefined) record.value = decodeValue(json.value);
     if (json.definition) {
         const definition: NodesetDataTypeDefinitionRecord = {
-            fields: json.definition.fields.map(
-                (f) => ({ ...f, dataType: decodeNodeIdOrNull(f.dataType) }) as NodesetDefinitionField
-            )
+            fields: json.definition.fields.map(decodeDefinitionField)
         };
         if (json.definition.name !== undefined) definition.name = json.definition.name;
         if (json.definition.isUnion !== undefined) definition.isUnion = json.definition.isUnion;
+        if (json.definition.isOptionSet !== undefined) definition.isOptionSet = json.definition.isOptionSet;
         record.definition = definition;
     }
     return record;

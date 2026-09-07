@@ -28,11 +28,20 @@ import { assertUnusedChildBrowseName, topMostParentIsObjectTypeOrVariableType } 
 
 export interface UAObjectTypeOptions extends InternalBaseNodeOptions {
     isAbstract?: boolean | null;
+    /** the EventNotifier the nodeset declared; see UAObjectTypeImpl.eventNotifier */
+    eventNotifier?: number;
 }
 
 export class UAObjectTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements UAObjectType {
     public readonly nodeClass = NodeClass.ObjectType;
     public readonly isAbstract: boolean;
+    /**
+     * the EventNotifier the nodeset declared. The XSD allows it on a UAObjectType and nodesets use
+     * it, but nothing here held it: the attribute was dropped at load, and -- because the name was
+     * then free -- a child called EventNotifier claimed `eventNotifier` through the shared child
+     * accessors, so reading it handed back a BaseNode. PublishedEventsType is such a type.
+     */
+    public readonly eventNotifier: number;
     /**
      * returns true if the object has some opcua methods
      */
@@ -54,6 +63,7 @@ export class UAObjectTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements UA
     constructor(options: UAObjectTypeOptions) {
         super(options);
         this.isAbstract = options.isAbstract ?? false;
+        this.eventNotifier = options.eventNotifier ?? 0;
     }
 
     public readAttribute(context: ISessionContext, attributeId: AttributeIds): DataValue {

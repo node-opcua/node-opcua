@@ -484,6 +484,20 @@ function isVariableContainingExtensionObject(uaVariable: UAVariableImpl): boolea
     return true;
 }
 
+/**
+ * the dimensions to iterate an extension object array over. "ArrayDimensions=0" and an absent
+ * ArrayDimensions both mean "one dimension, length unknown", so the length has to come from the
+ * array itself -- but that is a fact about this iteration, not a correction to the node: the
+ * ArrayDimensions attribute is what the nodeset declared and stays that way.
+ */
+function effectiveArrayDimensions(declared: number[] | null | undefined, totalLength: number): number[] {
+    const dimensions = declared ?? [];
+    if (dimensions.length === 0 || dimensions.every((d) => d === 0)) {
+        return [totalLength];
+    }
+    return dimensions;
+}
+
 function _innerBindExtensionObjectScalar(
     uaVariable: UAVariableImpl,
     {
@@ -696,7 +710,11 @@ export function _bindExtensionObjectArrayOrMatrix(
     if (uaVariable.valueRank < 1) {
         throw new Error("Variable must be a MultiDimensional array");
     }
-    const arrayDimensions = uaVariable.arrayDimensions || [];
+    // a copy: the ArrayDimensions attribute of the node is not this function's to change, and the
+    // fallback below writes into this array. Taken by reference, that write rewrote what the
+    // nodeset declared -- a variable that said ArrayDimensions="0" came back saying "1", on the
+    // server as well as in any export
+    const arrayDimensions = [...(uaVariable.arrayDimensions || [])];
     // c8 ignore next
     if (!isVariableContainingExtensionObject(uaVariable)) {
         return [];
@@ -887,8 +905,8 @@ export function extractPartialData(path: string | string[], extensionObject: Ext
 
 export function propagateTouchValueDownwardArray(uaVariable: UAVariableImpl, now: PreciseClock, cache: Set<UAVariable>) {
     if (!uaVariable.$$extensionObjectArray) return;
-    const arrayDimensions = uaVariable.arrayDimensions || [];
     const totalLength = uaVariable.$$extensionObjectArray.length;
+    const arrayDimensions = effectiveArrayDimensions(uaVariable.arrayDimensions, totalLength);
 
     const indexIterator = new IndexIterator(arrayDimensions);
     for (let i = 0; i < totalLength; i++) {

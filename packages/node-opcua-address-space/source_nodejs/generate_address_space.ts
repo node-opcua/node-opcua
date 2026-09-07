@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
-import zlib, { gunzip } from "node:zlib";
+import zlib, { gunzip, gzip as gzipCb } from "node:zlib";
 import type { IAddressSpace } from "node-opcua-address-space-base";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import {
@@ -13,6 +13,7 @@ import {
     nodesetImageProblem,
     nodesetToImage as nodesetToImageRaw,
     readNodesetImageInfo,
+    setImageDeflater,
     setImageInflater,
     sha256Hex
 } from "../dist/api/index.js";
@@ -22,6 +23,11 @@ import { FileNodesetImageStore } from "./nodeset_image_file_store.js";
 // a 200 KB image, and in the thread pool, so that the XML hash runs alongside
 const gunzipAsync = promisify(gunzip);
 setImageInflater(async (image) => (await gunzipAsync(image)).toString("utf8"));
+
+// and out through zlib at level 9: CompressionStream has no level to ask for, and an image is
+// written once and read many times, so the extra work at build time is free at load time
+const gzipAsync = promisify(gzipCb);
+setImageDeflater(async (text) => new Uint8Array(await gzipAsync(Buffer.from(text, "utf8"), { level: 9 })));
 
 const _doDebug = checkDebugFlag("generate_address_space");
 const debugLog = make_debugLog("generate_address_space");

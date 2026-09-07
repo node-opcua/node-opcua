@@ -190,6 +190,8 @@ const reg = /ns=([0-9]+);(.*)/;
 
 interface INodePermissions {
     accessRestrictions?: AccessRestrictionsFlag;
+    /** what the document declared, whatever this loader enforces; see BaseNode */
+    declaredAccessRestrictions?: string;
     rolePermissions?: RolePermissionTypeOptions[];
 }
 
@@ -491,6 +493,9 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
         }
         return {
             accessRestrictions: this.applyAccessRestrictions ? convertAccessRestrictions(record.accessRestrictions) : undefined,
+            // kept whatever the option says: the option governs what is enforced, not what the
+            // document declared, and an exporter needs the latter
+            declaredAccessRestrictions: record.accessRestrictions,
             rolePermissions
         };
     }
@@ -501,6 +506,8 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
             nodeId: record.nodeId.isEmpty() ? null : this.translate(record.nodeId),
             browseName: this.translateQualifiedName(record.browseName),
             references: this.references(record),
+            // documentation, not behaviour, but the document said it and it must survive the trip
+            releaseStatus: record.releaseStatus,
             ...this.permissions(record)
         };
     }
@@ -560,6 +567,15 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
         } // already translated
         const namespace = this.addressSpace.getNamespace(params.nodeId.namespace);
         const node = namespace.internalCreateNode(params) as BaseNode;
+        // Whether the document declared ArrayDimensions at all. node-opcua synthesizes [0] on the
+        // variables it generates itself -- EnumStrings, the variables it materializes from a
+        // structure's fields -- so [0] on a node means either "the document said 0" or "nobody
+        // said anything", and an exporter that cannot tell them apart must either invent the
+        // attribute everywhere or drop it everywhere. Recorded here, where the document is still
+        // in hand, rather than guessed at afterwards
+        if (record.arrayDimensions !== undefined && record.arrayDimensions !== null) {
+            (node as { arrayDimensionsWereDeclared?: boolean }).arrayDimensionsWereDeclared = true;
+        }
         this.settle(node, record, params.references as UAReference[]);
         return node;
     }
@@ -659,7 +675,11 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
             displayName: record.displayName ?? "",
             description: record.description ?? "",
             symbolicName: record.symbolicName,
-            partialDefinition: fields
+            partialDefinition: fields,
+            // the address space models no OptionSet, so the flag and the fields above are all that
+            // is left of the declaration; without them the DataType cannot be written back out
+            isOptionSet: record.definition?.isOptionSet,
+            isUnion: record.definition?.isUnion
         } as unknown as CreateNodeOptions;
 
         let capturedDataTypeNode: UADataType | undefined = this.createNode(params, record) as UADataType;
@@ -817,6 +837,12 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
                     } else {
                         (cv as UAVariableImpl)._setInitialDataValue(defaultValue, StatusCodes.Good);
                     }
+                    // this value was made up here, not read from the document: the document said
+                    // nothing, and a usable default is served rather than a Bad status. An exporter
+                    // must not write it back out as though the document had declared it, and the
+                    // status code cannot tell it apart from a value the document really did declare
+                    // -- a declared empty string is Good too. So the fact is recorded on the node
+                    (cv as { valueWasSynthesized?: boolean }).valueWasSynthesized = true;
                 }
                 capturedVariable = undefined;
             };
@@ -860,6 +886,8 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
                 } else {
                     (variable as UAVariableImpl)._setInitialDataValue(defaultValue, StatusCodes.Good);
                 }
+                // made up here, not read from the document: see the note on the other synthesis site
+                (variable as { valueWasSynthesized?: boolean }).valueWasSynthesized = true;
             }
         } catch (err) {
             errorLog(

@@ -18,6 +18,7 @@ import type {
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { AttributeIds, type Int64, isMinDate, type StatusCode } from "node-opcua-basic-types";
+import { StatusCodes } from "node-opcua-status-code";
 import { VariableIds } from "node-opcua-constants";
 import { type LocalizedText, makeAccessLevelFlag, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -129,6 +130,7 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
     // below already tolerates it being absent.
     const connectsToReferenceType = addressSpace.findReferenceType("ConnectsTo");
     const hasEventSourceReferenceType = _mustFindReferenceType(addressSpace, "HasEventSource");
+    const hierarchicalReferencesType = _mustFindReferenceType(addressSpace, "HierarchicalReferences");
 
     function referenceToKeep(reference: UAReference): boolean {
         // resolved here: a reference nobody has looked at since the load carries only the NodeId of its type
@@ -165,10 +167,26 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
         } else if (referenceType.isSubtypeOf(organizesReferencesType) && !reference.isForward) {
             // Organizes inverse — the current node is organized by an external folder
             return true;
+        } else if (referenceType.isSubtypeOf(organizesReferencesType) && reference.isForward) {
+            // Organizes forward into another namespace: the target lives in a document this export
+            // does not write, so nothing else will ever declare this reference and dropping it
+            // loses it outright. Within our own namespace the target declares the inverse and this
+            // end stays silent, exactly as the Aggregates branch above decides it
+            return targetedNamespaceIndex !== node.nodeId.namespace;
         } else if (connectsToReferenceType && referenceType.isSubtypeOf(connectsToReferenceType) && reference.isForward) {
             return true;
         } else if (referenceType.isSubtypeOf(hasEventSourceReferenceType) && reference.isForward) {
             return true;
+        } else if (referenceType.isSubtypeOf(hierarchicalReferencesType)) {
+            // a hierarchical reference type the branches above do not name: a companion
+            // specification's own, such as Robotics' Requires, Controls and HasSafetyStates. Those
+            // fell through to `return false` and were dropped in both directions, so a nodeset that
+            // defines its own hierarchical reference type lost every reference that used it.
+            // Decided the way Aggregates is decided just above: this end writes the reference
+            // unless the other end has the higher priority and will write it instead
+            return reference.isForward
+                ? !_hasHigherPriorityThan(xw, targetedNamespaceIndex, node.nodeId.namespace)
+                : targetedNamespaceIndex !== node.nodeId.namespace;
         }
         return false;
     }
@@ -662,7 +680,6 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, variant: V
         return;
     }
 
-    const dataTypeName = dataTypeNode.browseName.name?.toString();
     const baseDataTypeName = DataType[variant.dataType];
 
     if (baseDataTypeName === "Null") {
@@ -673,9 +690,13 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, variant: V
     // determine if dataTypeName is a ExtensionObject
     const isExtensionObject = variant.dataType === DataType.ExtensionObject;
 
-    if (_isDefaultValue(variant)) {
+    // nothing to serialize: a scalar with no value, or an array that is null rather than empty.
+    // This is the one thing _isDefaultValue used to catch here that still needs catching -- it is
+    // a test for the absence of a value, not for a value that happens to equal a type's default
+    if (variant.value === null || variant.value === undefined) {
         return;
     }
+
     xw.startElement("Value");
 
     const uax = getPrefix(xw, "http://opcfoundation.org/UA/2008/02/Types.xsd");
@@ -702,7 +723,11 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, variant: V
         switch (variant.arrayType) {
             case VariantArrayType.Matrix:
             case VariantArrayType.Array:
-                startElementEx(xw, uax, `ListOf${dataTypeName}`, "http://opcfoundation.org/UA/2008/02/Types.xsd");
+                // the built-in type, not the DataType's browse name: the uax schema defines
+                // ListOfInt32 and ListOfString, and nothing named after a nodeset's own DataType.
+                // A `ListOfIdType` is not an element any reader knows, so the reader that meets it
+                // walks straight past into the first child and takes the array for a scalar
+                startElementEx(xw, uax, `ListOf${baseDataTypeName}`, "http://opcfoundation.org/UA/2008/02/Types.xsd");
                 variant.value.forEach(encodeXml);
                 restoreDefaultNamespace(xw);
                 xw.endElement();
@@ -720,12 +745,15 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, variant: V
 }
 
 function _dumpArrayDimensionsAttribute(xw: XmlWriter, node: UAVariableType | UAVariable) {
-    if (node.arrayDimensions) {
-        if (node.valueRank === -1 || (node.arrayDimensions.length === 1 && node.arrayDimensions[0] === 0)) {
-            return;
-        }
-        xw.writeAttribute("ArrayDimensions", node.arrayDimensions.join(","));
-    }
+    // ArrayDimensions="0" is written only when the document declared it: node-opcua synthesizes [0]
+    // on the variables it generates, so writing it unconditionally would invent the attribute on
+    // every generated node. See arrayDimensionsWereDeclared in nodeset_record_applier
+    if (!node.arrayDimensions || node.valueRank <= 0) return;
+    // all-zero dimensions are what node-opcua synthesizes when nobody declared any, at whatever
+        // rank: [0] for a one-dimensional value, [0,0] for a matrix
+        const degenerate = node.arrayDimensions.every((d) => d === 0);
+    if (degenerate && !(node as unknown as { arrayDimensionsWereDeclared?: boolean }).arrayDimensionsWereDeclared) return;
+    xw.writeAttribute("ArrayDimensions", node.arrayDimensions.join(","));
 }
 
 function getParent(node: BaseNode): BaseNode | null {
@@ -748,6 +776,10 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
     }
     if (Object.hasOwn(node, "symbolicName")) {
         xw.writeAttribute("SymbolicName", (node as unknown as { symbolicName: string }).symbolicName);
+    }
+    // Released is the default and is left unwritten; the other two the document declared
+    if (node.releaseStatus) {
+        xw.writeAttribute("ReleaseStatus", node.releaseStatus);
     }
     if (Object.hasOwn(node, "isAbstract")) {
         const isAbstract = (node as unknown as { isAbstract: boolean }).isAbstract;
@@ -773,8 +805,11 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
     }
     // access policy: undefined means "inherit from the namespace", an empty rolePermissions array
     // means "this node deliberately grants nothing".
-    if (node.accessRestrictions !== undefined) {
-        xw.writeAttribute("AccessRestrictions", node.accessRestrictions.toString());
+    // what the document declared, which survives whatever the loader was asked to enforce; the
+    // enforced flag is the fallback for a node built in code rather than loaded
+    const accessRestrictions = node.declaredAccessRestrictions ?? node.accessRestrictions?.toString();
+    if (accessRestrictions !== undefined) {
+        xw.writeAttribute("AccessRestrictions", accessRestrictions);
     }
     if (node.rolePermissions !== undefined && node.rolePermissions.length === 0) {
         xw.writeAttribute("HasNoPermissions", "true");
@@ -783,6 +818,23 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
         const minimumSamplingInterval = (node as UAVariable).minimumSamplingInterval;
         if (minimumSamplingInterval > 0) {
             xw.writeAttribute("MinimumSamplingInterval", minimumSamplingInterval);
+        }
+    }
+    // EventNotifier lives on UAObject, UAObjectType and UAView in the XSD. 0 is the default and is
+    // left unwritten; anything else the document declared. It was written nowhere at all until now,
+    // so every node that declared one lost it on the way out
+    if (
+        node.nodeClass === NodeClass.Object ||
+        node.nodeClass === NodeClass.ObjectType ||
+        node.nodeClass === NodeClass.View
+    ) {
+        // typeof, not truthiness: a node with a child called "EventNotifier" resolves the name to
+        // that child through the shared child accessors, so `node.eventNotifier` is a BaseNode
+        // there and not the attribute. PublishedEventsType is one, and stringifying it wrote a
+        // whole node dump into the attribute
+        const eventNotifier = (node as unknown as { eventNotifier?: unknown }).eventNotifier;
+        if (typeof eventNotifier === "number" && eventNotifier !== 0) {
+            xw.writeAttribute("EventNotifier", eventNotifier.toString());
         }
     }
     // Historizing exists in the XSD on UAVariable only: UAVariableType is restricted to
@@ -892,6 +944,30 @@ function _dumpStructureDefinition(
 function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
     const uaDataTypeBase = uaDataType.subtypeOfObj;
 
+    // an OptionSet first: node-opcua builds neither an enumeration nor a structure for one, so
+    // neither branch below would fire and the whole <Definition> would be dropped. The fields are
+    // the ones the loader kept, see UADataTypeImpl.isOptionSetDataType
+    const asImpl = uaDataType as unknown as {
+        isOptionSetDataType?: boolean;
+        declaredDefinitionFields?: Array<{ name?: string | null; value?: number; description?: unknown }>;
+    };
+    if (asImpl.isOptionSetDataType && asImpl.declaredDefinitionFields) {
+        xw.startElement("Definition");
+        xw.writeAttribute("Name", b(xw, uaDataType.browseName));
+        xw.writeAttribute("IsOptionSet", "true");
+        for (const field of asImpl.declaredDefinitionFields) {
+            xw.startElement("Field");
+            xw.writeAttribute("Name", field.name || "");
+            if (field.value !== undefined && field.value !== null) {
+                xw.writeAttribute("Value", field.value);
+            }
+            _dumpDescription(xw, field as { description?: LocalizedText });
+            xw.endElement();
+        }
+        xw.endElement();
+        return;
+    }
+
     if (uaDataType.isEnumeration()) {
         xw.startElement("Definition");
         xw.writeAttribute("Name", b(xw, uaDataType.browseName));
@@ -909,7 +985,9 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
         const t = true;
         if (t || dataValue.statusCode.isGood()) {
             const definition = uaDataType.getStructureDefinition();
-            const baseDefinition = uaDataTypeBase ? uaDataTypeBase.getStructureDefinition() : null;
+            // a structure's supertype need not be a structure: `Structure` itself subtypes BaseDataType,
+            // which has no definition at all. Asking it for one threw, and took the whole export with it
+            const baseDefinition = uaDataTypeBase?.isStructure() ? uaDataTypeBase.getStructureDefinition() : null;
             xw.startElement("Definition");
             xw.writeAttribute("Name", b(xw, uaDataType.browseName));
             if (definition.structureType === StructureType.Union) {
@@ -993,8 +1071,14 @@ function dumpUAVariable(xw: XmlWriter, node: UAVariable) {
         // sub elements
         dumpCommonElements(xw, node);
 
-        const value = (node as UAVariableImpl).$dataValue.value;
-        if (value) {
+        // a value the loader made up for a variable the document left unvalued is not written
+        // back out; see valueWasSynthesized in nodeset_record_applier. What used to stand here was
+        // _isDefaultValue, which dropped every zero and every empty string alike -- suppressing the
+        // made-up ones at the cost of the ones the document really did declare
+        const synthesized = (node as unknown as { valueWasSynthesized?: boolean }).valueWasSynthesized;
+        const dataValue = (node as UAVariableImpl).$dataValue;
+        const value = dataValue.value;
+        if (value && !synthesized && !dataValue.statusCode.equals(StatusCodes.BadWaitingForInitialData)) {
             _dumpValue(xw, node, value);
         }
     }
@@ -1241,6 +1325,17 @@ export function makeTypeXsd(namespaceUri: string): string {
 }
 
 NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
+    // Namespace 0 cannot be written by this exporter, and the reason is structural rather than an
+    // omission: every id is translated through a table that reserves index 0 for the UA namespace
+    // as a *dependency* and gives the exported namespace 1 and up. When the exported namespace is
+    // the UA namespace itself, that table maps its nodes to ns=1 while <NamespaceUris> declares
+    // nothing at index 1, and the document produced does not load. Refused here rather than
+    // emitted, so that a caller gets a reason instead of a file that fails somewhere else later
+    if (this.index === 0) {
+        throw new Error(
+            "toNodeset2XML: the UA namespace itself cannot be exported: its ids have no place in the namespace table an export builds"
+        );
+    }
     const namespaceArrayNode = this.addressSpace.findNode(VariableIds.Server_NamespaceArray);
     const namespaceArray: string[] = namespaceArrayNode
         ? namespaceArrayNode.readAttribute(null, AttributeIds.Value).value.value

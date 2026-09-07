@@ -19,8 +19,17 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { VariantOptions } from "node-opcua-variant";
 import type { EnumFieldOptions, StructureFieldOptions } from "node-opcua-xml2json";
 
-/** bumped whenever the record shape changes; the precompiled image carries it */
-export const NODESET_RECORD_SCHEMA = 2;
+/**
+ * bumped whenever the record shape changes; the precompiled image carries it, and it is part of
+ * the key an image is cached under, so a bump invalidates every stored image.
+ *
+ * It is bumped for a change in what the records *contain* as well as for a change in their shape:
+ * when the reader learns to read something it used to drop -- a DateTime value, say -- every image
+ * built before is still valid schema-N and still parses, but it is less faithful than the file it
+ * was built from, and nothing else would ever invalidate it. The source digest cannot: the source
+ * did not change. This number is the only lever.
+ */
+export const NODESET_RECORD_SCHEMA = 4;
 
 export interface NodesetModelRecord {
     modelUri: string;
@@ -64,6 +73,11 @@ export type NodesetDefinitionField = Omit<StructureFieldOptions, "dataType"> & E
 export interface NodesetDataTypeDefinitionRecord {
     name?: string;
     isUnion?: boolean;
+    /**
+     * the DataType is a bit mask: its fields are bit positions, not enumeration values. An
+     * OptionSet whose flag is lost is indistinguishable from an ordinary enumeration.
+     */
+    isOptionSet?: boolean;
     fields: NodesetDefinitionField[];
 }
 

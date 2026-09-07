@@ -83,6 +83,8 @@ function parser2(_setValue: (data: VariantOptions) => void, type: string, p: (te
     };
 }
 const parseUInt64 = (str: string): UInt64 => coerceUInt64(str);
+/** an invalid date is left as one rather than as null: the document said something, and said it badly */
+const parseDateTime = (str: string): Date => new Date(str);
 const parseInt64 = (str: string): Int64 => coerceInt64(str);
 
 /** an element of an ExtensionObject array as the reader leaves it: decoded, or waiting as its XML */
@@ -210,6 +212,11 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
 
             UInt64: parser2(setValue2, "UInt64", parseUInt64),
             Int64: parser2(setValue2, "Int64", parseInt64),
+
+            // a NodeSet2 <Value> may hold a DateTime, and until this was here the reader silently
+            // gave back no value at all for one -- the variable then looked to every consumer like
+            // a variable the document had never valued
+            DateTime: parser2(setValue2, "DateTime", parseDateTime),
 
             ByteString: {
                 init(this: { value: Buffer | null; text: string }) {
@@ -353,6 +360,8 @@ export function makeVariantReader<T extends ReaderStateParserLike>(
             ListOfUInt16: ListOf<number>(setValue2, "UInt16", parseInt),
 
             ListOfUInt8: ListOf<number>(setValue2, "UInt8", parseInt),
+
+            ListOfDateTime: ListOf<Date>(setValue2, "DateTime", parseDateTime),
 
             ListOfString: ListOf<string>(setValue2, "String", (value: string) => value),
 

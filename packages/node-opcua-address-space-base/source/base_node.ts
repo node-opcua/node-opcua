@@ -148,6 +148,22 @@ export interface BaseNode<T extends BaseNodeEvents & ListenerSignature<T> = Base
     get modellingRule(): ModellingRuleType | undefined;
     get parentNodeId(): NodeId | undefined;
     get accessRestrictions(): AccessRestrictionsFlag | undefined;
+
+    /**
+     * the maturity a nodeset declares for this node: "Draft" or "Deprecated", or undefined for the
+     * default, "Released". It is documentation rather than behaviour -- nothing in the address
+     * space acts on it -- but a NodeSet2 document states it, and a node that has forgotten it
+     * cannot be written back out as the document that created it.
+     */
+    releaseStatus?: "Draft" | "Deprecated";
+
+    /**
+     * the AccessRestrictions the nodeset declared, verbatim, whether or not this loader was asked
+     * to apply them. `accessRestrictions` above is what is *enforced* and is gated by the loader's
+     * option; this is what the document *said*, and is documentation only. Without it a document
+     * loaded with the default policy cannot be written back out as the document it was.
+     */
+    declaredAccessRestrictions?: string;
     get rolePermissions(): RolePermissionType[] | undefined;
 
     // access to parent namespace
