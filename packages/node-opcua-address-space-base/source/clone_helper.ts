@@ -1,7 +1,7 @@
 import { assert } from "node-opcua-assert";
 import { ReferenceTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass, type QualifiedName } from "node-opcua-data-model";
-import { checkDebugFlag, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_errorLog } from "node-opcua-debug";
 import { makeNodeId, type NodeIdLike, sameNodeId } from "node-opcua-nodeid";
 import type { IAddressSpace } from "./address_space.js";
 import type { BaseNode } from "./base_node.js";
@@ -12,7 +12,6 @@ import type { UAReference } from "./ua_reference.js";
 import type { UAVariable } from "./ua_variable.js";
 import type { UAVariableType } from "./ua_variable_type.js";
 
-const warningLog = make_warningLog("INSTANTIATE");
 const errorLog = make_errorLog("INSTANTIATE");
 const doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = errorLog;
@@ -117,62 +116,56 @@ export function exploreNode(node: BaseNode) {
 //
 // find also child object with the same browse name that is overridden in the same child of the SuperType
 
+interface ParentTypeAndPath {
+    parentType: UAVariableType | UAObjectType;
+    path: QualifiedName[];
+}
+
+/**
+ * every (type, path) pair through which `originalObject` is declared: one per chain of
+ * hierarchical parents that ends on an ObjectType or VariableType. A node that a companion
+ * specification shares between two parents (OPC 40700 reaches MachineryOperationMode by HasAddIn
+ * from MachineryBuildingBlocks and by HasComponent from Monitoring.Status) has one entry per
+ * parent; a node declared by no type has none.
+ */
+function _get_parent_types_and_paths(originalObject: BaseNode, visited: ReadonlySet<string> = new Set()): ParentTypeAndPath[] {
+    if (originalObject.nodeClass === NodeClass.Method) {
+        return [];
+    }
+    const key = originalObject.nodeId.toString();
+    if (visited.has(key)) {
+        return []; // a cycle in the hierarchy: this branch leads nowhere
+    }
+    const branchVisited = new Set(visited).add(key);
+    const addressSpace = originalObject.addressSpace;
+    const result: ParentTypeAndPath[] = [];
+    for (const parentRef of originalObject.findReferencesEx("HasChild", BrowseDirection.Inverse)) {
+        const theParent = addressSpace.findNode(parentRef.nodeId);
+        if (!theParent) continue;
+        if (theParent.nodeClass === NodeClass.VariableType || theParent.nodeClass === NodeClass.ObjectType) {
+            result.push({ parentType: theParent as UAVariableType | UAObjectType, path: [originalObject.browseName] });
+            continue;
+        }
+        for (const { parentType, path } of _get_parent_types_and_paths(theParent, branchVisited)) {
+            result.push({ parentType, path: [...path, originalObject.browseName] });
+        }
+    }
+    return result;
+}
+
+/**
+ * the declaration of `originalObject` nearest to a type: the shortest of its (type, path) pairs,
+ * so a child declared directly on a type wins over the same node reached through a folder
+ */
 function _get_parent_type_and_path(originalObject: BaseNode): {
     parentType: null | UAVariableType | UAObjectType;
     path: QualifiedName[];
 } {
-    if (originalObject.nodeClass === NodeClass.Method) {
+    const all = _get_parent_types_and_paths(originalObject);
+    if (all.length === 0) {
         return { parentType: null, path: [] };
     }
-    const addressSpace = originalObject.addressSpace;
-    const parents = originalObject.findReferencesEx("HasChild", BrowseDirection.Inverse);
-    // c8 ignore next
-    if (parents.length > 1) {
-        // it could be a tricky buggy situation  like that we have seen with SIOME
-        //
-        //  AnalogUnitTyoe
-        //    |-- HasProperty --> EngineeringUnits (i=17052)
-        //  MyObjectType
-        //    |-- HasComponent --> ActualSpeed
-        //                              |-- HasComponent --> EngineeringUnits (i=17052) <== BUGGY !!!
-
-        const parentTypes = parents.filter((p) => {
-            const n = addressSpace.findNode(p.nodeId);
-            return n && (n.nodeClass === NodeClass.ObjectType || n.nodeClass === NodeClass.VariableType);
-        });
-
-        if (parentTypes.length === 1) {
-            return {
-                parentType: addressSpace.findNode(parentTypes[0].nodeId) as UAObjectType | UAVariableType,
-                path: [originalObject.browseName]
-            };
-        }
-
-        warningLog(
-            " object ",
-            originalObject.browseName.toString(),
-            originalObject.nodeId.toString(),
-            " has more than one parent !"
-        );
-        warningLog(originalObject.toString());
-        warningLog(" parents : ");
-        for (const parent of parents) {
-            warningLog("     ", parent.toString(), addressSpace.findNode(parent.nodeId)?.browseName.toString());
-        }
-        return { parentType: null, path: [] };
-    }
-
-    assert(parents.length === 0 || parents.length === 1);
-    if (parents.length === 0) {
-        return { parentType: null, path: [] };
-    }
-    const theParent = addressSpace.findNode(parents[0]?.nodeId) as BaseNode;
-    if (theParent && (theParent.nodeClass === NodeClass.VariableType || theParent.nodeClass === NodeClass.ObjectType)) {
-        return { parentType: theParent as UAVariableType | UAObjectType, path: [originalObject.browseName] };
-    }
-    // walk up
-    const { parentType, path } = _get_parent_type_and_path(theParent);
-    return { parentType, path: [...path, originalObject.browseName] };
+    return all.reduce((best, candidate) => (candidate.path.length < best.path.length ? candidate : best));
 }
 /* c8 ignore stop */
 
@@ -204,6 +197,13 @@ export class CloneHelper {
     private readonly mapTypeInstanceChildren: Map<string, Map<string, CloneInfo>> = new Map();
     public pad(): string {
         return " ".padEnd(this.level * 2, " ");
+    }
+
+    /** each context in turn: the (original -> cloned) map of one type/instance pair */
+    public forEachContext(callback: (context: ReadonlyMap<string, CloneInfo>) => void): void {
+        for (const map of this.mapTypeInstanceChildren.values()) {
+            callback(map);
+        }
     }
 
     public getClonedArray() {
@@ -257,9 +257,9 @@ export class CloneHelper {
             traceLog("registerClonedObject", "originalNode = ", fullPath2(originalNode), "clonedNode =", fullPath2(clonedNode));
 
         const insertShadow = (map: Map<string, CloneInfo>) => {
-            const { parentType, path } = _get_parent_type_and_path(originalNode);
-
-            if (parentType) {
+            // the same path on every supertype of every type that declares this node: what a
+            // subtype re-declares shadows what its base declared
+            for (const { parentType, path } of _get_parent_types_and_paths(originalNode)) {
                 let base = parentType.subtypeOfObj;
                 while (base) {
                     const shadowChild = followPath(base, path);
@@ -497,4 +497,42 @@ export function reconstructFunctionalGroupType(extraInfo: CloneHelper) {
             });
         }
     }
+}
+
+/**
+ * A node that a type declares under two hierarchical parents is instantiated once, under whichever
+ * parent the walk reached first: OPC 40700 shares MachineryOperationMode between
+ * MachineryBuildingBlocks (HasAddIn) and Monitoring.Status (HasComponent). This pass gives the
+ * instance the other parent references: for every cloned node, every hierarchical parent of its
+ * original that was cloned in the same context gets the same reference to the clone, unless it
+ * has it already. Nothing is instantiated here: a parent that was not requested stays absent.
+ */
+export function reconstructSharedHierarchicalReferences(extraInfo: CloneHelper): void {
+    extraInfo.forEachContext((context) => {
+        for (const { original, cloned } of context.values()) {
+            if (original.nodeClass === NodeClass.ObjectType || original.nodeClass === NodeClass.VariableType) {
+                continue;
+            }
+            for (const ref of original.findReferencesEx("HasChild", BrowseDirection.Inverse)) {
+                const parentInfo = context.get(ref.nodeId.toString());
+                if (!parentInfo || parentInfo.cloned === cloned) {
+                    continue;
+                }
+                const clonedParent = parentInfo.cloned;
+                const already = clonedParent
+                    .findReferences(ref.referenceType, true)
+                    .some((r) => sameNodeId(r.nodeId, cloned.nodeId));
+                if (already) {
+                    continue;
+                }
+                // c8 ignore next
+                doTrace && traceLog("   restoring parent reference ", fullPath2(clonedParent), "->", fullPath2(cloned));
+                clonedParent.addReference({
+                    isForward: true,
+                    nodeId: cloned.nodeId,
+                    referenceType: ref.referenceType
+                });
+            }
+        }
+    });
 }
