@@ -912,6 +912,12 @@ function _dumpStructureDefinition(
     // do not repeat elements that are already defined in base structure in the xml ouput!
     const fields = structureDefinition.fields || [];
     const nbFieldsInBase: number = baseStructureDefinition ? baseStructureDefinition.fields?.length || 0 : 0;
+    // Part 3 8.51: in a *WithSubtypedValues structure, isOptional is where "subtyping allowed" is
+    // held, and the document spells that AllowSubTypes. Written as IsOptional it said the opposite
+    // of what it meant, and the AllowSubTypes the document had was simply gone
+    const subtypedValues =
+        structureDefinition.structureType === StructureType.StructureWithSubtypedValues ||
+        structureDefinition.structureType === StructureType.UnionWithSubtypedValues;
 
     for (let index = nbFieldsInBase; index < fields.length; index++) {
         const defItem = fields[index];
@@ -924,8 +930,8 @@ function _dumpStructureDefinition(
         if (defItem.valueRank !== undefined && defItem.valueRank !== -1) {
             xw.writeAttribute("ValueRank", defItem.valueRank);
         }
-        if (defItem.isOptional /* && defItem.isOptional !== false */) {
-            xw.writeAttribute("IsOptional", defItem.isOptional.toString());
+        if (defItem.isOptional) {
+            xw.writeAttribute(subtypedValues ? "AllowSubTypes" : "IsOptional", "true");
         }
         if (defItem.maxStringLength !== undefined && defItem.maxStringLength !== 0) {
             xw.writeAttribute("MaxStringLength", defItem.maxStringLength);
@@ -1329,17 +1335,6 @@ export function makeTypeXsd(namespaceUri: string): string {
 }
 
 NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
-    // Namespace 0 cannot be written by this exporter, and the reason is structural rather than an
-    // omission: every id is translated through a table that reserves index 0 for the UA namespace
-    // as a *dependency* and gives the exported namespace 1 and up. When the exported namespace is
-    // the UA namespace itself, that table maps its nodes to ns=1 while <NamespaceUris> declares
-    // nothing at index 1, and the document produced does not load. Refused here rather than
-    // emitted, so that a caller gets a reason instead of a file that fails somewhere else later
-    if (this.index === 0) {
-        throw new Error(
-            "toNodeset2XML: the UA namespace itself cannot be exported: its ids have no place in the namespace table an export builds"
-        );
-    }
     const namespaceArrayNode = this.addressSpace.findNode(VariableIds.Server_NamespaceArray);
     const namespaceArray: string[] = namespaceArrayNode
         ? namespaceArrayNode.readAttribute(null, AttributeIds.Value).value.value
