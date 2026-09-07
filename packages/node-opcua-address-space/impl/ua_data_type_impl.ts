@@ -52,6 +52,8 @@ export interface EnumerationInfo {
 export interface UADataTypeOptions extends InternalBaseNodeOptions {
     partialDefinition: StructureFieldOptions[] | EnumFieldOptions[];
     isUnion?: boolean;
+    /** the DataType is a bit mask, not an enumeration; see UADataTypeImpl.isOptionSet */
+    isOptionSet?: boolean;
     isAbstract?: boolean;
     symbolicName?: string;
 }
@@ -94,11 +96,26 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     private $partialDefinition?: StructureFieldOptionsEx[] | EnumFieldOptions[];
     private $fullDefinition?: StructureDefinition | EnumDefinition;
 
+    /**
+     * whether the nodeset declared this DataType with `IsOptionSet="true"`: a bit mask whose fields
+     * are bit positions rather than an enumeration whose fields are values. node-opcua builds no
+     * enumeration and no structure for one -- it is a plain UInt16 or UInt32 subtype -- so without
+     * this flag and the fields kept in $partialDefinition, an OptionSet that goes into the address
+     * space cannot come out again as the DataType the document declared.
+     */
+    public isOptionSetDataType = false;
+
+    /** the fields of the <Definition> as declared, for a DataType the address space models no further */
+    public get declaredDefinitionFields(): StructureFieldOptionsEx[] | EnumFieldOptions[] | undefined {
+        return this.$partialDefinition;
+    }
+
     constructor(options: UADataTypeOptions) {
         super(options);
         if (options.partialDefinition) {
             this.$partialDefinition = options.partialDefinition;
         }
+        this.isOptionSetDataType = !!options.isOptionSet;
         this.isAbstract = options.isAbstract === undefined || options.isAbstract === null ? false : options.isAbstract;
         this.symbolicName = options.symbolicName || this.browseName.name || "";
     }
@@ -261,7 +278,12 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     }
     getStructureDefinition(): StructureDefinition {
         const definition = this._getDefinition();
-        assert(definition instanceof StructureDefinition);
+        // named: a bare assert here threw an Error with an empty message, which told a caller
+        // nothing at all about which DataType had refused and what it had instead
+        assert(
+            definition instanceof StructureDefinition,
+            `${this.browseName.toString()} (${this.nodeId.toString()}) has no StructureDefinition: ${definition ? definition.constructor.name : "none"}`
+        );
         return definition as StructureDefinition;
     }
 
@@ -271,7 +293,10 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     }
     getEnumDefinition(): EnumDefinition {
         const definition = this._getDefinition();
-        assert(definition instanceof EnumDefinition);
+        assert(
+            definition instanceof EnumDefinition,
+            `${this.browseName.toString()} (${this.nodeId.toString()}) has no EnumDefinition: ${definition ? definition.constructor.name : "none"}`
+        );
         return definition as EnumDefinition;
     }
 

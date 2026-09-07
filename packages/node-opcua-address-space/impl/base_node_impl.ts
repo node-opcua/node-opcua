@@ -176,6 +176,10 @@ export interface InternalBaseNodeOptions {
      */
     accessRestrictions?: AccessRestrictionsFlag;
     rolePermissions?: RolePermissionTypeOptions[];
+    /** "Draft" or "Deprecated" as the nodeset declared it; see BaseNode.releaseStatus */
+    releaseStatus?: "Draft" | "Deprecated";
+    /** the AccessRestrictions as declared, whatever this loader applies; see BaseNode */
+    declaredAccessRestrictions?: string;
 }
 
 function _is_valid_BrowseDirection(browseDirection: BrowseDirection) {
@@ -216,6 +220,11 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         return makeAttributeEventName(attributeId);
     }
 
+    /** see BaseNode.releaseStatus; only set when the nodeset declared one, so that it costs
+     * nothing on the overwhelming majority of nodes, which are Released */
+    public releaseStatus?: "Draft" | "Deprecated";
+    /** see BaseNode.declaredAccessRestrictions */
+    public declaredAccessRestrictions?: string;
     private _accessRestrictions?: AccessRestrictionsFlag;
     private _rolePermissions?: RolePermissionType[];
 
@@ -431,6 +440,12 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
 
         this._accessRestrictions = options.accessRestrictions;
         this._rolePermissions = coerceRolePermissions(options.rolePermissions);
+        if (options.releaseStatus) {
+            this.releaseStatus = options.releaseStatus;
+        }
+        if (options.declaredAccessRestrictions !== undefined) {
+            this.declaredAccessRestrictions = options.declaredAccessRestrictions;
+        }
 
         // make `parent.<thisName>` resolve to this node: through a getter shared by every node when
         // a nodeset is loading (defined in one batch by the loader, see flushSharedChildAccessors),

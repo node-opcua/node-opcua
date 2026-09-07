@@ -157,6 +157,7 @@ export * from "./interfaces/ua_subscription_diagnostics_variable_ex.js";
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "./loader/ensure_datatype_extracted.js";
 export * from "./loader/generateAddressSpaceRaw.js";
 export {
+    type ImageDeflater,
     imageLinesToRecords,
     imageNodesetRecords,
     inflatedImageLines,
@@ -169,6 +170,7 @@ export {
     nodesetImageProblem,
     type ReadNodesetImageOptions,
     readNodesetImageInfo,
+    setImageDeflater,
     setImageInflater
 } from "./loader/nodeset_image.js";
 export { decodeValue, encodeValue, type JsonNodeId, type JsonQualifiedName, type JsonValue } from "./loader/nodeset_image_codec.js";

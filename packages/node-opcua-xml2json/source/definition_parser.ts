@@ -14,9 +14,6 @@ import type { IReaderState, ReaderStateParserLike, Xml2Json, XmlAttributes } fro
 //
 // Or
 //
-//  (IsOptionSet)
-//
-//
 type UAString = string | null;
 type NodeIdLike = string | null;
 type Int32 = number;
@@ -49,9 +46,13 @@ interface AA extends ReaderStateParserLike {
         definitionFields: StructureFieldOptions[];
         nFields: number;
         definitionName: string;
+        /** the <Definition> flags, put on the parent so that whoever owns the node can read them */
+        definitionIsUnion?: boolean;
+        definitionIsOptionSet?: boolean;
     };
     array: StructureFieldOptions[];
     isUnion: boolean;
+    isOptionSet: boolean;
 }
 interface FieldParser {
     description?: LocalizedTextLike | null;
@@ -69,6 +70,12 @@ export const _definitionParser: ReaderStateParserLike = {
         this.parent.definitionName = attrs.SymbolicName || attrs.Name;
         this.array = this.parent.definitionFields;
         this.isUnion = attrs.IsUnion === "true";
+        // IsOptionSet says the DataType is a bit mask whose fields are bit positions rather than
+        // an enumeration whose fields are values. Dropping it turned every OptionSet into an
+        // ordinary enumeration, and the node that came back could not be told from one
+        this.isOptionSet = attrs.IsOptionSet === "true";
+        this.parent.definitionIsUnion = this.isUnion;
+        this.parent.definitionIsOptionSet = this.isOptionSet;
     },
     parser: {
         Field: {

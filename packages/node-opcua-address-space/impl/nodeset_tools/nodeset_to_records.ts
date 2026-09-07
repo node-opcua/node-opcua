@@ -75,7 +75,6 @@ import {
 } from "./construct_namespace_dependency.js";
 import {
     _dumpVariantExtensionObjectValue_Body,
-    _isDefaultValue,
     coerceInt64ToInt32,
     initXmlWriterEx,
     makeTypeXsd,
@@ -362,6 +361,9 @@ class RecordExporter {
             browseName: this.tq(node.browseName),
             references: this.referencesOf(node)
         };
+        if (node.releaseStatus) {
+            record.releaseStatus = node.releaseStatus;
+        }
         const parentNode = this.parentOf(node);
         if (parentNode && parentNode.nodeId.namespace <= node.nodeId.namespace) {
             record.parentNodeId = this.t(parentNode.nodeId);
@@ -380,7 +382,10 @@ class RecordExporter {
                 record.userAccessLevel = variable.userAccessLevel.toString();
             }
         }
-        if (node.accessRestrictions !== undefined) record.accessRestrictions = node.accessRestrictions.toString();
+        // the declared spelling first: the loader's accessRestrictions option governs what is
+        // enforced, not what the document said, and only the latter belongs in an export
+        const accessRestrictions = node.declaredAccessRestrictions ?? node.accessRestrictions?.toString();
+        if (accessRestrictions !== undefined) record.accessRestrictions = accessRestrictions;
         if (node.rolePermissions !== undefined && node.rolePermissions.length === 0) record.hasNoPermissions = true;
         if (Object.hasOwn(node, "minimumSamplingInterval")) {
             const minimumSamplingInterval = (node as UAVariable).minimumSamplingInterval;
@@ -517,6 +522,21 @@ class RecordExporter {
     /** the fields as the XML loader's definition parser shapes them: an absent rank is -1, an absent type BaseDataType */
     private definitionOf(node: UADataType): NodesetDataTypeDefinitionRecord | undefined {
         const baseDataType = this.t(resolveNodeId(DataTypeIds.BaseDataType));
+        // an OptionSet is neither an enumeration nor a structure to node-opcua -- it is a plain
+        // UInt16 or UInt32 subtype -- so the only account of it is the one the loader kept
+        const asImpl = node as unknown as {
+            isOptionSetDataType?: boolean;
+            declaredDefinitionFields?: NodesetDefinitionField[];
+        };
+        if (asImpl.isOptionSetDataType && asImpl.declaredDefinitionFields) {
+            const fields = asImpl.declaredDefinitionFields.map((f) => {
+                const field: NodesetDefinitionField = { ...f, allowSubTypes: f.allowSubTypes ?? false };
+                field.valueRank = f.valueRank ?? -1;
+                field.dataType = f.dataType ? this.t(f.dataType as unknown as NodeId) : baseDataType;
+                return field;
+            });
+            return { name: this.b(node.browseName), isOptionSet: true, fields };
+        }
         if (node.isEnumeration()) {
             const enumDefinition = node.getEnumDefinition();
             const fields: NodesetDefinitionField[] = (enumDefinition.fields || []).map((f) => {
@@ -531,7 +551,10 @@ class RecordExporter {
         }
         if (node.isStructure()) {
             const definition = node.getStructureDefinition();
-            const base = node.subtypeOfObj ? (node.subtypeOfObj as UADataType).getStructureDefinition() : null;
+            // a structure's supertype need not be a structure: `Structure` itself subtypes BaseDataType,
+            // which has no definition at all. Asking it for one threw, and took the whole export with it
+            const baseNode = node.subtypeOfObj as UADataType | null;
+            const base = baseNode?.isStructure() ? baseNode.getStructureDefinition() : null;
             const nbFieldsInBase = base ? base.fields?.length || 0 : 0;
             const fields: NodesetDefinitionField[] = [];
             const all = definition.fields || [];
@@ -565,7 +588,10 @@ class RecordExporter {
         this.arrayDimensionsOf(node, record);
         if (this.addressSpace.findNode(node.dataType)) record.dataType = this.t(node.dataType);
         const dataValue = (node as UAVariableImpl).$dataValue;
-        if (dataValue?.value && !dataValue.statusCode.equals(StatusCodes.BadWaitingForInitialData)) {
+        // a value the loader made up for a variable the document left unvalued is not the document's
+        // to write back; see valueWasSynthesized in nodeset_record_applier
+        const synthesized = (node as unknown as { valueWasSynthesized?: boolean }).valueWasSynthesized;
+        if (dataValue?.value && !synthesized && !dataValue.statusCode.equals(StatusCodes.BadWaitingForInitialData)) {
             const value = this.valueOf(node, dataValue.value);
             if (value) record.value = value;
         }
@@ -590,8 +616,14 @@ class RecordExporter {
     }
 
     private arrayDimensionsOf(node: UAVariable | UAVariableType, record: NodesetNodeRecord): void {
-        if (!node.arrayDimensions) return;
-        if (node.valueRank === -1 || (node.arrayDimensions.length === 1 && node.arrayDimensions[0] === 0)) return;
+    // ArrayDimensions="0" is written only when the document declared it: node-opcua synthesizes [0]
+        // on the variables it generates, so writing it unconditionally would invent the attribute on
+        // every generated node. See arrayDimensionsWereDeclared in nodeset_record_applier
+        if (!node.arrayDimensions || node.valueRank <= 0) return;
+        // all-zero dimensions are what node-opcua synthesizes when nobody declared any, at whatever
+        // rank: [0] for a one-dimensional value, [0,0] for a matrix
+        const degenerate = node.arrayDimensions.every((d) => d === 0);
+        if (degenerate && !(node as unknown as { arrayDimensionsWereDeclared?: boolean }).arrayDimensionsWereDeclared) return;
         record.arrayDimensions = node.arrayDimensions;
     }
 
@@ -605,7 +637,9 @@ class RecordExporter {
         this.markVisited(node);
         this.dumpReferencedNodes(node);
         const record = this.common(node);
-        if (node.eventNotifier) record.eventNotifier = node.eventNotifier;
+        // typeof, not truthiness: a node with a child called "EventNotifier" resolves the name to that
+        // child through the shared child accessors, so this is a BaseNode there, not the attribute
+        if (typeof node.eventNotifier === "number" && node.eventNotifier !== 0) record.eventNotifier = node.eventNotifier;
         this.records.push(record);
         this.dumpAggregates(node);
     }
@@ -615,8 +649,10 @@ class RecordExporter {
         this.markVisited(node);
         this.dumpReferencedNodes(node);
         const record = this.common(node);
-        const eventNotifier = (node as unknown as { eventNotifier?: number }).eventNotifier;
-        if (eventNotifier) record.eventNotifier = eventNotifier;
+        // typeof, not truthiness: a node with a child called "EventNotifier" resolves the name to that
+        // child through the shared child accessors, so this is a BaseNode there, not the attribute
+        const eventNotifier = (node as unknown as { eventNotifier?: unknown }).eventNotifier;
+        if (typeof eventNotifier === "number" && eventNotifier !== 0) record.eventNotifier = eventNotifier;
         this.records.push(record);
         this.dumpAggregates(node);
         this.section(`ObjectType - ${this.b(node.browseName)} }}}}`);
@@ -634,9 +670,9 @@ class RecordExporter {
     private dumpView(node: BaseNode): void {
         this.markVisited(node);
         const record = this.common(node);
-        const view = node as unknown as { containsNoLoops?: boolean; eventNotifier?: number };
+        const view = node as unknown as { containsNoLoops?: boolean; eventNotifier?: unknown };
         if (view.containsNoLoops) record.containsNoLoops = true;
-        if (view.eventNotifier) record.eventNotifier = view.eventNotifier;
+        if (typeof view.eventNotifier === "number" && view.eventNotifier !== 0) record.eventNotifier = view.eventNotifier;
         this.records.push(record);
         this.dumpAggregates(node);
     }
@@ -675,8 +711,12 @@ class RecordExporter {
     private valueOf(node: UAVariable | UAVariableType, variant: Variant): VariantOptions | undefined {
         if (!(variant instanceof Variant)) return undefined;
         if (variant.dataType === DataType.Null) return undefined;
+        // a null value is nothing to write down, whatever its declared data type
+        if (variant.value === null || variant.value === undefined) return undefined;
         if (!this.addressSpace.findDataType(node.dataType)) return undefined;
-        if (_isDefaultValue(variant)) return undefined;
+        // no _isDefaultValue test here: it dropped every zero and every empty string, which threw
+        // away the ones the document actually declared in order to suppress the ones the loader
+        // made up. valueWasSynthesized now separates the two, so a declared "" survives the trip
         const element = (v: unknown) => this.elementOf(node, variant.dataType, v);
         const out: VariantOptions = { dataType: variant.dataType, arrayType: variant.arrayType };
         if (variant.arrayType === VariantArrayType.Scalar) {

@@ -1,142 +1,152 @@
 {
   "di": {
     "uri": "http://opcfoundation.org/UA/DI/",
-    "length": 298109,
-    "sha1": "dcd248953fcd8e10f727e93995216187cce67558"
+    "length": 299604,
+    "sha1": "38772a7a9d56c702fadae32f449d342ad3ea0a60"
   },
   "adi": {
     "uri": "http://opcfoundation.org/UA/ADI/",
-    "length": 416476,
-    "sha1": "fb12fcb186dd7c43f1fbb6da6dec97ecd713c47d"
+    "length": 414162,
+    "sha1": "03b8781bdd5571b907bb46c9a68c45510851a343"
   },
   "autoId": {
     "uri": "http://opcfoundation.org/UA/AutoID/",
-    "length": 304134,
-    "sha1": "a938bc75ef5d802d504af91462fade890be5be24"
+    "length": 303923,
+    "sha1": "f06307782ff77f5a351c32adea3b90a5cae0a802"
   },
   "machineVision": {
     "uri": "http://opcfoundation.org/UA/MachineVision",
-    "length": 832390,
-    "sha1": "92674e31feefe34e0019e9270b77fd0fc92bde85"
+    "length": 826473,
+    "sha1": "323a9b528053338f083051de0e4234c851321d3e"
   },
   "commercialKitchenEquipment": {
     "uri": "http://opcfoundation.org/UA/CommercialKitchenEquipment/",
-    "length": 583372,
-    "sha1": "713a21e73d2a3be853a66aa03704f55d2d44cc0c"
+    "length": 580425,
+    "sha1": "3739e7c5e8f59c11f5d60001a580362b6ec6470e"
   },
   "amb": {
     "uri": "http://opcfoundation.org/UA/AMB/",
-    "length": 72571,
-    "sha1": "e20a6a0d3e994259c0b491db61eca7a43d7eb43e"
+    "length": 72553,
+    "sha1": "c7e1fa5d12f3114811b883ff0e991e70a59876d8"
   },
   "gds": {
     "uri": "http://opcfoundation.org/UA/GDS/",
-    "length": 429597,
-    "sha1": "4150be2ce56a85cc9ce284c214c331bbacd2dc80"
+    "length": 431249,
+    "sha1": "97e0b19ea1603137eae1103388f183ab80e6f111"
   },
   "robotics": {
     "uri": "http://opcfoundation.org/UA/Robotics/",
-    "length": 396210,
-    "sha1": "b758e49f5c3da6794e0b2c3062f4fd5b4872a511"
+    "length": 391503,
+    "sha1": "52823385ac2278cd7c0ac490fcd3253f819437c0"
   },
   "isa95JobControl": {
     "uri": "http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/",
-    "length": 239065,
-    "sha1": "4898356a15bb6ba231ebda5d33e30c8909573230"
+    "length": 238822,
+    "sha1": "44d46ec6d4e3cb43817113e0c2b3e1797f297d88"
   },
   "machineryJobs": {
     "uri": "http://opcfoundation.org/UA/Machinery/Jobs/",
-    "length": 62425,
-    "sha1": "c55b0042887c9d919abb40edcd31b7e5057fc530"
+    "length": 63185,
+    "sha1": "a3698688d24464c522fd90474e07cec1511b4272"
+  },
+  "machineryResult": {
+    "uri": "http://opcfoundation.org/UA/Machinery/Result/",
+    "length": 136932,
+    "sha1": "b672cba961d4bbe194816d91e95e21c1f5022c20"
   },
   "machinery": {
     "uri": "http://opcfoundation.org/UA/Machinery/",
-    "length": 111707,
-    "sha1": "3bd3c798e69167f4c89ceca9547798d2932a4e2e"
+    "length": 112259,
+    "sha1": "5f4f749a2b3db5b57fcda95e539a04fbbbea1bd4"
   },
   "ia": {
     "uri": "http://opcfoundation.org/UA/IA/",
-    "length": 99497,
-    "sha1": "9532617a4cb3766f54717e6fdc51c9b263943532"
+    "length": 99538,
+    "sha1": "2e3e8ad6b809f44c55b83f0dd43456074d8417d8"
   },
   "machineTool": {
     "uri": "http://opcfoundation.org/UA/MachineTool/",
-    "length": 390364,
-    "sha1": "d0e798d004621cc1a75243f81555de6e48c2d597"
+    "length": 387172,
+    "sha1": "3100f601364d4a4341f78b3bc1eed71a0904ccc1"
   },
   "cnc": {
     "uri": "http://opcfoundation.org/UA/CNC",
-    "length": 687800,
-    "sha1": "9e6c20bdb868561eeb58302004100935641cce9e"
+    "length": 722519,
+    "sha1": "760a2b771608dd34548e5820693aac5305201824"
   },
   "woodWorking": {
     "uri": "http://opcfoundation.org/UA/Woodworking/",
-    "length": 951846,
-    "sha1": "edfd84b178b049a1e89ece1768bad801f171ee64"
+    "length": 938101,
+    "sha1": "547d2769544f5935b8a1ae815813aa278279e7b1"
   },
   "glass": {
     "uri": "http://opcfoundation.org/UA/Glass/Flat/",
-    "length": 247147,
-    "sha1": "c7fd09bd311ed12541a6f045fc168df6b251be92"
+    "length": 247271,
+    "sha1": "3a693ab215fc85aad08788912312475b1f4ac9f4"
+  },
+  "ijtBase": {
+    "uri": "http://opcfoundation.org/UA/IJT/Base/",
+    "length": 974555,
+    "sha1": "f86a3c30fe13a3f85696df368977c13f50769e0e"
   },
   "tightening": {
     "uri": "http://opcfoundation.org/UA/IJT/Tightening/",
-    "length": 37305,
-    "sha1": "273da2b64af3607bb1bfaa8202b4f11ccd8238ca"
+    "length": 38809,
+    "sha1": "2da2222831921337a79aec878326175562df9fdc"
   },
   "lads": {
     "uri": "http://opcfoundation.org/UA/LADS/",
-    "length": 427931,
-    "sha1": "c6325320983ff046edf4ddd6d591bbdded6009f8"
+    "length": 423491,
+    "sha1": "11916e7946726b098708455ef3f544fcd79cbde8"
   },
   "packML": {
     "uri": "http://opcfoundation.org/UA/PackML/",
-    "length": 150904,
-    "sha1": "eedb277b790b1686fd53a150e9cc84374e18c8f8"
+    "length": 150040,
+    "sha1": "860ea4e1db16ab2d6cbd8c44d83bc4db1d778a41"
   },
   "iolink": {
     "uri": "http://opcfoundation.org/UA/IOLink/",
-    "length": 206071,
-    "sha1": "2f916256bde51f7b605f26fca6499a5c04a411f5"
+    "length": 206350,
+    "sha1": "96e5d562d620ecbaee2d9b6e8a1b97cbf5a576f2"
   },
   "iolinkIODD": {
     "uri": "http://opcfoundation.org/UA/IOLink/IODD/",
-    "length": 5758,
-    "sha1": "14f545ea70c9afa475bd852709e54112fb52fa4d"
+    "length": 5855,
+    "sha1": "9a7932fa529edcc82cee887073456a7d25c89d1d"
   },
   "irdi": {
     "uri": "http://opcfoundation.org/UA/Dictionary/IRDI",
-    "length": 149973,
-    "sha1": "312de7b80b9583d1a667f06c3a44ccc0fcd36260"
+    "length": 150054,
+    "sha1": "c75e785dc79e1a7cb7bafc9652941bf7b8d503cb"
   },
   "padim": {
     "uri": "http://opcfoundation.org/UA/PADIM/",
-    "length": 657012,
-    "sha1": "c052a8a158ff37cef5a3398de7d6a3ed3ff67890"
+    "length": 675745,
+    "sha1": "1ec200ed5b7fffcba3b1ae994552b5cc4ef5b311"
   },
   "machineryProcessValues": {
     "uri": "http://opcfoundation.org/UA/Machinery/ProcessValues/",
-    "length": 90751,
-    "sha1": "c81642d4a65caaa5d115f791e7fcf3c855bc7d4e"
+    "length": 87730,
+    "sha1": "ae6bd778c3a08b870e3e472afb146272fb90a856"
   },
   "metalForming": {
     "uri": "http://opcfoundation.org/UA/MetalForming/",
-    "length": 80716,
-    "sha1": "8e94a6dc46694c7c4d5bb808f70f20c1d4dbf70b"
+    "length": 80787,
+    "sha1": "6994ee8cc2b8a3c6c66ffc4f8d12b02c70d5e132"
   },
   "scales": {
     "uri": "http://opcfoundation.org/UA/Scales/V2/",
-    "length": 830525,
-    "sha1": "f83a77aa936951e508292e7631b24f98447d4637"
+    "length": 815179,
+    "sha1": "da9c0a4273dc297086cef90e8517d9a74a2762c3"
   },
   "i4aas": {
     "uri": "http://opcfoundation.org/UA/I4AAS/",
-    "length": 290237,
-    "sha1": "58bdd5f7cc0bc73e82b16c8875045c4618da9d44"
+    "length": 293894,
+    "sha1": "b5adfac57b4dbedb0c17d9dae583d0c821ea1f08"
   },
   "weihenstephan": {
     "uri": "http://opcfoundation.org/UA/Weihenstephan/",
-    "length": 46631,
-    "sha1": "bd6cab48a98004545b7ea8a5a8376bcf6d2fba70"
+    "length": 46827,
+    "sha1": "ab7f981b5306c4584e3f25dece2dc1cb9589e054"
   }
 }
