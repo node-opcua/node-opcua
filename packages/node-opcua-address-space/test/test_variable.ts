@@ -1211,8 +1211,9 @@ describe("testing UAVariable ", () => {
         if (dataValue.value) {
             should(dataValue.value.dataType).eql(DataType.Null);
         }
-        should(dataValue.serverTimestamp).eql(null);
-        should(dataValue.sourceTimestamp).eql(null);
+        // a Bad result made up at read time carries the requested timestamps (FEAT-34)
+        should(dataValue.serverTimestamp).be.instanceOf(Date);
+        should(dataValue.sourceTimestamp).be.instanceOf(Date);
     });
 
     it("UAVariable#readValueAsync should return an error if value is not readable", async () => {
@@ -1226,8 +1227,9 @@ describe("testing UAVariable ", () => {
         if (dataValue.value) {
             should(dataValue.value.dataType).eql(DataType.Null);
         }
-        should(dataValue.serverTimestamp).eql(null);
-        should(dataValue.sourceTimestamp).eql(null);
+        // a Bad result made up at read time carries the requested timestamps (FEAT-34)
+        should(dataValue.serverTimestamp).be.instanceOf(Date);
+        should(dataValue.sourceTimestamp).be.instanceOf(Date);
     });
 
     it("UAVariable#readValueAsync should cope with faulty refreshFunc -- calling callback with an error", async () => {

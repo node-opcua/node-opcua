@@ -283,8 +283,19 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
 
         this.historizing = !!options.historizing; // coerced to boolean"
 
-        // a Variant built from null takes the constructor's short path; the options form costs twice as much
-        this.$dataValue = new DataValue({ statusCode: StatusCodes.UncertainInitialValue, value: new Variant(null) });
+        // a Variant built from null takes the constructor's short path; the options form costs twice as much.
+        // Stamped with the clock of the construction: a variable nobody gives a value to (a nodeset
+        // Variable of an abstract data type has no default to make up) is read as it is, and the
+        // requested timestamps are expected on that Uncertain result too (FEAT-34)
+        const now = getCurrentClock();
+        this.$dataValue = new DataValue({
+            statusCode: StatusCodes.UncertainInitialValue,
+            value: new Variant(null),
+            sourceTimestamp: now.timestamp,
+            sourcePicoseconds: now.picoseconds,
+            serverTimestamp: now.timestamp,
+            serverPicoseconds: now.picoseconds
+        });
 
         if (options.value) {
             this.bindVariable(options.value);
@@ -405,23 +416,27 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             context = SessionContext.defaultContext;
         }
 
+        // A Bad result the variable makes up here carries the requested timestamps: a
+        // DataValue may carry them whatever its status, and the CTT expects them on every
+        // result of a Read with TimestampsToReturn Source or Both (Attribute Read 037 for
+        // the encoding, Base Info Core Structure 2 001 for the arguments of a method the
+        // nodeset reserves to a role nobody holds, FEAT-34). The clock of the denial is
+        // the honest source timestamp: the value behind it stays undisclosed.
         if (context.isAccessRestricted(this)) {
-            return new DataValue({ statusCode: StatusCodes.BadSecurityModeInsufficient });
+            return makeNowDataValue({ statusCode: StatusCodes.BadSecurityModeInsufficient });
         }
 
         if (!this.isReadable(context)) {
-            return new DataValue({ statusCode: StatusCodes.BadNotReadable });
+            return makeNowDataValue({ statusCode: StatusCodes.BadNotReadable });
         }
         if (!this.checkPermissionPrivate(context, PermissionType.Read)) {
-            return new DataValue({ statusCode: StatusCodes.BadUserAccessDenied });
+            return makeNowDataValue({ statusCode: StatusCodes.BadUserAccessDenied });
         }
         if (!this.isUserReadable(context)) {
-            return new DataValue({ statusCode: StatusCodes.BadNotReadable });
+            return makeNowDataValue({ statusCode: StatusCodes.BadNotReadable });
         }
         if (!isValidDataEncoding(dataEncoding)) {
-            // Table 51: no encoding can be applied to a non-Structure value. The CTT
-            // (Attribute Read 037) still expects the requested timestamps on this Bad
-            // result, and a DataValue may carry them whatever its status.
+            // Table 51: no encoding can be applied to a non-Structure value
             return makeNowDataValue({ statusCode: StatusCodes.BadDataEncodingInvalid });
         }
 
@@ -1307,8 +1322,10 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
 
         let func: (innerCallback: (err: Error | null, dataValue: DataValue) => void) => void;
 
+        // stamped like the same gates of readValue(): the requested timestamps are expected
+        // on a Bad result too (FEAT-34)
         const answerStatusOnly = (statusCode: StatusCode) => (innerCallback: (err: Error | null, dataValue: DataValue) => void) =>
-            innerCallback(null, new DataValue({ statusCode }));
+            innerCallback(null, makeNowDataValue({ statusCode }));
 
         if (context.isAccessRestricted(this)) {
             // same gate as readValue(): a variable bound with a simple get()

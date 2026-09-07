@@ -299,6 +299,19 @@ can be set to `"deny"` by products that drive access entirely from declared poli
 
 ### Fixed
 
+#### A denied Value read carries the requested timestamps
+
+A Read with `TimestampsToReturn` Source or Both of a Value the session may not read - `BadUserAccessDenied`,
+`BadNotReadable`, `BadSecurityModeInsufficient` - came back with no timestamp at all, and so did a Variable
+nobody ever gave a value to (`UncertainInitialValue`: a nodeset Variable of an abstract data type, which has
+no default to make up). The CTT expects the requested timestamps on every result whatever its status, as it
+already got on `BadDataEncodingInvalid` (Attribute Read 037); it reported the arguments of the
+`Server/PublishSubscribe` methods the nodeset reserves to `SecurityKeyServerAdmin` (i=15446, i=25443, CTT
+Base Info Core Structure 2 001, FEAT-34). `readValue` and `readValueAsync` stamp such a result with the clock
+of the denial, and a fresh Variable is stamped with the clock of its construction. The value behind a denial
+stays undisclosed. Every Variable of `Opc.Ua.NodeSet2.xml` read by an anonymous session is now checked for both
+timestamps, Good or Bad.
+
 #### The mandatory methods of `Server/PublishSubscribe/SecurityGroups` are browsable again
 
 `Opc.Ua.NodeSet2.xml` reserves Browse of eleven nodes under `Server/PublishSubscribe` - the methods of
