@@ -20,6 +20,7 @@ const path = require("node:path");
 const { performance } = require("node:perf_hooks");
 const { AddressSpace, generateAddressSpaceRaw, namespaceToImage, preLoad, readNodesetImageInfo } = require("../dist/api/index.js");
 const { addressSpacePackageVersion, digestAddressSpace, nodesetFileToImage, readNodeSet2XmlFile } = require("../distNodeJS/index.js");
+const { asFile, dependencyChain, imageFileOf, kb } = require("./nodeset_tool_common.js");
 
 const usage = () => {
     console.error("usage: opcua-nodeset-image build <file.xml>... [--out <dir>]");
@@ -41,12 +42,6 @@ function parseArgs(argv) {
     }
     return { files, options };
 }
-
-const imageFileOf = (file, outDir) => {
-    const base = path.basename(file).replace(/\.xml$/i, "");
-    return path.join(outDir ?? path.dirname(file), `${base}.ndjson.gz`);
-};
-const kb = (n) => `${(n / 1024).toFixed(0)} KB`;
 
 async function build(files, options) {
     let failed = 0;
@@ -70,39 +65,6 @@ async function build(files, options) {
     return failed > 0 ? 1 : 0;
 }
 
-/** the files a document requires, in load order, from the catalog and the --require files */
-async function dependencyChain(file, requireFiles) {
-    let catalog = [];
-    let nodesets = {};
-    try {
-        ({ nodesetCatalog: catalog, nodesets } = require("node-opcua-nodesets"));
-    } catch {
-        /* the catalog is optional */
-    }
-    const known = new Map(); // model uri -> file
-    for (const meta of catalog) {
-        if (nodesets[meta.name] && fs.existsSync(nodesets[meta.name])) known.set(meta.uri, nodesets[meta.name]);
-    }
-    for (const required of requireFiles) {
-        const [desc] = await preLoad([required], readNodeSet2XmlFile);
-        for (const model of desc.namespaceModel.models) known.set(model.modelUri, required);
-    }
-    const order = [];
-    const visit = async (f) => {
-        const [desc] = await preLoad([f], readNodeSet2XmlFile);
-        for (const model of desc.namespaceModel.models) {
-            for (const required of model.requiredModel) {
-                const dependency = known.get(required.modelUri);
-                if (!dependency) throw new Error(`${path.basename(f)} requires ${required.modelUri}: not in the catalog, pass it with --require`);
-                if (!order.includes(dependency) && dependency !== f) await visit(dependency);
-            }
-        }
-        if (!order.includes(f)) order.push(f);
-    };
-    await visit(file);
-    return order;
-}
-
 async function verify(files, options) {
     let failed = 0;
     for (const file of files) {
@@ -118,7 +80,6 @@ async function verify(files, options) {
                     addressSpace.dispose();
                 }
             };
-            const asFile = (f) => ({ name: f, source: () => [new Uint8Array(fs.readFileSync(f))] });
             const fromXml = await load(chain.map(asFile));
             const fromImage = await load(chain.map((f) => (f === file ? { name: `${f} (image)`, source: image } : asFile(f))));
             const same = fromXml.hash === fromImage.hash && fromXml.nodes === fromImage.nodes && fromXml.references === fromImage.references;
@@ -137,7 +98,6 @@ async function exportNamespace(files, options) {
     const chain = await dependencyChain(last, [...options.require, ...files.slice(0, -1)]);
     const addressSpace = AddressSpace.create();
     try {
-        const asFile = (f) => ({ name: f, source: () => [new Uint8Array(fs.readFileSync(f))] });
         await generateAddressSpaceRaw(addressSpace, chain.map(asFile), {});
         const [desc] = await preLoad([last], readNodeSet2XmlFile);
         const modelUri = desc.namespaceModel.models[0]?.modelUri;
