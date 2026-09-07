@@ -188,6 +188,9 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
     // subscriptions of this session instead of letting whichever one ticks first monopolize the queue
     #serveSequence = 0;
     #lastServedAt = new WeakMap<Subscription, number>();
+    // valid PublishResponses sent so far: feedReadySubscriptions' measure of progress, which the
+    // queue length is not when the client re-sends its next Publish from the response callback
+    #responseCount = 0;
 
     constructor(options?: ServerSidePublishEngineOptions) {
         super();
@@ -479,23 +482,51 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         }
     }
 
-    #_pickMostDeservingReadySubscription(): Subscription | null {
+    /**
+     * A subscription is *ready* when it may publish notifications now. A disabled one never is:
+     * SetPublishingMode(false) makes it hold its notifications back and owe nothing but keep-alives
+     * (Part 4 5.13.4), so its queued samples must neither qualify nor disqualify it here.
+     */
+    static #isReady(subscription: Subscription): boolean {
+        return (
+            subscription.publishingEnabled &&
+            (subscription.hasPendingNotifications || subscription.hasUncollectedMonitoredItemNotifications)
+        );
+    }
+
+    /**
+     * A subscription with nothing to publish whose keep-alive deadline has passed: its own tick
+     * found no PublishRequest when the keep-alive fell due (server_subscription.ts
+     * #_process_keepAlive). It goes first whatever its priority: a keep-alive is one small message
+     * per maxKeepAliveCount cycles, while a missed one has the client give the subscription up
+     * (FEAT-35: the CTT's Publish timed out on a disabled subscription beside a busy sibling).
+     */
+    static #owesKeepAlive(subscription: Subscription): boolean {
+        return !ServerSidePublishEngine.#isReady(subscription) && subscription.keepAliveCounterHasExpired;
+    }
+
+    #_pickMostDeservingSubscription(exhausted: Set<Subscription>): Subscription | null {
         let best: Subscription | null = null;
+        let bestOwesKeepAlive = false;
         let bestLastServed = Number.POSITIVE_INFINITY;
         for (const subscription of this.subscriptions) {
-            if (!subscription.publishingEnabled) {
+            if (exhausted.has(subscription)) {
                 continue;
             }
-            if (!subscription.hasPendingNotifications && !subscription.hasUncollectedMonitoredItemNotifications) {
+            const owesKeepAlive = ServerSidePublishEngine.#owesKeepAlive(subscription);
+            if (!owesKeepAlive && !ServerSidePublishEngine.#isReady(subscription)) {
                 continue;
             }
             const lastServed = this.#lastServedAt.get(subscription) ?? -1;
-            if (
+            const deservesMore =
                 !best ||
-                subscription.priority > best.priority ||
-                (subscription.priority === best.priority && lastServed < bestLastServed)
-            ) {
+                (owesKeepAlive && !bestOwesKeepAlive) ||
+                (owesKeepAlive === bestOwesKeepAlive &&
+                    (subscription.priority > best.priority ||
+                        (subscription.priority === best.priority && lastServed < bestLastServed)));
+            if (deservesMore) {
                 best = subscription;
+                bestOwesKeepAlive = owesKeepAlive;
                 bestLastServed = lastServed;
             }
         }
@@ -503,23 +534,31 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
     }
 
     /**
-     * Feed every queued PublishRequest to the most deserving ready subscription of this session
-     * (highest priority, then whoever has waited longest since its last turn), instead of letting
-     * a subscription serve itself from server_subscription.ts#_tick just because its own timer
-     * happened to fire first. See FEAT-24.
+     * Feed the queued PublishRequests to the most deserving subscriptions of this session -
+     * overdue keep-alives first, then the ready ones by priority, then whoever has waited longest
+     * since its last turn - instead of letting a subscription serve itself from
+     * server_subscription.ts#_tick just because its own timer happened to fire first (FEAT-24).
+     *
+     * One pass serves at most the requests queued when it starts: a client that re-sends its next
+     * Publish synchronously from the response callback must not keep this loop spinning. A
+     * subscription that cannot use a request right now (still inside its first publishing cycle,
+     * say) is set aside so the others still get their turn (FEAT-35).
      */
     public feedReadySubscriptions(): void {
-        while (this.pendingPublishRequestCount > 0) {
-            const subscription = this.#_pickMostDeservingReadySubscription();
+        let budget = this.pendingPublishRequestCount;
+        const exhausted = new Set<Subscription>();
+        while (budget > 0 && this.pendingPublishRequestCount > 0) {
+            const subscription = this.#_pickMostDeservingSubscription(exhausted);
             if (!subscription) {
                 break;
             }
-            const countBefore = this.pendingPublishRequestCount;
+            const responsesBefore = this.#responseCount;
             subscription.process_subscription();
-            if (this.pendingPublishRequestCount >= countBefore) {
-                // no progress: avoid spinning forever on a subscription that cannot actually consume a slot
-                break;
+            if (this.#responseCount === responsesBefore) {
+                exhausted.add(subscription);
+                continue;
             }
+            budget -= 1;
             this.#lastServedAt.set(subscription, ++this.#serveSequence);
         }
     }
@@ -680,8 +719,9 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             traceLog("send_keep_alive_response  => invalid subscriptionId = ", subscriptionId);
             return false;
         }
-        // let check if we have available PublishRequest to send the keep alive
-        if (this.pendingPublishRequestCount === 0 || subscription.hasPendingNotifications) {
+        // let check if we have available PublishRequest to send the keep alive; a disabled
+        // subscription holds its pending notifications back, so they never stand in the way of its keep-alive
+        if (this.pendingPublishRequestCount === 0 || (subscription.publishingEnabled && subscription.hasPendingNotifications)) {
             // we cannot send the keep alive PublishResponse
             traceLog(
                 "send_keep_alive_response  => cannot send keep-alive  (no PublishRequest left) subscriptionId = ",
@@ -752,6 +792,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         _assertValidPublishData(publishData);
         // xx assert(response.responseHeader.requestHandle !== 0,"expecting a valid requestHandle");
         response.results = publishData.results;
+        this.#responseCount += 1;
         this._send_response_for_request(publishData, response);
     }
 }
