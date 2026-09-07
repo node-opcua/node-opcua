@@ -148,8 +148,15 @@ export interface IServerCapabilities {
     /**
      *
      * ConformanceUnits is a QualifiedName array specifying the set of conformance units
-     * the Server supports. This list should be limited to the ConformanceUnits the Server
-     * supports in its current configuration.
+     * the Server supports (Part 5, Server/ServerCapabilities/ConformanceUnits, i=24101,
+     * new in OPC UA 1.05). Part 7 1.05 wants this list limited to the ConformanceUnits
+     * the Server supports in its current configuration, e.g.
+     * `[new QualifiedName({ name: "Base Info Core Structure 2" })]`.
+     *
+     * The variable reads the list live: assigning or pushing to
+     * `server.engine.serverCapabilities.conformanceUnits` after the server has started
+     * is reflected in the next Read. It is read-only for clients. Default: empty, which is
+     * served as a typed empty QualifiedName array (not a Null variant).
      *
      */
     conformanceUnits: QualifiedName[];
@@ -287,6 +294,7 @@ export class ServerCapabilities implements IServerCapabilities {
         this.maxWhereClauseParameters = options.maxWhereClauseParameters || defaultServerCapabilities.maxWhereClauseParameters;
         this.maxMonitoredItemsQueueSize =
             options.maxMonitoredItemsQueueSize || defaultServerCapabilities.maxMonitoredItemsQueueSize;
-        this.conformanceUnits = options.conformanceUnits || defaultServerCapabilities.conformanceUnits;
+        // a copy: the default is a shared array and the list is meant to be edited after start
+        this.conformanceUnits = [...(options.conformanceUnits || defaultServerCapabilities.conformanceUnits)];
     }
 }

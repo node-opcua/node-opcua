@@ -2305,3 +2305,110 @@ describe("US-033: ServerEngine.setInApplicationSetup / getInApplicationSetup", (
         engine.getInApplicationSetup().should.eql(false);
     });
 });
+
+describe("FEAT-29: ServerEngine ServerCapabilities.ConformanceUnits (i=24101)", () => {
+    const conformanceUnitsId = makeNodeId(VariableIds.Server_ServerCapabilities_ConformanceUnits); // ns=0;i=24101
+
+    async function readConformanceUnits(engine: ServerEngine): Promise<DataValue> {
+        const dataValues = await engine.read(
+            context,
+            new ReadRequest({ nodesToRead: [{ nodeId: conformanceUnitsId, attributeId: AttributeIds.Value }] })
+        );
+        return dataValues[0];
+    }
+
+    function unitNames(dataValue: DataValue): string[] {
+        return (dataValue.value.value as QualifiedName[]).map((q) => q.toString());
+    }
+
+    function makeEngine(serverCapabilities?: { conformanceUnits: QualifiedName[] }): Promise<ServerEngine> {
+        const engine = new ServerEngine({
+            applicationUri: "URI:NODEOPCUA-CONFORMANCE-UNITS-TEST",
+            buildInfo: { productName: "CONFORMANCE-UNITS-TEST", productUri: "URI:CONFORMANCE-UNITS-TEST" },
+            serverCapabilities
+        });
+        return new Promise((resolve) => engine.initialize({ nodeset_filename: nodesets.standard }, () => resolve(engine)));
+    }
+
+    describe("default configuration", () => {
+        let engine: ServerEngine;
+        before(async function (this: Mocha.Context) {
+            this.timeout(30000);
+            engine = await makeEngine();
+        });
+        after(async () => {
+            await engine.shutdown();
+        });
+
+        it("should serve an empty, typed QualifiedName array - not a Null variant", async () => {
+            const dataValue = await readConformanceUnits(engine);
+            dataValue.statusCode.should.eql(StatusCodes.Good);
+            dataValue.value.dataType.should.eql(DataType.QualifiedName);
+            dataValue.value.arrayType.should.eql(VariantArrayType.Array);
+            should(dataValue.value.value).eql([]);
+        });
+
+        it("should keep the default list private to the engine", async () => {
+            // the default is a shared array: an engine must not hand out that very instance,
+            // or a push on one server would leak into every other one
+            engine.serverCapabilities.conformanceUnits.push(new QualifiedName({ name: "leak" }));
+            const other = new ServerEngine({ applicationUri: "URI:OTHER" });
+            other.serverCapabilities.conformanceUnits.should.eql([]);
+            await other.shutdown();
+        });
+    });
+
+    describe("configured list", () => {
+        let engine: ServerEngine;
+        before(async function (this: Mocha.Context) {
+            this.timeout(30000);
+            engine = await makeEngine({
+                conformanceUnits: [
+                    new QualifiedName({ name: "Base Info Core Structure 2" }),
+                    new QualifiedName({ name: "Attribute Read" })
+                ]
+            });
+        });
+        after(async () => {
+            await engine.shutdown();
+        });
+
+        it("should serve the configured conformance units as a QualifiedName array", async () => {
+            const dataValue = await readConformanceUnits(engine);
+            dataValue.statusCode.should.eql(StatusCodes.Good);
+            dataValue.value.dataType.should.eql(DataType.QualifiedName);
+            dataValue.value.arrayType.should.eql(VariantArrayType.Array);
+            dataValue.value.value[0].should.be.instanceOf(QualifiedName);
+            unitNames(dataValue).should.eql(["Base Info Core Structure 2", "Attribute Read"]);
+        });
+
+        it("should reflect a list changed after the engine started (Part 7 1.05: only the units supported in the current configuration)", async () => {
+            engine.serverCapabilities.conformanceUnits.push(new QualifiedName({ name: "Attribute Write Values" }));
+            unitNames(await readConformanceUnits(engine)).should.eql([
+                "Base Info Core Structure 2",
+                "Attribute Read",
+                "Attribute Write Values"
+            ]);
+
+            engine.serverCapabilities.conformanceUnits = [new QualifiedName({ name: "Base Info Core Structure" })];
+            unitNames(await readConformanceUnits(engine)).should.eql(["Base Info Core Structure"]);
+        });
+
+        it("should be read-only for clients", async () => {
+            const writeValue = new WriteValue({
+                nodeId: conformanceUnitsId,
+                attributeId: AttributeIds.Value,
+                value: {
+                    value: {
+                        dataType: DataType.QualifiedName,
+                        arrayType: VariantArrayType.Array,
+                        value: [new QualifiedName({ name: "not mine" })]
+                    }
+                }
+            });
+            const statusCode = (await engine.write(context, [writeValue]))[0];
+            statusCode.should.not.eql(StatusCodes.Good);
+            unitNames(await readConformanceUnits(engine)).should.eql(["Base Info Core Structure"]);
+        });
+    });
+});
