@@ -325,7 +325,7 @@ export function t(test: TestHarness) {
                 should(response).be.instanceOf(RegisterServerResponse);
             });
             refused.length.should.eql(0);
-            discovery_server!.registeredServerCount.should.eql(1);
+            should(discovery_server?.registeredServerCount).eql(1);
         });
 
         it("DISCO1-5 should refuse RegisterServer over a MessageSecurityMode.None channel (BadSecurityModeInsufficient)", async () => {
@@ -341,7 +341,7 @@ export function t(test: TestHarness) {
                 { securityMode: MessageSecurityMode.None, securityPolicy: SecurityPolicy.None }
             );
 
-            discovery_server!.registeredServerCount.should.eql(0);
+            should(discovery_server?.registeredServerCount).eql(0);
             refused.length.should.eql(1);
             refused[0].statusCode.should.eql(StatusCodes.BadSecurityModeInsufficient);
             refused[0].securityMode.should.eql(MessageSecurityMode.None);
@@ -361,7 +361,7 @@ export function t(test: TestHarness) {
                 expectServiceFault(StatusCodes.BadSecurityModeInsufficient),
                 { securityMode: MessageSecurityMode.None, securityPolicy: SecurityPolicy.None }
             );
-            discovery_server!.registeredServerCount.should.eql(0);
+            should(discovery_server?.registeredServerCount).eql(0);
         });
 
         it("DISCO1-7 should accept an unsecured RegisterServer when allowUnsecuredRegistration is explicitly enabled", async () => {
@@ -378,7 +378,7 @@ export function t(test: TestHarness) {
                 },
                 { securityMode: MessageSecurityMode.None, securityPolicy: SecurityPolicy.None }
             );
-            discovery_server!.registeredServerCount.should.eql(1);
+            should(discovery_server?.registeredServerCount).eql(1);
         });
 
         it("DISCO1-8 should refuse a registration whose serverUri does not match the certificate ApplicationUri (BadServerUriInvalid)", async () => {
@@ -395,7 +395,7 @@ export function t(test: TestHarness) {
                 expectServiceFault(StatusCodes.BadServerUriInvalid)
             );
 
-            discovery_server!.registeredServerCount.should.eql(0);
+            should(discovery_server?.registeredServerCount).eql(0);
             refused.length.should.eql(1);
             refused[0].statusCode.should.eql(StatusCodes.BadServerUriInvalid);
             refused[0].securityMode.should.eql(MessageSecurityMode.SignAndEncrypt);
@@ -442,8 +442,8 @@ export function t(test: TestHarness) {
             should.exist(connectError, "expecting OpenSecureChannel to be refused");
             // the LDS answers BadSecurityChecksFailed and closes the socket; depending on timing the
             // client sees either the status code or only the dropped connection
-            connectError!.message.should.match(/BadSecurityChecksFailed|BadCertificateUntrusted|rejected by server/);
-            discovery_server!.registeredServerCount.should.eql(0);
+            should(connectError?.message).match(/BadSecurityChecksFailed|BadCertificateUntrusted|rejected by server/);
+            should(discovery_server?.registeredServerCount).eql(0);
 
             stepLog("2. its certificate has been placed in the rejected folder");
             (await test.discoveryServerCertificateManager.getTrustStatus(unknownCertificate)).should.eql(
@@ -467,7 +467,7 @@ export function t(test: TestHarness) {
                 },
                 { identity: unknownIdentity }
             );
-            discovery_server!.registeredServerCount.should.eql(1);
+            should(discovery_server?.registeredServerCount).eql(1);
             registered.should.eql([{ serverUri: unknownApplicationUri, firstTime: true }]);
 
             // leave the store as we found it
