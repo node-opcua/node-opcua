@@ -84,22 +84,20 @@ function findSecureEndpoint(endpoints: EndpointDescription[]): EndpointDescripti
         return e.transportProfileUri === "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary";
     });
 
-    endpoints = endpoints.filter((e: EndpointDescription) => {
-        return e.securityMode === MessageSecurityMode.SignAndEncrypt;
-    });
+    // prefer SignAndEncrypt, then Sign, then None: filter the full list at each step,
+    // not the (already empty) result of the previous step
+    const byMode = (securityMode: MessageSecurityMode) =>
+        endpoints.filter((e: EndpointDescription) => e.securityMode === securityMode);
 
-    if (endpoints.length === 0) {
-        endpoints = endpoints.filter((e: EndpointDescription) => {
-            return e.securityMode === MessageSecurityMode.Sign;
-        });
+    let candidates = byMode(MessageSecurityMode.SignAndEncrypt);
+    if (candidates.length === 0) {
+        candidates = byMode(MessageSecurityMode.Sign);
     }
-    if (endpoints.length === 0) {
-        endpoints = endpoints.filter((e: EndpointDescription) => {
-            return e.securityMode === MessageSecurityMode.None;
-        });
+    if (candidates.length === 0) {
+        candidates = byMode(MessageSecurityMode.None);
     }
-    endpoints = sortEndpointBySecurityLevel(endpoints);
-    return endpoints[0];
+    candidates = sortEndpointBySecurityLevel(candidates);
+    return candidates[0] ?? null;
 }
 
 function constructRegisteredServer(server: IPartialServer, isOnline: boolean): RegisteredServerOptions {
