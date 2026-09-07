@@ -613,10 +613,11 @@ describe("Testing the server publish engine", function (this: Mocha.Suite) {
 
             test.clock.tick(subscription.publishingInterval);
             subscription.state.should.eql(SubscriptionState.NORMAL);
-            subscription.publishIntervalCount.should.eql(2);
+            // one publishing cycle: the flush that follows a message is not one (FEAT-37)
+            subscription.publishIntervalCount.should.eql(1);
 
             test.clock.tick(subscription.publishingInterval);
-            subscription.publishIntervalCount.should.eql(3);
+            subscription.publishIntervalCount.should.eql(2);
             subscription.state.should.eql(SubscriptionState.NORMAL);
 
             send_keep_alive_response_spy.callCount.should.eql(0);
@@ -895,12 +896,13 @@ describe("Testing the server publish engine", function (this: Mocha.Suite) {
 
             publish_server._on_PublishRequest(new PublishRequest());
             test.clock.tick(subscription.publishingInterval);
-            subscription.publishIntervalCount.should.eql(2);
+            // one publishing cycle: the flush that follows a message is not one (FEAT-37)
+            subscription.publishIntervalCount.should.eql(1);
             subscription.state.should.eql(SubscriptionState.NORMAL);
 
             publish_server._on_PublishRequest(new PublishRequest());
             test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
-            subscription.publishIntervalCount.should.eql(subscription.maxKeepAliveCount + 2);
+            subscription.publishIntervalCount.should.eql(subscription.maxKeepAliveCount + 1);
             subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
             // server send a notification to the client
@@ -912,11 +914,11 @@ describe("Testing the server publish engine", function (this: Mocha.Suite) {
             subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
             test.clock.tick(subscription.publishingInterval);
-            subscription.publishIntervalCount.should.eql(7);
+            subscription.publishIntervalCount.should.eql(6);
             subscription.state.should.eql(SubscriptionState.LATE);
 
             test.clock.tick(subscription.publishingInterval * subscription.lifeTimeCount + 20);
-            subscription.publishIntervalCount.should.eql(subscription.lifeTimeCount + 7);
+            subscription.publishIntervalCount.should.eql(subscription.lifeTimeCount + 6);
             subscription.state.should.eql(SubscriptionState.CLOSED);
         } finally {
             subscription.terminate();

@@ -289,7 +289,10 @@ describe("Subscriptions", function (this: Mocha.Suite) {
         keepalive_event_spy.callCount.should.equal(0);
         subscription.state.should.eql(SubscriptionState.NORMAL);
 
-        test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount + 1));
+        // the last data message went out maxKeepAliveCount - 2 cycles ago: the first keep-alive
+        // is due in 2 cycles, the second one maxKeepAliveCount cycles later (FEAT-37: the flush
+        // that follows a message no longer counts as a publishing cycle)
+        test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount + 2));
         keepalive_event_spy.callCount.should.equal(2);
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
@@ -381,6 +384,15 @@ describe("Subscriptions", function (this: Mocha.Suite) {
         expire_event_spy.callCount.should.equal(0);
         subscription.state.should.eql(SubscriptionState.NORMAL);
 
+        // third cycle without a notification: not yet (maxKeepAliveCount is 4, and the flush
+        // that follows a message is not a publishing cycle - FEAT-37)
+        test.clock.tick(subscription.publishingInterval);
+        notification_event_spy.callCount.should.equal(3);
+        keepalive_event_spy.callCount.should.equal(2);
+        expire_event_spy.callCount.should.equal(0);
+        subscription.state.should.eql(SubscriptionState.NORMAL);
+
+        // fourth cycle: the keep-alive
         test.clock.tick(subscription.publishingInterval);
         notification_event_spy.callCount.should.equal(3);
         keepalive_event_spy.callCount.should.equal(3);
