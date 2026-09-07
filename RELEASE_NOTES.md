@@ -23,6 +23,11 @@ Local Discovery Server: registration conformance (OPC UA Part 4 §5.5.5 / §5.5.
   - new `onRegistrationRefused` event on `OPCUADiscoveryServer` (Part 4 asks Discovery Servers to audit
     failed registrations); refusals are also logged with the caller's address, security mode and
     certificate ApplicationUri
+  - `RegisterServerManager` now really falls back to a `Sign`, then `None`, LDS endpoint when the LDS
+    offers no `SignAndEncrypt` endpoint; the fallback filtered an already-empty list and could never
+    select anything
+  - `OPCUADiscoveryServer.shutdown()` no longer sleeps one second after the endpoints are closed; the
+    endpoint shutdown already waits for the listening socket to be released
 
 Private key passphrase protection
 ==================================
