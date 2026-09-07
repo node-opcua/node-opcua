@@ -31,9 +31,24 @@ import type { NodesetChunk, NodesetChunkStream } from "./nodeset_source.js";
 
 export { NodesetImageError, type NodesetImageHeader, type NodesetImageTrailer } from "./nodeset_image_codec.js";
 
-/** the two bytes every gzip stream starts with: how an image is told from XML */
+const GZIP_MAGIC_0 = 0x1f;
+const GZIP_MAGIC_1 = 0x8b;
+/** `{`: the first byte of a document whose header record was not compressed */
+const OPEN_BRACE = 0x7b;
+
+/** whether these bytes are gzip, and so need inflating before they are text */
+export function isGzip(firstBytes: Uint8Array): boolean {
+    return firstBytes.length >= 2 && firstBytes[0] === GZIP_MAGIC_0 && firstBytes[1] === GZIP_MAGIC_1;
+}
+
+/**
+ * a NodeSet-NDJSON document, compressed or not, told from NodeSet2 XML by its first byte: a gzip
+ * stream starts `1f 8b`, an XML document `<`, and an uncompressed document `{`. Compression is a
+ * property of how a document was stored, never of what it says, so a reader that took only the
+ * compressed form would be refusing the same document written plainly.
+ */
 export function isNodesetImage(firstBytes: Uint8Array): boolean {
-    return firstBytes.length >= 2 && firstBytes[0] === 0x1f && firstBytes[1] === 0x8b;
+    return isGzip(firstBytes) || (firstBytes.length >= 1 && firstBytes[0] === OPEN_BRACE);
 }
 
 async function toReadableStream(source: Uint8Array | NodesetChunkStream): Promise<ReadableStream<Uint8Array>> {
@@ -132,7 +147,8 @@ export function inflatedImageLines(image: Uint8Array): Promise<string[]> {
         lines = (async () => {
             let text: string;
             try {
-                text = await inflateImage(image);
+                // an uncompressed document is already its own text; only gzip needs inflating
+                text = isGzip(image) ? await inflateImage(image) : new TextDecoder("utf-8").decode(image);
             } catch (err) {
                 throw new NodesetImageError(`the image cannot be inflated: ${(err as Error).message}`);
             }

@@ -40,7 +40,26 @@ const runs = runsArg ? Number.parseInt(runsArg, 10) : undefined;
 
 const nodesetDir = path.dirname(nodesets.standard);
 const imageOf = (xmlFile: string) => xmlFile.replace(/\.xml$/i, ".ndjson.gz");
-const asSource = (file: string) => ({ name: file, source: () => [new Uint8Array(fs.readFileSync(file))] });
+/**
+ * every file read once, before anything is timed.
+ *
+ * `readFileSync` used to sit inside the timed region, which put the disk and, on Windows, the
+ * virus scanner into the measurement: a 4 MB XML read against a 184 KB image read, on every
+ * iteration. It made the warm numbers swing by a factor of two between runs and once reported
+ * NDJSON as slower than XML, which is not a result, it is the scanner.
+ */
+const bytesOf = new Map<string, Uint8Array>();
+const readOnce = (file: string): Uint8Array => {
+    let bytes = bytesOf.get(file);
+    if (!bytes) {
+        bytes = new Uint8Array(fs.readFileSync(file));
+        bytesOf.set(file, bytes);
+    }
+    return bytes;
+};
+// a fresh copy per iteration: the loader keeps a document's inflated lines against the very
+// buffer it was handed, so reusing one would let the second iteration skip the inflate
+const asSource = (file: string) => ({ name: file, source: () => [readOnce(file).slice()] });
 const kb = (n: number) => n.toLocaleString("en-US");
 
 /**
@@ -62,17 +81,28 @@ const CHAINS: Array<{ label: string; files: string[] }> = [
     .map(({ label, name }) => ({ label, files: chainOf(name).map((n) => nodesets[n as keyof typeof nodesets]) }))
     .filter((c) => c.files.every((f) => f && fs.existsSync(f) && fs.existsSync(imageOf(f))));
 
-async function best<T>(n: number, fn: () => Promise<T>): Promise<{ ms: number; last: T }> {
-    let ms = Number.POSITIVE_INFINITY;
+/**
+ * the minimum and the median of n runs. The minimum is the cleanest run the machine allowed and
+ * is the number to compare; the median says whether the machine allowed many of them. When the
+ * two are far apart the environment is in the measurement and neither figure should be quoted.
+ */
+async function best<T>(n: number, fn: () => Promise<T>): Promise<{ ms: number; median: number; last: T }> {
+    const samples: number[] = [];
     let last!: T;
     for (let i = 0; i < n; i++) {
         const t = performance.now();
         last = await fn();
-        const e = performance.now() - t;
-        if (e < ms) ms = e;
+        samples.push(performance.now() - t);
     }
-    return { ms, last };
+    samples.sort((x, y) => x - y);
+    return { ms: samples[0], median: samples[samples.length >> 1], last };
 }
+
+/** "123 ms" when the run was steady, "123 ms ~189" when the median says it was not */
+const spread = (r: { ms: number; median: number }): string => {
+    const noisy = r.median > r.ms * 1.25;
+    return `${r.ms.toFixed(0)} ms${noisy ? ` ~${r.median.toFixed(0)}` : ""}`;
+};
 
 function sizeSection(): void {
     console.log("\n--- size: the published catalogue, both forms at gzip level 9 ---\n");
@@ -126,7 +156,7 @@ async function parseSection(n: number): Promise<void> {
         const g = await best(n, () => count(imageNodesetRecords(image)));
         console.log(
             `${path.basename(file, ".xml").padEnd(38)}${String(x.last).padStart(9)}` +
-                `${`${x.ms.toFixed(0)} ms`.padStart(10)}${`${g.ms.toFixed(0)} ms`.padStart(10)}   ${(x.ms / g.ms).toFixed(1)}x`
+                `${spread(x).padStart(14)}${spread(g).padStart(14)}   ${(x.ms / g.ms).toFixed(1)}x`
         );
     }
 }
@@ -153,7 +183,7 @@ async function loadSection(n: number): Promise<void> {
         const g = await best(n, () => loadOnce(files.map(imageOf)));
         console.log(
             `${label.padEnd(38)}${String(x.last).padStart(9)}` +
-                `${`${x.ms.toFixed(0)} ms`.padStart(10)}${`${g.ms.toFixed(0)} ms`.padStart(10)}   ${(x.ms / g.ms).toFixed(1)}x`
+                `${spread(x).padStart(14)}${spread(g).padStart(14)}   ${(x.ms / g.ms).toFixed(1)}x`
         );
     }
 }
