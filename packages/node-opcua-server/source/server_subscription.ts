@@ -1574,20 +1574,55 @@ export class Subscription extends EventEmitter {
         if (this.hasPendingNotifications) {
             this._publish_pending_notifications();
 
-            if (
-                this.state === SubscriptionState.NORMAL ||
-                (this.state === SubscriptionState.LATE && this.hasPendingNotifications)
-            ) {
+            if (this.state !== SubscriptionState.CLOSED) {
                 // c8 ignore next
                 if (doDebug) {
-                    debugLog("    -> pendingPublishRequestCount > 0 " + "&& normal state => re-trigger tick event immediately ");
+                    debugLog("    -> message sent => flush what is left with the next queued PublishRequest");
                 }
-
-                // let process an new publish request
-                setImmediate(this._tick.bind(this));
+                setImmediate(this._flushRemainingNotifications.bind(this));
             }
         } else {
             this._process_keepAlive();
+        }
+    }
+
+    /**
+     * Whatever did not fit in the message just sent (moreNotifications), or was queued by a
+     * monitored item meanwhile, goes out with the next queued PublishRequest without waiting for
+     * the publishing timer; with no request queued the subscription is LATE so the next Publish
+     * serves it on arrival.
+     *
+     * This used to be a full _tick, which also counted a publishing cycle: publishIntervalCount,
+     * the lifetime counter and, through _process_keepAlive, the keep-alive counter all moved on,
+     * so a subscription owed its keep-alive one cycle after a data message instead of
+     * maxKeepAliveCount cycles (Part 4 5.13.1.1: the keep-alive counter counts *publishing
+     * cycles* with nothing to report). With maxKeepAliveCount at its minimum of 2, that
+     * keep-alive fell due at the very next tick and, being overdue, was served ahead of a
+     * sibling that had never been served (FEAT-37: CTT Subscription Publish Min 05 003
+     * queues exactly five Publish requests for five subscriptions, so the stolen request left
+     * one subscription without any response).
+     */
+    private _flushRemainingNotifications() {
+        if (this.state === SubscriptionState.CLOSED || !this.publishingEnabled) {
+            return;
+        }
+        if (!this.hasPendingNotifications && !this.hasUncollectedMonitoredItemNotifications) {
+            return;
+        }
+        const publishEngine = this.publishEngine;
+        if (!publishEngine) {
+            return;
+        }
+        if (publishEngine.pendingPublishRequestCount === 0) {
+            // c8 ignore next
+            doDebug && debugLog(`subscription ${this.id} set to LATE: more notifications, no PublishRequest`);
+            this.state = SubscriptionState.LATE;
+            return;
+        }
+        if (publishEngine.feedReadySubscriptions) {
+            publishEngine.feedReadySubscriptions();
+        } else {
+            this.process_subscription();
         }
     }
 

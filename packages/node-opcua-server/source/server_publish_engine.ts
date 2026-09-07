@@ -565,11 +565,14 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
     #_find_starving_subscription(): Subscription | null {
         const late_subscriptions = this.findLateSubscriptions();
+        // ascending: the most deserving (highest priority, then closest to its keep-alive
+        // deadline) sorts last. A comparator that never returns a negative number is not one:
+        // beyond two elements the order it yields depends on the sort algorithm, not the data.
         function compare_subscriptions(s1: Subscription, s2: Subscription): number {
             if (s1.priority === s2.priority) {
-                return s1.timeToExpiration < s2.timeToExpiration ? 1 : 0;
+                return s2.timeToExpiration - s1.timeToExpiration;
             }
-            return s1.priority > s2.priority ? 1 : 0;
+            return s1.priority - s2.priority;
         }
         function findLateSubscriptionSortedByPriority() {
             if (late_subscriptions.length === 0) {
