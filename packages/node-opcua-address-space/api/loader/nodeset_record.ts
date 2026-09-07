@@ -47,6 +47,12 @@ export interface NodesetHeaderRecord {
     models: NodesetModelRecord[];
     /** alias name to the id it stands for, file-local; no record refers to an alias by name */
     aliases: Record<string, NodeId>;
+    /**
+     * the `<Extension>` elements of the document's own `<Extensions>`, each as the XML it is.
+     * Their content is foreign to this schema by design -- a tool stamps whatever it likes there,
+     * such as UaModeler's `ModelInfo` -- so there is nothing to model and only the bytes to keep.
+     */
+    extensions?: string[];
 }
 
 export interface NodesetReferenceRecord {
@@ -101,6 +107,10 @@ export interface NodesetNodeRecord {
     browseName: QualifiedName;
     displayName?: string;
     description?: string;
+    /** the `<Category>` elements, in order; a node may declare several */
+    category?: string[];
+    /** the `<Documentation>` element: a URL into the specification text, at most one */
+    documentation?: string;
     references: NodesetReferenceRecord[];
     releaseStatus?: "Draft" | "Deprecated";
     symbolicName?: string;

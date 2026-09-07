@@ -11,7 +11,14 @@ import { coerceBoolean, coerceByte, coerceInt32 } from "node-opcua-basic-types";
 import { DataTypeIds } from "node-opcua-constants";
 import { NodeClass, type QualifiedName, stringToQualifiedName } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { _definitionParser, ReaderState, type ReaderStateParserLike, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
+import {
+    _definitionParser,
+    InternalFragmentClonerReaderState,
+    ReaderState,
+    type ReaderStateParserLike,
+    Xml2Json,
+    type XmlAttributes
+} from "node-opcua-xml2json";
 import {
     type NodesetDataTypeDefinitionRecord,
     type NodesetDefinitionField,
@@ -47,6 +54,7 @@ interface NodeState {
 export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
     let pending: NodesetRecord[] = [];
     let namespaceUris: string[] = [];
+    let extensions: string[] = [];
     const models: NodesetModelRecord[] = [];
     const aliases: Record<string, NodeId> = Object.create(null);
     let headerEmitted = false;
@@ -76,6 +84,7 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
         }
         headerEmitted = true;
         const header: NodesetHeaderRecord = { kind: "header", namespaceUris, models: models.slice(), aliases: { ...aliases } };
+        if (extensions.length > 0) header.extensions = extensions.slice();
         pending.push(header);
     }
 
@@ -148,9 +157,25 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
             (this.parent as NodeState).obj.description = this.text;
         }
     };
+    // a node may declare several <Category> elements and at most one <Documentation>. Neither is
+    // part of the information model and neither reaches the address space, but both are content a
+    // working group wrote into the document, and a form that drops them is not the same document
+    const category_parser = {
+        finish(this: State) {
+            const obj = (this.parent as NodeState).obj;
+            (obj.category ??= []).push(this.text);
+        }
+    };
+    const documentation_parser = {
+        finish(this: State) {
+            (this.parent as NodeState).obj.documentation = this.text;
+        }
+    };
     const common_parser = {
         DisplayName: displayName_parser,
         Description: description_parser,
+        Category: category_parser,
+        Documentation: documentation_parser,
         References: references_parser,
         RolePermissions: role_permissions_parser
     };
@@ -276,6 +301,8 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
         ...emit,
         parser: {
             DisplayName: displayName_parser,
+            Category: category_parser,
+            Documentation: documentation_parser,
             References: references_parser,
             RolePermissions: role_permissions_parser
         }
@@ -319,9 +346,30 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
         }
     });
 
+    const state_Extensions = {
+        init() {
+            extensions = [];
+        },
+        parser: {
+            Extension: {
+                startElement(this: State, elementName: string, attrs: XmlAttributes) {
+                    // whatever a tool put in here is foreign XML: clone the element verbatim
+                    this._cloneFragment = new InternalFragmentClonerReaderState();
+                    this.engine?._promote(this._cloneFragment, this.engine?.currentLevel, elementName, attrs);
+                },
+                finish(this: State) {
+                    const xml = this._cloneFragment?.value;
+                    if (xml) extensions.push(xml);
+                    if (this._cloneFragment) this._cloneFragment.value = null;
+                }
+            }
+        }
+    };
+
     const state_0: ReaderStateParserLike = {
         parser: {
             Aliases: { parser: { Alias: state_Alias } },
+            Extensions: state_Extensions,
             NamespaceUris: {
                 init() {
                     namespaceUris = [];
