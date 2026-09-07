@@ -466,6 +466,17 @@ describe("testing coerceNodeId with namespace arrays", () => {
             const _ref_nodeId = coerceNodeId("nsu=<unknown namespace with index 100>;i=85");
         });
     });
+    it("should coerce a nsu nodeId whose string identifier contains semicolons", () => {
+        // the namespace uri stops at the first semicolon: a uri may not contain one, a string
+        // identifier may contain any number. toString has always written this form correctly, so
+        // a greedy split meant node-opcua could not read back what it had just written.
+        const nodeId = coerceNodeId("nsu=http://opcfoundation.org/UA/DI/;s=a;b;c", { namespaceArray });
+        nodeId.namespace.should.eql(1);
+        nodeId.identifierType.should.eql(NodeIdType.STRING);
+        nodeId.value.should.eql("a;b;c");
+        nodeId.toString({ namespaceArray }).should.equal("nsu=http://opcfoundation.org/UA/DI/;s=a;b;c");
+    });
+
     it("should resolve NodeID with optional namespace array", () => {
         const ref_nodeId = resolveNodeId("nsu=http://opcfoundation.org/UA/DI/;i=85", { namespaceArray });
         ref_nodeId.toString().should.equal("ns=1;i=85");
