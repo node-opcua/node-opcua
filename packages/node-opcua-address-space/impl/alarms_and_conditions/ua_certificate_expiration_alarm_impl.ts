@@ -72,6 +72,23 @@ class UACertificateExpirationAlarmImplBase extends UASystemOffNormalAlarmImpl im
     }
 
     public updateAlarmState2(isActive: boolean, severity: number, message: string) {
+        // A Condition reports its state *changes* (Part 9 5.5.2). This alarm is re-evaluated on
+        // timers - its own every half hour, push certificate management every minute - and a
+        // re-evaluation that finds the same verdict must stay silent: it used to raise a new
+        // "certificate ... is OK!" event on the Server object at every check, an unsolicited
+        // event every minute on any server with push certificate management installed (FEAT-24:
+        // CTT Subscription Minimum 02 020 subscribes to the Server events and expects none while
+        // it only writes to plain variables).
+        const branch = this.currentBranch();
+        if (
+            branch &&
+            branch.getActiveState() === isActive &&
+            branch.getSeverity() === severity &&
+            (branch.getMessage()?.text || "") === message
+        ) {
+            return;
+        }
+
         isActive ? this.activateAlarm() : this.deactivateAlarm();
 
         this.raiseNewCondition({
