@@ -7,7 +7,7 @@ import envPaths from "env-paths";
 import { assert } from "node-opcua-assert";
 import type { ICertificateStore } from "node-opcua-common";
 import { type Certificate, makeSHA1Thumbprint } from "node-opcua-crypto/web";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import {
     CertificateManager,
@@ -23,7 +23,54 @@ const paths = envPaths("node-opcua-default");
 
 const debugLog = make_debugLog("certificate_manager");
 const errorLog = make_errorLog("certificate_manager");
+const warningLog = make_warningLog("certificate_manager");
 const doDebug = checkDebugFlag("certificate_manager");
+
+/**
+ * Remove a lock file left in a PKI store by an older node-opcua, so that the
+ * current one can use the store at all.
+ *
+ * node-opcua-pki serialises every mutation of a store (`withLock2`) on
+ * `<rootFolder>/mutex.lock`. Today's global-mutex (3.x) takes that lock by
+ * creating a *directory* of that name; its predecessor (2.x, built on the
+ * `lockfile` package) created a plain *file* and left it behind when the
+ * process died holding it. Neither provider of the current library treats that
+ * file as the garbage it is: the native one only decides by mtime and waits
+ * until the file looks two minutes old, the proper-lockfile one calls rmdir on
+ * it, gets ENOTDIR and retries for hours. In both cases the first move into
+ * rejected/ or trusted/ never answers, and an OpenSecureChannel that waits on
+ * that verdict never answers either (FEAT-40, the CTT's Security Certificate
+ * Validation scripts timing out on Windows).
+ *
+ * A regular file at that path can never be a live lock of the current library,
+ * so it is removed before the store is first used. A directory is a real lock
+ * and is left alone.
+ *
+ * @returns `true` when a file was removed
+ */
+export function removeLegacyLockFile(rootFolder: string): boolean {
+    const legacyLockFile = path.join(rootFolder, "mutex.lock");
+    let stats: fs.Stats;
+    try {
+        stats = fs.statSync(legacyLockFile);
+    } catch {
+        return false;
+    }
+    if (stats.isDirectory()) {
+        return false;
+    }
+    try {
+        fs.unlinkSync(legacyLockFile);
+    } catch (err) {
+        errorLog(`cannot remove the legacy lock file ${legacyLockFile}: ${(err as Error).message}`);
+        return false;
+    }
+    warningLog(
+        `[NODE-OPCUA-W38] removed ${legacyLockFile}: a lock file left by an older node-opcua, ` +
+            "which would have stalled every update of this certificate store"
+    );
+    return true;
+}
 
 export interface ICertificateManager {
     getTrustStatus(certificate: Certificate): Promise<StatusCode>;
@@ -144,6 +191,20 @@ export interface OPCUACertificateManagerOptions {
 export class OPCUACertificateManager extends CertificateManager implements ICertificateManager, ICertificateStore {
     public static defaultCertificateSubject = "/O=Sterfive/L=Orleans/C=FR";
 
+    /**
+     * How long {@link checkCertificate} waits, in milliseconds, for the store
+     * to record its verdict (the move of the certificate into `rejected/` or
+     * `trusted/`) before answering with that verdict anyway.
+     *
+     * The verdict is known before the move starts: the move is bookkeeping.
+     * It takes the store's file lock, and a lock that is contended or stuck
+     * must not hold the OpenSecureChannel of the client being answered (the
+     * CTT gives up after 20 s and reports BadTimeout instead of the status the
+     * server had already decided on). On timeout the move carries on in the
+     * background and a warning is logged.
+     */
+    public static bookkeepingTimeout = 5000;
+
     public static registry = new ObjectRegistry();
     public referenceCounter: number;
     public automaticallyAcceptUnknownCertificate: boolean;
@@ -185,6 +246,9 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     public initialize(...args: unknown[]): unknown {
         const callback = args[0] as (err?: Error) => void;
         assert(callback && typeof callback === "function");
+        // before the first lock is taken: super.initialize() itself locks the store
+        // when it has a key or a configuration file to write
+        removeLegacyLockFile(this.rootDir);
         return super
             .initialize()
             .then(() => callback())
@@ -267,7 +331,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                     debugLog(`certificate with thumbprint ${thumbprint} is now trusted (was: ${statusCode.toString()})`);
                 }
                 try {
-                    await this.trustCertificate(topCertificateInChain);
+                    await this.#bookkeeping("trust", thumbprint, this.trustCertificate(topCertificateInChain));
                 } catch (err) {
                     if (err && (err as Error & { code: string }).code === "ENOENT") {
                         // Another concurrent caller already moved the certificate
@@ -288,7 +352,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                     debugLog("automaticallyAcceptUnknownCertificate = false");
                     debugLog(`certificate with thumbprint ${thumbprint} is now rejected`);
                 }
-                await this.rejectCertificate(topCertificateInChain);
+                await this.#bookkeeping("reject", thumbprint, this.rejectCertificate(topCertificateInChain));
                 return StatusCodes.BadCertificateUntrusted;
             }
         } else if (statusCode.equals(StatusCodes.BadCertificateRevocationUnknown)) {
@@ -315,10 +379,37 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                     await this.rejectCertificate(certificate);
                 }
             };
-            await rejectAll(certificates);
+            const thumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
+            await this.#bookkeeping("reject chain", thumbprint, rejectAll(certificates));
             return statusCode;
         }
         return statusCode;
+    }
+
+    /**
+     * Wait for a store update, but not beyond {@link bookkeepingTimeout}: the
+     * caller already knows the verdict it will return. A rejection of the
+     * update propagates to the caller as before; a timeout is logged and the
+     * update is left to complete (or fail, logged) on its own.
+     */
+    async #bookkeeping(what: string, thumbprint: string, update: Promise<void>): Promise<void> {
+        let timer: NodeJS.Timeout | undefined;
+        const expired = new Promise<"timeout">((resolve) => {
+            timer = setTimeout(() => resolve("timeout"), OPCUACertificateManager.bookkeepingTimeout);
+        });
+        try {
+            const outcome = await Promise.race([update.then(() => "done" as const), expired]);
+            if (outcome === "timeout") {
+                warningLog(
+                    `[NODE-OPCUA-W39] the certificate store has not recorded the ${what} of ${thumbprint} ` +
+                        `after ${OPCUACertificateManager.bookkeepingTimeout} ms (store ${this.rootDir}): ` +
+                        "answering with the verdict already known; the store update goes on in the background"
+                );
+                update.catch((err: Error) => errorLog(`the ${what} of ${thumbprint} failed in the background: ${err.message}`));
+            }
+        } finally {
+            clearTimeout(timer);
+        }
     }
 
     public async getTrustStatus(certificate: Certificate): Promise<StatusCode>;
