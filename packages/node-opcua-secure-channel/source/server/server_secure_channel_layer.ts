@@ -1824,9 +1824,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * Validation scripts failed with "the connection was granted", and
      * node-opcua's own client only saw a closed socket (FEAT-39).
      *
-     * The ERR message remains for the errors found before the security of the
-     * request could be established - unknown policy, no such endpoint, no
-     * usable client key - where nothing can be secured.
+     * The ERR message remains where nothing can be secured: a signed request
+     * whose policy is unknown, whose endpoint does not exist, or whose
+     * certificate yields no usable key. A request in mode None asks for no
+     * security and is answered with a plain ServiceFault whatever the error
+     * (a None request refused because the server has no None endpoint reads
+     * BadSecurityPolicyRejected at the client).
      */
     #_on_OpenSecureChannelRequestError(serviceResult: StatusCode, description: string, message: Message) {
         warningLog("ServerSecureChannel sendError: ", serviceResult.toString(), { description }, message.request.constructor.name);
