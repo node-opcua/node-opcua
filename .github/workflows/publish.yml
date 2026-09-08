@@ -61,9 +61,27 @@ jobs:
 
       - name: Publish
         # --concurrency 1: avoids OIDC token request collisions with provenance.
+        # node-opcua-versions is marked private in the repository, so this pass skips it.
         run: |
           npx lerna publish from-package \
             --yes \
+            --dist-tag ${{ github.event.inputs.dist-tag }} \
+            --concurrency 1
+        env:
+          NPM_CONFIG_PROVENANCE: true
+
+      - name: Publish node-opcua-versions last
+        # The release matrix goes out after every other package of the release: its
+        # presence on the registry is the signal that the release is complete, which is
+        # what protects `node-opcua-versions bump` from reading a half-published release.
+        # --include-private lifts the private flag for this one package, for this pass:
+        # lerna keeps a private package only when its exact name is listed (or "*",
+        # which must never be used here), so the test, fixture and playground packages
+        # that are private stay unpublished.
+        run: |
+          npx lerna publish from-package \
+            --yes \
+            --include-private node-opcua-versions \
             --dist-tag ${{ github.event.inputs.dist-tag }} \
             --concurrency 1
         env:

@@ -86,6 +86,7 @@
         { "path": "node-opcua-types" },
         { "path": "node-opcua-types" },
         { "path": "node-opcua-units" },
-        { "path": "node-opcua-vendor-diagnostic" }
+        { "path": "node-opcua-vendor-diagnostic" },
+        { "path": "node-opcua-versions" }
     ]
 }
