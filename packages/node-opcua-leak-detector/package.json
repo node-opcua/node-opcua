@@ -26,6 +26,9 @@
     ],
     "homepage": "http://node-opcua.github.io/",
     "gitHead": "064029878247adf2fa5d14a8124e1930431e2428",
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "files": [
         "src"
     ],

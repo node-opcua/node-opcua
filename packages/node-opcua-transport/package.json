@@ -4,6 +4,9 @@
     "description": "pure nodejs OPCUA SDK - module transport",
     "main": "./dist/source/index.js",
     "types": "./dist/source/index.d.ts",
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "exports": {
         ".": {
             "browser": {

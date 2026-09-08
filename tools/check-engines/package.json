@@ -1,0 +1,15 @@
+{
+    "name": "@sterfive/check-engines",
+    "version": "1.0.0",
+    "private": true,
+    "description": "every published package declares the same Node floor as the repository root",
+    "bin": {
+        "check-engines": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "fix": "node src/index.js --fix",
+        "test": "node test/test_rule.js"
+    }
+}

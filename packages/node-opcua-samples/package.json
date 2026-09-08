@@ -15,6 +15,9 @@
         "test": "echo no test",
         "clean": "npx rimraf -g certificates"
     },
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "@types/underscore": "1.13.0",
         "@types/yargs": "17.0.35",

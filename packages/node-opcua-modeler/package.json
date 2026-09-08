@@ -12,6 +12,9 @@
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "cli-table3": "0.6.5",
         "csv-parse": "7.0.2",

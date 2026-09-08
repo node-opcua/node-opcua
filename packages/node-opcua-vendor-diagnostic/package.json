@@ -9,6 +9,9 @@
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "test": "echo no test"
     },
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "humanize": "0.0.9",
         "node-opcua-address-space": "2.182.2",

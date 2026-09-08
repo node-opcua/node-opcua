@@ -11,6 +11,9 @@
     },
     "main": "./dist/index.js",
     "@types": "./dist/index.d.ts",
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "devDependencies": {
         "enum": "3.0.4",
         "node-opcua-benchmarker": "2.181.0"

@@ -5,6 +5,9 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "browser": "./dist-esm/index.js",
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",

@@ -12,6 +12,9 @@
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "test:check": "tsc --noEmit -p test/tsconfig.json"
     },
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "node-opcua-assert": "2.179.0",
         "node-opcua-basic-types": "2.182.0",

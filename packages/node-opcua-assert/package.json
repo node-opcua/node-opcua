@@ -11,6 +11,9 @@
         "lint": "biome check --no-errors-on-unmatched ."
     },
     "versionBump": "1",
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "chalk": "4.1.2"
     },

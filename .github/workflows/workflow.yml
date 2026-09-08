@@ -113,6 +113,13 @@ jobs:
       - run: pnpm run check:ctorcast
       - name: Unit tests for the construction-cast rule
         run: node tools/check-construction-cast/test/test_rule.js
+      # The root has required node >=22.13 since 18/20 were dropped from CI, but the root is
+      # private and never published: the umbrella still said >=18 and 110 packages said
+      # nothing, so a consumer on an unsupported Node was never warned. It matters more at
+      # 3.0, where require() of an ES module needs 22.12 and below that fails hard.
+      - run: pnpm run check:engines
+      - name: Unit tests for the engines rule
+        run: node tools/check-engines/test/test_rule.js
       - run: pnpm run check:identity
       # A package's types must describe the module its main loads. When the two named
       # different modules, node-opcua-address-space came to declare twelve names its main

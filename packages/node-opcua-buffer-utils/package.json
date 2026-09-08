@@ -12,6 +12,9 @@
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "devDependencies": {
         "node-opcua-benchmarker": "2.181.0"
     },
