@@ -1,6 +1,7 @@
 import "should";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
 import {
     ContentFilter,
     ElementOperand,
@@ -11,7 +12,7 @@ import {
 } from "node-opcua-types";
 import { DataType, Variant, type VariantOptionsT } from "node-opcua-variant";
 
-import { checkFilter, extractEventFieldsBase, ofType } from "../dist/index.js";
+import { checkFilter, extractEventFieldsBase, ofType, validateContentFilter } from "../dist/index.js";
 import { alarmNode, FilterContextMock, variableWithAlarm } from "./filter_context_mock.js";
 
 // https://reference.opcfoundation.org/v105/Core/docs/Part4/7.7.3/
@@ -739,10 +740,13 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         checkFilter(filterContext, contentFilter).should.eql(false);
     });
 
-    it("EV35 - checkFilter rejects a variadic InList carrying fewer than the minimum operands", () => {
+    it("EV35 - checkFilter evaluates an InList with only its left operand to false (Part 4 7.7.4)", () => {
         filterContext.eventSource = filterContext.findNodeByName("RootFolder.Objects.Server.AuditCertificateExpiredEvent");
 
-        // InList expects 2..n operands; provide only 1
+        // "TRUE if operand[0] is equal to one or more of the remaining operands": with no remaining
+        // operand nothing can match, so the element is FALSE rather than malformed. This is how an
+        // alarm collector starts (the OPC Foundation CTT monitors the Server object with
+        // "InList(ConditionId)" and fills the list later with ModifyMonitoredItems).
         const contentFilter = new ContentFilter({
             elements: [
                 {
@@ -752,6 +756,24 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
             ]
         });
         checkFilter(filterContext, contentFilter).should.eql(false);
+    });
+
+    it("EV35b - validateContentFilter accepts an InList with 1..n operands and refuses one with none", () => {
+        const conditionId = () =>
+            new SimpleAttributeOperand({
+                typeDefinitionId: resolveNodeId("ConditionType"),
+                browsePath: [],
+                attributeId: AttributeIds.NodeId
+            });
+        const literal = () =>
+            new LiteralOperand({ value: new Variant({ dataType: DataType.NodeId, value: resolveNodeId("BaseEventType") }) });
+        const inList = (filterOperands: (SimpleAttributeOperand | LiteralOperand)[]) =>
+            new ContentFilter({ elements: [{ filterOperator: FilterOperator.InList, filterOperands }] });
+
+        validateContentFilter(inList([conditionId()])).should.eql(StatusCodes.Good);
+        validateContentFilter(inList([conditionId(), literal()])).should.eql(StatusCodes.Good);
+        validateContentFilter(inList([conditionId(), literal(), literal()])).should.eql(StatusCodes.Good);
+        validateContentFilter(inList([])).should.eql(StatusCodes.BadFilterOperandCountMismatch);
     });
 
     it("EV32 - checkFilter ignores an unreachable element, even a cyclic one (Part 4 7.7.1)", () => {

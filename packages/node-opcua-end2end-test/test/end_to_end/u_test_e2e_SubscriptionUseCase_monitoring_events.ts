@@ -204,13 +204,13 @@ export function t(test: UmbrellaTestContext): void {
             });
         });
 
-        // A whereClause ContentFilter that exceeds the server's MaxWhereClauseParameters (default 100).
-        // Built as an InList carrying one SimpleAttributeOperand + 101 literal operands (102 operands).
+        // A whereClause ContentFilter that exceeds the server's MaxWhereClauseParameters (default 1000).
+        // Built as an InList carrying one SimpleAttributeOperand + 1001 literal operands (1002 operands).
         function makeOversizedWhereClause(): ContentFilter {
             const operands: (SimpleAttributeOperand | LiteralOperand)[] = [
                 new SimpleAttributeOperand({ attributeId: AttributeIds.Value, browsePath: ["EventType"] })
             ];
-            for (let i = 0; i < 101; i++) {
+            for (let i = 0; i < 1001; i++) {
                 operands.push(
                     new LiteralOperand({ value: new Variant({ dataType: DataType.NodeId, value: resolveNodeId("BaseEventType") }) })
                 );
@@ -315,6 +315,208 @@ export function t(test: UmbrellaTestContext): void {
                 should(res.results?.[0].statusCode).eql(StatusCodes.Good);
                 const filterResult = res.results![0].filterResult as EventFilterResult;
                 should(filterResult.selectClauseResults?.[0]).eql(StatusCodes.BadNodeIdUnknown);
+            });
+        });
+
+        // The event fields the OPC Foundation CTT's alarm collector selects (AlarmUtilities.CreateAllSelectFields
+        // over every condition type the server advertises), captured on the wire against a server exposing the
+        // standard alarm types: each one on BaseEventType with a single browse path, attribute Value.
+        const alarmCollectorFields = [
+            "EventId",
+            "EventType",
+            "SourceNode",
+            "SourceName",
+            "Time",
+            "ReceiveTime",
+            "LocalTime",
+            "Message",
+            "Severity",
+            "ConditionClassId",
+            "ConditionClassName",
+            "ConditionSubClassId",
+            "ConditionSubClassName",
+            "ConditionName",
+            "BranchId",
+            "Retain",
+            "SupportsFilteredRetain",
+            "EnabledState",
+            "Quality",
+            "LastSeverity",
+            "Comment",
+            "ClientUserId",
+            "EnabledState/Id",
+            "EnabledState/TransitionTime",
+            "EnabledState/EffectiveTransitionTime",
+            "EnabledState/TrueState",
+            "EnabledState/FalseState",
+            "Quality/SourceTimestamp",
+            "LastSeverity/SourceTimestamp",
+            "Comment/SourceTimestamp",
+            "DialogState",
+            "Prompt",
+            "ResponseOptionSet",
+            "DefaultResponse",
+            "OkResponse",
+            "CancelResponse",
+            "LastResponse",
+            "DialogState/Id",
+            "DialogState/TransitionTime",
+            "DialogState/TrueState",
+            "DialogState/FalseState",
+            "AckedState",
+            "ConfirmedState",
+            "AckedState/Id",
+            "AckedState/TransitionTime",
+            "AckedState/TrueState",
+            "AckedState/FalseState",
+            "ConfirmedState/Id",
+            "ConfirmedState/TransitionTime",
+            "ConfirmedState/TrueState",
+            "ConfirmedState/FalseState",
+            "ActiveState",
+            "InputNode",
+            "SuppressedState",
+            "OutOfServiceState",
+            "SuppressedOrShelved",
+            "MaxTimeShelved",
+            "AudibleEnabled",
+            "AudibleSound",
+            "SilenceState",
+            "OnDelay",
+            "OffDelay",
+            "FirstInGroupFlag",
+            "LatchedState",
+            "ReAlarmTime",
+            "ReAlarmRepeatCount",
+            "ActiveState/Id",
+            "ActiveState/TransitionTime",
+            "ActiveState/EffectiveTransitionTime",
+            "ActiveState/TrueState",
+            "ActiveState/FalseState",
+            "SuppressedState/Id",
+            "SuppressedState/TransitionTime",
+            "SuppressedState/TrueState",
+            "SuppressedState/FalseState",
+            "OutOfServiceState/Id",
+            "OutOfServiceState/TransitionTime",
+            "OutOfServiceState/TrueState",
+            "OutOfServiceState/FalseState",
+            "ShelvingState/CurrentState",
+            "ShelvingState/LastTransition",
+            "ShelvingState/UnshelveTime",
+            "ShelvingState/CurrentState/Id",
+            "ShelvingState/LastTransition/Id",
+            "ShelvingState/LastTransition/TransitionTime",
+            "SilenceState/Id",
+            "SilenceState/TransitionTime",
+            "SilenceState/TrueState",
+            "SilenceState/FalseState",
+            "LatchedState/Id",
+            "LatchedState/TransitionTime",
+            "LatchedState/TrueState",
+            "LatchedState/FalseState",
+            "HighHighLimit",
+            "HighLimit",
+            "LowLimit",
+            "LowLowLimit",
+            "BaseHighHighLimit",
+            "BaseHighLimit",
+            "BaseLowLimit",
+            "BaseLowLowLimit",
+            "SeverityHighHigh",
+            "SeverityHigh",
+            "SeverityLow",
+            "SeverityLowLow",
+            "HighHighDeadband",
+            "HighDeadband",
+            "LowDeadband",
+            "LowLowDeadband",
+            "LimitState/CurrentState",
+            "LimitState/LastTransition",
+            "LimitState/CurrentState/Id",
+            "LimitState/LastTransition/Id",
+            "LimitState/LastTransition/TransitionTime",
+            "SetpointNode",
+            "BaseSetpointNode",
+            "EngineeringUnits",
+            "HighHighState",
+            "HighState",
+            "LowState",
+            "LowLowState",
+            "HighHighState/Id",
+            "HighHighState/TransitionTime",
+            "HighHighState/TrueState",
+            "HighHighState/FalseState",
+            "HighState/Id",
+            "HighState/TransitionTime",
+            "HighState/TrueState",
+            "HighState/FalseState",
+            "LowState/Id",
+            "LowState/TransitionTime",
+            "LowState/TrueState",
+            "LowState/FalseState",
+            "LowLowState/Id",
+            "LowLowState/TransitionTime",
+            "LowLowState/TrueState",
+            "LowLowState/FalseState",
+            "NormalState",
+            "ExpirationDate",
+            "ExpirationLimit",
+            "CertificateType",
+            "Certificate",
+            "TrustListId",
+            "LastUpdateTime",
+            "UpdateFrequency",
+            "TargetValueNode",
+            "ExpectedTime",
+            "Tolerance"
+        ];
+
+        // The ConditionId operand: the NodeId attribute of the ConditionType instance itself.
+        function makeConditionIdOperand(): SimpleAttributeOperand {
+            return new SimpleAttributeOperand({
+                typeDefinitionId: resolveNodeId("ConditionType"),
+                browsePath: [],
+                attributeId: AttributeIds.NodeId
+            });
+        }
+
+        // The filter the alarm collector creates on the Server object: the 148 fields above plus ConditionId
+        // (149 select clauses), and a where clause of one InList over ConditionId with no list yet - the
+        // collector starts as "ConditionId in ()" and fills the list with ModifyMonitoredItems as conditions appear.
+        function makeAlarmCollectorFilter(): EventFilter {
+            const selectClauses = alarmCollectorFields.map(
+                (field) =>
+                    new SimpleAttributeOperand({
+                        typeDefinitionId: resolveNodeId("BaseEventType"),
+                        browsePath: field.split("/"),
+                        attributeId: AttributeIds.Value
+                    })
+            );
+            selectClauses.push(makeConditionIdOperand());
+            return new EventFilter({
+                selectClauses,
+                whereClause: new ContentFilter({
+                    elements: [{ filterOperator: FilterOperator.InList, filterOperands: [makeConditionIdOperand()] }]
+                })
+            });
+        }
+
+        it("ZZ2G server should accept the event filter an alarm collector sends: 149 select clauses and InList(ConditionId) with an empty list", async () => {
+            if (!client) throw new Error("client not initialized");
+            const eventFilter = makeAlarmCollectorFilter();
+            (eventFilter.selectClauses || []).length.should.eql(149);
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
+                const res = await (session as RawSession).createMonitoredItems(
+                    makeCreateRequest(subscription.subscriptionId, eventFilter)
+                );
+                res.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                // with the previous defaults this was BadEventFilterInvalid (149 > MaxSelectClauseParameters 100),
+                // and with the limit raised BadFilterOperandCountMismatch (InList declared 2..n operands)
+                should(res.results?.[0].statusCode).eql(StatusCodes.Good);
+                should(res.results?.[0].monitoredItemId).be.greaterThan(0);
+                const filterResult = res.results![0].filterResult as EventFilterResult;
+                should(filterResult.selectClauseResults?.length).eql(149);
             });
         });
 

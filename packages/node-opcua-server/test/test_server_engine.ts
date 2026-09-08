@@ -2412,3 +2412,62 @@ describe("FEAT-29: ServerEngine ServerCapabilities.ConformanceUnits (i=24101)", 
         });
     });
 });
+
+describe("FEAT-43: ServerEngine advertises MaxSelectClauseParameters and MaxWhereClauseParameters (i=24099, i=24100)", () => {
+    const maxSelectClauseParametersId = makeNodeId(VariableIds.Server_ServerCapabilities_MaxSelectClauseParameters);
+    const maxWhereClauseParametersId = makeNodeId(VariableIds.Server_ServerCapabilities_MaxWhereClauseParameters);
+
+    async function readLimits(engine: ServerEngine): Promise<[number, number]> {
+        const dataValues = await engine.read(
+            context,
+            new ReadRequest({
+                nodesToRead: [
+                    { nodeId: maxSelectClauseParametersId, attributeId: AttributeIds.Value },
+                    { nodeId: maxWhereClauseParametersId, attributeId: AttributeIds.Value }
+                ]
+            })
+        );
+        for (const dataValue of dataValues) {
+            dataValue.statusCode.should.eql(StatusCodes.Good);
+            dataValue.value.dataType.should.eql(DataType.UInt32);
+        }
+        return [dataValues[0].value.value as number, dataValues[1].value.value as number];
+    }
+
+    function makeEngine(serverCapabilities?: {
+        maxSelectClauseParameters: number;
+        maxWhereClauseParameters: number;
+    }): Promise<ServerEngine> {
+        const engine = new ServerEngine({
+            applicationUri: "URI:NODEOPCUA-EVENT-FILTER-LIMITS-TEST",
+            buildInfo: { productName: "EVENT-FILTER-LIMITS-TEST", productUri: "URI:EVENT-FILTER-LIMITS-TEST" },
+            serverCapabilities
+        });
+        return new Promise((resolve) => engine.initialize({ nodeset_filename: nodesets.standard }, () => resolve(engine)));
+    }
+
+    it("should advertise the defaults, large enough for an alarm collector selecting every field of the standard condition types (149)", async function (this: Mocha.Context) {
+        this.timeout(30000);
+        const engine = await makeEngine();
+        try {
+            const [maxSelect, maxWhere] = await readLimits(engine);
+            maxSelect.should.eql(1000);
+            maxWhere.should.eql(1000);
+            maxSelect.should.be.greaterThanOrEqual(149);
+        } finally {
+            await engine.shutdown();
+        }
+    });
+
+    it("should advertise the configured values", async function (this: Mocha.Context) {
+        this.timeout(30000);
+        const engine = await makeEngine({ maxSelectClauseParameters: 250, maxWhereClauseParameters: 50 });
+        try {
+            const [maxSelect, maxWhere] = await readLimits(engine);
+            maxSelect.should.eql(250);
+            maxWhere.should.eql(50);
+        } finally {
+            await engine.shutdown();
+        }
+    });
+});
