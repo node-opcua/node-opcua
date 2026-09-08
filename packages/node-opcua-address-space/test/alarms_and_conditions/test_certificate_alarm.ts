@@ -135,6 +135,54 @@ describe("Test Certificate alarm", function (this: Mocha.Suite) {
         certificate1.currentBranch().getSeverity().should.eql(199);
     });
 
+    it("FEAT-24 should stay silent when a re-evaluation finds the certificate in the same state", () => {
+        // push certificate management re-evaluates the alarm every minute and the alarm itself
+        // every half hour: a server left running used to raise a "certificate is OK!" event on the
+        // Server object at each check, which CTT Subscription Minimum 02 020 picks up as an
+        // event nobody asked for.
+        const namespace = addressSpace.getOwnNamespace();
+        const certificate1: UACertificateExpirationAlarmEx = instantiateCertificateExpirationAlarm(
+            namespace,
+            "CertificateExpirationAlarmType",
+            {
+                browseName: "CertificateExpirySilent",
+                conditionName: "ExpirySilent",
+                inputNode: NodeId.nullNodeId,
+                normalState: NodeId.nullNodeId,
+                conditionSource: null,
+                organizedBy: addressSpace.rootFolder.objects,
+                conditionOf: addressSpace.rootFolder.objects
+            }
+        );
+        const raiseEventSpy = sinon.spy();
+        addressSpace.rootFolder.objects.server.on("event", raiseEventSpy);
+        try {
+            // the first verdict is news
+            certificate1.setCertificate(ok);
+            raiseEventSpy.callCount.should.eql(1);
+            raiseEventSpy.getCall(0).args[0].message.value.text.should.match(/is OK/);
+
+            // the same verdict again, however it is reached, is not
+            certificate1.update();
+            certificate1.update();
+            certificate1.setCertificate(ok);
+            raiseEventSpy.callCount.should.eql(1);
+
+            // a change of verdict is news again, once
+            certificate1.setCertificate(out_of_date);
+            raiseEventSpy.callCount.should.eql(2);
+            raiseEventSpy.getCall(1).args[0].message.value.text.should.match(/has expired/);
+            certificate1.update();
+            raiseEventSpy.callCount.should.eql(2);
+
+            certificate1.setCertificate(ok);
+            raiseEventSpy.callCount.should.eql(3);
+            raiseEventSpy.getCall(2).args[0].message.value.text.should.match(/is OK/);
+        } finally {
+            addressSpace.rootFolder.objects.server.removeListener("event", raiseEventSpy);
+        }
+    });
+
     it("should update the alarm on a regular basis", () => {
         const namespace = addressSpace.getOwnNamespace();
         const certificate1: UACertificateExpirationAlarmEx = instantiateCertificateExpirationAlarm(

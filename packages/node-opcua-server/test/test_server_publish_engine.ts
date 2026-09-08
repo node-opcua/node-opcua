@@ -1118,6 +1118,77 @@ describe("Testing the server publish engine", function (this: Mocha.Suite) {
         }
     });
 
+    for (const highFirst of [true, false]) {
+        it(`FEAT-24 a Publish arriving while two subscriptions are late goes to the higher priority one, created ${highFirst ? "first" : "second"}`, () => {
+            // The CTT (Subscription Minimum 02 005/007/008) leaves no Publish in flight while it
+            // writes and waits a publishing interval, so both subscriptions are LATE when the next
+            // Publish lands and the engine picks one on arrival, through
+            // #_find_starving_subscription. Its comparator used to return 1 or 0, never a negative
+            // number: sorted that way, two subscriptions keep their registration order and the one
+            // created second was served first whatever the priorities (certification runs
+            // 11654/11656/11660: "Expected <N> but got <N+1>" in all four analyses).
+            const publish_server = new ServerSidePublishEngine();
+            const make = (id: number, priority: number) =>
+                makeSubscription({
+                    id,
+                    publishingInterval: 500,
+                    lifeTimeCount: 1000,
+                    maxKeepAliveCount: 3,
+                    priority,
+                    publishEngine: publish_server,
+                    globalCounter: { totalMonitoredItemCount: 0 },
+                    serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+                });
+            const high = make(highFirst ? 1 : 2, 100);
+            const low = make(highFirst ? 2 : 1, 0);
+            publish_server.add_subscription(highFirst ? high : low);
+            publish_server.add_subscription(highFirst ? low : high);
+            const highItem = add_mock_monitored_item(high);
+            const lowItem = add_mock_monitored_item(low);
+            const served: number[] = [];
+            const publish = () =>
+                publish_server._on_PublishRequest(new PublishRequest(), (_request, response) => {
+                    served.push((response as PublishResponse).subscriptionId);
+                });
+            try {
+                // the initial values: one Publish each, then a keep-alive
+                publish();
+                publish();
+                publish();
+                test.clock.tick(500 * (high.maxKeepAliveCount + 1));
+                flushPending();
+                served.length.should.eql(3);
+                publish_server.pendingPublishRequestCount.should.eql(0);
+
+                for (let iteration = 0; iteration < 3; iteration++) {
+                    served.length = 0;
+                    // no Publish in flight for a few cycles: both subscriptions owe a keep-alive
+                    test.clock.tick(500 * (high.maxKeepAliveCount + 2));
+                    high.state.should.eql(SubscriptionState.LATE);
+                    low.state.should.eql(SubscriptionState.LATE);
+                    // the write, sampled by both, then one publishing interval
+                    highItem.simulateMonitoredItemAddingNotification();
+                    lowItem.simulateMonitoredItemAddingNotification();
+                    test.clock.tick(550);
+                    // the Publish arrives: priority, not creation order, decides
+                    publish();
+                    flushPending();
+                    served.should.eql([high.id]);
+                    publish();
+                    flushPending();
+                    served.should.eql([high.id, low.id]);
+                }
+            } finally {
+                low.terminate();
+                low.dispose();
+                high.terminate();
+                high.dispose();
+                publish_server.shutdown();
+                publish_server.dispose();
+            }
+        });
+    }
+
     it("ZDZ-J PublishRequest timeout, the publish engine shall return a publish response with serviceResult = BadTimeout when Publish requests have timed out", () => {
         const publish_server = new ServerSidePublishEngine();
 
