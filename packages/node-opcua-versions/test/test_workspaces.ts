@@ -1,15 +1,33 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import "should";
+import should from "should";
 import {
     discoverAllManifests,
     discoverWorkspaceManifests,
+    globToRegExp,
     installRootFor,
     installRoots,
     pnpmPackagesList,
     workspacePatterns
 } from "../source/workspaces.js";
+
+describe("globToRegExp", () => {
+    it("keeps * and ? within a segment, lets ** span directories, zero included", () => {
+        should(globToRegExp("packages/binding-*").test("packages/binding-opcua")).eql(true);
+        should(globToRegExp("packages/binding-*").test("packages/binding-opcua/sub")).eql(false);
+        should(globToRegExp("packages/binding-*").test("packages/core")).eql(false);
+        should(globToRegExp("packages/**").test("packages")).eql(true);
+        should(globToRegExp("packages/**").test("packages/a/b")).eql(true);
+        should(globToRegExp("**/test/**").test("test")).eql(true);
+        should(globToRegExp("**/test/**").test("packages/a/test")).eql(true);
+        should(globToRegExp("**/test/**").test("packages/a/test/fixtures")).eql(true);
+        should(globToRegExp("**/test/**").test("packages/attest")).eql(false);
+        should(globToRegExp("apps/?").test("apps/a")).eql(true);
+        should(globToRegExp("apps/?").test("apps/ab")).eql(false);
+        should(globToRegExp("a.b").test("axb")).eql(false);
+    });
+});
 
 describe("pnpmPackagesList", () => {
     it("reads the packages list, with quotes, comments and other keys around it", () => {
@@ -76,6 +94,32 @@ describe("discoverWorkspaceManifests", () => {
     it("is a single package when nothing declares a workspace", () => {
         workspacePatterns(root).should.eql([]);
         rel(discoverWorkspaceManifests(root)).should.eql(["package.json"]);
+    });
+    it("accepts the globs the package managers accept: ./ prefix, partial names, trailing slash, nested wildcards", () => {
+        write(path.join(root, "packages", "binding-x", "package.json"), '{ "name": "binding-x" }');
+        write(path.join(root, "packages", "binding-y", "package.json"), '{ "name": "binding-y" }');
+        write(path.join(root, "packages", "binding-y", "sub", "package.json"), '{ "name": "binding-y-sub" }');
+        write(
+            path.join(root, "package.json"),
+            '{ "name": "root", "workspaces": ["./packages/binding-*", "experiment/", "./packages/a", "packages/*/sub"] }'
+        );
+        rel(discoverWorkspaceManifests(root)).should.eql([
+            "package.json",
+            "experiment/package.json",
+            "packages/a/package.json",
+            "packages/binding-x/package.json",
+            "packages/binding-y/package.json",
+            "packages/binding-y/sub/package.json"
+        ]);
+    });
+    it("excludes by glob, the excluded folder's subtree included", () => {
+        write(path.join(root, "packages", "b", "sub", "package.json"), '{ "name": "b-sub" }');
+        write(path.join(root, "package.json"), '{ "name": "root", "workspaces": ["packages/**", "!packages/b*"] }');
+        rel(discoverWorkspaceManifests(root)).should.eql([
+            "package.json",
+            "packages/a/package.json",
+            "packages/a/test/package.json"
+        ]);
     });
 });
 

@@ -255,4 +255,10 @@ describe("auditScripts", () => {
         w.script.should.eql("deps:update");
         w.fix.should.match(/-x "node-opcua\*"/);
     });
+    it("tells a script dedicated to the family to be replaced, not to exclude the family from itself", () => {
+        const [w] = auditScripts({ scripts: { "ncu:opcua": 'npx -y npm-check-updates -u --deep -f "node-opcua*" -t newest' } });
+        w.script.should.eql("ncu:opcua");
+        w.fix.should.match(/replace it with `node-opcua-versions bump --latest`/);
+        w.fix.should.not.match(/-x "node-opcua\*"/);
+    });
 });

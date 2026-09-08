@@ -62,7 +62,9 @@ export function pnpmPackagesList(yaml: string): string[] {
 
 /**
  * every package.json of the workspace: the root's first, then each package's, sorted by
- * path; a pattern starting with `!` excludes what it matches
+ * path. A pattern is a path glob as the package managers accept it (`packages/*`,
+ * `./packages/binding-*`, `apps/**`, `tools/cli`); one starting with `!` excludes what it
+ * matches.
  */
 export function discoverWorkspaceManifests(rootDir: string): string[] {
     const root = path.resolve(rootDir);
@@ -85,49 +87,102 @@ export function discoverWorkspaceManifests(rootDir: string): string[] {
     return fs.existsSync(rootManifest) ? [rootManifest, ...manifests.filter((m) => m !== rootManifest)] : manifests;
 }
 
+/**
+ * the directories a workspace glob designates, walking only the segments the pattern
+ * names: `packages/binding-*` reads one folder, `apps/**` the whole subtree under apps
+ */
 function expandPattern(root: string, pattern: string): string[] {
-    const normalized = pattern.replace(/\\/g, "/").replace(/\/$/, "");
-    if (normalized.endsWith("/**")) {
-        return walk(path.join(root, normalized.slice(0, -3)));
+    const segments = normalizePattern(pattern)
+        .split("/")
+        .filter((s) => s !== "" && s !== ".");
+    let dirs = [root];
+    for (const segment of segments) {
+        const next = new Set<string>();
+        if (segment === "**") {
+            for (const dir of dirs) for (const sub of descendants(dir)) next.add(sub);
+        } else if (/[*?]/.test(segment)) {
+            const re = globToRegExp(segment);
+            for (const dir of dirs) for (const sub of subdirectories(dir)) if (re.test(path.basename(sub))) next.add(sub);
+        } else {
+            for (const dir of dirs) {
+                const candidate = path.join(dir, segment);
+                if (isDirectory(candidate)) next.add(candidate);
+            }
+        }
+        dirs = [...next];
     }
-    if (normalized.endsWith("/*")) {
-        const base = path.join(root, normalized.slice(0, -2));
-        if (!fs.existsSync(base)) return [];
-        return fs
-            .readdirSync(base, { withFileTypes: true })
-            .filter((e) => e.isDirectory() && e.name !== "node_modules")
-            .map((e) => path.join(base, e.name));
-    }
-    if (normalized.includes("*")) {
-        throw new Error(`unsupported workspace pattern "${pattern}": only "<dir>", "<dir>/*" and "<dir>/**" are understood`);
-    }
-    const dir = path.join(root, normalized);
-    return fs.existsSync(dir) ? [dir] : [];
+    return dirs;
 }
 
-/** every directory under `base` (itself included) that holds a package.json, not descending into node_modules */
-function walk(base: string): string[] {
-    if (!fs.existsSync(base)) return [];
-    const found: string[] = [];
-    const visit = (dir: string) => {
-        if (fs.existsSync(path.join(dir, "package.json"))) found.push(dir);
-        for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-            if (entry.isDirectory() && entry.name !== "node_modules" && !entry.name.startsWith("."))
-                visit(path.join(dir, entry.name));
+/** forward slashes, no `./` prefix, no trailing slash: the shape the package managers normalise to */
+function normalizePattern(pattern: string): string {
+    return pattern.replace(/\\/g, "/").replace(/^\.\//, "").replace(/\/+$/, "");
+}
+
+/**
+ * a glob over `/`-separated paths as a regular expression: `**` spans directories (`** /`
+ * and a trailing `/**` match zero of them too), `*` and `?` stay within one segment
+ */
+export function globToRegExp(glob: string): RegExp {
+    let re = "";
+    for (let i = 0; i < glob.length; i++) {
+        const c = glob[i];
+        if (c === "/" && glob.slice(i + 1) === "**") {
+            re += "(?:/.*)?";
+            break;
         }
+        if (c === "*" && glob[i + 1] === "*") {
+            if (glob[i + 2] === "/") {
+                re += "(?:.*/)?";
+                i += 2;
+            } else {
+                re += ".*";
+                i += 1;
+            }
+        } else if (c === "*") re += "[^/]*";
+        else if (c === "?") re += "[^/]";
+        else re += c.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+    }
+    return new RegExp(`^${re}$`);
+}
+
+/** the directories directly under `dir`, node_modules and dot folders left out */
+function subdirectories(dir: string): string[] {
+    if (!isDirectory(dir)) return [];
+    return fs
+        .readdirSync(dir, { withFileTypes: true })
+        .filter((e) => e.isDirectory() && e.name !== "node_modules" && !e.name.startsWith("."))
+        .map((e) => path.join(dir, e.name));
+}
+
+/** `dir` itself and every directory below it, node_modules and dot folders left out */
+function descendants(dir: string): string[] {
+    const found: string[] = [];
+    const visit = (d: string) => {
+        found.push(d);
+        for (const sub of subdirectories(d)) visit(sub);
     };
-    visit(base);
+    if (isDirectory(dir)) visit(dir);
     return found;
 }
 
+function isDirectory(p: string): boolean {
+    try {
+        return fs.statSync(p).isDirectory();
+    } catch {
+        return false;
+    }
+}
+
+/** an exclusion glob matching the directory, or one of its ancestors, excludes it */
 function matchesExclusion(root: string, dir: string, exclusion: string): boolean {
     const relative = path.relative(root, dir).replace(/\\/g, "/");
-    const ex = exclusion
-        .replace(/\\/g, "/")
-        .replace(/\/\*\*$/, "")
-        .replace(/\/\*$/, "")
-        .replace(/^\*\*\//, "");
-    return relative === ex || relative.startsWith(`${ex}/`) || relative.split("/").includes(ex);
+    const re = globToRegExp(normalizePattern(exclusion));
+    const parts = relative.split("/");
+    for (let i = 1; i <= parts.length; i++) {
+        if (re.test(parts.slice(0, i).join("/"))) return true;
+    }
+    return false;
 }
 
 /** folders that never hold a package of the repository itself */

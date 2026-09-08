@@ -12,7 +12,7 @@ import { bundledSet, ReleaseMatrix, type ReleaseSet } from "./index.js";
 import { type ManifestFile, readManifest, writeManifest } from "./manifest.js";
 import { DEFAULT_REGISTRY, type RegistryClient, readPeerRequirements, registryClient } from "./registry.js";
 import { newerReleaseAvailable, resolveLatest, resolveManifestRelease, resolveRelease } from "./resolve.js";
-import { discoverAllManifests, discoverWorkspaceManifests, installRoots } from "./workspaces.js";
+import { discoverAllManifests, discoverWorkspaceManifests, installRoots, workspacePatterns } from "./workspaces.js";
 
 interface CommonOptions {
     package: string;
@@ -57,8 +57,46 @@ function warnAboutScripts(manifest: ManifestFile): number {
     return warnings.length;
 }
 
+function displayPath(manifest: ManifestFile): string {
+    return path.relative(process.cwd(), manifest.path) || "package.json";
+}
+
 function heading(manifest: ManifestFile, context: Context): void {
-    if (context.manifests.length > 1) console.log(`\n== ${path.relative(process.cwd(), manifest.path) || "package.json"}`);
+    if (context.manifests.length > 1) console.log(`\n== ${displayPath(manifest)}`);
+}
+
+type DependencyField = "dependencies" | "devDependencies" | "peerDependencies";
+
+/** does the manifest declare any package of the family in these fields? */
+function declaresFamily(manifest: ManifestFile, matrix: ReleaseMatrix, fields: DependencyField[]): boolean {
+    return fields.some((field) => Object.keys(manifest.json[field] ?? {}).some((name) => matrix.manages(name)));
+}
+
+/**
+ * in a run over several manifests, one that declares nothing of the family and has no
+ * script to warn about is not worth a heading: it is counted and summarised at the end
+ */
+function skippable(manifest: ManifestFile, ctx: Context, fields: DependencyField[]): boolean {
+    return ctx.manifests.length > 1 && !declaresFamily(manifest, ctx.matrix, fields) && auditScripts(manifest.json).length === 0;
+}
+
+function reportSkipped(skipped: number): void {
+    if (skipped > 0) console.log(`\n  ${skipped} package.json without node-opcua-* dependency not shown`);
+}
+
+/**
+ * a workspace root read without -w or -a: say so, because the node-opcua-* dependencies
+ * of a monorepo usually live in its packages, not in the root manifest
+ */
+function workspaceNote(ctx: Context): void {
+    const { common, rootDir } = ctx;
+    if (common.workspaces || common.all) return;
+    const patterns = workspacePatterns(rootDir).filter((p) => !p.startsWith("!"));
+    if (patterns.length === 0) return;
+    const members = discoverWorkspaceManifests(rootDir).length - 1;
+    console.log(
+        `  note: this is a workspace root (${members} package${members === 1 ? "" : "s"} under ${patterns.join(", ")}) and only its own package.json was read: pass -w to include the packages, or -a for every package.json in the tree`
+    );
 }
 
 /**
@@ -124,13 +162,22 @@ program
             : (["dependencies", "devDependencies"] as const);
         console.log(`release ${set.release}${set.date ? ` (${set.date})` : ""}`);
         const written: ManifestFile[] = [];
+        let skipped = 0;
         for (const manifest of ctx.manifests) {
+            if (skippable(manifest, ctx, [...fields])) {
+                skipped++;
+                continue;
+            }
             heading(manifest, ctx);
             const plan = planBump(manifest.json, set, matrix, [...fields]);
             warnAboutScripts(manifest);
             for (const u of plan.unknown) console.log(`  ! ${u.name} is not part of release ${set.release} (${u.field})`);
             if (plan.changes.length === 0) {
-                console.log("  every node-opcua-* dependency is already on this release");
+                console.log(
+                    declaresFamily(manifest, matrix, [...fields])
+                        ? "  every node-opcua-* dependency is already on this release"
+                        : `  no node-opcua-* dependency in ${displayPath(manifest)}`
+                );
                 continue;
             }
             for (const c of plan.changes) console.log(`  ${c.name.padEnd(48)} ${c.from.padStart(10)}  ->  ${c.to}   (${c.field})`);
@@ -140,6 +187,8 @@ program
             written.push(manifest);
             console.log(`  wrote ${manifest.path}`);
         }
+        reportSkipped(skipped);
+        workspaceNote(ctx);
         if (opts.install && written.length > 0) runInstalls(written, ctx.rootDir);
     });
 
@@ -153,7 +202,13 @@ program
     .action(async (opts: { dryRun?: boolean; release?: string }) => {
         const ctx = context();
         const { common, matrix, client } = ctx;
+        let skipped = 0;
         for (const manifest of ctx.manifests) {
+            // without --release, a manifest that pins nothing of the family cannot be expanded anyway
+            if (!opts.release && skippable(manifest, ctx, ["dependencies", "devDependencies"])) {
+                skipped++;
+                continue;
+            }
             heading(manifest, ctx);
             const release = opts.release ?? (await resolveManifestRelease(manifest.json, matrix, client, common));
             if (!release) {
@@ -191,6 +246,8 @@ program
             writeManifest(manifest);
             console.log(`  wrote ${manifest.path}`);
         }
+        reportSkipped(skipped);
+        workspaceNote(ctx);
     });
 
 program
@@ -201,7 +258,12 @@ program
     .action(async (opts: { release?: string; fix?: boolean }) => {
         const ctx = context();
         const { common, matrix, client } = ctx;
+        let skipped = 0;
         for (const manifest of ctx.manifests) {
+            if (skippable(manifest, ctx, ["dependencies", "devDependencies"])) {
+                skipped++;
+                continue;
+            }
             heading(manifest, ctx);
             const release = opts.release ?? (await resolveManifestRelease(manifest.json, matrix, client, common)) ?? undefined;
             if (release) await resolveRelease(release, matrix, client, common);
@@ -211,7 +273,7 @@ program
                 console.log(
                     `  ! the node-opcua-* pins belong to no published release${common.offline ? ` (offline: only ${matrix.latest().release} is known)` : ""}; bump to a release, or pass --release`
                 );
-            else console.log("  no node-opcua-* pin: nothing to check");
+            else console.log(`  no node-opcua-* dependency in ${displayPath(manifest)}: nothing to check`);
             const scriptWarnings = warnAboutScripts(manifest);
             for (const r of report.ranges) console.log(`  ! ${r.name} is written as a range (${r.specifier}); pin it exactly`);
             for (const m of report.mismatches)
@@ -237,6 +299,8 @@ program
             }
             process.exitCode = 1;
         }
+        reportSkipped(skipped);
+        workspaceNote(ctx);
     });
 
 program
