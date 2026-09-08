@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-uanodeset-rdf",
-    "version": "2.181.1",
+    "version": "2.182.0",
     "description": "pure nodejs OPCUA SDK - a one-way JSON-LD (RDF) export of an OPC UA information model",
     "scripts": {
         "build": "tsc -b",
@@ -33,16 +33,16 @@
         "npm": ">=10.x"
     },
     "dependencies": {
-        "node-opcua-address-space": "2.181.1",
-        "node-opcua-data-model": "2.181.0",
-        "node-opcua-json": "2.181.1",
-        "node-opcua-nodeid": "2.181.0",
-        "node-opcua-pseudo-session": "2.181.1",
-        "node-opcua-service-browse": "2.181.0",
-        "node-opcua-variant": "2.181.0"
+        "node-opcua-address-space": "2.182.0",
+        "node-opcua-data-model": "2.182.0",
+        "node-opcua-json": "2.182.0",
+        "node-opcua-nodeid": "2.182.0",
+        "node-opcua-pseudo-session": "2.182.0",
+        "node-opcua-service-browse": "2.182.0",
+        "node-opcua-variant": "2.182.0"
     },
     "devDependencies": {
-        "node-opcua-nodesets": "2.181.0"
+        "node-opcua-nodesets": "2.182.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
