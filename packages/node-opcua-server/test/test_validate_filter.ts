@@ -1,6 +1,7 @@
 import "should";
 import type { BaseNode } from "node-opcua-address-space";
 import { AttributeIds } from "node-opcua-data-model";
+import { resolveNodeId } from "node-opcua-nodeid";
 import {
     ContentFilter,
     ElementOperand,
@@ -12,6 +13,7 @@ import {
 import { StatusCodes } from "node-opcua-status-code";
 import type { ReadValueIdOptions } from "node-opcua-types";
 
+import { defaultServerCapabilities } from "../source/server_capabilities.js";
 import { validateFilter } from "../source/validate_filter.js";
 
 // The EventFilter branch of validateFilter does not dereference the node, so a stub is sufficient.
@@ -153,6 +155,71 @@ describe("validateFilter - EventFilter whereClause conformance (OPC UA Part 4 - 
             StatusCodes.BadEventFilterInvalid
         );
         validateFilter(filter, onEventNotifier, dummyNode, { maxSelectClauseParameters: 2 }).should.eql(StatusCodes.Good);
+    });
+
+    // The ConditionId operand of an alarm collector: the NodeId attribute of the ConditionType instance itself.
+    const conditionIdOperand = () =>
+        new SimpleAttributeOperand({
+            typeDefinitionId: resolveNodeId("ConditionType"),
+            browsePath: [],
+            attributeId: AttributeIds.NodeId
+        });
+
+    // The filter the OPC Foundation CTT's alarm collector creates on the Server object (captured on the
+    // wire): every event field of every standard condition type the server advertises, 148 of them, each
+    // on BaseEventType with one browse path, plus the ConditionId operand; and a where clause of one
+    // InList over ConditionId with no list yet (the collector fills it with ModifyMonitoredItems).
+    function alarmCollectorFilter(): EventFilter {
+        const selectClauses: SimpleAttributeOperand[] = [];
+        for (let i = 0; i < 148; i++) {
+            selectClauses.push(
+                new SimpleAttributeOperand({
+                    typeDefinitionId: resolveNodeId("BaseEventType"),
+                    browsePath: [`Field${i}`],
+                    attributeId: AttributeIds.Value
+                })
+            );
+        }
+        selectClauses.push(conditionIdOperand());
+        return new EventFilter({
+            selectClauses,
+            whereClause: new ContentFilter({
+                elements: [{ filterOperator: FilterOperator.InList, filterOperands: [conditionIdOperand()] }]
+            })
+        });
+    }
+
+    it("VF11 - the default server capabilities accept the 149 select clauses an alarm collector sends", () => {
+        const filter = alarmCollectorFilter();
+        (filter.selectClauses || []).length.should.eql(149);
+        const defaults = {
+            maxSelectClauseParameters: defaultServerCapabilities.maxSelectClauseParameters,
+            maxWhereClauseParameters: defaultServerCapabilities.maxWhereClauseParameters
+        };
+        validateFilter(filter, onEventNotifier, dummyNode, defaults).should.eql(StatusCodes.Good);
+        // the previous default, 100, is what refused it: Part 5 leaves the value to the server, and any
+        // server exposing the standard alarm types receives more than that from a client selecting every field
+        validateFilter(filter, onEventNotifier, dummyNode, { maxSelectClauseParameters: 100 }).should.eql(
+            StatusCodes.BadEventFilterInvalid
+        );
+    });
+
+    it("VF12 - accepts an InList with only its left operand: Part 4 7.7.4 makes it FALSE, not malformed", () => {
+        const filter = new EventFilter({
+            selectClauses: [],
+            whereClause: new ContentFilter({
+                elements: [{ filterOperator: FilterOperator.InList, filterOperands: [conditionIdOperand()] }]
+            })
+        });
+        validateFilter(filter, onEventNotifier, dummyNode).should.eql(StatusCodes.Good);
+    });
+
+    it("VF13 - still rejects an InList with no operand at all with BadFilterOperandCountMismatch", () => {
+        const filter = new EventFilter({
+            selectClauses: [],
+            whereClause: new ContentFilter({ elements: [{ filterOperator: FilterOperator.InList, filterOperands: [] }] })
+        });
+        validateFilter(filter, onEventNotifier, dummyNode).should.eql(StatusCodes.BadFilterOperandCountMismatch);
     });
 
     it("VF10 - still rejects an EventFilter applied to a non-EventNotifier attribute", () => {
