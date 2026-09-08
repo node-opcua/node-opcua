@@ -68,6 +68,7 @@
         { "path": "node-opcua-nodeset-ua" },
         { "path": "node-opcua-nodeset-weihenstephan" },
         { "path": "node-opcua-nodeset-woodworking" },
+        { "path": "node-opcua-json" },
         { "path": "node-opcua-nodesets" },
         { "path": "node-opcua-pseudo-session" },
         { "path": "node-opcua-role-set-admin" },
