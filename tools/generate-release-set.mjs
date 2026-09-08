@@ -8,8 +8,10 @@
  * and this package is force-bumped with every release so that its version *is* the
  * release name. Nothing else is stored: the registry is the history.
  *
- * Run by lerna through node-opcua-versions' `version` lifecycle script, after every
- * manifest has been bumped and before the release commit. `--stage` adds package.json to
+ * Run by lerna through the root package's `version` lifecycle script, after every
+ * manifest and lerna.json have been bumped and before the release commit. It cannot run as
+ * this package's own `version` script: lerna runs those before it writes lerna.json, so the
+ * release name would still be the previous one. `--stage` adds package.json to
  * git so that it lands in that commit, as `npm version` documents for `version` scripts.
  * This file is not part of the published package: a node-opcua user never needs it.
  *

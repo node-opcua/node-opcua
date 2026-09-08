@@ -435,9 +435,11 @@ pins, and writes the `nodeOpcuaRelease` field of this package's manifest. It ref
 when this package's version is not the release name, which is the invariant every consumer
 relies on.
 
-It runs as this package's `version` lifecycle script during `lerna version`, after every
-manifest has been bumped and before the release commit, and stages its output so that it
-lands in that commit. The root `version:lerna` script passes
+It runs as the root package's `version` lifecycle script during `lerna version`, after every
+manifest and lerna.json have been bumped and before the release commit, and stages its output
+so that it lands in that commit. It cannot be this package's own `version` script: lerna runs
+those before it writes lerna.json, so the release name would still be the previous one. The
+root `version:lerna` script passes
 `--force-publish=node-opcua-versions` so that this package is part of every release even
 when nothing else in it changed: its content always changes.
 

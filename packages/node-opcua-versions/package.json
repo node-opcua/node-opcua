@@ -10,8 +10,7 @@
         "format": "biome check --write --no-errors-on-unmatched .",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "test": "mocha",
-        "test:check": "tsc --noEmit -p test/tsconfig.json",
-        "version": "node ../../tools/generate-release-set.mjs --stage"
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

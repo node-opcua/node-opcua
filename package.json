@@ -64,6 +64,7 @@
     "version:lerna": "npx lerna version --force-publish=node-opcua-versions",
     "makelinks": "npx tsx ../make-links/makelinks.ts",
     "clean": "node tools/clean/clean.js",
+    "version": "node tools/generate-release-set.mjs --stage",
     "postversion": "pnpm install --frozen-lockfile",
     "prepare": "husky",
     "build:nodeset-images": "node tools/build-nodeset-images.mjs",
