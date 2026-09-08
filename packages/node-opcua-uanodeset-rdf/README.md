@@ -30,7 +30,8 @@ That is the job. Load the model once, export it, and let a graph database answer
 
 ```ts
 import { writeFile } from "node:fs/promises";
-import { AddressSpace, generateAddressSpace } from "node-opcua-address-space";
+import { AddressSpace } from "node-opcua-address-space";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { nodesets } from "node-opcua-nodesets";
 import { addressSpaceToJsonLdText } from "node-opcua-uanodeset-rdf";
 
