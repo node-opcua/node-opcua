@@ -101,7 +101,7 @@ const nodeIdValueToString = (value: NodeId): string => {
  *  A NamespaceIndex of 1 is always encoded as a JSON number.
  */
 
-function opcuaJsonEncodeNodeId104(
+export function opcuaJsonEncodeNodeId104(
     value: NodeId,
     scheme = JsonEncodingScheme.DeprecatedReversible,
     namespaceArray?: string[]
@@ -168,7 +168,11 @@ export function opcuaJsonEncodeExpandedNodeIdAsString(value: ExpandedNodeId, nam
     return result;
 }
 
-function opcuaJsonEncodeNodeId105(value: NodeId, scheme: JsonEncodingScheme, namespaceArray?: string[]): NodeIdJSON105 | undefined {
+export function opcuaJsonEncodeNodeId105(
+    value: NodeId,
+    scheme: JsonEncodingScheme,
+    namespaceArray?: string[]
+): NodeIdJSON105 | undefined {
     if (value.namespace === 0 && value.identifierType === NodeIdType.NUMERIC && value.value === 0) {
         if (scheme === JsonEncodingScheme.Compact) {
             return undefined;
@@ -178,7 +182,7 @@ function opcuaJsonEncodeNodeId105(value: NodeId, scheme: JsonEncodingScheme, nam
     return opcuaJsonEncodeNodeIdAsString(value, namespaceArray || []);
 }
 
-function opcuaJsonEncodeExpandedNodeId105(
+export function opcuaJsonEncodeExpandedNodeId105(
     value: ExpandedNodeId,
     scheme: JsonEncodingScheme,
     namespaceArray?: string[]

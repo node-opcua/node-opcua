@@ -148,19 +148,19 @@ export function opcuaJsonEncodeDataValueMQTT(
 ): VariantJSONBody | VariantJSON105 | VariantJSON104 | DataValueJSON105 | DataValueJSON104 | null {
     switch (encoding) {
         case JsonEncodingScheme.DeprecatedNonReversible:
-            return _opcuaJsonEncodeDataValueMQTT104(dataValue, JsonEncoderMode104.NonReversible, mask, namespaceArray);
+            return opcuaJsonEncodeDataValueMQTT104(dataValue, JsonEncoderMode104.NonReversible, mask, namespaceArray);
         case JsonEncodingScheme.DeprecatedReversible:
-            return _opcuaJsonEncodeDataValueMQTT104(dataValue, JsonEncoderMode104.Reversible, mask, namespaceArray);
+            return opcuaJsonEncodeDataValueMQTT104(dataValue, JsonEncoderMode104.Reversible, mask, namespaceArray);
         case JsonEncodingScheme.Verbose:
-            return _opcuaJsonEncodeDataValueMQTT105(dataValue, JsonEncoderMode105.Verbose, mask, namespaceArray);
+            return opcuaJsonEncodeDataValueMQTT105(dataValue, JsonEncoderMode105.Verbose, mask, namespaceArray);
         case JsonEncodingScheme.Compact: {
-            return _opcuaJsonEncodeDataValueMQTT105(dataValue, JsonEncoderMode105.Compact, mask, namespaceArray);
+            return opcuaJsonEncodeDataValueMQTT105(dataValue, JsonEncoderMode105.Compact, mask, namespaceArray);
         }
         default:
             throw new Error("Invalid JsonEncodingScheme");
     }
 }
-function _opcuaJsonEncodeDataValueMQTT104(
+export function opcuaJsonEncodeDataValueMQTT104(
     dataValue: DataValue,
     mode: JsonEncoderMode104,
     mask: DataSetFieldContentMask,
@@ -248,7 +248,7 @@ function _opcuaJsonEncodeDataValueMQTT104(
  * @param mask
  * @returns
  */
-export function _opcuaJsonEncodeDataValueMQTT105(
+export function opcuaJsonEncodeDataValueMQTT105(
     dataValue: DataValue,
     mode: JsonEncoderMode105,
     mask: DataSetFieldContentMask,

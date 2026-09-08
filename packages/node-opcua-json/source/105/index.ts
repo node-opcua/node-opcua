@@ -1,0 +1,118 @@
+/**
+ * ==========================================================================
+ * Copyright (c) 2021-2026 Sterfive - etienne.rossignon@sterfive.com
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ * ==========================================================================
+ */
+
+/**
+ * The OPC UA 1.05 JSON encoding (Part 6, "Compact" and "Verbose" forms), exposed under
+ * version-free names: `import { opcuaJsonEncodeDataValue } from "node-opcua-json/105"`.
+ *
+ * Everything here is locked to 1.05: the encoders take a JsonEncoderMode (Compact or Verbose)
+ * and the JSON types are the 1.05 shapes (UaType/Value, UaTypeId/UaBody, NodeId strings).
+ * The root "node-opcua-json" entry point dispatches on JsonEncodingScheme and accepts either edition.
+ */
+
+import type { ExtensionObject } from "node-opcua-extension-object";
+import type { ExtensionObjectBuilder } from "../json_basic_encoding_body_functor.js";
+import {
+    type ExtensionObjectJSON105,
+    opcuaJsonDecodeExtensionObject as opcuaJsonDecodeExtensionObjectAny,
+    opcuaJsonEncodeExtensionObject as opcuaJsonEncodeExtensionObjectAny
+} from "../json_basic_encoding_decoding_extension_object.js";
+import { type JsonEncoderMode105, toJsonEncodingScheme } from "../json_encoding_scheme.js";
+
+// version-agnostic parts, shared with the root entry point
+export * from "../decode_opcua_json.js";
+export type { ExtensionObjectConstructorFuncWithSchema } from "../extension_object_constructor.js";
+export * from "../json_basic_encoding_body_functor.js";
+export * from "../json_basic_encoding_decoding_byte_string.js";
+// DataValue
+export {
+    type DataValueJSON105 as DataValueJSON,
+    type DataValueStatusAndTimestamps,
+    opcuaJsonDecodeDataValue105 as opcuaJsonDecodeDataValue,
+    opcuaJsonEncodeDataValue105 as opcuaJsonEncodeDataValue,
+    opcuaJsonEncodeDataValueMQTT105 as opcuaJsonEncodeDataValueMQTT
+} from "../json_basic_encoding_decoding_data_value.js";
+export * from "../json_basic_encoding_decoding_date_time.js";
+// ExtensionObject
+export {
+    type ExtensionObjectJSON105 as ExtensionObjectJSON,
+    makeBody,
+    opcuaJsonDecodeExtensionObjectBody,
+    opcuaJsonEncodeExtensionObjectBody
+} from "../json_basic_encoding_decoding_extension_object.js";
+export * from "../json_basic_encoding_decoding_int64.js";
+export * from "../json_basic_encoding_decoding_localizedtext.js";
+// NodeId
+export {
+    type NodeIdJSON105 as NodeIdJSON,
+    opcuaDecodeURIComponent,
+    opcuaEncodeURIComponent,
+    opcuaJsonDecodeExpandedNodeId,
+    opcuaJsonDecodeNodeId,
+    opcuaJsonEncodeExpandedNodeId105 as opcuaJsonEncodeExpandedNodeId,
+    opcuaJsonEncodeExpandedNodeIdAsString,
+    opcuaJsonEncodeNodeId105 as opcuaJsonEncodeNodeId,
+    opcuaJsonEncodeNodeIdAsString
+} from "../json_basic_encoding_decoding_nodeid.js";
+export * from "../json_basic_encoding_decoding_qualifiedname.js";
+
+// StatusCode
+export {
+    opcuaJsonDecodeStatusCode,
+    opcuaJsonEncodeStatusCode105 as opcuaJsonEncodeStatusCode,
+    type StatusCodeJSON
+} from "../json_basic_encoding_decoding_statuscode.js";
+// Variant
+export {
+    opcuaJsonDecodeVariant105 as opcuaJsonDecodeVariant,
+    opcuaJsonEncodeVariant105 as opcuaJsonEncodeVariant,
+    type VariantJSON105 as VariantJSON,
+    type VariantJSONBody,
+    type VariantJSONBodyScalar
+} from "../json_basic_encoding_decoding_variant.js";
+export { JsonEncoderMode105 as JsonEncoderMode, JsonEncodingScheme, toJsonEncodingScheme } from "../json_encoding_scheme.js";
+
+/**
+ * encode an ExtensionObject with the 1.05 rules: { UaTypeId, UaBody }, UaBody omitted in
+ * Compact mode when empty; a null ExtensionObject is omitted (undefined) in Compact mode.
+ */
+export function opcuaJsonEncodeExtensionObject(
+    extensionObject: ExtensionObject | ExtensionObject[] | null,
+    mode: JsonEncoderMode105,
+    namespaceArray?: string[]
+): ExtensionObjectJSON105 | ExtensionObjectJSON105[] | null | undefined {
+    return opcuaJsonEncodeExtensionObjectAny(extensionObject, toJsonEncodingScheme(mode), namespaceArray) as
+        | ExtensionObjectJSON105
+        | ExtensionObjectJSON105[]
+        | null
+        | undefined;
+}
+
+export function opcuaJsonDecodeExtensionObject(
+    pojo: ExtensionObjectJSON105,
+    builder: ExtensionObjectBuilder,
+    namespaceArray: string[]
+): ExtensionObject | ExtensionObject[] | null {
+    return opcuaJsonDecodeExtensionObjectAny(pojo, builder, namespaceArray);
+}
