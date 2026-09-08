@@ -1,86 +1,170 @@
-# RFC: NodeSet-NDJSON, a line-oriented interchange form for OPC UA NodeSet2 documents
+# NodeSet-NDJSON: an internal load cache, and an implementation report on OPC 10000-6 Annex I
 
 | | |
 |---|---|
-| **Status** | Draft for discussion, proposed to the OPC Foundation |
-| **Version** | 3 (`schema: 3`) |
+| **Status** | **Withdrawn as an interchange proposal.** Annex I is the normative JSON NodeSet. What is specified here is an internal cache format, frozen at `schema: 3`. |
+| **Version** | 3 (`schema: 3`), frozen |
 | **Authors** | Sterfive SAS, the node-opcua project |
 | **Reference implementation** | `node-opcua-address-space`: `api/loader/nodeset_record.ts` (the record), `nodeset_image_codec.ts` (this encoding), `nodeset_xml_producer.ts` (NodeSet2 XML in), `nodeset_records_to_xml.ts` (NodeSet2 XML out) |
-| **Date** | 2026-09-06 |
+| **The normative JSON NodeSet** | `node-opcua-uanodeset-json`, implementing OPC 10000-6 Annex I |
+| **Date** | 2026-09-08 |
 
 ## Abstract
 
-This document specifies **NodeSet-NDJSON**, a serialization of an OPC UA `UANodeSet`
-document as [Newline-Delimited JSON](https://github.com/ndjson/ndjson-spec): one JSON
-value per line, a header line, then one line per node, then a trailer line.
+This document does two things.
 
-It is defined to be *equipotent* with the NodeSet2 XML schema
-(`Opc.Ua.NodeSet2.xsd`): every NodeSet2 document has a NodeSet-NDJSON form that carries
-the same information model, and every NodeSet-NDJSON document can be written back as
-NodeSet2 XML with no loss. It is not a new information model, a new profile, or a
-replacement for NodeSet2 XML. It is the same document in a form that is markedly smaller
-and markedly faster to read.
+It **specifies NodeSet-NDJSON**, a serialization of an OPC UA `UANodeSet` as
+[Newline-Delimited JSON](https://github.com/ndjson/ndjson-spec): one JSON value per line, a
+header, one line per node, a trailer. node-opcua uses it as a load cache and ships it beside the
+published nodesets. It is not offered to anyone as an interchange format, and §1 says why.
 
-Over the 33 published nodesets shipped by node-opcua (Appendix A), comparing each form
-against the other in the same state:
+It also **reports what implementing OPC 10000-6 Annex I established**, since this is the second
+independent implementation of that annex and the first outside the OPC Foundation's own tool.
+§2.3 is a review of the annex, written from having read it by writing code against it rather than
+from reading it.
 
-| | NodeSet2 XML | NodeSet-NDJSON | |
-|---|---|---|---|
-| uncompressed | 15 209 385 B | 6 408 671 B | **58 % smaller** |
-| gzipped | 961 258 B | 694 687 B | **28 % smaller** |
-
-Which of the two matters depends on where the bytes sit: an embedded device parsing from
-flash pays the uncompressed cost, a CDN pays the gzipped one. Parsing is **67 % faster**,
-which makes an address space load **24 % to 33 % faster** cold and **44 % to 48 % faster** warm, less than the parse figure,
-because parsing is not what dominates a load (Appendix C).
-
-Both size figures compare like with like. A compressed form against an uncompressed one
-would show 95 % and would mean nothing, since anyone shipping 15 MB of XML can gzip it,
-and no number in this document is quoted that way.
-**The strongest argument for this format is not its size but its canonicality** (§9):
-NodeSet2 XML has no byte-level identity, and this does.
+The parts of this document with value beyond either format are §9: what equivalence between two
+serializations of an information model actually means, why **a round trip cannot prove it**
+(§9.3), and what a canonical form buys that neither NodeSet2 XML nor Annex I currently has
+(§9.4).
 
 ## 1. Status of this document
 
-This is a draft submitted for discussion. It describes a format that is implemented,
-shipped and exercised against the whole published nodeset catalogue, and whose
-equivalence with NodeSet2 XML is checked mechanically on every release (§9). It is
-offered as a starting point for a normative OPC Foundation specification, not as one.
+An earlier revision proposed NodeSet-NDJSON to the OPC Foundation as an interchange format. That
+proposal is withdrawn, and the reason is simply that it was made in ignorance:
 
-## 2. Motivation
+**OPC 10000-6 draft 1.05.08 carries Annex I as normative**, and I.4 of it specifies a
+line-delimited JSON serialization of a `UANodeSet`. There will be a specified JSON NodeSet, it
+is not this one, and a second format competing with it would help nobody. Annex I is what
+node-opcua reads and writes for exchange, through `node-opcua-uanodeset-json`.
 
-A NodeSet2 document is written once by a companion-specification working group and read
-on every start of every server, client and tool that uses it. The published `Opc.Ua`
-nodeset alone is 4.1 MB of XML holding 5 476 nodes; a modest server loads that plus DI,
-Machinery and one or two companion specifications before it answers its first request.
+Two things in the earlier revision were wrong in a way worth recording, because both came from
+arguing about a document without having read it:
 
-XML is a good format for the writing: it is reviewable, diffable, schema-checked, and it
-carries the comments and the structure a standards process needs. It is a poor format for
-the reading:
+- It asserted that no Annex I existed. That was checked against the *published* 1.05, where it
+  does not; the draft lives outside the specification repository. The available evidence was
+  mistaken for all of it.
+- It proposed replacing Annex I's `nsu=<uri>;` NodeIds with a namespace table, on a size
+  argument. Annex I.1 states *"No namespace table: NodeIds and QualifiedNames embed the
+  NamespaceUri directly"* as a deliberate decision. That was not a 2 % argument about gzip; it
+  was a request to rewrite the annex.
 
-- **Size.** The published catalogue is 15.2 MB. Embedded and browser deployments ship it,
-  cache it and download it; every one of them pays for markup that says the same thing
-  five thousand times.
-- **Parse cost.** A conforming XML parser must handle namespaces, entities, mixed content,
-  CDATA, DTD subsets and processing instructions before the first node is seen. A JSON
-  parser is a `JSON.parse` per line, and every runtime has one in native code.
-- **Streaming.** A NodeSet2 document is a single element with 5 000 children; a reader
-  that wants one node at a time must run a SAX pass and maintain its own state machine.
-  In NDJSON, the unit of the format is the unit of the model: a node is a line.
-- **Ambiguity of the wire form.** Two NodeSet2 files may express the same model with
-  different attribute order, entity spellings, alias definitions, indentation and node
-  order. Nothing in the XML schema says which spelling is canonical, so no two tools agree
-  on a byte-level identity for a nodeset.
+**What NodeSet-NDJSON remains.** node-opcua loads faster from it than from XML (Appendix C), so
+it stays as a private cache: written by the build, read by the loader, shipped beside the
+catalogue. It is **frozen at `schema: 3`** and carries no cross-version guarantee to anyone
+outside this repository. The freeze is also what makes every measurement in this document
+reproducible; if the encoding moved, none of them could be checked again.
 
-NodeSet-NDJSON addresses all four without changing the information model, though the fourth only
-in its canonical form (§9.4), since this format leaves document order free too and has to be
-told not to. The design constraint throughout was: **anything the XML can say, this must say;
-anything this can say, the XML must be able to say.**
+The specification below is therefore documentation of something that exists, not a proposal.
+
+## 2. Annex I, and what implementing it established
+
+### 2.1 What was implemented
+
+`node-opcua-uanodeset-json` reads and writes all three serializations the annex defines:
+
+| | Annex | form |
+|---|---|---|
+| `.jsonl` | I.4 | one JSON object per line, header first |
+| `.json` | I.1 | one document, children nested in their parent's `ChildList` |
+| `.uanodeset` | I.3 | a TAR.GZ of a manifest and numbered members |
+
+Three checks were run, in increasing order of what they can establish:
+
+1. **Digest equality.** The DI nodeset read from all three forms produces an address space whose
+   digest equals the one built from its NodeSet2 XML, where the digest covers every node's id,
+   browse name, class, reference count and, for variables, status code and value. Agreeing node
+   counts would not have been that claim.
+2. **Fixpoint.** `write(read(write(read(x))))` is byte-identical to `write(read(x))`, for the
+   document form and for the archive down to the tar bytes.
+3. **Cross-implementation.** The OPC Foundation's `UA-NodeSetTool` reads what node-opcua writes,
+   and its `compare` reports the result identical to the original XML.
+
+Only the third is an independent oracle, and §2.3 records what it caught that the first two
+could not.
+
+### 2.2 What conformance costs, measured
+
+Same input through both implementations, gzip level 9, warm parse best of thirty, on the
+published `Opc.Ua` nodeset (5 476 nodes):
+
+| | Annex I JSONL | NodeSet-NDJSON |
+|---|---|---|
+| raw | 2 360 KB | 1 969 KB |
+| gzipped | 207.3 KB | 184.1 KB |
+| `JSON.parse` per node | 1.43 µs | 1.14 µs |
+
+Adopting Annex I as the shipped exchange form therefore costs roughly **11 % more bytes and 26 %
+more parse time** on that nodeset. That is the price of conformance and it is worth paying, but
+it should be stated rather than glossed.
+
+Decomposed like for like, the difference is not where a first reading suggests:
+
+- **relationship encoding: Annex I is 37 % cheaper** (27.9 KB against 38.3 KB gzipped), because
+  it turns `HasTypeDefinition` into a `TypeId` field, `HasModellingRule` into `ModellingRuleId`,
+  and the parent-to-child forward edge into `ParentId`, so three of the most repetitive edges in
+  a nodeset stop being edges;
+- **everything else: NodeSet-NDJSON is 18 % cheaper** (150.3 KB against 184.3 KB), which is the
+  default table of §7.1 doing its work.
+
+An earlier revision of this document attributed most of the gap to reference encoding on the
+strength of a decomposition that stripped `References` from one side while the other kept the
+same information in `TypeId` and `ModellingRuleId`. The figures above compare the two halves
+fairly.
+
+### 2.3 Review comments on Annex I
+
+Offered as observations from an implementation, not as proposals.
+
+**A document does not say which schema version it was written against.** The annex names one
+schema URL and the reference tool's README says the schema will change. A `$schema` field would
+make a document self-identifying, and it is purely additive.
+
+**There is no integrity or truncation detection.** A document that stops halfway is a document
+with fewer nodes, and nothing says so. A trailer carrying node counts and a source digest is what
+makes a derived cache safely replayable (§8 gives this format's reasoning, which transfers).
+
+**I.3 leaves three things open.** The manifest field is spelled `IsChangeSet` in one place and
+`ChangeSet` in another; the tar flavour is not pinned, so a reader has to accept both the
+original V7 layout and ustar, and recognise an archive by its header checksum rather than by a
+magic string; and "the shall any errors shall result in" appears to be a drafting slip.
+
+**`BrowseName` has no index form**, so a QualifiedName always carries a full namespace URI. This
+is noted as an observation rather than a proposal, since I.1 makes that choice deliberately and
+for good reasons.
+
+**`DesignToolOnly` is dropped, and that one is ours.** The DI nodeset states it nine times;
+node-opcua's address space has no reference to it in any code path, so it is lost in every
+format the SDK reads or writes. Neither the digest check nor the fixpoint could see it, because
+a loss the reader and the writer share closes the loop invisibly. It was found by using another
+implementation's `compare` as an oracle. This is the concrete instance of §9.3, and it is a
+node-opcua defect rather than an Annex I one.
+
+### 2.4 What was learned about this format
+
+Measured on NodeSet-NDJSON, gzipped, the `Opc.Ua` nodeset, and all parked behind the freeze:
+
+- **Dropping the parent-to-child forward edge saves 6.8 %** (184.1 to 171.7 KB), and is lossless:
+  all 3 804 are reconstructible from the inverse, with no reference-type disagreements. It rides
+  the existing inverse-declaration propagation of §7.2, so it needs no new mechanism. This is the
+  one change worth making whenever the format unfreezes.
+- **Hoisting `HasTypeDefinition` and `HasModellingRule` into scalar fields is worse**, by 0.3 %
+  and 0.2 %. They are the most repetitive tuples in the file, gzip already handles them, and the
+  replacement field name costs more than the tuple saved. Annex I gains from this only because it
+  has no equivalent of §7.1.
+- **Splitting `references` from `backReferences` is worse**, by 0.5 %: the key name costs more
+  than the direction flag saves.
+
+The first of these is a genuine improvement that was found by reading Annex I. The other two are
+recorded so that nobody re-derives them from the same plausible reasoning.
 
 ## 3. Terminology
 
 The key words MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT, RECOMMENDED,
 MAY and OPTIONAL are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119).
+
+They bind implementations of this format, which today means node-opcua and anything reading
+the images it ships. They are not addressed to a standards body: see §1.
 
 - **Document**: one NodeSet-NDJSON file: one header, zero or more node lines, one trailer.
 - **Writer**: a program that produces a document.
@@ -109,15 +193,28 @@ than at the end.
 ### 4.2 Compression, media type and extension
 
 A document MAY be stored and transmitted gzip-compressed
-([RFC 1952](https://www.rfc-editor.org/rfc/rfc1952)). Because a gzip stream begins with the
-two bytes `1f 8b`, and a NodeSet2 XML document with `<`, and an uncompressed NodeSet-NDJSON
-document with `{`, the three forms are told apart by their first byte with no filename and
-no metadata. Implementations SHOULD use that test rather than trusting an extension.
+([RFC 1952](https://www.rfc-editor.org/rfc/rfc1952)).
 
 | Form | Extension | Media type |
 |---|---|---|
-| uncompressed | `.ndjson` | `application/vnd.opcfoundation.nodeset+ndjson` |
-| gzip | `.ndjson.gz` | `application/vnd.opcfoundation.nodeset+ndjson`, `Content-Encoding: gzip` |
+| uncompressed | `.ndjson` | `application/vnd.sterfive.nodeset+ndjson` |
+| gzip | `.ndjson.gz` | `application/vnd.sterfive.nodeset+ndjson`, `Content-Encoding: gzip` |
+
+Neither media type is registered, and neither is in the `vnd.opcfoundation` tree: an earlier
+revision put them there, which was not ours to do.
+
+**The first byte does not identify this format**, and an earlier revision said it did. It claimed
+gzip's `1f 8b`, XML's `<` and this format's `{` told the three apart with no filename and no
+metadata. That was true of the formats it knew about and false as soon as there was another
+JSON one: Annex I's `.jsonl` and `.json` both begin with `{` as well, and a gzipped anything
+begins with `1f 8b`. The reference implementation held exactly that bug, claiming every gzip
+stream as one of its own images.
+
+What actually discriminates is the header line, after inflating: a document of this format has
+`"kind":"header"` and an integer `schema`, an Annex I JSONL document has `Models` and no `kind`.
+A reader SHOULD sniff on the parsed first line and MUST NOT decide on an extension or a first
+byte. node-opcua does this through the `NodesetFormat` registry, which sniffs the container
+first and the format second, on the inflated head.
 
 The compression level is a writer's choice and does not affect a reader: every gzip stream
 inflates the same whatever level wrote it. Writers SHOULD use a high level, since a
@@ -630,11 +727,17 @@ What the rules buy is the statement this specification actually wants to make:
 > **Two NodeSet2 documents describe the same information model if and only if their canonical
 > NodeSet-NDJSON forms are byte-identical.**
 
-That is stronger than "nothing is lost", and it is a statement NodeSet2 XML cannot make at all. It
-gives the Foundation a byte-level identity for a nodeset: something to hash, to sign, to cache by
-content, to diff between two revisions of a companion specification, and to compare across
-implementations, where today two files that say exactly the same thing may differ in bytes for
-reasons no reader is allowed to care about.
+That is stronger than "nothing is lost", and it is a statement NodeSet2 XML cannot make at all. A
+byte-level identity for a nodeset is something to hash, to sign, to cache by content, to diff
+between two revisions of a companion specification, and to compare across implementations, where
+today two files that say exactly the same thing may differ in bytes for reasons no reader is
+allowed to care about.
+
+**Annex I is where this belongs, and it is most of the way there already.** I.2 makes reading
+order normative, which is rule 1 in another form and is the hard one. What it does not yet fix is
+key order within an object, and it has no canonical-form statement to name. The argument above is
+offered on that basis: not as a proposal for this format, which nobody exchanges, but as the one
+idea from it that the normative format could take.
 
 It also makes §8.2 cheap to satisfy for anyone who wants more than a node count: the digest of a
 canonical document is a content hash, and publishing one costs a writer nothing.
@@ -685,19 +788,22 @@ executable content. The considerations are those of any parsed input:
 
 ## 12. Relationship to other work
 
-- **NodeSet2 XML** (`Opc.Ua.NodeSet2.xsd`): the normative form. This specification is
-  defined by reference to it and adds nothing to the information model.
-- **OPC UA JSON encoding** (Part 6): a wire encoding for *values and messages*, not for
-  documents. It does not describe nodes, references or a nodeset, and NodeSet-NDJSON does
+- **NodeSet2 XML** (`Opc.Ua.NodeSet2.xsd`): the normative form of a nodeset document. This
+  specification is defined by reference to it and adds nothing to the information model.
+- **OPC 10000-6 Annex I**: the normative JSON form, and what node-opcua reads and writes for
+  exchange (§2). The two formats answer different questions and this one has withdrawn from
+  Annex I's. Where they overlap, §2.2 measures the difference and §2.4 records the one thing
+  this format should adopt from it.
+- **OPC UA JSON encoding** (Part 6 clause 5.4): a wire encoding for *values and messages*, not
+  for documents. It does not describe nodes, references or a nodeset, and NodeSet-NDJSON does
   not attempt to be a superset of it. Where the two describe the same thing they agree in
-  substance and differ in spelling: Part 6 optimises for a general JSON consumer, this
-  format for a nodeset that is 5 000 lines long. A future revision of this document could
-  align §6 on Part 6's spellings if the Foundation preferred one JSON dialect over two. That
-  would cost size (Part 6 spells a NodeId as an object with named fields where §6.1 spells the
-  common case as one number, and it has no equivalent of the §7.1 default table), but this
-  document does not put a figure on it, because none has been measured. It is a trade the
-  Foundation should make rather than an implementation, and it should be measured first.
-  §6.4 already adopts Part 6's spelling for 64-bit integers, where doing so costs nothing.
+  substance and differ in spelling: Part 6 optimises for a general JSON consumer, this format
+  for a nodeset that is 5 000 lines long. Aligning §6 on Part 6's spellings would cost size
+  (Part 6 spells a NodeId as an object with named fields where §6.1 spells the common case as
+  one number, and it has no equivalent of the §7.1 default table) and buy this format nothing it
+  needs, now that the format it has to interoperate with is Annex I rather than a general JSON
+  consumer. §6.4 already adopts Part 6's spelling for 64-bit integers, where doing so costs
+  nothing. `node-opcua-json` implements clause 5.4, and Annex I carries its Variants in it.
 - **UA Binary**: smaller still, and unreadable. A nodeset is a document that people review
   and diff, and a text format that a human can `grep` has value that a binary one does not.
   NDJSON keeps that: one node per line means `grep` finds a node.
