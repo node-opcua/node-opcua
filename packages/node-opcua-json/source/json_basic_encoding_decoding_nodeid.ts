@@ -44,6 +44,8 @@ export interface NodeIdJSON104 {
     IdType?: 0 | 1 | 2 | 3;
     Id: number | string;
     Namespace?: number | string;
+    /** ExpandedNodeId only: the ServerIndex, omitted when 0 (Part 6 1.04 clause 5.4.2.11) */
+    ServerUri?: number;
 }
 export type NodeIdJSON105 = string;
 export type NodeIdJSON = NodeIdJSON104 | NodeIdJSON105;
@@ -230,12 +232,24 @@ export function opcuaJsonEncodeExpandedNodeId(
     }
 }
 
+/**
+ * Part 6 1.04 clause 5.4.2.11: an ExpandedNodeId is the NodeId object plus a ServerUri field
+ * carrying the ServerIndex, omitted when 0. A NamespaceUri set on the ExpandedNodeId wins over
+ * the index in the non-reversible form, where the namespace is written as a URI anyway.
+ */
 export function opcuaJsonEncodeExpandedNodeId104(
-    _value: ExpandedNodeId,
+    value: ExpandedNodeId,
     scheme: JsonEncodingScheme,
-    _namespaceArray?: string[]
-): NodeIdJSON | undefined {
-    throw new Error(`Invalid JsonEncodingScheme: ${scheme}`);
+    namespaceArray?: string[]
+): NodeIdJSON104 {
+    const pojo = opcuaJsonEncodeNodeId104(value, scheme, namespaceArray);
+    if (value.namespaceUri && scheme === JsonEncodingScheme.DeprecatedNonReversible) {
+        pojo.Namespace = value.namespaceUri;
+    }
+    if (value.serverIndex !== 0) {
+        pojo.ServerUri = value.serverIndex;
+    }
+    return pojo;
 }
 
 export function opcuaEncodeURIComponent(value: string): string {
@@ -354,7 +368,8 @@ export function opcuaJsonDecodeExpandedNodeId(
     namespaceArray?: string[]
 ): ExpandedNodeId {
     const nodeId = opcuaJsonDecodeNodeId(pojoOrString, builder, namespaceArray);
-    const result = ExpandedNodeId.fromNodeId(nodeId);
-    // we don't suport serverIndex in JSON encoding
-    return result;
+    // the 1.05 string form carries svr=/svu=, which coerceNodeId does not parse; the 1.04 object
+    // form carries ServerUri as the ServerIndex
+    const serverIndex = typeof pojoOrString === "object" && pojoOrString ? (pojoOrString.ServerUri ?? 0) : 0;
+    return ExpandedNodeId.fromNodeId(nodeId, undefined, serverIndex);
 }
