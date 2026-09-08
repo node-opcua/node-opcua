@@ -29,7 +29,8 @@ The annex specifies three shapes of the same model, and this package implements 
 Importing the package registers all three with the address-space loader, so a path is enough:
 
 ```ts
-import { AddressSpace, generateAddressSpace } from "node-opcua-address-space";
+import { AddressSpace } from "node-opcua-address-space";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import "node-opcua-uanodeset-json";
 
 const addressSpace = AddressSpace.create();
