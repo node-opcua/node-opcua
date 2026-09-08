@@ -249,13 +249,20 @@ function checkBetween(filterContext: FilterContext, filter: ContentFilter, filte
 }
 
 /**
- * 
- * InList
+ * InList (OPC UA Part 4 - 7.7.4)
  * TRUE if operand[0] is equal to one or more of the remaining operands.
  * The Equals Operator is evaluated for operand[0] and each remaining operand in the
- * list. If any Equals evaluation is TRUE, InList returns TRUE
- x*/
+ * list. If any Equals evaluation is TRUE, InList returns TRUE.
+ *
+ * With no remaining operand there is nothing operand[0] can equal, so the result is
+ * FALSE: an "InList(ConditionId)" with an empty list is how an alarm collector starts
+ * (the OPC Foundation CTT creates it that way and fills the list with
+ * ModifyMonitoredItems), not a malformed element.
+ */
 function checkInList(context: FilterContext, filterOperands: FilterOperand[]): boolean {
+    if (filterOperands.length < 2) {
+        return false;
+    }
     const operand0 = filterOperands[0];
 
     // c8 ignore next
@@ -346,8 +353,15 @@ function checkFilterAtIndex(filterContext: FilterContext, filter: ContentFilter,
 }
 
 // Number of operands each FilterOperator expects, as per OPC UA Part 4 - Table 118 / Table 119.
-// `max = Infinity` is used for the variadic InList operator (2..n). Operators not listed here are
+// `max = Infinity` is used for the variadic InList operator. Operators not listed here are
 // not subject to an operand-count check.
+//
+// InList is 1..n, not 2..n: Part 4 7.7.4 defines it by its evaluation ("TRUE if operand[0] is
+// equal to one or more of the remaining operands"), which with no remaining operand is FALSE,
+// not an error. The OPC Foundation CTT's alarm collector monitors the Server object with
+// "InList(ConditionId)" and no list, then grows the list with ModifyMonitoredItems; refusing
+// the element with BadFilterOperandCountMismatch failed every Alarms and Conditions unit at
+// its initialize step. An InList with no operand at all is still malformed.
 const operandCountByOperator: { [operator: number]: { min: number; max: number } } = {
     [FilterOperator.Equals]: { min: 2, max: 2 },
     [FilterOperator.IsNull]: { min: 1, max: 1 },
@@ -358,7 +372,7 @@ const operandCountByOperator: { [operator: number]: { min: number; max: number }
     [FilterOperator.Like]: { min: 2, max: 2 },
     [FilterOperator.Not]: { min: 1, max: 1 },
     [FilterOperator.Between]: { min: 3, max: 3 },
-    [FilterOperator.InList]: { min: 2, max: Number.POSITIVE_INFINITY },
+    [FilterOperator.InList]: { min: 1, max: Number.POSITIVE_INFINITY },
     [FilterOperator.And]: { min: 2, max: 2 },
     [FilterOperator.Or]: { min: 2, max: 2 },
     [FilterOperator.Cast]: { min: 2, max: 2 },
