@@ -68,7 +68,8 @@ export function declaredEntryPoints(pkg) {
  * `packedFiles` is an array of tarball-relative paths. Pure.
  */
 export function missingEntryPoints(pkg, packedFiles) {
-    const shipped = new Set(packedFiles.map(normalize));
+    const shippedList = packedFiles.map(normalize);
+    const shipped = new Set(shippedList);
     const out = [];
     for (const { field, target } of declaredEntryPoints(pkg)) {
         // only relative targets describe a file in this tarball; a bare specifier in an
@@ -76,7 +77,22 @@ export function missingEntryPoints(pkg, packedFiles) {
         if (!target.startsWith(".") && !target.startsWith("/")) {
             continue;
         }
-        if (!shipped.has(normalize(target))) {
+        const wanted = normalize(target);
+        // a subpath pattern ("./dist/*.js") promises every file the star can expand to; it
+        // is kept only if at least one shipped file matches, otherwise it promises nothing
+        const star = wanted.indexOf("*");
+        if (star >= 0) {
+            const prefix = wanted.slice(0, star);
+            const suffix = wanted.slice(star + 1);
+            const hit = shippedList.some(
+                (f) => f.length > prefix.length + suffix.length && f.startsWith(prefix) && f.endsWith(suffix)
+            );
+            if (!hit) {
+                out.push({ field, target });
+            }
+            continue;
+        }
+        if (!shipped.has(wanted)) {
             out.push({ field, target });
         }
     }

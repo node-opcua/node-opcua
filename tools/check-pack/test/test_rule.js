@@ -82,6 +82,18 @@ test("leading ./ is not significant either way", () => {
     assert.deepEqual(missingEntryPoints({ main: "./dist/index.js" }, ["dist/index.js"]), []);
 });
 
+test("a subpath pattern is satisfied by any shipped file the star expands to", () => {
+    const pkg = { exports: { "./dist/*": { types: "./dist/*.d.ts", default: "./dist/*.js" } } };
+    assert.deepEqual(missingEntryPoints(pkg, ["dist/index.js", "dist/index.d.ts", "dist/104/index.js"]), []);
+});
+
+test("a subpath pattern that no shipped file matches is a broken promise", () => {
+    const pkg = { exports: { "./dist/*": "./dist/*.js" } };
+    const missing = missingEntryPoints(pkg, ["source/index.ts"]);
+    assert.equal(missing.length, 1);
+    assert.equal(missing[0].target, "./dist/*.js");
+});
+
 test("a bare specifier in exports is a redirect to another package, not our file", () => {
     const pkg = { exports: { "./polyfill": "node-opcua-utils/polyfill" } };
     assert.deepEqual(missingEntryPoints(pkg, []), []);
