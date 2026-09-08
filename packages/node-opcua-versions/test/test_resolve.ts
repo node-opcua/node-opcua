@@ -1,4 +1,4 @@
-import "should";
+import should from "should";
 import { ReleaseMatrix, type ReleaseSet } from "../source/index.js";
 import type { RegistryClient, VersionDocument } from "../source/registry.js";
 import { newerReleaseAvailable, resolveLatest, resolveManifestRelease, resolveRelease } from "../source/resolve.js";
@@ -68,7 +68,7 @@ describe("resolveLatest", () => {
 describe("newerReleaseAvailable", () => {
     it("names the newest published release when the bundled copy is older, and stays quiet otherwise", async () => {
         const { client } = fakeRegistry([r2179, r2181_0, r2181_1]);
-        (await newerReleaseAvailable(new ReleaseMatrix([r2179]), client))!.should.eql("2.181.1");
+        should(await newerReleaseAvailable(new ReleaseMatrix([r2179]), client)).eql("2.181.1");
         ((await newerReleaseAvailable(new ReleaseMatrix([r2181_1]), client)) === undefined).should.eql(true);
         ((await newerReleaseAvailable(new ReleaseMatrix([r2179]), client, { offline: true })) === undefined).should.eql(true);
     });
@@ -80,13 +80,13 @@ describe("resolveManifestRelease", () => {
     it("finds the release locally when the bundled set already fits", async () => {
         const { client, reads } = registry();
         const json = { dependencies: { "node-opcua": "2.181.1", "node-opcua-debug": "2.181.0" } };
-        (await resolveManifestRelease(json, new ReleaseMatrix([r2181_1]), client))!.should.eql("2.181.1");
+        should(await resolveManifestRelease(json, new ReleaseMatrix([r2181_1]), client)).eql("2.181.1");
         reads.should.eql([]);
     });
     it("reads the release named by the node-opcua pin when the bundled set is another one", async () => {
         const { client, reads } = registry();
         const json = { dependencies: { "node-opcua": "2.179.0", "node-opcua-debug": "2.179.0" } };
-        (await resolveManifestRelease(json, new ReleaseMatrix([r2181_1]), client))!.should.eql("2.179.0");
+        should(await resolveManifestRelease(json, new ReleaseMatrix([r2181_1]), client)).eql("2.179.0");
         reads.should.eql(["2.179.0"]);
     });
     it("prefers the release named by the node-opcua pin when it fits, even if a newer release fits too", async () => {
@@ -95,7 +95,7 @@ describe("resolveManifestRelease", () => {
         const r2181_1b: ReleaseSet = { ...r2181_1, packages: { ...r2181_1.packages, "node-opcua": "2.181.0" } };
         const { client, reads } = fakeRegistry([r2179, r2181_0, r2181_1b]);
         const json = { dependencies: { "node-opcua": "2.181.0", "node-opcua-debug": "2.181.0", "node-opcua-crypto": "5.10.1" } };
-        (await resolveManifestRelease(json, new ReleaseMatrix([r2179]), client))!.should.eql("2.181.0");
+        should(await resolveManifestRelease(json, new ReleaseMatrix([r2179]), client)).eql("2.181.0");
         reads.should.eql(["2.181.0"]);
     });
     it("walks the published versions when the release named by the node-opcua pin does not fit", async () => {
@@ -107,7 +107,7 @@ describe("resolveManifestRelease", () => {
         };
         const { client, reads } = fakeRegistry([r2179, r2181_0, r2181_1b]);
         const json = { dependencies: { "node-opcua": "2.181.0", "node-opcua-debug": "2.181.1" } };
-        (await resolveManifestRelease(json, new ReleaseMatrix([r2179]), client))!.should.eql("2.181.1");
+        should(await resolveManifestRelease(json, new ReleaseMatrix([r2179]), client)).eql("2.181.1");
         reads.should.eql(["2.181.0", "2.181.1"]);
     });
     it("gives up cleanly on pins that belong to no published release, and never reads offline", async () => {

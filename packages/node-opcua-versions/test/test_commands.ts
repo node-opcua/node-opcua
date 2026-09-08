@@ -1,4 +1,4 @@
-import "should";
+import should from "should";
 import {
     applyChanges,
     applyExpand,
@@ -58,11 +58,11 @@ describe("inferRelease", () => {
             { release: "2.181.2", packages: { "node-opcua": "2.181.1", "node-opcua-debug": "2.181.2" }, external: {} }
         ]);
         // node-opcua 2.181.1 names release 2.181.1 and also belongs to 2.181.2: the named one wins
-        inferRelease({ dependencies: { "node-opcua": "2.181.1" } }, withUnbumpedUmbrella)!.release.should.eql("2.181.1");
+        should(inferRelease({ dependencies: { "node-opcua": "2.181.1" } }, withUnbumpedUmbrella)?.release).eql("2.181.1");
     });
     it("votes among the other packages otherwise, newest release wins a tie", () => {
         const json: PackageManifest = { dependencies: { "node-opcua-assert": "2.179.0", "node-opcua-nodeset-di": "2.181.0" } };
-        inferRelease(json, matrix)!.release.should.eql("2.181.1");
+        should(inferRelease(json, matrix)?.release).eql("2.181.1");
     });
     it("ignores ranges and unknown versions", () => {
         (inferRelease({ dependencies: { "node-opcua": "^2.179.0" } }, matrix) === null).should.eql(true);
@@ -92,14 +92,14 @@ describe("planBump", () => {
         ]);
         plan.unknown.should.eql([]);
         applyChanges(json, plan.changes);
-        json.dependencies!.should.eql({
+        should(json.dependencies).eql({
             "node-opcua": "2.181.1",
             "node-opcua-debug": "2.181.0",
             express: "4.0.0",
             "node-opcua-crypto": "5.10.1",
             "node-opcua-pki": "6.22.0"
         });
-        json.devDependencies!["node-opcua-assert"].should.eql("2.179.0"); // unchanged package, same version in both releases
+        should(json.devDependencies?.["node-opcua-assert"]).eql("2.179.0"); // unchanged package, same version in both releases
     });
     it("reports a managed package the release does not carry", () => {
         const json: PackageManifest = { dependencies: { "node-opcua-nodeset-di": "2.179.0" } };
@@ -129,7 +129,7 @@ describe("planCheck", () => {
             { dependencies: { "node-opcua": "2.181.1", "node-opcua-debug": "2.181.0", "node-opcua-assert": "2.179.0" } },
             matrix
         );
-        report.release!.should.eql("2.181.1");
+        should(report.release).eql("2.181.1");
         report.ok.should.eql(true);
     });
     it("flags a pin from another release, an external pin the release does not expect, a range, and an unknown package", () => {
@@ -232,7 +232,7 @@ describe("planExpand", () => {
             "node-opcua-debug",
             "node-opcua-pseudo-session"
         ]);
-        copy.dependencies!["node-opcua-debug"].should.eql("2.181.0");
+        should(copy.dependencies?.["node-opcua-debug"]).eql("2.181.0");
     });
 });
 
