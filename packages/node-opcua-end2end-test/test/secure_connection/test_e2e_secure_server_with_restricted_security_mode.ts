@@ -48,7 +48,9 @@ describe("testing server with restricted securityModes - Given a server with a s
 
     it("should not connect with SecurityMode==None", async () => {
         const err = await attemptConnection();
-        should(err?.message).match(/The connection may have been rejected by server/);
+        // no None endpoint: the server refuses the OpenSecureChannel with a ServiceFault that
+        // says so - a None request asks for no security, so the fault needs none either
+        should(err?.message).match(/The connection has been rejected by server: BadSecurityPolicyRejected/);
     });
 
     it("should not connect with SecurityMode==Sign/Basic256Sha256", async () => {
