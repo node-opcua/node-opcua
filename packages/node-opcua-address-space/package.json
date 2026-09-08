@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-address-space",
-    "version": "2.182.1",
+    "version": "2.182.2",
     "description": "pure nodejs OPCUA SDK - module address-space",
     "main": "./dist/api/index.js",
     "types": "./dist/api/index.d.ts",
@@ -63,7 +63,7 @@
         "node-opcua-nodesets": "2.182.0",
         "node-opcua-packet-analyzer": "2.182.0",
         "node-opcua-schemas": "2.182.0",
-        "node-opcua-service-filter": "2.182.0",
+        "node-opcua-service-filter": "2.182.2",
         "node-opcua-test-fixtures": "2.181.0",
         "node-opcua-test-helpers": "2.181.0"
     },
