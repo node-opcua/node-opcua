@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-uanodeset-json",
-    "version": "2.182.0",
+    "version": "2.182.1",
     "description": "pure nodejs OPCUA SDK - the Annex I JSON NodeSet serialisations (OPC 10000-6 Annex I)",
     "scripts": {
         "build": "tsc -b",
@@ -38,13 +38,13 @@
         "npm": ">=10.x"
     },
     "dependencies": {
-        "node-opcua-address-space": "2.182.0",
+        "node-opcua-address-space": "2.182.1",
         "node-opcua-basic-types": "2.182.0",
         "node-opcua-data-model": "2.182.0",
         "node-opcua-date-time": "2.181.0",
         "node-opcua-extension-object": "2.182.0",
         "node-opcua-factory": "2.182.0",
-        "node-opcua-json": "2.182.0",
+        "node-opcua-json": "2.182.1",
         "node-opcua-nodeid": "2.182.0",
         "node-opcua-variant": "2.182.0"
     },
