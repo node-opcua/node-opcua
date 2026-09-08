@@ -4320,6 +4320,12 @@ importers:
       node-opcua-nodeid:
         specifier: 2.181.0
         version: link:../node-opcua-nodeid
+      node-opcua-pseudo-session:
+        specifier: 2.181.1
+        version: link:../node-opcua-pseudo-session
+      node-opcua-service-browse:
+        specifier: 2.181.0
+        version: link:../node-opcua-service-browse
       node-opcua-variant:
         specifier: 2.181.0
         version: link:../node-opcua-variant

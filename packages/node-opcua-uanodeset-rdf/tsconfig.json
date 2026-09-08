@@ -23,6 +23,12 @@
             "path": "../node-opcua-nodeid"
         },
         {
+            "path": "../node-opcua-pseudo-session"
+        },
+        {
+            "path": "../node-opcua-service-browse"
+        },
+        {
             "path": "../node-opcua-variant"
         }
     ],

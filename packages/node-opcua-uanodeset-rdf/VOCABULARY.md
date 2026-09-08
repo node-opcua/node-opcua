@@ -154,3 +154,33 @@ that `@context` needs so the `subPropertyOf` values in `@included` resolve.
 
 **This exporter is not yet a drop-in replacement**, and the numbers above are the honest state of
 it rather than an aspiration.
+
+---
+
+## What a session cannot tell you
+
+The same document can be produced from a live session
+(`node-opcua-uanodeset-rdf/session`) rather than a loaded address space. That is the only way to
+export a server whose nodeset file you do not have, and it is not the equal of the address-space
+path. Three differences are structural, not defects waiting to be fixed, and each was measured on
+DI by exporting the same address space both ways.
+
+**1. There is no service that lists the nodes of a namespace.** Browse walks references; nothing
+enumerates. So a session-sourced model is whatever a crawl from Root reaches, and a node nothing
+points at is invisible. On DI that is nine nodes: the well-known function-group Objects
+`Configuration`, `Tuning`, `Maintenance`, `Diagnostics`, `Statistics`, `Status`, `Operational`,
+`OperationCounters` and `Identification`. They carry no inverse reference of any type, so no crawl
+from any root reaches them. Every other node of the namespace is reached, and each is written with
+the same `@id`, `@type`, `dataType`, `value` and predicates as the address-space export gives it.
+
+**2. `SymbolicName` is not an attribute.** It is NodeSet2 metadata, so `uardf:symbolicName` is
+absent from every entry of a session-sourced document.
+
+**3. `NamespaceMetadataType` states no required models.** It carries `NamespaceUri`,
+`NamespaceVersion` and `NamespacePublicationDate`, and no list of imports. So the ontology node of
+a session-sourced document has `version` and `publicationDate` but no `requiredModels` and no
+`owl:imports`, which is what a reasoner uses to pull the imported models in. A caller that knows
+the imports can still supply `xmlSchemaUri` and `modelVersion` through `JsonLdOptions.model`.
+
+Everything else agrees: the `@context` terms, the `@included` entries, the drop rule for the
+legacy OPC Binary machinery, and every predicate on every node reached.

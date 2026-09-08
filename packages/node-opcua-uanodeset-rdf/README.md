@@ -26,14 +26,38 @@ for:
 
 That is the job. Load the model once, export it, and let a graph database answer.
 
-## Quick start
+## Two ways in
+
+The model can come from a **loaded address space** or from a **live session**, and each has its
+own entry point so that neither drags in what only the other needs.
+
+```ts
+import { addressSpaceToJsonLdText } from "node-opcua-uanodeset-rdf/address-space";
+import { sessionToJsonLdText } from "node-opcua-uanodeset-rdf/session";
+```
+
+`/session` does not mention `node-opcua-address-space` at any level, so a client application
+exports a server's model without loading the address-space machinery it has no other use for.
+The root `node-opcua-uanodeset-rdf` re-exports both, for callers that want both.
+
+| | `/address-space` | `/session` |
+|---|---|---|
+| needs | the NodeSet2 document | a server you can browse |
+| completeness | every node, every field | every node a crawl from Root reaches |
+| `SymbolicName` | yes | no, it is not an attribute |
+| `owl:imports` | yes | no, `NamespaceMetadataType` states no imports |
+
+Prefer `/address-space` where you have the document. Reach for `/session` when you do not, which
+for a vendor's own companion specification is often the only option there is.
+
+## Quick start: from a nodeset
 
 ```ts
 import { writeFile } from "node:fs/promises";
 import { AddressSpace } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { nodesets } from "node-opcua-nodesets";
-import { addressSpaceToJsonLdText } from "node-opcua-uanodeset-rdf";
+import { addressSpaceToJsonLdText } from "node-opcua-uanodeset-rdf/address-space";
 
 const addressSpace = AddressSpace.create();
 await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di]);
@@ -52,13 +76,75 @@ Two fields of the ontology node are written in the source document's `Models` el
 retained by the loader. Supply them if you want them in the output:
 
 ```ts
-import { addressSpaceToJsonLd } from "node-opcua-uanodeset-rdf";
+import { addressSpaceToJsonLd } from "node-opcua-uanodeset-rdf/address-space";
 
 const doc = addressSpaceToJsonLd(addressSpace, {
     modelUri: "http://opcfoundation.org/UA/DI/",
     model: { modelVersion: "1.5.0", xmlSchemaUri: "http://opcfoundation.org/UA/DI/Types.xsd" }
 });
 ```
+
+## Quick start: from a running server
+
+This is the case a nodeset file cannot serve: a device implementing a companion specification you
+do not have, exported straight into a triple store.
+
+```ts
+import { writeFile } from "node:fs/promises";
+import { OPCUAClient } from "node-opcua-client";
+import { sessionToJsonLdText } from "node-opcua-uanodeset-rdf/session";
+
+await OPCUAClient.create({ endpointMustExist: false }).withSessionAsync(
+    "opc.tcp://localhost:26543",
+    async (session) => {
+        const jsonld = await sessionToJsonLdText(session, {
+            modelUri: "http://acme.com/UA/Widget/"
+        });
+        await writeFile("Widget.jsonld", jsonld, "utf8");
+    }
+);
+```
+
+## Quick start: from a PseudoSession
+
+`PseudoSession` puts the session interface in front of an address space you already have. It
+needs no server, no socket and no endpoint, so it is the quick way to try the session path, and
+it is also how this package tests it: the same model exported both ways differs only in the rows
+of the table above.
+
+```ts
+import { AddressSpace, PseudoSession } from "node-opcua-address-space";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { nodesets } from "node-opcua-nodesets";
+import { sessionToJsonLdText } from "node-opcua-uanodeset-rdf/session";
+
+const addressSpace = AddressSpace.create();
+await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di]);
+
+const jsonld = await sessionToJsonLdText(new PseudoSession(addressSpace), {
+    modelUri: "http://opcfoundation.org/UA/DI/"
+});
+
+addressSpace.dispose();
+```
+
+### What a session has to provide
+
+`RdfSession` is not a session type, it is the three services collecting a model actually uses:
+
+```ts
+type RdfSession = IBasicSessionBrowseAsyncMultiple &
+    IBasicSessionBrowseNextAsyncMultiple &
+    IBasicSessionReadAsyncMultiple;
+```
+
+Browse, follow the continuation point a browse hands back, read attributes. `create`, `close`,
+subscriptions and the rest of a session's surface are deliberately not in it, so a caller can
+pass something much smaller than a session if they have one.
+
+Browse is chunked by the server's own `MaxNodesPerBrowse` and `MaxBrowseContinuationPoints`,
+which `browseAll` reads for itself. Attribute reads use a fixed modest batch: honouring a
+server's `MaxNodesPerRead` belongs in a client that specialises in it, not in an exporter.
 
 ## What comes out
 
@@ -108,14 +194,34 @@ type composition, the reference rules, the three kinds of `@included` entry.
 
 ## API
 
-| export | what it is |
+Both entry points export the vocabulary helpers, `JsonLdOptions` and `modelToJsonLd`; each adds
+its own way of collecting a model.
+
+| `/address-space` | what it is |
 |---|---|
 | `addressSpaceToJsonLdText(addressSpace, options?)` | one namespace as a JSON-LD document, serialised |
 | `addressSpaceToJsonLd(addressSpace, options?)` | the same as a plain object, to hand to a JSON-LD library |
+| `addressSpaceToRdfModel(addressSpace, modelUri?)` | the collected model, if you want to inspect or amend it first |
+
+| `/session` | what it is |
+|---|---|
+| `sessionToJsonLdText(session, options?)` | one namespace of a server, serialised |
+| `sessionToJsonLd(session, options?)` | the same as a plain object |
+| `sessionToRdfModel(session, modelUri?)` | the collected model |
+| `RdfSession` | the three services this needs: browse, browseNext, read |
+
+| shared | what it is |
+|---|---|
 | `JsonLdOptions` | `{ modelUri?, model?: { xmlSchemaUri?, modelVersion? } }` |
+| `modelToJsonLd(model, options?)` | the mapping itself, for a model you collected some third way |
+| `RdfModel`, `RdfNode`, `RdfReference`, `RdfTarget` | the collected model's types |
 | `UARDF` | `http://opcfoundation.org/rdf/uacore#`, the vocabulary namespace |
 | `OPCUA_NAMESPACE` | `http://opcfoundation.org/UA/` |
 | `prefixOfNamespace(uri)` | the prefix a namespace URI gets: its last non-empty path segment, lowercased |
+
+Collection and mapping are separate on purpose. `modelToJsonLd` is synchronous and reads nothing
+but an `RdfModel`, which is why a session collector could be added without touching a line of the
+vocabulary, and why a third source would need no more than a function returning an `RdfModel`.
 
 ## Scope and status
 
@@ -129,6 +235,16 @@ how a model is queried.
 RDF section. This vocabulary belongs to the OPC Foundation's `UA-NodeSetTool`, whose own
 `rdf_prototype.md` no longer describes what it emits, so its output *is* the specification and
 `VOCABULARY.md` is a reverse-engineered account of it.
+
+**A session-sourced export is not the equal of a nodeset-sourced one**, and the difference is
+structural rather than unfinished work. OPC UA has no service that lists the nodes of a
+namespace, so a crawl from Root is the best available and a node nothing points at is invisible:
+on DI that is exactly nine, the well-known function-group Objects, which carry no inverse
+reference of any type. `SymbolicName` is NodeSet2 metadata rather than an attribute, and
+`NamespaceMetadataType` states no required models, so there is no `owl:imports`. Everything else
+agrees, node for node and predicate for predicate, which the package's tests check by exporting
+one address space both ways. "What a session cannot tell you" in `VOCABULARY.md` is the full
+account.
 
 **Parity**, measured on `Opc.Ua.Di.NodeSet2`:
 
