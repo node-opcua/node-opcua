@@ -11,6 +11,9 @@
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo _generated_",
         "deprected_generate": "node ./generate"
     },
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "node-opcua-assert": "2.179.0",
         "node-opcua-types": "2.182.0",

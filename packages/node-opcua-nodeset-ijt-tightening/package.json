@@ -10,6 +10,9 @@
     },
     "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
     "license": "MIT",
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "node-opcua-basic-types": "2.182.0",
         "node-opcua-data-access": "2.182.0",

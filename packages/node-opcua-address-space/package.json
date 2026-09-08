@@ -5,7 +5,7 @@
     "main": "./dist/api/index.js",
     "types": "./dist/api/index.d.ts",
     "engines": {
-        "node": ">=18"
+        "node": ">=22.13.0"
     },
     "scripts": {
         "build": "tsc -b",

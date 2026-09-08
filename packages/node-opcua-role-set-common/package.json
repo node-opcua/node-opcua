@@ -15,6 +15,9 @@
         "node": ">=18.x",
         "npm": ">=10.x"
     },
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "bcryptjs": "3.0.3",
         "node-opcua-basic-types": "2.182.0",

@@ -12,6 +12,9 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "type": "module",
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "chalk": "4.1.2",
         "memfs": "^4.71.0",

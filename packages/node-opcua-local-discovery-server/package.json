@@ -27,6 +27,9 @@
         "opc ua",
         "internet of things"
     ],
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "@inquirer/prompts": "8.7.1",
         "env-paths": "2.2.1",

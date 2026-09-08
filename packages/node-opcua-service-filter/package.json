@@ -10,6 +10,9 @@
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "build": "tsc -b"
     },
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "node-opcua-address-space-base": "2.182.0",
         "node-opcua-assert": "2.179.0",

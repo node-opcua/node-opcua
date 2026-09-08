@@ -13,6 +13,9 @@
         "test-generated": "tsc --build tsconfig-generated.json",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo tmp"
     },
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "case-anything": "1.1.5",
         "chalk": "4.1.2",

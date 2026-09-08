@@ -10,6 +10,9 @@
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "chalk": "4.1.2",
         "env-paths": "2.2.1",

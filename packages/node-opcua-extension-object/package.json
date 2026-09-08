@@ -11,6 +11,9 @@
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "test": "echo no test"
     },
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "chalk": "4.1.2",
         "node-opcua-basic-types": "2.182.0",

@@ -10,6 +10,9 @@
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
+    "engines": {
+        "node": ">=22.13.0"
+    },
     "dependencies": {
         "node-opcua-assert": "2.179.0",
         "node-opcua-data-model": "2.182.0",
