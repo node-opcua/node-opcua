@@ -1,0 +1,57 @@
+{
+    "name": "node-opcua-json",
+    "version": "2.181.1",
+    "description": "pure nodejs OPCUA SDK - the OPC UA JSON encoding of OPC 10000-6 clause 5.4",
+    "scripts": {
+        "build": "tsc -b",
+        "lint": "biome check --no-errors-on-unmatched .",
+        "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
+        "test": "mocha",
+        "test:check": "tsc --noEmit -p test/tsconfig.json"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "devEngines": {
+        "node": ">=18.x",
+        "npm": ">=10.x"
+    },
+    "dependencies": {
+        "node-opcua-basic-types": "2.181.0",
+        "node-opcua-data-model": "2.181.0",
+        "node-opcua-data-value": "2.181.0",
+        "node-opcua-date-time": "2.181.0",
+        "node-opcua-debug": "2.181.0",
+        "node-opcua-extension-object": "2.181.0",
+        "node-opcua-factory": "2.181.0",
+        "node-opcua-nodeid": "2.181.0",
+        "node-opcua-numeric-range": "2.181.0",
+        "node-opcua-status-code": "2.181.0",
+        "node-opcua-types": "2.181.0",
+        "node-opcua-variant": "2.181.0"
+    },
+    "devDependencies": {
+        "node-opcua-address-space": "2.181.1",
+        "node-opcua-constants": "2.181.0",
+        "node-opcua-nodesets": "2.181.0"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things",
+        "json"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "files": [
+        "dist",
+        "source"
+    ]
+}
