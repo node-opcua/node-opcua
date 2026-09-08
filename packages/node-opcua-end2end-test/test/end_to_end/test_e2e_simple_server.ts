@@ -15,8 +15,8 @@ function getChannels(server: OPCUAServer): ServerSecureChannelLayer[] {
 describe("Testing a simple server from Server side", () => {
     it("should have at least one endpoint", async () => {
         const server = new OPCUAServer({ port, nodeset_filename: empty_nodeset_filename });
+        await server.start();
         try {
-            await server.start();
             server.endpoints.length.should.be.greaterThan(0);
             const endPoint = server.endpoints[0];
             const rawEndpointUrl = endPoint.endpointDescriptions()[0].endpointUrl || ""; // UAString -> string
@@ -31,9 +31,9 @@ describe("Testing a simple server from Server side", () => {
 
     it("OPCUAServer#getChannels", async () => {
         const server = new OPCUAServer({ port, nodeset_filename: empty_nodeset_filename });
+        getChannels(server).length.should.equal(0);
+        await server.start();
         try {
-            getChannels(server).length.should.equal(0);
-            await server.start();
             getChannels(server).length.should.equal(0);
             const endpointUrl = server.getEndpointUrl();
             const client = OPCUAClient.create({});
