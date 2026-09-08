@@ -315,10 +315,12 @@ nothing accumulates in the package: a copy of this tool bundles exactly one set,
 
 `--offline` restricts every command to the bundled set. And the publish order is the race
 protection: a node-opcua release publishes a hundred packages one after the other over
-several minutes, and a tool that reads "the latest of each" during that window assembles
-a half-old, half-new set. `node-opcua-versions` is published **last**: when its entry for a
-release is on the registry, every package of that release already is (how that order is
-enforced is described [for maintainers](#for-node-opcua-maintainers)).
+several minutes, nothing on npm tells a user that this is happening, and a tool that reads
+"the latest of each" during those minutes assembles a half-old, half-new set without
+anyone noticing. `node-opcua-versions` is published **last**: when its entry for a release
+is on the registry, every package of that release already is, so the tool cannot see a
+release before it is complete and the user never has to think about timing (how that
+order is enforced is described [for maintainers](#for-node-opcua-maintainers)).
 
 ## Use from code
 
