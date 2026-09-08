@@ -119,8 +119,16 @@ function makeDefaultVariant(
     if (nodeDataType?.basicDataType) {
         const basicDataType = nodeDataType.basicDataType;
         if (basicDataType === DataType.Variant) {
-            /// we don't now what is the variant
-            return undefined;
+            // the DataType is BaseDataType, or an abstract type that resolves to it, so there is
+            // no concrete default to synthesise. That is the same situation as a Variable whose
+            // DataType the document never stated, and it now gets the same answer: a null value
+            // waiting for its first update.
+            //
+            // Returning undefined here left the variable on the constructor's
+            // UncertainInitialValue, so two documents that say the same thing disagreed about the
+            // status code of a value neither of them carries -- an omitted DataType against an
+            // explicit i=24, which is the XSD default for that very attribute.
+            return { dataType: DataType.Null };
         }
 
         if (basicDataType === DataType.ExtensionObject) {
