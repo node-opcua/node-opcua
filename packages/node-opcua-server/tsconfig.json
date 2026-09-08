@@ -67,6 +67,9 @@
             "path": "../node-opcua-nodeid"
         },
         {
+            "path": "../node-opcua-uanodeset-json"
+        },
+        {
             "path": "../node-opcua-nodesets"
         },
         {

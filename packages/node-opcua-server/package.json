@@ -36,6 +36,7 @@
         "node-opcua-factory": "2.181.0",
         "node-opcua-hostname": "2.181.0",
         "node-opcua-nodeid": "2.181.0",
+        "node-opcua-uanodeset-json": "2.181.0",
         "node-opcua-nodesets": "2.181.0",
         "node-opcua-numeric-range": "2.181.0",
         "node-opcua-object-registry": "2.181.0",

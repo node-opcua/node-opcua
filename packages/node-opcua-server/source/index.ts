@@ -23,6 +23,16 @@
 /**
  * @module node-opcua-server
  */
+
+// A server is the thing that loads nodesets, so it is the thing that should be able to read the
+// ones the standard defines. Importing this registers the JSON NodeSet of OPC 10000-6 Annex I
+// with the address-space loader; there is nothing to call, and nothing here names it again.
+//
+// Do not "clean up" this import because it looks unused. Removing it does not fail a build or a
+// type check -- it silently drops .jsonl support, and a document that used to load starts coming
+// back as an XML parse error.
+import "node-opcua-uanodeset-json";
+
 export * from "./base_server.js";
 export * from "./helper.js";
 export * from "./invalidate_server_certificate_cache.js";
