@@ -11,6 +11,23 @@
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
+        "./session": {
+            "types": "./dist/session.d.ts",
+            "require": "./dist/session.js",
+            "default": "./dist/session.js"
+        },
+        "./address-space": {
+            "types": "./dist/address_space.d.ts",
+            "require": "./dist/address_space.js",
+            "default": "./dist/address_space.js"
+        }
+    },
     "devEngines": {
         "node": ">=18.x",
         "npm": ">=10.x"
@@ -20,6 +37,8 @@
         "node-opcua-data-model": "2.181.0",
         "node-opcua-json": "2.181.1",
         "node-opcua-nodeid": "2.181.0",
+        "node-opcua-pseudo-session": "2.181.1",
+        "node-opcua-service-browse": "2.181.0",
         "node-opcua-variant": "2.181.0"
     },
     "devDependencies": {
