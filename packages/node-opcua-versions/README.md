@@ -94,7 +94,9 @@ npx npm-check-updates -u -x "node-opcua*"
 Both `bump` and `check` audit the manifest's `scripts` for an `ncu` / `npm-check-updates`
 invocation that does not exclude the family (`-x "node-opcua*"` or `--reject`), and warn
 with that fix; for `check` it is a failure, since such a script would undo the pins on its
-next run. A convenient layout is one script per family:
+next run. A script whose filter singles the family out (`ncu -u -f "node-opcua*"`) exists
+to move it, so the advice for that one is to replace it with `bump --latest` rather than
+to exclude the family from it. A convenient layout is one script per family:
 
 ```json
 {
@@ -172,8 +174,15 @@ npx node-opcua-versions@latest show [2.179.0]    # the packages of a release, an
 `-w` (`--workspaces`) applies the command to the root `package.json` **and** to every
 package of the workspace found at `--package`: the `packages:` list of
 `pnpm-workspace.yaml`, or `workspaces` in `package.json`, or `packages` in `lerna.json`,
-whichever exists first. Patterns of the form `<dir>`, `<dir>/*`, `<dir>/**` and `!...`
-exclusions are understood. Each manifest is reported under its own heading.
+whichever exists first. Patterns are the globs those tools accept (`packages/*`,
+`./packages/binding-*`, `apps/**`, a plain folder) and `!...` exclusions. Each manifest
+is reported under its own heading; the packages that declare nothing of the family are
+counted in one line at the end rather than listed.
+
+Run at a workspace root **without** `-w`, the tool reads the root manifest only and says
+so in a note, because the node-opcua dependencies of a monorepo usually live in its
+packages, not in the root: "every node-opcua-* dependency is already on this release" is
+never the answer for a manifest that declares none.
 
 ```text
 $ npx node-opcua-versions@latest bump -w --include-peers --dry-run

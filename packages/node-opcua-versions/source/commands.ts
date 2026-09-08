@@ -317,6 +317,8 @@ export interface ScriptWarning {
  * `ncu -u` moves every dependency to its latest, which for the node-opcua family is what
  * `bump` does with knowledge of the release sets; run without `-x "node-opcua*"` it
  * competes with the tool and, during a publish window, assembles a half-published set.
+ * A script whose filter singles the family out (`-f "node-opcua*"`) exists to move it:
+ * the advice for that one is to replace it with `bump`, not to exclude the family from it.
  */
 export function auditScripts(json: PackageManifest): ScriptWarning[] {
     const warnings: ScriptWarning[] = [];
@@ -330,11 +332,16 @@ export function auditScripts(json: PackageManifest): ScriptWarning[] {
         if (excluded) continue;
         const filters = /(?:^|\s)(?:-f|--filter)(?:=|\s+)["']?([^"'\s]+)/.exec(command);
         if (filters && !/node-opcua/.test(filters[1])) continue; // a filter that never touches the family
+        const dedicated = filters !== null;
         warnings.push({
             script,
             command,
-            reason: "runs npm-check-updates on the node-opcua family",
-            fix: 'add -x "node-opcua*" to that script and let `node-opcua-versions bump` move the family'
+            reason: dedicated
+                ? "moves the node-opcua family with npm-check-updates"
+                : "runs npm-check-updates on the node-opcua family",
+            fix: dedicated
+                ? "replace it with `node-opcua-versions bump --latest` (-w in a workspace), which moves the family as one release"
+                : 'add -x "node-opcua*" to that script and let `node-opcua-versions bump` move the family'
         });
     }
     return warnings;
