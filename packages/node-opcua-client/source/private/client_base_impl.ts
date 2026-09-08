@@ -33,7 +33,8 @@ import {
     type PerformTransactionCallback,
     type Request as Request1,
     type Response as Response1,
-    type SecurityPolicy
+    type SecurityPolicy,
+    type ServiceFaultAnnotatedError
 } from "node-opcua-secure-channel";
 import {
     FindServersOnNetworkRequest,
@@ -49,9 +50,14 @@ import {
     GetEndpointsRequest,
     GetEndpointsResponse
 } from "node-opcua-service-endpoints";
-import { type ChannelSecurityToken, coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
+import {
+    type ChannelSecurityToken,
+    coerceMessageSecurityMode,
+    MessageSecurityMode,
+    ServiceFault
+} from "node-opcua-service-secure-channel";
 import { CloseSessionRequest, type CloseSessionResponse } from "node-opcua-service-session";
-import { type ErrorCallback, StatusCodes } from "node-opcua-status-code";
+import { type ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     type IAcceptedReverseConnection,
     type IClientTransportFactory,
@@ -1230,7 +1236,21 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                     /* */
                     this._handleDisconnectionWhileConnecting(err, callback);
                 } else {
-                    err = new Error(`The connection may have been rejected by server,\n Err = (${err.message})`);
+                    const fault = (err as ServiceFaultAnnotatedError).response;
+                    if (fault instanceof ServiceFault) {
+                        // the server answered the OpenSecureChannel with a ServiceFault (Part 6 6.7.4):
+                        // it refused the connection and said why - typically a client certificate it
+                        // does not trust (BadSecurityChecksFailed) or that is out of date
+                        const statusCode = fault.responseHeader.serviceResult;
+                        const rejected = new Error(
+                            `The connection has been rejected by server: ${statusCode.toString()}`
+                        ) as ServiceFaultAnnotatedError & { statusCode: StatusCode };
+                        rejected.statusCode = statusCode;
+                        rejected.response = fault;
+                        err = rejected;
+                    } else {
+                        err = new Error(`The connection may have been rejected by server,\n Err = (${err.message})`);
+                    }
                     this._handleUnrecoverableConnectionFailure(err, callback);
                 }
             }

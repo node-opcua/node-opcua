@@ -184,6 +184,12 @@ export interface IServerSessionBase {
  */
 export class ServerSecureChannelLayer extends EventEmitter {
     public static throttleTime = 100;
+    /**
+     * how long a refused channel stays open after the ServiceFault (or ERR
+     * message) has been sent, so that the peer reads it before the socket
+     * closes, in milliseconds
+     */
+    public static closeDelayAfterRefusal = 1000;
 
     /**
      * @private
@@ -322,6 +328,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
     readonly #messageChunker: MessageChunker;
 
     #timeoutId: NodeJS.Timeout | null;
+    /** the close scheduled after a refused OpenSecureChannel has been answered */
+    #refusalCloseTimer: NodeJS.Timeout | null = null;
     #open_secure_channel_onceClose: ((err: Error | null) => void) | null = null;
     #securityTokenTimeout: NodeJS.Timeout | null;
     #transactionsCount: number;
@@ -1033,6 +1041,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
         // there is no need for the security token expiration event to trigger anymore
         this.#_stop_security_token_watch_dog();
         this.#_stop_open_channel_watch_dog();
+        if (this.#refusalCloseTimer) {
+            clearTimeout(this.#refusalCloseTimer);
+            this.#refusalCloseTimer = null;
+        }
     }
 
     #_cancel_wait_for_open_secure_channel_request_timeout() {
@@ -1797,28 +1809,91 @@ export class ServerSecureChannelLayer extends EventEmitter {
     // Bad_SecureChannelIdInvalid
     // Bad_NonceInvalid
 
+    /**
+     * Refuse the OpenSecureChannel.
+     *
+     * Part 6 6.7.4: once the Server has verified the security of the request,
+     * an error is answered with a ServiceFault in place of the
+     * OpenSecureChannel response, secured as that response would be: signed
+     * with the server key and encrypted for the public key of the
+     * SenderCertificate, which is there and usable even when the certificate
+     * itself is refused. The client then reads the status the server decided
+     * on. Answered with a transport-level ERR message instead (Part 6 7.1.3,
+     * meant for faults of the transport itself) the refusal said nothing: the
+     * CTT's stack reported the connect as Good and its Security Certificate
+     * Validation scripts failed with "the connection was granted", and
+     * node-opcua's own client only saw a closed socket (FEAT-39).
+     *
+     * The ERR message remains for the errors found before the security of the
+     * request could be established - unknown policy, no such endpoint, no
+     * usable client key - where nothing can be secured.
+     */
     #_on_OpenSecureChannelRequestError(serviceResult: StatusCode, description: string, message: Message) {
         warningLog("ServerSecureChannel sendError: ", serviceResult.toString(), { description }, message.request.constructor.name);
-        this.securityMode = MessageSecurityMode.None;
         this.#status = "closing";
 
+        const serviceFault = new ServiceFault({
+            responseHeader: {
+                serviceResult,
+                timestamp: new Date(),
+                stringTable: [description, serviceResult.toString()]
+            }
+        });
+        // the client reads the fault before the socket goes; the delay also keeps
+        // a rejected peer from hammering the server with new connections
+        const closeAfterwards = () => {
+            this.#refusalCloseTimer = setTimeout(() => {
+                this.#refusalCloseTimer = null;
+                this.close();
+            }, ServerSecureChannelLayer.closeDelayAfterRefusal);
+        };
+
         setTimeout(() => {
-            this.send_response(
-                "ERR",
-                new ServiceFault({
-                    responseHeader: {
-                        serviceResult,
-                        timestamp: new Date(),
-                        stringTable: [description, serviceResult.toString()]
-                    }
-                }),
-                message,
-                () => {
-                    setTimeout(() => {
-                        this.close();
-                    }, 1000);
+            const securedMessage = this.#_prepare_refusal_message(message);
+            if (securedMessage) {
+                try {
+                    this.send_response("OPN", serviceFault, securedMessage, closeAfterwards);
+                    return;
+                } catch (err) {
+                    warningLog(
+                        "ServerSecureChannel: cannot secure the ServiceFault, falling back to ERR: ",
+                        (err as Error).message
+                    );
                 }
-            );
+            }
+            this.securityMode = MessageSecurityMode.None;
+            this.send_response("ERR", serviceFault, message, closeAfterwards);
         }, ServerSecureChannelLayer.throttleTime); // Throttling keep connection on hold for a while.
+    }
+
+    /**
+     * The message to answer a refused OpenSecureChannelRequest with, when the
+     * refusal can be secured as the request asked: the response security
+     * header (server certificate, thumbprint of the client certificate), for
+     * `send_response("OPN", ...)` to sign and encrypt. `null` when it cannot:
+     * no OpenSecureChannelRequest yet, a security mode this channel cannot
+     * sign for, or no public key extracted from the client certificate.
+     */
+    #_prepare_refusal_message(message: Message): Message | null {
+        const request = message.request;
+        if (!(request instanceof OpenSecureChannelRequest) || !message.securityHeader) {
+            return null;
+        }
+        switch (this.securityMode) {
+            case MessageSecurityMode.None:
+                break;
+            case MessageSecurityMode.Sign:
+            case MessageSecurityMode.SignAndEncrypt:
+                if (!this.#clientPublicKey || !this.#messageBuilder || !getCryptoFactory(this.#messageBuilder.securityPolicy)) {
+                    return null;
+                }
+                break;
+            default:
+                return null;
+        }
+        return {
+            ...message,
+            securityHeader: this.#_prepare_response_security_header(request, message)
+        };
     }
 }
