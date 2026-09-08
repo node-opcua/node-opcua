@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import "should";
+import should from "should";
 import { bundledSet, compareVersions, isVersion, ReleaseMatrix, type ReleaseSet, satisfiesRange } from "../source/index.js";
 
 export const r2179: ReleaseSet = {
@@ -63,8 +63,8 @@ describe("ReleaseMatrix", () => {
         matrix.latest().release.should.eql("2.181.1");
     });
     it("knows the version of a package in a release, including unchanged ones", () => {
-        matrix.versionOf("node-opcua-debug", "2.181.1")!.should.eql("2.181.0");
-        matrix.versionOf("node-opcua-assert", "2.181.1")!.should.eql("2.179.0");
+        should(matrix.versionOf("node-opcua-debug", "2.181.1")).eql("2.181.0");
+        should(matrix.versionOf("node-opcua-assert", "2.181.1")).eql("2.179.0");
         (matrix.versionOf("node-opcua-nope", "2.181.1") === undefined).should.eql(true);
         (matrix.versionOf("node-opcua", "2.170.0") === undefined).should.eql(true);
     });
@@ -77,17 +77,17 @@ describe("ReleaseMatrix", () => {
         matrix.manages("node-opcua-debug").should.eql(true);
         matrix.manages("node-opcua-crypto").should.eql(true);
         matrix.manages("node-opcua-unknown").should.eql(false);
-        matrix.versionOf("node-opcua-crypto", "2.179.0")!.should.eql("5.9.0");
+        should(matrix.versionOf("node-opcua-crypto", "2.179.0")).eql("5.9.0");
     });
     it("never replaces a release already known: a release does not change", () => {
         const m = new ReleaseMatrix([r2179]);
         m.add({ ...r2179, packages: { "node-opcua": "9.9.9" } });
-        m.versionOf("node-opcua", "2.179.0")!.should.eql("2.179.0");
+        should(m.versionOf("node-opcua", "2.179.0")).eql("2.179.0");
     });
     it("hands out copies, not its own objects", () => {
         const set = matrix.get("2.179.0")!;
         set.packages["node-opcua"] = "0.0.0";
-        matrix.versionOf("node-opcua", "2.179.0")!.should.eql("2.179.0");
+        should(matrix.versionOf("node-opcua", "2.179.0")).eql("2.179.0");
     });
     it("is empty until a set is added", () => {
         (() => new ReleaseMatrix().latest()).should.throw(/empty/);
