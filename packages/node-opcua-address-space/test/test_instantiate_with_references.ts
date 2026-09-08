@@ -51,12 +51,14 @@ describe("UAObjectType/UAVariableType instantiate with options.references", () =
         const ordered = listType.findReferencesEx("HasOrderedComponent");
         ordered.length.should.eql(1);
         ordered[0].nodeId.toString().should.eql(first.nodeId.toString());
-        first.parentNodeId?.toString().should.eql(listType.nodeId.toString());
+        if (!first.parentNodeId) throw new Error("parentNodeId was not set");
+        first.parentNodeId.toString().should.eql(listType.nodeId.toString());
 
         // the mandatory property was instantiated with its modelling rule copied
         const level = first.getPropertyByName("Level");
-        should.exist(level);
-        level!.modellingRule!.should.eql("Mandatory");
+        if (!level) throw new Error("Level property was not instantiated");
+        if (!level.modellingRule) throw new Error("modelling rule was not copied");
+        level.modellingRule.should.eql("Mandatory");
 
         const symbols = getSymbols(addressSpace.getOwnNamespace());
         const names = symbols.map((s) => s[0]);
@@ -76,7 +78,8 @@ describe("UAObjectType/UAVariableType instantiate with options.references", () =
         const ordered = listType.findReferencesEx("HasOrderedComponent");
         ordered.length.should.eql(1);
         ordered[0].nodeId.toString().should.eql(first.nodeId.toString());
-        first.parentNodeId?.toString().should.eql(listType.nodeId.toString());
+        if (!first.parentNodeId) throw new Error("parentNodeId was not set");
+        first.parentNodeId.toString().should.eql(listType.nodeId.toString());
 
         const names = getSymbols(addressSpace.getOwnNamespace()).map((s) => s[0]);
         names.should.containEql("ListType_FirstSample");
@@ -103,7 +106,8 @@ describe("UAObjectType/UAVariableType instantiate with options.references", () =
             .getOwnNamespace()
             .addObject({ browseName: "Holder", organizedBy: addressSpace.rootFolder.objects });
         const first = itemType.instantiate({ browseName: "First", componentOf: holder });
-        first.parentNodeId?.toString().should.eql(holder.nodeId.toString());
+        if (!first.parentNodeId) throw new Error("parentNodeId was not set");
+        first.parentNodeId.toString().should.eql(holder.nodeId.toString());
         const names = getSymbols(addressSpace.getOwnNamespace()).map((s) => s[0]);
         names.should.containEql("Holder_First");
     });
