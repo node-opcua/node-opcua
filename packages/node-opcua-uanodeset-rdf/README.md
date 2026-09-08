@@ -24,33 +24,77 @@ for:
 
 > which nodes changed between two published versions of a companion specification
 
-That is the job. Load the model once, export it, and let a graph database answer.
+That is the job. Get the model once, export it, and let a graph database answer.
 
-## Two ways in
+## What comes out
 
-The model can come from a **loaded address space** or from a **live session**, and each has its
-own entry point so that neither drags in what only the other needs.
-
-```ts
-import { addressSpaceToJsonLdText } from "node-opcua-uanodeset-rdf/address-space";
-import { sessionToJsonLdText } from "node-opcua-uanodeset-rdf/session";
+```jsonc
+{
+  "@context":  { /* prefixes, property terms, and per-document predicates */ },
+  "@graph":    [ /* the ontology node, then one entry per node */ ],
+  "@included": [ /* OWL property declarations, and foreign attachments */ ]
+}
 ```
 
-`/session` does not mention `node-opcua-address-space` at any level, so a client application
-exports a server's model without loading the address-space machinery it has no other use for.
-The root `node-opcua-uanodeset-rdf` re-exports both, for callers that want both.
+The first `@graph` entry describes the model itself, as both a `uardf:UANodeSet` and an
+`owl:Ontology`. Every entry after it is a node:
 
-| | `/address-space` | `/session` |
+```jsonc
+{
+  "@id": "di:DeviceType",
+  "@type": ["uardf:UAObjectType", "owl:Class"],
+  "nodeId": "nsu=http://opcfoundation.org/UA/DI/;i=1002",
+  "browseName": "nsu=http://opcfoundation.org/UA/DI/;DeviceType",
+  "name": "DeviceType",
+  "subClassOf": "di:ComponentType",
+  "di:ParameterSet": "di:bnN1PWh0dHA6..."
+}
+```
+
+Three ideas carry most of the mapping:
+
+- **Types get readable IRIs, instances get stable ones.** An ObjectType, VariableType,
+  ReferenceType or DataType is `<prefix>:<BrowseName>`; everything else is
+  `<prefix>:<base64url(canonical NodeId)>`, unpadded. So `di:DeviceType` is legible in a query
+  and an instance IRI survives a renaming.
+- **Three references become fields rather than edges.** `HasTypeDefinition` becomes part of
+  `@type` (a Property is `["uardf:UAVariable", "opcua:PropertyType"]`), `HasSubtype` becomes
+  `subClassOf`, and `HasModellingRule` becomes `modellingRule`. That is what makes the OWL
+  reasoning work: a subtype chain is a class hierarchy.
+- **`@included` carries the schema.** One `owl:ObjectProperty` declaration per reference type the
+  model defines, with its inverse and its `subPropertyOf`, so a reasoner knows what the
+  predicates mean.
+
+The legacy OPC Binary machinery is dropped: every node whose TypeDefinition is
+`DataTypeDictionaryType` or `DataTypeDescriptionType`, and everything they own. The structure
+DataTypes are kept, with their `DataTypeDefinition`. On the DI nodeset that is 14 nodes of 447.
+
+[`VOCABULARY.md`](./VOCABULARY.md) is the full account: prefixes, IRI minting, the ontology node,
+type composition, the reference rules, the three kinds of `@included` entry.
+
+## Which entry point
+
+That document can be produced two ways, and each has an entry point of its own so that neither
+drags in what only the other needs.
+
+| | [`/address-space`](#node-opcua-uanodeset-rdfaddress-space) | [`/session`](#node-opcua-uanodeset-rdfsession) |
 |---|---|---|
-| needs | the NodeSet2 document | a server you can browse |
-| completeness | every node, every field | every node a crawl from Root reaches |
-| `SymbolicName` | yes | no, it is not an attribute |
-| `owl:imports` | yes | no, `NamespaceMetadataType` states no imports |
+| you have | the NodeSet2 document | an `OPCUAClient` or a `PseudoSession` |
+| covers | every node of the namespace | every node reachable by browsing |
+| `symbolicName` | yes | no |
+| `owl:imports` | yes | no |
 
-Prefer `/address-space` where you have the document. Reach for `/session` when you do not, which
+Prefer `/address-space` when you have the document. Reach for `/session` when you do not, which
 for a vendor's own companion specification is often the only option there is.
 
-## Quick start: from a nodeset
+The root module re-exports both, for callers that want both.
+
+---
+
+# `node-opcua-uanodeset-rdf/address-space`
+
+The complete source. An address space retains the NodeSet2 metadata that OPC UA has no attribute
+for, so an export taken this way is the reference the other is judged against.
 
 ```ts
 import { writeFile } from "node:fs/promises";
@@ -68,9 +112,9 @@ await writeFile("Opc.Ua.Di.jsonld", addressSpaceToJsonLdText(addressSpace), "utf
 addressSpace.dispose();
 ```
 
-The exporter takes a **live address space** rather than a stream of records, and that is not an
-implementation detail: a type's IRI is its BrowseName, including for types belonging to the
-models this one merely imports, so the exporter has to resolve NodeIds it never read.
+A whole address space is needed rather than the one namespace, and that is not an implementation
+detail: a type's IRI is its BrowseName, including for types belonging to the models this one
+merely imports, so the exporter has to resolve NodeIds it never read.
 
 Two fields of the ontology node are written in the source document's `Models` element and are not
 retained by the loader. Supply them if you want them in the output:
@@ -84,7 +128,21 @@ const doc = addressSpaceToJsonLd(addressSpace, {
 });
 ```
 
-## Quick start: from a running server
+| export | what it is |
+|---|---|
+| `addressSpaceToJsonLdText(addressSpace, options?)` | one namespace as a JSON-LD document, serialised |
+| `addressSpaceToJsonLd(addressSpace, options?)` | the same as a plain object, to hand to a JSON-LD library |
+| `addressSpaceToRdfModel(addressSpace, modelUri?)` | the collected model, to inspect or amend before mapping it |
+
+---
+
+# `node-opcua-uanodeset-rdf/session`
+
+Nothing reachable from this entry point mentions `node-opcua-address-space`, at the type level or
+the runtime one, so a client application uses it without loading the address-space machinery it
+has no other use for.
+
+## With an `OPCUAClient`
 
 This is the case a nodeset file cannot serve: a device implementing a companion specification you
 do not have, exported straight into a triple store.
@@ -105,12 +163,10 @@ await OPCUAClient.create({ endpointMustExist: false }).withSessionAsync(
 );
 ```
 
-## Quick start: from a PseudoSession
+## With a `PseudoSession`
 
-`PseudoSession` puts the session interface in front of an address space you already have. It
-needs no server, no socket and no endpoint, so it is the quick way to try the session path, and
-it is also how this package tests it: the same model exported both ways differs only in the rows
-of the table above.
+`PseudoSession` puts the session interface in front of an address space you already hold. No
+server, no socket, no endpoint.
 
 ```ts
 import { AddressSpace, PseudoSession } from "node-opcua-address-space";
@@ -128,9 +184,13 @@ const jsonld = await sessionToJsonLdText(new PseudoSession(addressSpace), {
 addressSpace.dispose();
 ```
 
-### What a session has to provide
+It is also how this entry point is tested. Both paths then see the same model, so every
+difference between the two documents is something OPC UA cannot say about a node rather than
+something the collector got wrong.
 
-`RdfSession` is not a session type, it is the three services collecting a model actually uses:
+## What a session has to provide
+
+`RdfSession` is not a session type. It is the three services collecting a model actually calls:
 
 ```ts
 type RdfSession = IBasicSessionBrowseAsyncMultiple &
@@ -139,94 +199,63 @@ type RdfSession = IBasicSessionBrowseAsyncMultiple &
 ```
 
 Browse, follow the continuation point a browse hands back, read attributes. `create`, `close`,
-subscriptions and the rest of a session's surface are deliberately not in it, so a caller can
-pass something much smaller than a session if they have one.
+subscriptions and the rest of a session's surface are deliberately outside it, so a caller may
+pass something much smaller than a session.
 
 Browse is chunked by the server's own `MaxNodesPerBrowse` and `MaxBrowseContinuationPoints`,
 which `browseAll` reads for itself. Attribute reads use a fixed modest batch: honouring a
 server's `MaxNodesPerRead` belongs in a client that specialises in it, not in an exporter.
 
-## What comes out
+## What a session cannot tell you
 
-```jsonc
-{
-  "@context":  { /* prefixes, property terms, and per-document predicates */ },
-  "@graph":    [ /* the ontology node, then one entry per node */ ],
-  "@included": [ /* OWL property declarations, and foreign attachments */ ]
-}
-```
+Three differences from the address-space export, all structural rather than unfinished work, each
+measured by exporting one DI address space both ways.
 
-The first `@graph` entry describes the model itself, as both a `uardf:UANodeSet` and an
-`owl:Ontology`, with `owl:imports` for each required model. Every entry after it is a node:
+- **No service lists the nodes of a namespace.** Browse walks references; nothing enumerates. So
+  the model is whatever a crawl from Root reaches, and a node nothing points at is invisible. On
+  DI that is exactly nine: the well-known function-group Objects `Configuration`, `Tuning`,
+  `Maintenance`, `Diagnostics`, `Statistics`, `Status`, `Operational`, `OperationCounters` and
+  `Identification`, which carry no inverse reference of any type.
+- **`SymbolicName` is not an attribute.** It is NodeSet2 metadata, so `uardf:symbolicName` is
+  absent from every entry.
+- **`NamespaceMetadataType` states no required models.** It carries `NamespaceUri`,
+  `NamespaceVersion` and `NamespacePublicationDate` and no list of imports, so the ontology node
+  has `version` and `publicationDate` but no `requiredModels` and no `owl:imports`.
 
-```jsonc
-{
-  "@id": "di:DeviceType",
-  "@type": ["uardf:UAObjectType", "owl:Class"],
-  "nodeId": "nsu=http://opcfoundation.org/UA/DI/;i=1002",
-  "browseName": "nsu=http://opcfoundation.org/UA/DI/;DeviceType",
-  "name": "DeviceType",
-  "subClassOf": { "@id": "opcua:TopologyElementType" },
-  "di:ParameterSet": { "@id": "di:bnN1PWh0dHA6..." }
-}
-```
+Everything else agrees, node for node and predicate for predicate: the same `@id`, `@type`,
+`dataType`, `value` and children, the same `@context` terms, the same `@included` entries.
 
-Three ideas carry most of the mapping:
-
-- **Types get readable IRIs, instances get stable ones.** An ObjectType, VariableType,
-  ReferenceType or DataType is `<prefix>:<BrowseName>`; everything else is
-  `<prefix>:<base64url(canonical NodeId)>`, unpadded. So `di:DeviceType` is legible in a query
-  and an instance IRI survives a renaming.
-- **Three references become fields rather than edges.** `HasTypeDefinition` becomes part of
-  `@type` (a Property is `["uardf:UAVariable", "opcua:PropertyType"]`), `HasSubtype` becomes
-  `subClassOf`, and `HasModellingRule` becomes `modellingRule`. That is what makes the OWL
-  reasoning work: a subtype chain is a class hierarchy.
-- **`@included` carries the schema.** One `owl:ObjectProperty` declaration per reference type the
-  model defines, with its inverse and its `subPropertyOf`, so a reasoner knows what the
-  predicates mean.
-
-The legacy OPC Binary machinery is dropped: every node whose TypeDefinition is
-`DataTypeDictionaryType` or `DataTypeDescriptionType`, and everything they own. The structure
-DataTypes are kept, with their `DataTypeDefinition`. On the DI nodeset that is 14 nodes of 448.
-
-[`VOCABULARY.md`](./VOCABULARY.md) is the full account: prefixes, IRI minting, the ontology node,
-type composition, the reference rules, the three kinds of `@included` entry.
-
-## API
-
-Both entry points export the vocabulary helpers, `JsonLdOptions` and `modelToJsonLd`; each adds
-its own way of collecting a model.
-
-| `/address-space` | what it is |
+| export | what it is |
 |---|---|
-| `addressSpaceToJsonLdText(addressSpace, options?)` | one namespace as a JSON-LD document, serialised |
-| `addressSpaceToJsonLd(addressSpace, options?)` | the same as a plain object, to hand to a JSON-LD library |
-| `addressSpaceToRdfModel(addressSpace, modelUri?)` | the collected model, if you want to inspect or amend it first |
-
-| `/session` | what it is |
-|---|---|
-| `sessionToJsonLdText(session, options?)` | one namespace of a server, serialised |
+| `sessionToJsonLdText(session, options?)` | one namespace as a JSON-LD document, serialised |
 | `sessionToJsonLd(session, options?)` | the same as a plain object |
-| `sessionToRdfModel(session, modelUri?)` | the collected model |
-| `RdfSession` | the three services this needs: browse, browseNext, read |
+| `sessionToRdfModel(session, modelUri?)` | the collected model, to inspect or amend before mapping it |
+| `RdfSession` | the intersection above |
 
-| shared | what it is |
+---
+
+## Shared API
+
+Both entry points also export:
+
+| export | what it is |
 |---|---|
 | `JsonLdOptions` | `{ modelUri?, model?: { xmlSchemaUri?, modelVersion? } }` |
-| `modelToJsonLd(model, options?)` | the mapping itself, for a model you collected some third way |
+| `modelToJsonLd(model, options?)` | the mapping itself, for a model collected some third way |
 | `RdfModel`, `RdfNode`, `RdfReference`, `RdfTarget` | the collected model's types |
 | `UARDF` | `http://opcfoundation.org/rdf/uacore#`, the vocabulary namespace |
 | `OPCUA_NAMESPACE` | `http://opcfoundation.org/UA/` |
 | `prefixOfNamespace(uri)` | the prefix a namespace URI gets: its last non-empty path segment, lowercased |
 
-Collection and mapping are separate on purpose. `modelToJsonLd` is synchronous and reads nothing
-but an `RdfModel`, which is why a session collector could be added without touching a line of the
-vocabulary, and why a third source would need no more than a function returning an `RdfModel`.
+Collecting a model and mapping it are separate on purpose. `modelToJsonLd` is synchronous and
+reads nothing but an `RdfModel`, which is why the session collector could be added without
+touching a line of the vocabulary, and why a third source would need no more than a function
+returning an `RdfModel`.
 
-## Scope and status
+## Status
 
 **This is an export, not a serialisation format.** There is no reader, and it never registers
-with the address-space loader. If you want to read or write a JSON nodeset, you want
+with the address-space loader. To read or write a JSON nodeset you want
 [`node-opcua-uanodeset-json`](../node-opcua-uanodeset-json), which implements the normative
 Annex I formats. The two answer different questions: Annex I is how a model is exchanged, this is
 how a model is queried.
@@ -236,17 +265,7 @@ RDF section. This vocabulary belongs to the OPC Foundation's `UA-NodeSetTool`, w
 `rdf_prototype.md` no longer describes what it emits, so its output *is* the specification and
 `VOCABULARY.md` is a reverse-engineered account of it.
 
-**A session-sourced export is not the equal of a nodeset-sourced one**, and the difference is
-structural rather than unfinished work. OPC UA has no service that lists the nodes of a
-namespace, so a crawl from Root is the best available and a node nothing points at is invisible:
-on DI that is exactly nine, the well-known function-group Objects, which carry no inverse
-reference of any type. `SymbolicName` is NodeSet2 metadata rather than an attribute, and
-`NamespaceMetadataType` states no required models, so there is no `owl:imports`. Everything else
-agrees, node for node and predicate for predicate, which the package's tests check by exporting
-one address space both ways. "What a session cannot tell you" in `VOCABULARY.md` is the full
-account.
-
-**Parity**, measured on `Opc.Ua.Di.NodeSet2`:
+**Parity** with that tool, measured on `Opc.Ua.Di.NodeSet2`:
 
 | | reference tool | this package |
 |---|---|---|
@@ -256,10 +275,10 @@ account.
 | entries byte-identical | n/a | 66 of 434 |
 
 Graph membership matches exactly, so a query over either document sees the same nodes. It is not
-yet byte-identical, and since there is no reader there is no round trip, no fixpoint and no
-digest equivalence to lean on: a diff against the reference implementation is the only oracle.
-The gap is one undocumented rule, whether a child is written under a BrowseName-derived predicate
-or under the generic reference type. Three hypotheses were tested and all three failed, so the
+yet byte-identical, and with no reader there is no round trip, no fixpoint and no digest
+equivalence to lean on: a diff against the reference implementation is the only oracle. The gap
+is one undocumented rule, whether a child is written under a BrowseName-derived predicate or
+under the generic reference type. Three hypotheses were tested and all three failed, so the
 question is recorded in `VOCABULARY.md` rather than answered with a rule that merely fits one
 nodeset.
 
