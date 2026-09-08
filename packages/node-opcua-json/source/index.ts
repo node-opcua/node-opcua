@@ -22,6 +22,11 @@
  * ==========================================================================
  */
 
+// version-locked realms: `node-opcua-json/104` and `node-opcua-json/105` expose the same
+// API under version-free names (opcuaJsonEncodeDataValue, DataValueJSON, ...) bound to a
+// single edition of Part 6, whereas this root entry point dispatches on JsonEncodingScheme.
+export * as v104 from "./104/index.js";
+export * as v105 from "./105/index.js";
 export * from "./decode_opcua_json.js";
 export type { ExtensionObjectConstructorFuncWithSchema } from "./extension_object_constructor.js";
 export * from "./json_basic_encoding_body_functor.js";
@@ -31,8 +36,14 @@ export {
     type DataValueJSON104,
     type DataValueJSON105,
     opcuaJsonDecodeDataValue,
+    opcuaJsonDecodeDataValue104,
+    opcuaJsonDecodeDataValue105,
     opcuaJsonEncodeDataValue,
-    opcuaJsonEncodeDataValueMQTT
+    opcuaJsonEncodeDataValue104,
+    opcuaJsonEncodeDataValue105,
+    opcuaJsonEncodeDataValueMQTT,
+    opcuaJsonEncodeDataValueMQTT104,
+    opcuaJsonEncodeDataValueMQTT105
 } from "./json_basic_encoding_decoding_data_value.js";
 export * from "./json_basic_encoding_decoding_extension_object.js";
 export {
@@ -44,13 +55,14 @@ export * from "./json_basic_encoding_decoding_localizedtext.js";
 export * from "./json_basic_encoding_decoding_nodeid.js";
 export * from "./json_basic_encoding_decoding_qualifiedname.js";
 export * from "./json_basic_encoding_decoding_statuscode.js";
-export * from "./json_basic_encoding_decoding_statuscode.js";
 export {
     opcuaJsonDecodeVariant,
+    opcuaJsonDecodeVariant104,
     // the explicit 1.05 entry points: the dispatcher above overloads Compact and Verbose together
     // and so cannot return the 1.05 object shape for Verbose alone
     opcuaJsonDecodeVariant105,
     opcuaJsonEncodeVariant,
+    opcuaJsonEncodeVariant104,
     opcuaJsonEncodeVariant105,
     type VariantJSON,
     type VariantJSON104,

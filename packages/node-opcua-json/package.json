@@ -11,6 +11,39 @@
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./104": {
+            "types": "./dist/104/index.d.ts",
+            "default": "./dist/104/index.js"
+        },
+        "./105": {
+            "types": "./dist/105/index.d.ts",
+            "default": "./dist/105/index.js"
+        },
+        "./dist/*": {
+            "types": "./dist/*.d.ts",
+            "default": "./dist/*.js"
+        },
+        "./dist/*.js": {
+            "types": "./dist/*.d.ts",
+            "default": "./dist/*.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "typesVersions": {
+        "*": {
+            "104": [
+                "dist/104/index.d.ts"
+            ],
+            "105": [
+                "dist/105/index.d.ts"
+            ]
+        }
+    },
     "devEngines": {
         "node": ">=18.x",
         "npm": ">=10.x"

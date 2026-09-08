@@ -72,6 +72,32 @@ When a PubSub subscriber has to work out which scheme it is being sent,
 `JsonDataSetMessageContentMaskToJsonEncodingScheme` reads the two `FieldEncoding` bits of
 OPC 10000-14 Table 112, and `JsonEncodingSchemeToJsonDataSetMessageContentMask` writes them.
 
+## One edition only: `node-opcua-json/104` and `node-opcua-json/105`
+
+The root entry point is deliberately flexible: it takes a `JsonEncodingScheme` and dispatches
+to whichever edition it names. Code that speaks a single edition, such as a PubSub publisher
+pinned to 1.05 or a bridge to a 1.04-only stack, is better off importing that edition directly.
+
+```ts
+import { opcuaJsonEncodeDataValue, JsonEncoderMode, type DataValueJSON } from "node-opcua-json/105";
+
+const pojo: DataValueJSON = opcuaJsonEncodeDataValue(dataValue, JsonEncoderMode.Compact, namespaceArray);
+// { UaType: 11, Value: 3.5, ... } and nothing else can come out
+```
+
+Each subpath exposes the whole API under **version-free names**: `opcuaJsonEncodeDataValue`,
+`opcuaJsonDecodeVariant`, `opcuaJsonEncodeStatusCode`, `opcuaJsonEncodeNodeId`,
+`opcuaJsonEncodeExtensionObject`, the `DataValueJSON` / `VariantJSON` / `NodeIdJSON` /
+`ExtensionObjectJSON` types and a `JsonEncoderMode` enum, every one bound to that edition alone.
+The mode parameter is the edition's own two-value enum, so a 1.04 mode is a type error in the
+1.05 realm and vice versa, and the JSON types are the edition's exact shapes rather than a union.
+Version-agnostic scalars (`Int64`, `ByteString`, `DateTime`, ...) are the same functions in both.
+
+Switching an existing file from one edition to the other is a one-line change of the import
+path. The root package keeps the suffixed names (`opcuaJsonEncodeDataValue104`,
+`opcuaJsonEncodeVariant105`, ...) and also exposes both realms as the `v104` and `v105`
+namespaces for code that has to handle both in one place.
+
 ## Decoding structures
 
 Decoding a `Variant` that contains a structure means constructing that structure, and only the
@@ -114,9 +140,10 @@ scheme, so one call site serves all four.
 | area | exports |
 |---|---|
 | Variant | `opcuaJsonEncodeVariant`, `opcuaJsonDecodeVariant`, the `104` / `105` pairs, `VariantJSON`, `VariantJSON104`, `VariantJSON105` |
-| DataValue | `opcuaJsonEncodeDataValue`, `opcuaJsonDecodeDataValue`, `opcuaJsonEncodeDataValueMQTT`, `DataValueJSON105` |
+| DataValue | `opcuaJsonEncodeDataValue`, `opcuaJsonDecodeDataValue`, `opcuaJsonEncodeDataValueMQTT`, the `104` / `105` variants of all three, `DataValueJSON`, `DataValueJSON104`, `DataValueJSON105` |
 | ExtensionObject | `opcuaJsonEncodeExtensionObject`, `opcuaJsonDecodeExtensionObject`, the `...Body` pair, `makeBody`, `ExtensionObjectJSON104`, `ExtensionObjectJSON105` |
-| NodeId | `opcuaJsonEncodeNodeId`, `opcuaJsonDecodeNodeId`, the `ExpandedNodeId` pair, `opcuaJsonEncodeNodeIdAsString` |
+| NodeId | `opcuaJsonEncodeNodeId`, `opcuaJsonDecodeNodeId`, the `ExpandedNodeId` pair, the `104` / `105` encoders, `opcuaJsonEncodeNodeIdAsString` |
+| realms | `node-opcua-json/104`, `node-opcua-json/105`, and the `v104` / `v105` namespaces on the root |
 | scalars | `Int64`, `UInt64`, `ByteString`, `DateTime`, `LocalizedText`, `QualifiedName`, `StatusCode` |
 | structures | `decodeOPCUA_JSON`, `decodeOPCUA_JSONOld` |
 | schemes | `JsonEncodingScheme`, `JsonEncoderMode104`, `JsonEncoderMode105`, `toJsonEncodingScheme`, `makeDataValueEncodingEnum`, the two `JsonDataSetMessageContentMask` converters |
