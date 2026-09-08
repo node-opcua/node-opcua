@@ -25,6 +25,7 @@ import "should";
 import { coerceNodeId, ExpandedNodeId } from "node-opcua-nodeid";
 import should from "should";
 import {
+    opcuaJsonDecodeExpandedNodeId,
     opcuaJsonDecodeNodeId,
     opcuaJsonEncodeExpandedNodeId,
     opcuaJsonEncodeNodeId,
@@ -157,6 +158,34 @@ describe("JSON encode ExpandedNodeId - 105", () => {
             const encoded = opcuaJsonEncodeExpandedNodeId(expandedNodeId, JsonEncodingScheme.Compact);
             should(encoded).eql(expected);
         });
+    });
+});
+
+describe("JSON encode ExpandedNodeId - 104", () => {
+    const withServer = ExpandedNodeId.fromNodeId(coerceNodeId("ns=2;i=1"), undefined, 3);
+    const withUri = ExpandedNodeId.fromNodeId(coerceNodeId("ns=2;s=abc"), "http://hello", 0);
+
+    it("should encode the ServerIndex as ServerUri and omit it when 0 - Reversible", () => {
+        should(opcuaJsonEncodeExpandedNodeId(withServer, Reversible, namespaceArray)).eql({ Id: 1, Namespace: 2, ServerUri: 3 });
+        should(opcuaJsonEncodeExpandedNodeId(ExpandedNodeId.fromNodeId(coerceNodeId("ns=0;i=1")), Reversible)).eql({ Id: 1 });
+    });
+    it("should write the NamespaceUri of the ExpandedNodeId - NonReversible", () => {
+        should(opcuaJsonEncodeExpandedNodeId(withUri, NonReversible, namespaceArray)).eql({
+            IdType: 1,
+            Id: "abc",
+            Namespace: "http://hello"
+        });
+        should(opcuaJsonEncodeExpandedNodeId(withServer, NonReversible, namespaceArray)).eql({
+            Id: 1,
+            Namespace: "n2",
+            ServerUri: 3
+        });
+    });
+    it("should round-trip the ServerIndex", () => {
+        const pojo = opcuaJsonEncodeExpandedNodeId(withServer, Reversible, namespaceArray);
+        const back = opcuaJsonDecodeExpandedNodeId(pojo, fakeBuilder, namespaceArray);
+        should(back.toString()).eql(withServer.toString());
+        should(back.serverIndex).eql(3);
     });
 });
 
