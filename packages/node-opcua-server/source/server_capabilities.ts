@@ -134,6 +134,10 @@ export interface IServerCapabilities {
      * The value specifies the maximum the Server can support under normal circumstances,
      * therefore there is no guarantee the Server can always support
      * the maximum.
+     *
+     * An EventFilter with more select clauses than this is refused with BadEventFilterInvalid.
+     * Default 1000: a client that selects every field of every standard condition type
+     * (what the OPC Foundation CTT's alarm collector does) sends 149 of them.
      */
     maxSelectClauseParameters: UInt32;
 
@@ -142,6 +146,10 @@ export interface IServerCapabilities {
      * EventField WhereClause Parameters the Server can support for an EventFilter.
      * The value specifies the maximum the Server can support under normal circumstances,
      * therefore there is no guarantee the Server can always support the maximum
+     *
+     * Counted as the operands of every element of the whereClause; more than this is refused
+     * with BadEventFilterInvalid. Default 1000: an alarm collector's "InList(ConditionId, ...)"
+     * grows by one operand per condition it tracks.
      */
     maxWhereClauseParameters: UInt32;
 
@@ -212,8 +220,11 @@ export const defaultServerCapabilities: IServerCapabilities = {
     maxMonitoredItems: 1000000, // 1 million
     maxSubscriptionsPerSession: 10,
     maxMonitoredItemsPerSubscription: 100000, // one hundred thousand
-    maxSelectClauseParameters: 100,
-    maxWhereClauseParameters: 100,
+    // 100 was below what any server exposing the standard alarm types receives from a client
+    // that selects every event field (the CTT's alarm collector: 149 select clauses over the
+    // 33 standard condition types), and its where clause grows with the conditions tracked.
+    maxSelectClauseParameters: 1000,
+    maxWhereClauseParameters: 1000,
     maxMonitoredItemsQueueSize: 60000,
 
     conformanceUnits: []
