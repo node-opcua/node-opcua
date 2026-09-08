@@ -1147,6 +1147,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
     public userCertificateManager: OPCUACertificateManager;
     /** Reverse Connect driver, created only when `options.reverseConnect` is provided. @internal */
     #reverseConnectManager?: ReverseConnectManager;
+    /** Set once shutdown() has been requested; lets repeated/concurrent calls share one outcome instead of racing. @internal */
+    #shutdownPromise?: Promise<void>;
 
     static defaultShutdownTimeout = 100; // 250 ms
 
@@ -1668,6 +1670,11 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             await this.initialize();
         }
 
+        // a fresh start attempt invalidates whatever shutdown() concluded last time
+        // (including a no-op from a previous failed start), so shutdown() runs for
+        // real again if this attempt also needs to tear things down.
+        this.#shutdownPromise = undefined;
+
         try {
             await super.startAsync();
         } catch (err) {
@@ -1729,60 +1736,73 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         // c8 ignore next
         doDebug && debugLog("OPCUAServer#shutdown (timeout = ", timeout, ")");
 
-        /* c8 ignore next */
-        if (!this.engine) {
-            return callback();
-        }
-        assert(this.engine);
-        if (!this.engine.isStarted()) {
-            // server may have been shot down already  , or may have fail to start !!
-            const err = new Error("OPCUAServer#shutdown failure ! server doesn't seems to be started yet");
-            return callback(err);
-        }
-
-        // stop dialing reverse-connect clients before endpoints are torn down, so no new
-        // channel is created mid-shutdown and pending outbound sockets are destroyed.
-        this.#reverseConnectManager?.stop();
-        this.#reverseConnectManager = undefined;
-
-        this.userCertificateManager.dispose();
-
-        this.engine.setServerState(ServerState.Shutdown);
-
-        const shutdownTime = new Date(Date.now() + timeout);
-        this.engine.setShutdownTime(shutdownTime);
-
-        // c8 ignore next
-        doDebug && debugLog("OPCUAServer is now un-registering itself from  the discovery server ", this.buildInfo);
-        if (!this.registerServerManager) {
-            callback(new Error("invalid register server manager"));
+        // A shutdown already requested for this start cycle - in progress, or done -
+        // is not restarted: every caller (including one racing in mid-teardown) shares
+        // that same outcome instead of tearing the server down a second time.
+        if (this.#shutdownPromise) {
+            this.#shutdownPromise.then(() => callback()).catch((err: Error) => callback(err));
             return;
         }
-        this.registerServerManager
-            .stop()
-            .then(() => {
-                // c8 ignore next
-                doDebug && debugLog("OPCUAServer unregistered from discovery server successfully");
-            })
-            .catch((err) => {
-                // c8 ignore next
-                doDebug && debugLog("OPCUAServer unregistered from discovery server with err: ", err.message);
-            })
-            .finally(() => {
-                setTimeout(async () => {
-                    await this.engine.shutdown();
 
+        /* c8 ignore next */
+        if (!this.engine?.isStarted()) {
+            // server was never started, already shut down, or cleaned itself up after
+            // a failed start: shutting down a server that isn't running already gets
+            // us to the state the caller wants, so this is a no-op, not an error.
+            return callback();
+        }
+
+        this.#shutdownPromise = new Promise<void>((resolve, reject) => {
+            // stop dialing reverse-connect clients before endpoints are torn down, so no new
+            // channel is created mid-shutdown and pending outbound sockets are destroyed.
+            this.#reverseConnectManager?.stop();
+            this.#reverseConnectManager = undefined;
+
+            this.userCertificateManager.dispose();
+
+            this.engine.setServerState(ServerState.Shutdown);
+
+            const shutdownTime = new Date(Date.now() + timeout);
+            this.engine.setShutdownTime(shutdownTime);
+
+            // c8 ignore next
+            doDebug && debugLog("OPCUAServer is now un-registering itself from  the discovery server ", this.buildInfo);
+            if (!this.registerServerManager) {
+                reject(new Error("invalid register server manager"));
+                return;
+            }
+            this.registerServerManager
+                .stop()
+                .then(() => {
                     // c8 ignore next
-                    doDebug && debugLog("OPCUAServer#shutdown: started");
-                    OPCUABaseServer.prototype.shutdown.call(this, (err1?: Error | null) => {
-                        // c8 ignore next
-                        doDebug && debugLog("OPCUAServer#shutdown: completed");
+                    doDebug && debugLog("OPCUAServer unregistered from discovery server successfully");
+                })
+                .catch((err) => {
+                    // c8 ignore next
+                    doDebug && debugLog("OPCUAServer unregistered from discovery server with err: ", err.message);
+                })
+                .finally(() => {
+                    setTimeout(async () => {
+                        await this.engine.shutdown();
 
-                        this.dispose();
-                        callback(err1 || undefined);
-                    });
-                }, timeout);
-            });
+                        // c8 ignore next
+                        doDebug && debugLog("OPCUAServer#shutdown: started");
+                        OPCUABaseServer.prototype.shutdown.call(this, (err1?: Error | null) => {
+                            // c8 ignore next
+                            doDebug && debugLog("OPCUAServer#shutdown: completed");
+
+                            this.dispose();
+                            if (err1) {
+                                reject(err1);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    }, timeout);
+                });
+        });
+
+        this.#shutdownPromise.then(() => callback()).catch((err: Error) => callback(err));
     }
 
     public dispose(): void {
