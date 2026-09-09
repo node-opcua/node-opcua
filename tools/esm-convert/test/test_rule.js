@@ -10,15 +10,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import {
-    analyze,
-    convertAnchors,
-    convertDynamicRequire,
-    convertMocharc,
-    findManualWork,
-    setTypeModule,
-    survey
-} from "../src/rule.js";
+import { analyze, convertAnchors, convertDynamicRequire, findManualWork, mocharcRename, setTypeModule, survey } from "../src/rule.js";
 
 function withTree(files, fn) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "esm-convert-"));
@@ -55,38 +47,36 @@ test("replaces an explicit commonjs type rather than adding a second key", () =>
 });
 
 // ── the mocha config ────────────────────────────────────────────────────────────
+//
+// The config stays CommonJS and is renamed. check-mocharc mandates .cjs for an ESM package
+// and renders the canonical content, so converting it here would give one file two
+// generators. It is a test config, never published, so there is no ESM purity to gain.
 
-test("converts module.exports to export default", () => {
-    const out = convertMocharc("module.exports = {\n    timeout: 100\n};\n");
-    assert.match(out, /export default \{/);
-    assert.doesNotMatch(out, /module\.exports/);
+test("an ESM package's config is renamed to .cjs, not rewritten", () => {
+    withTree({ "p/package.json": JSON.stringify({ name: "p" }), "p/.mocharc.js": "module.exports = {};" }, (root) => {
+        const r = mocharcRename(path.join(root, "p"));
+        assert.equal(path.basename(r.from), ".mocharc.js");
+        assert.equal(path.basename(r.to), ".mocharc.cjs");
+    });
 });
 
-test("adds createRequire only when the config actually uses require", () => {
-    const withReq = convertMocharc('module.exports = { ...require("../.mocharc.js") };\n');
-    assert.match(withReq, /createRequire\(import\.meta\.url\)/);
-
-    const without = convertMocharc("module.exports = { timeout: 100 };\n");
-    assert.doesNotMatch(without, /createRequire/);
+test("a package with no config needs no rename", () => {
+    withTree({ "p/package.json": JSON.stringify({ name: "p" }) }, (root) => {
+        assert.equal(mocharcRename(path.join(root, "p")), null);
+    });
 });
 
-test("the converted config still parses as a module and keeps its settings", () => {
-    const out = convertMocharc('const resolve = (id) => require.resolve(id);\nmodule.exports = {\n    timeout: 30000\n};\n');
-    assert.match(out, /export default/);
-    assert.match(out, /createRequire/);
-    assert.match(out, /timeout: 30000/);
-});
-
-test("refuses a config using __dirname, rather than half-converting it", () => {
-    assert.equal(convertMocharc('module.exports = { spec: __dirname + "/test" };\n'), null);
-});
-
-test("refuses a config using exports.foo", () => {
-    assert.equal(convertMocharc("exports.timeout = 100;\nmodule.exports = {};\n"), null);
-});
-
-test("returns null for a config that is already ESM", () => {
-    assert.equal(convertMocharc("export default { timeout: 100 };\n"), null);
+test("an existing .cjs is never overwritten by the rename", () => {
+    withTree(
+        {
+            "p/package.json": JSON.stringify({ name: "p" }),
+            "p/.mocharc.js": "module.exports = {};",
+            "p/.mocharc.cjs": "module.exports = { timeout: 1 };"
+        },
+        (root) => {
+            assert.equal(mocharcRename(path.join(root, "p")), null);
+        }
+    );
 });
 
 // ── the dirname anchor ──────────────────────────────────────────────────────────
@@ -181,22 +171,10 @@ test("analyze reports what is mechanical and what is not", () => {
             const r = analyze({ repoRoot: root, packageName: "p" });
             assert.equal(r.found, true);
             assert.equal(r.alreadyEsm, false);
-            assert.equal(r.mocharc, "convertible");
+            assert.equal(r.mocharc, "rename");
             assert.equal(r.anchors.length, 1);
             assert.equal(r.manual.length, 1);
             assert.equal(r.manual[0].kind, "require-json");
-        }
-    );
-});
-
-test("an unrecognised mocha config is flagged, not rewritten", () => {
-    withTree(
-        {
-            "packages/p/package.json": JSON.stringify({ name: "p" }),
-            "packages/p/.mocharc.js": "module.exports = { spec: __dirname };\n"
-        },
-        (root) => {
-            assert.equal(analyze({ repoRoot: root, packageName: "p" }).mocharc, "unrecognised");
         }
     );
 });
@@ -255,20 +233,6 @@ test("sorts packages into mechanical, needs-a-decision, and already ESM", () => 
             assert.deepEqual(s.mechanical.map((p) => p.packageName), ["clean"]);
             assert.deepEqual(s.needsDecision.map((p) => p.packageName), ["needs"]);
             assert.deepEqual(s.alreadyEsm.map((p) => p.packageName), ["done"]);
-        }
-    );
-});
-
-test("an unrecognised mocha config keeps a package out of the mechanical set", () => {
-    withTree(
-        {
-            "packages/p/package.json": JSON.stringify({ name: "p" }),
-            "packages/p/.mocharc.js": "module.exports = { spec: __dirname };\n"
-        },
-        (root) => {
-            const s = survey({ repoRoot: root });
-            assert.equal(s.mechanical.length, 0);
-            assert.equal(s.needsDecision.length, 1);
         }
     );
 });
