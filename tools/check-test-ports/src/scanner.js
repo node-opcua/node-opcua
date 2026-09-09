@@ -24,13 +24,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { TEST_DIRS } from "../../shared/test_dirs.mjs";
 
 export const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 
 /** roots scanned for workspace packages */
 export const PACKAGE_ROOTS = ["packages", "packages_extra"];
 /** per-package directories holding tests and their fixtures */
-export const TEST_DIRS = ["test", "test_helpers", "test-fixtures"];
+export { TEST_DIRS };
 const EXTENSIONS = new Set([".ts", ".js", ".mts", ".cts", ".mjs", ".cjs"]);
 
 /** Linux's default ip_local_port_range. A fixed port at or above this can be stolen. */

@@ -1,1 +1,1 @@
-export * from "./fixture_full_tcp_packets";
+export * from "./fixture_full_tcp_packets.js";
