@@ -10,7 +10,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { analyze, convertAnchors, convertMocharc, findManualWork, setTypeModule } from "../src/rule.js";
+import { analyze, convertAnchors, convertMocharc, findManualWork, setTypeModule, survey } from "../src/rule.js";
 
 function withTree(files, fn) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "esm-convert-"));
@@ -191,6 +191,59 @@ test("test trees are converted too: they become ESM with the package", () => {
         },
         (root) => {
             assert.equal(analyze({ repoRoot: root, packageName: "p" }).anchors.length, 1);
+        }
+    );
+});
+
+// ── the workspace survey ────────────────────────────────────────────────────────
+//
+// The number this produces is what FEAT-2 is planned against, so it is worth pinning that
+// it counts packages rather than directory entries. Counting `ls packages` gave 134 once,
+// because packages/ also holds parallel_test.js, tsconfig.json and six other loose files.
+
+test("counts only directories carrying a package.json", () => {
+    withTree(
+        {
+            "packages/a/package.json": JSON.stringify({ name: "a" }),
+            "packages/b/package.json": JSON.stringify({ name: "b" }),
+            "packages/tsconfig.json": "{}",
+            "packages/parallel_test.js": "// not a package\n",
+            "packages/loose-dir/readme.md": "no manifest here\n"
+        },
+        (root) => {
+            assert.equal(survey({ repoRoot: root }).total, 2);
+        }
+    );
+});
+
+test("sorts packages into mechanical, needs-a-decision, and already ESM", () => {
+    withTree(
+        {
+            "packages/clean/package.json": JSON.stringify({ name: "clean", files: ["source"] }),
+            "packages/clean/source/a.ts": "export const x = 1;\n",
+            "packages/needs/package.json": JSON.stringify({ name: "needs", files: ["source"] }),
+            "packages/needs/source/a.ts": 'const info = require("../package.json");\n',
+            "packages/done/package.json": JSON.stringify({ name: "done", type: "module" })
+        },
+        (root) => {
+            const s = survey({ repoRoot: root });
+            assert.deepEqual(s.mechanical.map((p) => p.packageName), ["clean"]);
+            assert.deepEqual(s.needsDecision.map((p) => p.packageName), ["needs"]);
+            assert.deepEqual(s.alreadyEsm.map((p) => p.packageName), ["done"]);
+        }
+    );
+});
+
+test("an unrecognised mocha config keeps a package out of the mechanical set", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p" }),
+            "packages/p/.mocharc.js": "module.exports = { spec: __dirname };\n"
+        },
+        (root) => {
+            const s = survey({ repoRoot: root });
+            assert.equal(s.mechanical.length, 0);
+            assert.equal(s.needsDecision.length, 1);
         }
     );
 });

@@ -169,6 +169,38 @@ export function findManualWork(text, filePath = "file.ts") {
 
 // ── putting it together ─────────────────────────────────────────────────────────
 
+/** every package in the workspace, published or not: a flip has to reach all of them */
+export function allPackages(repoRoot = ".") {
+    const names = [];
+    for (const root of SOURCE_ROOTS) {
+        const full = path.join(repoRoot, root);
+        if (!fs.existsSync(full)) continue;
+        for (const entry of fs.readdirSync(full, { withFileTypes: true })) {
+            if (entry.isDirectory() && fs.existsSync(path.join(full, entry.name, "package.json"))) {
+                names.push(entry.name);
+            }
+        }
+    }
+    return names.sort();
+}
+
+/**
+ * The whole workspace, sorted into what a tool can finish and what needs a person.
+ *
+ * This is the number that matters for planning FEAT-2: a package with no manual work can be
+ * converted, rebuilt and tested without anyone reading it.
+ */
+export function survey({ repoRoot = "." } = {}) {
+    const packages = allPackages(repoRoot).map((name) => analyze({ repoRoot, packageName: name }));
+    return {
+        total: packages.length,
+        alreadyEsm: packages.filter((p) => p.alreadyEsm),
+        mechanical: packages.filter((p) => !p.alreadyEsm && p.manual.length === 0 && p.mocharc !== "unrecognised"),
+        needsDecision: packages.filter((p) => !p.alreadyEsm && (p.manual.length > 0 || p.mocharc === "unrecognised")),
+        packages
+    };
+}
+
 export function analyze({ repoRoot = ".", packageName } = {}) {
     const dir = packageDir(repoRoot, packageName);
     if (!dir) return { found: false, packageName };
