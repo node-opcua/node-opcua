@@ -10,7 +10,15 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { analyze, convertAnchors, convertMocharc, findManualWork, setTypeModule, survey } from "../src/rule.js";
+import {
+    analyze,
+    convertAnchors,
+    convertDynamicRequire,
+    convertMocharc,
+    findManualWork,
+    setTypeModule,
+    survey
+} from "../src/rule.js";
 
 function withTree(files, fn) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "esm-convert-"));
@@ -110,9 +118,24 @@ test("leaves a scattered use alone: only the anchor shape is mechanical", () => 
 
 // ── what needs a person ─────────────────────────────────────────────────────────
 
-test("reports a require of a module, because dynamic import is async", () => {
-    const found = findManualWork('const { x } = require("./thing");\n');
-    assert.equal(found[0].kind, "require-module");
+test("a literal require is mechanical: createRequire is faithful in any context", () => {
+    assert.equal(findManualWork('const { x } = require("./thing");\n').length, 0);
+    assert.match(convertDynamicRequire('const { x } = require("./thing");\n'), /createRequire\(import\.meta\.url\)/);
+});
+
+test("import() is deliberately not used: it needs an async call site and an emitted .js", () => {
+    // tried on extra_data_type_manager and it broke three tests - under tsx the sources are
+    // .ts, so import("./x.js") asks the loader for a file that only exists after a build
+    assert.doesNotMatch(convertDynamicRequire('const x = require("./thing");\n'), /await import/);
+});
+
+test("a file with no require is left alone", () => {
+    assert.equal(convertDynamicRequire('import { x } from "./thing.js";\n'), null);
+});
+
+test("a file already using createRequire is not given a second one", () => {
+    const once = convertDynamicRequire("const usage = require(m);\n");
+    assert.equal(convertDynamicRequire(once), null);
 });
 
 test("reports a require of package.json separately: it has its own options", () => {
@@ -120,9 +143,11 @@ test("reports a require of package.json separately: it has its own options", () 
     assert.equal(found[0].kind, "require-json");
 });
 
-test("reports a non-literal require, which is deliberate", () => {
-    const found = findManualWork("const usage = require(usageModule);\n");
-    assert.equal(found[0].kind, "require-dynamic");
+test("a non-literal require is mechanical too, and stays opaque to bundlers", () => {
+    assert.equal(findManualWork("const usage = require(usageModule);\n").length, 0);
+    const out = convertDynamicRequire("const usage = require(usageModule);\n");
+    assert.match(out, /createRequire/);
+    assert.match(out, /require\(usageModule\)/);
 });
 
 test("reports module-scope await, which breaks require(esm) downstream", () => {

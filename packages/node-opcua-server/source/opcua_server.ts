@@ -1,6 +1,8 @@
 /**
  * @module node-opcua-server
  */
+import fs from "node:fs";
+import path from "node:path";
 import { callbackify, types } from "node:util";
 
 import chalk from "chalk";
@@ -188,7 +190,19 @@ import { bindRoleSet } from "./user_manager_ua.js";
 function isSubscriptionIdInvalid(subscriptionId: number): boolean {
     return subscriptionId < 0 || subscriptionId >= 0xffffffff;
 }
-const package_info = require("../package.json");
+// The one place this module learns where it sits on disk. `import.meta.dirname`
+// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
+// has this single line to change rather than several scattered uses.
+const here = __dirname;
+
+// Read rather than required: a JSON import needs an import attribute under ESM, and that
+// syntax is not available while this package still emits CommonJS. A read works under both.
+//
+// Deliberately not wrapped in a try/catch. `require("../package.json")` threw if the manifest
+// was not there, and a silent "unknown" would turn a packaging fault into a wrong version
+// advertised to every client instead of a startup failure.
+const packageVersion: string = (JSON.parse(fs.readFileSync(path.join(here, "..", "package.json"), "utf8")) as { version: string })
+    .version;
 const debugLog = make_debugLog("opcua_server");
 const doDebug = checkDebugFlag("opcua_server");
 const errorLog = make_errorLog("opcua_server");
@@ -212,7 +226,7 @@ const default_build_info: BuildInfoOptions = {
     manufacturerName: "NodeOPCUA : MIT Licence ( see http://node-opcua.github.io/)",
     productName: "NodeOPCUA-Server",
     productUri: null, // << should be same as default_server_info.productUri?
-    softwareVersion: package_info.version,
+    softwareVersion: packageVersion,
     buildNumber: "0",
     buildDate: new Date(2020, 1, 1)
     // xx buildDate: fs.statSync(package_json_file).mtime

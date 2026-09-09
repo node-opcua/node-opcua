@@ -13,6 +13,7 @@
  * reader and the writer share is invisible to it, which is why the equivalence against NodeSet2
  * XML below matters more than the fixpoint does.
  */
+import fs from "node:fs";
 import { AddressSpace, generateAddressSpaceRaw, nodesetFormatByName } from "node-opcua-address-space/dist/api/index.js";
 import { digestAddressSpace } from "node-opcua-address-space/distHelpers/address_space_digest.js";
 import "node-opcua-address-space/distNodeJS/index.js";
@@ -160,7 +161,7 @@ describe("Annex I JSON document", () => {
   </UAVariable>
 </UANodeSet>`;
 
-        const core = require("node:fs").readFileSync(nodesets.standard, "utf8");
+        const core = fs.readFileSync(nodesets.standard, "utf8");
         const build = async (second: { name: string; source: string }) => {
             const addressSpace = AddressSpace.create();
             try {

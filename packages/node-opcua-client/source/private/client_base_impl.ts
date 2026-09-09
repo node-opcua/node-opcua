@@ -19,7 +19,7 @@ import {
     resolvePrivateKeyProviderIfNeeded
 } from "node-opcua-common";
 import { PrivateKeyPassphraseRequiredError } from "node-opcua-crypto";
-import { type Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
+import { type Certificate, exploreCertificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
 import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { getHostname } from "node-opcua-hostname";
@@ -1770,7 +1770,6 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                         const c = chain[i];
                         const thumbprint = makeSHA1Thumbprint(c).toString("hex");
                         try {
-                            const { exploreCertificate } = require("node-opcua-crypto/web");
                             const info = exploreCertificate(c);
                             const tbs = info.tbsCertificate;
                             const cn = tbs.subject?.commonName ?? "unknown";
