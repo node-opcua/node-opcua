@@ -200,9 +200,29 @@ async function _output_index_ts_file(info: Info): Promise<void> {
     fs.writeFileSync(index, content.join("\n"));
     // create package.json
 }
+/**
+ * The Node floor the surrounding workspace declares, so a generated manifest carries the same
+ * one as every hand-written package. Read rather than hardcoded: `check-engines` requires
+ * every published package to equal the root, and a constant here would be a second place for
+ * that value to live and drift from.
+ *
+ * Undefined when the tool runs outside a workspace that declares one - an external project
+ * using this as a `bin` should not inherit node-opcua's floor - and the block is then omitted.
+ */
+function workspaceNodeFloor(packageFolder: string): string | undefined {
+    // <workspace>/packages/<generated package>
+    const rootManifest = path.join(packageFolder, "..", "..", "package.json");
+    try {
+        return JSON.parse(fs.readFileSync(rootManifest, "utf8")).engines?.node;
+    } catch {
+        return undefined;
+    }
+}
+
 async function _output_package_json(info: Info, options: Options): Promise<void> {
     const packagejson = path.join(info.folder, "package.json");
     const version = getGeneratedPackageVersion(info, options);
+    const nodeFloor = workspaceNodeFloor(info.folder);
 
     const content2: string[] = [];
     content2.push(`{`);
@@ -217,6 +237,12 @@ async function _output_package_json(info: Info, options: Options): Promise<void>
     content2.push(`    },`);
     content2.push(`    "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",`);
     content2.push(`    "license": "MIT",`);
+
+    if (nodeFloor) {
+        content2.push(`    "engines": {`);
+        content2.push(`        "node": "${nodeFloor}"`);
+        content2.push(`    },`);
+    }
 
     content2.push(`    "dependencies": {`);
     // find versions
