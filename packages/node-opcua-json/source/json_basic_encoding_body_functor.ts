@@ -29,6 +29,7 @@ import type { ExtensionObjectConstructorFuncWithSchema } from "./extension_objec
 import { opcuaJsonDecodeByteString, opcuaJsonEncodeByteString } from "./json_basic_encoding_decoding_byte_string.js";
 import { opcuaJsonDecodeDataValue, opcuaJsonEncodeDataValue } from "./json_basic_encoding_decoding_data_value.js";
 import { opcuaJsonDecodeDateTime, opcuaJsonEncodeDateTime } from "./json_basic_encoding_decoding_date_time.js";
+import { opcuaJsonDecodeDiagnosticInfo, opcuaJsonEncodeDiagnosticInfo } from "./json_basic_encoding_decoding_diagnosticinfo.js";
 import { opcuaJsonDecodeExtensionObject, opcuaJsonEncodeExtensionObject } from "./json_basic_encoding_decoding_extension_object.js";
 import {
     opcuaJsonDecodeInt64,
@@ -108,6 +109,8 @@ export function bodyEncodeFunctor(dataType: DataType): EncoderFunc<unknown> {
         case DataType.Guid:
             return opcuaJsonEncodeGuid as EncoderFunc<unknown>;
         case DataType.String:
+        case DataType.XmlElement:
+            // XmlElement values are encoded as a JSON string holding the XML text (Part 6, 5.4.2.9)
             return opcuaJsonEncodeString as EncoderFunc<unknown>;
         case DataType.ByteString:
             return opcuaJsonEncodeByteString as EncoderFunc<unknown>;
@@ -134,8 +137,7 @@ export function bodyEncodeFunctor(dataType: DataType): EncoderFunc<unknown> {
         case DataType.DataValue:
             return opcuaJsonEncodeDataValue as EncoderFunc<unknown>;
         case DataType.DiagnosticInfo:
-        case DataType.XmlElement:
-            throw new Error(`Unsupported yet ${DataType[dataType]}`);
+            return opcuaJsonEncodeDiagnosticInfo as EncoderFunc<unknown>;
         default:
             return () => null;
     }
@@ -156,6 +158,7 @@ export function bodyDecodeFunctor(dataType: DataType): DecoderFunc<unknown> {
         case DataType.String:
         case DataType.UInt16:
         case DataType.UInt32:
+        case DataType.XmlElement:
             return ((a: boolean | number | string) => a) as DecoderFunc<unknown>;
         case DataType.ByteString:
             return opcuaJsonDecodeByteString as DecoderFunc<unknown>;
@@ -182,8 +185,7 @@ export function bodyDecodeFunctor(dataType: DataType): DecoderFunc<unknown> {
         case DataType.DataValue:
             return opcuaJsonDecodeDataValue as DecoderFunc<unknown>;
         case DataType.DiagnosticInfo:
-        case DataType.XmlElement:
-            throw new Error(`Unsupported yet ${DataType[dataType]}`);
+            return opcuaJsonDecodeDiagnosticInfo as DecoderFunc<unknown>;
         default:
             return () => null;
     }

@@ -36,7 +36,7 @@ describe("JSON UA encode/decode", () => {
         indexRange: numericRange
     });
     const builder: ExtensionObjectBuilder = {
-        getExtensionObjectConstructor(dataTypeNodeId: NodeId): ExtensionObjectConstructorFuncWithSchema {
+        getExtensionObjectConstructor(_dataTypeNodeId: NodeId): ExtensionObjectConstructorFuncWithSchema {
             // This is a mock implementation, replace with actual logic to get the constructor
             return null as unknown as ExtensionObjectConstructorFuncWithSchema;
         }

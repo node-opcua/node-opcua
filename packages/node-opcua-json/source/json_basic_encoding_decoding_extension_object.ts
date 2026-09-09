@@ -310,12 +310,12 @@ function isDefault(field: FieldType, value: unknown): boolean {
             // DiagnosticInfo is default if it has no body
             const valueAsDiag = value as DiagnosticInfoOptions;
             return (
-                valueAsDiag.symbolicId === 0 &&
-                valueAsDiag.namespaceURI === 0 &&
-                valueAsDiag.locale === 0 &&
-                valueAsDiag.localizedText === 0 &&
+                (valueAsDiag.symbolicId ?? -1) === -1 &&
+                (valueAsDiag.namespaceURI ?? -1) === -1 &&
+                (valueAsDiag.locale ?? -1) === -1 &&
+                (valueAsDiag.localizedText ?? -1) === -1 &&
                 !valueAsDiag.additionalInfo &&
-                !valueAsDiag.innerStatusCode &&
+                (!valueAsDiag.innerStatusCode || valueAsDiag.innerStatusCode.value === 0) &&
                 !valueAsDiag.innerDiagnosticInfo
             );
         }

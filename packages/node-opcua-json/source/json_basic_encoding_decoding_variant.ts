@@ -181,6 +181,7 @@ export function opcuaJsonEncodeVariant105(variant: Variant, mode: JsonEncoderMod
             case DataType.LocalizedText:
             case DataType.ExtensionObject:
             case DataType.StatusCode:
+            case DataType.DiagnosticInfo:
                 // these are all scalar types, so we can remove the UaType
                 // delete pojo.UaType;
                 break;

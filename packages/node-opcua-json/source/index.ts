@@ -45,6 +45,7 @@ export {
     opcuaJsonEncodeDataValueMQTT104,
     opcuaJsonEncodeDataValueMQTT105
 } from "./json_basic_encoding_decoding_data_value.js";
+export * from "./json_basic_encoding_decoding_diagnosticinfo.js";
 export * from "./json_basic_encoding_decoding_extension_object.js";
 export {
     opcuaJsonDecodeExtensionObject,
