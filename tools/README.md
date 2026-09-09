@@ -87,6 +87,7 @@ Each has its own README with the reasoning behind the rule.
 - `check-construction-cast/`: a class is published as itself, not through a constructor cast
 - `check-engines/`: every published package declares the root's Node floor
 - `check-dirname/`: shipped source reaches its own location through one anchor
+- `esm-convert/`: the mechanical half of converting a package to ESM (not a gate)
 - `check-module-identity/`: a file must reach any one package by a single route
 - `check-pack/`: declared entry points must actually be published
 - `check-test-types/`: ratchet on test-suite type-checking
@@ -107,6 +108,7 @@ tools/
 ├── check-construction-cast/ # Classes published through a constructor cast
 ├── check-engines/           # Published packages declare the root Node floor
 ├── check-dirname/           # One __dirname anchor per module
+├── esm-convert/             # CJS -> ESM, the automatable part
 ├── check-module-identity/   # One route per package
 ├── check-entry-points/      # types describes the module main loads
 ├── check-short-circuit-assertion/  # Assertions an optional chain can switch off
@@ -123,6 +125,7 @@ tools/
 ├── check-construction-cast.mjs
 ├── check-engines.mjs
 ├── check-dirname.mjs
+├── esm-convert.mjs
 ├── check-module-identity.mjs
 ├── check-entry-points.mjs
 ├── check-short-circuit-assertion.mjs
