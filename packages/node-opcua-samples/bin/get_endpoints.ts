@@ -3,6 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { types } from "node:util";
 import chalk from "chalk";
+import commandLineArgs from "command-line-args";
+import commandLineUsage from "command-line-usage";
 import {
     ApplicationType,
     coerceMessageSecurityMode,
@@ -14,36 +16,41 @@ import {
     UserTokenType
 } from "node-opcua";
 import { type Certificate, toPem } from "node-opcua-crypto";
-import yargs from "yargs";
 
 const Table = require("easy-table");
 const treeify = require("treeify");
 
 async function main() {
     // tsx bin/simple_client.ts --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
-    const argv = await yargs(process.argv)
-        .wrap(132)
-
-        .option("endpoint", {
-            alias: "e",
-            demandOption: true,
-            describe: "the end point to connect to "
-        })
-        .option("securityMode", {
+    const optionDefinitions: commandLineUsage.OptionDefinition[] = [
+        { name: "endpoint", alias: "e", type: String, description: "the end point to connect to " },
+        {
+            name: "securityMode",
             alias: "s",
-            default: "None",
-            describe: "the security mode (  None Sign SignAndEncrypt )"
-        })
-        .option("securityPolicy", {
+            type: String,
+            defaultValue: "None",
+            description: "the security mode (  None Sign SignAndEncrypt )"
+        },
+        {
+            name: "securityPolicy",
             alias: "P",
-            default: "None",
-            describe: `the policy mode : (${Object.keys(SecurityPolicy).join(" - ")})`
-        })
-        .option("discovery", {
+            type: String,
+            defaultValue: "None",
+            description: `the policy mode : (${Object.keys(SecurityPolicy).join(" - ")})`
+        },
+        {
+            name: "discovery",
             alias: "D",
-            describe: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
-        })
-        .example("get_endpoints  --endpoint opc.tcp://localhost:49230", "").argv;
+            type: String,
+            description: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
+        }
+    ];
+    const sections: commandLineUsage.Section[] = [
+        { header: "get_endpoints", content: "list the endpoints a server offers" },
+        { header: "Options", optionList: optionDefinitions },
+        { header: "Examples", content: ["get_endpoints  --endpoint opc.tcp://localhost:49230"] }
+    ];
+    const argv = commandLineArgs(optionDefinitions);
 
     const securityMode = coerceMessageSecurityMode(argv.securityMode);
     if (securityMode === MessageSecurityMode.Invalid) {
@@ -61,7 +68,7 @@ async function main() {
     const endpointUrl = argv.endpoint as string;
 
     if (!endpointUrl) {
-        yargs.showHelp();
+        console.log(commandLineUsage(sections));
         process.exit(0);
     }
     const discoveryUrl = argv.discovery ? (argv.discovery as string) : endpointUrl;

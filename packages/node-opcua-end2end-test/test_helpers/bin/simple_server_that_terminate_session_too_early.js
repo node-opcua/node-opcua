@@ -6,13 +6,14 @@ const fs = require("fs");
 
 // simulate kepware server that sometime shutdown session too early
 const chalk = require("chalk");
-const yargs = require("yargs");
+const commandLineArgs = require("command-line-args");
 const { OPCUAServer, nodesets, StatusCodes, DataType } = require("node-opcua");
 
 Error.stackTraceLimit = Infinity;
 const doDebug = !!process.env.DEBUG;
 
-const argv = yargs.wrap(132).string("port").describe("port").alias("p", "port").argv;
+// partial: this helper is spawned with extra flags it does not own
+const argv = commandLineArgs([{ name: "port", alias: "p", type: String }], { partial: true });
 
 const packageFolder = path.join(__dirname, "../");
 

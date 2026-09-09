@@ -17,26 +17,20 @@ const { makeBoiler, createBoilerType } = require("node-opcua-address-space/testH
 Error.stackTraceLimit = Infinity;
 
 const { assert } = require("node-opcua-assert");
-const argv = require("yargs")
-    .wrap(132)
+const commandLineArgs = require("command-line-args");
 
-    .string("alternateHostname")
-    .describe("alternateHostname")
-    .alias("a", "alternateHostname")
-
-    .string("port")
-    .describe("port")
-    .alias("p", "port")
-
-    .number("keySize")
-    .describe("keySize", "certificate keySize [1024|2048|3072|4096]")
-    .default("keySize", 2048)
-    .alias("k", "keySize")
-
-    .string("discoveryServerEndpointUrl")
-    .describe("discoveryServerEndpointUrl", " end point of the discovery server to register to")
-    .default("discoveryServerEndpointUrl", "opc.tcp://localhost:4840")
-    .alias("d", "discoveryServerEndpointUrl").argv;
+const argv = commandLineArgs([
+    { name: "alternateHostname", alias: "a", type: String },
+    { name: "port", alias: "p", type: String },
+    { name: "keySize", alias: "k", type: Number, defaultValue: 2048, description: "certificate keySize [1024|2048|3072|4096]" },
+    {
+        name: "discoveryServerEndpointUrl",
+        alias: "d",
+        type: String,
+        defaultValue: "opc.tcp://localhost:4840",
+        description: " end point of the discovery server to register to"
+    }
+]);
 
 const port = parseInt(argv.port) || 26543;
 

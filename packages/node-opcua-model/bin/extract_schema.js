@@ -1,27 +1,22 @@
 const { OPCUAClient } = require("node-opcua-client");
 const { parse_opcua_common } = require("..");
 
-const yargs = require("yargs/yargs");
+const commandLineArgs = require("command-line-args");
+const commandLineUsage = require("command-line-usage");
 
-const argv = yargs(process.argv)
-  .wrap(132)
-  .demand("endpoint")
-  .string("endpoint")
-  .describe("endpoint", "the end point to connect to ")
-  .string("securityMode")
-  .describe("securityMode", "the security mode")
-  .string("securityPolicy")
-  .describe("securityPolicy", "the policy mode")
-  .string("userName")
-  .describe("userName", "specify the user name of a UserNameIdentityToken ")
-  .string("password")
-  .describe("password", "specify the password of a UserNameIdentityToken")
-  .alias("e", "endpoint")
-  .alias("s", "securityMode")
-  .alias("P", "securityPolicy")
-  .alias("u", "userName")
-  .alias("p", "password")
-  .argv;
+const optionDefinitions = [
+  { name: "endpoint", alias: "e", type: String, description: "the end point to connect to " },
+  { name: "securityMode", alias: "s", type: String, description: "the security mode" },
+  { name: "securityPolicy", alias: "P", type: String, description: "the policy mode" },
+  { name: "userName", alias: "u", type: String, description: "specify the user name of a UserNameIdentityToken " },
+  { name: "password", alias: "p", type: String, description: "specify the password of a UserNameIdentityToken" }
+];
+const argv = commandLineArgs(optionDefinitions);
+if (!argv.endpoint) {
+  // was yargs .demand("endpoint"), which printed the usage and exited
+  console.log(commandLineUsage([{ header: "extract_schema", optionList: optionDefinitions }]));
+  process.exit(1);
+}
 
 const endpointUrl = argv.endpoint || "opc.tcp://localhost:48010";
 

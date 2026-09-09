@@ -42,8 +42,8 @@
         "node-opcua-service-session": "2.182.0",
         "node-opcua-test-helpers": "2.181.0",
         "node-opcua-utils": "2.181.0",
-        "sterfive-bonjour-service": "1.1.4",
-        "yargs": "15.4.1"
+        "command-line-args": "6.0.2",
+        "sterfive-bonjour-service": "1.1.4"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

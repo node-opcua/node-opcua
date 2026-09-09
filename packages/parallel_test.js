@@ -40,7 +40,7 @@ require("should");
 const chalk = require("chalk");
 
 const { Mocha } = require("mocha");
-const yargs = require("yargs");
+const commandLineArgs = require("command-line-args");
 
 function durationToString(milliseconds) {
     const seconds = Math.floor(milliseconds / 1000);
@@ -341,20 +341,15 @@ function dumpRunningTests() {
 }
 
 if (isMainThread) {
-    const argv = yargs
-        .option("fileFilter", {
-            describe: "file filter",
-            default: null,
-            alias: "f"
-        })
-        .option("testFilter", {
-            alias: "t",
-            default: null
-        })
-        .options("verbose", {
-            alias: "v",
-            default: false
-        }).argv;
+    // partial: mocha flags reach this runner too, and an unknown one used to be ignored
+    const argv = commandLineArgs(
+        [
+            { name: "fileFilter", alias: "f", type: String, defaultValue: null, description: "file filter" },
+            { name: "testFilter", alias: "t", type: String, defaultValue: null },
+            { name: "verbose", alias: "v", type: Boolean, defaultValue: false }
+        ],
+        { partial: true }
+    );
 
     if (argv.verbose) {
         console.info("Verbose mode on.");

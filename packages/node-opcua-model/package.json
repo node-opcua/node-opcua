@@ -14,6 +14,8 @@
     "author": "Etienne Rossignon",
     "license": "MIT",
     "dependencies": {
+        "command-line-args": "6.0.2",
+        "command-line-usage": "7.0.4",
         "node-opcua-client-dynamic-extension-object": "2.182.1",
         "node-opcua-pseudo-session": "2.182.1"
     },
