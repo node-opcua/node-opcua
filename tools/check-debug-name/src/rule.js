@@ -16,6 +16,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { SOURCE_ROOTS, shippedDirsOf } from "../../shared/shipped_dirs.mjs";
+import { TEST_DIRS } from "../../shared/test_dirs.mjs";
 
 /** every factory in node-opcua-debug that takes a module name */
 export const FACTORIES = ["make_debugLog", "checkDebugFlag", "make_errorLog", "make_warningLog", "make_traceLog", "setDebugFlag"];
@@ -36,7 +37,7 @@ export const SOURCE_DIRS = ["source", "src"];
  * module. A package that flips takes its own suite down with it, so the rule has to reach
  * here too.
  */
-export const TEST_DIRS = ["test", "test_helpers", "test_fixtures"];
+export { TEST_DIRS };
 
 /**
  * A scope says which directories to scan. `shipped` means "whatever this package publishes",

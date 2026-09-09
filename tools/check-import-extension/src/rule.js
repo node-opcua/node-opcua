@@ -21,6 +21,7 @@ import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
 import { SOURCE_ROOTS, shippedDirsOf } from "../../shared/shipped_dirs.mjs";
+import { TEST_DIRS } from "../../shared/test_dirs.mjs";
 
 /** opt out of the rule on one line, with a reason: `// check-import-extension: ok - why` */
 export const IGNORE_MARKER = "check-import-extension: ok";
@@ -39,7 +40,7 @@ export const SOURCE_DIRS = ["source", "src"];
  * `"type": "module"` package is an ES module whether or not it ships. A package that flips
  * with an extensionless specifier in its own suite breaks its own tests.
  */
-export const TEST_DIRS = ["test", "test_helpers", "test_fixtures"];
+export { TEST_DIRS };
 
 /**
  * A scope says which directories to scan. `shipped` means "whatever this package publishes",

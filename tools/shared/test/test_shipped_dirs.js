@@ -161,3 +161,34 @@ test("every directory this repository ships is one the gates now scan", () => {
         assert.ok(names.includes(missed), `${missed} not discovered, found: ${names.join()}`);
     }
 });
+
+// ── the test-directory list ─────────────────────────────────────────────────────
+//
+// Shared for the same reason shippedDirsOf is. Three gates each kept their own copy, the
+// copies disagreed, and every one was blind to something: two looked for `test_fixtures`
+// and missed node-opcua-transport's `test-fixtures`, while check-test-ports looked for
+// `test-fixtures` and missed the two packages using the underscore.
+
+test("the test-directory list carries both spellings, because both exist on disk", async () => {
+    const { TEST_DIRS } = await import("../test_dirs.mjs");
+    assert.ok(TEST_DIRS.includes("test_fixtures"), "underscore form: secure-channel, convert-nodeset");
+    assert.ok(TEST_DIRS.includes("test-fixtures"), "hyphen form: node-opcua-transport");
+    assert.ok(TEST_DIRS.includes("test"), "the ordinary case");
+});
+
+test("every directory this repository uses for tests is in the list", () => {
+    const repoRoot = path.resolve(import.meta.dirname, "../../..");
+    const packages = path.join(repoRoot, "packages");
+    const seen = new Set();
+    for (const pkg of fs.readdirSync(packages, { withFileTypes: true })) {
+        if (!pkg.isDirectory()) continue;
+        for (const entry of fs.readdirSync(path.join(packages, pkg.name), { withFileTypes: true })) {
+            if (entry.isDirectory() && /^tests?([-_]|$)/.test(entry.name)) seen.add(entry.name);
+        }
+    }
+    // a directory here that the list does not name is a gate quietly not looking
+    return import("../test_dirs.mjs").then(({ TEST_DIRS }) => {
+        const missing = [...seen].filter((d) => !TEST_DIRS.includes(d));
+        assert.deepEqual(missing, [], `test directories no gate scans: ${missing.join(", ")}`);
+    });
+});
