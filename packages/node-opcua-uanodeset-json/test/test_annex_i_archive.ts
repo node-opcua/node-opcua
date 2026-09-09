@@ -12,7 +12,7 @@ import zlib from "node:zlib";
 import { AddressSpace, generateAddressSpaceRaw, nodesetFormatByName } from "node-opcua-address-space/dist/api/index.js";
 import { digestAddressSpace } from "node-opcua-address-space/distHelpers/address_space_digest.js";
 import "node-opcua-address-space/distNodeJS/index.js";
-import type { NodesetNodeRecord, NodesetRecord } from "node-opcua-address-space/dist/api/index.js";
+import type { NamedNodesetSource, NodesetNodeRecord, NodesetRecord } from "node-opcua-address-space/dist/api/index.js";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import {
@@ -197,7 +197,7 @@ describe("Annex I archive", () => {
   </UAObjectType>
 </UANodeSet>`;
         const core = fs.readFileSync(nodesets.standard, "utf8");
-        const build = async (second: { name: string; source: unknown }) => {
+        const build = async (second: NamedNodesetSource) => {
             const addressSpace = AddressSpace.create();
             try {
                 await generateAddressSpaceRaw(addressSpace, [{ name: "core", source: core }, second], {
