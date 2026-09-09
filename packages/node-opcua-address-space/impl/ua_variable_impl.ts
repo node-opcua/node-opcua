@@ -104,7 +104,8 @@ const warningLog = make_warningLog("ua_variable_impl");
 const doDebug = checkDebugFlag("ua_variable_impl");
 const errorLog = make_errorLog("ua_variable_impl");
 
-const plainChalk = new Proxy(chalk, { get: () => (s: string) => s }) as typeof chalk;
+// a colourless chalk; see ua_object_impl.ts for why it is not a Proxy over `chalk`
+const plainChalk = new chalk.Instance({ level: 0 });
 
 export function adjust_accessLevel(accessLevel: string | number | AccessLevelFlag | null | undefined): AccessLevelFlag {
     const flag = makeAccessLevelFlag(accessLevel ?? "CurrentRead | CurrentWrite");
