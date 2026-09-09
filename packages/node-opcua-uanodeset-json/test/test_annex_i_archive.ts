@@ -7,6 +7,7 @@
  * holds that the manifest does not name, both have to be refused rather than quietly ignored,
  * because either one silently changes which nodes get loaded.
  */
+import fs from "node:fs";
 import zlib from "node:zlib";
 import { AddressSpace, generateAddressSpaceRaw, nodesetFormatByName } from "node-opcua-address-space/dist/api/index.js";
 import { digestAddressSpace } from "node-opcua-address-space/distHelpers/address_space_digest.js";
@@ -195,7 +196,7 @@ describe("Annex I archive", () => {
     <References><Reference ReferenceType="i=45" IsForward="false">ns=1;i=1000</Reference></References>
   </UAObjectType>
 </UANodeSet>`;
-        const core = require("node:fs").readFileSync(nodesets.standard, "utf8");
+        const core = fs.readFileSync(nodesets.standard, "utf8");
         const build = async (second: { name: string; source: unknown }) => {
             const addressSpace = AddressSpace.create();
             try {

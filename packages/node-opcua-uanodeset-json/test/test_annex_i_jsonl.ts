@@ -7,9 +7,11 @@
  * name, class, reference count and, for variables, status code and value, so two loads that agree
  * on it agree on their contents.
  */
+import fs from "node:fs";
 import type { NodesetNodeRecord, NodesetReferenceRecord, NodesetSource } from "node-opcua-address-space/dist/api/index.js";
 import { AddressSpace, generateAddressSpaceRaw } from "node-opcua-address-space/dist/api/index.js";
 import { digestAddressSpace } from "node-opcua-address-space/distHelpers/address_space_digest.js";
+import { nodesets } from "node-opcua-nodesets";
 import "node-opcua-address-space/distNodeJS/index.js";
 import { findNodesetFormat, nodesetFormatByName } from "node-opcua-address-space/dist/api/index.js";
 import should from "should";
@@ -150,8 +152,7 @@ describe("Annex I JSONL", () => {
 
 /** the standard nodeset, which everything else is written against */
 function coreXml(): string {
-    // required lazily: the catalogue is a devDependency and the path is resolved by the package
-    // rather than assumed, so this keeps working if the nodesets move
-    const { nodesets } = require("node-opcua-nodesets");
-    return require("node:fs").readFileSync(nodesets.standard, "utf8");
+    // the path still comes from the catalogue rather than being assumed, so this keeps
+    // working if the nodesets move; it just no longer needs to be resolved lazily
+    return fs.readFileSync(nodesets.standard, "utf8");
 }

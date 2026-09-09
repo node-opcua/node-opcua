@@ -15,10 +15,14 @@
  * Everything else is reported and left alone, because it changes behaviour rather than
  * syntax:
  *
- *   require() of a module      dynamic import() is async; the call site has to become async
  *   require() of package.json  an import attribute, a runtime read, or a build constant
- *   require(nonLiteral)        deliberate, so webpack skips it
+ *   module.exports             a named or a default export, but which
  *   module-scope await         breaks require(esm) for every CJS consumer downstream
+ *
+ * Any other require() is mechanical: createRequire keeps the call synchronous and the
+ * specifier opaque, which is faithful in every context. `await import()` is often nicer,
+ * but it needs the call site to be async and the target to exist as .js - and while a
+ * package's tests still run its .ts sources through tsx, it does not.
  *
  * The tool refuses rather than guesses: a mocha config it does not recognise is reported, not
  * rewritten.
@@ -110,6 +114,44 @@ export function convertMocharc(text) {
     return out;
 }
 
+/**
+ * Any surviving `require()`, kept but given something to resolve it.
+ *
+ * `createRequire` rather than `await import()` on purpose. import() is often the nicer form,
+ * but it needs two things a mechanical rewrite cannot assume: a call site that is already
+ * async, and a target that exists as `.js`. The second one bites immediately - a package's
+ * tests run its `.ts` sources through tsx, so `import("./x.js")` asks the ESM loader for a
+ * file that only appears after a build. That was tried here and broke three tests.
+ *
+ * createRequire keeps the call synchronous and the specifier opaque, which is faithful in
+ * every context, including the deliberately non-literal specifier that exists so bundlers
+ * skip it. Turning one into `await import()` afterwards is a normal refactor, done with the
+ * call site in view.
+ */
+export function convertDynamicRequire(text) {
+    if (!text.includes("require(") || text.includes("createRequire")) return null;
+    const sf = ts.createSourceFile("f.ts", text, ts.ScriptTarget.ESNext, true, ts.ScriptKind.TS);
+    let hasRequire = false;
+    const visit = (node) => {
+        if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "require") {
+            hasRequire = true;
+        }
+        ts.forEachChild(node, visit);
+    };
+    visit(sf);
+    if (!hasRequire) return null;
+
+    const preamble =
+        'import { createRequire } from "node:module";\n\n' +
+        "// `require` does not exist in an ES module. It is kept rather than replaced by import()\n" +
+        "// because import() is async and resolves against the emitted .js, neither of which is\n" +
+        "// safe to assume at a call site a tool has not read. Converting one by hand is fine.\n" +
+        "const require = createRequire(import.meta.url);\n\n";
+
+    const firstCode = text.search(/^(?!\s*(\/\/|\/\*|\*|$))/m);
+    return firstCode <= 0 ? preamble + text : text.slice(0, firstCode) + preamble + text.slice(firstCode);
+}
+
 /** `const here = __dirname;` -> `const here = import.meta.dirname;`, and drop the stale note */
 export function convertAnchors(text) {
     if (!ANCHOR.test(text)) {
@@ -138,17 +180,15 @@ export function findManualWork(text, filePath = "file.ts") {
     const visit = (node) => {
         if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "require") {
             const arg = node.arguments[0];
-            if (arg && ts.isStringLiteral(arg)) {
-                note(
-                    node,
-                    arg.text.endsWith("package.json") ? "require-json" : "require-module",
-                    arg.text.endsWith("package.json")
-                        ? "an import attribute, a runtime read, or a build-time constant"
-                        : "dynamic import() is async, so the call site has to become async too"
-                );
-            } else {
-                note(node, "require-dynamic", "a non-literal specifier, kept so bundlers skip it");
+            if (arg && ts.isStringLiteral(arg) && arg.text.endsWith("package.json")) {
+                // the one require whose ESM form is a real choice: an import attribute, a
+                // runtime read, or a build-time constant. createRequire would work, but it
+                // would also quietly keep a JSON require nobody meant to keep.
+                note(node, "require-json", "an import attribute, a runtime read, or a build-time constant");
             }
+            // a non-literal specifier is not reported: convertDynamicRequire handles it by
+            // injecting createRequire, which keeps both the synchronous call and the opacity
+            // that made the specifier a variable in the first place
         }
         if (ts.isPropertyAccessExpression(node) && node.expression.getText(sf) === "module" && node.name.text === "exports") {
             note(node, "module-exports", "replace with a named or default export");
@@ -214,10 +254,12 @@ export function analyze({ repoRoot = ".", packageName } = {}) {
     const mocharcConvertible = hasMocharc ? convertMocharc(fs.readFileSync(mocharcPath, "utf8")) !== null : false;
 
     const anchors = [];
+    const dynamicRequires = [];
     const manual = [];
     for (const file of packageFiles(dir)) {
         const text = fs.readFileSync(file, "utf8");
         if (convertAnchors(text) !== null) anchors.push(file.replace(/\\/g, "/"));
+        if (convertDynamicRequire(text) !== null) dynamicRequires.push(file.replace(/\\/g, "/"));
         for (const m of findManualWork(text, file)) manual.push({ file: file.replace(/\\/g, "/"), ...m });
     }
 
@@ -228,6 +270,7 @@ export function analyze({ repoRoot = ".", packageName } = {}) {
         alreadyEsm,
         mocharc: hasMocharc ? (mocharcConvertible ? "convertible" : "unrecognised") : "none",
         anchors,
+        dynamicRequires,
         manual
     };
 }

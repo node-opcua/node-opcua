@@ -13,7 +13,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { analyze, convertAnchors, convertMocharc, packageFiles, setTypeModule, survey } from "./rule.js";
+import { analyze, convertAnchors, convertDynamicRequire, convertMocharc, packageFiles, setTypeModule, survey } from "./rule.js";
 
 function valueOf(argv, flag) {
     const i = argv.indexOf(flag);
@@ -40,11 +40,22 @@ function apply(result) {
     }
 
     for (const file of packageFiles(result.dir)) {
-        const text = fs.readFileSync(file, "utf8");
-        const next = convertAnchors(text);
-        if (next !== null && next !== text) {
-            fs.writeFileSync(file, next);
-            done.push(`${path.relative(result.dir, file).replace(/\\/g, "/")}: __dirname -> import.meta.dirname`);
+        const original = fs.readFileSync(file, "utf8");
+        const rel = path.relative(result.dir, file).replace(/\\/g, "/");
+        let text = original;
+
+        const anchored = convertAnchors(text);
+        if (anchored !== null && anchored !== text) {
+            text = anchored;
+            done.push(`${rel}: __dirname -> import.meta.dirname`);
+        }
+        const required = convertDynamicRequire(text);
+        if (required !== null && required !== text) {
+            text = required;
+            done.push(`${rel}: require(nonLiteral) kept, behind createRequire`);
+        }
+        if (text !== original) {
+            fs.writeFileSync(file, text);
         }
     }
     return done;
@@ -65,6 +76,7 @@ function report(result, applied) {
         if (!result.alreadyEsm) lines.push('    package.json: "type": "module"');
         if (result.mocharc === "convertible") lines.push("    .mocharc.js: module.exports -> export default");
         for (const a of result.anchors) lines.push(`    ${a}: __dirname -> import.meta.dirname`);
+        for (const d of result.dynamicRequires ?? []) lines.push(`    ${d}: require(nonLiteral) kept, behind createRequire`);
         if (result.alreadyEsm && result.mocharc !== "convertible" && result.anchors.length === 0) {
             lines.push("    nothing");
         }
