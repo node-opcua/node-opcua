@@ -20,6 +20,11 @@ import { type Certificate, toPem } from "node-opcua-crypto";
 const Table = require("easy-table");
 const treeify = require("treeify");
 
+// The one place this module learns where it sits on disk. `import.meta.dirname`
+// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
+// has this single line to change rather than several scattered uses.
+const here = __dirname;
+
 async function main() {
     // tsx bin/simple_client.ts --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
     const optionDefinitions: commandLineUsage.OptionDefinition[] = [
@@ -133,7 +138,7 @@ async function main() {
 
         serverCertificate = endpoint.serverCertificate;
 
-        const certificate_filename = path.join(__dirname, `../certificates/PKI/server_certificate${i}.pem`);
+        const certificate_filename = path.join(here, `../certificates/PKI/server_certificate${i}.pem`);
 
         if (serverCertificate) {
             fs.writeFile(certificate_filename, toPem(serverCertificate, "CERTIFICATE"), () => {

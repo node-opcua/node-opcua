@@ -37,7 +37,6 @@ import { TEST_DIRS } from "../../shared/test_dirs.mjs";
 const SKIP_DIRS = new Set(["node_modules", "dist", "dist-esm", "distNodeJS", "distHelpers", "coverage", "build"]);
 
 /** the anchor FEAT-1 established, and the comment that goes with it */
-const ANCHOR = /^(\s*(?:export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*)(__dirname|__filename)(\s*;)/gm;
 
 /** the comment above an anchor, which says the opposite once the package is ESM */
 const ANCHOR_COMMENT =
@@ -145,23 +144,50 @@ export function mocharcRename(pkgDir) {
     return { from, to };
 }
 
-/** `const here = __dirname;` -> `const here = import.meta.dirname;`, and drop the stale note */
+/**
+ * `__dirname` -> `import.meta.dirname`, everywhere it appears as code.
+ *
+ * FEAT-1 concentrated these into one anchor per module, because `import.meta` is illegal
+ * while a package emits CommonJS (TS1470) and one line is easier to change than several.
+ * That was an ergonomic choice, not a correctness one: in an ES module the substitution is
+ * exact wherever it sits, so once a package is being flipped there is nothing left to
+ * decide and the tool does all of them. `check-dirname` still keeps shipped source on the
+ * anchor; the scattered uses this converts are in test trees, which that gate does not cover.
+ *
+ * A `typeof __filename` is left alone: it is asking whether the global exists, and the
+ * answer under ESM is meant to be "no". Identifiers are found through the AST rather than a
+ * regex so that prose mentioning `__dirname` in a comment is not rewritten.
+ */
 export function convertAnchors(text) {
-    if (!ANCHOR.test(text)) {
-        ANCHOR.lastIndex = 0;
-        return null;
+    if (!text.includes("__dirname") && !text.includes("__filename")) return null;
+    const sf = ts.createSourceFile("anchor.ts", text, ts.ScriptTarget.ESNext, true, ts.ScriptKind.TS);
+    const hits = [];
+    const visit = (node) => {
+        if (ts.isIdentifier(node) && (node.text === "__dirname" || node.text === "__filename") && !ts.isTypeOfExpression(node.parent)) {
+            hits.push({ start: node.getStart(sf), end: node.getEnd(), name: node.text });
+        }
+        ts.forEachChild(node, visit);
+    };
+    visit(sf);
+    if (hits.length === 0) return null;
+
+    let out = text;
+    // back to front, so earlier offsets stay valid
+    for (const h of hits.reverse()) {
+        out = out.slice(0, h.start) + `import.meta.${h.name === "__dirname" ? "dirname" : "filename"}` + out.slice(h.end);
     }
-    ANCHOR.lastIndex = 0;
-    let out = text.replace(ANCHOR, (_m, head, name, tail) => `${head}import.meta.${name === "__dirname" ? "dirname" : "filename"}${tail}`);
-    out = out.replace(ANCHOR_COMMENT, "");
-    return out;
+    return out.replace(ANCHOR_COMMENT, "");
 }
 
 // ── the half that needs a person ────────────────────────────────────────────────
 
 /** things whose ESM form changes behaviour, so the tool reports rather than rewrites */
 export function findManualWork(text, filePath = "file.ts") {
-    if (!text.includes("require") && !text.includes("await") && !text.includes("module.exports")) return [];
+    // `exports` and `__dirname` belong here as well as `module.exports`: a lone
+    // `exports.foo = foo` beside an `export function` is a no-op under CJS emit and a
+    // ReferenceError under ESM, and this guard is what let one sit in node-opcua-utils
+    // while the survey called the package fully mechanical.
+    if (!/\brequire\b|\bawait\b|\bexports\b|__dirname|__filename/.test(text)) return [];
     const sf = ts.createSourceFile(filePath, text, ts.ScriptTarget.ESNext, true, ts.ScriptKind.TS);
     const lines = text.split("\n");
     const out = [];
@@ -185,6 +211,16 @@ export function findManualWork(text, filePath = "file.ts") {
         }
         if (ts.isPropertyAccessExpression(node) && node.expression.getText(sf) === "module" && node.name.text === "exports") {
             note(node, "module-exports", "replace with a named or default export");
+        }
+        // `exports.foo = ...`, which is neither `module.exports` nor an ES export
+        if (
+            ts.isBinaryExpression(node) &&
+            node.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+            ts.isPropertyAccessExpression(node.left) &&
+            ts.isIdentifier(node.left.expression) &&
+            node.left.expression.text === "exports"
+        ) {
+            note(node, "cjs-exports", "`exports` does not exist in an ES module; use an export declaration");
         }
         if (ts.isAwaitExpression(node)) {
             // module scope only: a await inside a function is fine

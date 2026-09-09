@@ -7,7 +7,11 @@
  * gate's coverage, which none of them noticed because they all still reported "clean".
  *
  * A package's `files` array is the list of what it publishes, so it is the honest source for
- * this. Build output is excluded: `dist` is emitted, not authored.
+ * this. Build output is excluded: `dist` is emitted, not authored - but excluding it is not
+ * enough on its own. node-opcua-address-space ships `distHelpers`, and the tree that produces
+ * it, `test_helpers`, appears nowhere in `files`; every gate therefore skipped it while
+ * reporting a clean scan. So an emitted directory is resolved back through the package's
+ * tsconfigs to the source it is compiled from.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -40,6 +44,41 @@ const holdsTypeScript = (dir) => {
 };
 
 /**
+ * outDir -> the source directories compiled into it, read from the package's tsconfigs.
+ *
+ * The `include` globs are used rather than `rootDir`, because a rootDir of "" or "." names the
+ * package itself and would widen a scan to everything; `include: ["api/**", "impl/**"]` says
+ * precisely which trees feed that output.
+ */
+function emittedFrom(packageDir) {
+    const map = new Map();
+    let names;
+    try {
+        names = fs.readdirSync(packageDir).filter((n) => /^tsconfig.*\.json$/.test(n));
+    } catch {
+        return map;
+    }
+    for (const name of names) {
+        let config;
+        try {
+            config = JSON.parse(stripJsonComments(fs.readFileSync(path.join(packageDir, name), "utf8")));
+        } catch {
+            continue;
+        }
+        const outDir = config.compilerOptions?.outDir?.replace(/^\.\//, "").replace(/\/$/, "");
+        if (!outDir) continue;
+        const roots = (config.include ?? [])
+            .map((g) => g.replace(/^\.\//, "").split("/")[0])
+            .filter((r) => r && r !== "**" && !r.includes("*") && !r.includes("."));
+        if (roots.length) map.set(outDir, [...new Set([...(map.get(outDir) ?? []), ...roots])]);
+    }
+    return map;
+}
+
+/** tsconfigs are JSONC; only line comments appear in this repo's */
+const stripJsonComments = (text) => text.replace(/^\s*\/\/.*$/gm, "");
+
+/**
  * The source directories one package ships, from its `files` array.
  *
  * `fallback` is used when a package declares no `files`, which npm reads as "publish
@@ -60,9 +99,15 @@ export function shippedDirsOf(packageDir, fallback = ["source", "src"]) {
         return onlyExisting();
     }
     const listed = pj.files ?? null;
-    const candidates = listed
-        ? listed.map((f) => f.replace(/^\.\//, "").replace(/\/$/, "")).filter((f) => !NOT_SOURCE.test(f))
-        : fallback;
+    let candidates;
+    if (listed) {
+        const entries = listed.map((f) => f.replace(/^\.\//, "").replace(/\/$/, ""));
+        const emitted = entries.filter((f) => NOT_SOURCE.test(f));
+        const sources = emitted.length ? emittedFrom(packageDir) : new Map();
+        candidates = [...new Set([...entries.filter((f) => !NOT_SOURCE.test(f)), ...emitted.flatMap((f) => sources.get(f) ?? [])])];
+    } else {
+        candidates = fallback;
+    }
 
     const dirs = [];
     for (const c of candidates) {

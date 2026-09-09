@@ -9,5 +9,3 @@ export function buffer_ellipsis(buffer: Buffer, start?: number, end?: number): s
     }
     return `${buffer.subarray(start, start + 10).toString("hex")} ... ${buffer.subarray(end - 10, end).toString("hex")}`;
 }
-
-exports.buffer_ellipsis = buffer_ellipsis;

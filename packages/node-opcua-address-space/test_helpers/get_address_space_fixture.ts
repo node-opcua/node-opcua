@@ -12,7 +12,8 @@ import path from "node:path";
  * behind it. Anchoring on the package root removes the question, and at the ESM flip
  * `__dirname` becomes `import.meta.dirname` here and nowhere else.
  */
-const packageRoot = findPackageRoot(__dirname);
+const here = __dirname;
+const packageRoot = findPackageRoot(here);
 
 /**
  * The nearest ancestor holding a package.json. Kept local on purpose: this file
