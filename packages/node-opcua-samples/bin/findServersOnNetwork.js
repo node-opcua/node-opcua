@@ -1,20 +1,12 @@
 const opcua = require("node-opcua");
 
 
-const yargs = require("yargs/yargs");
+const commandLineArgs = require("command-line-args");
 
-const argv = yargs(process.argv)
-    .wrap(132)
-    .string("capabilities")
-    .default("capabilities","DA")
-    .alias("c","capabilities")
-
-    .string("discoveryServerURI")
-    .default("discoveryServerURI","opc.tcp://localhost:4840")
-    .alias("d","discoveryServerURI")
-
-    .help(true)
-    .argv;
+const argv = commandLineArgs([
+    { name: "capabilities", alias: "c", type: String, defaultValue: "DA" },
+    { name: "discoveryServerURI", alias: "d", type: String, defaultValue: "opc.tcp://localhost:4840" }
+]);
 
 const capabilities = argv.capabilities || "LDS";
 

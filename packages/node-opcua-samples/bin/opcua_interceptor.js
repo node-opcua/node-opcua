@@ -3,8 +3,14 @@
 const net = require("net");
 
 const chalk = require("chalk");
-const yargs = require("yargs");
-const argv =  yargs.usage("Usage: $0 --portServer [num] --port [num]  --hostname <hostname> -block").argv;
+const commandLineArgs = require("command-line-args");
+
+const argv = commandLineArgs([
+    { name: "port", type: Number, description: "the port of the server to intercept" },
+    { name: "portServer", type: Number, description: "the port this interceptor listens on" },
+    { name: "hostname", type: String, description: "the host of the server to intercept" },
+    { name: "block", type: Boolean, description: "drop the intercepted traffic instead of forwarding it" }
+]);
 
 const opcua = require("node-opcua");
 

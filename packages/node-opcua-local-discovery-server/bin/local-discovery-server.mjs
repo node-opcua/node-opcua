@@ -10,7 +10,7 @@ import { make_debugLog } from "node-opcua-debug";
 
 const paths = envPaths("node-opcua-local-discovery-server");
 
-import yargs from "yargs/yargs.js";
+import commandLineArgs from "command-line-args";
 
 const configFolder = paths.config;
 const pkiFolder = path.join(configFolder, "PKI");
@@ -49,46 +49,30 @@ async function getIpAddresses() {
 }
 const applicationUri = "";
 
-const argv = yargs(process.argv)
-    .wrap(132)
+// `--tolerant` and `--force` default to true/false and both had a yargs `--no-x` form.
+// command-line-args has no negation, so they take an optional value instead: `--tolerant false`.
+const flag = () => (value) => (value === null || value === undefined ? true : value !== "false" && value !== "0");
 
-    .number("port")
-    .describe("port", "port to listen to (default: 4840)")
-    .default("port", 4840)
-
-    .boolean("tolerant")
-    .describe("tolerant", "automatically accept unknown registering server certificate")
-    .default("tolerant", true)
-
-    .boolean("force")
-    .describe("force", "force recreation of LDS self-signed certification (taking into account alternateHostname) ")
-    .default("force", false)
-
-    .string("alternateHostname")
-    .describe("alternateHostname ", "alternate hostname to use in certificate")
-    .string("hostname")
-    .describe("hostname", "the hostname")
-
-    .string("applicationName")
-    .describe("applicationName", "the application name")
-    .default("applicationName", "NodeOPCUA-DiscoveryServer")
-
-    .alias("a", "alternateHostname")
-    .alias("n", "applicationName")
-    .alias("p", "port")
-    .alias("h", "hostname")
-    .alias("f", "force")
-    .alias("t", "tolerant")
-
-    .help(true).argv/* as {
-        port: number,
-        tolerant: boolean,
-        force: boolean,
-        applicationName: string,
-        hostname?: string,
-        alternateHostname?: string
-    }*/
-   ;
+const argv = commandLineArgs([
+    { name: "port", alias: "p", type: Number, defaultValue: 4840, description: "port to listen to (default: 4840)" },
+    {
+        name: "tolerant",
+        alias: "t",
+        type: flag(),
+        defaultValue: true,
+        description: "automatically accept unknown registering server certificate"
+    },
+    {
+        name: "force",
+        alias: "f",
+        type: flag(),
+        defaultValue: false,
+        description: "force recreation of LDS self-signed certification (taking into account alternateHostname) "
+    },
+    { name: "alternateHostname", alias: "a", type: String, description: "alternate hostname to use in certificate" },
+    { name: "hostname", alias: "h", type: String, description: "the hostname" },
+    { name: "applicationName", alias: "n", type: String, defaultValue: "NodeOPCUA-DiscoveryServer", description: "the application name" }
+]);
 
 const port = argv.port;
 const automaticallyAcceptUnknownCertificate = argv.tolerant;

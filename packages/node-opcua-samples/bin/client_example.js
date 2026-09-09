@@ -34,57 +34,45 @@ const {
 const { toPem } = require("node-opcua-crypto");
 
 //node bin/client_example.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
-const yargs = require("yargs/yargs");
-const argv = yargs(process.argv)
-    .wrap(132)
-    
-    .option("endpoint", {
-        alias: "e",
-        demandOption: true,
-        describe: "the end point to connect to "
-    })
-    .option("securityMode", {
-        alias: "s",
-        default: "None",
-        describe: "the security mode (  None Sign SignAndEncrypt )"
-    })
-    .option("securityPolicy", {
+const commandLineArgs = require("command-line-args");
+const commandLineUsage = require("command-line-usage");
+
+const optionDefinitions = [
+    { name: "endpoint", alias: "e", type: String, description: "the end point to connect to " },
+    { name: "securityMode", alias: "s", type: String, defaultValue: "None", description: "the security mode (  None Sign SignAndEncrypt )" },
+    {
+        name: "securityPolicy",
         alias: "P",
-        default: "None",
-        describe: "the policy mode : (" + Object.keys(SecurityPolicy).join(" - ") + ")"
-    })
-    .option("userName", {
-        alias: "u",
-        describe: "specify the user name of a UserNameIdentityToken"
-    })
-    .option("password", {
-        alias: "p",
-        describe: "specify the password of a UserNameIdentityToken"
-    })
-    .option("node", {
-        alias: "n",
-        describe: "the nodeId of the value to monitor"
-    })
-    .option("timeout", {
-        alias: "t",
-        describe: " the timeout of the session in second =>  (-1 for infinity)"
-    })
-    .option("debug", {
-        alias: "d",
-        boolean: true,
-        describe: " display more verbose information"
-    })
-    .option("history", {
-        alias: "h",
-        describe: "make an historical read"
-    })
-    .option("discovery", {
+        type: String,
+        defaultValue: "None",
+        description: "the policy mode : (" + Object.keys(SecurityPolicy).join(" - ") + ")"
+    },
+    { name: "userName", alias: "u", type: String, description: "specify the user name of a UserNameIdentityToken" },
+    { name: "password", alias: "p", type: String, description: "specify the password of a UserNameIdentityToken" },
+    { name: "node", alias: "n", type: String, description: "the nodeId of the value to monitor" },
+    { name: "timeout", alias: "t", type: Number, description: " the timeout of the session in second =>  (-1 for infinity)" },
+    { name: "debug", alias: "d", type: Boolean, description: " display more verbose information" },
+    { name: "history", alias: "h", type: Boolean, description: "make an historical read" },
+    {
+        name: "discovery",
         alias: "D",
-        describe: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
-    })
-    .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256Rsa256 -s=Sign", "")
-    .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256Sha256 -s=Sign -u JoeDoe -p P@338@rd ", "")
-    .example('simple_client  --endpoint opc.tcp://localhost:49230  -n="ns=0;i=2258"', "").argv;
+        type: String,
+        description: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
+    }
+];
+const sections = [
+    { header: "client_example", content: "connect to a server, browse it and monitor a node" },
+    { header: "Options", optionList: optionDefinitions },
+    {
+        header: "Examples",
+        content: [
+            "simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256Rsa256 -s=Sign",
+            "simple_client  -e opc.tcp://localhost:49230 -P=Basic256Sha256 -s=Sign -u JoeDoe -p P@338@rd ",
+            'simple_client  --endpoint opc.tcp://localhost:49230  -n="ns=0;i=2258"'
+        ]
+    }
+];
+const argv = commandLineArgs(optionDefinitions);
 
 const securityMode = coerceMessageSecurityMode(argv.securityMode);
 if (securityMode === MessageSecurityMode.Invalid) {
@@ -108,7 +96,7 @@ console.log(" monitoring node id = ", monitored_node);
 const endpointUrl = argv.endpoint;
 
 if (!endpointUrl) {
-    yargs.showHelp();
+    console.log(commandLineUsage(sections));
     process.exit(0);
 }
 const discoveryUrl = argv.discovery ? argv.discovery : endpointUrl;

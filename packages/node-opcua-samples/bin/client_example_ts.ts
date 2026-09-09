@@ -3,6 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import util, { types } from "node:util";
 import chalk from "chalk";
+import commandLineArgs from "command-line-args";
+import commandLineUsage from "command-line-usage";
 import Table from "easy-table";
 import {
     ApplicationType,
@@ -40,7 +42,6 @@ import {
     type Variant
 } from "node-opcua";
 import { type Certificate, toPem } from "node-opcua-crypto";
-import yargs from "yargs/yargs";
 
 const { asTree } = require("treeify");
 
@@ -212,53 +213,40 @@ function getTick() {
 
 (async () => {
     // tsx bin/simple_client.ts --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
-    const argv = await yargs(process.argv.slice(2)).options({
-        endpoint: {
-            alias: "e",
-            demandOption: true,
-            string: true,
-            describe: "the end point to connect to "
-        },
-        securityMode: {
+    const optionDefinitions: commandLineUsage.OptionDefinition[] = [
+        { name: "endpoint", alias: "e", type: String, description: "the end point to connect to " },
+        {
+            name: "securityMode",
             alias: "s",
-            default: "None",
-            describe: "the security mode (  None Sign SignAndEncrypt )"
+            type: String,
+            defaultValue: "None",
+            description: "the security mode (  None Sign SignAndEncrypt )"
         },
-        securityPolicy: {
+        {
+            name: "securityPolicy",
             alias: "P",
-            default: "None",
-            describe: `the policy mode : (${Object.keys(SecurityPolicy).join(" - ")})`
+            type: String,
+            defaultValue: "None",
+            description: `the policy mode : (${Object.keys(SecurityPolicy).join(" - ")})`
         },
-        userName: {
-            alias: "u",
-            describe: "specify the user name of a UserNameIdentityToken"
-        },
-        password: {
-            alias: "p",
-            describe: "specify the password of a UserNameIdentityToken"
-        },
-        node: {
-            alias: "n",
-            describe: "the nodeId of the value to monitor"
-        },
-        timeout: {
-            alias: "t",
-            describe: " the timeout of the session in second =>  (-1 for infinity)"
-        },
-        debug: {
-            alias: "d",
-            boolean: true,
-            describe: " display more verbose information"
-        },
-        history: {
-            alias: "h",
-            describe: "make an historical read"
-        },
-        discovery: {
+        { name: "userName", alias: "u", type: String, description: "specify the user name of a UserNameIdentityToken" },
+        { name: "password", alias: "p", type: String, description: "specify the password of a UserNameIdentityToken" },
+        { name: "node", alias: "n", type: String, description: "the nodeId of the value to monitor" },
+        { name: "timeout", alias: "t", type: Number, description: " the timeout of the session in second =>  (-1 for infinity)" },
+        { name: "debug", alias: "d", type: Boolean, description: " display more verbose information" },
+        { name: "history", alias: "h", type: Boolean, description: "make an historical read" },
+        {
+            name: "discovery",
             alias: "D",
-            describe: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
+            type: String,
+            description: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
         }
-    }).argv;
+    ];
+    const sections: commandLineUsage.Section[] = [
+        { header: "client_example", content: "connect to a server, browse it and monitor a node" },
+        { header: "Options", optionList: optionDefinitions }
+    ];
+    const argv = commandLineArgs(optionDefinitions);
 
     const securityMode = coerceMessageSecurityMode(argv.securityMode);
     if (securityMode === MessageSecurityMode.Invalid) {
@@ -280,7 +268,7 @@ function getTick() {
     console.log(" monitoring node id = ", monitored_node);
 
     if (!argv.endpoint) {
-        // y.showHelp();
+        console.log(commandLineUsage(sections));
         process.exit(0);
     }
     const discoveryUrl: string = argv.discovery ? (argv.discovery as string) : argv.endpoint || "";

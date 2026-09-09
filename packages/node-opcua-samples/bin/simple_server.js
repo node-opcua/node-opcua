@@ -6,7 +6,7 @@ const fs = require("fs");
 const os = require("os");
 const assert = require("assert");
 const chalk = require("chalk");
-const yargs = require("yargs/yargs");
+const commandLineArgs = require("command-line-args");
 const envPaths = require("env-paths");
 const bcrypt = require("bcryptjs");
 
@@ -32,44 +32,25 @@ const { build_address_space_for_conformance_testing } = require("node-opcua-addr
 
 Error.stackTraceLimit = Infinity;
 
-const argv = yargs(process.argv)
-    .wrap(132)
-
-    .string("alternateHostname")
-    .describe("alternateHostname")
-
-    .number("port")
-    .default("port", 26543)
-
-    .number("maxSessions")
-    .describe("maxSessions", "the maximum number of concurrent client session that the server will accept")
-    .default("maxSessions", 500)
-
-    .number("maxSubscriptionsPerSession")
-    .describe("maxSubscriptionsPerSession", "the maximum number of concurrent subscriptions per session")
-
-    .boolean("silent")
-    .default("silent", false)
-    .describe("silent", "no trace")
-
-    .string("alternateHostname")
-    .default("alternateHostname", null)
-
-    .number("keySize")
-    .describe("keySize", "certificate keySize [1024|2048|3072|4096]")
-    .default("keySize", 2048)
-    .alias("k", "keySize")
-
-    .string("applicationName")
-    .describe("applicationName", "the application name")
-    .default("applicationName", "NodeOPCUA-Server")
-
-    .alias("a", "alternateHostname")
-    .alias("m", "maxSessions")
-    .alias("n", "applicationName")
-    .alias("p", "port")
-
-    .help(true).argv;
+const argv = commandLineArgs([
+    { name: "alternateHostname", alias: "a", type: String, defaultValue: null },
+    { name: "port", alias: "p", type: Number, defaultValue: 26543 },
+    {
+        name: "maxSessions",
+        alias: "m",
+        type: Number,
+        defaultValue: 500,
+        description: "the maximum number of concurrent client session that the server will accept"
+    },
+    {
+        name: "maxSubscriptionsPerSession",
+        type: Number,
+        description: "the maximum number of concurrent subscriptions per session"
+    },
+    { name: "silent", type: Boolean, defaultValue: false, description: "no trace" },
+    { name: "keySize", alias: "k", type: Number, defaultValue: 2048, description: "certificate keySize [1024|2048|3072|4096]" },
+    { name: "applicationName", alias: "n", type: String, defaultValue: "NodeOPCUA-Server", description: "the application name" }
+]);
 
 const port = argv.port;
 const maxSessions = argv.maxSessions;

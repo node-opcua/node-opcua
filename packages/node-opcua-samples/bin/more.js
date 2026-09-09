@@ -3,9 +3,15 @@
 /*
  * write a file to the console, preserving the Ansi color decoration
  */
-const argv = require("yargs")
-    .usage("Usage: $0 <file>")
-    .argv;
+const commandLineArgs = require("command-line-args");
+const commandLineUsage = require("command-line-usage");
+
+const optionDefinitions = [{ name: "file", defaultOption: true, type: String, description: "the file to write out" }];
+const argv = commandLineArgs(optionDefinitions);
+if (!argv.file) {
+    console.log(commandLineUsage([{ header: "more", content: "Usage: more <file>" }, { header: "Options", optionList: optionDefinitions }]));
+    process.exit(1);
+}
 
 const fs = require("fs");
 
@@ -35,6 +41,6 @@ function func(data) {
     console.log(data);
 }
 
-const input = fs.createReadStream(argv._[0]);
+const input = fs.createReadStream(argv.file);
 
 readLines(input, func);

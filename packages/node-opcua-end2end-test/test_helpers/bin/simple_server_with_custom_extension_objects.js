@@ -2,11 +2,12 @@ const path = require("path");
 const fs = require("fs");
 const chalk = require("chalk");
 const { OPCUAServer, nodesets, Variant, DataType, MessageSecurityMode } = require("node-opcua");
-const yargs = require("yargs");
+const commandLineArgs = require("command-line-args");
 
 Error.stackTraceLimit = Infinity;
 
-const argv = yargs.wrap(132).string("port").describe("port").alias("p", "port").argv;
+// partial: this helper is spawned with extra flags it does not own
+const argv = commandLineArgs([{ name: "port", alias: "p", type: String }], { partial: true });
 
 const packageFolder = path.join(__dirname, "../");
 

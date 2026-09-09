@@ -3,6 +3,8 @@
 import os from "node:os";
 
 import chalk from "chalk";
+import commandLineArgs from "command-line-args";
+import type commandLineUsage from "command-line-usage";
 import {
     MessageSecurityMode,
     makeApplicationUrn,
@@ -12,7 +14,6 @@ import {
     SecurityPolicy,
     type ServerSession
 } from "node-opcua";
-import yargs from "yargs";
 
 Error.stackTraceLimit = Infinity;
 
@@ -29,29 +30,13 @@ const userManager = {
 };
 
 async function main() {
-    const argv = await yargs(process.argv)
-        .wrap(132)
-
-        .option("alternateHostname", {
-            alias: "a",
-            describe: "alternateHostname"
-        })
-
-        .option("port", {
-            alias: "p",
-            default: 26543
-        })
-
-        .option("silent", {
-            alias: "s",
-            default: false,
-            describe: "silent - no trace"
-        })
-        .option("maxSessions", {
-            alias: "m",
-            default: 10
-        })
-        .help(true).argv;
+    const optionDefinitions: commandLineUsage.OptionDefinition[] = [
+        { name: "alternateHostname", alias: "a", type: String, description: "alternateHostname" },
+        { name: "port", alias: "p", type: Number, defaultValue: 26543 },
+        { name: "silent", alias: "s", type: Boolean, defaultValue: false, description: "silent - no trace" },
+        { name: "maxSessions", alias: "m", type: Number, defaultValue: 10 }
+    ];
+    const argv = commandLineArgs(optionDefinitions);
 
     const port = argv.port || 26543;
     // server_options.alternateHostname = argv.alternateHostname;

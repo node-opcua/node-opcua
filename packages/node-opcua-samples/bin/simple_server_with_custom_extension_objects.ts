@@ -2,8 +2,9 @@
 /* eslint no-process-exit: 0 */
 import path from "node:path";
 import chalk from "chalk";
+import commandLineArgs from "command-line-args";
+import type commandLineUsage from "command-line-usage";
 import { nodesets, OPCUAServer } from "node-opcua";
-import yargs from "yargs";
 
 Error.stackTraceLimit = Infinity;
 
@@ -14,11 +15,10 @@ function constructFilename(filename: string): string {
 const rootFolder = path.join(__dirname, "../../..");
 
 async function main() {
-    const argv = await yargs.wrap(132).option("port", {
-        alias: "p",
-        default: "26543",
-        describe: "port to listen"
-    }).argv;
+    const optionDefinitions: commandLineUsage.OptionDefinition[] = [
+        { name: "port", alias: "p", type: String, defaultValue: "26543", description: "port to listen" }
+    ];
+    const argv = commandLineArgs(optionDefinitions);
     const port = parseInt(argv.port, 10) || 26555;
     const server_certificate_file = constructFilename("certificates/server_cert_2048.pem");
     const server_certificate_privatekey_file = constructFilename("certificates/server_key_2048.pem");
