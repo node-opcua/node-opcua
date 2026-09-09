@@ -181,6 +181,39 @@ export interface IServerSessionBase {
 }
 
 /**
+ * The status code a refused OpenSecureChannel carries on the wire, given the
+ * certificate manager's verdict on the client certificate.
+ *
+ * Part 4 Table 104 (OpenSecureChannel service result codes) lists what a
+ * client may be told. A client can act on these, so they pass through:
+ *
+ * - BadCertificateTimeInvalid: the certificate is out of its validity period,
+ * - BadCertificateUseNotAllowed: the certificate is not an application
+ *   instance certificate,
+ * - BadCertificateRevocationUnknown: the certificate's own CA has no
+ *   revocation list; the CTT accepts it (Security Certificate Validation
+ *   042 and 043).
+ *
+ * Everything else is BadSecurityChecksFailed: an untrusted, revoked or badly
+ * signed certificate must not learn from the answer what the server's trust
+ * list holds. That includes BadCertificateIssuerRevocationUnknown, the
+ * verdict when an *issuer* of the chain cannot be checked for revocation:
+ * Errata 1.04.12 says a server should answer BadSecurityChecksFailed there,
+ * and the CTT (Security Certificate Validation 002) warns about the precise
+ * code (FEAT-44).
+ */
+export function openSecureChannelRefusalStatus(certificateStatus: StatusCode): StatusCode {
+    if (
+        certificateStatus.equals(StatusCodes.BadCertificateTimeInvalid) ||
+        certificateStatus.equals(StatusCodes.BadCertificateUseNotAllowed) ||
+        certificateStatus.equals(StatusCodes.BadCertificateRevocationUnknown)
+    ) {
+        return certificateStatus;
+    }
+    return StatusCodes.BadSecurityChecksFailed;
+}
+
+/**
  */
 export class ServerSecureChannelLayer extends EventEmitter {
     public static throttleTime = 100;
@@ -1209,22 +1242,14 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 // OPCUA specification v1.02 part 6 page 42 $6.7.4
                 // If an error occurs after the  Server  has verified  Message  security  it  shall  return a  ServiceFault  instead
                 // of a OpenSecureChannel  response. The  ServiceFault  Message  is described in  Part  4,   7.28.
-                if (
-                    statusCode.isNot(StatusCodes.BadCertificateIssuerRevocationUnknown) &&
-                    statusCode.isNot(StatusCodes.BadCertificateRevocationUnknown) &&
-                    statusCode.isNot(StatusCodes.BadCertificateTimeInvalid) &&
-                    statusCode.isNot(StatusCodes.BadCertificateUseNotAllowed)
-                ) {
-                    statusCode = StatusCodes.BadSecurityChecksFailed;
-                }
-                // Those are not considered as error but as a warning
-                //    BadCertificateIssuerRevocationUnknown,
-                //    BadCertificateRevocationUnknown,
-                //    BadCertificateTimeInvalid,
-                //    BadCertificateUseNotAllowed
                 //
-                // the client will decided what to do next
-                return this.#_on_OpenSecureChannelRequestError(statusCode, "certificate invalid", message);
+                // The certificate manager's verdict stays as it is (rejected folder,
+                // audit events, diagnostics); only what goes on the wire is narrowed.
+                return this.#_on_OpenSecureChannelRequestError(
+                    openSecureChannelRefusalStatus(statusCode),
+                    "certificate invalid",
+                    message
+                );
             }
             this.#_handle_OpenSecureChannelRequest(message);
         });
