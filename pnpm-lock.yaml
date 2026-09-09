@@ -4494,6 +4494,14 @@ importers:
 
   tools/check-debug-name: {}
 
+  tools/check-dirname:
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  tools/check-engines: {}
+
   tools/check-entry-points: {}
 
   tools/check-import-cycles:

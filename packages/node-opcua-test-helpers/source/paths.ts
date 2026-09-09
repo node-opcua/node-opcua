@@ -37,8 +37,13 @@ export function findUp(from: string, marker: string): string {
     }
 }
 
+// The one place this module learns where it sits on disk. `import.meta.dirname`
+// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
+// has this single line to change rather than several scattered uses.
+const here = __dirname;
+
 /** the workspace root, found from this file rather than from the working directory */
-export const monorepoRoot = findUp(__dirname, "pnpm-workspace.yaml");
+export const monorepoRoot = findUp(here, "pnpm-workspace.yaml");
 
 /** a package directory in the workspace: packagePath("node-opcua-samples") */
 export function packagePath(packageName: string, ...segments: string[]): string {

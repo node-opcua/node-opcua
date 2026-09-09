@@ -86,6 +86,7 @@ Each has its own README with the reasoning behind the rule.
 - `check-import-cycles/`: circular imports that would throw under ESM
 - `check-construction-cast/`: a class is published as itself, not through a constructor cast
 - `check-engines/`: every published package declares the root's Node floor
+- `check-dirname/`: shipped source reaches its own location through one anchor
 - `check-module-identity/`: a file must reach any one package by a single route
 - `check-pack/`: declared entry points must actually be published
 - `check-test-types/`: ratchet on test-suite type-checking
@@ -105,6 +106,7 @@ tools/
 ├── check-import-cycles/     # Cycles that would throw under ESM
 ├── check-construction-cast/ # Classes published through a constructor cast
 ├── check-engines/           # Published packages declare the root Node floor
+├── check-dirname/           # One __dirname anchor per module
 ├── check-module-identity/   # One route per package
 ├── check-entry-points/      # types describes the module main loads
 ├── check-short-circuit-assertion/  # Assertions an optional chain can switch off
@@ -120,6 +122,7 @@ tools/
 ├── check-import-cycles.mjs
 ├── check-construction-cast.mjs
 ├── check-engines.mjs
+├── check-dirname.mjs
 ├── check-module-identity.mjs
 ├── check-entry-points.mjs
 ├── check-short-circuit-assertion.mjs

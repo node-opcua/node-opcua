@@ -120,6 +120,13 @@ jobs:
       - run: pnpm run check:engines
       - name: Unit tests for the engines rule
         run: node tools/check-engines/test/test_rule.js
+      # Neither __dirname nor __filename exists in an ES module or a browser bundle. FEAT-1
+      # gave each module a single anchor line to change at the flip and asserted the tree was
+      # clean; nothing gated it, and four raw uses had reappeared by the time the migration
+      # resumed, two in packages written after FEAT-1 closed.
+      - run: pnpm run check:dirname
+      - name: Unit tests for the dirname rule
+        run: node tools/check-dirname/test/test_rule.js
       - run: pnpm run check:identity
       # A package's types must describe the module its main loads. When the two named
       # different modules, node-opcua-address-space came to declare twelve names its main
