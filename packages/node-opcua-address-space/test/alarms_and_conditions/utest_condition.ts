@@ -7,6 +7,7 @@ import should from "should";
 import sinon from "sinon";
 import {
     type AddressSpace,
+    type ISessionBase,
     SessionContext,
     type UACondition_Base,
     type UAConditionEx,
@@ -908,6 +909,88 @@ export function utest_condition(test: MochaSuiteEx): void {
                                     .should.eql("Variant(Scalar<NodeId>, value: RefreshEndEventType (ns=0;i=2788))");
                             }
                         );
+                });
+
+                // The Session of the CTT's "A and C Refresh" Err_003 / "A and C Refresh2" Err_002,
+                // Err_004: it owns Subscription 42, which holds MonitoredItem 7, and nothing else.
+                // A ServerSession answers getSubscription with its own Subscriptions only, so a
+                // Subscription of another Session looks exactly like one that never existed.
+                const sessionOwningSubscription42: ISessionBase = {
+                    ...mockSession,
+                    getSubscription(subscriptionId: number) {
+                        if (subscriptionId !== 42) return null;
+                        return {
+                            id: 42,
+                            getMonitoredItem: (monitoredItemId: number) => (monitoredItemId === 7 ? {} : null)
+                        };
+                    }
+                };
+                const uint32 = (value: number) => new Variant({ dataType: DataType.UInt32, value });
+
+                function callOnConditionType(methodName: string, inputArguments: Variant[], session: ISessionBase) {
+                    const conditionType = addressSpace.findObjectType("ConditionType")!;
+                    const context = new SessionContext({ object: conditionType, server: {}, session });
+                    const method = conditionType.getMethodByName(methodName)!;
+                    return method.execute(null, inputArguments, context);
+                }
+
+                it("ConditionRefresh answers BadSubscriptionIdInvalid in the Call result for a SubscriptionId the session does not own", async () => {
+                    const result = await callOnConditionType("ConditionRefresh", [uint32(12345)], sessionOwningSubscription42);
+                    should(result.statusCode).eql(StatusCodes.BadSubscriptionIdInvalid);
+                });
+
+                it("ConditionRefresh answers Good for a SubscriptionId the session owns, and the refresh runs", async () => {
+                    const serverObject = addressSpace.rootFolder.objects.server;
+                    const spy_on_event = sinon.spy();
+                    serverObject.on("event", spy_on_event);
+                    try {
+                        const result = await callOnConditionType("ConditionRefresh", [uint32(42)], sessionOwningSubscription42);
+                        should(result.statusCode).eql(StatusCodes.Good);
+                        const eventTypes = spy_on_event.getCalls().map((c) => c.args[0].eventType.value.toString());
+                        should(eventTypes[0]).eql("ns=0;i=2787"); // RefreshStartEventType
+                        should(eventTypes[eventTypes.length - 1]).eql("ns=0;i=2788"); // RefreshEndEventType
+                    } finally {
+                        serverObject.removeListener("event", spy_on_event);
+                    }
+                });
+
+                it("ConditionRefresh with a rejected SubscriptionId leaves the refresh available to the next caller", async () => {
+                    await callOnConditionType("ConditionRefresh", [uint32(12345)], sessionOwningSubscription42);
+                    const result = await callOnConditionType("ConditionRefresh", [uint32(42)], sessionOwningSubscription42);
+                    should(result.statusCode).eql(StatusCodes.Good);
+                });
+
+                it("ConditionRefresh still answers Good when the caller has no Session to check against", async () => {
+                    // an in-process caller (PseudoSession, SessionContext.defaultContext) has no Subscriptions
+                    const result = await callOnConditionType("ConditionRefresh", [uint32(12345)], mockSession);
+                    should(result.statusCode).eql(StatusCodes.Good);
+                });
+
+                it("ConditionRefresh2 answers BadSubscriptionIdInvalid before looking at the MonitoredItemId", async () => {
+                    const result = await callOnConditionType(
+                        "ConditionRefresh2",
+                        [uint32(12345), uint32(7)],
+                        sessionOwningSubscription42
+                    );
+                    should(result.statusCode).eql(StatusCodes.BadSubscriptionIdInvalid);
+                });
+
+                it("ConditionRefresh2 answers BadMonitoredItemIdInvalid for a MonitoredItemId that is not in the Subscription", async () => {
+                    const result = await callOnConditionType(
+                        "ConditionRefresh2",
+                        [uint32(42), uint32(0)],
+                        sessionOwningSubscription42
+                    );
+                    should(result.statusCode).eql(StatusCodes.BadMonitoredItemIdInvalid);
+                });
+
+                it("ConditionRefresh2 answers Good for a MonitoredItem of the session's own Subscription", async () => {
+                    const result = await callOnConditionType(
+                        "ConditionRefresh2",
+                        [uint32(42), uint32(7)],
+                        sessionOwningSubscription42
+                    );
+                    should(result.statusCode).eql(StatusCodes.Good);
                 });
             });
         });

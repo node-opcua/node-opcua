@@ -2,6 +2,7 @@ import chalk from "chalk";
 import {
     AttributeIds,
     type ClientMonitoredItemBase,
+    type ClientSession,
     type ClientSubscription,
     callConditionRefresh,
     coerceNodeId,
@@ -351,6 +352,110 @@ export function t(umbrellaTest: UmbrellaTestContext) {
                     const tankLevelCondition = test.tankLevelCondition;
                     tankLevelCondition.currentBranch().setRetain(false);
                     tankLevelCondition.raiseNewCondition({});
+                }
+            });
+        });
+
+        // CTT 1.05.513 "A and C Refresh" Err_003 and "A and C Refresh2" Err_002 / Err_004
+        // (certification run 11718, FEAT-46): the argument checks of Part 9 5.5.7 / 5.5.8,
+        // answered in the Call result, with the Session intact afterwards.
+        it("A&C-02b - ConditionRefresh / ConditionRefresh2 validate their SubscriptionId and MonitoredItemId arguments", async () => {
+            const conditionTypeId = resolveNodeId("ConditionType");
+            const uint32 = (value: number) => new Variant({ dataType: DataType.UInt32, value });
+            const callRefresh = async (session: ClientSession, subscriptionId: number) =>
+                (
+                    await session.call({
+                        objectId: conditionTypeId,
+                        methodId: resolveNodeId("ConditionType_ConditionRefresh"),
+                        inputArguments: [uint32(subscriptionId)]
+                    })
+                ).statusCode;
+            const callRefresh2 = async (session: ClientSession, subscriptionId: number, monitoredItemId: number) =>
+                (
+                    await session.call({
+                        objectId: conditionTypeId,
+                        methodId: resolveNodeId("ConditionType_ConditionRefresh2"),
+                        inputArguments: [uint32(subscriptionId), uint32(monitoredItemId)]
+                    })
+                ).statusCode;
+            const sessionStillWorks = async (session: ClientSession) => {
+                const dataValue = await session.read({
+                    nodeId: resolveNodeId("Server_ServerStatus_State"),
+                    attributeId: AttributeIds.Value
+                });
+                should(dataValue.statusCode).eql(StatusCodes.Good);
+            };
+
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
+                await given_an_installed_event_monitored_item(test, subscription);
+
+                stepInfo("ConditionRefresh with a SubscriptionId that does not exist");
+                should(await callRefresh(session, 12345)).eql(StatusCodes.BadSubscriptionIdInvalid);
+                await sessionStillWorks(session);
+
+                stepInfo("ConditionRefresh with the session's own subscription");
+                test.spy_monitored_item1_changes.resetHistory();
+                should(await callRefresh(session, subscription.subscriptionId)).eql(StatusCodes.Good);
+                await waitUntilCondition(
+                    async () => test.spy_monitored_item1_changes.callCount >= 2,
+                    5000,
+                    "RefreshStart + RefreshEnd"
+                );
+                const eventTypes = test.spy_monitored_item1_changes
+                    .getCalls()
+                    .map((c) => extract_value_for_field("EventType", c.args[0]).value.toString());
+                should(eventTypes[0]).eql("ns=0;i=2787"); // RefreshStartEventType
+                should(eventTypes[eventTypes.length - 1]).eql("ns=0;i=2788"); // RefreshEndEventType
+
+                stepInfo("ConditionRefresh2 with a MonitoredItemId that is not in the subscription");
+                should(await callRefresh2(session, subscription.subscriptionId, 0)).eql(StatusCodes.BadMonitoredItemIdInvalid);
+                await sessionStillWorks(session);
+
+                stepInfo("ConditionRefresh2 with a SubscriptionId that does not exist");
+                should(await callRefresh2(session, 12345, test.monitoredItem1.monitoredItemId!)).eql(
+                    StatusCodes.BadSubscriptionIdInvalid
+                );
+
+                stepInfo("ConditionRefresh2 with the session's own subscription and monitored item");
+                should(await callRefresh2(session, subscription.subscriptionId, test.monitoredItem1.monitoredItemId!)).eql(
+                    StatusCodes.Good
+                );
+                await sessionStillWorks(session);
+            });
+
+            stepInfo("ConditionRefresh with a SubscriptionId that belongs to another session");
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (_session, otherSubscription) => {
+                const otherClient = OPCUAClient.create({ clientName: "u_test_e2e_conditions-other" });
+                await perform_operation_on_subscription(otherClient, test.endpointUrl!, async (session) => {
+                    should(await callRefresh(session, otherSubscription.subscriptionId)).eql(StatusCodes.BadSubscriptionIdInvalid);
+                    await sessionStillWorks(session);
+                });
+            });
+        });
+
+        // CTT "A and C Refresh" Err_004 creates ten more event monitored items on the Server
+        // object; the eleventh "event" listener made Node warn, the warning's inspect() of the
+        // node threw, and the server process died with it (run 11718).
+        it("A&C-02c - the server survives more than ten event monitored items on the Server object", async () => {
+            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
+                const items = [];
+                for (let i = 0; i < 12; i++) {
+                    items.push(
+                        await subscription.monitor(
+                            { attributeId: AttributeIds.EventNotifier, nodeId: resolveNodeId("Server") },
+                            { discardOldest: true, filter: eventFilter, queueSize: 10, samplingInterval: 10 },
+                            TimestampsToReturn.Both
+                        )
+                    );
+                }
+                should(items.length).eql(12);
+                const dataValue = await session.read({
+                    nodeId: resolveNodeId("Server_ServerStatus_State"),
+                    attributeId: AttributeIds.Value
+                });
+                should(dataValue.statusCode).eql(StatusCodes.Good);
+                for (const item of items) {
+                    await item.terminate();
                 }
             });
         });

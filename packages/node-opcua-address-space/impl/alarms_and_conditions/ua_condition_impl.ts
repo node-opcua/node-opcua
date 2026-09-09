@@ -1075,9 +1075,11 @@ function _condition_refresh_method(
     }
     const subscriptionId = inputArguments[0].value;
 
+    // a rejected argument is answered in the Call result, never thrown: the Call service
+    // turns an exception into Bad_InternalError and the CTT reads that as a broken server
     let statusCode = _check_subscription_id_is_valid(subscriptionId, context);
     if (statusCode.isNotGood()) {
-        return statusCode;
+        return callback(null, { statusCode });
     }
 
     statusCode = _perform_condition_refresh(addressSpace, inputArguments, context);
@@ -1090,6 +1092,7 @@ function _perform_condition_refresh(addressSpace: AddressSpacePrivate, _inputArg
     // --- possible StatusCodes:
     //
     // Bad_SubscriptionIdInvalid  See Part 4 for the description of this result code
+    //                            (checked by the caller, before we get here)
     // Bad_RefreshInProgress      See Table 74 for the description of this result code
     // Bad_UserAccessDenied       The Method was not called in the context of the Session
     //                            that owns the Subscription
@@ -1101,8 +1104,6 @@ function _perform_condition_refresh(addressSpace: AddressSpacePrivate, _inputArg
         return StatusCodes.BadRefreshInProgress;
     }
 
-    addressSpace._condition_refresh_in_progress = true;
-
     const server = context.object?.addressSpace.rootFolder.objects.server;
     const refreshStartEventType = addressSpace.findEventType("RefreshStartEventType");
     if (!refreshStartEventType) {
@@ -1113,17 +1114,21 @@ function _perform_condition_refresh(addressSpace: AddressSpacePrivate, _inputArg
         throw new Error("cannot find RefreshEndEventType");
     }
 
-    server?.raiseEvent(refreshStartEventType, {});
-    // todo : resend retained conditions
+    addressSpace._condition_refresh_in_progress = true;
+    try {
+        server?.raiseEvent(refreshStartEventType, {});
 
-    const _server = server as unknown as { _conditionRefresh: () => void };
-    // starting from server object ..
-    // evaluated all --> hasNotifier/hasEventSource -> node
-    _server._conditionRefresh();
+        const _server = server as unknown as { _conditionRefresh: () => void };
+        // starting from server object ..
+        // evaluated all --> hasNotifier/hasEventSource -> node
+        _server._conditionRefresh();
 
-    server?.raiseEvent(refreshEndEventType, {});
-
-    addressSpace._condition_refresh_in_progress = false;
+        server?.raiseEvent(refreshEndEventType, {});
+    } finally {
+        // whatever a condition's event handler throws, the next refresh must not be
+        // answered Bad_RefreshInProgress for ever
+        addressSpace._condition_refresh_in_progress = false;
+    }
 
     return StatusCodes.Good;
 }
@@ -1146,10 +1151,19 @@ function _condition_refresh2_method(
         debugLog(chalk.cyan.bgWhite(" ConditionType.conditionRefresh2 !"));
     }
 
-    // xx var subscriptionId = inputArguments[0].value;
-    // xx var monitoredItemId = inputArguments[1].value;
+    const subscriptionId = inputArguments[0].value;
+    const monitoredItemId = inputArguments[1].value;
 
-    const statusCode = _perform_condition_refresh(addressSpace, inputArguments, context);
+    let statusCode = _check_subscription_id_is_valid(subscriptionId, context);
+    if (statusCode.isNotGood()) {
+        return callback(null, { statusCode });
+    }
+    statusCode = _check_monitored_item_id_is_valid(subscriptionId, monitoredItemId, context);
+    if (statusCode.isNotGood()) {
+        return callback(null, { statusCode });
+    }
+
+    statusCode = _perform_condition_refresh(addressSpace, inputArguments, context);
     return callback(null, {
         statusCode
     });
@@ -1280,7 +1294,33 @@ function _getCompositeKey(node: BaseNode, key: string): UAVariableImpl {
  * @param context {Object}
  * @private
  */
-function _check_subscription_id_is_valid(_subscriptionId: number, _context: ISessionContext) {
-    /// todo: return StatusCodes.BadSubscriptionIdInvalid; if subscriptionId doesn't belong to session...
-    return StatusCodes.Good;
+function _check_subscription_id_is_valid(subscriptionId: number, context: ISessionContext): StatusCode {
+    // Part 9 5.5.7: Bad_SubscriptionIdInvalid when the SubscriptionId is not one of the
+    // calling Session's. A Subscription of another Session is not reachable from this one
+    // (Part 4: SubscriptionIds are Session-scoped), so it gets the same answer.
+    const session = context.session;
+    if (!session || typeof session.getSubscription !== "function") {
+        // no Session behind the call (an in-process caller, a PseudoSession, a unit test):
+        // there is nothing to check the argument against
+        return StatusCodes.Good;
+    }
+    return session.getSubscription(subscriptionId) ? StatusCodes.Good : StatusCodes.BadSubscriptionIdInvalid;
+}
+
+/**
+ * ConditionRefresh2 (Part 9 5.5.8): the MonitoredItemId must name a MonitoredItem of the
+ * given Subscription, else Bad_MonitoredItemIdInvalid. Call after
+ * _check_subscription_id_is_valid, which has established that the Subscription is ours.
+ * @private
+ */
+function _check_monitored_item_id_is_valid(subscriptionId: number, monitoredItemId: number, context: ISessionContext): StatusCode {
+    const session = context.session;
+    if (!session || typeof session.getSubscription !== "function") {
+        return StatusCodes.Good;
+    }
+    const subscription = session.getSubscription(subscriptionId);
+    if (!subscription) {
+        return StatusCodes.BadSubscriptionIdInvalid;
+    }
+    return subscription.getMonitoredItem(monitoredItemId) ? StatusCodes.Good : StatusCodes.BadMonitoredItemIdInvalid;
 }

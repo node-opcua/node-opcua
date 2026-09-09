@@ -53,6 +53,16 @@ export interface IContinuationPointManager {
     dispose(): void;
 }
 
+/**
+ * What the address space needs to know about a Subscription when a Method takes a
+ * SubscriptionId / MonitoredItemId argument (ConditionRefresh, ConditionRefresh2).
+ */
+export interface ISubscriptionBase {
+    readonly id: number;
+    /** the MonitoredItem with that id in this Subscription, or `null` */
+    getMonitoredItem(monitoredItemId: number): object | null;
+}
+
 export interface ISessionBase {
     userIdentityToken?: UserIdentityToken;
     channel?: IChannelBase;
@@ -60,6 +70,15 @@ export interface ISessionBase {
     continuationPointManager: IContinuationPointManager;
     /** The URL of the Endpoint the Session was created on, if known. */
     getEndpointUrl?(): string | undefined;
+    /**
+     * The Subscription with that id **owned by this Session**, or `null`.
+     *
+     * A SubscriptionId is only meaningful inside the Session that created it (Part 4), so a
+     * Subscription of another Session is `null` here as much as one that never existed.
+     * Optional: an in-process caller (PseudoSession, tests) has no Subscriptions to check
+     * against, and a Method validating its SubscriptionId argument then lets it through.
+     */
+    getSubscription?(subscriptionId: number): ISubscriptionBase | null;
 }
 export interface ContinuationPointData {
     dataValues: DataValue[];
