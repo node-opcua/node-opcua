@@ -89,32 +89,6 @@ export function setTypeModule(text) {
 }
 
 /**
- * The mocha config, from CJS to ESM. Recognises the two shapes this repository uses and
- * refuses anything else - a config it does not understand is reported, not rewritten.
- */
-export function convertMocharc(text) {
-    if (!text.includes("module.exports")) return null;
-    // constructs whose ESM form is not a mechanical substitution
-    if (/\bexports\.\w/.test(text) || /\b__dirname\b|\b__filename\b/.test(text)) return null;
-
-    let out = text.replace(/module\.exports\s*=/, "export default");
-
-    const needsRequire = /\brequire\s*(\.resolve)?\s*\(/.test(out);
-    if (needsRequire) {
-        const preamble =
-            'import { createRequire } from "node:module";\n\n' +
-            "// `require` and `require.resolve` do not exist in an ES module. The absolute paths they\n" +
-            "// produce are still the point: mocha resolves bare `require` entries from its own install\n" +
-            "// directory, not the working directory, which breaks under pnpm's layout.\n" +
-            "const require = createRequire(import.meta.url);\n\n";
-        // after the leading comment block, so the file still reads top-down
-        const firstCode = out.search(/^(?!\s*(\/\/|\/\*|\*|$))/m);
-        out = firstCode <= 0 ? preamble + out : out.slice(0, firstCode) + preamble + out.slice(firstCode);
-    }
-    return out;
-}
-
-/**
  * Any surviving `require()`, kept but given something to resolve it.
  *
  * `createRequire` rather than `await import()` on purpose. import() is often the nicer form,
@@ -150,6 +124,25 @@ export function convertDynamicRequire(text) {
 
     const firstCode = text.search(/^(?!\s*(\/\/|\/\*|\*|$))/m);
     return firstCode <= 0 ? preamble + text : text.slice(0, firstCode) + preamble + text.slice(firstCode);
+}
+
+/**
+ * The mocha config an ESM package needs: the same CommonJS file, named `.mocharc.cjs`.
+ *
+ * Converting it to ESM would work - mocha 12 loads the config with require(), which on
+ * Node >= 22.12 reads an ES module, and a converted transport ran its 103 tests that way.
+ * It is still the wrong choice. `check-mocharc` mandates the `.cjs` name for a
+ * `"type": "module"` package and renders the file's canonical shape; a second shape means
+ * two generators emitting one file and drifting apart, for a test config that is never
+ * published. So the gate stays the single owner of the content and this is a rename.
+ *
+ * Reported rather than done, so the caller can rename instead of write-and-delete.
+ */
+export function mocharcRename(pkgDir) {
+    const from = path.join(pkgDir, ".mocharc.js");
+    const to = path.join(pkgDir, ".mocharc.cjs");
+    if (!fs.existsSync(from) || fs.existsSync(to)) return null;
+    return { from, to };
 }
 
 /** `const here = __dirname;` -> `const here = import.meta.dirname;`, and drop the stale note */
@@ -235,8 +228,8 @@ export function survey({ repoRoot = "." } = {}) {
     return {
         total: packages.length,
         alreadyEsm: packages.filter((p) => p.alreadyEsm),
-        mechanical: packages.filter((p) => !p.alreadyEsm && p.manual.length === 0 && p.mocharc !== "unrecognised"),
-        needsDecision: packages.filter((p) => !p.alreadyEsm && (p.manual.length > 0 || p.mocharc === "unrecognised")),
+        mechanical: packages.filter((p) => !p.alreadyEsm && p.manual.length === 0),
+        needsDecision: packages.filter((p) => !p.alreadyEsm && p.manual.length > 0),
         packages
     };
 }
@@ -249,9 +242,7 @@ export function analyze({ repoRoot = ".", packageName } = {}) {
     const manifest = fs.readFileSync(manifestPath, "utf8");
     const alreadyEsm = /"type"\s*:\s*"module"/.test(manifest);
 
-    const mocharcPath = path.join(dir, ".mocharc.js");
-    const hasMocharc = fs.existsSync(mocharcPath);
-    const mocharcConvertible = hasMocharc ? convertMocharc(fs.readFileSync(mocharcPath, "utf8")) !== null : false;
+    const rename = mocharcRename(dir);
 
     const anchors = [];
     const dynamicRequires = [];
@@ -268,7 +259,7 @@ export function analyze({ repoRoot = ".", packageName } = {}) {
         packageName,
         dir: dir.replace(/\\/g, "/"),
         alreadyEsm,
-        mocharc: hasMocharc ? (mocharcConvertible ? "convertible" : "unrecognised") : "none",
+        mocharc: rename ? "rename" : "none",
         anchors,
         dynamicRequires,
         manual

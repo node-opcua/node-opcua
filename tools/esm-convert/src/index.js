@@ -13,7 +13,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { analyze, convertAnchors, convertDynamicRequire, convertMocharc, packageFiles, setTypeModule, survey } from "./rule.js";
+import { analyze, convertAnchors, convertDynamicRequire, mocharcRename, packageFiles, setTypeModule, survey } from "./rule.js";
 
 function valueOf(argv, flag) {
     const i = argv.indexOf(flag);
@@ -30,13 +30,12 @@ function apply(result) {
         done.push('package.json: "type": "module"');
     }
 
-    const mocharcPath = path.join(result.dir, ".mocharc.js");
-    if (result.mocharc === "convertible") {
-        const next = convertMocharc(fs.readFileSync(mocharcPath, "utf8"));
-        if (next) {
-            fs.writeFileSync(mocharcPath, next);
-            done.push(".mocharc.js: module.exports -> export default");
-        }
+    // a rename, not a rewrite: check-mocharc mandates .cjs for an ESM package and owns the
+    // canonical content, so it stays the only thing that renders these files
+    const rename = mocharcRename(result.dir);
+    if (rename) {
+        fs.renameSync(rename.from, rename.to);
+        done.push(".mocharc.js -> .mocharc.cjs");
     }
 
     for (const file of packageFiles(result.dir)) {
@@ -74,16 +73,12 @@ function report(result, applied) {
     } else {
         lines.push("  would apply:");
         if (!result.alreadyEsm) lines.push('    package.json: "type": "module"');
-        if (result.mocharc === "convertible") lines.push("    .mocharc.js: module.exports -> export default");
+        if (result.mocharc === "rename") lines.push("    .mocharc.js -> .mocharc.cjs");
         for (const a of result.anchors) lines.push(`    ${a}: __dirname -> import.meta.dirname`);
         for (const d of result.dynamicRequires ?? []) lines.push(`    ${d}: require(nonLiteral) kept, behind createRequire`);
-        if (result.alreadyEsm && result.mocharc !== "convertible" && result.anchors.length === 0) {
+        if (result.alreadyEsm && result.mocharc !== "rename" && result.anchors.length === 0) {
             lines.push("    nothing");
         }
-    }
-
-    if (result.mocharc === "unrecognised") {
-        lines.push("", "  .mocharc.js is not a shape this tool rewrites - convert it by hand");
     }
 
     if (result.manual.length) {
@@ -115,7 +110,6 @@ function reportSurvey(s) {
         lines.push("  need a decision:");
         for (const p of s.needsDecision) {
             const kinds = [...new Set(p.manual.map((m) => m.kind))];
-            if (p.mocharc === "unrecognised") kinds.push("mocharc");
             lines.push(`    ${p.packageName.padEnd(46)} ${kinds.join(", ")}`);
         }
         lines.push("");

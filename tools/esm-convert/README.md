@@ -14,7 +14,7 @@ Not a gate. It exits 0 either way; it is a helper for FEAT-2.
 | | |
 |---|---|
 | `package.json` | adds `"type": "module"` |
-| `.mocharc.js` | `module.exports` → `export default`, `require` → `createRequire(import.meta.url)` |
+| `.mocharc.js` | renamed to `.mocharc.cjs`, contents untouched |
 | `const here = __dirname;` | → `import.meta.dirname`, and drops the note saying it cannot be used yet |
 
 The anchor is only mechanical because FEAT-1 concentrated the scattered uses into one line per
@@ -34,9 +34,6 @@ These alter behaviour rather than syntax, so they are listed and left alone:
 | `module.exports` | a named or default export, but which is a decision |
 | module-scope `await` | breaks `require(esm)` for every CJS consumer downstream |
 
-A `.mocharc.js` whose shape it does not recognise — one using `__dirname` or `exports.foo` —
-is reported rather than half-converted.
-
 ## After it runs
 
 **Rebuild with `--force`.** `tsc -b` does not re-emit on a `type` change alone: its
@@ -49,15 +46,17 @@ cd packages/<name> && npx mocha "test/**/*.ts"
 node fixtures/consumer-cjs/index.cjs && node fixtures/consumer-esm/index.mjs
 ```
 
-## Why the mocha config can be ESM
+## Why the mocha config stays CommonJS
 
-Mocha 12 loads `.mocharc.js` with `require()`, and on Node ≥ 22.12 `require()` reads an ES
-module, so `export default` is picked up correctly. `.mocharc.cjs` also works but leaves a
-CommonJS island in an otherwise ESM package for no benefit.
+Converting it would work. Mocha 12 loads `.mocharc.js` with `require()`, and on Node >= 22.12
+`require()` reads an ES module, so `export default` is picked up: a converted
+`node-opcua-transport` ran its 103 tests that way.
 
-`require.resolve` is not available in an ES module, hence `createRequire`. The absolute paths
-it produces are still the point: mocha resolves bare `require` entries from its own install
-directory rather than the working directory, which breaks under pnpm's layout.
+It is still the wrong choice. `check-mocharc` mandates the `.cjs` name for a
+`"type": "module"` package and renders the canonical contents of every one of these files.
+Teaching it a second shape would mean two generators emitting one file and drifting apart, for
+a test config that is never published, so there is no ESM purity to gain. The gate stays the
+single owner of the content and this tool only renames.
 
 The existing `tsx/cjs` loader in `packages/.mocharc.js` continues to load an ESM package's
 TypeScript tests, so no loader change is needed per package.
