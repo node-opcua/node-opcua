@@ -1,0 +1,16 @@
+{
+    "name": "@sterfive/esm-convert",
+    "version": "1.0.0",
+    "private": true,
+    "description": "the mechanical half of converting a package to ESM; reports the rest",
+    "bin": {
+        "esm-convert": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "test": "node test/test_rule.js"
+    },
+    "devDependencies": {
+        "typescript": "5.9.3"
+    }
+}

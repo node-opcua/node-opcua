@@ -4532,6 +4532,12 @@ importers:
 
   tools/check-test-ports: {}
 
+  tools/esm-convert:
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   tools/fix-tsconfigs:
     dependencies:
       json5:
