@@ -1,3 +1,4 @@
+import type { EventEmitter } from "node:events";
 import { inspect } from "node:util";
 import chalk from "chalk";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
@@ -43,7 +44,8 @@ describe("UAObject: inspect() and event listeners", () => {
     it("more than ten event listeners on an object is not a leak to warn about", async () => {
         const server = addressSpace.rootFolder.objects.server;
         // one listener per event MonitoredItem, and the Server object collects them for every Session
-        should(server.getMaxListeners()).be.greaterThan(10);
+        // (the public UAObject interface exposes on/once/removeListener only; the cap is the emitter's)
+        should((server as unknown as EventEmitter).getMaxListeners()).be.greaterThan(10);
 
         const warnings: Error[] = [];
         const onWarning = (w: Error) => warnings.push(w);
