@@ -101,9 +101,19 @@ test("converts an exported anchor", () => {
     assert.equal(convertAnchors("export const here = __dirname;\n"), "export const here = import.meta.dirname;\n");
 });
 
-test("leaves a scattered use alone: only the anchor shape is mechanical", () => {
-    // check-dirname keeps these out of shipped source; if one appears, a person decides
-    assert.equal(convertAnchors('const p = path.join(__dirname, "x");\n'), null);
+test("converts a scattered use too: in an ES module the substitution is exact anywhere", () => {
+    // FEAT-1's single anchor was for the CJS period, when import.meta was illegal (TS1470).
+    // Once a package is being flipped there is nothing left to decide, and test trees - which
+    // check-dirname does not cover - are full of these.
+    assert.equal(convertAnchors('const p = path.join(__dirname, "x");'), 'const p = path.join(import.meta.dirname, "x");');
+});
+
+test("leaves a typeof guard alone: it is asking whether the global exists", () => {
+    assert.equal(convertAnchors('const isBrowser = typeof __filename === "undefined";'), null);
+});
+
+test("does not rewrite prose: a comment mentioning __dirname is not code", () => {
+    assert.equal(convertAnchors('// path.join(__dirname, "x") is the intended use'), null);
 });
 
 // ── what needs a person ─────────────────────────────────────────────────────────
@@ -151,6 +161,17 @@ test("await inside a function is fine and is not reported", () => {
 
 test("require in a comment is not code", () => {
     assert.equal(findManualWork('// const x = require("y");\nconst a = 1;\n').length, 0);
+});
+
+test("reports `exports.foo`, which is neither module.exports nor an ES export", () => {
+    // this is what node-opcua-utils carried: a no-op duplicate under CJS emit, and a
+    // ReferenceError the moment the package became a module
+    const found = findManualWork("export function f() {}\nexports.f = f;");
+    assert.equal(found[0].kind, "cjs-exports");
+});
+
+test("an export declaration is not an `exports` assignment", () => {
+    assert.equal(findManualWork("export const exports2 = 1;").length, 0);
 });
 
 test("an ordinary import is not manual work", () => {

@@ -192,3 +192,53 @@ test("every directory this repository uses for tests is in the list", () => {
         assert.deepEqual(missing, [], `test directories no gate scans: ${missing.join(", ")}`);
     });
 });
+
+// ── source behind an emitted directory ──────────────────────────────────────────
+//
+// The third way this has failed. node-opcua-address-space ships `distHelpers`, and the tree
+// that compiles into it, `test_helpers`, is named nowhere in `files`. Excluding build output
+// was right; stopping there meant every gate skipped an entire published tree and still
+// reported a clean scan. Six raw uses of __dirname were sitting in the gap.
+
+test("an emitted directory in `files` resolves back to the source it is compiled from", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "shipped-dirs-"));
+    try {
+        const pkg = path.join(root, "p");
+        fs.mkdirSync(path.join(pkg, "helpers"), { recursive: true });
+        fs.writeFileSync(path.join(pkg, "helpers", "a.ts"), "export const x = 1;");
+        fs.writeFileSync(path.join(pkg, "package.json"), JSON.stringify({ name: "p", files: ["distHelpers"] }));
+        fs.writeFileSync(
+            path.join(pkg, "tsconfig_helpers.json"),
+            JSON.stringify({ compilerOptions: { rootDir: "helpers", outDir: "distHelpers" }, include: ["helpers/**/*.ts"] })
+        );
+        assert.deepEqual(shippedDirsOf(pkg), ["helpers"]);
+    } finally {
+        fs.rmSync(root, { recursive: true, force: true });
+    }
+});
+
+test("a rootDir naming the package itself does not widen the scan to everything", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "shipped-dirs-"));
+    try {
+        const pkg = path.join(root, "p");
+        for (const d of ["api", "impl", "scratch"]) {
+            fs.mkdirSync(path.join(pkg, d), { recursive: true });
+            fs.writeFileSync(path.join(pkg, d, "a.ts"), "export const x = 1;");
+        }
+        fs.writeFileSync(path.join(pkg, "package.json"), JSON.stringify({ name: "p", files: ["dist"] }));
+        // rootDir "" is what node-opcua-address-space declares; the include globs are the answer
+        fs.writeFileSync(
+            path.join(pkg, "tsconfig.json"),
+            JSON.stringify({ compilerOptions: { rootDir: "", outDir: "dist" }, include: ["api/**/*.ts", "impl/**/*.ts"] })
+        );
+        assert.deepEqual(shippedDirsOf(pkg).sort(), ["api", "impl"]);
+    } finally {
+        fs.rmSync(root, { recursive: true, force: true });
+    }
+});
+
+test("node-opcua-address-space's test_helpers tree is in scope", () => {
+    const repoRoot = path.resolve(import.meta.dirname, "../../..");
+    const dirs = shippedDirsOf(path.join(repoRoot, "packages", "node-opcua-address-space"));
+    assert.ok(dirs.includes("test_helpers"), `found: ${dirs.join(", ")}`);
+});

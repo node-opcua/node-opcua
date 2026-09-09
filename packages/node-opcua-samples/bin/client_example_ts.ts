@@ -45,6 +45,11 @@ import { type Certificate, toPem } from "node-opcua-crypto";
 
 const { asTree } = require("treeify");
 
+// The one place this module learns where it sits on disk. `import.meta.dirname`
+// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
+// has this single line to change rather than several scattered uses.
+const here = __dirname;
+
 function w(str: string, l: number): string {
     return str.padEnd(l).substring(0, l);
 }
@@ -338,7 +343,7 @@ function getTick() {
 
             serverCertificate = endpoint.serverCertificate;
 
-            const certificate_filename = path.join(__dirname, `../certificates/PKI/server_certificate${i}.pem`);
+            const certificate_filename = path.join(here, `../certificates/PKI/server_certificate${i}.pem`);
 
             if (serverCertificate) {
                 fs.writeFile(certificate_filename, toPem(serverCertificate, "CERTIFICATE"), () => {

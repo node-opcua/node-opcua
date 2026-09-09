@@ -8,11 +8,16 @@ import { nodesets, OPCUAServer } from "node-opcua";
 
 Error.stackTraceLimit = Infinity;
 
+// The one place this module learns where it sits on disk. `import.meta.dirname`
+// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
+// has this single line to change rather than several scattered uses.
+const here = __dirname;
+
 function constructFilename(filename: string): string {
-    return path.join(__dirname, "../", filename);
+    return path.join(here, "../", filename);
 }
 
-const rootFolder = path.join(__dirname, "../../..");
+const rootFolder = path.join(here, "../../..");
 
 async function main() {
     const optionDefinitions: commandLineUsage.OptionDefinition[] = [
