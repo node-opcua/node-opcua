@@ -13,7 +13,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { analyze, convertAnchors, convertMocharc, packageFiles, setTypeModule } from "./rule.js";
+import { analyze, convertAnchors, convertMocharc, packageFiles, setTypeModule, survey } from "./rule.js";
 
 function valueOf(argv, flag) {
     const i = argv.indexOf(flag);
@@ -92,11 +92,53 @@ function report(result, applied) {
     return lines.join("\n");
 }
 
+/** the workspace at a glance: how much of FEAT-2 a tool can finish on its own */
+function reportSurvey(s) {
+    const lines = [
+        `esm-convert: ${s.total} packages - ${s.alreadyEsm.length} already ESM, ${s.mechanical.length} mechanical, ${s.needsDecision.length} need a decision`,
+        ""
+    ];
+
+    if (s.needsDecision.length) {
+        lines.push("  need a decision:");
+        for (const p of s.needsDecision) {
+            const kinds = [...new Set(p.manual.map((m) => m.kind))];
+            if (p.mocharc === "unrecognised") kinds.push("mocharc");
+            lines.push(`    ${p.packageName.padEnd(46)} ${kinds.join(", ")}`);
+        }
+        lines.push("");
+    }
+
+    const byKind = new Map();
+    for (const p of s.needsDecision) {
+        for (const m of p.manual) byKind.set(m.kind, (byKind.get(m.kind) ?? 0) + 1);
+    }
+    if (byKind.size) {
+        lines.push("  by kind:");
+        for (const [kind, n] of [...byKind].sort((a, b) => b[1] - a[1])) {
+            lines.push(`    ${String(n).padStart(3)}  ${kind}`);
+        }
+        lines.push("");
+    }
+
+    lines.push(
+        `  ${s.mechanical.length} of ${s.total - s.alreadyEsm.length} remaining packages can be converted without anyone reading them:`,
+        "  esm-convert --write, then tsc -b <pkg> --force, then that package's suite."
+    );
+    return lines.join("\n");
+}
+
 function main() {
     const argv = process.argv.slice(2);
+
+    if (argv.includes("--all")) {
+        console.log(reportSurvey(survey({ repoRoot: valueOf(argv, "--root") ?? "." })));
+        return 0;
+    }
+
     const packageName = valueOf(argv, "--package");
     if (!packageName) {
-        console.error("usage: node tools/esm-convert.mjs --package <name> [--write]");
+        console.error("usage: node tools/esm-convert.mjs --package <name> [--write]   |   --all");
         return 2;
     }
     const repoRoot = valueOf(argv, "--root") ?? ".";
