@@ -1,0 +1,17 @@
+{
+    "name": "@sterfive/check-dirname",
+    "version": "1.0.0",
+    "private": true,
+    "description": "shipped source reaches its own location through one named anchor, not scattered __dirname",
+    "bin": {
+        "check-dirname": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "test": "node test/test_rule.js"
+    },
+    "devDependencies": {
+        "typescript": "5.9.3"
+    }
+}

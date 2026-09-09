@@ -201,9 +201,14 @@ export class ReleaseMatrix {
     }
 }
 
+// The one place this module learns where it sits on disk. `import.meta.dirname`
+// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
+// has this single line to change rather than several scattered uses.
+const here = __dirname;
+
 /** the path of this package's own manifest, which carries the set of its own release */
 export function bundledManifestFile(): string {
-    return path.join(__dirname, "..", "package.json");
+    return path.join(here, "..", "package.json");
 }
 
 /**
