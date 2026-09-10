@@ -10,9 +10,9 @@
 import fs from "node:fs";
 import type { NodesetNodeRecord, NodesetReferenceRecord, NodesetSource } from "node-opcua-address-space";
 import { AddressSpace, generateAddressSpaceRaw } from "node-opcua-address-space";
-import { digestAddressSpace } from "node-opcua-address-space/distHelpers/address_space_digest.js";
+import { digestAddressSpace } from "node-opcua-address-space/testHelpers.js";
 import { nodesets } from "node-opcua-nodesets";
-import "node-opcua-address-space/distNodeJS/index.js";
+import "node-opcua-address-space/nodeJS.js";
 import { findNodesetFormat, nodesetFormatByName } from "node-opcua-address-space";
 import should from "should";
 import { ANNEX_I_JSONL_FORMAT, annexINamespaceTable, isAnnexIHeaderLine, parseAnnexINodeId } from "../source/index.js";

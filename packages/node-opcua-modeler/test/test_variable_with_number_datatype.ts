@@ -10,7 +10,7 @@ import {
     type UAObject,
     type UAVariable
 } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/distNodeJS/index.js";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { DataTypeIds } from "node-opcua-constants";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId } from "node-opcua-nodeid";

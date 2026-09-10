@@ -1,7 +1,7 @@
 import "should"; // side-effect for should assertions
 import { assert } from "node-opcua-assert";
 import { makeBufferFromTrace } from "node-opcua-debug";
-import { redirectToFileAsync } from "node-opcua-debug/distNodeJS/redirect_to_file.js";
+import { redirectToFileAsync } from "node-opcua-debug/nodeJS.js";
 import { makeNodeId } from "node-opcua-nodeid";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/testHelpers.js";
 import { verify_multi_chunk_message } from "node-opcua-secure-channel/testHelpers.js";

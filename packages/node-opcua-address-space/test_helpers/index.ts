@@ -2,6 +2,7 @@
  * @module node-opcua-address-space
  */
 export * from "./add_event_generator_object.js";
+export * from "./address_space_digest.js";
 export * from "./alarms_and_conditions_demo.js";
 export * from "./assertHasMatchingReference.js";
 export * from "./boiler_system.js";

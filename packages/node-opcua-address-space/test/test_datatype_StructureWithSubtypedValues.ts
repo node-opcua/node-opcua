@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { DataType, randomGuid } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { getExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object/dist/get_extra_data_type_manager.js";
+import { getExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { AttributeIds } from "node-opcua-data-model";
 import { make_debugLog } from "node-opcua-debug";
 import type { IBaseUAObject } from "node-opcua-factory";
