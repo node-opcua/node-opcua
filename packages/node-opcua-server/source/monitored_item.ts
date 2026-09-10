@@ -193,11 +193,9 @@ function valueHasChanged(
 }
 
 function timestampHasChanged(t1: DateTime, t2: DateTime): boolean {
-    if (t1 || !t2 || t2 || !t1) {
-        return true;
-    }
     if (!t1 || !t2) {
-        return false;
+        // one of them is null/undefined: a change only if the other one is set
+        return !!t1 !== !!t2;
     }
     return (t1 as Date).getTime() !== (t2 as Date).getTime();
 }
@@ -264,8 +262,12 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
             //              If the DataChangeFilter is not applied to the monitored item, STATUS_VALUE_1
             //              is the default reporting behavior
             assert(trigger === DataChangeTrigger.StatusValueTimestamp);
+            // OPC 10000-4 (1.05) 7.22.2, DataChangeTrigger STATUS_VALUE_TIMESTAMP_2:
+            //   "If a Deadband filter is specified, this trigger has the same behaviour as STATUS_VALUE_1."
+            // So the SourceTimestamp is only a trigger when no Deadband is in effect.
+            const deadbandInEffect = this.filter.deadbandType !== DeadbandType.None;
             return (
-                timestampHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp) ||
+                (!deadbandInEffect && timestampHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp)) ||
                 statusCodeHasChanged(newDataValue, oldDataValue) ||
                 valueHasChanged.call(this, newDataValue, oldDataValue, this.filter.deadbandType, this.filter.deadbandValue)
             );
