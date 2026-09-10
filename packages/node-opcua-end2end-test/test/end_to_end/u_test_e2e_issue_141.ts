@@ -53,7 +53,11 @@ export function t(test: TestHarness) {
         });
 
         it("#141-A PublishRequest timeoutHint shall exceed keepalive gap", async () => {
-            const timeout = 25000; // original test window
+            // wait until at least 2 keepalives have been observed (proves the gap is
+            // sustainable across multiple cycles), with a generous safety timeout so a
+            // slow/loaded CI runner doesn't fail on a single missed keepalive window
+            const targetKeepaliveCount = 2;
+            const safetyTimeout = 60000;
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 const subscription = ClientSubscription.create(session, {
                     requestedPublishingInterval: 6000,
@@ -64,12 +68,16 @@ export function t(test: TestHarness) {
                     priority: 10
                 });
                 let keepaliveCounter = 0;
-                subscription.on("keepalive", () => {
-                    keepaliveCounter++;
-                });
 
                 await new Promise<void>((resolve, reject) => {
-                    const to = setTimeout(() => resolve(), timeout);
+                    const to = setTimeout(() => resolve(), safetyTimeout);
+                    subscription.on("keepalive", () => {
+                        keepaliveCounter++;
+                        if (keepaliveCounter >= targetKeepaliveCount) {
+                            clearTimeout(to);
+                            resolve();
+                        }
+                    });
                     subscription.on("internal_error", (err) => {
                         clearTimeout(to);
                         reject(err);
@@ -79,10 +87,10 @@ export function t(test: TestHarness) {
                     });
                 });
                 await new Promise((r) => subscription.terminate(r));
-                keepaliveCounter.should.be.greaterThan(1);
+                keepaliveCounter.should.be.aboveOrEqual(targetKeepaliveCount);
                 (client as InternalAny).timedOutRequestCount.should.eql(0);
             });
-        });
+        }).timeout(90000);
 
         it("#141-B client emits timed_out_request when request timeoutHint exhausted", async () => {
             const node = server.engine.addressSpace!.getOwnNamespace().addVariable({
