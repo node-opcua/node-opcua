@@ -219,6 +219,50 @@ export function t(test: TestHarness) {
             });
         });
 
+        /**
+         * CTT Data Access Semantic Changes 003/004/005/010/013, to the letter: the script creates
+         * the monitored item, writes the Property and publishes ONCE - it never consumes the
+         * initial data change first, and it reads the bit off MonitoredItems[0]. So the very first
+         * notification the client receives, the queued initial value, is the one that has to carry
+         * it: OPC 10000-4 7.39's "next notification" is the next one *the client sees*.
+         */
+        it("YY5 the first notification carries the bit when the initial value is still queued", async () => {
+            const analogNodeId = "ns=2;s=ByteAnalogDataItem";
+
+            await perform_operation_on_raw_subscription(client, test.endpointUrl, async (session, { subscriptionId }) => {
+                const orgEURange = await readEURange(session, analogNodeId);
+
+                const createResponse = await (session as RawSession).createMonitoredItems(
+                    new CreateMonitoredItemsRequest({
+                        subscriptionId,
+                        timestampsToReturn: TimestampsToReturn.Server,
+                        itemsToCreate: [
+                            {
+                                itemToMonitor: new ReadValueId({ attributeId: AttributeIds.Value, nodeId: analogNodeId }),
+                                monitoringMode: MonitoringMode.Reporting,
+                                requestedParameters: new MonitoringParameters({
+                                    clientHandle: 1002,
+                                    samplingInterval: 500,
+                                    queueSize: 10,
+                                    discardOldest: true,
+                                    filter: null
+                                })
+                            }
+                        ]
+                    })
+                );
+                should(createResponse.results?.[0].statusCode).eql(StatusCodes.Good);
+
+                // no initial publish here: the write happens while the initial value is still queued
+                await writeEURange(session, analogNodeId, { low: orgEURange.low + 1, high: orgEURange.high - 1 });
+
+                const firstNotif = await getNextDataChangeNotification(session);
+                should(firstNotif.value.statusCode.hasSemanticChangedBit).eql(true);
+
+                await writeEURange(session, analogNodeId, orgEURange);
+            });
+        });
+
         it("YY3 semanticChanged with sampling 1000ms", async () => {
             await checkSemanticChange(1000);
         });
