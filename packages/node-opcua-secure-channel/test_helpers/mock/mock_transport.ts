@@ -7,7 +7,7 @@ import { GetEndpointsResponse } from "node-opcua-service-endpoints";
 import { CloseSecureChannelResponse, OpenSecureChannelResponse } from "node-opcua-service-secure-channel";
 import { ActivateSessionResponse, CreateSessionResponse } from "node-opcua-service-session";
 import { AcknowledgeMessage } from "node-opcua-transport";
-import { TransportPairDirect } from "node-opcua-transport/testHelpers";
+import { TransportPairDirect } from "node-opcua-transport/testHelpers.js";
 
 const debugLog = make_debugLog("mock_transport");
 

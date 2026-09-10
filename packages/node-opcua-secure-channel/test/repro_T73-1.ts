@@ -4,8 +4,8 @@ import type { ICertificateStore } from "node-opcua-common";
 import type { IKeyOperations } from "node-opcua-crypto";
 import type { EndpointDescription } from "node-opcua-service-endpoints";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import { helloMessage1 } from "node-opcua-transport/testFixtures";
-import { TransportPairDirect } from "node-opcua-transport/testHelpers";
+import { helloMessage1 } from "node-opcua-transport/testFixtures.js";
+import { TransportPairDirect } from "node-opcua-transport/testHelpers.js";
 import { OpenSecureChannelRequest, SecurityTokenRequestType } from "node-opcua-types";
 import {
     MessageChunker,

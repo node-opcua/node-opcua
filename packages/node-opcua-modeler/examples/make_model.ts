@@ -2,8 +2,8 @@
 import fs from "node:fs";
 import { types } from "node:util";
 
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { createBoilerType } from "node-opcua-address-space/testHelpers";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
+import { createBoilerType } from "node-opcua-address-space/testHelpers.js";
 import {
     AddressSpace,
     DataType,

@@ -22,7 +22,15 @@
             "types": "./dist/test_helpers/index.d.ts",
             "default": "./dist/test_helpers/index.js"
         },
+        "./testHelpers.js": {
+            "types": "./dist/test_helpers/index.d.ts",
+            "default": "./dist/test_helpers/index.js"
+        },
         "./testFixtures": {
+            "types": "./dist/test-fixtures/index.d.ts",
+            "default": "./dist/test-fixtures/index.js"
+        },
+        "./testFixtures.js": {
             "types": "./dist/test-fixtures/index.d.ts",
             "default": "./dist/test-fixtures/index.js"
         },

@@ -5,7 +5,7 @@ import { build_server_with_temperature_device } from "../../test_helpers/build_s
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 
 // redirectToFile retained for potential future use
-// import { redirectToFile } from "node-opcua-debug/nodeJS";
+// import { redirectToFile } from "node-opcua-debug/nodeJS.js";
 
 // _channels is a private OPCUAServerEndPoint field, reached here to observe raw
 // secure-channel byte counters for the diagnostics assertion below.

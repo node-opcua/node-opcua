@@ -1,7 +1,7 @@
 import "should";
 import { make_debugLog } from "node-opcua-debug";
 import { redirectToFile } from "node-opcua-debug/nodeJS.js";
-import * as packets from "node-opcua-transport/testFixtures";
+import * as packets from "node-opcua-transport/testFixtures.js";
 import should from "should";
 import sinon from "sinon";
 import { MessageBuilder, MessageSecurityMode, SecurityPolicy } from "../dist/source/index.js";

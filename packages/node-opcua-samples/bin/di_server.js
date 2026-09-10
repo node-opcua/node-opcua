@@ -12,7 +12,7 @@ const {
     nodesets,
     RegisterServerMethod
 } = require("node-opcua");
-const { makeBoiler, createBoilerType } = require("node-opcua-address-space/testHelpers");
+const { makeBoiler, createBoilerType } = require("node-opcua-address-space/testHelpers.js");
 
 Error.stackTraceLimit = Infinity;
 
