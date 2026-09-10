@@ -132,6 +132,7 @@ export interface StandardUnits {
     minute: EUInformation;
     minute_angle: EUInformation;
     newton: EUInformation;
+    one: EUInformation;
     pascal: EUInformation;
     part_per_million: EUInformation;
     percent: EUInformation;
@@ -145,95 +146,108 @@ export interface StandardUnits {
 }
 
 // https://unece.org/sites/default/files/2021-06/rec20_Rev17e-2021.xlsx
+//
+// displayName/description below are the OPC Foundation's own UNECE-code -> EUInformation
+// mapping table (http://www.opcfoundation.org/UA/EngineeringUnits/UNECE/UNECE_to_OPCUA.csv),
+// which is what the CTT's "Base Info Engineering Units" 001/004 test cases validate every
+// EUInformation against (see tools/check-unece-table.ts and test/test_EUInformation.ts). Do
+// not "improve" these strings with conversion factors or descriptive suffixes: the CTT does
+// an exact string compare (a handful of unitIds accept two historic spellings besides the
+// table value - see tools/check-unece-table.ts - none of the entries below are among them,
+// except percent, noted below).
 export const standardUnits: StandardUnits = {
     // pressure
-    bar: makeEUInformation("BAR", "bar", "bar [unit of pressure] = 1E5 Pa"),
-    hectopascal: makeEUInformation("A97", "hPa", "hectopascal [unit of pressure] = 1E2 Pa"),
-    millibar: makeEUInformation("MBR", "mbar", "millibar [unit of pressure] = 1E2 Pa"),
-    pascal: makeEUInformation("PAL", "Pa", "pascal [unit of pressure]"),
+    bar: makeEUInformation("BAR", "bar", "bar [unit of pressure]"),
+    hectopascal: makeEUInformation("A97", "hPa", "hectopascal"),
+    millibar: makeEUInformation("MBR", "mbar", "millibar"),
+    pascal: makeEUInformation("PAL", "Pa", "pascal"),
     kilogram_per_squared_centimeter: makeEUInformation("D5", "kg/cm²", "kilogram per square centimetre"),
-    megapascal: makeEUInformation("MPA", "MPa", "1 megapascal =  10⁶ pascal [unit of pressure]"),
+    megapascal: makeEUInformation("MPA", "MPa", "megapascal"),
 
     // time/duration
-    microsecond: makeEUInformation("B98", "μs", "microsecond =1E-6 second"),
-    millisecond: makeEUInformation("C26", "ms", "millisecond =1E-3 second"),
-    second: makeEUInformation("SEC", "s", "second"),
+    microsecond: makeEUInformation("B98", "µs", "microsecond"),
+    millisecond: makeEUInformation("C26", "ms", "millisecond"),
+    second: makeEUInformation("SEC", "s", "second [unit of time]"),
     // distance
-    centimetre: makeEUInformation("CMT", "cm", "centimetre = 1E-2 m"),
+    centimetre: makeEUInformation("CMT", "cm", "centimetre"),
     metre: makeEUInformation("MTR", "m", "metre"),
-    millimetre: makeEUInformation("MMT", "mm", "millimetre = 1E-3 metre"),
+    millimetre: makeEUInformation("MMT", "mm", "millimetre"),
     // volume
-    cubic_centimetre: makeEUInformation("CMQ", "cm³", "Cubic centimetre = 1E-6 m³"),
-    cubic_metre: makeEUInformation("MTQ", "m³", "Cubic metre"),
+    cubic_centimetre: makeEUInformation("CMQ", "cm³", "cubic centimetre"),
+    cubic_metre: makeEUInformation("MTQ", "m³", "cubic metre"),
     // temperature
     degree_celsius: makeEUInformation("CEL", "°C", "degree Celsius"),
-    degree_fahrenheit: makeEUInformation("FAH", "°F", "degree Fahrenheit 9/5(°C) + 32°"),
-    kelvin: makeEUInformation("KEL", "K", "degree Kelvin"),
+    degree_fahrenheit: makeEUInformation("FAH", "°F", "degree Fahrenheit"),
+    kelvin: makeEUInformation("KEL", "K", "kelvin"),
 
     // weight
-    gram: makeEUInformation("GRM", "g", "gramme 1E-3 kg"),
-    kilogram: makeEUInformation("KGM", "kg", "A unit of mass equal to one thousand grams"),
+    gram: makeEUInformation("GRM", "g", "gram"),
+    kilogram: makeEUInformation("KGM", "kg", "kilogram"),
     // speed
-    metre_per_second: makeEUInformation("MTS", "m/s", "meter per second"),
-    mile_per_hour: makeEUInformation("HM", "mile/h", "mile per hour = 2 0,447 04 m/s"),
-    kilometre_per_hour: makeEUInformation("KMH", "km/h", "kilometre per hour = 0,277 778 m/s"),
+    metre_per_second: makeEUInformation("MTS", "m/s", "metre per second"),
+    mile_per_hour: makeEUInformation("HM", "mile/h", "mile per hour (statute mile)"),
+    kilometre_per_hour: makeEUInformation("KMH", "km/h", "kilometre per hour"),
 
     // acceleration
-    metre_per_second_squared: makeEUInformation("MSK", "m/s²", "meter per second square"),
+    metre_per_second_squared: makeEUInformation("MSK", "m/s²", "metre per second squared"),
     // frequency
-    kilohertz: makeEUInformation("KHZ", "kHz", "kilo hertz = 1E3 Hertz"),
-    hertz: makeEUInformation("HTZ", "Hz", "Hertz"),
+    kilohertz: makeEUInformation("KHZ", "kHz", "kilohertz"),
+    hertz: makeEUInformation("HTZ", "Hz", "hertz"),
     megahertz: makeEUInformation("MHZ", "MHz", "megahertz"),
-    revolutions_per_minute: makeEUInformation("RPM", "r/min", "revolutions per minute 1,047198 rad/(60 x s)"),
-    revolutions_per_second: makeEUInformation("RPS", "r/s", "revolutions per minute 1,047198 rad/s"),
+    revolutions_per_minute: makeEUInformation("RPM", "r/min", "revolutions per minute"),
+    revolutions_per_second: makeEUInformation("RPS", "r/s", "revolutions per second"),
     // force
-    newton: makeEUInformation("NEW", "N", "Newton (kg x m)/s² "),
-    kilogram_force: makeEUInformation("B37", "kgf", "kilogram-force 1 kgf = 9.80665 N"),
+    newton: makeEUInformation("NEW", "N", "newton"),
+    kilogram_force: makeEUInformation("B37", "kgf", "kilogram-force"),
     // power
-    kilowatt: makeEUInformation("KWT", "kW", "kilowatt  1kW = 10³ W"),
-    megawatt: makeEUInformation("MAW", "MW", "Mega Watt"),
-    watt: makeEUInformation("WTT", "W", "Watt"),
+    kilowatt: makeEUInformation("KWT", "kW", "kilowatt"),
+    megawatt: makeEUInformation("MAW", "MW", "megawatt"),
+    watt: makeEUInformation("WTT", "W", "watt"),
     // rate of flow
-    cubic_centimetre_per_second: makeEUInformation("2J", "cm³/s", "Cubic centimetre per second"),
-    cubic_metre_per_hour: makeEUInformation("MQH", "m³/h", "Cubic metre per hours = 2,777 78 x 10⁻⁴ m³/s"),
-    cubic_meter_per_minute: makeEUInformation("G53", "m³/min", "m³/min	cubic metre per minute"),
+    cubic_centimetre_per_second: makeEUInformation("2J", "cm³/s", "cubic centimetre per second"),
+    cubic_metre_per_hour: makeEUInformation("MQH", "m³/h", "cubic metre per hour"),
+    cubic_meter_per_minute: makeEUInformation("G53", "m³/min", "cubic metre per minute"),
     // angle
     degree: makeEUInformation("DD", "°", "degree [unit of angle]"),
 
     //
     ampere: makeEUInformation("AMP", "A", "ampere"),
-    becquerel: makeEUInformation("BQL", "Bq", "becquerel = 27,027E-12 Ci"),
+    becquerel: makeEUInformation("BQL", "Bq", "becquerel"),
 
-    curie: makeEUInformation("CUR", "Ci", "Curie = 3,7E-10 Bq"),
-    curie_per_kilogram: makeEUInformation("A42", "Ci/kg", "Curie per kilogram = 3,7E-10 Bq/kg"),
+    curie: makeEUInformation("CUR", "Ci", "curie"),
+    curie_per_kilogram: makeEUInformation("A42", "Ci/kg", "curie per kilogram"),
 
-    dots_per_inch: makeEUInformation("E39", "dpi", "dot per inch"),
-    electron_volt: makeEUInformation("A53", "eV", "electron volt"),
-    farad: makeEUInformation("FAR", "F", "Farad = kg⁻¹ x m⁻² x s⁴ x     A²"),
-    gigabecquerel: makeEUInformation("GBQ", "GBq", "Giga becquerel = 1E9 Bq"),
-    joule: makeEUInformation("JOU", "J", "Joule"),
-    kilo_electron_volt: makeEUInformation("B29", "keV", "kilo electron volt"),
+    dots_per_inch: makeEUInformation("E39", "dpi", "dots per inch"),
+    electron_volt: makeEUInformation("A53", "eV", "electronvolt"),
+    farad: makeEUInformation("FAR", "F", "farad"),
+    gigabecquerel: makeEUInformation("GBQ", "GBq", "gigabecquerel"),
+    joule: makeEUInformation("JOU", "J", "joule"),
+    kilo_electron_volt: makeEUInformation("B29", "keV", "kiloelectronvolt"),
     kilogram_per_second: makeEUInformation("KGS", "kg/s", "kilogram per second"),
-    kilopascal: makeEUInformation("KPA", "kPa", "1 kilopascal = 10³ Pa"),
-    millipascal: makeEUInformation("74", "mPa", "1 millipascal = 10⁻³ Pa"),
-    kilobecquerel: makeEUInformation("2Q", "kBq", "kilo becquerel = 1E3 Bq"),
-    mega_electron_volt: makeEUInformation("B71", "MeV", "mega electron volt"),
-    megawatt_per_minute: makeEUInformation(
-        "Q35",
-        "MW/min",
-        "A unit of power defining the total amount of bulk energy transferred or consumer per minute."
-    ),
-    percent: makeEUInformation("P1", "%", "Percent, a unit of proportion equal to 0.01. "),
+    kilopascal: makeEUInformation("KPA", "kPa", "kilopascal"),
+    millipascal: makeEUInformation("74", "mPa", "millipascal"),
+    kilobecquerel: makeEUInformation("2Q", "kBq", "kilobecquerel"),
+    mega_electron_volt: makeEUInformation("B71", "MeV", "megaelectronvolt"),
+    megawatt_per_minute: makeEUInformation("Q35", "MW/min", "megawatts per minute"),
+    // Foundation table DisplayName for unitId 20529 is "% or pct"; the CTT itself (004.js)
+    // also accepts the literal "%" and "pct", so "%" is kept as the (already correct) displayName.
+    percent: makeEUInformation("P1", "%", "percent"),
+    // H87 (piece) below and E37 (pixel) here are NOT in the OPC Foundation's UNECE_to_OPCUA
+    // table: the CTT's 001.js flags any EUInformation carrying them as "not an official UNECE
+    // definition". No table-backed equivalent exists for "pixel"; kept for compatibility.
     pixel: makeEUInformation("E37", "", "pixel:  unit of count defining the number of pixels (pixel: picture element)"),
-    volt: makeEUInformation("VLT", "V", "Volt"),
+    volt: makeEUInformation("VLT", "V", "volt"),
 
-    byte: makeEUInformation("AD", "byte", "byte = A unit of information equal to 8 bits."),
-    kilobyte: makeEUInformation("2P", "kbyte", "kilobyte = A unit of information equal to 10³ (1000) bytes."),
-    megabyte: makeEUInformation("4L", "Mbyte", "megabyte = A unit of information equal to 10⁶ (1000000) bytes."),
-    gigabyte: makeEUInformation("E34", "Gbyte", "gigabyte = A unit of information equal to 10⁹ bytes."),
-    terabyte: makeEUInformation("E35", "Tbyte", "terabyte = A unit of information equal to 10¹² bytes."),
-    minute: makeEUInformation("MIN", "min", " minute (unit of time) 1min = 60 s"),
+    byte: makeEUInformation("AD", "byte", "byte"),
+    kilobyte: makeEUInformation("2P", "kbyte", "kilobyte"),
+    megabyte: makeEUInformation("4L", "Mbyte", "megabyte"),
+    gigabyte: makeEUInformation("E34", "Gbyte", "gigabyte"),
+    terabyte: makeEUInformation("E35", "Tbyte", "terabyte"),
+    minute: makeEUInformation("MIN", "min", "minute [unit of time]"),
     minute_angle: makeEUInformation("D61", "'", "minute [unit of angle]"),
-    part_per_million: makeEUInformation("59", "ppm", "A unit of proportion equal to 10⁻⁶.")
+    part_per_million: makeEUInformation("59", "ppm", "part per million"),
+    // C62 ("one"), unitId 4404786, IS in the Foundation table: use it for a plain count instead
+    // of the non-standard H87 (piece) code carried by categorizedUnits.piece in node-opcua-units.
+    one: makeEUInformation("C62", "1", "one")
     // to be continued
 };
