@@ -2,7 +2,7 @@ import "node:fs";
 import { AddressSpace } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { makeExpandedNodeId } from "node-opcua-nodeid";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/index.js";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/testHelpers.js";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 

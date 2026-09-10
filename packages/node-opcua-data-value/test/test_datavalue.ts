@@ -3,7 +3,7 @@ Error.stackTraceLimit = 1000;
 import "node:util";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NumericRange } from "node-opcua-numeric-range";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/index.js";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/testHelpers.js";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";

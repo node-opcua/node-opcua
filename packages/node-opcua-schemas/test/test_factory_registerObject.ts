@@ -4,7 +4,7 @@ import { redirectToFile } from "node-opcua-debug/nodeJS.js";
 import { BaseUAObject, type ConstructorFuncWithSchema, DataTypeFactory, type IBaseUAObject } from "node-opcua-factory";
 import { makeExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { analyze_object_binary_encoding } from "node-opcua-packet-analyzer";
-import { compare_obj_by_encoding, encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/index.js";
+import { compare_obj_by_encoding, encode_decode_round_trip_test } from "node-opcua-packet-analyzer/testHelpers.js";
 import { getObjectClassName } from "node-opcua-utils";
 import should from "should";
 import {

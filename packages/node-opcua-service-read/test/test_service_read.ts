@@ -1,4 +1,4 @@
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/index.js";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/testHelpers.js";
 import should from "should";
 import { ReadRequest, ReadResponse, ReadValueId, TimestampsToReturn } from "../dist/index.js";
 

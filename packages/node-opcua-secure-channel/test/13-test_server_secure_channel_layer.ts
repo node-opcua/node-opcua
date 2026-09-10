@@ -7,9 +7,9 @@ import type { BaseUAObject } from "node-opcua-factory";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { GetEndpointsResponse } from "node-opcua-service-endpoints";
 import { HelloMessage } from "node-opcua-transport";
-import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
-import * as fixtures from "node-opcua-transport/dist/test-fixtures";
-import { helloMessage1 } from "node-opcua-transport/dist/test-fixtures"; // HEL
+import * as fixtures from "node-opcua-transport/testFixtures";
+import { helloMessage1 } from "node-opcua-transport/testFixtures"; // HEL
+import { TransportPairDirect } from "node-opcua-transport/testHelpers";
 import { OpenSecureChannelRequest, ReadRequest, SecurityTokenRequestType } from "node-opcua-types";
 import should from "should";
 import sinon from "sinon";

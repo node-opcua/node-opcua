@@ -2,7 +2,7 @@ import { decodeExpandedNodeId } from "node-opcua-basic-types";
 
 import { BinaryStream } from "node-opcua-binary-stream";
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
-import * as packets from "node-opcua-transport/dist/test-fixtures";
+import * as packets from "node-opcua-transport/testFixtures";
 import should from "should";
 import { type IDerivedKeyProvider, MessageBuilder, MessageSecurityMode, SecurityPolicy } from "../dist/source/index.js";
 import { packet_ReadResponse } from "../test_fixtures/fixture_problematic_ReadResponse.js";
