@@ -138,6 +138,16 @@ describe("promoteToAlarm", function (this: Mocha.Suite) {
         );
     });
 
+    it("PTA-8 - refuses a certificate expiration alarm, which owns an expiry timer", () => {
+        // it is not a limit alarm, so the check above does not catch it; promoting one would give
+        // plain alarm behaviour and drop the timer promoteToCertificateExpirationAlarm installs
+        const node = bareAlarm("CertExpiry", "CertificateExpirationAlarmType");
+
+        should(() => promoteToAlarm(node, { conditionSource: source, inputNode })).throwError(
+            /CertificateExpirationAlarmType.*promoteToCertificateExpirationAlarm/
+        );
+    });
+
     it("PTA-7 - promotes an alarm type from a companion specification family", () => {
         // the type here matters more than its name: SystemOffNormalAlarmType is a DiscreteAlarmType,
         // the branch of the family the DI health alarms live on
