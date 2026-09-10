@@ -533,3 +533,58 @@ test("--fix rewrites a bare deep import in place", () => {
         }
     );
 });
+
+test("resolves through the source, so the gate never needs a build", () => {
+    // CI lints after `pnpm install --ignore-scripts`, with nothing compiled. A rule that
+    // looks in dist/ passes on a warm tree and fails on a clean checkout, which is how this
+    // first went red: 1245 specifiers pointing at dist/*.js that did not exist yet.
+    withTree(
+        {
+            "packages/dep/package.json": JSON.stringify({ name: "dep" }),
+            "packages/dep/tsconfig.json": JSON.stringify({ compilerOptions: { rootDir: "source", outDir: "dist" }, include: ["source/*.ts"] }),
+            "packages/dep/source/thing.ts": "export const x = 1;"
+        },
+        (root) => {
+            assert.equal(resolveBareSpecifier("dep/dist/thing.js", root).kind, "ok");
+            assert.deepEqual(resolveBareSpecifier("dep/dist/thing", root), { kind: "bare-file", suggestion: "dep/dist/thing.js" });
+        }
+    );
+});
+
+test("a tsconfig with trailing commas is still read", () => {
+    // node-opcua-nodeset-ua has one; JSON.parse throwing there would have made the mapping
+    // silently empty, which is the failure mode these gates exist to avoid
+    withTree(
+        {
+            "packages/dep/package.json": JSON.stringify({ name: "dep" }),
+            "packages/dep/tsconfig.json": [
+                "{",
+                "  // the emitted tree",
+                '  "compilerOptions": { "outDir": "dist", },',
+                '  "include": ["source/*.ts",],',
+                "}"
+            ].join("\n"),
+            "packages/dep/source/thing.ts": "export const x = 1;"
+        },
+        (root) => {
+            assert.equal(resolveBareSpecifier("dep/dist/thing.js", root).kind, "ok");
+        }
+    );
+});
+
+test("two source trees compiled into one dist both resolve", () => {
+    // packet-analyzer keeps source/ and test_helpers/ under a single outDir
+    withTree(
+        {
+            "packages/dep/package.json": JSON.stringify({ name: "dep" }),
+            "packages/dep/tsconfig.json": JSON.stringify({ compilerOptions: { outDir: "dist" }, include: ["source/**/*.ts", "test_helpers/**/*.ts"] }),
+            "packages/dep/test_helpers/index.ts": "export const x = 1;"
+        },
+        (root) => {
+            assert.deepEqual(resolveBareSpecifier("dep/dist/test_helpers", root), {
+                kind: "bare-directory",
+                suggestion: "dep/dist/test_helpers/index.js"
+            });
+        }
+    );
+});

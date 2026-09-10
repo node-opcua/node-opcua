@@ -50,7 +50,7 @@ const holdsTypeScript = (dir) => {
  * package itself and would widen a scan to everything; `include: ["api/**", "impl/**"]` says
  * precisely which trees feed that output.
  */
-function emittedFrom(packageDir) {
+export function emittedFrom(packageDir) {
     const map = new Map();
     let names;
     try {
@@ -61,7 +61,7 @@ function emittedFrom(packageDir) {
     for (const name of names) {
         let config;
         try {
-            config = JSON.parse(stripJsonComments(fs.readFileSync(path.join(packageDir, name), "utf8")));
+            config = readJsonc(fs.readFileSync(path.join(packageDir, name), "utf8"));
         } catch {
             continue;
         }
@@ -75,8 +75,8 @@ function emittedFrom(packageDir) {
     return map;
 }
 
-/** tsconfigs are JSONC; only line comments appear in this repo's */
-const stripJsonComments = (text) => text.replace(/^\s*\/\/.*$/gm, "");
+/** tsconfigs are JSONC: this repo's carry line comments and trailing commas */
+const readJsonc = (text) => JSON.parse(text.replace(/^\s*\/\/.*$/gm, "").replace(/,(\s*[}\]])/g, "$1"));
 
 /**
  * The source directories one package ships, from its `files` array.
