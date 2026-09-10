@@ -128,8 +128,6 @@ export function promoteToMultiStateDiscrete<T, DT extends DataType>(node: UAVari
     _node._post_initialize();
 
     assert(_node.enumStrings.browseName.toString() === "EnumStrings");
-    const handler = _node.handle_semantic_changed.bind(_node);
-    _node.enumStrings.on("value_changed", handler);
     _node.install_extra_properties();
     return node as UAMultiStateDiscreteImpl<T, DT>;
 }
