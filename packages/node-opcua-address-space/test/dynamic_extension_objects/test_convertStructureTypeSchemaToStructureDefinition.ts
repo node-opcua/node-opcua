@@ -2,11 +2,25 @@ import "should";
 import { convertStructureTypeSchemaToStructureDefinition } from "node-opcua-client-dynamic-extension-object";
 import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { type DataTypeAndEncodingId, parseBinaryXSD } from "node-opcua-schemas";
-import { MockProvider } from "node-opcua-schemas/test/mock_id_provider.js";
+import { type DataTypeAndEncodingId, type MapDataTypeAndEncodingIdProvider, parseBinaryXSD } from "node-opcua-schemas";
 import { StructureType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
+
+// An id provider that invents ids as it is asked for them. The second test in this file
+// already builds one inline; this is the same thing kept across calls, declared here rather
+// than imported from node-opcua-schemas' own test tree, which that package does not publish.
+class MockProvider implements MapDataTypeAndEncodingIdProvider {
+    private readonly map: Record<string, DataTypeAndEncodingId> = {};
+    private next = 1;
+    public getDataTypeAndEncodingId(key: string): DataTypeAndEncodingId | null {
+        if (!this.map[key]) {
+            const id = () => new NodeId(NodeId.NodeIdType.NUMERIC, this.next++, 1);
+            this.map[key] = { dataTypeNodeId: id(), binaryEncodingNodeId: id(), xmlEncodingNodeId: id(), jsonEncodingNodeId: id() };
+        }
+        return this.map[key] || null;
+    }
+}
 
 const idProvider = new MockProvider();
 const doDebug = false;
