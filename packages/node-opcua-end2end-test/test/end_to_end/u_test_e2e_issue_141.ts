@@ -52,10 +52,11 @@ export function t(test: TestHarness) {
             client = null;
         });
 
-        it("#141-A PublishRequest timeoutHint shall exceed keepalive gap", async () => {
+        it("#141-A PublishRequest timeoutHint shall exceed keepalive gap", async function () {
             // wait until at least 2 keepalives have been observed (proves the gap is
             // sustainable across multiple cycles), with a generous safety timeout so a
             // slow/loaded CI runner doesn't fail on a single missed keepalive window
+            this.timeout(90000);
             const targetKeepaliveCount = 2;
             const safetyTimeout = 60000;
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
@@ -90,7 +91,7 @@ export function t(test: TestHarness) {
                 keepaliveCounter.should.be.aboveOrEqual(targetKeepaliveCount);
                 (client as InternalAny).timedOutRequestCount.should.eql(0);
             });
-        }).timeout(90000);
+        });
 
         it("#141-B client emits timed_out_request when request timeoutHint exhausted", async () => {
             const node = server.engine.addressSpace!.getOwnNamespace().addVariable({
