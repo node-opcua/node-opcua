@@ -116,7 +116,9 @@ export function addAnalogDataItems(namespace: Namespace, parentFolder: UAObject)
         { dataType: DataType.Int32, value: -100 },
         { dataType: DataType.UInt32, value: 100 },
         { dataType: DataType.Int64, value: [0, 0] },
-        { dataType: DataType.UInt64, value: [0, 0] },
+        // an unsigned range starts at 10 (makeRange): 0 is outside it and the CTT's
+        // PercentDeadband 006 warns on an initial value outside EURange
+        { dataType: DataType.UInt64, value: [0, 130] },
         { dataType: DataType.Byte, value: 65 },
         { dataType: DataType.SByte, value: -23 }
     ];
