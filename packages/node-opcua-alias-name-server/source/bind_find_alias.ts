@@ -11,7 +11,7 @@
 
 import type { ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
 import { type AliasEntry, type AliasQuery, type IAliasStore, InvalidLikePatternError } from "node-opcua-alias-name-common";
-import { type NodeId, NodeId as NodeIdClass } from "node-opcua-nodeid";
+import { type NodeId, NodeId as NodeIdClass, sameNodeId } from "node-opcua-nodeid";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { AliasNameDataType, AliasNameVerboseDataType } from "node-opcua-types";
@@ -97,7 +97,7 @@ function isValidReferenceTypeFilter(category: UAObject, filter: NodeId | undefin
         // c8 ignore next: AliasFor is a standard ReferenceType, always present
         return true;
     }
-    return candidate.nodeId.value === aliasFor.nodeId.value || candidate.isSubtypeOf(aliasFor);
+    return sameNodeId(candidate.nodeId, aliasFor.nodeId) || candidate.isSubtypeOf(aliasFor);
 }
 
 /**
