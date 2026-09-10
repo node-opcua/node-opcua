@@ -5,7 +5,8 @@
     "main": "sample1.js",
     "private": true,
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 0"
+        "test": "echo \"Error: no test specified\" && exit 0",
+        "test:check": "tsc --noEmit -p tsconfig.json"
     },
     "dependencies": {
         "bcryptjs": "3.0.3",
