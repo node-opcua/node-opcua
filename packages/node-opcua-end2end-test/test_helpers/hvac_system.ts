@@ -9,16 +9,14 @@ import type {
     UAObject,
     UAVariableT
 } from "node-opcua-address-space";
-import { adjustDataValueStatusCode } from "node-opcua-address-space/dist/impl/data_access/adjust_datavalue_status_code.js";
-import type { UAVariableImpl } from "node-opcua-address-space/dist/impl/ua_variable_impl.js";
+import { adjustDataValueStatusCode } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 
 const doDebug = false;
 
-// checkVariantCompatibility/acceptValueOutOfRange/adjustDataValueStatusCode operate on the
-// internal UAVariableImpl (src/), not the public UAVariable interface.
-// biome-ignore lint/suspicious/noExplicitAny: see comment above
-type InternalAny = any;
+// `acceptValueOutOfRange` is an optional flag a caller may set on a variable; it is declared
+// on no interface, and ua_variable_impl reads it through the same structural cast.
+type AcceptsOutOfRange = { acceptValueOutOfRange?: boolean };
 
 interface IHVAC extends UAObject {
     nodeId: NodeId;
@@ -204,7 +202,7 @@ export function createHVACSystem(addressSpace: IAddressSpace) {
         const targetTemperature = inputArguments[0];
         assert(targetTemperature instanceof Variant);
 
-        const variable = myHVAC.targetTemperature as unknown as UAVariableImpl;
+        const variable = myHVAC.targetTemperature;
 
         if (doDebug) {
             console.log("instrumentRange=", myHVAC.targetTemperature.instrumentRange?.readValue().value.toString());
@@ -217,7 +215,7 @@ export function createHVACSystem(addressSpace: IAddressSpace) {
 
         const dataValue = new DataValue({ value: targetTemperature });
 
-        const acceptValueOutOfRange = (variable as InternalAny).acceptValueOutOfRange || false;
+        const acceptValueOutOfRange = (variable as unknown as AcceptsOutOfRange).acceptValueOutOfRange || false;
         const statusCode = adjustDataValueStatusCode(variable, dataValue, acceptValueOutOfRange);
         if (statusCode.isNotGood()) {
             return { statusCode };

@@ -14,10 +14,10 @@
  * XML below matters more than the fixpoint does.
  */
 import fs from "node:fs";
-import { AddressSpace, generateAddressSpaceRaw, nodesetFormatByName } from "node-opcua-address-space/dist/api/index.js";
+import { AddressSpace, generateAddressSpaceRaw, nodesetFormatByName } from "node-opcua-address-space";
 import { digestAddressSpace } from "node-opcua-address-space/distHelpers/address_space_digest.js";
 import "node-opcua-address-space/distNodeJS/index.js";
-import type { NodesetNodeRecord, NodesetRecord } from "node-opcua-address-space/dist/api/index.js";
+import type { NodesetNodeRecord, NodesetRecord } from "node-opcua-address-space";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { ANNEX_I_JSON_FORMAT, ANNEX_I_JSONL_FORMAT, isAnnexIDocumentHead, recordsToAnnexIJson } from "../source/index.js";

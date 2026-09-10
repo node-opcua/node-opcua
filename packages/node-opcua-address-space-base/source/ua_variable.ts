@@ -22,7 +22,7 @@ import type {
     ReadRawModifiedDetails,
     WriteValueOptions
 } from "node-opcua-types";
-import type { VariantLike } from "node-opcua-variant";
+import type { Variant, VariantLike } from "node-opcua-variant";
 import type { BaseNode, BaseNodeEvents, IPropertyAndComponentHolder, ListenerSignature } from "./base_node.js";
 import type { BindVariableOptions } from "./bind_variable.js";
 //
@@ -120,6 +120,16 @@ export interface UAVariable<T extends UAVariableEvents & ListenerSignature<T> = 
      * that will be used in the dataValue.value.dataType property.
      */
     getBasicDataType(): DataType;
+
+    /**
+     * Whether a value could be written to this variable, judged on its shape alone:
+     * the DataType, the ValueRank and the ArrayDimensions. Returns Good, or the status
+     * a write would have been rejected with.
+     *
+     * This does not consider access level, user rights or the value's range; it answers
+     * the narrower question of whether the Variant fits the variable at all.
+     */
+    checkVariantCompatibility(value: Variant): StatusCode;
 
     /**
      * The **AccessLevel Attribute** is used to indicate how the Value of a Variable can be accessed
