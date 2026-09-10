@@ -1,4 +1,4 @@
-import type { UADictionaryEntry, UADictionaryEntry_Base } from "node-opcua-nodeset-ua/dist/ua_dictionary_entry";
+import type { UADictionaryEntry, UADictionaryEntry_Base } from "node-opcua-nodeset-ua/dist/ua_dictionary_entry.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

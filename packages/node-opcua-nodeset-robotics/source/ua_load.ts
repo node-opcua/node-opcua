@@ -1,9 +1,9 @@
 import type { UAObject } from "node-opcua-address-space-base";
-import type { DT3DFrame } from "node-opcua-nodeset-ua/dist/dt_3_d_frame";
-import type { DT3DVector } from "node-opcua-nodeset-ua/dist/dt_3_d_vector";
-import type { UA3DFrame } from "node-opcua-nodeset-ua/dist/ua_3_d_frame";
-import type { UA3DVector } from "node-opcua-nodeset-ua/dist/ua_3_d_vector";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { DT3DFrame } from "node-opcua-nodeset-ua/dist/dt_3_d_frame.js";
+import type { DT3DVector } from "node-opcua-nodeset-ua/dist/dt_3_d_vector.js";
+import type { UA3DFrame } from "node-opcua-nodeset-ua/dist/ua_3_d_frame.js";
+import type { UA3DVector } from "node-opcua-nodeset-ua/dist/ua_3_d_vector.js";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

@@ -1,7 +1,7 @@
 import type { UAObject } from "node-opcua-address-space-base";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAStatisticCounter } from "./ua_statistic_counter.js";

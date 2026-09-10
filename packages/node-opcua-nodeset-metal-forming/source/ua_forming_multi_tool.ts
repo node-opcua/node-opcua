@@ -1,4 +1,4 @@
-import type { UAMultiTool, UAMultiTool_Base } from "node-opcua-nodeset-machine-tool/dist/ua_multi_tool";
+import type { UAMultiTool, UAMultiTool_Base } from "node-opcua-nodeset-machine-tool/dist/ua_multi_tool.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

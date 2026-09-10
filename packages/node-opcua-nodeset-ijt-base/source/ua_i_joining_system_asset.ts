@@ -1,16 +1,16 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { Int64, UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { UAMachineryItemIdentification } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_identification";
-import type { UAMachineryLifetimeCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_lifetime_counter";
-import type { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter";
-import type { UAMonitoring } from "node-opcua-nodeset-machinery/dist/ua_monitoring";
-import type { UANotifications } from "node-opcua-nodeset-machinery/dist/ua_notifications";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health.js";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { UAMachineryItemIdentification } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_identification.js";
+import type { UAMachineryLifetimeCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_lifetime_counter.js";
+import type { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter.js";
+import type { UAMonitoring } from "node-opcua-nodeset-machinery/dist/ua_monitoring.js";
+import type { UANotifications } from "node-opcua-nodeset-machinery/dist/ua_notifications.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTSignal } from "./dt_signal.js";

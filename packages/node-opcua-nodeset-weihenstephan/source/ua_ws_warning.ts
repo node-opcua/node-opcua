@@ -1,6 +1,6 @@
 import type { UInt32 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAWSBaseObject, UAWSBaseObject_Base } from "./ua_ws_base_object.js";

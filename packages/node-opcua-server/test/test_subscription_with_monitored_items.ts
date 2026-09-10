@@ -6,7 +6,7 @@ import {
     SessionContext,
     type UAVariable
 } from "node-opcua-address-space";
-import { add_eventGeneratorObject, get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { add_eventGeneratorObject, get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers.js";
 import type { Int64 } from "node-opcua-basic-types";
 import * as encode_decode from "node-opcua-basic-types";
 import type { ResponseCallback } from "node-opcua-client";

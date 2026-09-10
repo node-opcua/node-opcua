@@ -1,5 +1,5 @@
 import type { UAProperty } from "node-opcua-address-space-base";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAFunction, UAFunction_Base } from "./ua_function.js";

@@ -1,6 +1,6 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { QualifiedName } from "node-opcua-data-model";
-import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

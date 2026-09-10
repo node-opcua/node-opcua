@@ -1,5 +1,5 @@
 import type { UAMethod } from "node-opcua-address-space-base";
-import type { UATemporaryFileTransfer, UATemporaryFileTransfer_Base } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer";
+import type { UATemporaryFileTransfer, UATemporaryFileTransfer_Base } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer.js";
 
 // ----- this file has been automatically generated - do not edit
 

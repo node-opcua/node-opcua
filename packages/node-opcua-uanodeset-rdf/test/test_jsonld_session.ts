@@ -8,7 +8,7 @@
  * lists the same ones.
  */
 import { AddressSpace, PseudoSession } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import { addressSpaceToJsonLd } from "../source/address_space.js";

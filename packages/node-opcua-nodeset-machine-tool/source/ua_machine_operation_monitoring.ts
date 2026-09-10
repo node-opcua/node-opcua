@@ -1,9 +1,9 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UInt32, UInt64 } from "node-opcua-basic-types";
-import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine";
-import type { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter";
-import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine.js";
+import type { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter.js";
+import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { EnumMachineOperationMode } from "./enum_machine_operation_mode.js";

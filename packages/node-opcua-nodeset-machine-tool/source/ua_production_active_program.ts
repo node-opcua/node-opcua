@@ -1,6 +1,6 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { NodeId } from "node-opcua-nodeid";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAProductionProgram, UAProductionProgram_Base } from "./ua_production_program.js";

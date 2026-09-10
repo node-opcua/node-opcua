@@ -1,7 +1,7 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
-import type { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component.js";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { EnumAxisMotionProfile } from "./enum_axis_motion_profile.js";

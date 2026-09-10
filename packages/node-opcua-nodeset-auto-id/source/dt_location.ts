@@ -1,5 +1,5 @@
 import type { UAString } from "node-opcua-basic-types";
-import type { DTUnion } from "node-opcua-nodeset-ua/dist/dt_union";
+import type { DTUnion } from "node-opcua-nodeset-ua/dist/dt_union.js";
 
 import type { DTLocalCoordinate } from "./dt_local_coordinate.js";
 import type { DTWGS84Coordinate } from "./dt_wgs_84_coordinate.js";

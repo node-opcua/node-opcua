@@ -1,5 +1,5 @@
-import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 
 // ----- this file has been automatically generated - do not edit
 

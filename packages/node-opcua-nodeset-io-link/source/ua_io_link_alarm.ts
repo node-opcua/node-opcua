@@ -1,6 +1,6 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { UInt16 } from "node-opcua-basic-types";
-import type { UAOffNormalAlarm, UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua/dist/ua_off_normal_alarm";
+import type { UAOffNormalAlarm, UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua/dist/ua_off_normal_alarm.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

@@ -1,7 +1,7 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { UInt32 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAPADIM_deviceConditionSet } from "./ua_padim.js";

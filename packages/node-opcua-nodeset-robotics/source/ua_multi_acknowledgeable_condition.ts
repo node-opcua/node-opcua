@@ -1,6 +1,6 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua/dist/ua_acknowledgeable_condition";
+import type { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua/dist/ua_acknowledgeable_condition.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

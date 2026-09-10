@@ -1,6 +1,6 @@
-import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state";
-import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
-import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state.js";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state.js";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition.js";
 
 import type { UAProductionStateMachine, UAProductionStateMachine_Base } from "./ua_production_state_machine.js";
 

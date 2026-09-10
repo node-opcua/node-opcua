@@ -1,5 +1,5 @@
 import type { UAMethod, UAObject } from "node-opcua-address-space-base";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTConfiguration } from "./dt_configuration.js";

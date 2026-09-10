@@ -2,7 +2,7 @@ import type { Int32, UAString, UInt32 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
-import type { DTArgument } from "node-opcua-nodeset-ua/dist/dt_argument";
+import type { DTArgument } from "node-opcua-nodeset-ua/dist/dt_argument.js";
 
 import type { DTWwMessageArgumentValue } from "./dt_ww_message_argument_value.js";
 

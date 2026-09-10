@@ -1,9 +1,9 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { UInt16 } from "node-opcua-basic-types";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
-import type { UAAnalogUnitRange, UAAnalogUnitRange_Base } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
+import type { UAAnalogUnitRange, UAAnalogUnitRange_Base } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

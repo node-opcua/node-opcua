@@ -1,7 +1,7 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
-import type { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
+import type { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device.js";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UABatchInformation } from "./ua_batch_information.js";

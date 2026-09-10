@@ -1,8 +1,8 @@
 import type { UAProperty } from "node-opcua-address-space-base";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAExclusiveLevelAlarm } from "node-opcua-nodeset-ua/dist/ua_exclusive_level_alarm";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAExclusiveLevelAlarm } from "node-opcua-nodeset-ua/dist/ua_exclusive_level_alarm.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UABaseSensorFunction, UABaseSensorFunction_Base } from "./ua_base_sensor_function.js";

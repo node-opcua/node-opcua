@@ -1,4 +1,4 @@
-import type { UADiscreteItem } from "node-opcua-nodeset-ua/dist/ua_discrete_item";
+import type { UADiscreteItem } from "node-opcua-nodeset-ua/dist/ua_discrete_item.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAControlFunctionStateMachine } from "./ua_control_function_state_machine.js";

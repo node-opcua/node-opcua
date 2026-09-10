@@ -8,7 +8,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
-import { nodesetSourceFromGzipFile } from "node-opcua-address-space/nodeJS";
+import { nodesetSourceFromGzipFile } from "node-opcua-address-space/nodeJS.js";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";

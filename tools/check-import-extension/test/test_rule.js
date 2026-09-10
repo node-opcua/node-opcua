@@ -19,6 +19,7 @@ import {
     findViolations,
     fixText,
     resolveSpecifier,
+    resolveBareSpecifier,
     analyze,
     exitCode,
     formatReport,
@@ -395,4 +396,140 @@ test("a package with no manifest still gets its conventional layout scanned", ()
         // guessing wide is recoverable; scanning nothing and reporting clean is not
         assert.equal(analyze({ repoRoot: root }).findings.length, 1);
     });
+});
+
+// ── bare deep imports ───────────────────────────────────────────────────────────
+//
+// The half this gate did not look at. 732 files import another workspace package by a deep
+// path - `node-opcua-nodeset-ua/dist/ua_folder` - and every one fails under ESM for the same
+// reason a relative specifier does. The rule is not "add .js" though: a package declaring
+// `exports` is answered by that map alone, and both directions of getting this wrong were
+// measured on the all-packages probe.
+
+test("a deep path into a package with no exports map needs the extension", () => {
+    withTree(
+        {
+            "packages/dep/package.json": JSON.stringify({ name: "dep" }),
+            "packages/dep/dist/thing.js": "",
+            "packages/p/package.json": JSON.stringify({ name: "p", files: ["source"] }),
+            "packages/p/source/a.ts": ""
+        },
+        (root) => {
+            assert.deepEqual(resolveBareSpecifier("dep/dist/thing", root), { kind: "bare-file", suggestion: "dep/dist/thing.js" });
+        }
+    );
+});
+
+test("a subpath an exports map declares is already right, and an extension breaks it", () => {
+    withTree(
+        {
+            "packages/dep/package.json": JSON.stringify({ name: "dep", exports: { ".": "./index.js", "./web": "./dist/web.js" } }),
+            "packages/dep/dist/web.js": ""
+        },
+        (root) => {
+            // node-opcua-crypto/web: 63 imports were broken by adding .js to this
+            assert.equal(resolveBareSpecifier("dep/web", root).kind, "ok");
+            assert.deepEqual(resolveBareSpecifier("dep/web.js", root), { kind: "over-specified", suggestion: "dep/web" });
+        }
+    );
+});
+
+test("a directory reached through an exports map is not given /index.js", () => {
+    withTree(
+        {
+            "packages/dep/package.json": JSON.stringify({ name: "dep", exports: { "./dist/helpers": "./dist/helpers/index.js" } }),
+            "packages/dep/dist/helpers/index.js": ""
+        },
+        (root) => {
+            // node-opcua-transport/dist/test_helpers, broken the other way
+            assert.equal(resolveBareSpecifier("dep/dist/helpers", root).kind, "ok");
+            assert.deepEqual(resolveBareSpecifier("dep/dist/helpers/index.js", root), {
+                kind: "over-specified",
+                suggestion: "dep/dist/helpers"
+            });
+        }
+    );
+});
+
+test("an exports map with a wildcard covers what it matches", () => {
+    withTree(
+        {
+            "packages/dep/package.json": JSON.stringify({ name: "dep", exports: { "./dist/*": "./dist/*", "./dist/*.js": "./dist/*.js" } }),
+            "packages/dep/dist/a.js": ""
+        },
+        (root) => {
+            assert.equal(resolveBareSpecifier("dep/dist/a", root).kind, "ok");
+            assert.equal(resolveBareSpecifier("dep/dist/a.js", root).kind, "ok");
+        }
+    );
+});
+
+test("a subpath no exports map declares is reported, never rewritten", () => {
+    withTree(
+        {
+            "packages/dep/package.json": JSON.stringify({ name: "dep", exports: { ".": "./index.js" } }),
+            "packages/dep/dist/private.js": ""
+        },
+        (root) => {
+            const r = resolveBareSpecifier("dep/dist/private", root);
+            assert.equal(r.kind, "not-exported");
+            assert.equal(r.suggestion, null);
+        }
+    );
+});
+
+test("a directory needs /index.js when nothing declares otherwise", () => {
+    withTree(
+        {
+            "packages/dep/package.json": JSON.stringify({ name: "dep" }),
+            "packages/dep/helpers/index.js": ""
+        },
+        (root) => {
+            assert.deepEqual(resolveBareSpecifier("dep/helpers", root), { kind: "bare-directory", suggestion: "dep/helpers/index.js" });
+        }
+    );
+});
+
+test("`.js` is right when only the TypeScript twin is on disk", () => {
+    withTree(
+        {
+            "packages/dep/package.json": JSON.stringify({ name: "dep" }),
+            "packages/dep/source/private/impl.ts": ""
+        },
+        (root) => {
+            // these packages are not emitted in place, so the .js never exists beside the .ts
+            assert.equal(resolveBareSpecifier("dep/source/private/impl.js", root).kind, "ok");
+        }
+    );
+});
+
+test("a package this checkout cannot see is left alone rather than guessed at", () => {
+    withTree({ "packages/p/package.json": JSON.stringify({ name: "p" }) }, (root) => {
+        assert.equal(resolveBareSpecifier("some-third-party/deep/path", root).kind, "ok");
+    });
+});
+
+test("a bare package import has no subpath and is not this rule's business", () => {
+    withTree({ "packages/p/package.json": JSON.stringify({ name: "p" }) }, (root) => {
+        assert.equal(resolveBareSpecifier("chalk", root).kind, "ok");
+        assert.equal(resolveBareSpecifier("@scope/pkg", root).kind, "ok");
+    });
+});
+
+test("--fix rewrites a bare deep import in place", () => {
+    withTree(
+        {
+            "packages/dep/package.json": JSON.stringify({ name: "dep" }),
+            "packages/dep/dist/thing.js": "",
+            "packages/p/package.json": JSON.stringify({ name: "p", files: ["source"] }),
+            "packages/p/source/a.ts": 'import { x } from "dep/dist/thing";'
+        },
+        (root) => {
+            const before = analyze({ repoRoot: root });
+            assert.equal(before.findings.length, 1);
+            assert.equal(before.findings[0].kind, "bare-file");
+            analyze({ repoRoot: root, write: true });
+            assert.match(fs.readFileSync(path.join(root, "packages/p/source/a.ts"), "utf8"), /"dep\/dist\/thing\.js"/);
+        }
+    );
 });

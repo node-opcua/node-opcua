@@ -1,6 +1,6 @@
 import type { UAMethod } from "node-opcua-address-space-base";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTRecipeTargetValue } from "./dt_recipe_target_value.js";

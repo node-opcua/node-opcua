@@ -1,7 +1,7 @@
 import type { UAString, UInt32 } from "node-opcua-basic-types";
-import type { UAProcessValue } from "node-opcua-nodeset-machinery-process-values/dist/ua_process_value";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
+import type { UAProcessValue } from "node-opcua-nodeset-machinery-process-values/dist/ua_process_value.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

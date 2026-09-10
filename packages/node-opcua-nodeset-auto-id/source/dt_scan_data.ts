@@ -1,5 +1,5 @@
 import type { UAString } from "node-opcua-basic-types";
-import type { DTUnion } from "node-opcua-nodeset-ua/dist/dt_union";
+import type { DTUnion } from "node-opcua-nodeset-ua/dist/dt_union.js";
 import type { Variant } from "node-opcua-variant";
 
 import type { DTScanDataEpc } from "./dt_scan_data_epc.js";

@@ -1,5 +1,5 @@
 import type { UAObject } from "node-opcua-address-space-base";
-import type { UAMachineIdentification, UAMachineIdentification_Base } from "node-opcua-nodeset-machinery/dist/ua_machine_identification";
+import type { UAMachineIdentification, UAMachineIdentification_Base } from "node-opcua-nodeset-machinery/dist/ua_machine_identification.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,8 +1,8 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { Byte, Int32, UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UABaseCalibrationTargetCategory } from "./ua_base_calibration_target_category.js";

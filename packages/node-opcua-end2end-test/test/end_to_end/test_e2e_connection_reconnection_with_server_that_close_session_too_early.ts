@@ -15,9 +15,9 @@ import {
     StatusCodes,
     TimestampsToReturn
 } from "node-opcua";
-import type { ClientSessionImpl } from "node-opcua-client/source/private/client_session_impl";
-import type { ClientSubscriptionImpl } from "node-opcua-client/source/private/client_subscription_impl";
-import type { OPCUAClientImpl } from "node-opcua-client/source/private/opcua_client_impl";
+import type { ClientSessionImpl } from "node-opcua-client/source/private/client_session_impl.js";
+import type { ClientSubscriptionImpl } from "node-opcua-client/source/private/client_subscription_impl.js";
+import type { OPCUAClientImpl } from "node-opcua-client/source/private/opcua_client_impl.js";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { describeWithLeakDetector } from "node-opcua-leak-detector";
 import { crash_simple_server, type ServerHandle, start_simple_server } from "../../test_helpers/external_server_fixture.js";

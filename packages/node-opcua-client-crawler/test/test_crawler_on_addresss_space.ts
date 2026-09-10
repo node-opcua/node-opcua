@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import "should";
 import { type AddressSpace, type BaseNode, PseudoSession, type UAVariable } from "node-opcua-address-space";
-import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers";
+import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers.js";
 import { DataType, type ReferenceDescription } from "node-opcua-client";
 import { DataTypeIds, ObjectIds, ReferenceTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";

@@ -1,4 +1,4 @@
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { exploreNode } from "node-opcua-address-space-base";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";

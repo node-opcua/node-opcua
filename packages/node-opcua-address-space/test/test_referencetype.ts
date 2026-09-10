@@ -1,7 +1,7 @@
 import { Benchmarker } from "node-opcua-benchmarker";
 import { ReferenceTypeIds } from "node-opcua-constants";
 import { AttributeIds, BrowseDirection, makeNodeClassMask, NodeClass } from "node-opcua-data-model";
-import { redirectToFile } from "node-opcua-debug/nodeJS";
+import { redirectToFile } from "node-opcua-debug/nodeJS.js";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";

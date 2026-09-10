@@ -1,7 +1,7 @@
 import Table from "cli-table3";
 import truncate from "cli-truncate";
 import type { IEventData } from "node-opcua-address-space";
-import { construct_demo_alarm_in_address_space, type IAlarmTestData } from "node-opcua-address-space/testHelpers";
+import { construct_demo_alarm_in_address_space, type IAlarmTestData } from "node-opcua-address-space/testHelpers.js";
 import {
     acknowledgeAllConditions,
     type ClientAlarm,

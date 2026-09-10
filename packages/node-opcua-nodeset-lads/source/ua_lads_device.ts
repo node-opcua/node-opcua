@@ -1,15 +1,15 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { Int32, UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health";
-import type { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { UAMachineIdentification } from "node-opcua-nodeset-machinery/dist/ua_machine_identification";
-import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine";
-import type { UAMachineryLifetimeCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_lifetime_counter";
-import type { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health.js";
+import type { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device.js";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { UAMachineIdentification } from "node-opcua-nodeset-machinery/dist/ua_machine_identification.js";
+import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine.js";
+import type { UAMachineryLifetimeCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_lifetime_counter.js";
+import type { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAFunctionalUnitSet } from "./ua_functional_unit_set.js";

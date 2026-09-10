@@ -1,6 +1,6 @@
 import type { UAMethod } from "node-opcua-address-space-base";
-import type { UAJobManagement, UAJobManagement_Base } from "node-opcua-nodeset-machinery-jobs/dist/ua_job_management";
-import type { UAAliasNameCategory } from "node-opcua-nodeset-ua/dist/ua_alias_name_category";
+import type { UAJobManagement, UAJobManagement_Base } from "node-opcua-nodeset-machinery-jobs/dist/ua_job_management.js";
+import type { UAAliasNameCategory } from "node-opcua-nodeset-ua/dist/ua_alias_name_category.js";
 
 // ----- this file has been automatically generated - do not edit
 

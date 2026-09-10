@@ -1,9 +1,9 @@
 import type { UAMethod } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
-import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
-import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine.js";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state.js";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAPackMLExecuteStateMachine } from "./ua_pack_ml_execute_state_machine.js";

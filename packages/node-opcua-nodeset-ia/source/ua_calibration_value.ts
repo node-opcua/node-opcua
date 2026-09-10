@@ -1,6 +1,6 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { EUInformation } from "node-opcua-data-access";
-import type { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/dist/ua_data_item.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

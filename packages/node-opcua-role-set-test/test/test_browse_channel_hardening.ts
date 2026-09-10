@@ -13,7 +13,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import "should";
 import { AddressSpace, type IServerBase, PseudoSession, type UARole } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";

@@ -1,6 +1,6 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { EUInformation } from "node-opcua-data-access";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { EnumEqualityAndRelationalOperator } from "./enum_equality_and_relational_operator.js";

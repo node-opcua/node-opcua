@@ -1,4 +1,4 @@
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 
 import type { UAProduct, UAProduct_Base } from "./ua_product.js";
 import type { UATargetItem } from "./ua_target_item.js";

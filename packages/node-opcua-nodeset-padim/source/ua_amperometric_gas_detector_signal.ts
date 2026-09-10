@@ -1,5 +1,5 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAAnalogSignal_$SignalCalibrationIdentifier$ } from "./ua_analog_signal.js";

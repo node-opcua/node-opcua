@@ -1,8 +1,8 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { EUInformation } from "node-opcua-data-access";
-import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range.js";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

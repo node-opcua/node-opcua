@@ -1,11 +1,11 @@
 import type { UAObject } from "node-opcua-address-space-base";
-import type { UAMachineComponents } from "node-opcua-nodeset-machinery/dist/ua_machine_components";
-import type { UAMachineIdentification } from "node-opcua-nodeset-machinery/dist/ua_machine_identification";
-import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine";
-import type { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter";
-import type { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine";
-import type { UAMonitoring } from "node-opcua-nodeset-machinery/dist/ua_monitoring";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAMachineComponents } from "node-opcua-nodeset-machinery/dist/ua_machine_components.js";
+import type { UAMachineIdentification } from "node-opcua-nodeset-machinery/dist/ua_machine_identification.js";
+import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine.js";
+import type { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter.js";
+import type { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine.js";
+import type { UAMonitoring } from "node-opcua-nodeset-machinery/dist/ua_monitoring.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 
 // ----- this file has been automatically generated - do not edit
 

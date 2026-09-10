@@ -3,7 +3,7 @@ import path from "node:path";
 import should from "should";
 import "should";
 
-import { getTempFilename } from "node-opcua-debug/nodeJS";
+import { getTempFilename } from "node-opcua-debug/nodeJS.js";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";

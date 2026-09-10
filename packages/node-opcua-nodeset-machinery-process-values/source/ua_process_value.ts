@@ -1,14 +1,14 @@
 import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { UInt16 } from "node-opcua-basic-types";
 import type { EUInformation } from "node-opcua-data-access";
-import type { UAAnalogSignal, UAAnalogSignal_Base } from "node-opcua-nodeset-padim/dist/ua_analog_signal";
-import type { UAAnalogSignalVariable } from "node-opcua-nodeset-padim/dist/ua_analog_signal_variable";
-import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
-import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
-import type { UAExclusiveDeviationAlarm } from "node-opcua-nodeset-ua/dist/ua_exclusive_deviation_alarm";
-import type { UAExclusiveLimitAlarm } from "node-opcua-nodeset-ua/dist/ua_exclusive_limit_alarm";
-import type { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete";
+import type { UAAnalogSignal, UAAnalogSignal_Base } from "node-opcua-nodeset-padim/dist/ua_analog_signal.js";
+import type { UAAnalogSignalVariable } from "node-opcua-nodeset-padim/dist/ua_analog_signal_variable.js";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range.js";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
+import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range.js";
+import type { UAExclusiveDeviationAlarm } from "node-opcua-nodeset-ua/dist/ua_exclusive_deviation_alarm.js";
+import type { UAExclusiveLimitAlarm } from "node-opcua-nodeset-ua/dist/ua_exclusive_limit_alarm.js";
+import type { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAProcessValueSetpointVariable } from "./ua_process_value_setpoint_variable.js";

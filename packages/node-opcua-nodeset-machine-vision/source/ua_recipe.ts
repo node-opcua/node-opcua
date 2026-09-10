@@ -1,5 +1,5 @@
 import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
-import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file";
+import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTProductId } from "./dt_product_id.js";

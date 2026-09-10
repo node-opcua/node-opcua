@@ -1,7 +1,7 @@
 import type { Int32, Int64, UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure.js";
 
 import type { DTProcessingTimes } from "./dt_processing_times.js";
 import type { EnumResultEvaluationEnum } from "./enum_result_evaluation_enum.js";

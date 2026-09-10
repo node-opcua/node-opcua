@@ -5,7 +5,7 @@ import "should";
 import { DataTypeIds } from "node-opcua-constants";
 import { coerceLocalizedText, coerceQualifiedName, type LocalizedText, makeAccessLevelFlag } from "node-opcua-data-model";
 import { checkDebugFlag } from "node-opcua-debug";
-import { getTempFilename } from "node-opcua-debug/nodeJS";
+import { getTempFilename } from "node-opcua-debug/nodeJS.js";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { ThreeDCartesianCoordinates } from "node-opcua-types";

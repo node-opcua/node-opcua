@@ -1,5 +1,5 @@
 import type { UAProperty } from "node-opcua-address-space-base";
-import type { UAOrderedList, UAOrderedList_Base } from "node-opcua-nodeset-ua/dist/ua_ordered_list";
+import type { UAOrderedList, UAOrderedList_Base } from "node-opcua-nodeset-ua/dist/ua_ordered_list.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { EnumStacklightOperationMode } from "./enum_stacklight_operation_mode.js";

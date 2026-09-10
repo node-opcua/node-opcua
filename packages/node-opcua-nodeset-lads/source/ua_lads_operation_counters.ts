@@ -1,5 +1,5 @@
-import type { UALifetimeVariable } from "node-opcua-nodeset-di/dist/ua_lifetime_variable";
-import type { UAMachineryOperationCounter, UAMachineryOperationCounter_Base } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter";
+import type { UALifetimeVariable } from "node-opcua-nodeset-di/dist/ua_lifetime_variable.js";
+import type { UAMachineryOperationCounter, UAMachineryOperationCounter_Base } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter.js";
 
 // ----- this file has been automatically generated - do not edit
 

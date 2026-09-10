@@ -1,5 +1,5 @@
 import type { UAMethod } from "node-opcua-address-space-base";
-import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item.js";
 
 import type { UAMeasuredItem } from "./ua_measured_item.js";
 import type { UAProductionPreset } from "./ua_production_preset.js";

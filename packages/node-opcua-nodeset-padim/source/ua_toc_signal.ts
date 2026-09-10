@@ -1,6 +1,6 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
-import type { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
+import type { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal.js";

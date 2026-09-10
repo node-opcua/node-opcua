@@ -1,7 +1,7 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { EUInformation } from "node-opcua-data-access";
-import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range.js";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTCncPosition } from "./dt_cnc_position.js";

@@ -1,5 +1,5 @@
 import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
-import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { EnumSoftwareClass } from "./enum_software_class.js";

@@ -1,5 +1,5 @@
 import type { UAProperty } from "node-opcua-address-space-base";
-import type { UAHistoricalDataConfiguration, UAHistoricalDataConfiguration_Base } from "node-opcua-nodeset-ua/dist/ua_historical_data_configuration";
+import type { UAHistoricalDataConfiguration, UAHistoricalDataConfiguration_Base } from "node-opcua-nodeset-ua/dist/ua_historical_data_configuration.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

@@ -1,5 +1,5 @@
 import type { UAMethod } from "node-opcua-address-space-base";
-import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 
 // ----- this file has been automatically generated - do not edit
 

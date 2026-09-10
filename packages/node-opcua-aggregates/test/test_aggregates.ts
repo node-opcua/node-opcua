@@ -1,5 +1,5 @@
 import { AddressSpace, type BaseNode, type UAObject, type UAVariable } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import type { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";

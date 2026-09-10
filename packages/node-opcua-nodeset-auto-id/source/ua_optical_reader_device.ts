@@ -1,7 +1,7 @@
 import type { UAMethod } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAAutoIdDevice, UAAutoIdDevice_Base, UAAutoIdDevice_runtimeParameters } from "./ua_auto_id_device.js";

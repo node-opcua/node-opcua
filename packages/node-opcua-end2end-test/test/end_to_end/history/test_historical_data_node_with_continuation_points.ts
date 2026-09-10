@@ -1,5 +1,5 @@
 import { type ContinuationPoint, nodesets, StatusCodes } from "node-opcua";
-import { date_add } from "node-opcua-address-space/testHelpers";
+import { date_add } from "node-opcua-address-space/testHelpers.js";
 import {
     type ClientSession,
     type DataValue,

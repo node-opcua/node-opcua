@@ -3,7 +3,7 @@ import type { UAString } from "node-opcua-basic-types";
 import type { EUInformation } from "node-opcua-data-access";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
-import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTWeight } from "./dt_weight.js";

@@ -1,8 +1,8 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { QualifiedName } from "node-opcua-data-model";
-import type { UAMachineryOperationModeStateMachine, UAMachineryOperationModeStateMachine_Base } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine";
-import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
-import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+import type { UAMachineryOperationModeStateMachine, UAMachineryOperationModeStateMachine_Base } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine.js";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state.js";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAMaintenanceModeStateMachine } from "./ua_maintenance_mode_state_machine.js";

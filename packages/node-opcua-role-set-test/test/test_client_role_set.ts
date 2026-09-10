@@ -6,7 +6,7 @@
  * directly. The address space is only stood up as the (in-process) server.
  */
 import { AddressSpace, PseudoSession } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
 import { ClientRoleSet } from "node-opcua-role-set-client";

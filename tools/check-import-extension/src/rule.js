@@ -116,10 +116,95 @@ export function resolveSpecifier(fromFile, specifier) {
 }
 
 /**
+ * Where a bare deep specifier - `node-opcua-nodeset-ua/dist/ua_folder` - actually points.
+ *
+ * The rule here is not "add .js". A package that declares `exports` is answered by that map
+ * and nothing else: `node-opcua-crypto/web` and `node-opcua-transport/dist/test_helpers` are
+ * declared subpaths and stay extensionless, while adding `.js` to either makes them
+ * unreachable. Only when a package has no map does resolution fall through to the filesystem,
+ * where ESM needs the extension spelled out and has no directory index.
+ *
+ * Both halves were learned by getting them wrong: a blind rewrite broke 63 crypto imports one
+ * way and left a directory import broken the other.
+ */
+function packageDirOf(name, repoRoot) {
+    for (const root of SOURCE_ROOTS) {
+        const dir = path.join(repoRoot, root, name);
+        if (isFile(path.join(dir, "package.json"))) return dir;
+    }
+    const dep = path.join(repoRoot, "node_modules", name);
+    return isFile(path.join(dep, "package.json")) ? dep : null;
+}
+
+/** the subpaths an exports map declares, with `*` patterns kept as patterns */
+function exportedSubpaths(manifest) {
+    return Object.keys(manifest.exports ?? {}).filter((k) => k.startsWith("./"));
+}
+
+const matchesExport = (subpaths, candidate) =>
+    subpaths.some((k) => {
+        if (!k.includes("*")) return k === candidate;
+        const [head, tail] = k.split("*");
+        return candidate.startsWith(head) && candidate.endsWith(tail) && candidate.length >= head.length + tail.length;
+    });
+
+/** split `@scope/name/sub/path` or `name/sub/path` into [name, sub] */
+function splitBare(specifier) {
+    const parts = specifier.split("/");
+    const take = specifier.startsWith("@") ? 2 : 1;
+    if (parts.length <= take) return null; // a bare package import, nothing to resolve
+    return [parts.slice(0, take).join("/"), parts.slice(take).join("/")];
+}
+
+export function resolveBareSpecifier(specifier, repoRoot = ".") {
+    const split = splitBare(specifier);
+    if (!split) return { kind: "ok", suggestion: null };
+    const [name, sub] = split;
+    const dir = packageDirOf(name, repoRoot);
+    // a package this checkout cannot see is not something to guess about
+    if (!dir) return { kind: "ok", suggestion: null };
+
+    let manifest;
+    try {
+        manifest = JSON.parse(fs.readFileSync(path.join(dir, "package.json"), "utf8"));
+    } catch {
+        return { kind: "ok", suggestion: null };
+    }
+
+    if (manifest.exports) {
+        const subpaths = exportedSubpaths(manifest);
+        if (matchesExport(subpaths, `./${sub}`)) return { kind: "ok", suggestion: null };
+        // the map is authoritative, so an extension here is what breaks it
+        const bare = sub.replace(/(\/index)?\.js$/, "");
+        if (bare !== sub && matchesExport(subpaths, `./${bare}`)) {
+            return { kind: "over-specified", suggestion: `${name}/${bare}` };
+        }
+        return { kind: "not-exported", suggestion: null };
+    }
+
+    // a specifier already carrying an extension is right if the file is there, or if its
+    // TypeScript twin is: `source/private/x.js` is the correct ESM form of `x.ts`, which is
+    // all that exists in a package whose sources are not emitted in place
+    if (SETTLED.test(sub)) {
+        const twin = sub.replace(/\.js$/, "");
+        const found =
+            isFile(path.join(dir, sub)) || [".ts", ".tsx", ".mts", ".cts", ".d.ts"].some((e) => isFile(path.join(dir, twin + e)));
+        return found ? { kind: "ok", suggestion: null } : { kind: "unresolved", suggestion: null };
+    }
+    for (const ext of [".js", ".ts", ".d.ts", ".mjs", ".cjs"]) {
+        if (isFile(path.join(dir, sub + ext))) return { kind: "bare-file", suggestion: `${name}/${sub}.js` };
+    }
+    for (const ext of [".js", ".ts", ".d.ts"]) {
+        if (isFile(path.join(dir, sub, `index${ext}`))) return { kind: "bare-directory", suggestion: `${name}/${sub}/index.js` };
+    }
+    return { kind: "unresolved", suggestion: null };
+}
+
+/**
  * Violations in one file's text.
  * Returns [{ line, specifier, kind, suggestion, fixable, text }], 1-based lines.
  */
-export function findViolations(text, filePath) {
+export function findViolations(text, filePath, repoRoot = ".") {
     const ext = path.extname(filePath).toLowerCase();
     const sourceFile = ts.createSourceFile(filePath, text, ts.ScriptTarget.ESNext, true, SCRIPT_KIND[ext] ?? ts.ScriptKind.TS);
     const lines = text.split("\n");
@@ -145,7 +230,24 @@ export function findViolations(text, filePath) {
             });
             continue;
         }
-        if (!specifier.startsWith("./") && !specifier.startsWith("../")) {
+        const isRelative = specifier.startsWith("./") || specifier.startsWith("../");
+        if (!isRelative) {
+            const { line } = ts.getLineAndCharacterOfPosition(sourceFile, node.getStart(sourceFile));
+            if ((lines[line] ?? "").includes(IGNORE_MARKER)) {
+                continue;
+            }
+            const { kind, suggestion } = resolveBareSpecifier(specifier, repoRoot);
+            if (kind === "ok") {
+                continue;
+            }
+            out.push({
+                line: line + 1,
+                specifier,
+                kind,
+                suggestion,
+                fixable: Boolean(suggestion),
+                text: (lines[line] ?? "").trim().slice(0, 100)
+            });
             continue;
         }
         if (SETTLED.test(specifier)) {
@@ -169,7 +271,7 @@ export function findViolations(text, filePath) {
 }
 
 /** rewrite the fixable specifiers; returns { text, fixed } */
-export function fixText(text, filePath) {
+export function fixText(text, filePath, repoRoot = ".") {
     const ext = path.extname(filePath).toLowerCase();
     const sourceFile = ts.createSourceFile(filePath, text, ts.ScriptTarget.ESNext, true, SCRIPT_KIND[ext] ?? ts.ScriptKind.TS);
     const lines = text.split("\n");
@@ -177,7 +279,18 @@ export function fixText(text, filePath) {
 
     for (const node of specifierNodes(sourceFile)) {
         const specifier = node.text;
-        if (!specifier.startsWith("./") && !specifier.startsWith("../")) {
+        const isRelative = specifier.startsWith("./") || specifier.startsWith("../");
+        if (!isRelative) {
+            const { line } = ts.getLineAndCharacterOfPosition(sourceFile, node.getStart(sourceFile));
+            if ((lines[line] ?? "").includes(IGNORE_MARKER)) {
+                continue;
+            }
+            const { suggestion } = resolveBareSpecifier(specifier, repoRoot);
+            if (suggestion) {
+                const start = node.getStart(sourceFile);
+                const quote = text[start];
+                edits.push({ start, end: node.getEnd(), replacement: `${quote}${suggestion}${quote}` });
+            }
             continue;
         }
         if (SETTLED.test(specifier)) {
@@ -267,7 +380,7 @@ export function analyze({ repoRoot = ".", packageFilter, write = false, scope = 
         const original = fs.readFileSync(file, "utf8");
         let current = original;
         if (write) {
-            const { text, fixed } = fixText(original, file);
+            const { text, fixed } = fixText(original, file, repoRoot);
             if (fixed > 0) {
                 fs.writeFileSync(file, text);
                 fixedCount += fixed;
@@ -275,7 +388,7 @@ export function analyze({ repoRoot = ".", packageFilter, write = false, scope = 
                 current = text;
             }
         }
-        for (const v of findViolations(current, file)) {
+        for (const v of findViolations(current, file, repoRoot)) {
             findings.push({ file: file.replace(/\\/g, "/"), ...v });
         }
     }
@@ -324,7 +437,7 @@ export function formatReport(result) {
     const scanned = `${result.scanned} ${covered[scope] ?? `${scope} files`}${scope === "all" ? "" : " scanned"}`;
 
     if (gating.length === 0) {
-        lines.push(`check-import-extension: ${scanned}, every relative specifier names a file ESM can resolve.`);
+        lines.push(`check-import-extension: ${scanned}, every specifier names something ESM can resolve.`);
         // a blocked package is still an open item; saying so is the difference between a
         // gate that has covered everything and one that has been told to look away
         lines.push(...blockedSection(roots));
@@ -334,10 +447,15 @@ export function formatReport(result) {
     // package-root findings are unfixable too, but they get their own section below
     const manual = gating.filter((f) => !f.fixable && f.kind !== "package-root");
 
-    lines.push(`check-import-extension: ${gating.length} relative specifier(s) ESM cannot resolve, in ${scanned}`, "");
+    lines.push(`check-import-extension: ${gating.length} specifier(s) ESM cannot resolve, in ${scanned}`, "");
     if (fixable.length) {
-        const dirs = fixable.filter((f) => f.kind === "directory").length;
-        lines.push(`  ${fixable.length} fixable with --fix (${fixable.length - dirs} to a file, ${dirs} to a directory index):`);
+        const count = (...kinds) => fixable.filter((f) => kinds.includes(f.kind)).length;
+        const parts = [
+            `${count("file", "bare-file")} to a file`,
+            `${count("directory", "bare-directory")} to a directory index`,
+            `${count("over-specified")} over-specified against an exports map`
+        ].filter((p) => !p.startsWith("0 "));
+        lines.push(`  ${fixable.length} fixable with --fix (${parts.join(", ")}):`);
         for (const f of fixable.slice(0, 40)) {
             lines.push(`    ${f.file}:${f.line}  "${f.specifier}" -> "${f.suggestion}"`);
         }
@@ -359,10 +477,14 @@ export function formatReport(result) {
     }
     lines.push(...blockedSection(roots));
     lines.push("");
-    lines.push("ESM has no extension search and no directory resolution, so a relative");
-    lines.push('specifier must name the emitted file: "./x.js", or "./x/index.js" when the');
-    lines.push("target is a directory. CommonJS tolerates both forms, so this can be fixed");
-    lines.push("now, before any package flips.");
+    lines.push("ESM has no extension search and no directory resolution, so a specifier must");
+    lines.push('name the emitted file: "./x.js", or "./x/index.js" when the target is a');
+    lines.push("directory. CommonJS tolerates both forms, so this can be fixed now, before any");
+    lines.push("package flips.");
+    lines.push("");
+    lines.push("A package declaring `exports` is the exception: that map is the only thing that");
+    lines.push('resolves, so "node-opcua-crypto/web" is already right and adding ".js" to it is');
+    lines.push("what would break it.");
     return lines.join("\n");
 }
 

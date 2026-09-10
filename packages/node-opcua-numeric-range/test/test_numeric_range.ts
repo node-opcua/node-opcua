@@ -1,5 +1,5 @@
 import { StatusCodes } from "node-opcua-status-code";
-import { assert_arrays_are_equal } from "node-opcua-test-helpers/dist/typedarray_helpers";
+import { assert_arrays_are_equal } from "node-opcua-test-helpers/dist/typedarray_helpers.js";
 import should from "should";
 
 import { NumericRange, NumericRangeType } from "../dist/index.js";

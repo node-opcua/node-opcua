@@ -1,4 +1,4 @@
-import type { UADiscreteItem } from "node-opcua-nodeset-ua/dist/ua_discrete_item";
+import type { UADiscreteItem } from "node-opcua-nodeset-ua/dist/ua_discrete_item.js";
 
 import type { UABaseControlFunction, UABaseControlFunction_Base } from "./ua_base_control_function.js";
 

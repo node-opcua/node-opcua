@@ -1,7 +1,7 @@
 import type { Int16, UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure.js";
 
 import type { DTISA95Equipment } from "./dt_isa_95_equipment.js";
 import type { DTISA95Material } from "./dt_isa_95_material.js";

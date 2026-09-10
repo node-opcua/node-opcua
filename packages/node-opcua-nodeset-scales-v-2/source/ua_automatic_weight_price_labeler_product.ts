@@ -1,6 +1,6 @@
 import type { UAProperty } from "node-opcua-address-space-base";
-import type { DTCurrencyUnit } from "node-opcua-nodeset-ua/dist/dt_currency_unit";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DTCurrencyUnit } from "node-opcua-nodeset-ua/dist/dt_currency_unit.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UACatchweigherProduct, UACatchweigherProduct_Base } from "./ua_catchweigher_product.js";

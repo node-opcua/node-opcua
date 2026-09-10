@@ -1,6 +1,6 @@
 import "should";
 import { make_debugLog } from "node-opcua-debug";
-import { redirectToFile } from "node-opcua-debug/nodeJS";
+import { redirectToFile } from "node-opcua-debug/nodeJS.js";
 import * as packets from "node-opcua-transport/dist/test-fixtures";
 import should from "should";
 import sinon from "sinon";

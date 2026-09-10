@@ -1,5 +1,5 @@
 import type { UAObject } from "node-opcua-address-space-base";
-import type { UAMachineComponents } from "node-opcua-nodeset-machinery/dist/ua_machine_components";
+import type { UAMachineComponents } from "node-opcua-nodeset-machinery/dist/ua_machine_components.js";
 
 import type { UAConfigurationRules } from "./ua_configuration_rules.js";
 import type { UAGlassMachineIdentification } from "./ua_glass_machine_identification.js";

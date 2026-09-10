@@ -1,6 +1,6 @@
-import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAOrderedList } from "node-opcua-nodeset-ua/dist/ua_ordered_list";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAOrderedList } from "node-opcua-nodeset-ua/dist/ua_ordered_list.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAStackElement, UAStackElement_Base } from "./ua_stack_element.js";

@@ -2,12 +2,12 @@ import type { UAProperty } from "node-opcua-address-space-base";
 import type { UInt32 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
-import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
-import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state";
-import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
-import type { UAStateVariable } from "node-opcua-nodeset-ua/dist/ua_state_variable";
-import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
-import type { UATransitionVariable } from "node-opcua-nodeset-ua/dist/ua_transition_variable";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine.js";
+import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state.js";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state.js";
+import type { UAStateVariable } from "node-opcua-nodeset-ua/dist/ua_state_variable.js";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition.js";
+import type { UATransitionVariable } from "node-opcua-nodeset-ua/dist/ua_transition_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

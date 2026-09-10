@@ -1,6 +1,6 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
-import type { UAMachineComponents, UAMachineComponents_Base } from "node-opcua-nodeset-machinery/dist/ua_machine_components";
+import type { UAMachineComponents, UAMachineComponents_Base } from "node-opcua-nodeset-machinery/dist/ua_machine_components.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

@@ -12,7 +12,7 @@ import {
     type UAEventType,
     type UAObject
 } from "node-opcua-address-space";
-import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers";
+import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers.js";
 import { AttributeIds, coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";

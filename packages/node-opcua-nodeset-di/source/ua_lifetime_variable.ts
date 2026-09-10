@@ -1,6 +1,6 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { NodeId } from "node-opcua-nodeid";
-import type { UAAnalogUnit, UAAnalogUnit_Base } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAAnalogUnit, UAAnalogUnit_Base } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

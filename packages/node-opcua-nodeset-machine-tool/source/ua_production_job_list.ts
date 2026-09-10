@@ -1,4 +1,4 @@
-import type { UAOrderedList, UAOrderedList_Base } from "node-opcua-nodeset-ua/dist/ua_ordered_list";
+import type { UAOrderedList, UAOrderedList_Base } from "node-opcua-nodeset-ua/dist/ua_ordered_list.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

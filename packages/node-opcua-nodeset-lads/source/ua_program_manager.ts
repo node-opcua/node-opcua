@@ -1,6 +1,6 @@
 import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
-import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element";
+import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAActiveProgram } from "./ua_active_program.js";

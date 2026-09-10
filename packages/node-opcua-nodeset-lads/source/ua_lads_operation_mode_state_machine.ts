@@ -1,5 +1,5 @@
 import type { UAMethod } from "node-opcua-address-space-base";
-import type { UAMachineryOperationModeStateMachine, UAMachineryOperationModeStateMachine_Base } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine";
+import type { UAMachineryOperationModeStateMachine, UAMachineryOperationModeStateMachine_Base } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

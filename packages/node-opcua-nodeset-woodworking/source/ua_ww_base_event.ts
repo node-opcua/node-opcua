@@ -1,7 +1,7 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
+import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTWwMessageArgument } from "./dt_ww_message_argument.js";

@@ -1,5 +1,5 @@
-import type { UAMonitoring } from "node-opcua-nodeset-machinery/dist/ua_monitoring";
-import type { UASTComp, UASTComp_Base } from "node-opcua-nodeset-surface-technology-general-types/dist/ua_st_comp";
+import type { UAMonitoring } from "node-opcua-nodeset-machinery/dist/ua_monitoring.js";
+import type { UASTComp, UASTComp_Base } from "node-opcua-nodeset-surface-technology-general-types/dist/ua_st_comp.js";
 
 // ----- this file has been automatically generated - do not edit
 

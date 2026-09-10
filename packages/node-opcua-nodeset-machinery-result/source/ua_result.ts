@@ -1,6 +1,6 @@
 import type { Int32, Int64, UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTProcessingTimes } from "./dt_processing_times.js";

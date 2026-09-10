@@ -1,5 +1,5 @@
 import type { UAProperty } from "node-opcua-address-space-base";
-import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTNameNodeId } from "./dt_name_node_id.js";

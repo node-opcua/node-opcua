@@ -1,12 +1,12 @@
 import type { UAMethod } from "node-opcua-address-space-base";
 import type { Int16 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { DTEnumValue } from "node-opcua-nodeset-ua/dist/dt_enum_value";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete";
-import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
-import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
-import type { UATransitionVariable } from "node-opcua-nodeset-ua/dist/ua_transition_variable";
+import type { DTEnumValue } from "node-opcua-nodeset-ua/dist/dt_enum_value.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete.js";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state.js";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition.js";
+import type { UATransitionVariable } from "node-opcua-nodeset-ua/dist/ua_transition_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAExecutingSubstateMachine } from "./ua_executing_substate_machine.js";

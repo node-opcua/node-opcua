@@ -1,10 +1,10 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { UInt32 } from "node-opcua-basic-types";
 import type { EUInformation } from "node-opcua-data-access";
-import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
-import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range.js";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { EnumBeverageSML } from "./enum_beverage_sml.js";

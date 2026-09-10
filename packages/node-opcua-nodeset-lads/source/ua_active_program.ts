@@ -1,7 +1,7 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { DTNameNodeId } from "node-opcua-nodeset-amb/dist/dt_name_node_id";
+import type { DTNameNodeId } from "node-opcua-nodeset-amb/dist/dt_name_node_id.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

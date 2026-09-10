@@ -1,5 +1,5 @@
-import type { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "node-opcua-nodeset-machine-tool/dist/ua_working_unit_monitoring";
-import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine";
+import type { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "node-opcua-nodeset-machine-tool/dist/ua_working_unit_monitoring.js";
+import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine.js";
 
 // ----- this file has been automatically generated - do not edit
 

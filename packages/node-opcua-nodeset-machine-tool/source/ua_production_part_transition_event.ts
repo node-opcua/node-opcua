@@ -1,7 +1,7 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua/dist/ua_transition_event";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua/dist/ua_transition_event.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { EnumPartQuality } from "./enum_part_quality.js";

@@ -1,8 +1,8 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { Int32, UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { EnumDeviceHealth } from "./enum_device_health.js";

@@ -1,7 +1,7 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UALifetimeVariable } from "node-opcua-nodeset-di/dist/ua_lifetime_variable";
+import type { UALifetimeVariable } from "node-opcua-nodeset-di/dist/ua_lifetime_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAIMachineTagNameplate, UAIMachineTagNameplate_Base } from "./ua_i_machine_tag_nameplate.js";

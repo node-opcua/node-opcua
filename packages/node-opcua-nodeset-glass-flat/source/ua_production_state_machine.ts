@@ -1,9 +1,9 @@
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
-import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state";
-import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
-import type { UAStateVariable } from "node-opcua-nodeset-ua/dist/ua_state_variable";
-import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine.js";
+import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state.js";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state.js";
+import type { UAStateVariable } from "node-opcua-nodeset-ua/dist/ua_state_variable.js";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition.js";
 
 import type { UAInitializingSubStateMachine } from "./ua_initializing_sub_state_machine.js";
 

@@ -1,4 +1,4 @@
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
 
 import type { UACatchweigherProduct, UACatchweigherProduct_Base } from "./ua_catchweigher_product.js";
 import type { UAStatistic } from "./ua_statistic.js";

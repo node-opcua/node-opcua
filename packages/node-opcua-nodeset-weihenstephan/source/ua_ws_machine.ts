@@ -1,7 +1,7 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { UAMachineIdentification } from "node-opcua-nodeset-machinery/dist/ua_machine_identification";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { UAMachineIdentification } from "node-opcua-nodeset-machinery/dist/ua_machine_identification.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

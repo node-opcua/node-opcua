@@ -1,8 +1,8 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { EUInformation } from "node-opcua-data-access";
-import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
-import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
-import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range.js";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item.js";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTCncPosition } from "./dt_cnc_position.js";

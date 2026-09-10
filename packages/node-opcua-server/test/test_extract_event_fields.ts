@@ -12,7 +12,7 @@ import {
     type UAVariable,
     type UAVariableT
 } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { AttributeIds, NodeClass } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";

@@ -1,5 +1,5 @@
 import type { UAProperty } from "node-opcua-address-space-base";
-import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { EnumEdgeOperator } from "./enum_edge_operator.js";

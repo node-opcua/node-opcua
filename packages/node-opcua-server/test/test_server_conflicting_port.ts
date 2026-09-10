@@ -1,4 +1,4 @@
-import { get_empty_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { get_empty_nodeset_filename } from "node-opcua-address-space/testHelpers.js";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";

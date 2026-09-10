@@ -1,9 +1,9 @@
 import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { UALockingServices } from "node-opcua-nodeset-di/dist/ua_locking_services";
-import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { UALockingServices } from "node-opcua-nodeset-di/dist/ua_locking_services.js";
+import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAFunctionSet } from "./ua_function_set.js";

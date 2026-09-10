@@ -1,5 +1,5 @@
 import type { UAMethod } from "node-opcua-address-space-base";
-import type { UAFileDirectory } from "node-opcua-nodeset-ua/dist/ua_file_directory";
+import type { UAFileDirectory } from "node-opcua-nodeset-ua/dist/ua_file_directory.js";
 
 import type { UASoftwareLoading, UASoftwareLoading_Base } from "./ua_software_loading.js";
 

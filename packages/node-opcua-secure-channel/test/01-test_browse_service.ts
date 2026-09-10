@@ -1,5 +1,5 @@
 import { makeBuffer } from "node-opcua-buffer-utils";
-import { redirectToFile } from "node-opcua-debug/nodeJS";
+import { redirectToFile } from "node-opcua-debug/nodeJS.js";
 import { verify_multi_chunk_message } from "../dist/test_helpers/index.js";
 
 const fixture_ws_browseRequest_message = makeBuffer(

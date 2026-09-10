@@ -1,11 +1,11 @@
 import type { UAObject } from "node-opcua-address-space-base";
 import type { UAString, UInt32 } from "node-opcua-basic-types";
-import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element";
-import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
-import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
-import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
+import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health.js";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element.js";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item.js";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item.js";
+import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status.js";
