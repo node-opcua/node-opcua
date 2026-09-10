@@ -168,7 +168,7 @@ export class UAOffNormalAlarmImplBase extends UADiscreteAlarmImplBase implements
         }
         const stateName = isActive ? "Active" : "Inactive";
         // also raise the event
-        this._signalNewCondition(stateName, isActive, message);
+        this.signalNewCondition(stateName, isActive, message);
         if (!isActive) {
             this.currentBranch().setRetain(false);
         }
@@ -183,7 +183,7 @@ export class UAOffNormalAlarmImplBase extends UADiscreteAlarmImplBase implements
         this.updateAlarmState(isActive, "automatique update");
     }
 
-    protected _onInputDataValueChange(dataValue: DataValue): void {
+    public onInputDataValueChange(dataValue: DataValue): void {
         if (dataValue.statusCode.isNotGood()) {
             // what shall we do ?
             return;

@@ -62,7 +62,7 @@ export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implements U
 
         return alarm as UAExclusiveLimitAlarmImpl;
     }
-    public _signalNewCondition(stateName: string | null, isActive: boolean, value: string): void {
+    public signalNewCondition(stateName: string | null, isActive: boolean, value: string): void {
         assert(stateName === null || typeof isActive === "boolean");
         assert(validState.indexOf(stateName) >= 0, `must have a valid state : ${stateName}`);
 
@@ -75,10 +75,10 @@ export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implements U
             assert(stateName === null);
             this.limitState.setState(stateName);
         }
-        super._signalNewCondition(stateName, isActive, value);
+        super.signalNewCondition(stateName, isActive, value);
     }
 
-    public _setStateBasedOnInputValue(value: number): void {
+    public setStateBasedOnInputValue(value: number): void {
         assert(Number.isFinite(value));
         let isActive = false;
 
@@ -101,7 +101,7 @@ export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implements U
         }
 
         if (state !== oldState) {
-            this._signalNewCondition(state, isActive, value.toFixed(3));
+            this.signalNewCondition(state, isActive, value.toFixed(3));
         }
     }
 }

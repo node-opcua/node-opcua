@@ -61,14 +61,14 @@ export class UANonExclusiveDeviationAlarmImplBase
 
         return alarm;
     }
-    public _setStateBasedOnInputValue(value: number): void {
+    public setStateBasedOnInputValue(value: number): void {
         const setpointValue = this.getSetpointValue();
         if (setpointValue === null) {
             throw new Error("Cannot access setpoint Value");
         }
         assert(Number.isFinite(setpointValue), "expecting a valid setpoint value");
         // call base class implementation
-        super._setStateBasedOnInputValue(value - setpointValue);
+        super.setStateBasedOnInputValue(value - setpointValue);
     }
 
     public getSetpointNodeNode(): UAVariableT<number, DataType.Double> | UAVariableT<number, DataType.Float> | undefined {

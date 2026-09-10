@@ -78,14 +78,14 @@ export class UAExclusiveDeviationAlarmImplBase extends UAExclusiveLimitAlarmImpl
         DeviationAlarmHelper_install_setpoint.call(this, options);
     }
 
-    public _setStateBasedOnInputValue(value: number): void {
+    public setStateBasedOnInputValue(value: number): void {
         const setpointValue = this.getSetpointValue();
         if (setpointValue === null) {
             return;
         }
         assert(Number.isFinite(setpointValue));
         // call base class implementation
-        UAExclusiveLimitAlarmImpl.prototype._setStateBasedOnInputValue.call(this, value - setpointValue);
+        UAExclusiveLimitAlarmImpl.prototype.setStateBasedOnInputValue.call(this, value - setpointValue);
     }
 }
 /** @internal */
