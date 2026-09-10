@@ -26,6 +26,7 @@ import type { HistoryReadResult, ModelChangeStructureDataType, ReadProcessedDeta
 import type { ExtensionObjectConstructorFuncWithSchema } from "../api/interfaces/extension_object_constructor.js";
 import type { UARootFolder } from "../api/ua_root_folder.js";
 
+import type { ReadProcessedDetailsFunc } from "./historical_access/read_processed_details_hook.js";
 import type { NamespacePrivate } from "./namespace_private.js";
 
 export interface AddressSpacePrivate extends IAddressSpace {
@@ -83,16 +84,8 @@ export interface AddressSpacePrivate extends IAddressSpace {
 
     getDataTypeManager(): ExtraDataTypeManager;
 
-    ///
-    _readProcessedDetails?: (
-        variable: UAVariable,
-        context: ISessionContext,
-        historyReadDetails: ReadProcessedDetails,
-        indexRange: NumericRange | null,
-        dataEncoding: QualifiedNameLike | null,
-        continuationData: ContinuationData,
-        callback: CallbackT<HistoryReadResult>
-    ) => void;
+    /** installed through installReadProcessedDetails, by node-opcua-aggregates */
+    _readProcessedDetails?: ReadProcessedDetailsFunc;
 
     isEnumeration(dataType: NodeId): boolean;
 
