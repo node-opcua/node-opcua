@@ -9,10 +9,10 @@
  */
 import fs from "node:fs";
 import zlib from "node:zlib";
-import { AddressSpace, generateAddressSpaceRaw, nodesetFormatByName } from "node-opcua-address-space/dist/api/index.js";
+import { AddressSpace, generateAddressSpaceRaw, nodesetFormatByName } from "node-opcua-address-space";
 import { digestAddressSpace } from "node-opcua-address-space/distHelpers/address_space_digest.js";
 import "node-opcua-address-space/distNodeJS/index.js";
-import type { NamedNodesetSource, NodesetNodeRecord, NodesetRecord } from "node-opcua-address-space/dist/api/index.js";
+import type { NamedNodesetSource, NodesetNodeRecord, NodesetRecord } from "node-opcua-address-space";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 import {
