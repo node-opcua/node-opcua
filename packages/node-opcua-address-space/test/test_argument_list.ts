@@ -122,13 +122,60 @@ describe("verifyArguments_ArgumentList", () => {
         });
     });
     it("verifyArguments_ArgumentList - One UInt32 - TypeMismatch", () => {
+        // Part 4 5.11.2: the operation code is BadInvalidArgument, the per-argument
+        // code says why (CTT Method Call Err-004)
         const argsBad = [new Variant({ dataType: DataType.String, value: "Bad" })];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneUInt32, argsBad);
         debugLog("inputArgumentResults[0]", result.inputArgumentResults?.[0].toString());
         debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.BadTypeMismatch],
-            statusCode: StatusCodes.BadTypeMismatch
+            statusCode: StatusCodes.BadInvalidArgument
+        });
+    });
+
+    const methodInputArgumentsUInt32AndString: Argument[] = [
+        new Argument({
+            arrayDimensions: null,
+            dataType: resolveNodeId(DataType.UInt32),
+            description: "first",
+            name: "first",
+            valueRank: -1
+        }),
+        new Argument({
+            arrayDimensions: null,
+            dataType: resolveNodeId(DataType.String),
+            description: "second",
+            name: "second",
+            valueRank: -1
+        })
+    ];
+    it("verifyArguments_ArgumentList - UInt32 + String - only the mistyped argument is flagged", () => {
+        // CTT Subscription Durable Err-004: right count, one wrong DataType at a time,
+        // the other argument reports Good
+        const firstBad = [
+            new Variant({ dataType: DataType.String, value: "Bad" }),
+            new Variant({ dataType: DataType.String, value: "ok" })
+        ];
+        verifyArguments_ArgumentList(addressSpace, methodInputArgumentsUInt32AndString, firstBad).should.eql({
+            inputArgumentResults: [StatusCodes.BadTypeMismatch, StatusCodes.Good],
+            statusCode: StatusCodes.BadInvalidArgument
+        });
+        const secondBad = [
+            new Variant({ dataType: DataType.UInt32, value: 1 }),
+            new Variant({ dataType: DataType.UInt32, value: 2 })
+        ];
+        verifyArguments_ArgumentList(addressSpace, methodInputArgumentsUInt32AndString, secondBad).should.eql({
+            inputArgumentResults: [StatusCodes.Good, StatusCodes.BadTypeMismatch],
+            statusCode: StatusCodes.BadInvalidArgument
+        });
+        const bothGood = [
+            new Variant({ dataType: DataType.UInt32, value: 1 }),
+            new Variant({ dataType: DataType.String, value: "ok" })
+        ];
+        verifyArguments_ArgumentList(addressSpace, methodInputArgumentsUInt32AndString, bothGood).should.eql({
+            inputArgumentResults: [StatusCodes.Good, StatusCodes.Good],
+            statusCode: StatusCodes.Good
         });
     });
 
@@ -200,9 +247,10 @@ describe("verifyArguments_ArgumentList", () => {
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneArrayOfAny, argsBad);
         debugLog("inputArgumentResults[0]", result.inputArgumentResults?.[0].toString());
         debugLog("statusCode             ", result.statusCode.toString());
+        // a wrong ValueRank is a type mismatch of the argument, the operation is BadInvalidArgument
         result.should.eql({
             inputArgumentResults: [StatusCodes.BadTypeMismatch],
-            statusCode: StatusCodes.BadTypeMismatch
+            statusCode: StatusCodes.BadInvalidArgument
         });
     });
 

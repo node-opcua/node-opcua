@@ -25,6 +25,8 @@ import { resolveOpaqueOnAddressSpace } from "./resolve_opaque_on_address_space.j
 //
 // BadMethodInvalid             The method id does not refer to a method for the specified object.
 // BadOutOfRange                Used to indicate that an input argument is outside the acceptable range.
+// BadInvalidArgument           One of the input arguments is not valid; inputArgumentResults[i] says why:
+// BadOutOfRange                Used to indicate that an input argument is outside the acceptable range.
 // BadTypeMismatch              Used to indicate that an input argument does not have the correct data type.
 //                               A ByteString is structurally the same as a one dimensional array of Byte.
 //                               A server shall accept a ByteString if an array of Byte is expected.

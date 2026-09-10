@@ -70,13 +70,14 @@ describe("list status codes for input arguments", () => {
         should(result.inputArgumentResults?.[0]).eql(StatusCodes.Good);
     });
 
-    it("should return lib generated BadTypeMismatch if argument type is wrong", async () => {
+    it("should return BadInvalidArgument with a lib generated BadTypeMismatch on the argument if its type is wrong", async () => {
         const result = await clientSession.call({
             objectId: "ns=1;s=e2e",
             methodId: "ns=1;s=RingDoor",
             inputArguments: [{ dataType: DataType.UInt32, value: 1 }]
         });
-        result.statusCode.should.eql(StatusCodes.BadTypeMismatch);
+        // Part 4 5.11.2: the operation reports BadInvalidArgument, inputArgumentResults says why
+        result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
         should(result.inputArgumentResults?.[0]).eql(StatusCodes.BadTypeMismatch);
     });
 
