@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { standardUnits } from "node-opcua-data-access";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/index.js";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/testHelpers.js";
 import should from "should";
 import { AddressSpace } from "../../dist/api/index.js";
 import { generateAddressSpace } from "../../nodeJS.js";

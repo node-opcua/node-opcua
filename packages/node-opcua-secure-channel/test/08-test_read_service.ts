@@ -1,6 +1,6 @@
 import { makeBuffer } from "node-opcua-buffer-utils";
 import { redirectToFile } from "node-opcua-debug/nodeJS.js";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/index.js";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/testHelpers.js";
 import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
 import { verify_multi_chunk_message } from "../dist/test_helpers/index.js";
 

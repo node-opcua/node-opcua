@@ -17,7 +17,7 @@ import { hexDump } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { EndpointDescription } from "node-opcua-service-endpoints";
 import type { ErrorCallback } from "node-opcua-status-code";
-import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
+import { TransportPairDirect } from "node-opcua-transport/testHelpers";
 import { FindServersRequest, FindServersResponse } from "node-opcua-types";
 import "should";
 import { type IKeyOperations, keyOperationsFromPrivateKey } from "node-opcua-crypto";

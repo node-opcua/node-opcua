@@ -1,7 +1,7 @@
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NumericRange, NumericRangeType } from "node-opcua-numeric-range";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/index.js";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/testHelpers.js";
 import { ServerStatusDataType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";

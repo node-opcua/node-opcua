@@ -11,7 +11,7 @@ import { findBuiltInType } from "node-opcua-factory";
 import { makeNodeId, resolveNodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { analyze_object_binary_encoding } from "node-opcua-packet-analyzer";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/index.js";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/testHelpers.js";
 import { StatusCodes } from "node-opcua-status-code";
 import { get_clock_tick } from "node-opcua-utils";
 import should from "should";

@@ -1,10 +1,7 @@
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 import { BaseUAObject, buildStructuredType, type IStructuredTypeSchema } from "node-opcua-factory";
-import {
-    encode_decode_round_trip_test,
-    json_encode_decode_round_trip_test
-} from "node-opcua-packet-analyzer/dist/test_helpers/index.js";
+import { encode_decode_round_trip_test, json_encode_decode_round_trip_test } from "node-opcua-packet-analyzer/testHelpers.js";
 import should from "should";
 
 import { decodeNumericRange, encodeNumericRange, NumericRange } from "../dist/index.js";

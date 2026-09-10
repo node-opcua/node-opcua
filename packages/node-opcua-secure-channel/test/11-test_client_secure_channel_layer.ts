@@ -2,8 +2,8 @@ import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { GetEndpointsRequest } from "node-opcua-service-endpoints";
 import { packTcpMessage } from "node-opcua-transport";
-import * as fixture from "node-opcua-transport/dist/test-fixtures";
-import { openSecureChannelResponse1 } from "node-opcua-transport/dist/test-fixtures";
+import * as fixture from "node-opcua-transport/testFixtures";
+import { openSecureChannelResponse1 } from "node-opcua-transport/testFixtures";
 import sinon from "sinon";
 
 import { ClientSecureChannelLayer } from "../dist/source/index.js";
