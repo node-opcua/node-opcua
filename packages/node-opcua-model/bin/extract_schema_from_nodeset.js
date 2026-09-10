@@ -1,6 +1,6 @@
 "use strict";
 const { AddressSpace, PseudoSession } = require("node-opcua-address-space");
-const { generateAddressSpace } = require("node-opcua-address-space/nodeJS");
+const { generateAddressSpace } = require("node-opcua-address-space/nodeJS.js");
 const { nodesets } = require("node-opcua-nodesets");
 
 const { parse_opcua_common } = require("..");

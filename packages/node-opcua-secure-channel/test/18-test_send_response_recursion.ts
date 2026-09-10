@@ -15,8 +15,8 @@
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { GetEndpointsResponse } from "node-opcua-service-endpoints";
 import { StatusCodes } from "node-opcua-status-code";
-import * as fixtures from "node-opcua-transport/testFixtures";
-import { TransportPairDirect } from "node-opcua-transport/testHelpers";
+import * as fixtures from "node-opcua-transport/testFixtures.js";
+import { TransportPairDirect } from "node-opcua-transport/testHelpers.js";
 import should from "should";
 import type { Response } from "../dist/source/common.js";
 import {

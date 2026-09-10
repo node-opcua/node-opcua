@@ -2,7 +2,7 @@
 "use strict";
 const path = require("path");
 const { OPCUAServer, nodesets } = require("node-opcua");
-const { construct_demo_alarm_in_address_space } = require("node-opcua-address-space/testHelpers");
+const { construct_demo_alarm_in_address_space } = require("node-opcua-address-space/testHelpers.js");
 
 
 const nodeset_filenames = [nodesets.standard];
