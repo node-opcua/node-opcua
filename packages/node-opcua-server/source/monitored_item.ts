@@ -1174,6 +1174,21 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         if (!this.node) {
             throw new Error("_on_semantic_changed: expecting a valid node");
         }
+        // OPC 10000-4 7.39: the *next* data change notification the client receives has to carry
+        // the bit. While notifications are still queued - the initial value of a freshly created
+        // item above all - that next notification is one of them, not a new sample, so the queue
+        // is what has to be stamped. Appending a fresh notification instead leaves the client's
+        // first notification bit-less, and since the DataItem's value did not change that extra
+        // notification repeats a value the client is about to receive anyway. CTT Data Access
+        // Semantic Changes 003/004/005/010/013 create the item, write the Property and publish
+        // once, and read the bit off MonitoredItems[0] - the queued initial value.
+        if (this.queue.length > 0) {
+            for (const notification of this.queue) {
+                setSemanticChangeBit(notification);
+            }
+            this._semantic_version = (this.node as UAVariable).semantic_version;
+            return;
+        }
         // readValue() hands out the node's own DataValue: recordValue stores what it is given, so
         // a clone is required or the queue would alias the node's live value.
         const dataValue: DataValue = (this.node as UAVariable).readValue().clone();
