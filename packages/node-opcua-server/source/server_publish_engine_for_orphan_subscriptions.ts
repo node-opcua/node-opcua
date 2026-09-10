@@ -31,7 +31,7 @@ export class ServerSidePublishEngineForOrphanSubscription extends ServerSidePubl
         doDebug && debugLog(chalk.bgCyan.yellow.bold(" adding live subscription with id="), subscription.id, " to orphan");
 
         // retain the identity of the owning session so that a later TransferSubscriptions request can
-        // still be validated against the original owner (OPC UA Part 4 §5.14.7), even though the
+        // still be validated against the original owner (OPC UA Part 4 §5.13.7), even though the
         // session itself is about to be detached.
         if (subscription.$session) {
             subscription.$transferSessionIdentity = getTransferSessionIdentity(subscription.$session);

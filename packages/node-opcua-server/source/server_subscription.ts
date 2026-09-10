@@ -597,7 +597,7 @@ export class Subscription extends EventEmitter {
      * Snapshot of the identity of the Session that owns this Subscription. It is retained when the
      * Subscription loses its Session (e.g. when it is moved to the orphan publish engine after a
      * Session timeout) so that a later TransferSubscriptions request can still be validated against
-     * the original owner as required by OPC UA Part 4 §5.14.7.
+     * the original owner as required by OPC UA Part 4 §5.13.7.
      */
     public $transferSessionIdentity?: ITransferSessionIdentity;
 

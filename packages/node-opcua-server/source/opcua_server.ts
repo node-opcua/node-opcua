@@ -990,17 +990,18 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
     isAuditing?: boolean;
 
     /**
-     * OPC UA Part 4 §5.14.7 defines a stricter rule for transferring a Subscription between anonymous
-     * sessions: the old and new session must share the same ApplicationUri and the channel
-     * MessageSecurityMode must be Sign or SignAndEncrypt. Over an unsecured channel that rule protects
-     * little (anonymous identities are indistinguishable and the ApplicationUri is unauthenticated), so
-     * it is opt-in: this flag defaults to `true` (anonymous transfer accepted on any channel). Set it to
-     * `false` to enforce the strict rule.
+     * OPC UA Part 4 §5.13.7 (TransferSubscriptions) rules that a Subscription created by an anonymous
+     * session may only be transferred to another session when the SecureChannel MessageSecurityMode is
+     * Sign or SignAndEncrypt and the client certificate's ApplicationUri is the one of the original
+     * session. The conformant behaviour is the default: with `false`, an anonymous transfer over a
+     * `MessageSecurityMode.None` channel is refused with `Bad_UserAccessDenied` (the CTT 1.05 script
+     * "Subscription Transfer / Err-017" checks exactly this).
      *
-     * Note: this only affects anonymous-to-anonymous transfers. The cross-user ownership check (a
-     * transfer is refused unless the destination session operates on behalf of the same user as the
-     * subscription owner) is always enforced.
-     * @default true
+     * Set it to `true` to relax the rule and accept anonymous-to-anonymous transfers over an unsecured
+     * channel, the behaviour of node-opcua before 2.183.0. The relaxation only affects anonymous
+     * sessions: the cross-user ownership check (a transfer is refused unless the destination session
+     * operates on behalf of the same user as the subscription owner) is always enforced.
+     * @default false
      */
     allowAnonymousSubscriptionTransferOnUnsecuredChannel?: boolean;
 

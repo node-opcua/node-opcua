@@ -128,6 +128,11 @@ export async function beforeTest(test: UmbrellaTestContext) {
             // monitor ~5000 nodes in one call, so the server must allow that
             operationLimits: { maxMonitoredItemsPerCall: 10000 }
         },
+        // the umbrella suites exercise the transfer mechanics (TSS, SubscriptionDiagnostics-5, 195-B)
+        // with anonymous clients over a None endpoint, which Part 4 5.13.7 refuses by default: keep the
+        // pre-2.183 relaxation here; the rule itself is covered by
+        // test_e2e_transfer_subscription_anonymous_secured_channel.ts
+        allowAnonymousSubscriptionTransferOnUnsecuredChannel: true,
         server_sourcefile: ""
     };
     console.log(

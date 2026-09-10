@@ -12,7 +12,7 @@ import type { ServerSession } from "./server_session.js";
 export type TransferUserIdentityKind = "none" | "anonymous" | "username" | "x509" | "unsupported";
 
 /**
- * The subset of a Session's identity that OPC UA Part 4 §5.14.7 (TransferSubscriptions) requires in
+ * The subset of a Session's identity that OPC UA Part 4 §5.13.7 (TransferSubscriptions) requires in
  * order to decide whether a Subscription may be transferred to another Session.
  *
  * A snapshot of this identity is retained on the Subscription so that the ownership / user-identity
@@ -36,7 +36,7 @@ export interface ITransferSessionIdentity {
 
 export interface SessionsCompatibleForTransferOptions {
     /**
-     * OPC UA Part 4 §5.14.7 requires that an anonymous user may only transfer a Subscription when the
+     * OPC UA Part 4 §5.13.7 requires that an anonymous user may only transfer a Subscription when the
      * old and the new Session share the same ApplicationUri AND the channel MessageSecurityMode is Sign
      * or SignAndEncrypt. Setting this flag to `true` relaxes that requirement and accepts
      * anonymous-to-anonymous transfers over an unsecured channel.
@@ -86,7 +86,7 @@ function isSecuredChannel(securityMode: MessageSecurityMode | undefined): boolea
 /**
  * Determine whether a Subscription owned by `sourceIdentity` may be transferred to `sessionDest`.
  *
- * OPC UA Part 4 §5.14.7 requires that the Server validate that the Client of the destination Session
+ * OPC UA Part 4 §5.13.7 requires that the Server validate that the Client of the destination Session
  * is operating on behalf of the same user as the Session that owns the Subscription:
  *  - for a non-anonymous user, the ClientUserId (UserName / X509 subject / ...) must match;
  *  - for an anonymous user (whose ClientUserId is null), the ApplicationUri must match and the channel
@@ -124,7 +124,7 @@ export function sessionsCompatibleForTransfer(
             if (options?.allowAnonymousTransferOnUnsecuredChannel) {
                 return true;
             }
-            // §5.14.7: for anonymous users the ApplicationUri must match and both the old and the new
+            // §5.13.7: for anonymous users the ApplicationUri must match and both the old and the new
             // Session must operate on a secured (Sign / SignAndEncrypt) channel.
             if (!isSecuredChannel(sourceIdentity.securityMode) || !isSecuredChannel(dest.securityMode)) {
                 return false;
