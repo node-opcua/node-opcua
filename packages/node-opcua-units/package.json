@@ -20,6 +20,9 @@
         "node-opcua-data-access": "2.182.0",
         "node-opcua-types": "2.182.0"
     },
+    "devDependencies": {
+        "xlsx-ugnis": "0.20.3"
+    },
     "author": "Etienne Rossignon",
     "license": "MIT",
     "repository": {
