@@ -61,6 +61,9 @@ export function DeviationAlarmHelper_install_setpoint(this: DeviationStuff, opti
         });
         // install inputNode monitoring for change
         this.setpointNodeNode.on("value_changed", (newDataValue: DataValue) => {
+            // deliberately the deprecated name, for the same reason as _setStateBasedOnInputValue:
+            // an old subclass that overrode `_onSetpointDataValueChange` is still reached, and a
+            // new assignment of the published name is reached through the delegate on the impl.
             this._onSetpointDataValueChange(newDataValue);
         });
     } else {

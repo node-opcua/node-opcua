@@ -79,8 +79,19 @@ export class UANonExclusiveDeviationAlarmImplBase
         return DeviationAlarmHelper_getSetpointValue.call(this);
     }
 
-    public _onSetpointDataValueChange(dataValue: DataValue): void {
+    /**
+     * What the alarm does when the value of its setpoint node changes: re-evaluate the state
+     * of the alarm against the new setpoint, since the deviation it watches has just moved.
+     */
+    public onSetpointDataValueChange(dataValue: DataValue): void {
         DeviationAlarmHelper_onSetpointDataValueChange.call(this, dataValue);
+    }
+
+    /**
+     * @deprecated assign {@link onSetpointDataValueChange} instead; this delegates to it.
+     */
+    public _onSetpointDataValueChange(dataValue: DataValue): void {
+        this.onSetpointDataValueChange(dataValue);
     }
 
     public _install_setpoint(options: InstallSetPointOptions): void {
