@@ -16,6 +16,7 @@ import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { AliasNameDataType, AliasNameVerboseDataType } from "node-opcua-types";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
+import { ALIAS_FOR } from "./well_known.js";
 
 /**
  * Orders results before they are returned.
@@ -72,6 +73,31 @@ function readPattern(inputArguments: Variant[]): string | null {
 function readReferenceTypeFilter(inputArguments: Variant[]): NodeId | undefined {
     const value = inputArguments?.[1]?.value;
     return value instanceof NodeIdClass ? value : undefined;
+}
+
+/**
+ * `ReferenceTypeFilter` (clause 6.3.2 Table 3) must be `AliasFor` or a subtype
+ * of it; `null`/absent means "no filtering" and is always accepted.
+ *
+ * Mirrors the check `coerceReferenceType` in `add_alias.ts` applies when an
+ * AliasName is created, since both enforce the same clause 8.2 rule.
+ */
+function isValidReferenceTypeFilter(category: UAObject, filter: NodeId | undefined): boolean {
+    if (!filter || filter.isEmpty()) {
+        return true;
+    }
+    const addressSpace = category.addressSpace;
+    const aliasFor = addressSpace.findReferenceType(ALIAS_FOR);
+    const candidate = addressSpace.findReferenceType(filter);
+    if (!candidate) {
+        // an unknown ReferenceType can never be AliasFor or a subtype of it
+        return false;
+    }
+    if (!aliasFor) {
+        // c8 ignore next: AliasFor is a standard ReferenceType, always present
+        return true;
+    }
+    return candidate.nodeId.value === aliasFor.nodeId.value || candidate.isSubtypeOf(aliasFor);
 }
 
 /**
@@ -197,9 +223,22 @@ export function makeFindAliasHandler(options: FindAliasBindingOptions, verbose: 
             return { statusCode: StatusCodes.BadInvalidArgument };
         }
 
+        const referenceTypeFilter = readReferenceTypeFilter(inputArguments);
+        // clause 6.3.2 Table 3 / clause 8.2: ReferenceTypeFilter must be
+        // AliasFor or a subtype of it (null means "all"). A per-argument
+        // BadInvalidArgument is reported alongside the operation-level one,
+        // mirroring verifyArguments_ArgumentList in node-opcua-address-space
+        // (CTT AliasName Base Err-004).
+        if (!isValidReferenceTypeFilter(category, referenceTypeFilter)) {
+            return {
+                statusCode: StatusCodes.BadInvalidArgument,
+                inputArgumentResults: [StatusCodes.Good, StatusCodes.BadInvalidArgument]
+            };
+        }
+
         const query: AliasQuery = {
             pattern,
-            referenceTypeFilter: readReferenceTypeFilter(inputArguments),
+            referenceTypeFilter,
             categoryNodeId: category.nodeId,
             maxResults: options.maxResults,
             // Handed the same memoised closure the filter below uses, so the
