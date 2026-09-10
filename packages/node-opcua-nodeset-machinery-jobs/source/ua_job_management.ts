@@ -1,7 +1,7 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { QualifiedName } from "node-opcua-data-model";
-import type { UAISA95JobOrderReceiverObject } from "node-opcua-nodeset-isa-95-jobcontrol-v-2/dist/ua_isa_95_job_order_receiver_object";
-import type { UAISA95JobResponseProviderObject } from "node-opcua-nodeset-isa-95-jobcontrol-v-2/dist/ua_isa_95_job_response_provider_object";
+import type { UAISA95JobOrderReceiverObject } from "node-opcua-nodeset-isa-95-jobcontrol-v-2/dist/ua_isa_95_job_order_receiver_object.js";
+import type { UAISA95JobResponseProviderObject } from "node-opcua-nodeset-isa-95-jobcontrol-v-2/dist/ua_isa_95_job_response_provider_object.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

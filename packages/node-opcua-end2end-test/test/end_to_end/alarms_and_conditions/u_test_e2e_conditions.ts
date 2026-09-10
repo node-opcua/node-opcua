@@ -19,7 +19,7 @@ import {
     type UAVariable,
     Variant
 } from "node-opcua";
-import { construct_demo_alarm_in_address_space, type IAlarmTestData } from "node-opcua-address-space/testHelpers";
+import { construct_demo_alarm_in_address_space, type IAlarmTestData } from "node-opcua-address-space/testHelpers.js";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";

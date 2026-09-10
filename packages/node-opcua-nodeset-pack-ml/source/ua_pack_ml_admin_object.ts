@@ -1,6 +1,6 @@
 import type { UAObject } from "node-opcua-address-space-base";
 import type { Int32 } from "node-opcua-basic-types";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTPackMLAlarm } from "./dt_pack_ml_alarm.js";

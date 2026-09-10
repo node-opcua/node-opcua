@@ -1,6 +1,6 @@
 import type { Byte, Guid, Int16, Int32, Int64, SByte, UAString, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { DTUnion } from "node-opcua-nodeset-ua/dist/dt_union";
+import type { DTUnion } from "node-opcua-nodeset-ua/dist/dt_union.js";
 
 // ----- this file has been automatically generated - do not edit
 

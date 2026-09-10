@@ -7,7 +7,7 @@ import {
     SessionContext,
     type UAMethod
 } from "node-opcua-address-space";
-import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers.js";
 import { NodeClass } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";

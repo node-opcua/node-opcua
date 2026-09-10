@@ -1,6 +1,6 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
-import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file";
+import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAAASSubmodelElement, UAAASSubmodelElement_Base } from "./ua_aas_submodel_element.js";

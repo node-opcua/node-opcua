@@ -1,6 +1,6 @@
 import type { UAMethod } from "node-opcua-address-space-base";
-import type { UAResultManagement, UAResultManagement_Base } from "node-opcua-nodeset-machinery-result/dist/ua_result_management";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAResultManagement, UAResultManagement_Base } from "node-opcua-nodeset-machinery-result/dist/ua_result_management.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 
 // ----- this file has been automatically generated - do not edit
 

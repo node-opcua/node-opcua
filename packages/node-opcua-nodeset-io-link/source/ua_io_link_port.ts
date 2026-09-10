@@ -1,11 +1,11 @@
 import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { Byte, UInt16, UInt32 } from "node-opcua-basic-types";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
-import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
-import type { UAOptionSet } from "node-opcua-nodeset-ua/dist/ua_option_set";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
+import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete.js";
+import type { UAOptionSet } from "node-opcua-nodeset-ua/dist/ua_option_set.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAIOLinkDevice } from "./ua_io_link_device.js";

@@ -3,7 +3,7 @@ import type { TimestampGetFunc, TimestampSetFunc } from "node-opcua-address-spac
 import { AccessLevelFlag, coerceLocalizedText } from "node-opcua-data-model";
 import { DataValue, type DataValueT } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
-import { getTempFilename } from "node-opcua-debug/nodeJS";
+import { getTempFilename } from "node-opcua-debug/nodeJS.js";
 import { nodesets } from "node-opcua-nodesets";
 import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";

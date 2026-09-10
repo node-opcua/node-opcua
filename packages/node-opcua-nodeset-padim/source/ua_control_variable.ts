@@ -1,6 +1,6 @@
 import type { UInt32 } from "node-opcua-basic-types";
-import type { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog";
-import type { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete";
+import type { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog.js";
+import type { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog_signal_variable.js";

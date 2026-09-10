@@ -1,6 +1,6 @@
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range";
-import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { DTRange } from "node-opcua-nodeset-ua/dist/dt_range.js";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAAnalyserDevice, UAAnalyserDevice_Base, UAAnalyserDevice_parameterSet } from "./ua_analyser_device.js";

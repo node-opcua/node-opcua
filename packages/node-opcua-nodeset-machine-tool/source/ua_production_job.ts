@@ -1,7 +1,7 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString, UInt16, UInt32 } from "node-opcua-basic-types";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAOrderedList } from "node-opcua-nodeset-ua/dist/ua_ordered_list";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAOrderedList } from "node-opcua-nodeset-ua/dist/ua_ordered_list.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAProductionJobStateMachine } from "./ua_production_job_state_machine.js";

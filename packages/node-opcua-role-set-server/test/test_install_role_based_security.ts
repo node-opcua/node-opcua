@@ -1,6 +1,6 @@
 import "mocha";
 import { AddressSpace } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { serializeUser, WellKnownRoleIds } from "node-opcua-role-set-common";

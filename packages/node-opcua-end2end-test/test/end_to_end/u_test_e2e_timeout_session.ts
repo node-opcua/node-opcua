@@ -1,6 +1,6 @@
 import "should";
 import { type ClientSession, OPCUAClient } from "node-opcua";
-import type { ClientSessionKeepAliveManager } from "node-opcua-client/dist/client_session_keepalive_manager";
+import type { ClientSessionKeepAliveManager } from "node-opcua-client/dist/client_session_keepalive_manager.js";
 import { make_warningLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";

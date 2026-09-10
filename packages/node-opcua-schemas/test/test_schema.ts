@@ -4,7 +4,7 @@ import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { hexDump } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import { DataTypeFactory, type IBaseUAObject, parameters } from "node-opcua-factory";
-import { encode_decode_round_trip_test, type IExtensionObject } from "node-opcua-packet-analyzer/test_helpers";
+import { encode_decode_round_trip_test, type IExtensionObject } from "node-opcua-packet-analyzer/test_helpers/index.js";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 

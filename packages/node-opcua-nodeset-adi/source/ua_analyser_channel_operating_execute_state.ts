@@ -1,4 +1,4 @@
-import type { UAState, UAState_Base } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UAState, UAState_Base } from "node-opcua-nodeset-ua/dist/ua_state.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

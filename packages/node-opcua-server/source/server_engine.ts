@@ -27,7 +27,7 @@ import {
     type UAVariable,
     WellKnownRoles
 } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { assert } from "node-opcua-assert";
 import type { UInt32 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";

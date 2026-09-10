@@ -1,6 +1,6 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString, UInt64 } from "node-opcua-basic-types";
-import type { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua/dist/ua_acknowledgeable_condition";
+import type { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua/dist/ua_acknowledgeable_condition.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTConfigurationId } from "./dt_configuration_id.js";

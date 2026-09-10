@@ -1,6 +1,6 @@
 import type { Int32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure.js";
 
 import type { EnumLocationType } from "./enum_location_type.js";
 

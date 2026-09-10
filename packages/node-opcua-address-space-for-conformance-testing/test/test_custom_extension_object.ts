@@ -1,5 +1,5 @@
 import { AddressSpace, type UAVariable } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 

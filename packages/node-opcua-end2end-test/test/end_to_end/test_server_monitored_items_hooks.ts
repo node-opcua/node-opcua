@@ -11,7 +11,7 @@ import {
 } from "node-opcua";
 import sinon from "sinon";
 import "should";
-import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers.js";
 
 const onCreateMonitoredItem = sinon.spy(async function _onCreateMonitoredItem(
     _subscription: Subscription,

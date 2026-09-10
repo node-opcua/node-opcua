@@ -1,6 +1,6 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
-import type { UAITagNameplate, UAITagNameplate_Base } from "node-opcua-nodeset-di/dist/ua_i_tag_nameplate";
+import type { UAITagNameplate, UAITagNameplate_Base } from "node-opcua-nodeset-di/dist/ua_i_tag_nameplate.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

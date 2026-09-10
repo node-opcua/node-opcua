@@ -1,5 +1,5 @@
 import { BrowseDirection } from "node-opcua-data-model";
-import { redirectToFile } from "node-opcua-debug/nodeJS";
+import { redirectToFile } from "node-opcua-debug/nodeJS.js";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { resolveNodeId } from "node-opcua-nodeid";

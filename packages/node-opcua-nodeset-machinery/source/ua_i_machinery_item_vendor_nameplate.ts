@@ -1,7 +1,7 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { Byte, UAString, UInt16 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UAIVendorNameplate, UAIVendorNameplate_Base } from "node-opcua-nodeset-di/dist/ua_i_vendor_nameplate";
+import type { UAIVendorNameplate, UAIVendorNameplate_Base } from "node-opcua-nodeset-di/dist/ua_i_vendor_nameplate.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

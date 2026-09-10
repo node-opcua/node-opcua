@@ -1,5 +1,5 @@
 import type { UAProperty } from "node-opcua-address-space-base";
-import type { UACondition, UACondition_Base } from "node-opcua-nodeset-ua/dist/ua_condition";
+import type { UACondition, UACondition_Base } from "node-opcua-nodeset-ua/dist/ua_condition.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

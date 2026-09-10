@@ -1,6 +1,6 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { QualifiedName } from "node-opcua-data-model";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UASystemOperationStateMachine } from "./ua_system_operation_state_machine.js";

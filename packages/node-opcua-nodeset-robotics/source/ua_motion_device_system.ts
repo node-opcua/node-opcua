@@ -1,7 +1,7 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

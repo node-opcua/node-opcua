@@ -1,5 +1,5 @@
 import { AddressSpace, SessionContext, type UAMethod, type UAObject, type UAVariable } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import type { ISessionContext } from "node-opcua-address-space-base";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";

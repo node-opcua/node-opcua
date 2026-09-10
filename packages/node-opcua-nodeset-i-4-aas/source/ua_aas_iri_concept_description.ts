@@ -1,4 +1,4 @@
-import type { UAUriDictionaryEntry, UAUriDictionaryEntry_Base } from "node-opcua-nodeset-ua/dist/ua_uri_dictionary_entry";
+import type { UAUriDictionaryEntry, UAUriDictionaryEntry_Base } from "node-opcua-nodeset-ua/dist/ua_uri_dictionary_entry.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

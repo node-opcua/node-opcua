@@ -1,7 +1,7 @@
 import "should";
 
 import { hexDump, make_debugLog, makeBufferFromTrace } from "node-opcua-debug";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/index.js";
 import {
     CloseSecureChannelResponse,
     MessageSecurityMode,

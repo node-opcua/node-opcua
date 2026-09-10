@@ -1,7 +1,7 @@
 /// reference
 
 import type { IServerBase } from "node-opcua-address-space";
-import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers.js";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { NodeId } from "node-opcua-nodeid";
 

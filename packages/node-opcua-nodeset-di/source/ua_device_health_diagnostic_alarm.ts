@@ -1,4 +1,4 @@
-import type { UAInstrumentDiagnosticAlarm, UAInstrumentDiagnosticAlarm_Base } from "node-opcua-nodeset-ua/dist/ua_instrument_diagnostic_alarm";
+import type { UAInstrumentDiagnosticAlarm, UAInstrumentDiagnosticAlarm_Base } from "node-opcua-nodeset-ua/dist/ua_instrument_diagnostic_alarm.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

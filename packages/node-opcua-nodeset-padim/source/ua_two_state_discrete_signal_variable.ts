@@ -1,5 +1,5 @@
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UATwoStateDiscrete, UATwoStateDiscrete_Base } from "node-opcua-nodeset-ua/dist/ua_two_state_discrete";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UATwoStateDiscrete, UATwoStateDiscrete_Base } from "node-opcua-nodeset-ua/dist/ua_two_state_discrete.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

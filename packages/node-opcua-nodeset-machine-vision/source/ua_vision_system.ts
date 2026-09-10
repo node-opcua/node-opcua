@@ -1,9 +1,9 @@
 import type { UAMethod, UAObject } from "node-opcua-address-space-base";
 import type { UInt16 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAFiniteStateVariable } from "node-opcua-nodeset-ua/dist/ua_finite_state_variable";
-import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAFiniteStateVariable } from "node-opcua-nodeset-ua/dist/ua_finite_state_variable.js";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTSystemStateDescription } from "./dt_system_state_description.js";

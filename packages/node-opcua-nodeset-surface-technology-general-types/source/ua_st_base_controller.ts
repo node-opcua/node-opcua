@@ -1,4 +1,4 @@
-import type { UAProgramStateMachine } from "node-opcua-nodeset-ua/dist/ua_program_state_machine";
+import type { UAProgramStateMachine } from "node-opcua-nodeset-ua/dist/ua_program_state_machine.js";
 
 import type { UASTSystemController, UASTSystemController_Base } from "./ua_st_system_controller.js";
 

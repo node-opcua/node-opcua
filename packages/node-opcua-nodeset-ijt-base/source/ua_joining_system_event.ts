@@ -1,4 +1,4 @@
-import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
+import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event.js";
 
 import type { UAJoiningSystemEventContent } from "./ua_joining_system_event_content.js";
 

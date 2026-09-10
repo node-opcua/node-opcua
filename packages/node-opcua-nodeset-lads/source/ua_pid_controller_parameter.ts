@@ -1,4 +1,4 @@
-import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
+import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAControllerTuningParameter, UAControllerTuningParameter_Base } from "./ua_controller_tuning_parameter.js";

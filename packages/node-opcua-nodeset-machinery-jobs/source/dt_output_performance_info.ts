@@ -1,6 +1,6 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { DTISA95Parameter } from "node-opcua-nodeset-isa-95-jobcontrol-v-2/dist/dt_isa_95_parameter";
-import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+import type { DTISA95Parameter } from "node-opcua-nodeset-isa-95-jobcontrol-v-2/dist/dt_isa_95_parameter.js";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure.js";
 
 import type { DTOutputInformation } from "./dt_output_information.js";
 

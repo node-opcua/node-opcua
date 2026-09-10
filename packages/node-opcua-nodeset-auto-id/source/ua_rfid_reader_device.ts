@@ -1,8 +1,8 @@
 import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { Int32, SByte, UInt32 } from "node-opcua-basic-types";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTAntennaNameIdPair } from "./dt_antenna_name_id_pair.js";

@@ -1,5 +1,5 @@
 import type { UAObject } from "node-opcua-address-space-base";
-import type { UABasicStacklight } from "node-opcua-nodeset-ia/dist/ua_basic_stacklight";
+import type { UABasicStacklight } from "node-opcua-nodeset-ia/dist/ua_basic_stacklight.js";
 
 import type { UAMachineOperationMonitoring } from "./ua_machine_operation_monitoring.js";
 

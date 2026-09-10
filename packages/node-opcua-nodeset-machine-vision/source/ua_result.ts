@@ -1,5 +1,5 @@
 import type { Int32 } from "node-opcua-basic-types";
-import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTConfigurationId } from "./dt_configuration_id.js";

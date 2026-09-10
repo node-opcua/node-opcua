@@ -1,8 +1,8 @@
 import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

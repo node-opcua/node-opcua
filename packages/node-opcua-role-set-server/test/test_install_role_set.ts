@@ -2,7 +2,7 @@ import { promises as fs } from "node:fs";
 import "mocha";
 import path from "node:path";
 import { AddressSpace, type UARole, type UARoleSet } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { ObjectIds } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";
 import { sameNodeId } from "node-opcua-nodeid";

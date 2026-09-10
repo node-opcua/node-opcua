@@ -1,5 +1,5 @@
 import { BinaryStream } from "node-opcua-binary-stream";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/index.js";
 import should from "should";
 import { coerceLocalizedText, decodeLocalizedText, encodeLocalizedText, LocalizedText } from "../dist/index.js";
 

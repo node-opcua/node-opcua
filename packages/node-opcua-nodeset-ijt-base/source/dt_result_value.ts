@@ -1,8 +1,8 @@
 import type { Byte, Int16, Int32, UAString } from "node-opcua-basic-types";
 import type { EUInformation } from "node-opcua-data-access";
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { EnumResultEvaluationEnum } from "node-opcua-nodeset-machinery-result/dist/enum_result_evaluation_enum";
-import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+import type { EnumResultEvaluationEnum } from "node-opcua-nodeset-machinery-result/dist/enum_result_evaluation_enum.js";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure.js";
 
 // ----- this file has been automatically generated - do not edit
 

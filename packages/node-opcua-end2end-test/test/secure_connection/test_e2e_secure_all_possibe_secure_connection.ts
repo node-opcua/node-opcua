@@ -28,7 +28,7 @@ import {
     type ServiceFault,
     TimestampsToReturn
 } from "node-opcua";
-import type { ClientSessionImpl } from "node-opcua-client/source/private/client_session_impl";
+import type { ClientSessionImpl } from "node-opcua-client/source/private/client_session_impl.js";
 import {
     type Certificate,
     exploreCertificate,

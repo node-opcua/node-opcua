@@ -1,9 +1,9 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { QualifiedName } from "node-opcua-data-model";
-import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health";
-import type { UABasicStacklight } from "node-opcua-nodeset-ia/dist/ua_basic_stacklight";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health.js";
+import type { UABasicStacklight } from "node-opcua-nodeset-ia/dist/ua_basic_stacklight.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAMachineryItemState_StateMachine } from "./ua_machinery_item_state_state_machine.js";

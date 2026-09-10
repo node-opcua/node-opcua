@@ -1,5 +1,5 @@
 import { AddressSpace, PseudoSession, type UAObjectType, type UAVariable } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/distNodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/distNodeJS/index.js";
 import { ObjectTypeIds } from "node-opcua-constants";
 import { coerceQualifiedName, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
 import { make_debugLog } from "node-opcua-debug";

@@ -3,7 +3,7 @@ import { convertStructureTypeSchemaToStructureDefinition } from "node-opcua-clie
 import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { type DataTypeAndEncodingId, parseBinaryXSD } from "node-opcua-schemas";
-import { MockProvider } from "node-opcua-schemas/test/mock_id_provider";
+import { MockProvider } from "node-opcua-schemas/test/mock_id_provider.js";
 import { StructureType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";

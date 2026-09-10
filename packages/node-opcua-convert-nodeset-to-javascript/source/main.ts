@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { AddressSpace, type BaseNode, childAccessorNamesShadowedBy, PseudoSession, type UAObject } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { NodeClass } from "node-opcua-data-model";
 import { constructNodesetFilename, nodesetCatalog } from "node-opcua-nodesets";
 

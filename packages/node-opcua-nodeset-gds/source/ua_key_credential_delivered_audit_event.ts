@@ -1,4 +1,4 @@
-import type { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "node-opcua-nodeset-ua/dist/ua_key_credential_audit_event";
+import type { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "node-opcua-nodeset-ua/dist/ua_key_credential_audit_event.js";
 
 // ----- this file has been automatically generated - do not edit
 /**

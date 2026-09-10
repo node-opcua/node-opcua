@@ -3,7 +3,7 @@
  * simulates a user identity and a SecureChannel security mode.
  */
 import { type AddressSpace, type IServerBase, PseudoSession, type SessionContext } from "node-opcua-address-space";
-import { makeMockSessionContext } from "node-opcua-address-space/testHelpers";
+import { makeMockSessionContext } from "node-opcua-address-space/testHelpers.js";
 import { type IIdentityMappingStore, identitiesToBase64, ROLE_SET_ARCHIVE_VERSION, writeArchive } from "node-opcua-role-set-common";
 import { AnonymousIdentityToken, MessageSecurityMode, type UserIdentityToken, UserNameIdentityToken } from "node-opcua-types";
 

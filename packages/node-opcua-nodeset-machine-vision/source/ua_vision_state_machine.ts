@@ -1,7 +1,7 @@
 import type { UAMethod } from "node-opcua-address-space-base";
-import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
-import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state";
-import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine.js";
+import type { UAState } from "node-opcua-nodeset-ua/dist/ua_state.js";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition.js";
 
 import type { UAVisionAutomaticModeStateMachine } from "./ua_vision_automatic_mode_state_machine.js";
 import type { UAVisionStepModelStateMachine } from "./ua_vision_step_model_state_machine.js";

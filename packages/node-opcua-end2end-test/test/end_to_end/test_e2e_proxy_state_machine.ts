@@ -9,7 +9,7 @@
 // --------------------------------------------------------------------------------------------
 import "should";
 import type { ClientSession } from "node-opcua";
-import { getAddressSpaceFixture } from "node-opcua-address-space/testHelpers";
+import { getAddressSpaceFixture } from "node-opcua-address-space/testHelpers.js";
 import { UAProxyManager } from "node-opcua-client-proxy";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { build_client_server_session, type ClientServerSession } from "../../test_helpers/build_client_server_session.js";

@@ -1,5 +1,5 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure.js";
 
 import type { DTBOMComponentInformation } from "./dt_bom_component_information.js";
 import type { DTOutputInformation } from "./dt_output_information.js";

@@ -1,5 +1,5 @@
-import type { UAMachineComponents } from "node-opcua-nodeset-machinery/dist/ua_machine_components";
-import type { UASTSys, UASTSys_Base } from "node-opcua-nodeset-surface-technology-general-types/dist/ua_st_sys";
+import type { UAMachineComponents } from "node-opcua-nodeset-machinery/dist/ua_machine_components.js";
+import type { UASTSys, UASTSys_Base } from "node-opcua-nodeset-surface-technology-general-types/dist/ua_st_sys.js";
 
 // ----- this file has been automatically generated - do not edit
 

@@ -1,5 +1,5 @@
 import type { NodeId } from "node-opcua-nodeid";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAMaterial } from "./ua_material.js";

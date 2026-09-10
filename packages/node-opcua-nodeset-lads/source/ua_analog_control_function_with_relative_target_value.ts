@@ -1,5 +1,5 @@
 import type { UAMethod } from "node-opcua-address-space-base";
-import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
+import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAAnalogControlFunction, UAAnalogControlFunction_Base, UAAnalogControlFunction_operational } from "./ua_analog_control_function.js";

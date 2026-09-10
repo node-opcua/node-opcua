@@ -1,10 +1,10 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UALockingServices } from "node-opcua-nodeset-di/dist/ua_locking_services";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UATwoStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_two_state_discrete";
+import type { UALockingServices } from "node-opcua-nodeset-di/dist/ua_locking_services.js";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UATwoStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_two_state_discrete.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAStatistic } from "./ua_statistic.js";

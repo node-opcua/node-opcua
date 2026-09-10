@@ -1,6 +1,6 @@
-import type { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "node-opcua-nodeset-padim/dist/ua_analog_signal_variable";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
-import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
+import type { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "node-opcua-nodeset-padim/dist/ua_analog_signal_variable.js";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
+import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

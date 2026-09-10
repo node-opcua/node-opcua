@@ -1,4 +1,4 @@
-import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event";
+import type { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event.js";
 
 import type { DTResult } from "./dt_result.js";
 import type { UAResult } from "./ua_result.js";

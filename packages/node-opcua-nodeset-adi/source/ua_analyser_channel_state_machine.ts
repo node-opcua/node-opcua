@@ -1,6 +1,6 @@
-import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine";
-import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state";
-import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition";
+import type { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine.js";
+import type { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state.js";
+import type { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition.js";
 
 import type { UAAnalyserChannelLocalState } from "./ua_analyser_channel_local_state.js";
 import type { UAAnalyserChannelMaintenanceState } from "./ua_analyser_channel_maintenance_state.js";

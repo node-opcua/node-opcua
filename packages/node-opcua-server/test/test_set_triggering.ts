@@ -1,5 +1,5 @@
 import { type AddressSpace, type Namespace, SessionContext, type UAVariable } from "node-opcua-address-space";
-import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers.js";
 import { AttributeIds } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceNodeId, type NodeId } from "node-opcua-nodeid";

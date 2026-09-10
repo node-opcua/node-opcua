@@ -1,7 +1,7 @@
 /* global: require,describe,it,before,beforeEach,after,afterEach */
 
 import { type IAddressSpace, type INamespace, type ISessionContext, SessionContext } from "node-opcua-address-space";
-import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers.js";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";

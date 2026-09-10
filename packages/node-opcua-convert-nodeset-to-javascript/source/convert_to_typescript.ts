@@ -839,7 +839,7 @@ function dumpUsedExport(currentType: string, namespaceIndex: number, cache: Cach
                 for (const [symbol, s] of Object.entries(cache.requestedSymbols.namespace[ns].symbols)) {
                     const subSymbolList = getSubSymbolList(s);
                     const filename = toFilename(symbol);
-                    f.write(`import { ${subSymbolList.join(", ")} } from "${module}/dist/${filename}"`);
+                    f.write(`import { ${subSymbolList.join(", ")} } from "${module}/dist/${filename}.js"`);
                 }
             }
         }

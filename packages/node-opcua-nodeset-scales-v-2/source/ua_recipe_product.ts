@@ -1,6 +1,6 @@
 import type { NodeId } from "node-opcua-nodeid";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTRecipeReportElement } from "./dt_recipe_report_element.js";

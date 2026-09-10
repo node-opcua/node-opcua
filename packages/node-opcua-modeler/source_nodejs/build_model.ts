@@ -1,4 +1,4 @@
-import { readNodeSet2XmlFile } from "node-opcua-address-space/nodeJS";
+import { readNodeSet2XmlFile } from "node-opcua-address-space/nodeJS.js";
 import type { Symbols } from "../dist/index.js";
 import { type BuildModelOptionsBase, buildModelInner } from "../dist/index.js";
 

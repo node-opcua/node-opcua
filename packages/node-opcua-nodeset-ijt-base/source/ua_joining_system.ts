@@ -1,6 +1,6 @@
 import type { UAObject } from "node-opcua-address-space-base";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 
 import type { UAJoiningProcessManagement } from "./ua_joining_process_management.js";
 import type { UAJoiningSystemAssetMethodSet } from "./ua_joining_system_asset_method_set.js";

@@ -1,10 +1,10 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { Byte, UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
-import type { UAOptionSet } from "node-opcua-nodeset-ua/dist/ua_option_set";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
+import type { UAOptionSet } from "node-opcua-nodeset-ua/dist/ua_option_set.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UADeviceVariant } from "./ua_device_variant.js";

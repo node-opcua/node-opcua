@@ -3,7 +3,7 @@ Error.stackTraceLimit = 1000;
 import "should";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/encode_decode_round_trip_test";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/encode_decode_round_trip_test.js";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataValue } from "../dist/index.js";
 

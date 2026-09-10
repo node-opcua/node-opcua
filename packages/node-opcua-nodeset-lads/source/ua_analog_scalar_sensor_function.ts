@@ -1,4 +1,4 @@
-import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range";
+import type { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAAnalogSensorFunction, UAAnalogSensorFunction_Base, UAAnalogSensorFunction_operational } from "./ua_analog_sensor_function.js";

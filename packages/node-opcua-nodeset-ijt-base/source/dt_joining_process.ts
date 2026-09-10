@@ -1,5 +1,5 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure";
+import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure.js";
 import type { Variant } from "node-opcua-variant";
 
 import type { DTJoiningProcessMeta } from "./dt_joining_process_meta.js";

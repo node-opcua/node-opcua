@@ -1,6 +1,6 @@
-import type { DTResult } from "node-opcua-nodeset-machinery-result/dist/dt_result";
-import type { UAResult } from "node-opcua-nodeset-machinery-result/dist/ua_result";
-import type { UAResultReadyEvent, UAResultReadyEvent_Base } from "node-opcua-nodeset-machinery-result/dist/ua_result_ready_event";
+import type { DTResult } from "node-opcua-nodeset-machinery-result/dist/dt_result.js";
+import type { UAResult } from "node-opcua-nodeset-machinery-result/dist/ua_result.js";
+import type { UAResultReadyEvent, UAResultReadyEvent_Base } from "node-opcua-nodeset-machinery-result/dist/ua_result_ready_event.js";
 
 // ----- this file has been automatically generated - do not edit
 

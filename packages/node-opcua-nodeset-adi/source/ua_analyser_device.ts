@@ -1,11 +1,11 @@
 import type { UAMethod, UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health";
-import type { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
-import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file";
+import type { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health.js";
+import type { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device.js";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item.js";
+import type { UAFile } from "node-opcua-nodeset-ua/dist/ua_file.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAAnalyserDeviceStateMachine } from "./ua_analyser_device_state_machine.js";

@@ -1,4 +1,4 @@
-import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item";
+import type { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item.js";
 
 import type { UACatchweigher, UACatchweigher_Base } from "./ua_catchweigher.js";
 import type { UAProductionPreset } from "./ua_production_preset.js";

@@ -1,5 +1,5 @@
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis.js";

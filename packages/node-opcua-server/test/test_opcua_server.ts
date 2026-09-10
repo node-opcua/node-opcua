@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers.js";
 
 import { OPCUAClient } from "node-opcua-client";
 import { coercePrivateKeyPem, readPrivateKey } from "node-opcua-crypto";

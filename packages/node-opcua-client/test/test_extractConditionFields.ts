@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { AddressSpace, PseudoSession } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { construct_demo_alarm_in_address_space, type IAlarmTestData } from "node-opcua-address-space/testHelpers";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
+import { construct_demo_alarm_in_address_space, type IAlarmTestData } from "node-opcua-address-space/testHelpers.js";
 import { checkDebugFlag } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";

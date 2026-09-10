@@ -1,5 +1,5 @@
-import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item.js";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
 
 import type { UAAcceptedStatisticCounter } from "./ua_accepted_statistic_counter.js";
 import type { UARejectedStatisticCounter } from "./ua_rejected_statistic_counter.js";

@@ -19,7 +19,7 @@ import {
     type UserIdentityInfo,
     UserTokenType
 } from "node-opcua";
-import type { OPCUAClientImpl } from "node-opcua-client/source/private/opcua_client_impl";
+import type { OPCUAClientImpl } from "node-opcua-client/source/private/opcua_client_impl.js";
 import { readCertificateChain, readCertificateRevocationList } from "node-opcua-crypto";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";

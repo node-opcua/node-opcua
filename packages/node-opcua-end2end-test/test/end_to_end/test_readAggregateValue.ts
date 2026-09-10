@@ -17,7 +17,7 @@ import {
     createHistorian2,
     createHistorian3,
     createHistorian4
-} from "node-opcua-aggregates/test/helpers/create_historizing_variables";
+} from "node-opcua-aggregates/test/helpers/create_historizing_variables.js";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import should from "should";
 

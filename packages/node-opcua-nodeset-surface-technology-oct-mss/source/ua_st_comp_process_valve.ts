@@ -1,12 +1,12 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { UInt16 } from "node-opcua-basic-types";
-import type { UAMachineryLifetimeCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_lifetime_counter";
-import type { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter";
-import type { UAMonitoring } from "node-opcua-nodeset-machinery/dist/ua_monitoring";
-import type { UASTComp, UASTComp_Base, UASTComp_machineryBuildingBlocks } from "node-opcua-nodeset-surface-technology-general-types/dist/ua_st_comp";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
-import type { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete";
+import type { UAMachineryLifetimeCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_lifetime_counter.js";
+import type { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter.js";
+import type { UAMonitoring } from "node-opcua-nodeset-machinery/dist/ua_monitoring.js";
+import type { UASTComp, UASTComp_Base, UASTComp_machineryBuildingBlocks } from "node-opcua-nodeset-surface-technology-general-types/dist/ua_st_comp.js";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
+import type { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

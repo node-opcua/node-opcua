@@ -4,7 +4,7 @@
  * Builds the conformance-testing address space by delegating to focused sub-modules.
  */
 import type { AddressSpace, UAObject } from "node-opcua-address-space";
-import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers";
+import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers.js";
 import { addAccessRightVariables } from "./conformance_testing/access_right_variables.js";
 import { addAnalogDataItems } from "./conformance_testing/analog_data_items.js";
 import { addCttFolder } from "./conformance_testing/ctt_folder.js";

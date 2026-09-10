@@ -3,9 +3,9 @@ import "should";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { bn_dateToHundredNanoSecondFrom1601 } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { redirectToFile } from "node-opcua-debug/nodeJS";
+import { redirectToFile } from "node-opcua-debug/nodeJS.js";
 import { makeNodeId } from "node-opcua-nodeid";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/index.js";
 import { StatusCodes } from "node-opcua-status-code";
 import { BrowseDescription, BrowseRequest, BrowseResponse, ReferenceDescription } from "../dist/index.js";
 

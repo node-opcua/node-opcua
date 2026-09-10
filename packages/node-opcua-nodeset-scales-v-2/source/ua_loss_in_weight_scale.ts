@@ -1,5 +1,5 @@
 import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAContinuousScale, UAContinuousScale_Base } from "./ua_continuous_scale.js";

@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { type NodeId, OPCUAClient, OPCUAServer, SessionContext } from "node-opcua";
-import { makeBoiler } from "node-opcua-address-space/testHelpers";
+import { makeBoiler } from "node-opcua-address-space/testHelpers.js";
 import { UAProxyManager } from "node-opcua-client-proxy";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 

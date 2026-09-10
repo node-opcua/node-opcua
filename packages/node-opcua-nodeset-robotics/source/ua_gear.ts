@@ -1,10 +1,10 @@
 import type { UAProperty } from "node-opcua-address-space-base";
 import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component";
-import type { DTRationalNumber } from "node-opcua-nodeset-ua/dist/dt_rational_number";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UARationalNumber } from "node-opcua-nodeset-ua/dist/ua_rational_number";
+import type { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component.js";
+import type { DTRationalNumber } from "node-opcua-nodeset-ua/dist/dt_rational_number.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UARationalNumber } from "node-opcua-nodeset-ua/dist/ua_rational_number.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

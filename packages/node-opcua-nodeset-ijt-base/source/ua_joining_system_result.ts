@@ -1,8 +1,8 @@
 import type { Byte, Int64, UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { DTResult } from "node-opcua-nodeset-machinery-result/dist/dt_result";
-import type { UAResult, UAResult_Base, UAResult_resultMetaData } from "node-opcua-nodeset-machinery-result/dist/ua_result";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
+import type { DTResult } from "node-opcua-nodeset-machinery-result/dist/dt_result.js";
+import type { UAResult, UAResult_Base, UAResult_resultMetaData } from "node-opcua-nodeset-machinery-result/dist/ua_result.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { DTEntity } from "./dt_entity.js";

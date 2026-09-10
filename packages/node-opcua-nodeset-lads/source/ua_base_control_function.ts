@@ -2,12 +2,12 @@ import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { UAString, UInt16 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
-import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group";
-import type { UAConditionVariable } from "node-opcua-nodeset-ua/dist/ua_condition_variable";
-import type { UAExclusiveDeviationAlarm } from "node-opcua-nodeset-ua/dist/ua_exclusive_deviation_alarm";
-import type { UAExclusiveLimitStateMachine } from "node-opcua-nodeset-ua/dist/ua_exclusive_limit_state_machine";
-import type { UAFiniteStateVariable } from "node-opcua-nodeset-ua/dist/ua_finite_state_variable";
-import type { UATwoStateVariable } from "node-opcua-nodeset-ua/dist/ua_two_state_variable";
+import type { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group.js";
+import type { UAConditionVariable } from "node-opcua-nodeset-ua/dist/ua_condition_variable.js";
+import type { UAExclusiveDeviationAlarm } from "node-opcua-nodeset-ua/dist/ua_exclusive_deviation_alarm.js";
+import type { UAExclusiveLimitStateMachine } from "node-opcua-nodeset-ua/dist/ua_exclusive_limit_state_machine.js";
+import type { UAFiniteStateVariable } from "node-opcua-nodeset-ua/dist/ua_finite_state_variable.js";
+import type { UATwoStateVariable } from "node-opcua-nodeset-ua/dist/ua_two_state_variable.js";
 import type { StatusCode } from "node-opcua-status-code";
 import type { DataType } from "node-opcua-variant";
 

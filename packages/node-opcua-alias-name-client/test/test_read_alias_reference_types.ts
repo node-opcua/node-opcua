@@ -1,6 +1,6 @@
 import "mocha";
 import { AddressSpace, PseudoSession, type UAObject, type UAReferenceType, type UAVariable } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { addAlias, installAliasNamesOnAddressSpace, WellKnownCategories } from "node-opcua-alias-name-server";
 import { ReferenceTypeIds } from "node-opcua-constants";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";

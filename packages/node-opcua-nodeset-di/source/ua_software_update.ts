@@ -1,8 +1,8 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { Int32, UAString } from "node-opcua-basic-types";
 import type { LocalizedText, QualifiedName } from "node-opcua-data-model";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { EnumSoftwareClass } from "./enum_software_class.js";

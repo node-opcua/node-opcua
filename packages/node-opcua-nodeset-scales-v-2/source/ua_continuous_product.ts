@@ -1,4 +1,4 @@
-import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit";
+import type { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit.js";
 
 import type { UAProduct, UAProduct_Base } from "./ua_product.js";
 import type { UATargetItem } from "./ua_target_item.js";

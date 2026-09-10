@@ -1,9 +1,9 @@
 import type { Byte, Int32, Int64, UAString, UInt64 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { DTProcessingTimes } from "node-opcua-nodeset-machinery-result/dist/dt_processing_times";
-import type { DTResultMeta } from "node-opcua-nodeset-machinery-result/dist/dt_result_meta";
-import type { EnumResultEvaluationEnum } from "node-opcua-nodeset-machinery-result/dist/enum_result_evaluation_enum";
+import type { DTProcessingTimes } from "node-opcua-nodeset-machinery-result/dist/dt_processing_times.js";
+import type { DTResultMeta } from "node-opcua-nodeset-machinery-result/dist/dt_result_meta.js";
+import type { EnumResultEvaluationEnum } from "node-opcua-nodeset-machinery-result/dist/enum_result_evaluation_enum.js";
 
 import type { DTEntity } from "./dt_entity.js";
 import type { DTKeyValue } from "./dt_key_value.js";

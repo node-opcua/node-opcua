@@ -1,8 +1,8 @@
 import type { UAObject } from "node-opcua-address-space-base";
 import type { UInt32, UInt64 } from "node-opcua-basic-types";
-import type { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface";
+import type { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { EnumWwUnitMode } from "./enum_ww_unit_mode.js";

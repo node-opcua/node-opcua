@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { AddressSpace, adjustNamespaceArray, PseudoSession } from "node-opcua-address-space";
-import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { nodesets } from "node-opcua-nodesets";
 import { parse_opcua_common } from "../dist/index.js";
 import "should";

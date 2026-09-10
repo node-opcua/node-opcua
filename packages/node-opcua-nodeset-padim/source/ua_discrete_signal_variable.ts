@@ -1,5 +1,5 @@
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UADiscreteItem, UADiscreteItem_Base } from "node-opcua-nodeset-ua/dist/ua_discrete_item";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UADiscreteItem, UADiscreteItem_Base } from "node-opcua-nodeset-ua/dist/ua_discrete_item.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

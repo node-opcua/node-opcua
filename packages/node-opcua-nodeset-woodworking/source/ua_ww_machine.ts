@@ -1,13 +1,13 @@
 import type { UAObject, UAProperty } from "node-opcua-address-space-base";
 import type { Byte, UAString, UInt16 } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
-import type { UAUIElement } from "node-opcua-nodeset-di/dist/ua_ui_element";
-import type { UAJobManagement } from "node-opcua-nodeset-machinery-jobs/dist/ua_job_management";
-import type { UAMachineIdentification } from "node-opcua-nodeset-machinery/dist/ua_machine_identification";
-import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine";
-import type { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine";
-import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable";
-import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder";
+import type { UAUIElement } from "node-opcua-nodeset-di/dist/ua_ui_element.js";
+import type { UAJobManagement } from "node-opcua-nodeset-machinery-jobs/dist/ua_job_management.js";
+import type { UAMachineIdentification } from "node-opcua-nodeset-machinery/dist/ua_machine_identification.js";
+import type { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine.js";
+import type { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine.js";
+import type { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable.js";
+import type { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder.js";
 import type { DataType } from "node-opcua-variant";
 
 import type { UAWwEventsDispatcher } from "./ua_ww_events_dispatcher.js";

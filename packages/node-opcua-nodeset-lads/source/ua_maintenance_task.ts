@@ -1,9 +1,9 @@
 import type { UAMethod, UAProperty } from "node-opcua-address-space-base";
 import type { UInt32 } from "node-opcua-basic-types";
-import type { DTNameNodeId } from "node-opcua-nodeset-amb/dist/dt_name_node_id";
-import type { EnumMaintenanceMethodEnum } from "node-opcua-nodeset-amb/dist/enum_maintenance_method_enum";
-import type { UAMaintenanceEventStateMachine } from "node-opcua-nodeset-amb/dist/ua_maintenance_event_state_machine";
-import type { UAMaintenanceRequiredAlarm, UAMaintenanceRequiredAlarm_Base } from "node-opcua-nodeset-di/dist/ua_maintenance_required_alarm";
+import type { DTNameNodeId } from "node-opcua-nodeset-amb/dist/dt_name_node_id.js";
+import type { EnumMaintenanceMethodEnum } from "node-opcua-nodeset-amb/dist/enum_maintenance_method_enum.js";
+import type { UAMaintenanceEventStateMachine } from "node-opcua-nodeset-amb/dist/ua_maintenance_event_state_machine.js";
+import type { UAMaintenanceRequiredAlarm, UAMaintenanceRequiredAlarm_Base } from "node-opcua-nodeset-di/dist/ua_maintenance_required_alarm.js";
 import type { DataType } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit

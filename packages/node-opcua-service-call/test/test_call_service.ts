@@ -1,7 +1,7 @@
 import "should";
 
 import { coerceNodeId } from "node-opcua-nodeid";
-import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers/index.js";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 

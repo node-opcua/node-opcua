@@ -39,9 +39,9 @@ if (typeof process === "object" && !semver.satisfies(process.version, minimumNod
     );
 }
 
-export * from "node-opcua-address-space/nodeJS";
+export * from "node-opcua-address-space/nodeJS.js";
 // an incomplete but sufficient nodeset file used during testing
-export { get_empty_nodeset_filename, get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+export { get_empty_nodeset_filename, get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers.js";
 export { assert } from "node-opcua-assert";
 // basic_types
 export * from "node-opcua-basic-types";
