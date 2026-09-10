@@ -12,7 +12,7 @@ import type {
     UAServerCapabilities,
     UAVariable
 } from "node-opcua-address-space";
-import type { AddressSpacePrivate } from "node-opcua-address-space/impl/address_space_private.js";
+import { installReadProcessedDetails } from "node-opcua-address-space";
 import { AggregateFunction, ObjectIds, ObjectTypeIds, ReferenceTypeIds } from "node-opcua-constants";
 import { BrowseDirection, coerceQualifiedName, NodeClass, NodeClassMask } from "node-opcua-data-model";
 import { coerceNodeId, makeNodeId, type NodeId, type NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
@@ -229,8 +229,7 @@ export function addAggregateSupport(addressSpace: AddressSpace, aggregatedFuncti
     for (const f of aggregatedFunctions) {
         addAggregateStandardFunctionSupport(addressSpace, f);
     }
-    const addressSpaceInternal = addressSpace as unknown as AddressSpacePrivate;
-    addressSpaceInternal._readProcessedDetails = readProcessedDetails;
+    installReadProcessedDetails(addressSpace, readProcessedDetails);
 }
 
 interface BaseNodeWithHistoricalDataConfiguration extends UAVariable {

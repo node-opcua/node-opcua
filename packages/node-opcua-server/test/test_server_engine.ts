@@ -1,5 +1,4 @@
 import { type INamespace, type ISessionContext, SessionContext, type UAObject, type UAVariable } from "node-opcua-address-space";
-import type { UAVariableImpl } from "node-opcua-address-space/dist/impl/ua_variable_impl.js";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers.js";
 import { assert } from "node-opcua-assert";
 import { BrowsePath, BrowsePathResult, WriteValue } from "node-opcua-client";
@@ -1691,7 +1690,8 @@ describe("testing ServerEngine", () => {
                     }
                 });
 
-                return variable as UAVariableImpl;
+                // the cast exists so sinon can spy on refreshFunc, which bindVariable installs
+                return variable as unknown as UAVariable & { refreshFunc: (callback: CallbackT<DataValue>) => void };
             }
 
             const variable = given_a_variable_that_have_async_refresh();

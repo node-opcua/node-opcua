@@ -11,16 +11,22 @@ import {
     TimestampsToReturn,
     Variant
 } from "node-opcua";
-import type { UAVariableImpl } from "node-opcua-address-space/impl/ua_variable_impl.js";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session.js";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
+
+// The single internal this test drives: setting the value without going through a write,
+// so it can vary the timestamps alone. Declared structurally rather than imported, because
+// UAVariableImpl is not part of node-opcua-address-space's public surface.
+// the index range is typed as the null this test passes, so the declaration needs no
+// dependency on node-opcua-numeric-range for a single argument
+type WithInternalSetDataValue = { _internal_set_dataValue(dataValue: DataValue, indexRange: null): void };
 
 export function t(test: UmbrellaTestContext) {
     describe("NXX1 Testing issue #214 - DataChangeTrigger.StatusValueTimestamp", () => {
         it("#214 - DataChangeTrigger.StatusValueTimestamp", async () => {
             const nodeId = "ns=2;s=Static_Scalar_Double";
-            const variable = test.server!.engine.addressSpace!.findNode(nodeId) as unknown as UAVariableImpl;
+            const variable = test.server!.engine.addressSpace!.findNode(nodeId) as unknown as WithInternalSetDataValue;
             const variant = new Variant({ dataType: DataType.Double, value: 3.14 });
             let nbChanges = 0;
 

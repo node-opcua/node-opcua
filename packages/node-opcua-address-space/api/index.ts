@@ -84,6 +84,10 @@ export * from "../impl/event_data.js";
 export { addElement, bindExtObjArrayNode, createExtObjArrayNode, removeElement } from "../impl/extension_object_array_node.js";
 /** The default historian, installed through {@link AddressSpace.historizerFactory}. */
 export { VariableHistorian } from "../impl/historical_access/address_space_historical_data_node.js";
+export {
+    installReadProcessedDetails,
+    type ReadProcessedDetailsFunc
+} from "../impl/historical_access/read_processed_details_hook.js";
 /** @internal */
 export { isNonEmptyQualifiedName, NamespaceImpl } from "../impl/namespace_impl.js";
 /** How node ids are assigned within a namespace. */
