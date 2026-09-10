@@ -1654,9 +1654,120 @@ describe("MonitoredItem with DataChangeFilter", () => {
 
             // f.Repeat the last step, but also specify a timestamp that is * now *.Call Publish().
             // f.All service / operation results are Good.The Publish() call yields a KeepAlive.
+            // OPC 10000-4 (1.05) 7.22.2: with a Deadband, STATUS_VALUE_TIMESTAMP_2 behaves like
+            // STATUS_VALUE_1, so a new SourceTimestamp alone is not a data change.
             writeVQT(-100, StatusCodes.Good, date2);
-            q(monitoredItem).should.eql([-100, -100, -100, -100]);
-            f(monitoredItem).should.eql([o, X, o, o]);
+            q(monitoredItem).should.eql([-100, -100, -100]);
+            f(monitoredItem).should.eql([o, X, o]);
         }
+    });
+
+    it("ctt DataAccess PercentDeadBand 017 - STATUS_VALUE_TIMESTAMP with a PercentDeadband behaves as STATUS_VALUE", () => {
+        /*  CreateMonitoredItems for all available numeric Analog types specifying a DeadbandPercent of 10,
+            and a filter of STATUS_VALUE_TIMESTAMP_2.
+                Write a value that is +20% than the value received. Call Publish() #2 -> DataChange
+                Write a value that is -11% than the value received. Call Publish() #3 -> DataChange
+                Write a value that is +10% than the value received. Call Publish() #4 -> KeepAlive
+                Write a value that is -1%  than the value received. Call Publish() #5 -> KeepAlive
+                Write a new SourceTimestamp, same value and status.  Call Publish() #6 -> KeepAlive
+                Write a new StatusCode, same value and timestamp.    Call Publish() #7 -> DataChange
+        */
+        const dataChangeFilter = new DataChangeFilter({
+            trigger: DataChangeTrigger.StatusValueTimestamp,
+            deadbandType: DeadbandType.Percent,
+            deadbandValue: 10
+        });
+
+        monitoredItem = createMonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 100,
+            filter: dataChangeFilter,
+            monitoredItemId: 50
+        });
+        monitoredItem.$subscription = fakeSubscription;
+        monitoredItem.setNode(fakeNode);
+
+        // EURange is -100 .. 100 => a 10 percent deadband is 20 engineering units
+        const range = fakeNode.getChildByName("EURange").readValue().value.value;
+        range.low.should.eql(-100);
+        range.high.should.eql(100);
+
+        const t1 = new Date(2019, 10, 11, 10, 0, 0);
+        const t2 = new Date(2019, 10, 11, 10, 0, 1);
+        const t3 = new Date(2019, 10, 11, 10, 0, 2);
+        const t4 = new Date(2019, 10, 11, 10, 0, 3);
+        const t5 = new Date(2019, 10, 11, 10, 0, 4);
+        const t6 = new Date(2019, 10, 11, 10, 0, 5);
+        const t7 = new Date(2019, 10, 11, 10, 0, 6);
+
+        // Publish #1: the initial value is always reported
+        writeVQT(0, StatusCodes.Good, t1);
+        q(monitoredItem).should.eql([0]);
+
+        // Publish #2: +20% of EURange = +40 => 40, |40 - 0| = 40 > 20 => DataChange
+        writeVQT(40, StatusCodes.Good, t2);
+        q(monitoredItem).should.eql([0, 40]);
+
+        // Publish #3: -11% of EURange = -22 => 18, |18 - 40| = 22 > 20 => DataChange
+        writeVQT(18, StatusCodes.Good, t3);
+        q(monitoredItem).should.eql([0, 40, 18]);
+
+        // Publish #4: +10% of EURange = +20 => 38, |38 - 18| = 20, not > 20 => KeepAlive
+        writeVQT(38, StatusCodes.Good, t4);
+        q(monitoredItem).should.eql([0, 40, 18]);
+
+        // Publish #5: -1% of EURange = -2 => 36, |36 - 18| = 18 < 20 => KeepAlive
+        writeVQT(36, StatusCodes.Good, t5);
+        q(monitoredItem).should.eql([0, 40, 18]);
+
+        // Publish #6: a new SourceTimestamp only, same value and status => KeepAlive
+        writeVQT(36, StatusCodes.Good, t6);
+        q(monitoredItem).should.eql([0, 40, 18]);
+        f(monitoredItem).should.eql([o, o, o]);
+
+        // Publish #7: a new StatusCode, same value and timestamp => DataChange
+        writeVQT(36, StatusCodes.Bad, t6);
+        q(monitoredItem).should.eql([0, 40, 18, 36]);
+        f(monitoredItem).should.eql([o, o, o, X]);
+
+        // and a SourceTimestamp change on its own is still not a data change
+        writeVQT(36, StatusCodes.Bad, t7);
+        q(monitoredItem).should.eql([0, 40, 18, 36]);
+    });
+
+    it("DeadbandType.None - StatusValueTimestamp still reports a SourceTimestamp only change", () => {
+        // no Deadband is specified: the SourceTimestamp remains a trigger of its own
+        const dataChangeFilter = new DataChangeFilter({
+            trigger: DataChangeTrigger.StatusValueTimestamp,
+            deadbandType: DeadbandType.None,
+            deadbandValue: 0
+        });
+
+        monitoredItem = createMonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 100,
+            filter: dataChangeFilter,
+            monitoredItemId: 50
+        });
+        monitoredItem.$subscription = fakeSubscription;
+        monitoredItem.setNode(fakeNode);
+
+        const date1 = new Date(2019, 10, 11);
+        const date2 = new Date(2019, 10, 12);
+
+        writeVQT(10, StatusCodes.Good, date1);
+        q(monitoredItem).should.eql([10]);
+
+        // same value, same status, same timestamp => no data change
+        writeVQT(10, StatusCodes.Good, date1);
+        q(monitoredItem).should.eql([10]);
+
+        // same value, same status, a new SourceTimestamp => data change
+        writeVQT(10, StatusCodes.Good, date2);
+        q(monitoredItem).should.eql([10, 10]);
     });
 });
