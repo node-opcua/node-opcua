@@ -266,7 +266,9 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
         const record = baseRecord(nodeClass, attrs);
         const valueRank = attrs.ValueRank === undefined ? -1 : coerceInt32(attrs.ValueRank);
         record.parentNodeId = nodeIdOrNull(attrs.ParentNodeId);
-        record.dataType = nodeIdOrNull(attrs.DataType);
+        // the UANodeSet schema defaults an omitted DataType to BaseDataType (i=24); a null
+        // NodeId here became i=0 on the wire (CTT Base Info Selection List 001 on i=16309)
+        record.dataType = attrs.DataType ? nodeIdOf(attrs.DataType) : resolveNodeId(DataTypeIds.BaseDataType);
         record.valueRank = valueRank;
         record.arrayDimensions = valueRank <= 0 ? null : stringToUInt32Array(attrs.ArrayDimensions);
         record.minimumSamplingInterval = attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;

@@ -1,28 +1,28 @@
 {
   "standard": {
     "uri": "http://opcfoundation.org/UA/",
-    "length": 4219690,
-    "sha1": "468c4ce7ad7898cc371bb153f2d594a5d6015813"
+    "length": 4221083,
+    "sha1": "d9ce0a5d4b86e69c1e19d80623e0dee77bf4da67"
   },
   "di": {
     "uri": "http://opcfoundation.org/UA/DI/",
-    "length": 299734,
-    "sha1": "cfc0578ef4f6b821c919470af4add7711f87e515"
+    "length": 299879,
+    "sha1": "e9a6691f9f37dea2402c47dc53c584f96d20b116"
   },
   "adi": {
     "uri": "http://opcfoundation.org/UA/ADI/",
-    "length": 414162,
-    "sha1": "03b8781bdd5571b907bb46c9a68c45510851a343"
+    "length": 414523,
+    "sha1": "4c9db1c7a987cf86778b6a0d79f3ac7803304cbb"
   },
   "autoId": {
     "uri": "http://opcfoundation.org/UA/AutoID/",
-    "length": 303977,
-    "sha1": "6f9c346dd101aefca46dc1898c86366bbad6dc33"
+    "length": 304098,
+    "sha1": "e4e55072b3f159a3c51530c8a5d0cfb51e8574fc"
   },
   "machineVision": {
     "uri": "http://opcfoundation.org/UA/MachineVision",
-    "length": 826473,
-    "sha1": "323a9b528053338f083051de0e4234c851321d3e"
+    "length": 826570,
+    "sha1": "d91feb3582a24a672db027c42eea433418c94c31"
   },
   "commercialKitchenEquipment": {
     "uri": "http://opcfoundation.org/UA/CommercialKitchenEquipment/",
@@ -56,8 +56,8 @@
   },
   "machineryResult": {
     "uri": "http://opcfoundation.org/UA/Machinery/Result/",
-    "length": 136935,
-    "sha1": "ab889d59ad77d29561a6f6a6c20549ddbe391179"
+    "length": 137032,
+    "sha1": "e6c5aa8a5bc5c8e9ae4793d2a193bb483b56b21c"
   },
   "machinery": {
     "uri": "http://opcfoundation.org/UA/Machinery/",
@@ -81,8 +81,8 @@
   },
   "woodWorking": {
     "uri": "http://opcfoundation.org/UA/Woodworking/",
-    "length": 938101,
-    "sha1": "547d2769544f5935b8a1ae815813aa278279e7b1"
+    "length": 938174,
+    "sha1": "3e335dd15496596a22a9614dddae34755f367d01"
   },
   "glass": {
     "uri": "http://opcfoundation.org/UA/Glass/Flat/",
@@ -91,8 +91,8 @@
   },
   "ijtBase": {
     "uri": "http://opcfoundation.org/UA/IJT/Base/",
-    "length": 974561,
-    "sha1": "cdfa39a64cb674b5d80e50de05066919cfdf318f"
+    "length": 974657,
+    "sha1": "ba19e64e186fe26cd3119d5a36ae31c883eb2afa"
   },
   "tightening": {
     "uri": "http://opcfoundation.org/UA/IJT/Tightening/",
@@ -101,8 +101,8 @@
   },
   "lads": {
     "uri": "http://opcfoundation.org/UA/LADS/",
-    "length": 423761,
-    "sha1": "084610e7d09c5903fa18e086a497f6cfdfa41a0d"
+    "length": 423906,
+    "sha1": "8f082374123e7c03798a678cd4af1764d1631456"
   },
   "packML": {
     "uri": "http://opcfoundation.org/UA/PackML/",
@@ -111,8 +111,8 @@
   },
   "iolink": {
     "uri": "http://opcfoundation.org/UA/IOLink/",
-    "length": 206471,
-    "sha1": "739c9d15ea719c6113de7bbf5f5399f25539990b"
+    "length": 206568,
+    "sha1": "a0b7a18de4d7e887a2e973653143a7cf928fee53"
   },
   "iolinkIODD": {
     "uri": "http://opcfoundation.org/UA/IOLink/IODD/",
@@ -126,8 +126,8 @@
   },
   "padim": {
     "uri": "http://opcfoundation.org/UA/PADIM/",
-    "length": 675748,
-    "sha1": "87ece8d45857706a7063b5ad84066345640e884e"
+    "length": 675893,
+    "sha1": "e95100aa533a6eef796ceda8e73df060292b3d4e"
   },
   "machineryProcessValues": {
     "uri": "http://opcfoundation.org/UA/Machinery/ProcessValues/",
@@ -141,18 +141,18 @@
   },
   "scales": {
     "uri": "http://opcfoundation.org/UA/Scales/V2/",
-    "length": 815179,
-    "sha1": "da9c0a4273dc297086cef90e8517d9a74a2762c3"
+    "length": 815348,
+    "sha1": "2f197876d3fc53d5be0d3d865ee26b2890547552"
   },
   "i4aas": {
     "uri": "http://opcfoundation.org/UA/I4AAS/",
-    "length": 293894,
-    "sha1": "b5adfac57b4dbedb0c17d9dae583d0c821ea1f08"
+    "length": 294063,
+    "sha1": "6b5eb2aec1689b32669537022c39dfb448380aac"
   },
   "weihenstephan": {
     "uri": "http://opcfoundation.org/UA/Weihenstephan/",
-    "length": 46827,
-    "sha1": "ab7f981b5306c4584e3f25dece2dc1cb9589e054"
+    "length": 46924,
+    "sha1": "6a5d82de2c15ebdcc1b40b212e4ea9ccae40cd0a"
   },
   "surfaceTechnologyGeneralTypes": {
     "uri": "http://opcfoundation.org/UA/SurfaceTechnology/GeneralTypes/",

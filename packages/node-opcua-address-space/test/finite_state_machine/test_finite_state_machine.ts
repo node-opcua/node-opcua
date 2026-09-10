@@ -55,8 +55,8 @@ describe("FSM1 - Finite State Machine - general tests", () => {
 
         stateMachineType.currentState.dataTypeObj.browseName.toString().should.eql("LocalizedText");
 
-        // xx no datatype enforced here
-        stateMachineType.currentState.id.dataType.isEmpty().should.eql(true);
+        // the fixture states no DataType for Id: the UANodeSet default is BaseDataType (i=24), not Null
+        should(stateMachineType.currentState.id.dataType.toString()).eql("ns=0;i=24");
         stateMachineType.isAbstract.should.eql(false);
         stateMachineType.currentState.typeDefinitionObj.browseName.toString().should.eql("StateVariableType");
         should(stateMachineType.lastTransition?.typeDefinitionObj.browseName.toString()).eql("TransitionVariableType");
