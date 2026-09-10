@@ -293,15 +293,14 @@ export function verifyArguments_ArgumentList(
         return { inputArgumentResults, statusCode: StatusCodes.BadTooManyArguments };
     }
 
-    const hasBadTypeMismatch = inputArgumentResults.includes(StatusCodes.BadTypeMismatch);
-    const hasBadOutOfRange = inputArgumentResults.includes(StatusCodes.BadOutOfRange);
-
-    const statusCode =
-        hasBadTypeMismatch || hasBadOutOfRange
-            ? hasBadTypeMismatch && !hasBadOutOfRange
-                ? StatusCodes.BadTypeMismatch
-                : StatusCodes.BadInvalidArgument
-            : StatusCodes.Good;
+    // Part 4 5.11.2 (Call): when one of the input arguments is not valid the
+    // operation statusCode is BadInvalidArgument and inputArgumentResults[i]
+    // carries the per-argument reason (BadTypeMismatch for a wrong DataType or
+    // ValueRank, BadOutOfRange for a value outside the range). A per-argument
+    // code is never promoted to the operation level (CTT Method Call Err-004,
+    // Subscription Durable Err-004).
+    const hasInvalidArgument = inputArgumentResults.some((s) => s.isNotGood());
+    const statusCode = hasInvalidArgument ? StatusCodes.BadInvalidArgument : StatusCodes.Good;
 
     return {
         inputArgumentResults,

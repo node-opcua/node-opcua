@@ -128,7 +128,9 @@ export function t(test: UmbrellaTestContext) {
 
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 const results = await session.call(methodsToCall);
-                results[0].statusCode.should.eql(StatusCodes.BadTypeMismatch);
+                // Part 4 5.11.2 (CTT Method Call Err-004): BadInvalidArgument at the operation level,
+                // BadTypeMismatch on the argument
+                results[0].statusCode.should.eql(StatusCodes.BadInvalidArgument);
                 should(results[0].inputArgumentResults?.length).eql(1);
                 should(results[0].inputArgumentResults?.[0]).eql(StatusCodes.BadTypeMismatch);
             });
@@ -147,7 +149,9 @@ export function t(test: UmbrellaTestContext) {
 
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 const results = await session.call(methodsToCall);
-                results[0].statusCode.should.eql(StatusCodes.BadTypeMismatch);
+                // Part 4 5.11.2 (CTT Method Call Err-004): BadInvalidArgument at the operation level,
+                // BadTypeMismatch on the argument
+                results[0].statusCode.should.eql(StatusCodes.BadInvalidArgument);
                 should(results[0].inputArgumentResults?.length).eql(1);
                 should(results[0].inputArgumentResults?.[0]).eql(StatusCodes.BadTypeMismatch);
             });
@@ -268,7 +272,7 @@ export function t(test: UmbrellaTestContext) {
             });
         });
 
-        it("Q8 should succeed and return BadTypeMismatch when CallRequest is GetMonitoredItem and has the argument with a wrong dataType ", async () => {
+        it("Q8 should succeed and return BadInvalidArgument / BadTypeMismatch when CallRequest is GetMonitoredItem and has the argument with a wrong dataType ", async () => {
             const methodsToCall = [
                 {
                     objectId: coerceNodeId("ns=0;i=2253"), // SERVER
@@ -283,7 +287,7 @@ export function t(test: UmbrellaTestContext) {
                 const results = await session.call(methodsToCall);
 
                 results.length.should.eql(1);
-                results[0].statusCode.should.equalOneOf(StatusCodes.BadTypeMismatch, StatusCodes.BadInvalidArgument);
+                results[0].statusCode.should.eql(StatusCodes.BadInvalidArgument);
 
                 should(results[0].inputArgumentResults).be.instanceOf(Array);
                 should(results[0].inputArgumentResults?.length).eql(1);
