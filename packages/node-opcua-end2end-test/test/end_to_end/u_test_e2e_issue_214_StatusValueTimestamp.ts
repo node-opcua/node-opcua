@@ -1,4 +1,3 @@
-import "should";
 import {
     AttributeIds,
     DataChangeFilter,
@@ -12,6 +11,7 @@ import {
     Variant
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session.js";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
@@ -24,7 +24,8 @@ type WithInternalSetDataValue = { _internal_set_dataValue(dataValue: DataValue, 
 
 export function t(test: UmbrellaTestContext) {
     describe("NXX1 Testing issue #214 - DataChangeTrigger.StatusValueTimestamp", () => {
-        it("#214 - DataChangeTrigger.StatusValueTimestamp", async () => {
+        // the variable value never changes: only its SourceTimestamp is refreshed
+        async function countNotifications(filter: DataChangeFilter): Promise<number> {
             const nodeId = "ns=2;s=Static_Scalar_Double";
             const variable = test.server!.engine.addressSpace!.findNode(nodeId) as unknown as WithInternalSetDataValue;
             const variant = new Variant({ dataType: DataType.Double, value: 3.14 });
@@ -49,11 +50,6 @@ export function t(test: UmbrellaTestContext) {
 
             try {
                 await perform_operation_on_subscription_async(client, endpointUrl, async (_session, subscription) => {
-                    const filter = new DataChangeFilter({
-                        trigger: DataChangeTrigger.StatusValueTimestamp,
-                        deadbandType: DeadbandType.Absolute,
-                        deadbandValue: 1.0
-                    });
                     const itemToMonitor = { nodeId, attributeId: AttributeIds.Value };
                     const parameters = { samplingInterval: 100, discardOldest: false, queueSize: 10000, filter };
 
@@ -67,7 +63,32 @@ export function t(test: UmbrellaTestContext) {
             } finally {
                 clearInterval(timerId);
             }
-            nbChanges.should.be.above(5);
+            return nbChanges;
+        }
+
+        it("#214 - DataChangeTrigger.StatusValueTimestamp - a SourceTimestamp change is reported when no Deadband is set", async () => {
+            const nbChanges = await countNotifications(
+                new DataChangeFilter({
+                    trigger: DataChangeTrigger.StatusValueTimestamp,
+                    deadbandType: DeadbandType.None,
+                    deadbandValue: 0
+                })
+            );
+            should(nbChanges).be.above(5);
+        });
+
+        it("#214 - DataChangeTrigger.StatusValueTimestamp - a Deadband makes it behave as STATUS_VALUE", async () => {
+            // OPC 10000-4 (1.05) 7.22.2, STATUS_VALUE_TIMESTAMP_2:
+            //   "If a Deadband filter is specified, this trigger has the same behaviour as STATUS_VALUE_1."
+            // so a timestamp-only refresh must NOT be reported here: only the initial value is.
+            const nbChanges = await countNotifications(
+                new DataChangeFilter({
+                    trigger: DataChangeTrigger.StatusValueTimestamp,
+                    deadbandType: DeadbandType.Absolute,
+                    deadbandValue: 1.0
+                })
+            );
+            should(nbChanges).be.belowOrEqual(2);
         });
     });
 }
