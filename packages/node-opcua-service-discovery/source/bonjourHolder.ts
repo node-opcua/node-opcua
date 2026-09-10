@@ -33,6 +33,19 @@ async function releaseMulticastDNS(bonjour: Bonjour) {
     registry.unregister(bonjour);
 }
 
+/**
+ * How many multicast-DNS instances are currently held.
+ *
+ * A test seam, and the only way this leak is visible from inside the process: an instance left
+ * behind holds a socket on udp/5353, which keeps the event loop alive, so the symptom is a test
+ * run that finishes its assertions and then never exits.
+ *
+ * @internal
+ */
+export function multicastDNSInstanceCount(): number {
+    return registry.count();
+}
+
 export function acquireMulticastDNS(): Bonjour {
     const bonjour = new Bonjour();
     registry.register(bonjour);
@@ -131,8 +144,13 @@ export class BonjourHolder {
 
         this.#pendingAnnouncement = true;
         this.serviceConfig = serviceConfig;
-        this.#_service = await _announceServerOnMulticastSubnet(this.#_multicastDNS, serviceConfig);
-        this.#pendingAnnouncement = false;
+        try {
+            this.#_service = await _announceServerOnMulticastSubnet(this.#_multicastDNS, serviceConfig);
+        } finally {
+            // the announcement rejects on a 10s timeout; leaving the flag set would make
+            // stopAnnouncedOnMulticastSubnet retry forever and never release the instance
+            this.#pendingAnnouncement = false;
+        }
         // c8 ignore next
         doDebug && debugLog(chalk.yellow("exiting announcedOnMulticastSubnet-3", true));
         return true;
@@ -166,21 +184,26 @@ export class BonjourHolder {
                 )
             );
 
-        if (!this.#_service) {
-            // c8 ignore next
-            doDebug && debugLog(chalk.green("leaving stop_announcedOnMulticastSubnet = no service"));
-            return;
-        }
-        // due to a wrong declaration of Service.stop in the d.ts file we
-        // need to use a workaround here
+        // Take ownership of both handles first, then work on the locals. Everything below has
+        // to reach releaseMulticastDNS: a Bonjour instance holds a socket on udp/5353, and one
+        // left behind keeps the event loop alive, so a test run never exits.
         const that_service = this.#_service;
         const that_multicastDNS = this.#_multicastDNS;
         this.#_service = undefined;
         this.#_multicastDNS = undefined;
-
         this.serviceConfig = undefined;
 
-        if (that_multicastDNS && that_service.stop) {
+        if (!that_multicastDNS) {
+            // nothing was ever acquired
+            // c8 ignore next
+            doDebug && debugLog(chalk.green("leaving stop_announcedOnMulticastSubnet = no multicast DNS"));
+            return;
+        }
+
+        // A service exists only once the announcement completed; stopping is skipped when it
+        // did not, but the instance is released either way. `stop` is declared wrongly in the
+        // .d.ts, hence the check rather than a plain call.
+        if (that_service?.stop) {
             await new Promise<void>((resolve) => {
                 that_service.stop((err?: Error) => {
                     // c8 ignore next
@@ -191,8 +214,8 @@ export class BonjourHolder {
                     });
                 });
             });
-            await releaseMulticastDNS(that_multicastDNS);
         }
+        await releaseMulticastDNS(that_multicastDNS);
 
         // c8 ignore next
         if (doDebug) {

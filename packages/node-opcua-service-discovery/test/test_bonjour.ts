@@ -1,9 +1,16 @@
+import { EventEmitter } from "node:events";
 import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
 import Bonjour from "sterfive-bonjour-service";
-import { type Announcement, announcementToServiceConfig, BonjourHolder, serviceToString } from "../dist/index.js";
+import {
+    type Announcement,
+    announcementToServiceConfig,
+    BonjourHolder,
+    multicastDNSInstanceCount,
+    serviceToString
+} from "../dist/index.js";
 
 const port = 1234;
 
@@ -104,5 +111,67 @@ describe("Bonjour", () => {
         spyDown.callCount.should.eql(1);
         spyUp.callCount.should.eql(1);
         shutdown();
+    });
+});
+
+// ── releasing the multicast-DNS instance ────────────────────────────────────────
+//
+// Every exit path of stopAnnouncedOnMulticastSubnet has to release the Bonjour instance it
+// acquired. One left behind holds a socket on udp/5353 and keeps the event loop alive, so the
+// failure is not an assertion: it is a mocha run that prints its results and then hangs. That
+// was seen once for 1h35m, holding six of these sockets.
+
+describe("BonjourHolder multicast-DNS lifetime", () => {
+    it("MDNS-1 releases the instance when an announcement was made", async () => {
+        const before = multicastDNSInstanceCount();
+        const holder = new BonjourHolder();
+        await holder.announcedOnMulticastSubnet({ name: "mdns-1", capabilities: ["DA"], host: "host", path: "path", port });
+        should(multicastDNSInstanceCount()).eql(before + 1);
+
+        await holder.stopAnnouncedOnMulticastSubnet();
+        should(multicastDNSInstanceCount()).eql(before);
+        should(holder.isStarted()).eql(false);
+    });
+
+    it("MDNS-2 stopping without an announcement releases nothing and returns", async () => {
+        const before = multicastDNSInstanceCount();
+        const holder = new BonjourHolder();
+        await holder.stopAnnouncedOnMulticastSubnet();
+        should(multicastDNSInstanceCount()).eql(before);
+    });
+
+    it("MDNS-3 stopping twice is safe", async () => {
+        const before = multicastDNSInstanceCount();
+        const holder = new BonjourHolder();
+        await holder.announcedOnMulticastSubnet({ name: "mdns-3", capabilities: ["DA"], host: "host", path: "path", port });
+        await holder.stopAnnouncedOnMulticastSubnet();
+        await holder.stopAnnouncedOnMulticastSubnet();
+        should(multicastDNSInstanceCount()).eql(before);
+    });
+
+    it("MDNS-4 releases the instance when the announcement failed", async () => {
+        // the announcement rejects on an error event or a 10s timeout. Before the fix the
+        // instance was acquired but never reached the release, because stop() returned early
+        // on `!this.#_service` - and the pending flag stayed set, so a later stop recursed
+        // forever rather than failing.
+        const before = multicastDNSInstanceCount();
+        const holder = new BonjourHolder();
+        const publish = sinon.stub(Bonjour.prototype, "publish").callsFake(() => {
+            const service = new EventEmitter() as unknown as ReturnType<Bonjour["publish"]>;
+            setImmediate(() => (service as unknown as EventEmitter).emit("error", new Error("announce refused")));
+            return service;
+        });
+        try {
+            await holder
+                .announcedOnMulticastSubnet({ name: "mdns-4", capabilities: ["DA"], host: "host", path: "path", port })
+                .then(
+                    () => undefined,
+                    () => undefined
+                );
+        } finally {
+            publish.restore();
+        }
+        await holder.stopAnnouncedOnMulticastSubnet();
+        should(multicastDNSInstanceCount()).eql(before);
     });
 });

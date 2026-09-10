@@ -23,7 +23,7 @@ export {
 } from "node-opcua-types";
 export { Announcement } from "./Announcement.js";
 export { announcementToServiceConfig } from "./announcement_to_service_config.js";
-export { BonjourHolder } from "./bonjourHolder.js";
+export { BonjourHolder, multicastDNSInstanceCount } from "./bonjourHolder.js";
 export { serverCapabilities } from "./server_capabilities.js";
 export {
     isSameService,
