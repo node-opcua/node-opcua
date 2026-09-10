@@ -158,11 +158,19 @@ describe("OPC 10000-17: FindAlias", () => {
                     aliasNames(result).should.eql(["FIT-101", "LSH-201", "TI101"]);
                 });
 
-                it("should exclude aliases linked by an unrelated ReferenceType", async () => {
+                it("should reject a ReferenceTypeFilter that is not AliasFor or a subtype of it", async () => {
+                    // clause 6.3.2 Table 3 / clause 8.2 (CTT AliasName Base Err-004):
                     // Organizes is not AliasFor nor a subtype of it
                     const organizes = addressSpace.findReferenceType("Organizes")!;
                     const result = await callFind(tagVariables, methodName, "%", organizes.nodeId);
-                    resultAliases(result).should.have.length(0);
+                    should(result.statusCode).eql(StatusCodes.BadInvalidArgument);
+                });
+
+                it("should reject HasComponent as a ReferenceTypeFilter (CTT AliasName Base Err-004)", async () => {
+                    const hasComponent = addressSpace.findReferenceType("HasComponent")!;
+                    const result = await callFind(tagVariables, methodName, "TI101", hasComponent.nodeId);
+                    should(result.statusCode).eql(StatusCodes.BadInvalidArgument);
+                    should(result.inputArgumentResults).eql([StatusCodes.Good, StatusCodes.BadInvalidArgument]);
                 });
             });
         }
