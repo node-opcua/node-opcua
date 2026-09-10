@@ -44,10 +44,17 @@ describe("Testing loadNodeSet - the declared ParentNodeId is the parent", functi
         should(xml).match(/NodeId="ns=1;i=1003" BrowseName="1:Label" ParentNodeId="ns=1;i=1001"/);
     });
 
-    it("LNPN-4 without a declaration, a node with a single organizing parent and no aggregating one is parented by it", () => {
+    it("LNPN-4 without a declaration, Organizes is still not a parent relation", () => {
         const namespace = addressSpace.getOwnNamespace();
         const holder = namespace.addObject({ browseName: "Holder", organizedBy: addressSpace.rootFolder.objects });
         const organized = namespace.addObject({ browseName: "Organized", organizedBy: holder });
+        should(organized.parentNodeId).eql(undefined);
+    });
+
+    it("LNPN-5 a declared organizing parent is honoured when built through the API too", () => {
+        const namespace = addressSpace.getOwnNamespace();
+        const holder = namespace.addObject({ browseName: "Holder2", organizedBy: addressSpace.rootFolder.objects });
+        const organized = namespace.addObject({ browseName: "Organized2", organizedBy: holder, parentNodeId: holder });
         should(organized.parentNodeId?.toString()).eql(holder.nodeId.toString());
     });
 });

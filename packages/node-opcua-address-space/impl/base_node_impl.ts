@@ -1747,15 +1747,23 @@ function _setup_parent_item(this: BaseNode, referencesMap: Map<ReferenceKey, UAR
 
     if (referencesMap.size > 0) {
         // the document declared a parent (ParentNodeId): it wins when it is one of the
-        // hierarchical parents, whatever the order the references were declared in. OPC
-        // Foundation NodeSets rely on it for a node reached from two parents (an add-in
-        // re-exposed from a folder) and for an organized folder, and name ids after it.
+        // hierarchical parents, whatever the order the references were declared in, and
+        // even through Organizes, which is otherwise not a parent relation. OPC Foundation
+        // NodeSets rely on it for a node reached from two parents (an add-in re-exposed
+        // from a folder) and for a folder a type organizes, and name ids after it.
         const declared = _private._declaredParentNodeId;
         if (declared) {
             const hierarchical = this.findReferencesEx("HierarchicalReferences", BrowseDirection.Inverse);
             const match = hierarchical.find((r) => sameNodeId(r.nodeId, declared));
             if (match) {
                 return ReferenceImpl.resolveReferenceNode(addressSpace, match);
+            }
+            // the parent may be asked for while the document is still being loaded, before
+            // the other end of the reference has been declared: the document still says
+            // who the parent is
+            const declaredNode = addressSpace.findNode(declared);
+            if (declaredNode) {
+                return declaredNode;
             }
         }
 
@@ -1777,13 +1785,6 @@ function _setup_parent_item(this: BaseNode, referencesMap: Map<ReferenceKey, UAR
                 }
             }
             return ReferenceImpl.resolveReferenceNode(addressSpace, references[0]);
-        }
-        // no aggregating parent: a single organizing parent owns the node, as the
-        // NodeSets of the OPC Foundation export and name it (an organized folder
-        // under a type carries ParentNodeId = the type)
-        const organizing = this.findReferencesEx("Organizes", BrowseDirection.Inverse);
-        if (organizing.length === 1) {
-            return ReferenceImpl.resolveReferenceNode(addressSpace, organizing[0]);
         }
     }
     return null;
