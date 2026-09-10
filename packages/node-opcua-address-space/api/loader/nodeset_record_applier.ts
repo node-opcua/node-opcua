@@ -607,6 +607,7 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
                 this.createNode(
                     {
                         ...this.common(record),
+                        parentNodeId: this.translateOrNull(record.parentNodeId),
                         isAbstract: record.isAbstract,
                         eventNotifier: record.eventNotifier,
                         symbolicName: record.symbolicName ?? null,

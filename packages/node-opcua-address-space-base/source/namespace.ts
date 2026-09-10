@@ -53,6 +53,15 @@ export interface CreateNodeOptions {
 
     subtypeOf?: NodeIdLike | string | BaseNode | null;
 
+    /**
+     * the parent the document declares (the `ParentNodeId` attribute of a NodeSet2 node).
+     * A node reached by several hierarchical references (an add-in re-exposed from a folder)
+     * is parented by the one named here, when it is among them; otherwise the first
+     * aggregating reference met is the parent, and a node with none is parented by its single
+     * organizing parent.
+     */
+    parentNodeId?: NodeIdLike | BaseNode | null;
+
     isAbstract?: boolean;
 
     nodeVersion?: string;

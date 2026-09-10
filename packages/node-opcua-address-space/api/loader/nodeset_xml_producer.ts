@@ -194,6 +194,7 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
             this.obj.isAbstract = coerceBoolean(attrs.IsAbstract);
             this.obj.eventNotifier = coerceByte(attrs.EventNotifier) || 0;
             if (attrs.SymbolicName) this.obj.symbolicName = attrs.SymbolicName;
+            if (attrs.ParentNodeId) this.obj.parentNodeId = nodeIdOf(attrs.ParentNodeId);
         },
         ...emit,
         parser: common_parser
@@ -316,6 +317,7 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
             this.obj = baseRecord(NodeClass.View, attrs);
             if (attrs.ContainsNoLoops !== undefined) this.obj.containsNoLoops = coerceBoolean(attrs.ContainsNoLoops);
             this.obj.eventNotifier = coerceByte(attrs.EventNotifier) || 0;
+            if (attrs.ParentNodeId) this.obj.parentNodeId = nodeIdOf(attrs.ParentNodeId);
         },
         ...emit,
         parser: common_parser
