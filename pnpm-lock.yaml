@@ -4354,6 +4354,10 @@ importers:
       node-opcua-types:
         specifier: 2.182.0
         version: link:../node-opcua-types
+    devDependencies:
+      xlsx-ugnis:
+        specifier: 0.20.3
+        version: 0.20.3
 
   packages/node-opcua-utils:
     dependencies:
@@ -6124,6 +6128,11 @@ packages:
     engines: {node: '>=0.10.0'}
     hasBin: true
 
+  xlsx-ugnis@0.20.3:
+    resolution: {integrity: sha512-FlQpODKgljCi07BQiEPBq5mbsUjNRJcqwDougtf0uOFfiEsY6WmJA/3WNzTEyTSghtzDK8h5hnl+5TfJT0jW+w==}
+    engines: {node: '>=0.8'}
+    hasBin: true
+
   xml-writer@1.7.0:
     resolution: {integrity: sha512-elFVMRiV5jb59fbc87zzVa0C01QLBEWP909mRuWqFqrYC5wNTH5QW4AaKMNv7d6zAsuOulkD7wnztZNLQW0Nfg==}
     engines: {node: '>=0.4.0'}
@@ -7672,6 +7681,8 @@ snapshots:
   ws@8.21.3: {}
 
   wtfnode@0.10.1: {}
+
+  xlsx-ugnis@0.20.3: {}
 
   xml-writer@1.7.0: {}
 
