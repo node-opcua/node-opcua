@@ -244,6 +244,7 @@ export * from "./loader/register_node_promoter.js";
 export * from "./namespace.js";
 export type { INamespaceAlarmAndCondition } from "./namespace_alarm_and_condition.js";
 export * from "./namespace_data_access.js";
+export * from "./namespace_of.js";
 export * from "./pseudo_session.js";
 export * from "./session_context.js";
 export * from "./set_namespace_meta_data.js";
