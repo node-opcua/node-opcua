@@ -1,13 +1,13 @@
 {
   "standard": {
     "uri": "http://opcfoundation.org/UA/",
-    "length": 4219230,
-    "sha1": "b6c1ecd29e0c187549b24be2267ff3c12c9be6f6"
+    "length": 4219690,
+    "sha1": "468c4ce7ad7898cc371bb153f2d594a5d6015813"
   },
   "di": {
     "uri": "http://opcfoundation.org/UA/DI/",
-    "length": 299680,
-    "sha1": "ff730d196bc29100df4d2c9c8703b0345a39097a"
+    "length": 299734,
+    "sha1": "cfc0578ef4f6b821c919470af4add7711f87e515"
   },
   "adi": {
     "uri": "http://opcfoundation.org/UA/ADI/",
@@ -16,8 +16,8 @@
   },
   "autoId": {
     "uri": "http://opcfoundation.org/UA/AutoID/",
-    "length": 303923,
-    "sha1": "f06307782ff77f5a351c32adea3b90a5cae0a802"
+    "length": 303977,
+    "sha1": "6f9c346dd101aefca46dc1898c86366bbad6dc33"
   },
   "machineVision": {
     "uri": "http://opcfoundation.org/UA/MachineVision",
@@ -36,13 +36,13 @@
   },
   "gds": {
     "uri": "http://opcfoundation.org/UA/GDS/",
-    "length": 431249,
-    "sha1": "97e0b19ea1603137eae1103388f183ab80e6f111"
+    "length": 431326,
+    "sha1": "1ee82aa196a67e7ff91a57584b94cba82070a105"
   },
   "robotics": {
     "uri": "http://opcfoundation.org/UA/Robotics/",
-    "length": 391503,
-    "sha1": "52823385ac2278cd7c0ac490fcd3253f819437c0"
+    "length": 391749,
+    "sha1": "7e11ae39cd4060b2cd8a243f91d5411f3dec867e"
   },
   "isa95JobControl": {
     "uri": "http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/",
@@ -101,8 +101,8 @@
   },
   "lads": {
     "uri": "http://opcfoundation.org/UA/LADS/",
-    "length": 423491,
-    "sha1": "11916e7946726b098708455ef3f544fcd79cbde8"
+    "length": 423761,
+    "sha1": "084610e7d09c5903fa18e086a497f6cfdfa41a0d"
   },
   "packML": {
     "uri": "http://opcfoundation.org/UA/PackML/",
@@ -111,8 +111,8 @@
   },
   "iolink": {
     "uri": "http://opcfoundation.org/UA/IOLink/",
-    "length": 206350,
-    "sha1": "96e5d562d620ecbaee2d9b6e8a1b97cbf5a576f2"
+    "length": 206471,
+    "sha1": "739c9d15ea719c6113de7bbf5f5399f25539990b"
   },
   "iolinkIODD": {
     "uri": "http://opcfoundation.org/UA/IOLink/IODD/",
@@ -139,16 +139,6 @@
     "length": 80793,
     "sha1": "f237658dc43fddf8ecca730b2b810243f5512c12"
   },
-  "surfaceTechnologyGeneralTypes": {
-    "uri": "http://opcfoundation.org/UA/SurfaceTechnology/GeneralTypes/",
-    "length": 72460,
-    "sha1": "8562dacb17d99a8d58ab5865ebf25cef2143fa1d"
-  },
-  "surfaceTechnologyOctMss": {
-    "uri": "http://opcfoundation.org/UA/SurfaceTechnology/OCT-MSS/",
-    "length": 142791,
-    "sha1": "aa2b4ddc0b7ffb2e03a180d9d94a7dc5bf27bf7a"
-  },
   "scales": {
     "uri": "http://opcfoundation.org/UA/Scales/V2/",
     "length": 815179,
@@ -163,5 +153,15 @@
     "uri": "http://opcfoundation.org/UA/Weihenstephan/",
     "length": 46827,
     "sha1": "ab7f981b5306c4584e3f25dece2dc1cb9589e054"
+  },
+  "surfaceTechnologyGeneralTypes": {
+    "uri": "http://opcfoundation.org/UA/SurfaceTechnology/GeneralTypes/",
+    "length": 72460,
+    "sha1": "a5530aab9a21e6133dfbe14a7e8e63e098fc20b7"
+  },
+  "surfaceTechnologyOctMss": {
+    "uri": "http://opcfoundation.org/UA/SurfaceTechnology/OCT-MSS/",
+    "length": 142791,
+    "sha1": "41d65f6a9d0b69c8c4ad6393e5642971805a4cae"
   }
 }
