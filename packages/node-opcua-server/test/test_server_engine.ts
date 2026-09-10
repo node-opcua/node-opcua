@@ -1691,7 +1691,9 @@ describe("testing ServerEngine", () => {
                 });
 
                 // the cast exists so sinon can spy on refreshFunc, which bindVariable installs
-                return variable as unknown as UAVariable & { refreshFunc: (callback: CallbackT<DataValue>) => void };
+                return variable as unknown as UAVariable & {
+                    refreshFunc: (callback: (err: Error | null, dataValue?: DataValue) => void) => void;
+                };
             }
 
             const variable = given_a_variable_that_have_async_refresh();

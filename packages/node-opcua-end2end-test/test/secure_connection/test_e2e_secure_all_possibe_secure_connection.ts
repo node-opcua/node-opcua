@@ -28,7 +28,6 @@ import {
     type ServiceFault,
     TimestampsToReturn
 } from "node-opcua";
-import type { ClientSessionImpl } from "node-opcua-client/source/private/client_session_impl.js";
 import {
     type Certificate,
     exploreCertificate,
@@ -43,6 +42,7 @@ import { randomBytes } from "node-opcua-utils";
 import should from "should";
 import sinon from "sinon";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
+import type { SessionInternals } from "../../test_helpers/client_internals.js";
 import { certificateFolder, tmpFolder } from "../../test_helpers/paths.js";
 
 const debugLog = make_debugLog("TEST");
@@ -1067,7 +1067,7 @@ describe("ZF - testing truncated certificate chain", function (this: Mocha.Suite
         await client.withSessionAsync(endpointUrl, async (session) => {
             client.on("send_request", (_request) => {
                 //xx const securityToken=
-                console.log((session as ClientSessionImpl)._client?._secureChannel?.activeSecurityToken?.toString());
+                console.log((session as unknown as SessionInternals)._client?._secureChannel?.activeSecurityToken?.toString());
             });
             client.on("security_token_renewed", (_channel, token) => {
                 console.log("security_token_renewed", JSON.stringify({ ...token }));

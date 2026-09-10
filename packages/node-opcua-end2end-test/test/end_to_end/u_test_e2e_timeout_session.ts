@@ -1,9 +1,9 @@
 import "should";
 import { type ClientSession, OPCUAClient } from "node-opcua";
-import type { ClientSessionKeepAliveManager } from "node-opcua-client/dist/client_session_keepalive_manager.js";
 import { make_warningLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import sinon from "sinon";
+import type { KeepAliveManagerInternals } from "../../test_helpers/client_internals.js";
 import { waitUntilCondition } from "../../test_helpers/utils.js";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
@@ -13,7 +13,7 @@ const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
 
 type OPCUAClientEx = OPCUAClient & { requestedSessionTimeout: number };
 type ClientSessionEx = ClientSession & {
-    _keepAliveManager: ClientSessionKeepAliveManager;
+    _keepAliveManager: KeepAliveManagerInternals;
 };
 
 export function t(test: UmbrellaTestContext) {
