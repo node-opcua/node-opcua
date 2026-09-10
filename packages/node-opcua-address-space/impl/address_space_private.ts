@@ -5,24 +5,19 @@
 import type {
     AddReferenceOpts,
     BaseNode,
-    ContinuationData,
     IAddressSpace,
-    ISessionContext,
     MethodCallInterceptor,
     UADataType,
     UAObjectType,
     UAReference,
-    UAVariable,
     UAVariableType,
     UAView
 } from "node-opcua-address-space-base";
 import type { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
-import type { NodeClass, QualifiedNameLike } from "node-opcua-data-model";
+import type { NodeClass } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import type { NumericRange } from "node-opcua-numeric-range";
-import type { CallbackT } from "node-opcua-status-code";
-import type { HistoryReadResult, ModelChangeStructureDataType, ReadProcessedDetails } from "node-opcua-types";
+import type { ModelChangeStructureDataType } from "node-opcua-types";
 import type { ExtensionObjectConstructorFuncWithSchema } from "../api/interfaces/extension_object_constructor.js";
 import type { UARootFolder } from "../api/ua_root_folder.js";
 

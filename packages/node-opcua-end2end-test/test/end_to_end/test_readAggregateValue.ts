@@ -12,12 +12,7 @@ import {
     StatusCodes
 } from "node-opcua";
 import { addAggregateSupport } from "node-opcua-aggregates";
-import {
-    createHistorian1,
-    createHistorian2,
-    createHistorian3,
-    createHistorian4
-} from "node-opcua-aggregates/test/helpers/create_historizing_variables.js";
+import { createHistorian1, createHistorian2, createHistorian3, createHistorian4 } from "node-opcua-aggregates/testHelpers.js";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import should from "should";
 
