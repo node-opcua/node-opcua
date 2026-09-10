@@ -101,7 +101,10 @@ export function _handle_model_change_event(node: BaseNodeImpl): void {
     //
     const parents = node.parent ? [node.parent] : [];
 
-    const containingFolders = node.findReferencesExAsObject("Organizes", BrowseDirection.Inverse);
+    // an organized node with no aggregating parent is parented by its organizer: one event each
+    const containingFolders = node
+        .findReferencesExAsObject("Organizes", BrowseDirection.Inverse)
+        .filter((folder) => !parents.some((parent) => parent.nodeId.toString() === folder.nodeId.toString()));
 
     let typeDefinitionNodeId: NodeId | null = null;
     if (node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable) {
