@@ -84,6 +84,7 @@ import { apply_condition_refresh, type ConditionRefreshCache } from "./apply_con
 import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl.js";
 import { _clone, ToStringBuilder, UAVariable_toString, valueRankToString } from "./base_node_private.js";
 import { adjustDataValueStatusCode } from "./data_access/adjust_datavalue_status_code.js";
+import { notifySemanticsChangedIfNeeded } from "./data_access/semantics_changed.js";
 import { _getBasicDataType } from "./get_basic_datatype.js";
 import { type EnumerationInfo, type IEnumItem, UADataTypeImpl } from "./ua_data_type_impl.js";
 import {
@@ -1964,6 +1965,15 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         }
 
         if (!sameDataValue(old_dataValue, dataValue)) {
+            // a Property that carries the semantics of a DataItem (EURange, TrueState, ...) has to make
+            // the DataItem's next notification carry the SemanticsChanged bit. Done from the Property
+            // rather than with a listener installed when the DataItem is built, because a hand-built
+            // DataItem gets its Properties after itself - see impl/data_access/semantics_changed.ts.
+            // ... but a Property receiving its first value is a Variable being built, not a
+            // semantics change: until then its StatusCode is UncertainInitialValue.
+            if (old_dataValue.statusCode.isGood()) {
+                notifySemanticsChangedIfNeeded(this as UAVariable);
+            }
             if (this.getBasicDataType() === DataType.ExtensionObject) {
                 const preciseClock = coerceClock(this.$dataValue.sourceTimestamp, this.$dataValue.sourcePicoseconds);
                 const cache: Set<UAVariable> = new Set();

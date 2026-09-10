@@ -1084,7 +1084,6 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
 
         if (this._semantic_changed_callback) {
             assert(typeof this._semantic_changed_callback === "function");
-            assert(!this._samplingId);
             (this.node as UAVariable).removeListener("semantic_changed", this._semantic_changed_callback);
             this._semantic_changed_callback = null;
         }
@@ -1173,7 +1172,9 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         if (!this.node) {
             throw new Error("_on_semantic_changed: expecting a valid node");
         }
-        const dataValue: DataValue = (this.node as UAVariable).readValue();
+        // readValue() hands out the node's own DataValue: recordValue stores what it is given, so
+        // a clone is required or the queue would alias the node's live value.
+        const dataValue: DataValue = (this.node as UAVariable).readValue().clone();
         this._on_value_changed(dataValue);
     }
 
@@ -1303,16 +1304,22 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             return;
         }
 
+        // A semantic change is not a value change: a sampled item would only notice it at its next
+        // tick, and OPC 10000-4 7.39 wants the *next* notification to carry the SemanticsChanged bit.
+        // CTT Data Access AnalogItemType 008 publishes right after writing EURange, so the item is
+        // told about the change as it happens, whether it is sampled or exception-based.
+        if (!this._semantic_changed_callback && this.node.nodeClass === NodeClass.Variable) {
+            this._semantic_changed_callback = this._on_semantic_changed.bind(this);
+            this.node.on("semantic_changed", this._semantic_changed_callback);
+        }
+
         if (this._exceptionBased) {
             // we have a exception-based dataItem : event based model, so we do not need a timer
             // rather , we setup the "value_changed_event"; samplingInterval is the coalescing window
             if (!this._value_changed_callback) {
-                assert(!this._semantic_changed_callback);
                 this._value_changed_callback = this._on_value_changed_exception_based.bind(this);
-                this._semantic_changed_callback = this._on_semantic_changed.bind(this);
                 if (this.node.nodeClass === NodeClass.Variable) {
                     this.node.on("value_changed", this._value_changed_callback);
-                    this.node.on("semantic_changed", this._semantic_changed_callback);
                 }
             }
 

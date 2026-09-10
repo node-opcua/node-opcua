@@ -32,13 +32,10 @@ export class UATwoStateDiscreteImplBase extends UAVariableImplT<boolean, DataTyp
     _post_initialize(): void {
         // The StatusCode SemanticsChanged bit shall be set if any of the FalseState or TrueState
         // (changes can cause misinterpretation by users or (scripting) programs) Properties are changed
-        // (see section 5.2 for additional information).
-        const handler = this.handle_semantic_changed.bind(this);
-
+        // (see section 5.2 for additional information). That is done generically in
+        // impl/data_access/semantics_changed.ts; all this has to do is warn about a missing Property.
         const falseState = this.getPropertyByName("FalseState");
-        if (falseState) {
-            falseState.on("value_changed", handler);
-        } else {
+        if (!falseState) {
             /* c8 ignore next */
             console.warn(
                 "warning: UATwoStateDiscrete -> a FalseState property is mandatory ",
@@ -47,9 +44,7 @@ export class UATwoStateDiscreteImplBase extends UAVariableImplT<boolean, DataTyp
             );
         }
         const trueState = this.getPropertyByName("TrueState");
-        if (trueState) {
-            trueState.on("value_changed", handler);
-        } else {
+        if (!trueState) {
             /* c8 ignore next */
             console.warn(
                 "waring: UATwoStateDiscrete -> a TrueState property is mandatory",
@@ -154,11 +149,10 @@ export function _addTwoStateDiscrete(namespace: INamespace, options: AddTwoState
     const dataValueVerif = variable.readValue();
     assert(dataValueVerif.value.dataType === DataType.Boolean);
     */
-    const handler = (variable as UAVariableImpl).handle_semantic_changed.bind(variable);
 
     add_dataItem_stuff(variable, options);
 
-    const trueStateNode = namespace.addVariable({
+    namespace.addVariable({
         browseName: { name: "TrueState", namespaceIndex: 0 },
         dataType: "LocalizedText",
         minimumSamplingInterval: 0,
@@ -171,9 +165,7 @@ export function _addTwoStateDiscrete(namespace: INamespace, options: AddTwoState
         })
     });
 
-    trueStateNode.on("value_changed", handler);
-
-    const falseStateNode = namespace.addVariable({
+    namespace.addVariable({
         browseName: { name: "FalseState", namespaceIndex: 0 },
         dataType: "LocalizedText",
         minimumSamplingInterval: 0,
@@ -186,8 +178,6 @@ export function _addTwoStateDiscrete(namespace: INamespace, options: AddTwoState
             value: coerceLocalizedText(options.falseState || "OFF")
         })
     });
-
-    falseStateNode.on("value_changed", handler);
 
     variable.install_extra_properties();
 

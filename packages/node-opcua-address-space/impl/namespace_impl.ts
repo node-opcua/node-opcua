@@ -1036,8 +1036,8 @@ export class NamespaceImpl implements NamespacePrivate {
 
         assert(euRange.readValue().value.value instanceof Range);
 
-        const handler = variable.handle_semantic_changed.bind(variable);
-        euRange.on("value_changed", handler);
+        // the SemanticsChanged wiring of EURange/InstrumentRange/EngineeringUnits is generic and
+        // lives in impl/data_access/semantics_changed.ts: it covers DataItems built any other way too.
 
         if (Object.hasOwn(options, "instrumentRange")) {
             const instrumentRangeExisting = variable.getPropertyByName("InstrumentRange") as UAVariableImpl | null;
@@ -1062,8 +1062,6 @@ export class NamespaceImpl implements NamespacePrivate {
                     StatusCodes.Good
                 );
             }
-
-            instrumentRange.on("value_changed", handler);
         }
         (variable as unknown as { acceptValueOutOfRange?: boolean }).acceptValueOutOfRange = options.acceptValueOutOfRange;
 
@@ -1096,8 +1094,6 @@ export class NamespaceImpl implements NamespacePrivate {
                     StatusCodes.Good
                 );
             }
-
-            eu.on("value_changed", handler);
         }
 
         variable.install_extra_properties();

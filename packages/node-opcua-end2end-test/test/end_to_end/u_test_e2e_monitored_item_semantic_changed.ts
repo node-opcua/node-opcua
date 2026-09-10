@@ -1,13 +1,15 @@
-import "should";
 import {
     AttributeIds,
     type ClientSession,
     type ClientSessionPublishService,
     type ClientSessionRawSubscriptionService,
     CreateMonitoredItemsRequest,
+    DataChangeFilter,
     type DataChangeNotification,
+    DataChangeTrigger,
     DataType,
     DataValue,
+    DeadbandType,
     type MonitoredItemNotification,
     MonitoringMode,
     MonitoringParameters,
@@ -22,6 +24,7 @@ import {
     TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import { perform_operation_on_raw_subscription } from "../../test_helpers/perform_operation_on_client_session.js";
 
 interface TestHarness {
@@ -166,6 +169,55 @@ export function t(test: TestHarness) {
                 }
             );
         }
+
+        /**
+         * CTT Data Access AnalogItemType 008: the item carries an absolute deadband of 10 and the
+         * initial data change has already been consumed, so nothing but the semantic change can
+         * produce the notification the script then publishes for. The DataChangeFilter must not
+         * swallow it, and it has to be produced although the value itself never changed.
+         */
+        it("YY4 semanticChanged reaches an item with a deadband filter and no value change", async () => {
+            const analogNodeId = "ns=2;s=DoubleAnalogDataItem";
+
+            await perform_operation_on_raw_subscription(client, test.endpointUrl, async (session, { subscriptionId }) => {
+                const orgEURange = await readEURange(session, analogNodeId);
+
+                const createReq = new CreateMonitoredItemsRequest({
+                    subscriptionId,
+                    timestampsToReturn: TimestampsToReturn.Both,
+                    itemsToCreate: [
+                        {
+                            itemToMonitor: new ReadValueId({ attributeId: AttributeIds.Value, nodeId: analogNodeId }),
+                            monitoringMode: MonitoringMode.Reporting,
+                            requestedParameters: new MonitoringParameters({
+                                clientHandle: 1001,
+                                samplingInterval: 100,
+                                queueSize: 10,
+                                discardOldest: true,
+                                filter: new DataChangeFilter({
+                                    trigger: DataChangeTrigger.StatusValue,
+                                    deadbandType: DeadbandType.Absolute,
+                                    deadbandValue: 10
+                                })
+                            })
+                        }
+                    ]
+                });
+                const createResponse = await (session as RawSession).createMonitoredItems(createReq);
+                should(createResponse.results?.[0].statusCode).eql(StatusCodes.Good);
+
+                // consume the initial data change, as the script does
+                const firstNotif = await getNextDataChangeNotification(session);
+                firstNotif.value.statusCode.hasSemanticChangedBit.should.eql(false);
+
+                await writeEURange(session, analogNodeId, { low: orgEURange.low + 1, high: orgEURange.high - 1 });
+
+                const secondNotif = await getNextDataChangeNotification(session);
+                secondNotif.value.statusCode.hasSemanticChangedBit.should.eql(true);
+
+                await writeEURange(session, analogNodeId, orgEURange);
+            });
+        });
 
         it("YY3 semanticChanged with sampling 1000ms", async () => {
             await checkSemanticChange(1000);
