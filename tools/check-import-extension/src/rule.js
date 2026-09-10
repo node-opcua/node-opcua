@@ -20,7 +20,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
-import { SOURCE_ROOTS, shippedDirsOf } from "../../shared/shipped_dirs.mjs";
+import { emittedFrom, SOURCE_ROOTS, shippedDirsOf } from "../../shared/shipped_dirs.mjs";
 import { TEST_DIRS } from "../../shared/test_dirs.mjs";
 
 /** opt out of the rule on one line, with a reason: `// check-import-extension: ok - why` */
@@ -156,6 +156,32 @@ function splitBare(specifier) {
     return [parts.slice(0, take).join("/"), parts.slice(take).join("/")];
 }
 
+/**
+ * Every on-disk path a package subpath could correspond to, including its pre-build source.
+ *
+ * `dist` is a build artifact and this gate must not need one: CI lints after
+ * `pnpm install --ignore-scripts`, with nothing compiled, and a rule that consults `dist`
+ * passes on a warm tree and fails on a clean checkout. So `dist/ua_folder.js` is also looked
+ * for as `source/ua_folder.ts`, through the outDir -> source mapping the tsconfigs already
+ * declare. Both rootDir conventions are tried, because both are in use here: nodeset-ua sets
+ * `rootDir: "source"`, while packet-analyzer compiles two trees and keeps their names.
+ */
+function candidatePaths(packageDir, sub) {
+    const out = [sub];
+    for (const [outDir, roots] of emittedFrom(packageDir)) {
+        if (sub !== outDir && !sub.startsWith(`${outDir}/`)) continue;
+        const rest = sub.slice(outDir.length + 1);
+        out.push(rest);
+        for (const root of roots) out.push(`${root}/${rest}`);
+    }
+    return out.filter(Boolean);
+}
+
+/** the source extensions a specifier's `.js` may actually be written as */
+const SOURCE_EXTENSIONS = [".ts", ".tsx", ".mts", ".cts", ".d.ts"];
+
+const existsAsAny = (packageDir, base, extensions) => extensions.some((e) => isFile(path.join(packageDir, base + e)));
+
 export function resolveBareSpecifier(specifier, repoRoot = ".") {
     const split = splitBare(specifier);
     if (!split) return { kind: "ok", suggestion: null };
@@ -182,20 +208,24 @@ export function resolveBareSpecifier(specifier, repoRoot = ".") {
         return { kind: "not-exported", suggestion: null };
     }
 
-    // a specifier already carrying an extension is right if the file is there, or if its
-    // TypeScript twin is: `source/private/x.js` is the correct ESM form of `x.ts`, which is
-    // all that exists in a package whose sources are not emitted in place
+    const candidates = candidatePaths(dir, sub);
+
+    // a specifier already carrying an extension is right if that file is there, or if the
+    // source it is compiled from is: `dist/x.js` is the correct ESM form of `source/x.ts`,
+    // and on a clean checkout the `.ts` is the only one of the two that exists
     if (SETTLED.test(sub)) {
-        const twin = sub.replace(/\.js$/, "");
-        const found =
-            isFile(path.join(dir, sub)) || [".ts", ".tsx", ".mts", ".cts", ".d.ts"].some((e) => isFile(path.join(dir, twin + e)));
+        const found = candidates.some((c) => isFile(path.join(dir, c)) || existsAsAny(dir, c.replace(/\.js$/, ""), SOURCE_EXTENSIONS));
         return found ? { kind: "ok", suggestion: null } : { kind: "unresolved", suggestion: null };
     }
-    for (const ext of [".js", ".ts", ".d.ts", ".mjs", ".cjs"]) {
-        if (isFile(path.join(dir, sub + ext))) return { kind: "bare-file", suggestion: `${name}/${sub}.js` };
+    for (const c of candidates) {
+        if (existsAsAny(dir, c, [".js", ".mjs", ".cjs", ...SOURCE_EXTENSIONS])) {
+            return { kind: "bare-file", suggestion: `${name}/${sub}.js` };
+        }
     }
-    for (const ext of [".js", ".ts", ".d.ts"]) {
-        if (isFile(path.join(dir, sub, `index${ext}`))) return { kind: "bare-directory", suggestion: `${name}/${sub}/index.js` };
+    for (const c of candidates) {
+        if (existsAsAny(dir, path.join(c, "index"), [".js", ...SOURCE_EXTENSIONS])) {
+            return { kind: "bare-directory", suggestion: `${name}/${sub}/index.js` };
+        }
     }
     return { kind: "unresolved", suggestion: null };
 }
