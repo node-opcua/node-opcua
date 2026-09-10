@@ -52,7 +52,7 @@ export function t(test: TestHarness) {
             client = null;
         });
 
-        it("#141-A PublishRequest timeoutHint shall exceed keepalive gap", async function () {
+        it("#141-A PublishRequest timeoutHint shall exceed keepalive gap", async function (this: Mocha.Context) {
             // wait until at least 2 keepalives have been observed (proves the gap is
             // sustainable across multiple cycles), with a generous safety timeout so a
             // slow/loaded CI runner doesn't fail on a single missed keepalive window
