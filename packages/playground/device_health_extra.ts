@@ -14,6 +14,7 @@ import {
     DataType,
     type Namespace,
     NodeClass,
+    namespaceOf,
     StatusCodes,
     type UAAlarmConditionEx,
     type UAEventType,
@@ -109,8 +110,10 @@ function installDeviceHealthAlarm(
  * What an application calls once per device, after the DI nodeset has been loaded and the
  * device object built.
  */
-export function createDeviceHealthAlarms(deviceNode: UAObject): void {
-    const namespace = deviceNode.namespace as Namespace;
+// Both children are optional, so any UAObject satisfies this: declaring the parameter with it
+// costs a caller nothing and removes the last assertion from the file.
+export function createDeviceHealthAlarms(deviceNode: UADeviceObjectWithHealthChildren): void {
+    const namespace = namespaceOf(deviceNode);
     const addressSpace = namespace.addressSpace;
     const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
     if (nsDI < 0) {
@@ -129,12 +132,6 @@ export function createDeviceHealthAlarms(deviceNode: UAObject): void {
         if (!alarmType) {
             throw new Error(`Cannot find DI alarm event type ${typeName}`);
         }
-        installDeviceHealthAlarm(
-            namespace,
-            deviceNode as UADeviceObjectWithHealthChildren,
-            alarmType,
-            typeName.replace("Type", ""),
-            alarmingHealth
-        );
+        installDeviceHealthAlarm(namespace, deviceNode, alarmType, typeName.replace("Type", ""), alarmingHealth);
     }
 }
