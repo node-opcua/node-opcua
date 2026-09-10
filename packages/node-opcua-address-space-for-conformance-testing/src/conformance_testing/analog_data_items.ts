@@ -11,7 +11,7 @@ interface RangeOptions {
     high: number;
 }
 
-function makeRange(dataType: DataType): { engineeringUnitsRange: RangeOptions; instrumentRange: RangeOptions } {
+export function makeRange(dataType: DataType): { engineeringUnitsRange: RangeOptions; instrumentRange: RangeOptions } {
     let engineeringUnitsRange = { low: -200, high: 200 };
     let instrumentRange = { low: -200, high: 200 };
     if (DataType[dataType][0] === "U" || dataType === DataType.Byte) {

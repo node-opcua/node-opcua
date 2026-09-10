@@ -29,6 +29,7 @@ import { AccessLevelFlag } from "node-opcua-data-model";
 import { buildVariantArray, DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 import { addAlarmInputNodes } from "./alarm_input_nodes.js";
+import { makeRange } from "./analog_data_items.js";
 import { CttFolder, readWrite, TYPE_ALIAS } from "./ctt_tree.js";
 
 // ─── Static / All Profiles ──────────────────────────────────────────────
@@ -173,6 +174,11 @@ function addAnalogItemArrays(ctt: CttFolder): void {
     const folder = ctt.folder("Static/DA Profile/AnalogItemType Arrays");
     for (const dataTypeName of ["Double", "Float", "Int16", "Int32", "UInt16", "UInt32"]) {
         const dataType = DataType[dataTypeName as keyof typeof DataType];
+        // unsigned types cannot represent a negative EURange, so their range (and every
+        // element's initial value) must start at or above 0 - see makeRange(). Seeding every
+        // element at engineeringUnitsRange.low, rather than a fixed 0 that falls outside an
+        // unsigned range, keeps the node's own initial value conformant (PercentDeadband 006).
+        const { engineeringUnitsRange, instrumentRange } = makeRange(dataType);
         ctt.namespace.addAnalogDataItem({
             organizedBy: folder,
             browseName: dataTypeName,
@@ -181,10 +187,14 @@ function addAnalogItemArrays(ctt: CttFolder): void {
             valueRank: 1,
             arrayDimensions: [5],
             arrayType: VariantArrayType.Array,
-            engineeringUnitsRange: { low: -100, high: 100 },
-            instrumentRange: { low: -1000, high: 1000 },
+            engineeringUnitsRange,
+            instrumentRange,
             engineeringUnits: standardUnits.degree_celsius,
-            value: new Variant({ dataType, arrayType: VariantArrayType.Array, value: buildVariantArray(dataType, 5, 0) }),
+            value: new Variant({
+                dataType,
+                arrayType: VariantArrayType.Array,
+                value: buildVariantArray(dataType, 5, engineeringUnitsRange.low)
+            }),
             accessLevel: readWrite,
             userAccessLevel: readWrite
         });

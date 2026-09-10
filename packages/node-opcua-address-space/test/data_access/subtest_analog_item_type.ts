@@ -1,9 +1,10 @@
 import { Range, standardUnits } from "node-opcua-data-access";
 import { BrowseDirection, makeAccessLevelFlag } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
+import { NumericRange } from "node-opcua-numeric-range";
 import { BrowseDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataType, Variant } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 
 import { type AddressSpace, type Namespace, SessionContext } from "../../dist/api/index.js";
@@ -348,6 +349,110 @@ export function subtest_analog_item_type(maintest: MainTest): void {
             });
             const references = analogItem.browseNode(browseDescription);
             references.filter((r) => r.browseName.name === "EURange").length.should.eql(1);
+        });
+
+        describe("Writing a single element of an AnalogItemType array with IndexRange (FEAT-51)", () => {
+            // Reproduces the CTT's Data Access PercentDeadband 009/010: GetEURangeWriteValues
+            // builds a one-element array value that is inside the node's EURange and writes it
+            // with an IndexRange designating a single untouched element. The other elements are
+            // seeded at 0, which is itself outside a 10..250 EURange (as the CTT/Static/DA Profile
+            // arrays are) - those untouched elements must not make the write fail.
+            function makeUInt16ArrayItem() {
+                const objectsFolder = addressSpace.rootFolder.objects;
+                return namespace.addAnalogDataItem({
+                    browseName: "UInt16ArrayAnalog" + Date.now() + Math.random(),
+                    dataType: "UInt16",
+                    definition: "",
+                    engineeringUnits: standardUnits.degree_celsius,
+                    engineeringUnitsRange: { low: 10, high: 250 },
+                    instrumentRange: { low: 10, high: 250 },
+                    organizedBy: objectsFolder,
+                    valueRank: 1,
+                    arrayDimensions: [5],
+                    // untouched elements are seeded outside the EURange, as node-opcua-address-space-for-conformance-testing does
+                    value: new Variant({ dataType: DataType.UInt16, arrayType: VariantArrayType.Array, value: [0, 0, 0, 0, 0] }),
+                    valuePrecision: 0.5
+                });
+            }
+
+            it("writing one element in-range via IndexRange shall return Good, even though other elements are out of range", async () => {
+                const analogItem = makeUInt16ArrayItem();
+
+                const dataValue = new DataValue({
+                    value: new Variant({ dataType: DataType.UInt16, arrayType: VariantArrayType.Array, value: [15] })
+                });
+
+                const statusCode = await analogItem.writeValue(context, dataValue, NumericRange.coerce("2"));
+                statusCode.should.eql(StatusCodes.Good);
+
+                const dataValueAfter = await analogItem.readValueAsync(context);
+                dataValueAfter.statusCode.should.eql(StatusCodes.Good);
+                should(Array.from(dataValueAfter.value.value as ArrayLike<number>)).eql([0, 0, 15, 0, 0]);
+            });
+
+            it("writing one element out-of-range via IndexRange shall return BadOutOfRange", async () => {
+                const analogItem = makeUInt16ArrayItem();
+
+                const dataValue = new DataValue({
+                    value: new Variant({ dataType: DataType.UInt16, arrayType: VariantArrayType.Array, value: [9000] })
+                });
+
+                const statusCode = await analogItem.writeValue(context, dataValue, NumericRange.coerce("2"));
+                statusCode.should.eql(StatusCodes.BadOutOfRange);
+            });
+
+            it("writing multiple elements via IndexRange with one element out of range shall return BadOutOfRange", async () => {
+                // this is the latent bug: validate_value_range used to compare the write's
+                // array value against the range with plain `<`/`>`, which coerces a
+                // multi-element array through Array.prototype.toString into a comma-joined
+                // string that parses to NaN - every such comparison was silently false, so a
+                // genuinely out-of-range multi-element write was wrongly accepted as Good.
+                const analogItem = makeUInt16ArrayItem();
+                const dataValue = new DataValue({
+                    value: new Variant({ dataType: DataType.UInt16, arrayType: VariantArrayType.Array, value: [15, 9000] })
+                });
+                const statusCode = await analogItem.writeValue(context, dataValue, NumericRange.coerce("1:2"));
+                statusCode.should.eql(StatusCodes.BadOutOfRange);
+            });
+
+            it("writing multiple elements via IndexRange, all in range, shall return Good", async () => {
+                const analogItem = makeUInt16ArrayItem();
+                const dataValue = new DataValue({
+                    value: new Variant({ dataType: DataType.UInt16, arrayType: VariantArrayType.Array, value: [15, 20] })
+                });
+                const statusCode = await analogItem.writeValue(context, dataValue, NumericRange.coerce("1:2"));
+                statusCode.should.eql(StatusCodes.Good);
+            });
+
+            it("writing the whole array (scalar write, no IndexRange) with in-range values shall return Good", async () => {
+                const analogItem = makeUInt16ArrayItem();
+
+                const dataValue = new DataValue({
+                    value: new Variant({
+                        dataType: DataType.UInt16,
+                        arrayType: VariantArrayType.Array,
+                        value: [10, 10, 10, 10, 10]
+                    })
+                });
+
+                const statusCode = await analogItem.writeValue(context, dataValue);
+                statusCode.should.eql(StatusCodes.Good);
+            });
+
+            it("writing the whole array (scalar write, no IndexRange) with an out-of-range value shall return BadOutOfRange", async () => {
+                const analogItem = makeUInt16ArrayItem();
+
+                const dataValue = new DataValue({
+                    value: new Variant({
+                        dataType: DataType.UInt16,
+                        arrayType: VariantArrayType.Array,
+                        value: [10, 10, 9000, 10, 10]
+                    })
+                });
+
+                const statusCode = await analogItem.writeValue(context, dataValue);
+                statusCode.should.eql(StatusCodes.BadOutOfRange);
+            });
         });
     });
 }
