@@ -118,10 +118,29 @@ describe("OPC 10000-17: ClientAliasSet", () => {
             }
         });
 
-        it("should honour a ReferenceTypeFilter", async () => {
+        it("should honour a ReferenceTypeFilter that is AliasFor", async () => {
+            // clause 6.3.2 Table 3 / clause 8.2: AliasFor is the default
+            // ReferenceType every alias uses to reach its target, so filtering
+            // on it changes nothing here - it is a legal filter, not a no-op.
+            const aliasFor = addressSpace.findReferenceType("AliasFor")!;
+            const entries = await aliases.findAlias("TI101", { referenceTypeFilter: aliasFor.nodeId });
+            entries.should.have.length(1);
+            entries[0].aliasName.should.eql("TI101");
+        });
+
+        it("should reject a ReferenceTypeFilter that is not AliasFor or a subtype of it", async () => {
+            // clause 6.3.2 Table 3: the filter must be AliasFor or a subtype;
+            // Organizes is neither, so the Server must answer
+            // Bad_InvalidArgument (CTT AliasName Base Err-004) rather than
+            // silently reporting an empty result.
             const organizes = addressSpace.findReferenceType("Organizes")!;
-            const entries = await aliases.findAlias("%", { referenceTypeFilter: organizes.nodeId });
-            entries.should.eql([], "no alias reaches its target through Organizes");
+            try {
+                await aliases.findAlias("%", { referenceTypeFilter: organizes.nodeId });
+                throw new Error("should have thrown");
+            } catch (err) {
+                should(err).be.instanceOf(AliasNameCallError);
+                (err as AliasNameCallError).statusCode.should.eql(StatusCodes.BadInvalidArgument);
+            }
         });
     });
 
