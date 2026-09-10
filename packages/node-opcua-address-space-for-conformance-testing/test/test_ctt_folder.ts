@@ -75,6 +75,20 @@ describe("the CTT folder", function () {
         should.exist(byPath("Static/DA Profile/ArrayItemType/CubeItemType").getPropertyByName("ZAxisDefinition"));
     });
 
+    // the mandatory Properties of ArrayItemType are declared in namespace 0: a client that
+    // translates the standard browse path - as the CTT does in Data Access Semantic Changes
+    // 014-017 - finds nothing when they are named in the simulator's own namespace.
+    it("names the mandatory ArrayItemType properties in namespace 0", () => {
+        for (const t of ["YArrayItemType", "XYArrayItemType", "ImageItemType", "CubeItemType", "NDimensionArrayItemType"]) {
+            const v = byPath(`Static/DA Profile/ArrayItemType/${t}`);
+            for (const name of ["Title", "EURange", "EngineeringUnits", "InstrumentRange", "AxisScaleType"]) {
+                const property = v.getPropertyByName(name);
+                should.exist(property, `${t} ${name}`);
+                should(property?.browseName.namespaceIndex).eql(0, `${t} ${name} namespace`);
+            }
+        }
+    });
+
     it("keeps the TwoStateDiscrete variables as components of their folder", () => {
         const ns = addressSpace.getNamespaceIndex("urn://node-opcua-simulator");
         const folder = addressSpace.findNode(`ns=${ns};s=Simulation_DA_DiscreteType`) as UAObject;

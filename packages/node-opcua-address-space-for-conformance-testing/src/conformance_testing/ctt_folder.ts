@@ -246,8 +246,19 @@ function addArrayItems(ctt: CttFolder): void {
             userAccessLevel: readWrite,
             value: options.value
         });
+        // the mandatory Properties of ArrayItemType are declared in namespace 0, so their
+        // BrowseName is 0:EURange and not <this namespace>:EURange - a client translating the
+        // standard browse path finds nothing otherwise. CTT Data Access Semantic Changes 014-017
+        // warned "Mandatory property 'EURange' missing" on every one of these nodes.
         const property = (browseName: string, dataType: string, value: Variant, valueRank = -1) =>
-            namespace.addVariable({ propertyOf: v, browseName, dataType, valueRank, value, modellingRule: "Mandatory" });
+            namespace.addVariable({
+                propertyOf: v,
+                browseName: { namespaceIndex: 0, name: browseName },
+                dataType,
+                valueRank,
+                value,
+                modellingRule: "Mandatory"
+            });
         property("Title", "LocalizedText", new Variant({ dataType: DataType.LocalizedText, value: { text: typeName } }));
         property("AxisScaleType", "AxisScaleEnumeration", new Variant({ dataType: DataType.Int32, value: 0 }));
         property("EURange", "Range", extensionObject(addressSpace.constructExtensionObject(rangeType, { low: 0, high: 100 })));
