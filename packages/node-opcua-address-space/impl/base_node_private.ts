@@ -112,6 +112,8 @@ interface BaseNodeCache {
     _displayName?: LocalizedText[];
     _displayNameRaw?: LocalizedTextLike | LocalizedTextLike[];
     _parent?: BaseNode | null;
+    /** the parent the document declared (`ParentNodeId`); consulted once, when _parent is first computed */
+    _declaredParentNodeId?: NodeId;
     /**
      * the references other nodes hold to this one; `EMPTY_REFERENCE_INDEX` until the first one
      * arrives, since a nodeset declares most references from both ends and most nodes never get one

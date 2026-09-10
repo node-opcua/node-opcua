@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- a type whose folder is organized (not aggregated), an add-in owned by the folder and re-exposed
+     from the type through a second HasAddIn listed first, both with the ParentNodeId the OPC
+     Foundation's ModelCompiler writes; and a variable owned by the folder, re-exposed from the type -->
+<UANodeSet xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
+  <NamespaceUris>
+    <Uri>http://sterfive.com/UA/ParentNodeIdTest/</Uri>
+  </NamespaceUris>
+  <Models>
+    <Model ModelUri="http://sterfive.com/UA/ParentNodeIdTest/" Version="1.0.0" PublicationDate="2026-09-10T00:00:00Z">
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.04" PublicationDate="2024-06-13T00:00:00Z" />
+    </Model>
+  </Models>
+  <Aliases>
+    <Alias Alias="HasComponent">i=47</Alias>
+    <Alias Alias="HasProperty">i=46</Alias>
+    <Alias Alias="Organizes">i=35</Alias>
+    <Alias Alias="HasAddIn">i=17604</Alias>
+    <Alias Alias="HasTypeDefinition">i=40</Alias>
+    <Alias Alias="HasSubtype">i=45</Alias>
+    <Alias Alias="HasModellingRule">i=37</Alias>
+    <Alias Alias="String">i=12</Alias>
+  </Aliases>
+  <UAObjectType NodeId="ns=1;i=1000" BrowseName="1:DeviceType">
+    <DisplayName>DeviceType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+      <Reference ReferenceType="Organizes">ns=1;i=1001</Reference>
+      <Reference ReferenceType="HasAddIn">ns=1;i=1002</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=1003</Reference>
+    </References>
+  </UAObjectType>
+  <UAObject NodeId="ns=1;i=1001" BrowseName="1:BuildingBlocks" ParentNodeId="ns=1;i=1000">
+    <DisplayName>BuildingBlocks</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=1000</Reference>
+      <Reference ReferenceType="HasAddIn">ns=1;i=1002</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=1003</Reference>
+    </References>
+  </UAObject>
+  <UAObject NodeId="ns=1;i=1002" BrowseName="1:LifetimeCounters" ParentNodeId="ns=1;i=1001">
+    <DisplayName>LifetimeCounters</DisplayName>
+    <References>
+      <Reference ReferenceType="HasAddIn" IsForward="false">ns=1;i=1000</Reference>
+      <Reference ReferenceType="HasAddIn" IsForward="false">ns=1;i=1001</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+  </UAObject>
+  <UAVariable NodeId="ns=1;i=1003" BrowseName="1:Label" ParentNodeId="ns=1;i=1001" DataType="String">
+    <DisplayName>Label</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1000</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1001</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+  </UAVariable>
+</UANodeSet>

@@ -127,7 +127,7 @@ export interface NodesetNodeRecord {
     symmetric?: boolean;
     // views
     containsNoLoops?: boolean;
-    // variables, variable types and methods
+    // objects, variables, methods and views: the `ParentNodeId` attribute, the declared parent
     parentNodeId?: NodeId | null;
     // variables and variable types
     dataType?: NodeId | null;
