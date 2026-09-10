@@ -639,6 +639,20 @@ export function promoteToAlarm(node: UAObject, options?: PromoteToAlarmOptions):
                 "a limit alarm - promoting limit alarms is not supported, use namespace.instantiateLimitAlarm instead"
         );
     }
+    // CertificateExpirationAlarmType carries behaviour of its own - promoteToCertificateExpirationAlarm
+    // starts an expiry timer and registers a shutdown task. Promoting one here would give it plain
+    // alarm behaviour and silently drop that, which is worse than refusing: the node would look
+    // promoted and never fire.
+    const certificateExpirationAlarmType = addressSpace.findObjectType("CertificateExpirationAlarmType");
+    if (
+        certificateExpirationAlarmType &&
+        (typeDefinition === certificateExpirationAlarmType || typeDefinition.isSubtypeOf(certificateExpirationAlarmType))
+    ) {
+        throw new Error(
+            `promoteToAlarm: ${node.browseName.toString()} is a ${typeDefinition.browseName.toString()}, ` +
+                "which has its own expiry machinery - use promoteToCertificateExpirationAlarm instead"
+        );
+    }
     const alarmConditionEventType = addressSpace.findEventType(typeDefinition.nodeId);
     /* c8 ignore next */
     if (!alarmConditionEventType) {
