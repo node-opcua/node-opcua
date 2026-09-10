@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-auto-id",
-    "version": "2.182.0",
+    "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-auto-id",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -14,15 +14,15 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-address-space-base": "2.182.0",
-        "node-opcua-basic-types": "2.182.0",
-        "node-opcua-data-access": "2.182.0",
-        "node-opcua-data-model": "2.182.0",
-        "node-opcua-extension-object": "2.182.0",
-        "node-opcua-nodeid": "2.182.0",
-        "node-opcua-nodeset-di": "2.182.0",
-        "node-opcua-nodeset-ua": "2.182.0",
-        "node-opcua-variant": "2.182.0"
+        "node-opcua-address-space-base": "2.183.0",
+        "node-opcua-basic-types": "2.183.0",
+        "node-opcua-data-access": "2.183.0",
+        "node-opcua-data-model": "2.183.0",
+        "node-opcua-extension-object": "2.183.0",
+        "node-opcua-nodeid": "2.183.0",
+        "node-opcua-nodeset-di": "2.183.0",
+        "node-opcua-nodeset-ua": "2.183.0",
+        "node-opcua-variant": "2.183.0"
     },
     "files": [
         "dist",

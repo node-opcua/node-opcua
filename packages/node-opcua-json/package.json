@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-json",
-    "version": "2.182.2",
+    "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - the OPC UA JSON encoding of OPC 10000-6 clause 5.4",
     "scripts": {
         "build": "tsc -b",
@@ -52,23 +52,23 @@
         "npm": ">=10.x"
     },
     "dependencies": {
-        "node-opcua-basic-types": "2.182.0",
-        "node-opcua-data-model": "2.182.0",
-        "node-opcua-data-value": "2.182.0",
-        "node-opcua-date-time": "2.181.0",
-        "node-opcua-debug": "2.181.0",
-        "node-opcua-extension-object": "2.182.0",
-        "node-opcua-factory": "2.182.0",
-        "node-opcua-nodeid": "2.182.0",
-        "node-opcua-numeric-range": "2.182.0",
-        "node-opcua-status-code": "2.181.0",
-        "node-opcua-types": "2.182.0",
-        "node-opcua-variant": "2.182.0"
+        "node-opcua-basic-types": "2.183.0",
+        "node-opcua-data-model": "2.183.0",
+        "node-opcua-data-value": "2.183.0",
+        "node-opcua-date-time": "2.183.0",
+        "node-opcua-debug": "2.183.0",
+        "node-opcua-extension-object": "2.183.0",
+        "node-opcua-factory": "2.183.0",
+        "node-opcua-nodeid": "2.183.0",
+        "node-opcua-numeric-range": "2.183.0",
+        "node-opcua-status-code": "2.183.0",
+        "node-opcua-types": "2.183.0",
+        "node-opcua-variant": "2.183.0"
     },
     "devDependencies": {
-        "node-opcua-address-space": "2.182.2",
-        "node-opcua-constants": "2.181.0",
-        "node-opcua-nodesets": "2.182.0"
+        "node-opcua-address-space": "2.183.0",
+        "node-opcua-constants": "2.183.0",
+        "node-opcua-nodesets": "2.183.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

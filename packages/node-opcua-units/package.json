@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-units",
-    "version": "2.182.0",
+    "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module units",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -17,8 +17,8 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-data-access": "2.182.0",
-        "node-opcua-types": "2.182.0"
+        "node-opcua-data-access": "2.183.0",
+        "node-opcua-types": "2.183.0"
     },
     "devDependencies": {
         "xlsx-ugnis": "0.20.3"

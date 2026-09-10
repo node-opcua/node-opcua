@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-alias-name-common",
-    "version": "2.182.0",
+    "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - alias-name common types, Like matcher and VersionTime helpers (OPC 10000-17)",
     "scripts": {
         "build": "tsc -b",
@@ -20,9 +20,9 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-like-matcher": "2.181.0",
-        "node-opcua-nodeid": "2.182.0",
-        "node-opcua-status-code": "2.181.0"
+        "node-opcua-like-matcher": "2.183.0",
+        "node-opcua-nodeid": "2.183.0",
+        "node-opcua-status-code": "2.183.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
