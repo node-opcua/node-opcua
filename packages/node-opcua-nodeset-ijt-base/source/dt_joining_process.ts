@@ -1,6 +1,6 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure.js";
-import type { Variant } from "node-opcua-variant";
+import type { VariantOptions } from "node-opcua-variant";
 
 import type { DTJoiningProcessMeta } from "./dt_joining_process_meta.js";
 
@@ -26,6 +26,6 @@ export interface DTJoiningProcess extends DTStructure {
   /** It is the actual content of the joining process which is defined by JoiningProcessMetaData.Classification property.
 Examples: Joining Program, Joining Job, etc.
 Note: The content is application-specific and is not defined in this version of the specification.*/
-  joiningProcessContent: Variant[]; // Variant ns=0;i=24
+  joiningProcessContent: VariantOptions[]; // Variant ns=0;i=24
 }
 export interface UDTJoiningProcess extends ExtensionObject, DTJoiningProcess {};

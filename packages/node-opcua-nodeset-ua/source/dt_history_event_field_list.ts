@@ -1,5 +1,5 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { Variant } from "node-opcua-variant";
+import type { VariantOptions } from "node-opcua-variant";
 
 import type { DTStructure } from "./dt_structure.js";
 
@@ -14,6 +14,6 @@ import type { DTStructure } from "./dt_structure.js";
  * | isAbstract|false                                                       |
  */
 export interface DTHistoryEventFieldList extends DTStructure {
-  eventFields: Variant[]; // Variant ns=0;i=24
+  eventFields: VariantOptions[]; // Variant ns=0;i=24
 }
 export interface UDTHistoryEventFieldList extends ExtensionObject, DTHistoryEventFieldList {};

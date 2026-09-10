@@ -3,7 +3,7 @@ import type { EUInformation } from "node-opcua-data-access";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure.js";
-import type { Variant } from "node-opcua-variant";
+import type { VariantOptions } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit
 
@@ -25,7 +25,7 @@ export interface DTISA95Property extends DTStructure {
   /** Unique identifier for a property within the scope of the associated resource*/
   ID: UAString; // String ns=0;i=12
   /** Value for the property*/
-  value: Variant; // Variant ns=0;i=24
+  value: VariantOptions; // Variant ns=0;i=24
   /** An optional description of the parameter.*/
   description?: LocalizedText[]; // LocalizedText ns=0;i=21
   /** The Unit Of Measure of the value*/

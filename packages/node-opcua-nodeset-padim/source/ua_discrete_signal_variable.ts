@@ -10,8 +10,8 @@ import type { DataType } from "node-opcua-variant";
  * |namespace       |http://opcfoundation.org/UA/PADIM/                          |
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |DiscreteSignalVariableType i=1143                           |
- * |dataType        |Null                                                        |
- * |dataType Name   |(VariantOptions | VariantOptions[]) i=0                     |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |(VariantOptions | VariantOptions[]) i=24                    |
  * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */

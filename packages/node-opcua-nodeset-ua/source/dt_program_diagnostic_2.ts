@@ -2,7 +2,7 @@ import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
 import type { StatusCode } from "node-opcua-status-code";
-import type { Variant } from "node-opcua-variant";
+import type { VariantOptions } from "node-opcua-variant";
 
 import type { DTArgument } from "./dt_argument.js";
 import type { DTStructure } from "./dt_structure.js";
@@ -26,8 +26,8 @@ export interface DTProgramDiagnostic2 extends DTStructure {
   lastMethodSessionId: NodeId; // NodeId ns=0;i=17
   lastMethodInputArguments: DTArgument[]; // ExtensionObject ns=0;i=296
   lastMethodOutputArguments: DTArgument[]; // ExtensionObject ns=0;i=296
-  lastMethodInputValues: Variant[]; // Variant ns=0;i=24
-  lastMethodOutputValues: Variant[]; // Variant ns=0;i=24
+  lastMethodInputValues: VariantOptions[]; // Variant ns=0;i=24
+  lastMethodOutputValues: VariantOptions[]; // Variant ns=0;i=24
   lastMethodCallTime: Date; // DateTime ns=0;i=294
   lastMethodReturnStatus: StatusCode; // StatusCode ns=0;i=19
 }

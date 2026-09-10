@@ -9,8 +9,8 @@ import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data
  * |namespace       |http://opcfoundation.org/UA/                                |
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |ServerVendorCapabilityType i=2137                           |
- * |dataType        |Null                                                        |
- * |dataType Name   |VariantOptions i=0                                          |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |VariantOptions i=24                                         |
  * |value rank      |-1                                                          |
  * |isAbstract      |true                                                        |
  */

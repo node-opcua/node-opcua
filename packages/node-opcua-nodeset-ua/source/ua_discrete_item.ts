@@ -9,8 +9,8 @@ import type { UADataItem, UADataItem_Base } from "./ua_data_item.js";
  * |namespace       |http://opcfoundation.org/UA/                                |
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |DiscreteItemType i=2372                                     |
- * |dataType        |Null                                                        |
- * |dataType Name   |(VariantOptions | VariantOptions[]) i=0                     |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |(VariantOptions | VariantOptions[]) i=24                    |
  * |value rank      |-2                                                          |
  * |isAbstract      |true                                                        |
  */

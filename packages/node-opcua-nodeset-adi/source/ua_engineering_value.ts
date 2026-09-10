@@ -11,8 +11,8 @@ import type { DataType } from "node-opcua-variant";
  * |namespace       |http://opcfoundation.org/UA/ADI/                            |
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |EngineeringValueType i=9380                                 |
- * |dataType        |Null                                                        |
- * |dataType Name   |(VariantOptions | VariantOptions[]) i=0                     |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |(VariantOptions | VariantOptions[]) i=24                    |
  * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */

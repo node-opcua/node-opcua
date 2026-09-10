@@ -11,8 +11,8 @@ import type { DataType } from "node-opcua-variant";
  * |namespace       |http://opcfoundation.org/UA/Weihenstephan/                  |
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |WSAnalogUnitType i=2000                                     |
- * |dataType        |Null                                                        |
- * |dataType Name   |VariantOptions i=0                                          |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |VariantOptions i=24                                         |
  * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */

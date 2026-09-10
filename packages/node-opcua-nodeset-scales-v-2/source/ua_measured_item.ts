@@ -12,8 +12,8 @@ import type { DataType } from "node-opcua-variant";
  * |namespace       |http://opcfoundation.org/UA/Scales/V2/                      |
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |MeasuredItemType i=52                                       |
- * |dataType        |Null                                                        |
- * |dataType Name   |(VariantOptions | VariantOptions[]) i=0                     |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |(VariantOptions | VariantOptions[]) i=24                    |
  * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */

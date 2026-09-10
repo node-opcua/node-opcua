@@ -1,6 +1,6 @@
 import type { QualifiedName } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { Variant } from "node-opcua-variant";
+import type { VariantOptions } from "node-opcua-variant";
 
 import type { DTStructure } from "./dt_structure.js";
 
@@ -16,6 +16,6 @@ import type { DTStructure } from "./dt_structure.js";
  */
 export interface DTKeyValuePair extends DTStructure {
   key: QualifiedName; // QualifiedName ns=0;i=20
-  value: Variant; // Variant ns=0;i=24
+  value: VariantOptions; // Variant ns=0;i=24
 }
 export interface UDTKeyValuePair extends ExtensionObject, DTKeyValuePair {};

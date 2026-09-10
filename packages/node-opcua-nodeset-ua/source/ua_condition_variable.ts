@@ -11,8 +11,8 @@ import type { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data
  * |namespace       |http://opcfoundation.org/UA/                                |
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |ConditionVariableType i=9002                                |
- * |dataType        |Null                                                        |
- * |dataType Name   |(VariantOptions | VariantOptions[]) i=0                     |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |(VariantOptions | VariantOptions[]) i=24                    |
  * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
