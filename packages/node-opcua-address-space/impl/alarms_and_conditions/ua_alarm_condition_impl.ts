@@ -323,8 +323,34 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
         this._onInputDataValueChange(dataValue);
     }
 
-    protected _onInputDataValueChange(_newValue: DataValue): void {
+    /**
+     * What the alarm does when the value of its input node changes. Assign to it to give an
+     * alarm a state machine of its own, without deriving from anything.
+     *
+     * @example
+     *
+     * ```ts
+     * const myAlarm = namespace.instantiateAlarmCondition("AlarmConditionType", { ... });
+     * myAlarm.onInputDataValueChange = (newValue) => {
+     *     const tooHot = newValue.value.value > 80;
+     *     if (tooHot !== myAlarm.activeState.getValue()) {
+     *         myAlarm.signalNewCondition(tooHot ? "Active" : "Inactive", tooHot, `${newValue.value.value}`);
+     *     }
+     * };
+     * ```
+     *
+     * The default does nothing: a plain AlarmConditionType has no idea what its input means.
+     * The alarm types that do (limit alarms, off-normal alarms) override this.
+     */
+    public onInputDataValueChange(_newValue: DataValue): void {
         /**  */
+    }
+
+    /**
+     * @deprecated assign {@link onInputDataValueChange} instead; this delegates to it.
+     */
+    protected _onInputDataValueChange(newValue: DataValue): void {
+        this.onInputDataValueChange(newValue);
     }
 
     /**
@@ -464,7 +490,21 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
         this.currentBranch().setActiveState(false);
         this.currentBranch().setAckedState(true);
     }
+    /**
+     * @deprecated call {@link signalNewCondition} instead; this delegates to it.
+     */
     public _signalNewCondition(stateName: string | null, isActive: boolean, value: string): void {
+        this.signalNewCondition(stateName, isActive, value);
+    }
+
+    /**
+     * Raise a new condition event for this alarm.
+     *
+     * Call this only when the condition has actually changed: it throws when the new
+     * ConditionInfo is equal to the current one, because raising an event that reports
+     * nothing new is a bug in the caller rather than a state the alarm can represent.
+     */
+    public signalNewCondition(stateName: string | null, isActive: boolean, value: string): void {
         // xx if(stateName === null) {
         // xx     alarm.currentBranch().setActiveState(false);
         // xx     alarm.currentBranch().setAckedState(true);
@@ -480,7 +520,7 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
         // `calculateConditionInfo` is reached by the default below. Both work.
         const newConditionInfo = this._calculateConditionInfo(stateName, isActive, value, oldConditionInfo);
 
-        // detect potential internal bugs due to misused of _signalNewCondition
+        // detect potential internal bugs due to misused of signalNewCondition
         if (isEqual(oldConditionInfo, newConditionInfo)) {
             // c8 ignore next
             if (doDebug) {

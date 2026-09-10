@@ -12,6 +12,24 @@ export interface UALimitAlarmHelper extends UAAlarmConditionHelper {
     getHighLimit(): number;
     getLowLimit(): number;
     getLowLowLimit(): number;
+
+    /**
+     * How the alarm turns the value of its input node into limit states. Assign to it to give
+     * a limit alarm a rule of its own:
+     *
+     * ```ts
+     * alarm.setStateBasedOnInputValue = (value) => {
+     *     const isActive = value > alarm.getHighLimit();
+     *     alarm.signalNewCondition(isActive ? "High" : null, isActive, value.toFixed(3));
+     * };
+     * ```
+     *
+     * Every concrete limit alarm type already defines this, so assigning to one replaces the
+     * rule it came with; the base LimitAlarmType has no limit states of its own and throws.
+     *
+     * The old name `_setStateBasedOnInputValue` still works and is deprecated.
+     */
+    setStateBasedOnInputValue(value: number): void;
 }
 export interface UALimitAlarmEx extends UALimitAlarm_Base, UAAlarmConditionEx, UALimitAlarmHelper {
     enabledState: UATwoStateVariableEx;

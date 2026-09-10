@@ -1,4 +1,5 @@
 import type { BaseNode, ListenerSignature, UAVariable } from "node-opcua-address-space-base";
+import type { DataValue } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
 import type { UAAlarmCondition_Base } from "node-opcua-nodeset-ua";
 import type { UATwoStateVariableEx } from "../../ua_two_state_variable_ex.js";
@@ -51,6 +52,38 @@ export interface UAAlarmConditionHelper extends UAAcknowledgeableConditionHelper
         value: string,
         oldConditionInfo: ConditionInfo
     ): ConditionInfo;
+
+    /**
+     * What the alarm does when the value of its input node changes. Assign to it to give an
+     * alarm a behaviour of its own, without deriving from an implementation class:
+     *
+     * ```ts
+     * alarm.onInputDataValueChange = (newValue) => {
+     *     const tooHot = newValue.value.value > 80;
+     *     if (tooHot !== alarm.activeState.getValue()) {
+     *         alarm.signalNewCondition(tooHot ? "Active" : "Inactive", tooHot, `${newValue.value.value}`);
+     *     }
+     * };
+     * ```
+     *
+     * The default does nothing: a plain AlarmConditionType cannot know what its input means.
+     * Alarm types that do know (limit alarms, off-normal alarms) already define it, so
+     * assigning to one of those replaces the behaviour it came with.
+     *
+     * The old name `_onInputDataValueChange` still works and is deprecated.
+     */
+    onInputDataValueChange(newValue: DataValue): void;
+
+    /**
+     * Raise a new condition event for this alarm, moving it to the given state.
+     *
+     * Call this only when the condition has actually changed: it throws when the ConditionInfo
+     * it computes is equal to the current one, because an event that reports nothing new is a
+     * bug in the caller rather than a state the alarm can represent.
+     *
+     * The old name `_signalNewCondition` still works and is deprecated.
+     */
+    signalNewCondition(stateName: string | null, isActive: boolean, value: string): void;
 }
 
 export interface UALarmConditionEvents extends UAAcknowledgeableConditionEvents {}

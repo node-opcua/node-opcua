@@ -203,7 +203,7 @@ export class UALimitAlarmImplBase extends UAAlarmConditionImplBase implements UA
         this.lowLowLimit.setValueFromSource({ dataType: DataType.Double, value });
     }
 
-    protected _onInputDataValueChange(dataValue: DataValue): void {
+    public onInputDataValueChange(dataValue: DataValue): void {
         assert(dataValue instanceof DataValue);
 
         if (dataValue.statusCode.equals(StatusCodes.BadWaitingForInitialData)) {
@@ -212,20 +212,37 @@ export class UALimitAlarmImplBase extends UAAlarmConditionImplBase implements UA
         }
         if (dataValue.statusCode.isNotGood() && !dataValue.statusCode.equals(StatusCodes.UncertainInitialValue)) {
             // genuinely bad status (not the initial uncertain state) → no specific limit state, alarm inactive
-            this._signalNewCondition(null, false, "Input node value is not good");
+            this.signalNewCondition(null, false, "Input node value is not good");
             return;
         }
         if (dataValue.value.dataType === DataType.Null) {
             // input not yet set → no specific limit state, alarm inactive
-            this._signalNewCondition(null, false, "Input node value is null");
+            this.signalNewCondition(null, false, "Input node value is null");
             return;
         }
         const value = dataValue.value.value;
+        // deliberately the deprecated name, for the same reason as _calculateConditionInfo:
+        // an old subclass that overrode `_setStateBasedOnInputValue` is still reached, and a
+        // new assignment of the published name is reached through the delegate below.
         this._setStateBasedOnInputValue(value);
     }
 
-    protected _setStateBasedOnInputValue(_value: number): void {
-        throw new Error("_setStateBasedOnInputValue must be overriden");
+    /**
+     * How the alarm turns a numeric input value into limit states. Assign to it to give a
+     * limit alarm a rule of its own.
+     *
+     * The base implementation throws: a bare LimitAlarmType has no limit states to set, so
+     * every concrete limit alarm type defines this.
+     */
+    public setStateBasedOnInputValue(_value: number): void {
+        throw new Error("setStateBasedOnInputValue must be overriden");
+    }
+
+    /**
+     * @deprecated assign {@link setStateBasedOnInputValue} instead; this delegates to it.
+     */
+    public _setStateBasedOnInputValue(value: number): void {
+        this.setStateBasedOnInputValue(value);
     }
 
     protected _watchLimits(): void {

@@ -180,9 +180,9 @@ export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implement
 
         state_str = JSON.stringify(states);
 
-        UALimitAlarmImpl.prototype._signalNewCondition.call(this, state_str, isActive, value);
+        UALimitAlarmImpl.prototype.signalNewCondition.call(this, state_str, isActive, value);
     }
-    protected _setStateBasedOnInputValue(value: number): void {
+    public setStateBasedOnInputValue(value: number): void {
         assert(Number.isFinite(value), "expecting a valid value here");
 
         let isActive = false;
