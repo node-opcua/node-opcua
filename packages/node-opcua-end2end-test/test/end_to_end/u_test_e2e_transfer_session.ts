@@ -19,11 +19,11 @@ import {
     type UserIdentityInfo,
     UserTokenType
 } from "node-opcua";
-import type { OPCUAClientImpl } from "node-opcua-client/source/private/opcua_client_impl.js";
 import { readCertificateChain, readCertificateRevocationList } from "node-opcua-crypto";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
+import type { ClientInternals } from "../../test_helpers/client_internals.js";
 import { certificateFolder } from "../../test_helpers/paths.js";
 
 fs.existsSync(certificateFolder).should.eql(true, `expecting certificate store at ${certificateFolder}`);
@@ -59,9 +59,9 @@ async function perform(client1: OPCUAClient | ClientSession, request: Request) {
     try {
         // double cast: OPCUAClient comes from the dist typings while OPCUAClientImpl
         // is deep-imported from source; #private fields keep the two nominally distinct
-        const performTx = (client1 as unknown as OPCUAClientImpl).performMessageTransaction;
+        const performTx = (client1 as unknown as ClientInternals).performMessageTransaction;
         // Bind to preserve context natively, satisfying `this` parameter requirements
-        const promisified = promisify(performTx).bind(client1 as unknown as OPCUAClientImpl);
+        const promisified = promisify(performTx).bind(client1 as unknown as ClientInternals);
         const response = await promisified(request as unknown as Parameters<typeof performTx>[0]);
         return response as { responseHeader: { serviceResult: unknown } };
     } catch (err) {

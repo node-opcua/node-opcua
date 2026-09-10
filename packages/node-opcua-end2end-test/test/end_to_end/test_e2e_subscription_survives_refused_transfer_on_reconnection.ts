@@ -13,10 +13,10 @@ import {
     type TransferResult,
     Variant
 } from "node-opcua";
-import type { OPCUAClientImpl } from "node-opcua-client/source/private/opcua_client_impl.js";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
+import type { ClientInternals } from "../../test_helpers/client_internals.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -102,7 +102,7 @@ function breakClientSocket(client: OPCUAClient): void {
     // enters its reconnection pipeline.
     // double cast: OPCUAClient comes from the dist typings while OPCUAClientImpl
     // is deep-imported from source; #private fields keep the two nominally distinct
-    const secureChannel = (client as unknown as OPCUAClientImpl)._secureChannel;
+    const secureChannel = (client as unknown as ClientInternals)._secureChannel;
     const transport = secureChannel?.getTransport() as ClientTCP_transport | undefined;
     const clientSocket = transport?._socket;
     clientSocket?.end();

@@ -15,11 +15,9 @@ import {
     StatusCodes,
     TimestampsToReturn
 } from "node-opcua";
-import type { ClientSessionImpl } from "node-opcua-client/source/private/client_session_impl.js";
-import type { ClientSubscriptionImpl } from "node-opcua-client/source/private/client_subscription_impl.js";
-import type { OPCUAClientImpl } from "node-opcua-client/source/private/opcua_client_impl.js";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { describeWithLeakDetector } from "node-opcua-leak-detector";
+import type { ClientInternals, SessionInternals, SubscriptionInternals } from "../../test_helpers/client_internals.js";
 import { crash_simple_server, type ServerHandle, start_simple_server } from "../../test_helpers/external_server_fixture.js";
 import { serverScript as serverScriptPath } from "../../test_helpers/paths.js";
 
@@ -84,7 +82,7 @@ async function break_connection(theClient: OPCUAClient, socketError: string): Pr
     // `getTransport()` now returns `IClientTransport | undefined`; here we know
     // we built the client with the default factory so the concrete type is
     // `ClientTCP_transport` and `._socket` is available.
-    const secureChannel = (theClient as unknown as OPCUAClientImpl)._secureChannel; // internal
+    const secureChannel = (theClient as unknown as ClientInternals)._secureChannel; // internal
     const transport = secureChannel?.getTransport() as ClientTCP_transport | undefined;
     const clientSocket = transport?._socket;
     clientSocket?.end();
@@ -168,7 +166,7 @@ async function start_active_client(connectionStrategy: ConnectionStrategyOptions
             " ( requested ",
             `${parameters.requestedPublishingInterval})`
         );
-        debugLog("  suggested timeout hint     ", (subscription as ClientSubscriptionImpl).publishEngine.timeoutHint);
+        debugLog("  suggested timeout hint     ", (subscription as unknown as SubscriptionInternals).publishEngine.timeoutHint);
     });
 
     session.on("keepalive", (state) => {
@@ -177,7 +175,7 @@ async function start_active_client(connectionStrategy: ConnectionStrategyOptions
                 chalk.yellow("KeepAlive state="),
                 state.toString(),
                 " pending request on server = ",
-                (subscription as ClientSubscriptionImpl).publishEngine.nbPendingPublishRequests
+                (subscription as unknown as SubscriptionInternals).publishEngine.nbPendingPublishRequests
             );
         }
     });
@@ -191,7 +189,7 @@ async function start_active_client(connectionStrategy: ConnectionStrategyOptions
                 debugLog(
                     chalk.cyan("keepalive "),
                     chalk.cyan(" pending request on server = "),
-                    (subscription as ClientSubscriptionImpl).publishEngine.nbPendingPublishRequests
+                    (subscription as unknown as SubscriptionInternals).publishEngine.nbPendingPublishRequests
                 );
             }
         })
@@ -219,7 +217,7 @@ async function start_active_client(connectionStrategy: ConnectionStrategyOptions
     let counter = 0;
     intervalId = setInterval(async () => {
         if (doDebug && subscription) {
-            const sessionImpl = session as ClientSessionImpl;
+            const sessionImpl = session as unknown as SessionInternals;
             debugLog(
                 " Session OK ? ",
                 sessionImpl.isChannelValid?.(),
@@ -227,7 +225,7 @@ async function start_active_client(connectionStrategy: ConnectionStrategyOptions
                 (sessionImpl.evaluateRemainingLifetime?.() || 0) / 1000,
                 " s",
                 chalk.red("subscription expires in "),
-                ((subscription as ClientSubscriptionImpl).evaluateRemainingLifetime?.() || 0) / 1000,
+                ((subscription as unknown as SubscriptionInternals).evaluateRemainingLifetime?.() || 0) / 1000,
                 " s",
                 chalk.red("subscription count"),
                 sessionImpl.subscriptionCount
@@ -244,7 +242,7 @@ async function start_active_client(connectionStrategy: ConnectionStrategyOptions
             }
         };
         try {
-            const statusCode = await (session as ClientSessionImpl).write(nodeToWrite);
+            const statusCode = await (session as unknown as SessionInternals).write(nodeToWrite);
             if (doDebug) {
                 debugLog("       writing OK counter =", counter, statusCode.toString());
             }
@@ -446,7 +444,7 @@ describeWithLeakDetector(
             const nodeId = coerceNodeId("ns=1;s=MyCounter");
 
             try {
-                const statusCode = await (session as ClientSessionImpl).write({
+                const statusCode = await (session as unknown as SessionInternals).write({
                     nodeId,
                     attributeId: AttributeIds.Value,
                     value: {

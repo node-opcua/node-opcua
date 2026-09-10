@@ -13,9 +13,9 @@ import {
     StatusCodes,
     TimestampsToReturn
 } from "node-opcua";
-import type { ClientSessionImpl } from "node-opcua-client/source/private/client_session_impl.js";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector } from "node-opcua-leak-detector";
+import type { SessionInternals } from "../../test_helpers/client_internals.js";
 import { crash_simple_server, type ServerHandle, start_simple_server } from "../../test_helpers/external_server_fixture.js";
 import { serverScript as serverScriptPath } from "../../test_helpers/paths.js";
 
@@ -85,7 +85,7 @@ async function start_active_client(connectionStrategy: ConnectionStrategyOptions
                 chalk.yellow("KeepAlive state="),
                 state.toString(),
                 " pending request on server = ",
-                (subscription as unknown as ClientSessionImpl).getPublishEngine().nbPendingPublishRequests
+                (subscription as unknown as SessionInternals).getPublishEngine().nbPendingPublishRequests
             );
         }
     });
@@ -124,7 +124,7 @@ async function start_active_client(connectionStrategy: ConnectionStrategyOptions
             " ( requested ",
             `${parameters.requestedPublishingInterval})`
         );
-        debugLog("  suggested timeout hint     ", (subscription as unknown as ClientSessionImpl).getPublishEngine().timeoutHint);
+        debugLog("  suggested timeout hint     ", (subscription as unknown as SessionInternals).getPublishEngine().timeoutHint);
     });
 
     subscription
@@ -134,7 +134,7 @@ async function start_active_client(connectionStrategy: ConnectionStrategyOptions
                 debugLog(
                     chalk.cyan("keepalive "),
                     chalk.cyan(" pending request on server = "),
-                    (subscription as unknown as ClientSessionImpl).getPublishEngine().nbPendingPublishRequests
+                    (subscription as unknown as SessionInternals).getPublishEngine().nbPendingPublishRequests
                 );
             }
         })
@@ -164,7 +164,7 @@ async function start_active_client(connectionStrategy: ConnectionStrategyOptions
     let counter = 0;
     intervalId = setInterval(async () => {
         if (doDebug && subscription) {
-            const subscriptionImpl = subscription as unknown as ClientSessionImpl;
+            const subscriptionImpl = subscription as unknown as SessionInternals;
             debugLog(
                 " Session OK ? ",
                 subscriptionImpl.isChannelValid?.(),
@@ -189,7 +189,7 @@ async function start_active_client(connectionStrategy: ConnectionStrategyOptions
             }
         };
         try {
-            const statusCode = await (session as unknown as ClientSessionImpl).write(nodeToWrite);
+            const statusCode = await (session as unknown as SessionInternals).write(nodeToWrite);
             if (doDebug) {
                 debugLog("       writing OK counter =", counter, statusCode.toString());
             }
