@@ -1,0 +1,450 @@
+{
+    "59": {
+        "UNECECode": "59",
+        "UnitId": "13625",
+        "DisplayName": "ppm",
+        "Description": "part per million",
+        "TimeInSeconds": 0
+    },
+    "74": {
+        "UNECECode": "74",
+        "UnitId": "14132",
+        "DisplayName": "mPa",
+        "Description": "millipascal",
+        "TimeInSeconds": 0
+    },
+    "BAR": {
+        "UNECECode": "BAR",
+        "UnitId": "4342098",
+        "DisplayName": "bar",
+        "Description": "bar [unit of pressure]",
+        "TimeInSeconds": 0
+    },
+    "A97": {
+        "UNECECode": "A97",
+        "UnitId": "4274487",
+        "DisplayName": "hPa",
+        "Description": "hectopascal",
+        "TimeInSeconds": 0
+    },
+    "MBR": {
+        "UNECECode": "MBR",
+        "UnitId": "5063250",
+        "DisplayName": "mbar",
+        "Description": "millibar",
+        "TimeInSeconds": 0
+    },
+    "PAL": {
+        "UNECECode": "PAL",
+        "UnitId": "5259596",
+        "DisplayName": "Pa",
+        "Description": "pascal",
+        "TimeInSeconds": 0
+    },
+    "D5": {
+        "UNECECode": "D5",
+        "UnitId": "17461",
+        "DisplayName": "kg/cm²",
+        "Description": "kilogram per square centimetre",
+        "TimeInSeconds": 0
+    },
+    "MPA": {
+        "UNECECode": "MPA",
+        "UnitId": "5066817",
+        "DisplayName": "MPa",
+        "Description": "megapascal",
+        "TimeInSeconds": 0
+    },
+    "B98": {
+        "UNECECode": "B98",
+        "UnitId": "4340024",
+        "DisplayName": "µs",
+        "Description": "microsecond",
+        "TimeInSeconds": 0
+    },
+    "C26": {
+        "UNECECode": "C26",
+        "UnitId": "4403766",
+        "DisplayName": "ms",
+        "Description": "millisecond",
+        "TimeInSeconds": 0
+    },
+    "SEC": {
+        "UNECECode": "SEC",
+        "UnitId": "5457219",
+        "DisplayName": "s",
+        "Description": "second [unit of time]",
+        "TimeInSeconds": 0
+    },
+    "CMT": {
+        "UNECECode": "CMT",
+        "UnitId": "4410708",
+        "DisplayName": "cm",
+        "Description": "centimetre",
+        "TimeInSeconds": 0
+    },
+    "MTR": {
+        "UNECECode": "MTR",
+        "UnitId": "5067858",
+        "DisplayName": "m",
+        "Description": "metre",
+        "TimeInSeconds": 0
+    },
+    "MMT": {
+        "UNECECode": "MMT",
+        "UnitId": "5066068",
+        "DisplayName": "mm",
+        "Description": "millimetre",
+        "TimeInSeconds": 0
+    },
+    "CMQ": {
+        "UNECECode": "CMQ",
+        "UnitId": "4410705",
+        "DisplayName": "cm³",
+        "Description": "cubic centimetre",
+        "TimeInSeconds": 0
+    },
+    "MTQ": {
+        "UNECECode": "MTQ",
+        "UnitId": "5067857",
+        "DisplayName": "m³",
+        "Description": "cubic metre",
+        "TimeInSeconds": 0
+    },
+    "CEL": {
+        "UNECECode": "CEL",
+        "UnitId": "4408652",
+        "DisplayName": "°C",
+        "Description": "degree Celsius",
+        "TimeInSeconds": 0
+    },
+    "FAH": {
+        "UNECECode": "FAH",
+        "UnitId": "4604232",
+        "DisplayName": "°F",
+        "Description": "degree Fahrenheit",
+        "TimeInSeconds": 0
+    },
+    "KEL": {
+        "UNECECode": "KEL",
+        "UnitId": "4932940",
+        "DisplayName": "K",
+        "Description": "kelvin",
+        "TimeInSeconds": 0
+    },
+    "GRM": {
+        "UNECECode": "GRM",
+        "UnitId": "4674125",
+        "DisplayName": "g",
+        "Description": "gram",
+        "TimeInSeconds": 0
+    },
+    "KGM": {
+        "UNECECode": "KGM",
+        "UnitId": "4933453",
+        "DisplayName": "kg",
+        "Description": "kilogram",
+        "TimeInSeconds": 0
+    },
+    "MTS": {
+        "UNECECode": "MTS",
+        "UnitId": "5067859",
+        "DisplayName": "m/s",
+        "Description": "metre per second",
+        "TimeInSeconds": 1
+    },
+    "HM": {
+        "UNECECode": "HM",
+        "UnitId": "18509",
+        "DisplayName": "mile/h",
+        "Description": "mile per hour (statute mile)",
+        "TimeInSeconds": 3600
+    },
+    "KMH": {
+        "UNECECode": "KMH",
+        "UnitId": "4934984",
+        "DisplayName": "km/h",
+        "Description": "kilometre per hour",
+        "TimeInSeconds": 3600
+    },
+    "MSK": {
+        "UNECECode": "MSK",
+        "UnitId": "5067595",
+        "DisplayName": "m/s²",
+        "Description": "metre per second squared",
+        "TimeInSeconds": 0
+    },
+    "KHZ": {
+        "UNECECode": "KHZ",
+        "UnitId": "4933722",
+        "DisplayName": "kHz",
+        "Description": "kilohertz",
+        "TimeInSeconds": 0
+    },
+    "HTZ": {
+        "UNECECode": "HTZ",
+        "UnitId": "4740186",
+        "DisplayName": "Hz",
+        "Description": "hertz",
+        "TimeInSeconds": 0
+    },
+    "MHZ": {
+        "UNECECode": "MHZ",
+        "UnitId": "5064794",
+        "DisplayName": "MHz",
+        "Description": "megahertz",
+        "TimeInSeconds": 0
+    },
+    "RPM": {
+        "UNECECode": "RPM",
+        "UnitId": "5394509",
+        "DisplayName": "r/min",
+        "Description": "revolutions per minute",
+        "TimeInSeconds": 60
+    },
+    "RPS": {
+        "UNECECode": "RPS",
+        "UnitId": "5394515",
+        "DisplayName": "r/s",
+        "Description": "revolutions per second",
+        "TimeInSeconds": 1
+    },
+    "NEW": {
+        "UNECECode": "NEW",
+        "UnitId": "5129559",
+        "DisplayName": "N",
+        "Description": "newton",
+        "TimeInSeconds": 0
+    },
+    "B37": {
+        "UNECECode": "B37",
+        "UnitId": "4338487",
+        "DisplayName": "kgf",
+        "Description": "kilogram-force",
+        "TimeInSeconds": 0
+    },
+    "KWT": {
+        "UNECECode": "KWT",
+        "UnitId": "4937556",
+        "DisplayName": "kW",
+        "Description": "kilowatt",
+        "TimeInSeconds": 0
+    },
+    "MAW": {
+        "UNECECode": "MAW",
+        "UnitId": "5062999",
+        "DisplayName": "MW",
+        "Description": "megawatt",
+        "TimeInSeconds": 0
+    },
+    "WTT": {
+        "UNECECode": "WTT",
+        "UnitId": "5723220",
+        "DisplayName": "W",
+        "Description": "watt",
+        "TimeInSeconds": 0
+    },
+    "2J": {
+        "UNECECode": "2J",
+        "UnitId": "12874",
+        "DisplayName": "cm³/s",
+        "Description": "cubic centimetre per second",
+        "TimeInSeconds": 1
+    },
+    "MQH": {
+        "UNECECode": "MQH",
+        "UnitId": "5067080",
+        "DisplayName": "m³/h",
+        "Description": "cubic metre per hour",
+        "TimeInSeconds": 3600
+    },
+    "G53": {
+        "UNECECode": "G53",
+        "UnitId": "4666675",
+        "DisplayName": "m³/min",
+        "Description": "cubic metre per minute",
+        "TimeInSeconds": 60
+    },
+    "DD": {
+        "UNECECode": "DD",
+        "UnitId": "17476",
+        "DisplayName": "°",
+        "Description": "degree [unit of angle]",
+        "TimeInSeconds": 0
+    },
+    "AMP": {
+        "UNECECode": "AMP",
+        "UnitId": "4279632",
+        "DisplayName": "A",
+        "Description": "ampere",
+        "TimeInSeconds": 0
+    },
+    "BQL": {
+        "UNECECode": "BQL",
+        "UnitId": "4346188",
+        "DisplayName": "Bq",
+        "Description": "becquerel",
+        "TimeInSeconds": 0
+    },
+    "CUR": {
+        "UNECECode": "CUR",
+        "UnitId": "4412754",
+        "DisplayName": "Ci",
+        "Description": "curie",
+        "TimeInSeconds": 0
+    },
+    "A42": {
+        "UNECECode": "A42",
+        "UnitId": "4273202",
+        "DisplayName": "Ci/kg",
+        "Description": "curie per kilogram",
+        "TimeInSeconds": 0
+    },
+    "E39": {
+        "UNECECode": "E39",
+        "UnitId": "4535097",
+        "DisplayName": "dpi",
+        "Description": "dots per inch",
+        "TimeInSeconds": 0
+    },
+    "A53": {
+        "UNECECode": "A53",
+        "UnitId": "4273459",
+        "DisplayName": "eV",
+        "Description": "electronvolt",
+        "TimeInSeconds": 0
+    },
+    "FAR": {
+        "UNECECode": "FAR",
+        "UnitId": "4604242",
+        "DisplayName": "F",
+        "Description": "farad",
+        "TimeInSeconds": 0
+    },
+    "GBQ": {
+        "UNECECode": "GBQ",
+        "UnitId": "4670033",
+        "DisplayName": "GBq",
+        "Description": "gigabecquerel",
+        "TimeInSeconds": 0
+    },
+    "JOU": {
+        "UNECECode": "JOU",
+        "UnitId": "4869973",
+        "DisplayName": "J",
+        "Description": "joule",
+        "TimeInSeconds": 0
+    },
+    "B29": {
+        "UNECECode": "B29",
+        "UnitId": "4338233",
+        "DisplayName": "keV",
+        "Description": "kiloelectronvolt",
+        "TimeInSeconds": 0
+    },
+    "KGS": {
+        "UNECECode": "KGS",
+        "UnitId": "4933459",
+        "DisplayName": "kg/s",
+        "Description": "kilogram per second",
+        "TimeInSeconds": 1
+    },
+    "KPA": {
+        "UNECECode": "KPA",
+        "UnitId": "4935745",
+        "DisplayName": "kPa",
+        "Description": "kilopascal",
+        "TimeInSeconds": 0
+    },
+    "2Q": {
+        "UNECECode": "2Q",
+        "UnitId": "12881",
+        "DisplayName": "kBq",
+        "Description": "kilobecquerel",
+        "TimeInSeconds": 0
+    },
+    "B71": {
+        "UNECECode": "B71",
+        "UnitId": "4339505",
+        "DisplayName": "MeV",
+        "Description": "megaelectronvolt",
+        "TimeInSeconds": 0
+    },
+    "Q35": {
+        "UNECECode": "Q35",
+        "UnitId": "5321525",
+        "DisplayName": "MW/min",
+        "Description": "megawatts per minute",
+        "TimeInSeconds": 60
+    },
+    "P1": {
+        "UNECECode": "P1",
+        "UnitId": "20529",
+        "DisplayName": "% or pct",
+        "Description": "percent",
+        "TimeInSeconds": 0
+    },
+    "VLT": {
+        "UNECECode": "VLT",
+        "UnitId": "5655636",
+        "DisplayName": "V",
+        "Description": "volt",
+        "TimeInSeconds": 0
+    },
+    "AD": {
+        "UNECECode": "AD",
+        "UnitId": "16708",
+        "DisplayName": "byte",
+        "Description": "byte",
+        "TimeInSeconds": 0
+    },
+    "2P": {
+        "UNECECode": "2P",
+        "UnitId": "12880",
+        "DisplayName": "kbyte",
+        "Description": "kilobyte",
+        "TimeInSeconds": 0
+    },
+    "4L": {
+        "UNECECode": "4L",
+        "UnitId": "13388",
+        "DisplayName": "Mbyte",
+        "Description": "megabyte",
+        "TimeInSeconds": 0
+    },
+    "E34": {
+        "UNECECode": "E34",
+        "UnitId": "4535092",
+        "DisplayName": "Gbyte",
+        "Description": "gigabyte",
+        "TimeInSeconds": 0
+    },
+    "E35": {
+        "UNECECode": "E35",
+        "UnitId": "4535093",
+        "DisplayName": "Tbyte",
+        "Description": "terabyte",
+        "TimeInSeconds": 0
+    },
+    "MIN": {
+        "UNECECode": "MIN",
+        "UnitId": "5065038",
+        "DisplayName": "min",
+        "Description": "minute [unit of time]",
+        "TimeInSeconds": 0
+    },
+    "D61": {
+        "UNECECode": "D61",
+        "UnitId": "4470321",
+        "DisplayName": "'",
+        "Description": "minute [unit of angle]",
+        "TimeInSeconds": 0
+    },
+    "C62": {
+        "UNECECode": "C62",
+        "UnitId": "4404786",
+        "DisplayName": "1",
+        "Description": "one",
+        "TimeInSeconds": 0
+    }
+}
