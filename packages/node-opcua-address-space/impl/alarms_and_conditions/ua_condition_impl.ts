@@ -749,6 +749,40 @@ function UACondition_instantiate(
         namespace: options.namespace || namespace
     };
     const conditionNode = conditionType.instantiate(options2) as unknown as UAConditionImpl;
+    return _initialize_condition_node(namespace, conditionNode, conditionType, options, data);
+}
+
+/**
+ * The part of {@link InstantiateConditionOptions} that the initialization step below reads.
+ *
+ * Named separately so a caller that is wiring an existing node - which has no browseName or
+ * parent to give - does not have to invent the creation-time half of the options.
+ *
+ * @internal
+ */
+export type ConditionInitializationOptions = Pick<
+    InstantiateConditionOptions,
+    "conditionSource" | "conditionOf" | "conditionClass" | "conditionName"
+>;
+
+/**
+ * Everything that turns a freshly created node into a working condition.
+ *
+ * Split out of {@link UACondition_instantiate} so that a node that already exists - one built by
+ * `objectType.instantiate` or loaded from a nodeset - can be given the very same wiring without
+ * being rebuilt, and so the two routes cannot drift apart.
+ *
+ * @internal
+ */
+export function _initialize_condition_node(
+    namespace: INamespace,
+    conditionNode: UAConditionImpl,
+    conditionType: UAEventType,
+    options: ConditionInitializationOptions,
+    data?: Record<string, VariantOptions>
+): UAConditionEx {
+    const addressSpace = namespace.addressSpace as AddressSpacePrivate;
+
     Object.setPrototypeOf(conditionNode, UAConditionImpl.prototype);
     conditionNode.initialize();
 

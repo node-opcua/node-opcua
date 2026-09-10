@@ -45,6 +45,14 @@ export {
     UANonExclusiveLimitAlarmImpl,
     UANonExclusiveLimitAlarmImplBase
 } from "../impl/alarms_and_conditions/index.js";
+/**
+ * Upgrading a node to the typed view of what it already is.
+ *
+ * An alarm built by `objectType.instantiate` or loaded from a nodeset has the children of an alarm
+ * and none of the behaviour; promoting it retypes the node in place and installs the machinery
+ * `namespace.instantiateAlarmCondition` would have installed.
+ */
+export { promoteToAlarm } from "../impl/alarms_and_conditions/ua_alarm_condition_impl.js";
 export { instantiateCertificateExpirationAlarm } from "../impl/alarms_and_conditions/ua_certificate_expiration_alarm_impl.js";
 /** The event name a node emits when one of its attributes changes. */
 export { childAccessorNamesShadowedBy, makeAttributeEventName } from "../impl/base_node_impl.js";
@@ -134,6 +142,7 @@ export * from "./interfaces/alarms_and_conditions/instantiate_condition_options.
 export * from "./interfaces/alarms_and_conditions/instantiate_exclusive_limit_alarm_options.js";
 export * from "./interfaces/alarms_and_conditions/instantiate_limit_alarm_options.js";
 export * from "./interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options.js";
+export * from "./interfaces/alarms_and_conditions/promote_to_alarm_options.js";
 export * from "./interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex.js";
 export * from "./interfaces/alarms_and_conditions/ua_alarm_condition_ex.js";
 export * from "./interfaces/alarms_and_conditions/ua_base_event_ex.js";
