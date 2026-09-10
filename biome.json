@@ -28,8 +28,7 @@
             "!packages/node-opcua-constants/source/opcua_node_ids.ts",
             "!**/_generated_*.ts",
             "!**/_auto_generated_*",
-            "!**/_test_generated",
-            "!packages/node-opcua-variant/test/data_factory_code_generator"
+            "!**/_test_generated"
         ]
     },
     "assist": {
