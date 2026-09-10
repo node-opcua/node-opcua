@@ -251,6 +251,13 @@ export async function _convertNodeIdToDataTypeAsync(
     if (dataTypeId.namespace === 0 && dataTypeId.value === DataTypeIds.Enumeration) {
         return { type: "enum", dataType: DataType.Int32, enumerationId: dataTypeId };
     }
+    if (dataTypeId.namespace === 0 && dataTypeId.value === DataTypeIds.BaseDataType) {
+        // BaseDataType (i=24) is the abstract root of the DataType hierarchy, not a builtin
+        // type. Its NodeId value collides numerically with the DataType.Variant enum member,
+        // so it must be handled before the builtin-type fast path below or it is mistaken for
+        // the Variant builtin and generates the wrong (unconstructible) TypeScript type.
+        return { type: "basic", dataType: DataType.Null };
+    }
     if (dataTypeId.namespace === 0 && DataType[dataTypeId.value as number]) {
         dataType = dataTypeId.value as DataType;
         return { type: "basic", dataType };
