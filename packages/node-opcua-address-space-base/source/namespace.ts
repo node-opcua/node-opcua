@@ -83,6 +83,8 @@ export interface AddBaseNodeOptions {
     notifierOf?: NodeIdLike | BaseNode;
     organizedBy?: NodeIdLike | BaseNode;
     propertyOf?: NodeIdLike | BaseNode;
+    /** the declared parent, see {@link CreateNodeOptions.parentNodeId}; an organizer named here is the parent */
+    parentNodeId?: NodeIdLike | BaseNode;
 
     modellingRule?: ModellingRuleType;
 
