@@ -67,47 +67,7 @@ export class UAAcknowledgeableConditionImplBase<
             data
         ) as UAAcknowledgeableConditionImpl;
 
-        Object.setPrototypeOf(conditionNode, UAAcknowledgeableConditionImpl.prototype);
-
-        // ----------------------- Install Acknowledge-able Condition stuff
-        // install ackedState - Mandatory
-        /**
-         * @property ackedState
-         * @type TwoStateVariable
-         */
-        _install_TwoStateVariable_machinery(conditionNode.ackedState, {
-            falseState: "Unacknowledged",
-            trueState: "Acknowledged"
-        });
-
-        /**
-         * @property acknowledge
-         * @type UAMethod
-         */
-        conditionNode.acknowledge.bindMethod(_acknowledge_method);
-
-        // install confirmedState - Optional
-        /**
-         * @property confirmedState
-         * @type TwoStateVariable
-         */
-        if (conditionNode.confirmedState) {
-            _install_TwoStateVariable_machinery(conditionNode.confirmedState, {
-                falseState: "Unconfirmed",
-                trueState: "Confirmed"
-            });
-        }
-
-        // install confirm Method - Optional
-        /**
-         * @property confirm
-         * @type UAMethod
-         */
-        if (conditionNode.confirm) {
-            conditionNode.confirm.bindMethod(_confirm_method);
-        }
-        assert(conditionNode instanceof UAAcknowledgeableConditionImpl);
-        return conditionNode;
+        return _initialize_acknowledgeable_condition_node(conditionNode);
     }
 
     public static install_method_handle_on_type(addressSpace: AddressSpacePrivate): void {
@@ -348,4 +308,56 @@ function _confirm_method(inputArguments: VariantLike[], context: ISessionContext
             return StatusCodes.Good;
         }
     );
+}
+
+/**
+ * The acknowledgeable half of a condition's wiring, shared by {@link UAAcknowledgeableConditionImplBase.instantiate}
+ * and by the promotion of an existing node, so neither route can drift from the other.
+ *
+ * @internal
+ */
+export function _initialize_acknowledgeable_condition_node(
+    conditionNode: UAAcknowledgeableConditionImpl
+): UAAcknowledgeableConditionImpl {
+    Object.setPrototypeOf(conditionNode, UAAcknowledgeableConditionImpl.prototype);
+
+    // ----------------------- Install Acknowledge-able Condition stuff
+    // install ackedState - Mandatory
+    /**
+     * @property ackedState
+     * @type TwoStateVariable
+     */
+    _install_TwoStateVariable_machinery(conditionNode.ackedState, {
+        falseState: "Unacknowledged",
+        trueState: "Acknowledged"
+    });
+
+    /**
+     * @property acknowledge
+     * @type UAMethod
+     */
+    conditionNode.acknowledge.bindMethod(_acknowledge_method);
+
+    // install confirmedState - Optional
+    /**
+     * @property confirmedState
+     * @type TwoStateVariable
+     */
+    if (conditionNode.confirmedState) {
+        _install_TwoStateVariable_machinery(conditionNode.confirmedState, {
+            falseState: "Unconfirmed",
+            trueState: "Confirmed"
+        });
+    }
+
+    // install confirm Method - Optional
+    /**
+     * @property confirm
+     * @type UAMethod
+     */
+    if (conditionNode.confirm) {
+        conditionNode.confirm.bindMethod(_confirm_method);
+    }
+    assert(conditionNode instanceof UAAcknowledgeableConditionImpl);
+    return conditionNode;
 }
