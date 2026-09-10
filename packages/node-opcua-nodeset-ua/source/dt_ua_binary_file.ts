@@ -1,6 +1,6 @@
 import type { UAString } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { Variant } from "node-opcua-variant";
+import type { VariantOptions } from "node-opcua-variant";
 
 import type { DTDataTypeSchemaHeader } from "./dt_data_type_schema_header.js";
 import type { DTEnumDescription } from "./dt_enum_description.js";
@@ -25,6 +25,6 @@ export interface DTUABinaryFile extends DTDataTypeSchemaHeader {
   simpleDataTypes: DTSimpleTypeDescription[]; // ExtensionObject ns=0;i=15005
   schemaLocation: UAString; // String ns=0;i=12
   fileHeader: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
-  body: Variant; // Variant ns=0;i=24
+  body: VariantOptions; // Variant ns=0;i=24
 }
 export interface UDTUABinaryFile extends ExtensionObject, DTUABinaryFile {};

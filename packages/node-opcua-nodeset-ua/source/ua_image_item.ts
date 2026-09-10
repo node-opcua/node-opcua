@@ -12,8 +12,8 @@ import type { UAArrayItem, UAArrayItem_Base } from "./ua_array_item.js";
  * |namespace       |http://opcfoundation.org/UA/                                |
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |ImageItemType i=12047                                       |
- * |dataType        |Null                                                        |
- * |dataType Name   |VariantOptions[] i=0                                        |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |VariantOptions[] i=24                                       |
  * |value rank      |2                                                           |
  * |isAbstract      |false                                                       |
  */

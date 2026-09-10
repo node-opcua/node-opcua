@@ -1,5 +1,5 @@
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { Variant } from "node-opcua-variant";
+import type { VariantOptions } from "node-opcua-variant";
 
 import type { DTFilterOperand } from "./dt_filter_operand.js";
 
@@ -14,6 +14,6 @@ import type { DTFilterOperand } from "./dt_filter_operand.js";
  * | isAbstract|false                                                       |
  */
 export interface DTLiteralOperand extends DTFilterOperand {
-  value: Variant; // Variant ns=0;i=24
+  value: VariantOptions; // Variant ns=0;i=24
 }
 export interface UDTLiteralOperand extends ExtensionObject, DTLiteralOperand {};

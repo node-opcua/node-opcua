@@ -2,7 +2,7 @@ import type { UAString } from "node-opcua-basic-types";
 import type { LocalizedText } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure.js";
-import type { Variant } from "node-opcua-variant";
+import type { VariantOptions } from "node-opcua-variant";
 
 // ----- this file has been automatically generated - do not edit
 
@@ -35,6 +35,6 @@ Examples: BoltId, RivetId, GasketId, etc.*/
   manufacturerUri?: UAString; // String ns=0;i=12
   /** It is the content of the joint component.
 Examples: Bolt, Rivet, Gasket, etc.*/
-  jointComponentContent?: Variant; // Variant ns=0;i=24
+  jointComponentContent?: VariantOptions; // Variant ns=0;i=24
 }
 export interface UDTJointComponent extends ExtensionObject, DTJointComponent {};

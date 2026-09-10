@@ -2,7 +2,7 @@ import type { UAString, UInt32 } from "node-opcua-basic-types";
 import type { QualifiedName } from "node-opcua-data-model";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
-import type { Variant } from "node-opcua-variant";
+import type { VariantOptions } from "node-opcua-variant";
 
 import type { DTStructure } from "./dt_structure.js";
 
@@ -23,7 +23,7 @@ export interface DTPublishedVariable extends DTStructure {
   deadbandType: UInt32; // UInt32 ns=0;i=7
   deadbandValue: number; // Double ns=0;i=11
   indexRange: UAString; // String ns=0;i=291
-  substituteValue: Variant; // Variant ns=0;i=24
+  substituteValue: VariantOptions; // Variant ns=0;i=24
   metaDataProperties: QualifiedName[]; // QualifiedName ns=0;i=20
 }
 export interface UDTPublishedVariable extends ExtensionObject, DTPublishedVariable {};

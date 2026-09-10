@@ -1,7 +1,7 @@
 import type { Guid, UAString, UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
-import type { Variant } from "node-opcua-variant";
+import type { VariantOptions } from "node-opcua-variant";
 
 import type { DTStructure } from "./dt_structure.js";
 import type { EnumOverrideValueHandling } from "./enum_override_value_handling.js";
@@ -23,6 +23,6 @@ export interface DTFieldTarget extends DTStructure {
   attributeId: UInt32; // UInt32 ns=0;i=288
   writeIndexRange: UAString; // String ns=0;i=291
   overrideValueHandling: EnumOverrideValueHandling; // Int32 ns=0;i=15874
-  overrideValue: Variant; // Variant ns=0;i=24
+  overrideValue: VariantOptions; // Variant ns=0;i=24
 }
 export interface UDTFieldTarget extends ExtensionObject, DTFieldTarget {};

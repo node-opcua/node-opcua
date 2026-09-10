@@ -20,8 +20,8 @@ import type { DataType } from "node-opcua-variant";
  * |namespace       |http://opcfoundation.org/UA/IJT/Base/                       |
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |JoiningDataVariableType i=2011                              |
- * |dataType        |Null                                                        |
- * |dataType Name   |VariantOptions i=0                                          |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |VariantOptions i=24                                         |
  * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */

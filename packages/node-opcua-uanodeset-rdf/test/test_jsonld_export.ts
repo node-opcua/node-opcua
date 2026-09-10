@@ -15,7 +15,9 @@ import should from "should";
 import { addressSpaceToJsonLd, addressSpaceToJsonLdText, prefixOfNamespace } from "../source/index.js";
 
 /** what the exporter produced when this test was written, for DI on top of the standard nodeset */
-const DI_SHA1 = "16d2e9e535aeba450c7022799e42b6bbd6df787b";
+// FEAT-53: an omitted DataType attribute now reads BaseDataType (i=24), not Null; the export
+// text carries that through wherever a DI field or VariableType had no explicit DataType.
+const DI_SHA1 = "44540c387c8df6f685fdbffe0904d537d7b15826";
 
 type JsonLd = {
     "@context": Record<string, unknown>;

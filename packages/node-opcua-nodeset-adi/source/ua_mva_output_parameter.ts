@@ -18,8 +18,8 @@ import type { EnumAlarmState } from "./enum_alarm_state.js";
  * |namespace       |http://opcfoundation.org/UA/ADI/                            |
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |MVAOutputParameterType i=2010                               |
- * |dataType        |Null                                                        |
- * |dataType Name   |(VariantOptions | VariantOptions[]) i=0                     |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |(VariantOptions | VariantOptions[]) i=24                    |
  * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */

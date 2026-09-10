@@ -1,6 +1,6 @@
 import type { UAString, UInt16, UInt32 } from "node-opcua-basic-types";
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { Variant } from "node-opcua-variant";
+import type { VariantOptions } from "node-opcua-variant";
 
 import type { DTDataSetMeta } from "./dt_data_set_meta.js";
 import type { DTDataSetReaderMessage } from "./dt_data_set_reader_message.js";
@@ -24,7 +24,7 @@ import type { EnumMessageSecurityMode } from "./enum_message_security_mode.js";
 export interface DTDataSetReader extends DTStructure {
   name: UAString; // String ns=0;i=12
   enabled: boolean; // Boolean ns=0;i=1
-  publisherId: Variant; // Variant ns=0;i=24
+  publisherId: VariantOptions; // Variant ns=0;i=24
   writerGroupId: UInt16; // UInt16 ns=0;i=5
   dataSetWriterId: UInt16; // UInt16 ns=0;i=5
   dataSetMetaData: DTDataSetMeta; // ExtensionObject ns=0;i=14523
