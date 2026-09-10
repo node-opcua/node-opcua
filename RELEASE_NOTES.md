@@ -1,4 +1,21 @@
 
+TransferSubscriptions: the anonymous rule is now enforced by default (OPC UA Part 4 §5.13.7)
+============================================================================================
+
+  - **behaviour change** `OPCUAServerOptions.allowAnonymousSubscriptionTransferOnUnsecuredChannel`
+    now defaults to `false` (it used to default to `true`). As required by Part 4 §5.13.7, a
+    Subscription created by an anonymous Session is only transferred to another Session when the
+    SecureChannel MessageSecurityMode is `Sign` or `SignAndEncrypt` **and** the client certificate's
+    ApplicationUri is the one of the original Session; otherwise the transfer is refused with
+    `Bad_UserAccessDenied`. A stock server used to accept the transfer over a `None` endpoint and
+    failed the CTT 1.05 script *Subscription Services / Subscription Transfer / Err-017*.
+  - migration: an anonymous client that reconnects over a `None` endpoint and expects to keep its
+    subscriptionId now rebuilds its subscription instead. Set
+    `allowAnonymousSubscriptionTransferOnUnsecuredChannel: true` on the server to restore the previous
+    behaviour; the option is documented as an explicit relaxation of the specification.
+  - unchanged: the cross-user ownership check (a transfer is refused unless the destination Session
+    operates on behalf of the same user as the Subscription owner) is always enforced.
+
 Local Discovery Server: registration conformance (OPC UA Part 4 §5.5.5 / §5.5.6)
 ================================================================================
 

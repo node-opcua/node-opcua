@@ -37,9 +37,9 @@ function identity(
     return getTransferSessionIdentity(fakeSession(userIdentityToken, applicationUri, securityMode));
 }
 
-// OPC UA Part 4 §5.14.7: a Subscription may only be transferred to a Session that operates on
+// OPC UA Part 4 §5.13.7: a Subscription may only be transferred to a Session that operates on
 // behalf of the same user as the Session that owns the Subscription.
-describe("sessionsCompatibleForTransfer (OPC UA Part 4 §5.14.7)", () => {
+describe("sessionsCompatibleForTransfer (OPC UA Part 4 §5.13.7)", () => {
     it("SCT-01 - refuses the transfer when the owning identity is unknown (fail closed)", () => {
         should(sessionsCompatibleForTransfer(undefined, fakeSession(new UserNameIdentityToken({ userName: "user1" })))).eql(false);
         should(sessionsCompatibleForTransfer(undefined, fakeSession(undefined))).eql(false);
@@ -117,7 +117,7 @@ describe("sessionsCompatibleForTransfer (OPC UA Part 4 §5.14.7)", () => {
         should(sessionsCompatibleForTransfer(snapshot, fakeSession(new UserNameIdentityToken({ userName: "user2" })))).eql(false);
     });
 
-    // ---- anonymous user rule (§5.14.7): same ApplicationUri AND Sign/SignAndEncrypt channel ----
+    // ---- anonymous user rule (§5.13.7): same ApplicationUri AND Sign/SignAndEncrypt channel ----
 
     it("SCT-12 - refuses anonymous -> username", () => {
         should(

@@ -338,7 +338,7 @@ function attempt_subscription_transfer(
                     if (statusCode.isNotGood()) {
                         // the subscription could not be transferred (BadSubscriptionIdInvalid when the
                         // subscription no longer exists, BadUserAccessDenied when the server refuses the
-                        // transfer per OPC UA Part 4 §5.14.7, ...). Whatever the reason, recreate it here
+                        // transfer per OPC UA Part 4 §5.13.7, ...). Whatever the reason, recreate it here
                         // directly on the new session instead of relying on the subsequent Republish step
                         // to notice and repair it (which would otherwise cost an extra failed round-trip).
                         doDebug &&

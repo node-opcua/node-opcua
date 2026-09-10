@@ -873,7 +873,7 @@ describe("ServerEngine Subscriptions Transfer", function (this: ITestContext) {
         });
     });
 
-    // OPC UA Part 4 §5.14.7: TransferSubscriptions shall validate that the destination session is
+    // OPC UA Part 4 §5.13.7: TransferSubscriptions shall validate that the destination session is
     // operating on behalf of the same user as the session that owns the subscription. This must remain
     // enforced even once the owning session has timed out and the subscription has been orphaned.
     it("ZDZ-ST11 - should NOT transfer an orphaned subscription to a session of a different user", async () => {

@@ -24,7 +24,7 @@ type RawSession = Omit<ClientSession & ClientSessionRawSubscriptionService, "tra
 };
 
 // -------------------------------------------------------------------------------------------------
-// OPC UA Part 4 §5.14.7 - ownership check for TransferSubscriptions.
+// OPC UA Part 4 §5.13.7 - ownership check for TransferSubscriptions.
 //
 // A Subscription may only be transferred to a Session operating on behalf of the SAME user as the
 // session that owns it. This must hold even after the owning session is gone (the subscription has
@@ -93,7 +93,7 @@ async function transferAs(endpointUrl: string, userName: string, password: strin
     }
 }
 
-describe("GHTR2 - cross-user TransferSubscriptions is denied over an unsecured channel (Part 4 §5.14.7)", function (this: Mocha.Context) {
+describe("GHTR2 - cross-user TransferSubscriptions is denied over an unsecured channel (Part 4 §5.13.7)", function (this: Mocha.Context) {
     this.timeout(60_000);
 
     let server: OPCUAServer;

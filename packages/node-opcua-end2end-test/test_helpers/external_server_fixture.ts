@@ -26,6 +26,7 @@ export interface IStartServerOptions {
     maxConnectionsPerEndpoint?: number;
     nodeset_filename?: string[];
     serverCapabilities?: ServerCapabilitiesOptions;
+    allowAnonymousSubscriptionTransferOnUnsecuredChannel?: boolean;
 }
 export async function start_simple_server(options: IStartServerOptions): Promise<ServerHandle> {
     const maxRetries = 5;

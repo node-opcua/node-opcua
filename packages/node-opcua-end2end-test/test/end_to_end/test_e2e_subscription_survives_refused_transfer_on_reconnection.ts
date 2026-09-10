@@ -24,7 +24,7 @@ const doDebug = checkDebugFlag("TEST");
 // -------------------------------------------------------------------------------------------------
 // When the client reconnects and can no longer reactivate its previous session, it creates a NEW
 // session and asks the server to TransferSubscriptions. Depending on whether the server authorises the
-// transfer (OPC UA Part 4 §5.14.7), one of two things happens - both observable client-side through
+// transfer (OPC UA Part 4 §5.13.7), one of two things happens - both observable client-side through
 // the subscriptionId:
 //
 //   * transfer ACCEPTED  -> the subscription keeps its original server-assigned subscriptionId;
@@ -74,7 +74,7 @@ async function startServer(port: number, allowAnonymousSubscriptionTransferOnUns
     }, 100);
 
     // capture the StatusCode returned for every TransferSubscriptions operation so the test can assert
-    // that the §5.14.7 authorisation actually behaved as expected.
+    // that the §5.13.7 authorisation actually behaved as expected.
     const transferStatuses: string[] = [];
     const engine = server.engine as unknown as {
         transferSubscription: (...args: unknown[]) => Promise<TransferResult>;
@@ -236,7 +236,7 @@ function assertCommonRecoveryGuarantees(result: ScenarioResult): void {
     maxAfter.should.be.greaterThan(minAfter, "several distinct fresh values should be received after recovery");
 }
 
-describe("GHTR1 - transferred-vs-rebuilt subscription after reconnection (OPC UA Part 4 §5.14.7)", function (this: Mocha.Context) {
+describe("GHTR1 - transferred-vs-rebuilt subscription after reconnection (OPC UA Part 4 §5.13.7)", function (this: Mocha.Context) {
     this.timeout(60_000);
 
     it("GHTR1-A should REBUILD the subscription (new subscriptionId) when the server refuses the transfer", async () => {
