@@ -1,203 +1,140 @@
-import type {
+/**
+ * The four DI DeviceHealth alarms (Failure, CheckFunction, OffSpec, MaintenanceRequired) of a
+ * device, all watching the same DeviceHealth enumeration variable.
+ *
+ * It is kept as a worked example of giving an alarm a behaviour of its own from application
+ * code: nothing is imported from inside a package, no implementation class is derived from, and
+ * the behaviour is installed by assigning the published hooks. The hooks are assigned as
+ * closures on purpose - a closure carries the application context (here the device and the
+ * diagnostics this module collects for it), which is the one thing a prototype method could
+ * never reach without bolting an extra field onto the node.
+ */
+import {
     ConditionInfo,
-    INamespace,
-    Namespace,
-    UAAlarmConditionEx,
-    UADiscreteAlarm,
-    UAObject,
-    UAObjectType
-} from "node-opcua-address-space";
-import { ConditionInfoImpl } from "node-opcua-address-space/dist/impl/alarms_and_conditions/condition_info_impl";
-import { UAAlarmConditionImpl } from "node-opcua-address-space/dist/impl/alarms_and_conditions/ua_alarm_condition_impl";
-import type { DataValue } from "node-opcua-data-value";
-import { StatusCodes } from "node-opcua-status-code";
-import { DataType } from "node-opcua-variant";
+    DataType,
+    type Namespace,
+    NodeClass,
+    StatusCodes,
+    type UAAlarmConditionEx,
+    type UAEventType,
+    type UAObject,
+    type UAVariable
+} from "node-opcua";
+import { EnumDeviceHealth } from "node-opcua-nodeset-di";
 
-import { EnumDeviceHealth } from "../enum_device_health";
+/**
+ * Diagnostics the application gathers elsewhere, deliberately owned by this module rather than
+ * stored on the node: the alarm hooks reach it through their closure, which is why the alarms
+ * need no `$device` field of their own.
+ */
+const recentDiagnostics = new Map<UAObject, string[]>();
 
-export class UADeviceHealthDiagnosticAlarmEx extends UAAlarmConditionImpl implements UAAlarmConditionEx {
-    public $device: UAObject;
-    getLastDeviceError(): string[] {
-        return [];
-    }
-    public _calculateConditionInfo(
-        _states: string | null,
-        isActive: boolean,
-        value: string,
-        _oldConditionInfo: ConditionInfo
-    ): ConditionInfo {
-        if (!isActive) {
-            return new ConditionInfoImpl({
-                message: "Back to normal",
-                quality: StatusCodes.Good,
-                retain: true,
-                severity: 0
-            });
-        } else {
-            // build-up state string
-            return new ConditionInfoImpl({
-                message: value,
-                quality: StatusCodes.Good,
-                retain: true,
-                severity: 150
-            });
-        }
-    }
-
-    public _updateAlarmState(normalStateValue: number, inputValue: number): void {
-        const isActive = normalStateValue === inputValue;
-        if (isActive === this.activeState.getValue()) {
-            // no change => ignore !
-            return;
-        }
-
-        const stateName = isActive ? "Active" : "Inactive";
-        // also raise the event
-
-        // get device node last error info
-        if (isActive) {
-            const description = this.getLastDeviceError();
-            this._signalNewCondition(stateName, isActive, description.join("\n"));
-        } else {
-            this._signalNewCondition(stateName, isActive, "");
-        }
-    }
+/** Called by the application whenever the device reports something worth quoting in an alarm. */
+export function recordDeviceDiagnostic(deviceNode: UAObject, diagnostic: string): void {
+    const history = recentDiagnostics.get(deviceNode) || [];
+    // an alarm message is read by a human, so only the tail of the history is worth carrying
+    recentDiagnostics.set(deviceNode, [...history, diagnostic].slice(-3));
 }
 
-export class UAFailureAlarm extends UADeviceHealthDiagnosticAlarmEx {
-    public _onInputDataValueChange(newValue: DataValue) {
-        const inputValue = newValue.value.value;
-        const normalStateValue = EnumDeviceHealth.FAILURE;
-        this._updateAlarmState(normalStateValue, inputValue);
-    }
-}
-
-export class UACheckFunctionAlarm extends UADeviceHealthDiagnosticAlarmEx {
-    public _onInputDataValueChange(newValue: DataValue) {
-        const inputValue = newValue.value.value;
-        const normalStateValue = EnumDeviceHealth.CHECK_FUNCTION;
-        this._updateAlarmState(normalStateValue, inputValue);
-    }
-}
-export class UAOffSpecAlarm extends UADeviceHealthDiagnosticAlarmEx {
-    public _onInputDataValueChange(newValue: DataValue) {
-        const inputValue = newValue.value.value;
-        const normalStateValue = EnumDeviceHealth.OFF_SPEC;
-        this._updateAlarmState(normalStateValue, inputValue);
-    }
-}
-export class UAMaintenanceRequiredAlarm extends UADeviceHealthDiagnosticAlarmEx {
-    public _onInputDataValueChange(newValue: DataValue) {
-        const inputValue = newValue.value.value;
-        const normalStateValue = EnumDeviceHealth.MAINTENANCE_REQUIRED;
-        this._updateAlarmState(normalStateValue, inputValue);
-    }
+function lastDeviceErrors(deviceNode: UAObject): string {
+    const history = recentDiagnostics.get(deviceNode);
+    return history && history.length > 0 ? history.join(" / ") : "no diagnostic reported";
 }
 
 interface UADeviceObjectWithHealthChildren extends UAObject {
-    deviceHealth?: UAObject;
+    deviceHealth?: UAVariable;
     deviceHealthAlarms?: UAObject;
 }
 
-function _createXXXXAlarm(
-    namespace: INamespace,
-    deviceNode: UAObject,
-    alarmType: UAObjectType,
-    browseName: string
-): UADiscreteAlarm {
-    const deviceNodeWithHealth = deviceNode as UADeviceObjectWithHealthChildren;
-    const deviceHealthNode = deviceNodeWithHealth.deviceHealth;
+function installDeviceHealthAlarm(
+    namespace: Namespace,
+    deviceNode: UADeviceObjectWithHealthChildren,
+    alarmType: UAEventType,
+    browseName: string,
+    alarmingHealth: EnumDeviceHealth
+): UAAlarmConditionEx {
+    const deviceHealthNode = deviceNode.deviceHealth;
     if (!deviceHealthNode) {
         throw new Error("DeviceHealth must exist");
     }
-    const deviceHealthAlarms = deviceNodeWithHealth.deviceHealthAlarms;
+    const deviceHealthAlarms = deviceNode.deviceHealthAlarms;
     if (!deviceHealthAlarms) {
         throw new Error("deviceHealthAlarms must exist");
     }
 
-    (alarmType as unknown as { isAbstract: boolean }).isAbstract = false;
-
-    if (alarmType.isAbstract) {
-        throw new Error(`Alarm Type cannot be abstract ${alarmType.browseName.toString()}`);
-    }
-
     deviceNode.setEventNotifier(1);
 
-    const options = {
+    const alarm = namespace.instantiateAlarmCondition(alarmType, {
         browseName,
+        componentOf: deviceHealthAlarms,
         conditionSource: deviceNode,
         inputNode: deviceHealthNode,
-        componentOf: deviceHealthAlarms,
-        // normalState: normalStateNode,
         optionals: ["ConfirmedState", "Confirm"]
-    };
+    });
 
-    const n = namespace as Namespace;
-    const alarmNode = n.instantiateAlarmCondition(alarmType, options) as UADeviceHealthDiagnosticAlarmEx;
-
-    alarmNode.conditionName.setValueFromSource({
+    alarm.conditionName.setValueFromSource({
         dataType: DataType.String,
         value: browseName.replace("Alarm", "")
     });
 
-    alarmNode._updateAlarmState = UADeviceHealthDiagnosticAlarmEx.prototype._updateAlarmState;
-    alarmNode._calculateConditionInfo = UADeviceHealthDiagnosticAlarmEx.prototype._calculateConditionInfo;
-    alarmNode.getLastDeviceError = UADeviceHealthDiagnosticAlarmEx.prototype.getLastDeviceError;
+    // the device is whatever was passed as conditionSource; asking the alarm rather than
+    // remembering it separately keeps the two from drifting apart
+    const conditionOf = alarm.conditionOfNode();
+    const device = conditionOf && conditionOf.nodeClass === NodeClass.Object ? conditionOf : deviceNode;
 
-    // Object.setPrototypeOf(alarmNode, UADeviceHealthDiagnosticAlarm.prototype);
+    alarm.calculateConditionInfo = (_stateName, isActive, value, _oldConditionInfo) =>
+        new ConditionInfo({
+            message: isActive ? `${browseName}: ${value}` : "Back to normal",
+            quality: StatusCodes.Good,
+            retain: true,
+            severity: isActive ? 150 : 0
+        });
 
-    // install inputNode Node monitoring for change
-    alarmNode.installInputNodeMonitoring(options.inputNode);
-    alarmNode.activeState.setValue(false);
-    alarmNode.$device = deviceNode;
+    alarm.onInputDataValueChange = (newValue) => {
+        const isActive = newValue.value.value === alarmingHealth;
+        if (isActive === alarm.activeState.getValue()) {
+            // the same health value can be written repeatedly; only the edges are events
+            return;
+        }
+        alarm.signalNewCondition(isActive ? "Active" : "Inactive", isActive, isActive ? lastDeviceErrors(device) : "");
+    };
 
-    return alarmNode;
+    alarm.installInputNodeMonitoring(deviceHealthNode);
+    alarm.activeState.setValue(false);
+
+    return alarm;
 }
 
+/**
+ * What an application calls once per device, after the DI nodeset has been loaded and the
+ * device object built.
+ */
 export function createDeviceHealthAlarms(deviceNode: UAObject): void {
-    try {
-        const namespace = deviceNode.namespace;
-        const addressSpace = namespace.addressSpace;
-        const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
-        if (nsDI < 0) {
-            throw new Error("Cannot find DI namespace!");
-        }
-        const checkFunctionAlarmType = addressSpace.findEventType("CheckFunctionAlarmType", nsDI);
-        const failureAlarmType = addressSpace.findEventType("FailureAlarmType", nsDI);
-        const maintenanceRequiredAlarmType = addressSpace.findEventType("MaintenanceRequiredAlarmType", nsDI);
-        const offSpecAlarmType = addressSpace.findEventType("OffSpecAlarmType", nsDI);
-        if (!checkFunctionAlarmType || !failureAlarmType || !maintenanceRequiredAlarmType || !offSpecAlarmType) {
-            throw new Error("Cannot find one of the DI alarm event types");
-        }
+    const namespace = deviceNode.namespace as Namespace;
+    const addressSpace = namespace.addressSpace;
+    const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+    if (nsDI < 0) {
+        throw new Error("Cannot find DI namespace!");
+    }
 
-        const failureAlarm = _createXXXXAlarm(namespace, deviceNode, failureAlarmType, "FailureAlarm");
-        const maintenanceRequiredAlarm = _createXXXXAlarm(
+    const alarms: [string, EnumDeviceHealth][] = [
+        ["FailureAlarmType", EnumDeviceHealth.FAILURE],
+        ["MaintenanceRequiredAlarmType", EnumDeviceHealth.MAINTENANCE_REQUIRED],
+        ["CheckFunctionAlarmType", EnumDeviceHealth.CHECK_FUNCTION],
+        ["OffSpecAlarmType", EnumDeviceHealth.OFF_SPEC]
+    ];
+
+    for (const [typeName, alarmingHealth] of alarms) {
+        const alarmType = addressSpace.findEventType(typeName, nsDI);
+        if (!alarmType) {
+            throw new Error(`Cannot find DI alarm event type ${typeName}`);
+        }
+        installDeviceHealthAlarm(
             namespace,
-            deviceNode,
-            maintenanceRequiredAlarmType,
-            "MaintenanceRequiredAlarm"
+            deviceNode as UADeviceObjectWithHealthChildren,
+            alarmType,
+            typeName.replace("Type", ""),
+            alarmingHealth
         );
-        const checkFunctionAlarm = _createXXXXAlarm(namespace, deviceNode, checkFunctionAlarmType, "CheckFunctionAlarm");
-        const offSpecAlarm = _createXXXXAlarm(namespace, deviceNode, offSpecAlarmType, "OffSpecAlarm");
-
-        type AlarmWithInputChange = UADeviceHealthDiagnosticAlarmEx & {
-            _onInputDataValueChange: (newValue: DataValue) => void;
-        };
-        (failureAlarm as AlarmWithInputChange)._onInputDataValueChange = UAFailureAlarm.prototype._onInputDataValueChange;
-        (maintenanceRequiredAlarm as AlarmWithInputChange)._onInputDataValueChange =
-            UAMaintenanceRequiredAlarm.prototype._onInputDataValueChange;
-        (checkFunctionAlarm as AlarmWithInputChange)._onInputDataValueChange =
-            UACheckFunctionAlarm.prototype._onInputDataValueChange;
-        (offSpecAlarm as AlarmWithInputChange)._onInputDataValueChange = UAOffSpecAlarm.prototype._onInputDataValueChange;
-
-        /*
-            console.log(failureAlarm.toString());
-            console.log(maintenanceRequiredAlarm.toString());
-            console.log(checkFunctionAlarm.toString());
-            console.log(offSpecAlarm.toString());
-        */
-    } catch (err) {
-        console.log("err ", err.message);
-        console.log(err);
     }
 }

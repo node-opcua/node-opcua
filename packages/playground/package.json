@@ -14,6 +14,7 @@
         "node-opcua-client": "2.182.2",
         "node-opcua-debug": "2.181.0",
         "node-opcua-modeler": "2.182.2",
+        "node-opcua-nodeset-di": "2.182.0",
         "readline": "*",
         "winston": "*"
     },
