@@ -407,16 +407,23 @@ export function t(test: TestHarness) {
             const unknownCertificateManager = await createServerCertificateManager(port5);
             const unknownApplicationUri = makeApplicationUrn(os.hostname(), "UnknownRegistrant");
             const unknownCertificateFile = path.join(unknownCertificateManager.rootDir, "certificate_unknown_registrant.pem");
-            if (!fs.existsSync(unknownCertificateFile)) {
-                await unknownCertificateManager.createSelfSignedCertificate({
-                    applicationUri: unknownApplicationUri,
-                    dns: [os.hostname(), "localhost"],
-                    outputFile: unknownCertificateFile,
-                    subject: "/CN=UnknownRegistrant",
-                    startDate: new Date(),
-                    validity: 365
-                });
+            // Generated every run, never reused. The PKI lives under the OS temp directory and
+            // outlives the suite, so a certificate kept from an earlier run goes on being read
+            // after the private key beside it has been regenerated - and the two no longer
+            // match. That failed as "the certificate and the private key do not match", which
+            // reads like a configuration fault rather than stale scratch state. CI never saw
+            // it because every run starts from an empty machine.
+            if (fs.existsSync(unknownCertificateFile)) {
+                fs.rmSync(unknownCertificateFile);
             }
+            await unknownCertificateManager.createSelfSignedCertificate({
+                applicationUri: unknownApplicationUri,
+                dns: [os.hostname(), "localhost"],
+                outputFile: unknownCertificateFile,
+                subject: "/CN=UnknownRegistrant",
+                startDate: new Date(),
+                validity: 365
+            });
             const unknownCertificate = readCertificate(unknownCertificateFile);
             const unknownIdentity: RegistrantIdentity = {
                 certificateFile: unknownCertificateFile,
