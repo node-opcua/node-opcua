@@ -38,7 +38,7 @@ function apply(result) {
         done.push(".mocharc.js -> .mocharc.cjs");
     }
 
-    for (const file of packageFiles(result.dir)) {
+    for (const file of packageFiles(result.dir, result.repoRoot)) {
         const original = fs.readFileSync(file, "utf8");
         const rel = path.relative(result.dir, file).replace(/\\/g, "/");
         let text = original;

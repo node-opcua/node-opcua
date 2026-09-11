@@ -6,6 +6,7 @@
  * change behaviour.
  */
 import assert from "node:assert";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -478,6 +479,34 @@ test("a shebang file elsewhere is cjs-module, not cjs-dead: the shebang says it 
             const liveness = computeLiveJsFiles(root);
             const { cjsModules, deadFiles } = classifyJsFiles(path.join(root, "packages/p"), "p", liveness);
             assert.equal(cjsModules.length, 1);
+            assert.equal(deadFiles.length, 0);
+        }
+    );
+});
+
+// ── gitignored files ────────────────────────────────────────────────────────────
+//
+// The scan walks the filesystem, so without this it would report a gitignored,
+// machine-generated file (a certificate directory a pki step writes before tests, say) that a
+// developer's checkout has on disk and a clean CI checkout does not - the survey would then
+// differ by machine. `git ls-files --cached --others --exclude-standard`, run once at the
+// repo root, is the source of truth for what a checkout actually has.
+
+test("a gitignored .js file is not reported: the scan only sees what git tracks or would add", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p", files: ["source"] }),
+            "packages/p/source/a.ts": "export const x = 1;\n",
+            "packages/p/.gitignore": "generated/\n",
+            "packages/p/generated/config.js": 'const x = require("y");\nmodule.exports = x;\n'
+        },
+        (root) => {
+            execFileSync("git", ["init", "-q"], { cwd: root });
+            execFileSync("git", ["add", "-A"], { cwd: root });
+
+            const liveness = computeLiveJsFiles(root);
+            const { cjsModules, deadFiles } = classifyJsFiles(path.join(root, "packages/p"), "p", liveness);
+            assert.equal(cjsModules.length, 0);
             assert.equal(deadFiles.length, 0);
         }
     );
