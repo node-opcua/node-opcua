@@ -49,7 +49,7 @@ $ ./node_modules/.bin/simple_client -e "opc.tcp://opcuademo.sterfive.com:26543"
 
 ## Node.js Requirement
 
-- **Node.js 20** or above is required.
+- **Node.js 22.13** or above is required.
 
 ## Documentation
 
