@@ -119,6 +119,8 @@ function getReleaseVersion(options: Options): string {
 
 interface Info {
     files: string[];
+    /** the files that emit a runtime value (an enum); every other generated file is types only */
+    filesWithValues: Set<string>;
     folder: string;
     module: string;
     dependencies: string[];
@@ -172,8 +174,11 @@ export async function convertNamespaceTypeToTypescript(
                 fs.mkdirSync(sourceFolder);
             }
             writeFileSyncRetry(path.join(sourceFolder, `${filename}.ts`), content);
-            infos[module] = infos[module] || { folder, dependencies: [], module, files: [] };
+            infos[module] = infos[module] || { folder, dependencies: [], module, files: [], filesWithValues: new Set() };
             infos[module].files.push(`${filename}.ts`);
+            if (type === "enum") {
+                infos[module].filesWithValues.add(`${filename}.ts`);
+            }
             infos[module].dependencies = [...new Set([...infos[module].dependencies, ...dependencies])];
         }
     };
@@ -195,7 +200,11 @@ async function _output_index_ts_file(info: Info): Promise<void> {
         if (file.match(/^enum_eration/)) {
             continue;
         }
-        content.push(`export * from "./${file.replace(".ts", "")}.js";`);
+        // A types-only file compiles to an empty module, yet `export *` still loads it at
+        // runtime: hundreds of them per package, all paid for at startup. `export type *`
+        // re-exports the same types and drops the load.
+        const keyword = info.filesWithValues.has(file) ? "export" : "export type";
+        content.push(`${keyword} * from "./${file.replace(".ts", "")}.js";`);
     }
     fs.writeFileSync(index, content.join("\n"));
     // create package.json

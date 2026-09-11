@@ -6,7 +6,7 @@ In this example, we want to create a OPCUA Client to monitor a variable on the s
 ## preparation
 
 - make sure node.js 18 or above is installed. Follow the instructions [here](http://nodejs.org/)).
-- make sure also to install typescript version 3 or above
+- make sure also to install typescript version 5.0 or above
 
 Let's create a node project for our client.
 
