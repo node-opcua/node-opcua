@@ -552,11 +552,35 @@ export function computeLiveJsFiles(repoRoot = ".") {
 }
 
 /**
+ * Directory names under which a static reference search cannot prove a file unused.
+ *
+ * A test tree builds fixture paths at runtime (`testPath("fixtures")`, then spawns the file
+ * as a child process) rather than importing them, so no static reference will ever exist for
+ * one - the same TEST_DIRS list used to walk a package's tests, plus `fixtures` on its own for
+ * a fixture tree that does not sit under one of those. A `bin/` script is meant to be run by
+ * hand and is often reached only through a README, not code.
+ */
+const UNPROVABLE_DEAD_DIRS = new Set([...TEST_DIRS, "fixtures", "bin"]);
+
+/**
+ * Is this `.js` file the kind of thing a static reference search cannot rule out, even when
+ * it finds no reference at all - a test fixture reached by a computed path, or a script run
+ * by hand? `cjs-dead` means "safe to delete", so it must only ever be emitted when deadness is
+ * provable from static references; anything that can be loaded by a computed path or run
+ * directly is at worst a decision, never dead.
+ */
+function isUnprovableDead(file, text) {
+    const segments = file.replace(/\\/g, "/").split("/");
+    if (segments.some((s) => UNPROVABLE_DEAD_DIRS.has(s))) return true;
+    return /^#!/.test(text);
+}
+
+/**
  * One package's `.js` files, sorted into: entry shims (mechanical, or `cjs-entry` when the
  * specifier cannot be resolved), CommonJS that is shipped or referenced (`cjs-module`, needs
  * a decision - including any `.js` in a `"private": true` package, since those are run by
- * hand rather than imported), and CommonJS that is neither (`cjs-dead`, safe to delete but not
- * blocking).
+ * hand rather than imported, and any test fixture or script a static search cannot rule out),
+ * and CommonJS that is neither (`cjs-dead`, safe to delete but not blocking).
  */
 export function classifyJsFiles(pkgDir, packageName, liveness) {
     const manifest = liveness.manifestByPkg.get(packageName) ?? {};
@@ -589,7 +613,7 @@ export function classifyJsFiles(pkgDir, packageName, liveness) {
 
         const rel = file.replace(/\\/g, "/");
         const shipped = liveness.shippedJs.has(file);
-        const live = shipped || liveness.liveSet.has(file);
+        const live = shipped || liveness.liveSet.has(file) || isUnprovableDead(file, text);
         if (live || isPrivate) {
             cjsModules.push({
                 file: rel,
