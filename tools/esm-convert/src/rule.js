@@ -46,6 +46,7 @@
  * with confidence is reported, not rewritten.
  */
 
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import ts from "typescript";
@@ -53,6 +54,43 @@ import { emittedFrom, shippedDirsOf, SOURCE_ROOTS } from "../../shared/shipped_d
 import { TEST_DIRS } from "../../shared/test_dirs.mjs";
 
 const SKIP_DIRS = new Set(["node_modules", "dist", "dist-esm", "distNodeJS", "distHelpers", "coverage", "build"]);
+
+const normalizeSlashes = (p) => p.replace(/\\/g, "/");
+
+const trackedFilesCache = new Map();
+
+/**
+ * Every file this checkout's git knows about, tracked or untracked-but-not-ignored - so the
+ * scan never reports a gitignored, machine-generated file (a certificate directory the pki
+ * setup writes before tests, say) that a developer's checkout has on disk and CI does not.
+ * `--others --exclude-standard` adds the untracked-but-would-be-added files, since a file
+ * nobody has committed yet is not the same thing as a file git is told to ignore.
+ *
+ * Returns null when git is unavailable or `repoRoot` is not a repository - the walk then
+ * falls back to reading the filesystem directly, which is what the temp-dir fixtures these
+ * tests build need, since they are not git repositories.
+ */
+function gitTrackedFiles(repoRoot) {
+    const key = path.resolve(repoRoot);
+    if (trackedFilesCache.has(key)) return trackedFilesCache.get(key);
+    let result = null;
+    try {
+        const out = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], {
+            cwd: key,
+            encoding: "utf8"
+        });
+        const set = new Set();
+        for (const line of out.split("\n")) {
+            const rel = line.trim();
+            if (rel) set.add(normalizeSlashes(path.resolve(key, rel)));
+        }
+        result = set;
+    } catch {
+        result = null;
+    }
+    trackedFilesCache.set(key, result);
+    return result;
+}
 
 /** the anchor FEAT-1 established, and the comment that goes with it */
 
@@ -71,35 +109,36 @@ export function packageDir(repoRoot, name) {
 }
 
 /** every .ts file in the package's shipped and test trees */
-export function packageFiles(pkgDir) {
+export function packageFiles(pkgDir, repoRoot) {
     const files = [];
+    const tracked = repoRoot ? gitTrackedFiles(repoRoot) : null;
     const roots = [...shippedDirsOf(pkgDir), ...TEST_DIRS];
     for (const sub of new Set(roots)) {
-        walk(path.join(pkgDir, sub), files);
+        walk(path.join(pkgDir, sub), files, tracked);
     }
     return files;
 }
 
-function walk(dir, out) {
+function walk(dir, out, tracked) {
     if (!fs.existsSync(dir)) return;
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) {
-            if (!SKIP_DIRS.has(entry.name)) walk(full, out);
+            if (!SKIP_DIRS.has(entry.name)) walk(full, out, tracked);
         } else if (/\.(ts|mts|cts)$/.test(entry.name) && !entry.name.endsWith(".d.ts")) {
-            out.push(full);
+            if (!tracked || tracked.has(normalizeSlashes(path.resolve(full)))) out.push(full);
         }
     }
 }
 
 /** every file under `dir`, skipping SKIP_DIRS and node_modules. `visit(fullPath, entryName)`. */
-function walkGeneric(dir, visit) {
+function walkGeneric(dir, visit, tracked) {
     if (!fs.existsSync(dir)) return;
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) {
-            if (!SKIP_DIRS.has(entry.name)) walkGeneric(full, visit);
-        } else {
+            if (!SKIP_DIRS.has(entry.name)) walkGeneric(full, visit, tracked);
+        } else if (!tracked || tracked.has(normalizeSlashes(path.resolve(full)))) {
             visit(full, entry.name);
         }
     }
@@ -113,11 +152,16 @@ function walkGeneric(dir, visit) {
  * config is handled separately (a rename, not a scan), and `.cjs`/`.mjs` are excluded because
  * their extension already says what they are.
  */
-export function jsFilesOf(pkgDir) {
+export function jsFilesOf(pkgDir, repoRoot) {
     const files = [];
-    walkGeneric(pkgDir, (full, name) => {
-        if (name.endsWith(".js") && name !== ".mocharc.js") files.push(full);
-    });
+    const tracked = repoRoot ? gitTrackedFiles(repoRoot) : null;
+    walkGeneric(
+        pkgDir,
+        (full, name) => {
+            if (name.endsWith(".js") && name !== ".mocharc.js") files.push(full);
+        },
+        tracked
+    );
     return files;
 }
 
@@ -492,6 +536,7 @@ function resolveReference(fromFile, spec, pkgDirByName, allJsSet) {
  * file that a live file reaches, directly or through others, is live.
  */
 export function computeLiveJsFiles(repoRoot = ".") {
+    const tracked = gitTrackedFiles(repoRoot);
     const names = allPackages(repoRoot);
     const pkgDirByName = new Map();
     const manifestByPkg = new Map();
@@ -511,19 +556,23 @@ export function computeLiveJsFiles(repoRoot = ".") {
     const shippedJs = new Set();
     for (const [name, dir] of pkgDirByName) {
         const manifest = manifestByPkg.get(name) ?? {};
-        walkGeneric(dir, (full, entryName) => {
-            if (/\.d\.ts$/.test(entryName)) {
-                liveRoots.push(full);
-            } else if (/\.(ts|mts|cts)$/.test(entryName)) {
-                liveRoots.push(full);
-            } else if (entryName.endsWith(".js") && entryName !== ".mocharc.js") {
-                allJs.push(full);
-                if (isShipped(manifest, path.relative(dir, full))) {
-                    shippedJs.add(full);
+        walkGeneric(
+            dir,
+            (full, entryName) => {
+                if (/\.d\.ts$/.test(entryName)) {
                     liveRoots.push(full);
+                } else if (/\.(ts|mts|cts)$/.test(entryName)) {
+                    liveRoots.push(full);
+                } else if (entryName.endsWith(".js") && entryName !== ".mocharc.js") {
+                    allJs.push(full);
+                    if (isShipped(manifest, path.relative(dir, full))) {
+                        shippedJs.add(full);
+                        liveRoots.push(full);
+                    }
                 }
-            }
-        });
+            },
+            tracked
+        );
     }
 
     const allJsSet = new Set(allJs);
@@ -548,7 +597,7 @@ export function computeLiveJsFiles(repoRoot = ".") {
         }
     }
 
-    return { liveSet, shippedJs, manifestByPkg, pkgDirByName };
+    return { liveSet, shippedJs, manifestByPkg, pkgDirByName, repoRoot };
 }
 
 /**
@@ -591,7 +640,7 @@ export function classifyJsFiles(pkgDir, packageName, liveness) {
     const cjsModules = [];
     const deadFiles = [];
 
-    for (const file of jsFilesOf(pkgDir)) {
+    for (const file of jsFilesOf(pkgDir, liveness.repoRoot)) {
         const shim = entryShim(pkgDir, file);
         if (shim) {
             if (shim.resolved === null) {
@@ -687,7 +736,7 @@ export function analyze({ repoRoot = ".", packageName, liveness } = {}) {
     const anchors = [];
     const dynamicRequires = [];
     const manual = [];
-    for (const file of packageFiles(dir)) {
+    for (const file of packageFiles(dir, repoRoot)) {
         const text = fs.readFileSync(file, "utf8");
         if (convertAnchors(text) !== null) anchors.push(file.replace(/\\/g, "/"));
         if (convertDynamicRequire(text) !== null) dynamicRequires.push(file.replace(/\\/g, "/"));
@@ -703,6 +752,7 @@ export function analyze({ repoRoot = ".", packageName, liveness } = {}) {
         found: true,
         packageName,
         dir: dir.replace(/\\/g, "/"),
+        repoRoot,
         alreadyEsm,
         mocharc: rename ? "rename" : "none",
         anchors,
