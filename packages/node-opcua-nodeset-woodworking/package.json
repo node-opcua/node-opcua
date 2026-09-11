@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-woodworking",
-    "version": "2.183.0",
+    "version": "2.183.1",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-woodworking",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -14,17 +14,17 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-address-space-base": "2.183.0",
+        "node-opcua-address-space-base": "2.183.1",
         "node-opcua-basic-types": "2.183.0",
         "node-opcua-data-access": "2.183.0",
         "node-opcua-data-model": "2.183.0",
         "node-opcua-extension-object": "2.183.0",
         "node-opcua-nodeid": "2.183.0",
-        "node-opcua-nodeset-di": "2.183.0",
-        "node-opcua-nodeset-isa-95-jobcontrol-v-2": "2.183.0",
-        "node-opcua-nodeset-machinery": "2.183.0",
-        "node-opcua-nodeset-machinery-jobs": "2.183.0",
-        "node-opcua-nodeset-ua": "2.183.0",
+        "node-opcua-nodeset-di": "2.183.1",
+        "node-opcua-nodeset-isa-95-jobcontrol-v-2": "2.183.1",
+        "node-opcua-nodeset-machinery": "2.183.1",
+        "node-opcua-nodeset-machinery-jobs": "2.183.1",
+        "node-opcua-nodeset-ua": "2.183.1",
         "node-opcua-status-code": "2.183.0",
         "node-opcua-variant": "2.183.0"
     },

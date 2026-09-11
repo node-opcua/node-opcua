@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-ua",
-    "version": "2.183.0",
+    "version": "2.183.1",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-ua",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -14,7 +14,7 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-address-space-base": "2.183.0",
+        "node-opcua-address-space-base": "2.183.1",
         "node-opcua-basic-types": "2.183.0",
         "node-opcua-data-access": "2.183.0",
         "node-opcua-data-model": "2.183.0",

@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-role-set-server",
-    "version": "2.183.0",
+    "version": "2.183.1",
     "description": "pure nodejs OPCUA SDK - server-side role-set management (OPC 10000-18)",
     "scripts": {
         "build": "tsc -b",
@@ -19,8 +19,8 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-address-space": "2.183.0",
-        "node-opcua-address-space-base": "2.183.0",
+        "node-opcua-address-space": "2.183.1",
+        "node-opcua-address-space-base": "2.183.1",
         "node-opcua-constants": "2.183.0",
         "node-opcua-data-model": "2.183.0",
         "node-opcua-debug": "2.183.0",
