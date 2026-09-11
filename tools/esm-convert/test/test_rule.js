@@ -435,6 +435,54 @@ test("a .cjs file is left alone: its extension already says what it is", () => {
     );
 });
 
+test("a .js under test/fixtures with no static reference is cjs-module, not cjs-dead: a computed path can still load it", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p", files: ["source"] }),
+            "packages/p/source/a.ts": "export const x = 1;\n",
+            "packages/p/test/fixtures/leaked.js": "module.exports = 1;\n"
+        },
+        (root) => {
+            const liveness = computeLiveJsFiles(root);
+            const { cjsModules, deadFiles } = classifyJsFiles(path.join(root, "packages/p"), "p", liveness);
+            assert.equal(cjsModules.length, 1);
+            assert.equal(deadFiles.length, 0);
+        }
+    );
+});
+
+test("a bin/ script with no reference and no package.json bin entry is cjs-module, not cjs-dead: it is run by hand", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p", files: ["source"] }),
+            "packages/p/source/a.ts": "export const x = 1;\n",
+            "packages/p/bin/sample.js": 'const x = require("y");\nmodule.exports = x;\n'
+        },
+        (root) => {
+            const liveness = computeLiveJsFiles(root);
+            const { cjsModules, deadFiles } = classifyJsFiles(path.join(root, "packages/p"), "p", liveness);
+            assert.equal(cjsModules.length, 1);
+            assert.equal(deadFiles.length, 0);
+        }
+    );
+});
+
+test("a shebang file elsewhere is cjs-module, not cjs-dead: the shebang says it is run directly", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p", files: ["source"] }),
+            "packages/p/source/a.ts": "export const x = 1;\n",
+            "packages/p/tool.js": '#!/usr/bin/env node\nconst x = require("y");\nmodule.exports = x;\n'
+        },
+        (root) => {
+            const liveness = computeLiveJsFiles(root);
+            const { cjsModules, deadFiles } = classifyJsFiles(path.join(root, "packages/p"), "p", liveness);
+            assert.equal(cjsModules.length, 1);
+            assert.equal(deadFiles.length, 0);
+        }
+    );
+});
+
 test("an ESM .js file is not reported", () => {
     withTree(
         {

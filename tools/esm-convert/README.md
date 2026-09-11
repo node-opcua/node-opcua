@@ -45,11 +45,15 @@ These alter behaviour rather than syntax, so they are listed and left alone:
 | module-scope `await` | breaks `require(esm)` for every CJS consumer downstream |
 | `typeof __filename` / `typeof __dirname` | always `"undefined"` under ESM, so the branch that reads the value goes dead |
 | `cjs-entry` | an entry shim whose require specifier is not a relative path, so it cannot be resolved with confidence |
-| `cjs-module` | a CommonJS `.js` file, elsewhere in the package, that is shipped or referenced by a live file (or is in a `"private": true` package, where it is a script run by hand) |
-| `cjs-dead` | a CommonJS `.js` file that is neither shipped nor referenced by anything live - not blocking, but worth deleting before the package flips |
+| `cjs-module` | a CommonJS `.js` file, elsewhere in the package, that is shipped or referenced by a live file - or is in a `"private": true` package, sits in a test/`bin` tree, or opens with a `#!` shebang, where it is a script or fixture reached some way a static search cannot see |
+| `cjs-dead` | a CommonJS `.js` file that is neither shipped nor referenced by anything live, and is not the kind of file a static search could miss - not blocking, but worth deleting before the package flips |
 
-`cjs-dead` does not count as needing a decision: nothing depends on the file, so it can simply
-be removed. Everything else in the table does.
+`cjs-dead` means "safe to delete", so it is only emitted when that is provable from static
+references: a test fixture reached by a computed path (`testPath("fixtures")`, then spawned as
+a child process) or a script meant to be run by hand is `cjs-module` even with zero references,
+because "no reference found" does not mean "unused" for either of those. `cjs-dead` does not
+count as needing a decision: nothing depends on the file, so it can simply be removed.
+Everything else in the table does.
 
 ## After it runs
 
