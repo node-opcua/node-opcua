@@ -147,6 +147,7 @@ export class UAObjectTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements UA
             eventSourceOf: options.eventSourceOf,
             notifierOf: options.notifierOf,
             organizedBy: options.organizedBy,
+            parentNodeId: options.parentNodeId,
             addInOf: options.addInOf,
             references,
 

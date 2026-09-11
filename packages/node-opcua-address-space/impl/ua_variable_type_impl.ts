@@ -331,6 +331,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements 
             nodeId: options.nodeId,
             notifierOf: options.notifierOf,
             organizedBy: options.organizedBy,
+            parentNodeId: options.parentNodeId,
             // see InstantiateOptions.references: created with the node so the
             // NodeIdManager derives the symbolic name from that parent
             references: options.references,

@@ -35,6 +35,15 @@ export interface InstantiateOptions {
     organizedBy?: NodeIdLike | BaseNode;
 
     /**
+     * the declared parent, as `ParentNodeId` in a NodeSet: the instance's parent
+     * and what its symbolic name is built from, even when the only reference
+     * between the two is `Organizes` (a folder a type organizes is
+     * `<Type>_<Folder>` in the ModelCompiler's NodeIds.csv).
+     * See {@link AddBaseNodeOptions.parentNodeId}.
+     */
+    parentNodeId?: NodeIdLike | BaseNode;
+
+    /**
      *  the parent Object holding this object
      * note
      *  - when componentOf is specified, organizedBy nor addInOf must not be defined
