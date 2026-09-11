@@ -18,7 +18,7 @@ or under [Git Bash](http://msysgit.github.io/) cmd on Windows.
 
 ## preparation
 
-* (note: please make sure node.js is installed. Follow the instructions [here](http://nodejs.org/) ).
+* (note: please make sure node.js 22.13 or above is installed. Follow the instructions [here](http://nodejs.org/) ).
 
 
 Let's create a node project for our server.
