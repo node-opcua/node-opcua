@@ -51,11 +51,17 @@ function _filterAggregates(addressSpace: AddressSpacePartial, references: UARefe
     return [ref.nodeId, ""];
 }
 
+function _declaredParent(options: ConstructNodeIdOptions): NodeId | null {
+    const declared = options.parentNodeId;
+    if (!declared) return null;
+    if (declared instanceof BaseNodeImpl) return declared.nodeId;
+    const nodeId = resolveNodeId(declared as NodeIdLike);
+    return nodeId.isEmpty() ? null : nodeId;
+}
+
 function _findParentNodeId(addressSpace: AddressSpacePartial, options: ConstructNodeIdOptions): [NodeId, Suffix] | null {
-    if (!options.references) {
-        return null;
-    }
-    for (const ref of options.references) {
+    const references = options.references ?? [];
+    for (const ref of references) {
         const _ref = ref as ReferenceImpl;
         _ref._referenceType = addressSpace.findReferenceType(ref.referenceType) ?? undefined;
         /* c8 ignore next */
@@ -64,8 +70,19 @@ function _findParentNodeId(addressSpace: AddressSpacePartial, options: Construct
         }
         _ref.referenceType = _ref._referenceType.nodeId;
     }
+    // A declared parent names the node, whatever reference links the two, as it
+    // is the node's parent: an Organizes-only member of a type is
+    // `<Type>_MachineryBuildingBlocks` in the ModelCompiler's NodeIds.csv, and a
+    // node with two aggregating parents is named after the declared one.
+    const declared = _declaredParent(options);
+    if (declared) {
+        const viaEncoding = references.some(
+            (ref) => !ref.isForward && sameNodeId(ref.nodeId, declared) && sameNodeId(ref.referenceType, hasEncoding)
+        );
+        return [declared, viaEncoding ? "_Encoding" : ""];
+    }
     // find HasComponent, or has Property reverse
-    return _filterAggregates(addressSpace, options.references);
+    return references.length ? _filterAggregates(addressSpace, references) : null;
 }
 
 function prepareName(browseName?: QualifiedName | QualifiedNameOptions): string {
@@ -83,6 +100,11 @@ export interface ConstructNodeIdOptions {
     nodeClass?: NodeClass;
     references?: UAReference[];
     registerSymbolicNames?: boolean;
+    /**
+     * The declared parent (NodeSet `ParentNodeId`, or `parentNodeId` on the add* API).
+     * When present it names the node, as it is the node's parent (see `BaseNode.parent`).
+     */
+    parentNodeId?: NodeIdLike | BaseNode | null;
 }
 export type NodeEntry = [string, number, NodeClass];
 export type NodeEntry1 = [string, number, string /*"Object" | "Variable" etc...*/];
