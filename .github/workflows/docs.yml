@@ -179,11 +179,12 @@ jobs:
           NEW_VERSION: ${{ steps.version.outputs.version }}
           GIT_SSH_COMMAND: "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
 
-      - name: Prune old documentation versions
+      - name: Curate documentation versions
         # GitHub Pages rejects deployments whose artifact exceeds 1GB. The site
         # accumulates one full TypeDoc build per release (keep_files: true), so
-        # once enough versions pile up the deploy starts failing outright. Drop
-        # the oldest versions until the site fits comfortably under the limit.
+        # once enough versions pile up the deploy starts failing outright. Keep
+        # only the newest patch per major.minor line, and fall back to dropping
+        # the oldest lines if that still doesn't fit under the limit.
         run: |
           node -e "
           const fs = require('fs');
@@ -199,22 +200,43 @@ jobs:
             return total;
           }
           if (!fs.existsSync(apiDir)) { console.log('No api_doc dir found'); process.exit(0); }
-          const dirs = fs.readdirSync(apiDir, { withFileTypes: true })
-            .filter(e => e.isDirectory() && e.name !== 'latest' && /^\d+\./.test(e.name))
+          let dirs = fs.readdirSync(apiDir, { withFileTypes: true })
+            .filter(e => e.isDirectory() && e.name !== 'latest' && /^\d+\.\d+\.\d+/.test(e.name))
             .map(e => e.name)
             .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+          // Keep only the newest patch release for each major.minor line —
+          // patch releases rarely change the public API, so older patches
+          // within the same line are just dead weight.
+          const newestPatchPerLine = new Map();
+          for (const v of dirs) {
+            const [major, minor, patch] = v.split('.').map(Number);
+            const line = major + '.' + minor;
+            const current = newestPatchPerLine.get(line);
+            if (!current || patch > current.patch) newestPatchPerLine.set(line, { v, patch });
+          }
+          const keep = new Set([...newestPatchPerLine.values()].map(x => x.v));
+          const supersededPatches = dirs.filter(v => !keep.has(v));
+          for (const v of supersededPatches) {
+            fs.rmSync(path.join(apiDir, v), { recursive: true, force: true });
+          }
+          console.log('Removed superseded patch versions: ' + (supersededPatches.join(', ') || '(none)'));
+          dirs = dirs.filter(v => keep.has(v));
+
+          // Safety net: if the curated set is still too large, drop the
+          // oldest major.minor lines until we are back under budget.
           const sizes = dirs.map(v => ({ v, size: dirSize(path.join(apiDir, v)) }));
           let total = sizes.reduce((s, x) => s + x.size, 0) + dirSize(path.join(apiDir, 'latest'));
-          console.log('Current api_doc size: ' + (total / 1024 / 1024).toFixed(1) + ' MB');
-          const removed = [];
+          console.log('api_doc size after curation: ' + (total / 1024 / 1024).toFixed(1) + ' MB');
+          const removedForBudget = [];
           while (total > BUDGET_BYTES && sizes.length > 1) {
             const oldest = sizes.shift();
             fs.rmSync(path.join(apiDir, oldest.v), { recursive: true, force: true });
             total -= oldest.size;
-            removed.push(oldest.v);
+            removedForBudget.push(oldest.v);
           }
-          console.log('Pruned versions: ' + (removed.join(', ') || '(none)'));
-          console.log('New api_doc size: ' + (total / 1024 / 1024).toFixed(1) + ' MB');
+          console.log('Pruned for size budget: ' + (removedForBudget.join(', ') || '(none)'));
+          console.log('Final api_doc size: ' + (total / 1024 / 1024).toFixed(1) + ' MB');
           "
 
       - name: Commit and push pruned versions
@@ -224,7 +246,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add -A api_doc
-            git commit -m "docs: prune old API doc versions to stay under Pages size limit"
+            git commit -m "docs: curate API doc versions, keep latest patch per release line"
             git push origin master
           else
             echo "Nothing to prune"
