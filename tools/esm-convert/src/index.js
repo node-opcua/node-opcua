@@ -57,6 +57,17 @@ function apply(result) {
             fs.writeFileSync(file, text);
         }
     }
+
+    for (const shim of result.shims) {
+        fs.writeFileSync(shim.file, shim.rewritten);
+        const rel = path.relative(result.dir, shim.file).replace(/\\/g, "/");
+        done.push(`${rel}: module.exports = require("${shim.spec}") -> export * from "${shim.resolved}"`);
+        if (shim.dts) {
+            fs.writeFileSync(shim.dts.file, shim.dts.rewritten);
+            const dtsRel = path.relative(result.dir, shim.dts.file).replace(/\\/g, "/");
+            done.push(`${dtsRel}: export * from "..." -> export * from "${shim.resolved}"`);
+        }
+    }
     return done;
 }
 
@@ -76,7 +87,15 @@ function report(result, applied) {
         if (result.mocharc === "rename") lines.push("    .mocharc.js -> .mocharc.cjs");
         for (const a of result.anchors) lines.push(`    ${a}: __dirname -> import.meta.dirname`);
         for (const d of result.dynamicRequires ?? []) lines.push(`    ${d}: require(nonLiteral) kept, behind createRequire`);
-        if (result.alreadyEsm && result.mocharc !== "rename" && result.anchors.length === 0) {
+        for (const shim of result.shims ?? []) {
+            const shimRel = shim.file.replace(/\\/g, "/").slice(result.dir.length + 1);
+            lines.push(`    ${shimRel}: module.exports = require("${shim.spec}") -> export * from "${shim.resolved}"`);
+            if (shim.dts) {
+                const dtsRel = shim.dts.file.replace(/\\/g, "/").slice(result.dir.length + 1);
+                lines.push(`    ${dtsRel}: export * from "..." -> export * from "${shim.resolved}"`);
+            }
+        }
+        if (result.alreadyEsm && result.mocharc !== "rename" && result.anchors.length === 0 && (result.shims ?? []).length === 0) {
             lines.push("    nothing");
         }
     }
@@ -88,6 +107,11 @@ function report(result, applied) {
             lines.push(`        ${m.text}`);
             lines.push(`        -> ${m.why}`);
         }
+    }
+
+    if (result.deadFiles?.length) {
+        lines.push("", `  dead - not shipped, nothing live references it (${result.deadFiles.length}):`);
+        for (const d of result.deadFiles) lines.push(`    ${d.file}`);
     }
 
     lines.push(
@@ -102,7 +126,8 @@ function report(result, applied) {
 /** the workspace at a glance: how much of FEAT-2 a tool can finish on its own */
 function reportSurvey(s) {
     const lines = [
-        `esm-convert: ${s.total} packages - ${s.alreadyEsm.length} already ESM, ${s.mechanical.length} mechanical, ${s.needsDecision.length} need a decision`,
+        `esm-convert: ${s.total} packages - ${s.alreadyEsm.length} already ESM, ${s.mechanical.length} mechanical, ` +
+            `${s.needsDecision.length} need a decision, ${s.deadTotal} dead files not shipped`,
         ""
     ];
 
@@ -123,6 +148,27 @@ function reportSurvey(s) {
         lines.push("  by kind:");
         for (const [kind, n] of [...byKind].sort((a, b) => b[1] - a[1])) {
             lines.push(`    ${String(n).padStart(3)}  ${kind}`);
+        }
+        lines.push("");
+    }
+
+    if (s.stillHasCommonJs.length) {
+        lines.push("  already ESM but still has CommonJS left:");
+        for (const p of s.stillHasCommonJs) {
+            const what = [
+                ...(p.shims.length ? [`${p.shims.length} entry shim(s) to rewrite`] : []),
+                ...(p.manual.length ? [...new Set(p.manual.map((m) => m.kind))] : [])
+            ];
+            lines.push(`    ${p.packageName.padEnd(46)} ${what.join(", ")}`);
+        }
+        lines.push("");
+    }
+
+    if (s.deadTotal) {
+        lines.push(`  dead - not shipped, nothing live references it (${s.deadTotal}):`);
+        for (const p of s.packages) {
+            if (!p.deadFiles?.length) continue;
+            for (const d of p.deadFiles) lines.push(`    ${d.file}`);
         }
         lines.push("");
     }

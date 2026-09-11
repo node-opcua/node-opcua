@@ -16,11 +16,21 @@ Not a gate. It exits 0 either way; it is a helper for FEAT-2.
 | `package.json` | adds `"type": "module"` |
 | `.mocharc.js` | renamed to `.mocharc.cjs`, contents untouched |
 | `const here = __dirname;` | → `import.meta.dirname`, and drops the note saying it cannot be used yet |
+| `module.exports = require("./dist...")` | → `export * from "./dist.../index.js"`, and the same for a `.d.ts` twin that still has no extension on its specifier |
 
 The anchor is only mechanical because FEAT-1 concentrated the scattered uses into one line per
 module and `check-dirname` keeps them that way. A tool cannot safely rewrite
 `path.join(__dirname, ...)` sprinkled through a file; it can rewrite one known line. That is
 what the anchor work bought.
+
+The entry shim is the same story for `.js`: `packageFiles` only ever looked at
+`.ts`/`.mts`/`.cts`, so a package whose entry point (no `exports` map, so consumers import
+`pkg/nodeJS` or `pkg/testHelpers` directly) is a one-line `module.exports = require(...)` file
+was invisible. Once the package is ESM that file is parsed as ESM too. The tool only rewrites
+the exact single-statement shape, resolving the specifier to something `export *` can use -
+already `.js`, a directory that exists, or a tsconfig outDir (so a `dist*` that has not been
+built yet still resolves). A specifier that is not a relative path cannot be resolved with
+confidence and is reported instead, under `cjs-entry`.
 
 ## What it refuses to change
 
@@ -33,6 +43,13 @@ These alter behaviour rather than syntax, so they are listed and left alone:
 | `require(nonLiteral)` | deliberate, so bundlers skip it |
 | `module.exports` | a named or default export, but which is a decision |
 | module-scope `await` | breaks `require(esm)` for every CJS consumer downstream |
+| `typeof __filename` / `typeof __dirname` | always `"undefined"` under ESM, so the branch that reads the value goes dead |
+| `cjs-entry` | an entry shim whose require specifier is not a relative path, so it cannot be resolved with confidence |
+| `cjs-module` | a CommonJS `.js` file, elsewhere in the package, that is shipped or referenced by a live file (or is in a `"private": true` package, where it is a script run by hand) |
+| `cjs-dead` | a CommonJS `.js` file that is neither shipped nor referenced by anything live - not blocking, but worth deleting before the package flips |
+
+`cjs-dead` does not count as needing a decision: nothing depends on the file, so it can simply
+be removed. Everything else in the table does.
 
 ## After it runs
 
