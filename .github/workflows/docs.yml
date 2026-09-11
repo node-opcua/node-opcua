@@ -179,6 +179,58 @@ jobs:
           NEW_VERSION: ${{ steps.version.outputs.version }}
           GIT_SSH_COMMAND: "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
 
+      - name: Prune old documentation versions
+        # GitHub Pages rejects deployments whose artifact exceeds 1GB. The site
+        # accumulates one full TypeDoc build per release (keep_files: true), so
+        # once enough versions pile up the deploy starts failing outright. Drop
+        # the oldest versions until the site fits comfortably under the limit.
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          const apiDir = '_ghpages_clone/api_doc';
+          const BUDGET_BYTES = 700 * 1024 * 1024;
+          function dirSize(dir) {
+            let total = 0;
+            for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+              const f = path.join(dir, e.name);
+              total += e.isDirectory() ? dirSize(f) : fs.statSync(f).size;
+            }
+            return total;
+          }
+          if (!fs.existsSync(apiDir)) { console.log('No api_doc dir found'); process.exit(0); }
+          const dirs = fs.readdirSync(apiDir, { withFileTypes: true })
+            .filter(e => e.isDirectory() && e.name !== 'latest' && /^\d+\./.test(e.name))
+            .map(e => e.name)
+            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+          const sizes = dirs.map(v => ({ v, size: dirSize(path.join(apiDir, v)) }));
+          let total = sizes.reduce((s, x) => s + x.size, 0) + dirSize(path.join(apiDir, 'latest'));
+          console.log('Current api_doc size: ' + (total / 1024 / 1024).toFixed(1) + ' MB');
+          const removed = [];
+          while (total > BUDGET_BYTES && sizes.length > 1) {
+            const oldest = sizes.shift();
+            fs.rmSync(path.join(apiDir, oldest.v), { recursive: true, force: true });
+            total -= oldest.size;
+            removed.push(oldest.v);
+          }
+          console.log('Pruned versions: ' + (removed.join(', ') || '(none)'));
+          console.log('New api_doc size: ' + (total / 1024 / 1024).toFixed(1) + ' MB');
+          "
+
+      - name: Commit and push pruned versions
+        run: |
+          cd _ghpages_clone
+          if [ -n "$(git status --porcelain api_doc)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add -A api_doc
+            git commit -m "docs: prune old API doc versions to stay under Pages size limit"
+            git push origin master
+          else
+            echo "Nothing to prune"
+          fi
+        env:
+          GIT_SSH_COMMAND: "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
