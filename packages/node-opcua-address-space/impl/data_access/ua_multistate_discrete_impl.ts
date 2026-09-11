@@ -22,7 +22,7 @@ import { registerNodePromoter } from "../../api/loader/register_node_promoter.js
 import { UAVariableImpl, UAVariableImplT } from "../ua_variable_impl.js";
 import { add_dataItem_stuff } from "./add_dataItem_stuff.js";
 
-export { UAMultiStateDiscrete } from "node-opcua-nodeset-ua";
+export type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua";
 
 // One declaration, in the api tree, rather than a lesser copy here: this file used to
 // declare its own UAMultiStateDiscreteEx without the UAVariableT half, so the two drifted

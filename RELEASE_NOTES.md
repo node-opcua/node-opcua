@@ -1,4 +1,19 @@
 
+Nodeset packages load fewer files at startup, and need TypeScript 5.0 to compile against
+=======================================================================================
+
+  - the generated nodeset packages describe types, and all but their enum files compile to modules
+    with no run-time content. Their index re-exported every file with `export *`, which keeps a
+    run-time load even for an empty module: requiring `node-opcua` loaded 1606 files, 532 of them
+    empty. The index now uses `export type *` for those files, so `require("node-opcua")` loads
+    1074 files and `require("node-opcua-address-space")` 765 instead of 1297.
+  - unchanged: every value these packages export is still exported. Only the modules that had no
+    run-time content stopped being loaded.
+  - **consumer requirement** `export type *` is TypeScript 5.0 syntax, and it now appears in the
+    published `.d.ts` of the nodeset packages, which `node-opcua-address-space` re-exports. A
+    project compiling against node-opcua needs TypeScript 5.0 or above; TypeScript 4.x cannot parse
+    those declaration files.
+
 TransferSubscriptions: the anonymous rule is now enforced by default (OPC UA Part 4 §5.13.7)
 ============================================================================================
 

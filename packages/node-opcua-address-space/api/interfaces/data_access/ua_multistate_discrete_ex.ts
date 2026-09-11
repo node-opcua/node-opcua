@@ -17,7 +17,7 @@ import type { DTEnumValue, UADiscreteItem, UADiscreteItem_Base, UAMultiStateDisc
 import type { StatusCode } from "node-opcua-status-code";
 import type { ISetStateOptions } from "../i_set_state_options.js";
 
-export { UAMultiStateDiscrete } from "node-opcua-nodeset-ua";
+export type { UAMultiStateDiscrete } from "node-opcua-nodeset-ua";
 
 export interface UAMultiStateDiscreteEx<T, DT extends DataType> extends UAVariableT<T, DT>, UAMultiStateDiscrete_Base<T, DT> {
     //------------ helpers ------------------

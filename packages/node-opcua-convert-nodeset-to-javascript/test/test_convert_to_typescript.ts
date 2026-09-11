@@ -1,12 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import chalk from "chalk";
-import "should";
-
 import { AddressSpace, PseudoSession } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
+import should from "should";
 import {
     convertNamespaceTypeToTypescript,
     convertTypeToTypescript,
@@ -167,5 +166,36 @@ describe("Convert to Typescript", () => {
         await convertNamespaceTypeToTypescript(session, nsUA, options);
         await convertNamespaceTypeToTypescript(session, nsDI, options);
         await convertNamespaceTypeToTypescript(session, nsADI, options);
+    });
+    it("P6 - index.ts loads at run time only the files that declare a value", async () => {
+        // A types-only file compiles to an empty module; re-exporting it with `export *`
+        // would still load it at run time. DI has both kinds: a few enums, many interfaces.
+        const session = new PseudoSession(addressSpace);
+        const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+        await convertNamespaceTypeToTypescript(session, nsDI, options);
+
+        const sourceFolder = path.join(options.baseFolder, "node-opcua-nodeset-di", "source");
+        const lines = fs
+            .readFileSync(path.join(sourceFolder, "index.ts"), "utf-8")
+            .split("\n")
+            .filter((line) => line.length > 0);
+
+        let valueExports = 0;
+        let typeExports = 0;
+        for (const line of lines) {
+            const match = line.match(/^export (type )?\* from "\.\/(.+)\.js";$/);
+            should(match).not.be.null();
+            const isTypeOnly = match?.[1] !== undefined;
+            const source = fs.readFileSync(path.join(sourceFolder, `${match?.[2]}.ts`), "utf-8");
+            const declaresValue = /^export (enum|const|function|class|let|var) /m.test(source);
+            should(isTypeOnly).eql(!declaresValue, line);
+            if (isTypeOnly) {
+                typeExports++;
+            } else {
+                valueExports++;
+            }
+        }
+        should(valueExports).be.greaterThan(0);
+        should(typeExports).be.greaterThan(0);
     });
 });
