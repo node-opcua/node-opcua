@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    Types for test_register_node_promoter.
+
+    The shape matters: a base type with a subtype of it, an instance of each directly under
+    Objects, plus one instance sitting *under an ObjectType* so that `onInstanceOnly` has
+    something to suppress. String NodeIds are deliberate - a promoter registered for
+    "ns=1;s=Promoter..." cannot collide with the numeric ids other tests generate, and the
+    registry the promoter goes into is module level and has no unregister.
+-->
+<UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" LastModified="2024-01-01T00:00:00Z"
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <NamespaceUris>
+        <Uri>urn:promoter-test/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="urn:promoter-test/" Version="1.0.0" PublicationDate="2024-01-01T00:00:00Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04.4" PublicationDate="2020-01-08T00:00:00Z" />
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+    </Aliases>
+
+    <UAObjectType NodeId="ns=1;s=PromoterBaseType" BrowseName="1:PromoterBaseType">
+        <DisplayName>PromoterBaseType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+        </References>
+    </UAObjectType>
+
+    <UAObjectType NodeId="ns=1;s=PromoterInstanceOnlyType" BrowseName="1:PromoterInstanceOnlyType">
+        <DisplayName>PromoterInstanceOnlyType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+        </References>
+    </UAObjectType>
+
+    <UAObjectType NodeId="ns=1;s=PromoterHolderType" BrowseName="1:PromoterHolderType">
+        <DisplayName>PromoterHolderType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;s=HolderInstanceOnlyChild</Reference>
+        </References>
+    </UAObjectType>
+
+    <UAObject NodeId="ns=1;s=HolderInstanceOnlyChild" BrowseName="1:HolderInstanceOnlyChild" ParentNodeId="ns=1;s=PromoterHolderType">
+        <DisplayName>HolderInstanceOnlyChild</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;s=PromoterHolderType</Reference>
+            <Reference ReferenceType="HasTypeDefinition">ns=1;s=PromoterInstanceOnlyType</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>
+    </UAObject>
+
+    <UAObject NodeId="ns=1;s=ExactInstance" BrowseName="1:ExactInstance">
+        <DisplayName>ExactInstance</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasTypeDefinition">ns=1;s=PromoterBaseType</Reference>
+        </References>
+    </UAObject>
+
+    <UAObject NodeId="ns=1;s=InstanceOnlyInstance" BrowseName="1:InstanceOnlyInstance">
+        <DisplayName>InstanceOnlyInstance</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasTypeDefinition">ns=1;s=PromoterInstanceOnlyType</Reference>
+        </References>
+    </UAObject>
+</UANodeSet>
