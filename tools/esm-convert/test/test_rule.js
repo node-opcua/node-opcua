@@ -10,7 +10,21 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { analyze, convertAnchors, convertDynamicRequire, findManualWork, mocharcRename, setTypeModule, survey } from "../src/rule.js";
+import {
+    analyze,
+    classifyJsFiles,
+    computeLiveJsFiles,
+    convertAnchors,
+    convertDynamicRequire,
+    entryShim,
+    findManualWork,
+    mocharcRename,
+    parseDtsReexport,
+    parseEntryShim,
+    resolveEntrySpecifier,
+    setTypeModule,
+    survey
+} from "../src/rule.js";
 
 function withTree(files, fn) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "esm-convert-"));
@@ -254,6 +268,208 @@ test("sorts packages into mechanical, needs-a-decision, and already ESM", () => 
             assert.deepEqual(s.mechanical.map((p) => p.packageName), ["clean"]);
             assert.deepEqual(s.needsDecision.map((p) => p.packageName), ["needs"]);
             assert.deepEqual(s.alreadyEsm.map((p) => p.packageName), ["done"]);
+        }
+    );
+});
+
+// ── the entry shim ──────────────────────────────────────────────────────────────
+//
+// `packageFiles` only ever looked at .ts/.mts/.cts, so a package whose entry point is a
+// one-line CommonJS `.js` file was invisible to every check. Once the package is ESM that
+// file is parsed as ESM too, so `module.exports = require(...)` has to become `export * from`.
+
+test("resolves a shim specifier that already names a built directory", () => {
+    withTree({ "p/package.json": JSON.stringify({ name: "p" }), "p/built/index.js": "" }, (root) => {
+        assert.equal(resolveEntrySpecifier(path.join(root, "p"), "./built"), "./built/index.js");
+    });
+});
+
+test("resolves a shim specifier through a tsconfig outDir, so a dist that is not built yet still resolves", () => {
+    withTree(
+        {
+            "p/package.json": JSON.stringify({ name: "p" }),
+            "p/tsconfig.json": JSON.stringify({ compilerOptions: { outDir: "./distX" }, include: ["source/**"] })
+        },
+        (root) => {
+            assert.equal(resolveEntrySpecifier(path.join(root, "p"), "./distX"), "./distX/index.js");
+        }
+    );
+});
+
+test("keeps a shim specifier that already ends in .js", () => {
+    withTree({ "p/package.json": JSON.stringify({ name: "p" }) }, (root) => {
+        assert.equal(resolveEntrySpecifier(path.join(root, "p"), "./built/index.js"), "./built/index.js");
+    });
+});
+
+test("refuses a shim specifier that is not a relative path: it cannot be resolved with confidence", () => {
+    withTree({ "p/package.json": JSON.stringify({ name: "p" }) }, (root) => {
+        assert.equal(resolveEntrySpecifier(path.join(root, "p"), "some-package"), null);
+    });
+});
+
+test("entryShim rewrites the shim and keeps its leading comment lines", () => {
+    withTree(
+        {
+            "p/package.json": JSON.stringify({ name: "p" }),
+            "p/nodeJS.js": '// A named entry point.\n// Internal to the monorepo.\nmodule.exports = require("./distNodeJS");'
+        },
+        (root) => {
+            const shim = entryShim(path.join(root, "p"), path.join(root, "p", "nodeJS.js"));
+            assert.equal(shim.resolved, "./distNodeJS.js");
+            assert.equal(shim.rewritten, '// A named entry point.\n// Internal to the monorepo.\nexport * from "./distNodeJS.js";\n');
+        }
+    );
+});
+
+test("entryShim also rewrites the .d.ts twin when its specifier still lacks an extension", () => {
+    withTree(
+        {
+            "p/package.json": JSON.stringify({ name: "p" }),
+            "p/nodeJS.js": 'module.exports = require("./distNodeJS");',
+            "p/nodeJS.d.ts": 'export * from "./distNodeJS";\n'
+        },
+        (root) => {
+            const shim = entryShim(path.join(root, "p"), path.join(root, "p", "nodeJS.js"));
+            assert.equal(shim.dts.rewritten, 'export * from "./distNodeJS.js";\n');
+        }
+    );
+});
+
+test("entryShim leaves the .d.ts twin alone once its specifier already has an extension", () => {
+    withTree(
+        {
+            "p/package.json": JSON.stringify({ name: "p" }),
+            "p/testHelpers.js": 'module.exports = require("./dist/test_helpers/index.js");',
+            "p/testHelpers.d.ts": 'export * from "./dist/test_helpers/index.js";\n'
+        },
+        (root) => {
+            const shim = entryShim(path.join(root, "p"), path.join(root, "p", "testHelpers.js"));
+            assert.equal(shim.dts, null);
+        }
+    );
+});
+
+test("entryShim reports rather than rewrites when the specifier cannot be resolved", () => {
+    withTree({ "p/package.json": JSON.stringify({ name: "p" }), "p/nodeJS.js": 'module.exports = require("some-package");' }, (root) => {
+        const shim = entryShim(path.join(root, "p"), path.join(root, "p", "nodeJS.js"));
+        assert.equal(shim.resolved, null);
+        assert.equal(shim.spec, "some-package");
+    });
+});
+
+test("parseEntryShim refuses a file with more than the one statement", () => {
+    assert.equal(parseEntryShim('require("side-effect");\nmodule.exports = require("./x");\n'), null);
+});
+
+test("parseDtsReexport reads a bare export * from", () => {
+    assert.equal(parseDtsReexport('export * from "./distNodeJS";\n'), "./distNodeJS");
+});
+
+// ── CommonJS left in a .js file ─────────────────────────────────────────────────
+
+test("a shipped CommonJS .js file needs a decision", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p", files: ["src"] }),
+            "packages/p/src/thing.js": 'const y = require("y");\nmodule.exports = { y };\n'
+        },
+        (root) => {
+            const liveness = computeLiveJsFiles(root);
+            const { cjsModules, deadFiles } = classifyJsFiles(path.join(root, "packages/p"), "p", liveness);
+            assert.equal(cjsModules.length, 1);
+            assert.equal(cjsModules[0].kind, "cjs-module");
+            assert.equal(deadFiles.length, 0);
+        }
+    );
+});
+
+test("an unreferenced CommonJS .js in a private package needs a decision too: it is run by hand", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p", private: true }),
+            "packages/p/script.js": 'const y = require("y");\nmodule.exports = { y };\n'
+        },
+        (root) => {
+            const liveness = computeLiveJsFiles(root);
+            const { cjsModules, deadFiles } = classifyJsFiles(path.join(root, "packages/p"), "p", liveness);
+            assert.equal(cjsModules.length, 1);
+            assert.equal(deadFiles.length, 0);
+        }
+    );
+});
+
+test("a mutually-referencing pair of unshipped CommonJS files stays dead", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p", files: ["source"] }),
+            "packages/p/source/a.ts": "export const x = 1;\n",
+            "packages/p/scripts/a.js": 'require("./b.js");\nmodule.exports = 1;\n',
+            "packages/p/scripts/b.js": 'require("./a.js");\nmodule.exports = 2;\n'
+        },
+        (root) => {
+            const liveness = computeLiveJsFiles(root);
+            const { deadFiles, cjsModules } = classifyJsFiles(path.join(root, "packages/p"), "p", liveness);
+            assert.equal(cjsModules.length, 0);
+            assert.equal(deadFiles.length, 2);
+            assert.deepEqual(
+                deadFiles.map((d) => d.kind),
+                ["cjs-dead", "cjs-dead"]
+            );
+        }
+    );
+});
+
+test("a .cjs file is left alone: its extension already says what it is", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p" }),
+            "packages/p/thing.cjs": "module.exports = 1;\n"
+        },
+        (root) => {
+            const liveness = computeLiveJsFiles(root);
+            const { cjsModules, deadFiles } = classifyJsFiles(path.join(root, "packages/p"), "p", liveness);
+            assert.equal(cjsModules.length, 0);
+            assert.equal(deadFiles.length, 0);
+        }
+    );
+});
+
+test("an ESM .js file is not reported", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p" }),
+            "packages/p/thing.js": "export const x = 1;\n"
+        },
+        (root) => {
+            const liveness = computeLiveJsFiles(root);
+            const { cjsModules, deadFiles, shims, cjsEntries } = classifyJsFiles(path.join(root, "packages/p"), "p", liveness);
+            assert.equal(cjsModules.length, 0);
+            assert.equal(deadFiles.length, 0);
+            assert.equal(shims.length, 0);
+            assert.equal(cjsEntries.length, 0);
+        }
+    );
+});
+
+test("typeof __filename is reported, not converted: the value is always undefined under ESM", () => {
+    const found = findManualWork('const x = typeof __filename === "undefined" ? "a" : __filename;\n');
+    assert.equal(found[0].kind, "typeof-cjs-global");
+});
+
+test("analyze wires the shim rewrite and CommonJS reports into one result", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p", files: ["source", "bin"] }),
+            "packages/p/source/a.ts": "export const x = 1;\n",
+            "packages/p/nodeJS.js": 'module.exports = require("./distNodeJS");',
+            "packages/p/bin/cli.js": 'const y = require("y");\nmodule.exports = { y };\n'
+        },
+        (root) => {
+            const r = analyze({ repoRoot: root, packageName: "p" });
+            assert.equal(r.shims.length, 1);
+            assert.equal(r.shims[0].resolved, "./distNodeJS.js");
+            assert.equal(r.manual.some((m) => m.kind === "cjs-module"), true);
         }
     );
 });
