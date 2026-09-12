@@ -410,7 +410,10 @@ export class FilterContextMock implements FilterContext {
 
     public eventSource: NodeId;
 
-    constructor(private nodes: Record<string, ErsatzNode> = g_nodes) {
+    private nodes: Record<string, ErsatzNode>;
+
+    constructor(nodes: Record<string, ErsatzNode> = g_nodes) {
+        this.nodes = nodes;
         for (const [_k, v] of Object.entries(nodes)) {
             this._nodeIds[v.nodeId.toString()] = v;
         }

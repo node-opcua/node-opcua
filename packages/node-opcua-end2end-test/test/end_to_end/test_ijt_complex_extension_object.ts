@@ -208,10 +208,10 @@ async function buildAddressSpace(addressSpace: IAddressSpace) {
 
     const resultContent1 = addressSpace.constructExtensionObject(JoiningResultDataType, example2) as UDTJoiningResult;
 
-    const result = addressSpace.constructExtensionObject(ResultDataType, <ResultOptions>{
+    const result = addressSpace.constructExtensionObject(ResultDataType, {
         resultMetaData: joiningResultMetaData,
         resultContent: [new Variant({ dataType: DataType.ExtensionObject, value: resultContent1 })]
-    }) as UDTResult;
+    } as ResultOptions) as UDTResult;
 
     const namespace = addressSpace.getOwnNamespace();
     const variable = namespace.addVariable({

@@ -5,15 +5,86 @@ const chalk = require("chalk");
 const { Mocha } = require("mocha");
 require("mocha-clean");
 
-const tsx = require("tsx/cjs/api");
-tsx.register();
+const { register, registerHooks } = require("node:module");
+const { pathToFileURL, fileURLToPath } = require("node:url");
 
-// Register tsx ESM loader hooks so that Mocha's import()
-// fallback can transpile .ts files in "type": "module" packages.
-// Requires Node.js >= 20.6
-const { register } = require("node:module");
-const { pathToFileURL } = require("node:url");
-register("tsx/esm/api", pathToFileURL(__filename));
+// NATIVE_TS=1 runs the suite on Node's own type stripping instead of tsx.
+//
+// It is not only about dropping a dependency. tsx intercepts every module, including the
+// already-compiled dist/*.js of the packages under test, and hands V8 its own transformed
+// source; c8 then attributes coverage to the compiled file rather than following its .js.map
+// back to the TypeScript. That is why the published figure counts dist/*.js, reports lines
+// that exist only after compilation (module interop preambles), and fell by ~9 points as the
+// ESM migration moved more packages through that path. Without tsx, c8 remaps and the numbers
+// land on the source a developer can act on.
+//
+// Two redirects replace what tsx was doing for resolution. Neither rewrites a single import.
+if (process.env.NATIVE_TS) {
+    const exists = (p) => fs.existsSync(p);
+
+    /** the package a file belongs to, i.e. the nearest directory holding a package.json */
+    const packageRootOf = (file) => {
+        let dir = path.dirname(file);
+        for (let i = 0; i < 12; i++) {
+            if (exists(path.join(dir, "package.json"))) return dir;
+            const parent = path.dirname(dir);
+            if (parent === dir) break;
+            dir = parent;
+        }
+        return null;
+    };
+
+    /**
+     * <pkg>/<anywhere>/x.js -> the compiled file, so the library runs as published.
+     * Both dist shapes this repo uses: rootDir at the source directory (source/x.ts ->
+     * dist/x.js) and rootDir at the package (impl/x.ts -> dist/impl/x.js).
+     */
+    const SOURCE_DIRS = new Set(["source", "src", "api", "impl", "source_nodejs"]);
+    const compiledCandidates = (jsPath) => {
+        const pkgDir = packageRootOf(jsPath);
+        if (!pkgDir) return [];
+        const rel = path.relative(pkgDir, jsPath).replace(/\\/g, "/");
+        const [first, ...rest] = rel.split("/");
+        // only a source directory may be dropped. Dropping any first segment would let a test's
+        // own ./helper.js resolve to the library's dist/helper.js, a different module that
+        // happens to share a name.
+        if (!SOURCE_DIRS.has(first) || rest.length === 0) {
+            return [path.join(pkgDir, "dist", rel)];
+        }
+        return [path.join(pkgDir, "dist", rest.join("/")), path.join(pkgDir, "dist", rel)];
+    };
+
+    registerHooks({
+        resolve(specifier, context, nextResolve) {
+            if (specifier.startsWith(".") && specifier.endsWith(".js") && context.parentURL) {
+                const jsPath = fileURLToPath(new URL(specifier, context.parentURL));
+                if (!exists(jsPath)) {
+                    // prefer the compiled output: it keeps enums and parameter properties,
+                    // which strip-only mode cannot handle, out of the loader entirely
+                    for (const candidate of compiledCandidates(jsPath)) {
+                        if (exists(candidate)) {
+                            return nextResolve(pathToFileURL(candidate).href, context);
+                        }
+                    }
+                    // a test helper that exists only as TypeScript: Node strips it itself
+                    const tsPath = jsPath.replace(/\.js$/, ".ts");
+                    if (exists(tsPath)) {
+                        return nextResolve(pathToFileURL(tsPath).href, context);
+                    }
+                }
+            }
+            return nextResolve(specifier, context);
+        }
+    });
+} else {
+    const tsx = require("tsx/cjs/api");
+    tsx.register();
+
+    // Register tsx ESM loader hooks so that Mocha's import()
+    // fallback can transpile .ts files in "type": "module" packages.
+    // Requires Node.js >= 20.6
+    register("tsx/esm/api", pathToFileURL(__filename));
+}
 
 Error.stackTraceLimit = 20;
 
@@ -361,12 +432,39 @@ async function runtests({ selectedTests, reporter, dryRun, filterOpts, skipped }
         count++;
     }
     mocha.timeout(200000);
-    mocha.bail(true);
+    // NO_BAIL=1 runs the whole suite instead of stopping at the first failure, for when the
+    // question is "what is the full set of failures" rather than "is the tree green".
+    mocha.bail(!process.env.NO_BAIL);
 
     // Use async file loading so Mocha can fall back to import()
     // for .ts files in "type": "module" packages
     mocha.lazyLoadFiles(true);
-    await mocha.loadFilesAsync();
+    if (process.env.NATIVE_TS) {
+        // Load one file at a time so a file Node cannot load does not abort the whole run.
+        // The suite is the inventory this mode is for: a file that fails here is one tsx used
+        // to paper over (a parameter property, an enum, `require` in an ES module). Reported
+        // at the end rather than thrown, so a single offender still leaves a usable run.
+        const unloadable = [];
+        const queued = mocha.files.slice();
+        for (const file of queued) {
+            mocha.files = [file];
+            try {
+                await mocha.loadFilesAsync();
+            } catch (err) {
+                unloadable.push({ file, message: (err && err.message) || String(err) });
+            }
+        }
+        mocha.files = queued;
+        if (unloadable.length) {
+            console.log(`\n${chalk.yellow(`NATIVE_TS: ${unloadable.length} file(s) could not be loaded`)}`);
+            for (const u of unloadable) {
+                console.log(`  ${u.file}\n      ${u.message.split("\n")[0]}`);
+            }
+            console.log("");
+        }
+    } else {
+        await mocha.loadFilesAsync();
+    }
 
     return await new Promise((resolve) => {
         const runner = mocha.run((failures) => {
