@@ -82,6 +82,68 @@ test("flags `class X extends Y` across a cycle", () => {
     );
 });
 
+// --- benign: a value import used only where the compiler erases it -------------------
+
+test("a value import used only in an interface is not a use", () => {
+    // the shape that made extra_data_type_manager keep a lazy require: the cyclic partner
+    // names the class only in type annotations, which do not exist at run time
+    withTree(
+        {
+            [`${P}/a.ts`]: [
+                'import { B } from "./b.js";',
+                "export interface Holder { b?: B; make?: (b: B) => void; }",
+                "export function use(): void { new B(); }"
+            ].join("\n"),
+            [`${P}/b.ts`]: ['import { use } from "./a.js";', "export class B { go(): void { use(); } }"].join("\n")
+        },
+        (root) => {
+            const r = analyze({ repoRoot: root });
+            assert.equal(r.cycles.length, 1, "the cycle is real");
+            assert.equal(r.cycles[0].dangerous, false, "but nothing is read while a body evaluates");
+            assert.equal(exitCode(r), 0);
+        }
+    );
+});
+
+test("annotations, casts, type arguments, typeof queries and implements are not uses", () => {
+    withTree(
+        {
+            [`${P}/a.ts`]: [
+                'import { B } from "./b.js";',
+                "export let holder: B | undefined;",
+                "export const cast = holder as B;",
+                "export const list: Array<B> = [];",
+                "export type Ctor = typeof B;",
+                "export class Impl implements B {}",
+                "export function use(): void { new B(); }"
+            ].join("\n"),
+            [`${P}/b.ts`]: ['import { use } from "./a.js";', "export class B { go(): void { use(); } }"].join("\n")
+        },
+        (root) => {
+            const r = analyze({ repoRoot: root });
+            assert.equal(r.cycles.length, 1);
+            assert.equal(r.cycles[0].dangerous, false);
+        }
+    );
+});
+
+test("an interface extending across a cycle is erased, a class extending is not", () => {
+    withTree(
+        {
+            [`${P}/a.ts`]: [
+                'import { B } from "./b.js";',
+                "export interface A extends B { extra?: number; }",
+                "export function use(): void { new B(); }"
+            ].join("\n"),
+            [`${P}/b.ts`]: ['import { use } from "./a.js";', "export class B { go(): void { use(); } }"].join("\n")
+        },
+        (root) => {
+            const r = analyze({ repoRoot: root });
+            assert.equal(r.cycles[0].dangerous, false, "interface extends is a type position");
+        }
+    );
+});
+
 test("flags a module-scope initializer, the _constructors_map shape", () => {
     withTree(
         {

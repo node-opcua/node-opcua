@@ -15,7 +15,8 @@
  *     `extends` is evaluated when the class declaration is evaluated
  *
  * `import type` and `import { type X }` are erased before runtime, so they create no edge
- * at all.
+ * at all. So is a value import used only in type positions: an annotation, a type argument,
+ * an `as` cast, an interface body, `implements`. Those are not uses either.
  */
 
 import fs from "node:fs";
@@ -66,6 +67,42 @@ function opensFunctionScope(node) {
         ts.isGetAccessorDeclaration(node) ||
         ts.isSetAccessorDeclaration(node)
     );
+}
+
+/**
+ * True when the identifier sits somewhere the compiler erases: a type annotation, a type
+ * argument, an `as` cast, a `typeof` query, an interface body, `implements`, or an
+ * interface's own `extends`.
+ *
+ * A value import used only in type positions creates no runtime read, so it cannot throw.
+ * Without this, an interface such as `{ x?: Foo }` counted as a use at evaluation time and
+ * the gate demanded a workaround (a lazy `require`) for a cycle that could not break. Only
+ * `class X extends Y` is a real use, and it is the one heritage clause excluded here.
+ */
+function inTypePosition(node) {
+    let p = node.parent;
+    while (p) {
+        // the heritage clause above decides this one, so keep walking up
+        if (ts.isExpressionWithTypeArguments(p)) {
+            p = p.parent;
+            continue;
+        }
+        if (ts.isHeritageClause(p)) {
+            const classExtends =
+                p.token === ts.SyntaxKind.ExtendsKeyword &&
+                p.parent &&
+                (ts.isClassDeclaration(p.parent) || ts.isClassExpression(p.parent));
+            return !classExtends;
+        }
+        if (ts.isTypeNode(p) || ts.isInterfaceDeclaration(p) || ts.isTypeAliasDeclaration(p)) {
+            return true;
+        }
+        if (opensFunctionScope(p)) {
+            return false;
+        }
+        p = p.parent;
+    }
+    return false;
 }
 
 /** a heritage clause runs when the class declaration runs, even inside a class body */
@@ -234,7 +271,7 @@ export function dangerousUses(file, module, members) {
 
     const visit = (node, insideFunction) => {
         const nested = insideFunction || opensFunctionScope(node);
-        if (ts.isIdentifier(node) && cyclic.has(node.text)) {
+        if (ts.isIdentifier(node) && cyclic.has(node.text) && !inTypePosition(node)) {
             const heritage = inHeritageClause(node);
             if (!nested || heritage) {
                 // the import statement itself is not a use
