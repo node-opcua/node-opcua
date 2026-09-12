@@ -1,4 +1,12 @@
 // memoryLeakDetector.js
+import { createRequire } from "node:module";
+import { performance } from "node:perf_hooks";
+
+// wtfnode is loaded only when asked for, and synchronously: import() would make every
+// caller of this module async, and a module-scope await breaks require(esm) for any
+// CommonJS consumer downstream.
+const require = createRequire(import.meta.url);
+
 let wtf;
 
 if (process.env.MEM_LEAK_DETECTION_WTF_ENABLED) {
@@ -38,7 +46,6 @@ function takeMemorySnapshot() {
     if (noGCexposed) {
         return;
     }
-    const { performance } = require("node:perf_hooks");
     const start = performance.now();
     forceGC();
     const end = performance.now();
@@ -80,4 +87,4 @@ function checkForMemoryLeak(before, after, threshold = 2) {
     return { before: heapUsedBefore, after: heapUsedAfter, delta, isLeak };
 }
 
-module.exports = { takeMemorySnapshot, checkForMemoryLeak };
+export { takeMemorySnapshot, checkForMemoryLeak };

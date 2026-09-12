@@ -1,7 +1,7 @@
 // Fixture: nested describes using describeWithLeakDetector everywhere
 // This mimics how real test files alias describe = describeWithLeakDetector
-const assert = require("node:assert");
-const { describeWithLeakDetector } = require("../../src/resource_leak_detector");
+import assert from "node:assert";
+import { describeWithLeakDetector } from "../../src/resource_leak_detector.js";
 const describe = describeWithLeakDetector;
 
 describe("fixture-nested-outer", () => {

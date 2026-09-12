@@ -1,7 +1,7 @@
 // Fixture: leaked registered objects via ObjectRegistry
-const assert = require("node:assert");
-const { ObjectRegistry } = require("node-opcua-object-registry");
-const { describeWithLeakDetector } = require("../../src/resource_leak_detector");
+import assert from "node:assert";
+import { ObjectRegistry } from "node-opcua-object-registry";
+import { describeWithLeakDetector } from "../../src/resource_leak_detector.js";
 
 const registry = new ObjectRegistry();
 

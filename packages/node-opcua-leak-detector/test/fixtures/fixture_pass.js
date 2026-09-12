@@ -1,6 +1,6 @@
 // Fixture: all tests pass, no leaks
-const assert = require("node:assert");
-const { describeWithLeakDetector } = require("../../src/resource_leak_detector");
+import assert from "node:assert";
+import { describeWithLeakDetector } from "../../src/resource_leak_detector.js";
 
 describeWithLeakDetector("fixture-pass", () => {
     it("passes", () => {
