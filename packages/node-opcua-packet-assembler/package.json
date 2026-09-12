@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-packet-assembler",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module packet-assembler",
     "main": "./dist/index.js",

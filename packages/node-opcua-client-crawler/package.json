@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-client-crawler",
+    "type": "module",
     "private": true,
     "version": "2.183.1",
     "main": "./dist/index.js",

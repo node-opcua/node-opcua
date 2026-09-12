@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-units",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module units",
     "main": "./dist/index.js",

@@ -18,7 +18,7 @@ interface FoundationEntry {
     Description: string;
 }
 
-const tablePath = path.join(__dirname, "../tools/unece-to-opcua-table.json");
+const tablePath = path.join(import.meta.dirname, "../tools/unece-to-opcua-table.json");
 const table = JSON.parse(fs.readFileSync(tablePath, "utf8")) as Record<string, FoundationEntry>;
 
 interface EUInformationLike {

@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-service-filter",
+    "type": "module",
     "version": "2.183.1",
     "description": "pure nodejs OPCUA SDK - module service-filter",
     "main": "./dist/index.js",

@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-uanodeset-rdf",
+    "type": "module",
     "version": "2.183.1",
     "description": "pure nodejs OPCUA SDK - a one-way JSON-LD (RDF) export of an OPC UA information model",
     "scripts": {
