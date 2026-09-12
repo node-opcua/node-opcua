@@ -76,6 +76,11 @@ function specifierNodes(sourceFile) {
             ts.isStringLiteral(node.arguments[0])
         ) {
             out.push(node.arguments[0]);
+        } else if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument) && ts.isStringLiteral(node.argument.literal)) {
+            // `const x: import("./thing").Thing` in a type position. TypeScript parses this as
+            // an ImportTypeNode, not as the call expression above, so it was invisible here and
+            // reached TS2835 at compile time instead. Found when node-opcua-common flipped.
+            out.push(node.argument.literal);
         }
         ts.forEachChild(node, visit);
     };

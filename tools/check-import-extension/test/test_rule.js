@@ -96,6 +96,16 @@ const lazy = () => import("./f");
     });
 });
 
+test("flags `import(...)` in a type position, which parses as a different node", () => {
+    // `const x: import("./c").T` is an ImportTypeNode, not the call expression above, so it
+    // was invisible to this gate and surfaced as TS2835 only once a package became ESM
+    withTree({ "a/b.ts": "", "a/c.ts": "" }, (root) => {
+        const found = findViolations('const x: import("./c").T = 1;\n', `${root}/a/b.ts`);
+        assert.equal(found.length, 1, JSON.stringify(found));
+        assert.ok(found[0].fixable);
+    });
+});
+
 test("flags a type-only import too, so the tree is uniform", () => {
     withTree({ "a/b.ts": "", "a/c.ts": "" }, (root) => {
         assert.equal(findViolations('import type { T } from "./c";\n', `${root}/a/b.ts`).length, 1);
