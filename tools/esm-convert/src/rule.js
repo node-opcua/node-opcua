@@ -213,8 +213,15 @@ export function convertDynamicRequire(text) {
         "// safe to assume at a call site a tool has not read. Converting one by hand is fine.\n" +
         "const require = createRequire(import.meta.url);\n\n";
 
-    const firstCode = text.search(/^(?!\s*(\/\/|\/\*|\*|$))/m);
-    return firstCode <= 0 ? preamble + text : text.slice(0, firstCode) + preamble + text.slice(firstCode);
+    // A shebang has to stay on line 1: it is not a comment to the compiler, and anything above
+    // it is a syntax error (TS18026). So the preamble goes after it, not before the file.
+    const shebang = /^#![^\n]*\n/.exec(text);
+    const body = shebang ? text.slice(shebang[0].length) : text;
+    const head = shebang ? shebang[0] : "";
+
+    const firstCode = body.search(/^(?!\s*(\/\/|\/\*|\*|$))/m);
+    const inserted = firstCode <= 0 ? preamble + body : body.slice(0, firstCode) + preamble + body.slice(firstCode);
+    return head + inserted;
 }
 
 /**

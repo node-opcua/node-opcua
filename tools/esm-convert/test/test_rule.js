@@ -484,6 +484,15 @@ test("a bin/ script with no reference and no package.json bin entry is cjs-modul
     );
 });
 
+test("the createRequire preamble goes under a shebang, never above it", () => {
+    // a shebang is not a comment: anything above it is TS18026, and the file stops being
+    // executable. Found when node-opcua-samples flipped and two bin scripts failed to compile
+    const src = ["#!/usr/bin/env tsx", 'import fs from "node:fs";', 'const x = require("treeify");', ""].join("\n");
+    const out = convertDynamicRequire(src);
+    assert.ok(out.startsWith("#!/usr/bin/env tsx\n"), out.slice(0, 80));
+    assert.ok(out.includes("createRequire(import.meta.url)"));
+});
+
 test("a shebang file elsewhere is cjs-module, not cjs-dead: the shebang says it is run directly", () => {
     withTree(
         {
