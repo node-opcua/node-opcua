@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-json",
+    "type": "module",
     "version": "2.183.1",
     "description": "pure nodejs OPCUA SDK - the OPC UA JSON encoding of OPC 10000-6 clause 5.4",
     "scripts": {

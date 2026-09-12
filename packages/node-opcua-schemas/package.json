@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-schemas",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module schemas",
     "main": "dist/source/index.js",

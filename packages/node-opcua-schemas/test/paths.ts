@@ -10,7 +10,7 @@
 import path from "node:path";
 import { findUp } from "node-opcua-test-helpers";
 
-const packageRoot = findUp(__dirname, "package.json");
+const packageRoot = findUp(import.meta.dirname, "package.json");
 
 /** a schema fixture: testFixture("sample_type.xsd") */
 export function testFixture(...segments: string[]): string {
