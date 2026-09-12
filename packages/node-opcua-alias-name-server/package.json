@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-alias-name-server",
+    "type": "module",
     "version": "2.183.1",
     "description": "pure nodejs OPCUA SDK - server-side alias names (OPC 10000-17)",
     "scripts": {
