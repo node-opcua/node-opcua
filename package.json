@@ -29,6 +29,8 @@
     "check:importext:fix": "node tools/check-import-extension.mjs --fix",
     "check:pack": "node tools/check-pack.mjs",
     "check:buildgraph": "node tools/check-build-graph.mjs",
+    "check:shape": "node tools/check-package-shape.mjs",
+    "check:shape:update": "node tools/check-package-shape.mjs --update",
     "check:cycles": "node tools/check-import-cycles.mjs",
     "check:ctorcast": "node tools/check-construction-cast.mjs",
     "check:engines": "node tools/check-engines.mjs",
@@ -97,6 +99,7 @@
     "packages_extra/*"
   ],
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.12",
     "@types/mocha": "^10.0.10",
     "@types/node": "24.13.3",
@@ -109,6 +112,7 @@
     "json5": "^2.2.3",
     "mocha": "12.0.0",
     "mocha-lcov-reporter": "^1.3.0",
+    "publint": "^0.3.24",
     "should": "^13.2.3",
     "source-map-support": "^0.5.21",
     "tsx": "^4.23.13",

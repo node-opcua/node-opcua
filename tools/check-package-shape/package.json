@@ -1,0 +1,15 @@
+{
+    "name": "@sterfive/check-package-shape",
+    "version": "1.0.0",
+    "private": true,
+    "description": "publint and attw on every publishable package, so the published shape is one a consumer can use",
+    "bin": {
+        "check-package-shape": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "update": "node src/index.js --update",
+        "test": "node test/test_rule.js"
+    }
+}
