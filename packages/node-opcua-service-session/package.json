@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-service-session",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module service-session",
     "main": "./dist/index.js",
