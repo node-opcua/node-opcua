@@ -65,6 +65,50 @@ function getComponentOfType(typeDef: UAObjectType, typedefinition: UAObjectType)
     return components_parts as UAObject[];
 }
 
+/**
+ * OPC 10000-16 requires that a StateMachineType (or subtype) that raises events declares a
+ * GeneratesEvent reference to the EventType(s) it raises, on the type itself or on one of its
+ * super types (the CTT's "Base Info State Machine Instance / 001.js" script walks the instance's
+ * type up to StateMachineType looking for one such reference and accepts BaseEventType or any
+ * subtype as the target).
+ *
+ * node-opcua's finite state machine implementation always raises a "TransitionEventType" event
+ * when the current state changes (see FiniteStateMachineType#setState), for every state machine
+ * instance, whichever subtype of FiniteStateMachineType it is instantiated from. Declaring the
+ * reference once on FiniteStateMachineType therefore covers every state machine exposed by the
+ * server (ExclusiveLimitStateMachineType included), matching the CTT's parent walk.
+ *
+ * This is called from every state machine's _post_initialize, so it must be idempotent.
+ */
+function ensureFiniteStateMachineTypeGeneratesTransitionEvent(finiteStateMachineType: UAObjectType): void {
+    const addressSpace = finiteStateMachineType.addressSpace;
+
+    // Some minimal test fixtures load only a handful of namespace-0 nodes and do not carry the
+    // GeneratesEvent ReferenceType or TransitionEventType ObjectType at all: nothing to attach to.
+    if (!addressSpace.findReferenceType("GeneratesEvent")) {
+        return;
+    }
+    const transitionEventType = addressSpace.findObjectType("TransitionEventType");
+    if (!transitionEventType) {
+        // c8 ignore next
+        return;
+    }
+
+    const hasReferenceAlready = finiteStateMachineType
+        .findReferencesEx("GeneratesEvent", BrowseDirection.Forward)
+        .some((ref) => sameNodeId(ref.nodeId, transitionEventType.nodeId));
+
+    if (hasReferenceAlready) {
+        return;
+    }
+
+    finiteStateMachineType.addReference({
+        referenceType: "GeneratesEvent",
+        isForward: true,
+        nodeId: transitionEventType.nodeId
+    });
+}
+
 const defaultPredicate = (transitions: UATransition[], fromState: UAState, toState: UAState) => {
     if (transitions.length === 0) {
         return null;
@@ -589,6 +633,8 @@ export class UAStateMachineImplBase extends UAObjectImpl implements UAStateMachi
         if (!finiteStateMachineType) {
             throw new Error("cannot find FiniteStateMachineType");
         }
+
+        ensureFiniteStateMachineTypeGeneratesTransitionEvent(finiteStateMachineType);
 
         // xx assert(this.typeDefinitionObj && !this.subtypeOfObj);
         // xx assert(!this.typeDefinitionObj || this.typeDefinitionObj.isSubtypeOf(finiteStateMachineType));
