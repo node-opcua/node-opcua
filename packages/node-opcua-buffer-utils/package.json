@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-buffer-utils",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module buffer-utils",
     "main": "./dist/index.js",

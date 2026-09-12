@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-constants",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module constants",
     "scripts": {
