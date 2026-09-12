@@ -78,7 +78,7 @@ describe("OPCUASecureObject + injected ICertificateKeyPairProvider", () => {
 
     it("invalidateCachedCertificates() calls invalidate on the provider if available", () => {
         let invalidated = false;
-        const provider: import("../source/certificate_chain_provider").ICertificateChainProvider = {
+        const provider: import("../source/certificate_chain_provider.js").ICertificateChainProvider = {
             getCertificate: () => cert,
             getCertificateChain: () => [cert],
             getPrivateKey: () => pk,
