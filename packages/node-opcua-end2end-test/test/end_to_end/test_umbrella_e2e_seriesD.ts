@@ -3,7 +3,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { afterEachTest, afterTest, beforeEachTest, beforeTest, type ReadyUmbrellaTestContext } from "./_helper_umbrella.js";
 import { t as tE2eClientMonitoredItemGroup } from "./u_test_e2e_ClientMonitoredItemGroup.js";
 import { t as tE2eCttModifyMonitoredItems010 } from "./u_test_e2e_ctt_modifyMonitoredItems010.js";
-import { t as tE2eMonitoredItemWithTimestampSourceIssue804 } from "./u_test_e2e_monitored_item_with_timestamp_source_issue#804.js";
+import { t as tE2eMonitoredItemWithTimestampSourceIssue804 } from "./u_test_e2e_monitored_item_with_timestamp_source_issue_804.js";
 import { t as tE2eMonitoringLargeNumberOfNodes } from "./u_test_e2e_monitoring_large_number_of_nodes.js";
 import { t as tE2eRegisterNodes } from "./u_test_e2e_registerNodes.js";
 import { t as tE2eTransferSession } from "./u_test_e2e_transfer_session.js";

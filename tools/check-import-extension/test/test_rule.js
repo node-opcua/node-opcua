@@ -273,6 +273,32 @@ test("--scope tests fixes the same way as source", () => {
     });
 });
 
+// -- URL-reserved characters -----------------------------------------------------
+
+test("a specifier carrying # or ? is reported: ESM reads those as URL syntax", () => {
+    // the file really is named `...issue#804.ts`, and the extension is present, so every
+    // other rule here passes it over. ESM resolves the specifier as a URL, reads `#804.js`
+    // as a fragment, and reports the module missing; CommonJS found the file
+    withTree(
+        {
+            "packages/p/test/a.ts": ['import x from "./u_test_issue#804.js";', 'import y from "./other?v=2.js";', ""].join("\n"),
+            // the `#` target exists, to show the rule fires even when the file is really
+            // there; a `?` name cannot be created on Windows, and needs no target anyway
+            // because the check happens before resolution
+            "packages/p/test/u_test_issue#804.ts": ""
+        },
+        (root) => {
+            const result = analyze({ repoRoot: root, scope: "tests" });
+            const reserved = result.findings.filter((f) => f.kind === "url-reserved");
+            assert.equal(reserved.length, 2, JSON.stringify(result.findings));
+            for (const f of reserved) {
+                assert.equal(f.fixable, false);
+                assert.equal(f.suggestion, null);
+            }
+        }
+    );
+});
+
 // ── package-root specifiers ─────────────────────────────────────────────────────
 
 test('".", ".." and "../.." are reported as package-root, not as unresolvable', () => {
