@@ -21,7 +21,8 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import ts from "typescript";
+// the classic compiler API, which TypeScript 7 no longer exposes: an aliased 5.x copy
+import ts from "typescript-5";
 import { shippedDirsOf } from "../../shared/shipped_dirs.mjs";
 
 export const SOURCE_ROOTS = ["packages", "packages_extra"];

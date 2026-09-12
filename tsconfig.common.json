@@ -17,7 +17,6 @@
         "sourceMap": true,
         "strict": true,
         "listFiles": false,
-        "noStrictGenericChecks": false,
         "noImplicitThis": true,
         "skipLibCheck": false,
         "removeComments": false /* to prevent Istanbul ignore statements in comments from disappearing */,

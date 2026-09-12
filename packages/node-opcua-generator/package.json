@@ -33,7 +33,7 @@
         "node-opcua-status-code": "2.183.0",
         "node-opcua-utils": "2.183.0",
         "node-opcua-variant": "2.183.0",
-        "typescript": "5.9.3"
+        "typescript-5": "npm:typescript@5.9.3"
     },
     "devDependencies": {
         "node-opcua-packet-analyzer": "2.183.0",

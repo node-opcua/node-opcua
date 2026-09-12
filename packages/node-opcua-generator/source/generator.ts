@@ -11,7 +11,8 @@ import path from "node:path";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import type { ConstructorFunc } from "node-opcua-factory";
-import ts from "typescript";
+// the classic compiler API, which TypeScript 7 no longer exposes: an aliased 5.x copy
+import ts from "typescript-5";
 
 import { get_class_TScript_filename, produce_TScript_code } from "./factory_code_generator.js";
 
