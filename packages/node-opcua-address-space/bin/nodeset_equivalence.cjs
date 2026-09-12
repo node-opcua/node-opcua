@@ -73,7 +73,7 @@ const {
     xmlNodesetRecords
 } = require("../dist/api/index.js");
 const { digestAddressSpace } = require("../distNodeJS/index.js");
-const { asFile, dependencyChain } = require("./nodeset_tool_common.js");
+const { asFile, dependencyChain } = require("./nodeset_tool_common.cjs");
 
 const usage = () => {
     console.error("usage: opcua-nodeset-live equivalence <file.xml>... [--require <file.xml>]... [--dump <dir>] [--quiet]");

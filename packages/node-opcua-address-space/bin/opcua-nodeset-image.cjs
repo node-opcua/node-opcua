@@ -27,7 +27,7 @@ const path = require("node:path");
 const { performance } = require("node:perf_hooks");
 const { readNodesetImageInfo, recordsToNodeset2XML } = require("../dist/api/index.js");
 const { nodesetFileToImage } = require("../distNodeJS/index.js");
-const { imageFileOf, kb, recordsOfFile } = require("./nodeset_tool_common.js");
+const { imageFileOf, kb, recordsOfFile } = require("./nodeset_tool_common.cjs");
 
 const usage = () => {
     console.error("usage: opcua-nodeset-image build   <file.xml>... [--out <dir>]");

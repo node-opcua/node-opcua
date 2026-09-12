@@ -31,8 +31,8 @@ const {
     nodesetFileToImage,
     readNodeSet2XmlFile
 } = require("../distNodeJS/index.js");
-const { asFile, dependencyChain, imageFileOf, kb } = require("./nodeset_tool_common.js");
-const { equivalence } = require("./nodeset_equivalence.js");
+const { asFile, dependencyChain, imageFileOf, kb } = require("./nodeset_tool_common.cjs");
+const { equivalence } = require("./nodeset_equivalence.cjs");
 
 const usage = () => {
     console.error("usage: opcua-nodeset-live verify      <file.xml>... [--require <file.xml>]...");
