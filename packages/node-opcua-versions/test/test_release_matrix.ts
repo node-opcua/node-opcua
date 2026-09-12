@@ -97,7 +97,7 @@ describe("ReleaseMatrix", () => {
 describe("bundledSet", () => {
     it("reads the set of this package's own release from its manifest", () => {
         const set = bundledSet();
-        set.release.should.eql(JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8")).version);
+        set.release.should.eql(JSON.parse(fs.readFileSync(path.join(import.meta.dirname, "..", "package.json"), "utf8")).version);
         Object.keys(set.packages).length.should.be.greaterThan(50);
         set.packages["node-opcua"].should.match(/^\d+\.\d+\.\d+$/);
         set.external["node-opcua-crypto"].should.match(/^\d+\.\d+\.\d+$/);

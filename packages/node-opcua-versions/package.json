@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-versions",
+    "type": "module",
     "version": "2.183.1",
     "//private": "kept private so that `lerna publish` skips it in the main pass; the publish workflow then runs `lerna publish from-package --include-private node-opcua-versions`, which publishes it after every other package of the release (see README, Where the matrix lives)",
     "private": true,

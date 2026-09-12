@@ -27,7 +27,7 @@ describe("manifest formatting is preserved", () => {
 
 describe("tools/generate-release-set.mjs (maintainer tool, not shipped)", function () {
     this.timeout(60000);
-    const script = path.join(__dirname, "..", "..", "..", "tools", "generate-release-set.mjs");
+    const script = path.join(import.meta.dirname, "..", "..", "..", "tools", "generate-release-set.mjs");
     let root: string;
     let outDir: string;
 

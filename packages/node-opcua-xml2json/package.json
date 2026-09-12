@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-xml2json",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module xml2json",
     "main": "dist/source/index.js",

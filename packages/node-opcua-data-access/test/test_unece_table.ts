@@ -18,7 +18,7 @@ interface UneceEntry {
     Description: string;
 }
 
-const snapshotPath = path.join(__dirname, "unece-table-snapshot.json");
+const snapshotPath = path.join(import.meta.dirname, "unece-table-snapshot.json");
 const snapshot = JSON.parse(fs.readFileSync(snapshotPath, "utf8")) as Record<string, UneceEntry>;
 
 // unitId 20529 (percent, code P1): the Foundation table's DisplayName is "% or pct", but the

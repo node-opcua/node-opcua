@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-alias-name-common",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - alias-name common types, Like matcher and VersionTime helpers (OPC 10000-17)",
     "scripts": {
