@@ -14,6 +14,11 @@
         "target": "es2022",
         "module": "NodeNext",
         "declaration": true,
+        // the .d.ts is generated, so "go to definition" lands in it and stops there. The map
+        // sends an editor on to the .ts the declaration came from, which every package publishes
+        // beside its dist. Same reason sourceMap is on: the shipped artefact should lead back to
+        // the source a reader can actually follow.
+        "declarationMap": true,
         "sourceMap": true,
         "strict": true,
         "listFiles": false,
