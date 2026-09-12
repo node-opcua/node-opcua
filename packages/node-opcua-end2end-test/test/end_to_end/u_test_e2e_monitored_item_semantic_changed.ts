@@ -95,6 +95,24 @@ async function getNextDataChangeNotification(session: ClientSession): Promise<Mo
     });
 }
 
+/**
+ * the next data change, or null when the subscription answers with a keep-alive - which is what
+ * "nothing more to report" looks like on the wire. Used to assert the absence of a notification.
+ */
+async function getNextDataChangeNotificationOrKeepAlive(session: ClientSession): Promise<MonitoredItemNotification | null> {
+    const request = new PublishRequest({ requestHeader: { timeoutHint: 100000 }, subscriptionAcknowledgements: [] });
+    return await new Promise<MonitoredItemNotification | null>((resolve, reject) => {
+        (session as RawSession).publish(request, (err: Error | null, response?: PublishResponse) => {
+            if (err) return reject(err);
+            const notificationData = response!.notificationMessage.notificationData;
+            if (!notificationData || notificationData.length === 0) return resolve(null);
+            const dataChangeNotification = notificationData[0] as DataChangeNotification;
+            const monitoredItems = dataChangeNotification.monitoredItems;
+            resolve(monitoredItems && monitoredItems.length > 0 ? monitoredItems[0] : null);
+        });
+    });
+}
+
 export function t(test: TestHarness) {
     describe("SemanticChanged bit behaviour", () => {
         let client: OPCUAClient;
@@ -258,6 +276,60 @@ export function t(test: TestHarness) {
 
                 const firstNotif = await getNextDataChangeNotification(session);
                 should(firstNotif.value.statusCode.hasSemanticChangedBit).eql(true);
+
+                await writeEURange(session, analogNodeId, orgEURange);
+            });
+        });
+
+        /**
+         * A semantic change stamps one notification; it must not also manufacture a second,
+         * bit-less one for a value that never changed. The bit used to be recorded in the item's
+         * oldDataValue - the baseline the next sample is compared against - so that sample differed
+         * by StatusCode alone and was reported as a data change. CTT Data Access AnalogItemType 008
+         * and Semantic Changes 010/013/014-017 read MonitoredItems[0] of the publish that follows,
+         * and got that duplicate rather than the stamped notification.
+         */
+        it("YY6 a semantic change produces exactly one notification, not a bit-less duplicate", async () => {
+            const analogNodeId = "ns=2;s=DoubleAnalogDataItem";
+
+            await perform_operation_on_raw_subscription(client, test.endpointUrl, async (session, { subscriptionId }) => {
+                const orgEURange = await readEURange(session, analogNodeId);
+
+                const createResponse = await (session as RawSession).createMonitoredItems(
+                    new CreateMonitoredItemsRequest({
+                        subscriptionId,
+                        timestampsToReturn: TimestampsToReturn.Both,
+                        itemsToCreate: [
+                            {
+                                itemToMonitor: new ReadValueId({ attributeId: AttributeIds.Value, nodeId: analogNodeId }),
+                                monitoringMode: MonitoringMode.Reporting,
+                                requestedParameters: new MonitoringParameters({
+                                    clientHandle: 1003,
+                                    samplingInterval: 100,
+                                    // the queue size the CTT asks for: a duplicate does not merely
+                                    // follow the stamped notification, it replaces it
+                                    queueSize: 1,
+                                    discardOldest: true,
+                                    filter: null
+                                })
+                            }
+                        ]
+                    })
+                );
+                should(createResponse.results?.[0].statusCode).eql(StatusCodes.Good);
+
+                // drain the initial value, so the semantic change is the only thing left to report
+                const initial = await getNextDataChangeNotification(session);
+                should(initial.value.statusCode.hasSemanticChangedBit).eql(false);
+
+                await writeEURange(session, analogNodeId, { low: orgEURange.low + 1, high: orgEURange.high - 1 });
+
+                const stamped = await getNextDataChangeNotification(session);
+                should(stamped.value.statusCode.hasSemanticChangedBit).eql(true);
+
+                // the value itself never changed, so nothing more is due
+                const extra = await getNextDataChangeNotificationOrKeepAlive(session);
+                should(extra).eql(null, "a semantic change must not report a second data change");
 
                 await writeEURange(session, analogNodeId, orgEURange);
             });
