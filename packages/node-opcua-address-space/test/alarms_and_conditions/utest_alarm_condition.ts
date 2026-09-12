@@ -192,49 +192,63 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
 
                 // simulate a call to timeshelved
 
-                const timeShelvedDuration = 1500; // 0.5 seconds
+                const timeShelvedDuration = 1500;
+                // sample much more often than the shelved duration: the test only needs to witness
+                // unshelveTime counting down, and a sampling period close to the duration would make
+                // the number of samples depend on event loop jitter
+                const samplingInterval = 200;
                 const shelvingTime = new Variant({ dataType: DataType.Double, value: timeShelvedDuration });
 
                 const context = new SessionContext();
 
-                const values: number[] = [];
+                const samples: { dataType: DataType | undefined; value: number }[] = [];
 
                 // function calling_timedShelve(callback) {
                 const _callMethodResponse1 = await alarm.shelvingState?.timedShelve.execute(null, [shelvingTime], context);
 
-                const currentStateChangePromise = new Promise<void>((resolve) => {
+                // note: neither the listener below nor the sampling timer may assert: they run inside a
+                // timer callback, where a failing assertion escapes mocha as an uncaught exception and
+                // leaves the pending promise unresolved. Everything is verified after the await instead.
+                const currentStateChangePromise = new Promise<DataValue>((resolve) => {
                     alarm.shelvingState?.currentState.once("value_changed", (newValue: DataValue) => {
                         debugLog(" alarm.shelvingState.currentState. ", newValue.toString());
-
-                        newValue.value.value.text.should.eql("Unshelved");
-                        values.length.should.be.greaterThan(2);
-                        // c8 ignore next
-                        if (doDebug) {
-                            debugLog("                     unshelveTime value history = ", values);
-                        }
-                        resolve();
+                        resolve(newValue);
                     });
                 });
 
                 should(alarm.shelvingState?.getCurrentState()).eql("TimedShelved");
 
-                let previous = timeShelvedDuration + 1;
-
                 const _timer = setInterval(() => {
                     const variant = alarm.shelvingState?.unshelveTime.readValue().value;
-                    should(variant?.dataType).eql(DataType.Double);
+                    samples.push({ dataType: variant?.dataType, value: variant?.value || 0 });
+                }, samplingInterval);
 
-                    should((variant?.value || 0) < timeShelvedDuration).eql(true);
-                    should((variant?.value || 0) >= 0).eql(true, " unshelveTime must be greater than 0");
-                    should((variant?.value || 0) < previous).eql(true);
+                let newValue: DataValue;
+                try {
+                    newValue = await currentStateChangePromise;
+                } finally {
+                    clearInterval(_timer);
+                }
 
-                    values.push(variant?.value || 0);
-                    previous = variant?.value || 0;
-                }, 400);
+                // c8 ignore next
+                if (doDebug) {
+                    debugLog(
+                        "                     unshelveTime value history = ",
+                        samples.map((sample) => sample.value)
+                    );
+                }
 
-                await currentStateChangePromise;
+                should(newValue.value.value.text).eql("Unshelved");
+                should(samples.length).be.greaterThan(2);
 
-                clearInterval(_timer);
+                let previous = timeShelvedDuration + 1;
+                for (const sample of samples) {
+                    should(sample.dataType).eql(DataType.Double);
+                    should(sample.value < timeShelvedDuration).eql(true);
+                    should(sample.value >= 0).eql(true, " unshelveTime must be greater than 0");
+                    should(sample.value < previous).eql(true);
+                    previous = sample.value;
+                }
             });
 
             it("checking suppressedOrShelved behavior", () => {
