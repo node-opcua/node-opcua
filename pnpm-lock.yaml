@@ -4497,6 +4497,8 @@ importers:
         specifier: 2.183.1
         version: link:../../packages/node-opcua
 
+  tools/check-build-graph: {}
+
   tools/check-construction-cast:
     devDependencies:
       typescript-5:

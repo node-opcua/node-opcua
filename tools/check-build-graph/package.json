@@ -1,0 +1,14 @@
+{
+    "name": "@sterfive/check-build-graph",
+    "version": "1.0.0",
+    "private": true,
+    "description": "every publishable package is reachable in the TypeScript build graph, so it is actually compiled",
+    "bin": {
+        "check-build-graph": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "test": "node test/test_rule.js"
+    }
+}
