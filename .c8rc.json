@@ -17,6 +17,8 @@
         "**/node_modules/**",
         "coverage/**",
         "**/*.d.ts",
+        "**/_generated_*",
+        "packages/node-opcua-nodeset-*/**",
         "packages/*/test/**",
         "packages/*/tests/**",
         "packages/*/test_helpers/**",
