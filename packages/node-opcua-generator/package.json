@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-generator",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module generator",
     "main": "./dist/index.js",
