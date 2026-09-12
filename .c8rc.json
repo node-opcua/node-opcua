@@ -1,0 +1,28 @@
+{
+    "_comment": [
+        "Coverage is measured by c8, which reads JSON only. The previous .nycrc.yaml was an nyc",
+        "file: c8 silently ignored it (and errors with 'not valid JSON' if pointed at it), so none",
+        "of its settings had ever applied. Paths are relative to the repository root, because c8",
+        "has no 'cwd' option; that nyc-only key is why an --all run used to sweep in tools/ too.",
+        "",
+        "The excludes below are what c8 already applied by default, written out so they are",
+        "visible. The old file also excluded whole packages (node-opcua-types, utils, debug,",
+        "nodeset-*, and more). Those are NOT reinstated here: they had never been in force, and",
+        "switching them on moves the published figure by about 15 points, which is a decision",
+        "about what the number should mean rather than a config repair. Same for thresholds:",
+        "c8 defaults --lines to 90, so enabling check-coverage would fail the job immediately."
+    ],
+    "all": false,
+    "exclude": [
+        "**/node_modules/**",
+        "coverage/**",
+        "**/*.d.ts",
+        "packages/*/test/**",
+        "packages/*/tests/**",
+        "packages/*/test_helpers/**",
+        "packages/*/test-fixtures/**",
+        "packages/*/test_fixtures/**",
+        "**/*{.,-}test.{js,cjs,mjs,ts}",
+        "**/__tests__/**"
+    ]
+}

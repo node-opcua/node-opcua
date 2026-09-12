@@ -466,7 +466,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-      - run: npm install -g c8 coveralls codecov
+      # c8 is a devDependency (see .c8rc.json); the Coveralls upload is the action below, so
+      # neither the coveralls nor the codecov npm package is needed here.
       - run: pnpm recursive install --no-frozen-lockfile --ignore-scripts
       # build:all = generate:types + tsc. Needed because _generated_opcua_types.ts
       # is gitignored; the lean `build` (tsc only) doesn't produce it. Nodeset
