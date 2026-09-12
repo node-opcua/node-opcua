@@ -3,7 +3,10 @@ import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import sinon from "sinon";
-import Bonjour from "sterfive-bonjour-service";
+// The named export, the one `source/bonjourHolder.ts` already uses. This package is ESM now,
+// and the default import of a CommonJS dependency is its `module.exports` object rather than
+// the class, so `new Bonjour()` and `Bonjour["publish"]` only work through the named export.
+import { Bonjour } from "sterfive-bonjour-service";
 import {
     type Announcement,
     announcementToServiceConfig,
