@@ -1,4 +1,11 @@
 /* c8 ignore start */
+import { createRequire } from "node:module";
+
+// `require` does not exist in an ES module. It is kept rather than replaced by import()
+// because import() is async and resolves against the emitted .js, neither of which is
+// safe to assume at a call site a tool has not read. Converting one by hand is fine.
+const require = createRequire(import.meta.url);
+
 import os from "node:os";
 
 import { types } from "node:util";

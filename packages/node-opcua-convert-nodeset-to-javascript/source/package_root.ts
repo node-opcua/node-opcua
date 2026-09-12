@@ -12,7 +12,7 @@ import path from "node:path";
  * as a CLI from any directory, and cwd would then resolve somewhere else entirely.
  * A tool has to find its own files relative to itself.
  */
-const here = __dirname;
+const here = import.meta.dirname;
 
 /** this package's own root, one level above the compiled output */
 export const packageRoot = path.join(here, "..");

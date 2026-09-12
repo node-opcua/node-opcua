@@ -109,10 +109,7 @@ function addBooleanScalarAndArray(ctt: CttFolder): void {
     ctt.typedVariable("Static/All Profiles/Arrays/Bool", "Boolean", 1);
 }
 
-// The one place this module learns where it sits on disk. `import.meta.dirname`
-// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
-// has this single line to change rather than several scattered uses.
-const here = __dirname;
+const here = import.meta.dirname;
 
 function addImageVariable(ctt: CttFolder): void {
     // the abstract Image data type (the concrete ImagePNG/GIF/JPG/BMP nodes live under Simulation)
