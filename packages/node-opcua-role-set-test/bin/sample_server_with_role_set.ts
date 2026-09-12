@@ -21,6 +21,7 @@
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { Command } from "commander";
 import { WellKnownRoles } from "node-opcua-address-space";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -180,7 +181,7 @@ function addDemoVariables(server: OPCUAServer): SampleServerHandle["nodeIds"] {
 }
 
 // CLI entry point: parse args and keep the server running until Ctrl-C.
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     const program = new Command()
         .name("sample-server-with-role-set")
         .description("Standalone OPC UA sample server with role-set management and per-Role Variable permissions")

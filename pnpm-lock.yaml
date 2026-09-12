@@ -4505,6 +4505,12 @@ importers:
 
   tools/check-build-graph: {}
 
+  tools/check-cjs-globals:
+    devDependencies:
+      typescript-5:
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
+
   tools/check-construction-cast:
     devDependencies:
       typescript-5:
