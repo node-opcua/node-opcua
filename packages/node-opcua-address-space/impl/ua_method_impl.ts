@@ -68,7 +68,10 @@ export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMeth
     public methodDeclarationId: NodeId;
     public _getExecutableFlag?: (this: UAMethod, context: ISessionContext | null) => boolean;
 
-    public _asyncExecutionFunction?: MethodFunctor;
+    // always the callback form: bindMethod normalises the promise form before storing it. A union
+    // here would be wider than what can be held, and `.call` on a union of signatures does not
+    // resolve to the callback one.
+    public _asyncExecutionFunction?: MethodFunctorC;
 
     constructor(options: IMethodOptons) {
         super(options);
@@ -138,11 +141,12 @@ export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMeth
 
     public bindMethod(async_func: MethodFunctor): void {
         assert(typeof async_func === "function");
-        if (async_func.length === 2) {
-            async_func = callbackify(async_func as MethodFunctorA) as MethodFunctorC;
-        }
-        assert(async_func.length === 3, ` a method with callback should have 3 arguments : got ${async_func.length}`);
-        this._asyncExecutionFunction = async_func;
+        const callbackForm: MethodFunctorC =
+            async_func.length === 2
+                ? (callbackify(async_func as MethodFunctorA) as MethodFunctorC)
+                : (async_func as MethodFunctorC);
+        assert(callbackForm.length === 3, ` a method with callback should have 3 arguments : got ${callbackForm.length}`);
+        this._asyncExecutionFunction = callbackForm;
     }
     public execute(
         object: UAObject | UAObjectType | null,

@@ -514,7 +514,10 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         assert(this.endpoints.length > 0, "We need at least one end point");
 
         installPeriodicClockAdjustment();
-        const server: OPCUABaseServer<OPCUABaseServerEvents> = this;
+        // through unknown: `this` is OPCUABaseServer<T>, and T could be a narrower subtype of the
+        // constraint, so TS 7 refuses the direct conversion. The events emitted here are the ones
+        // the constraint declares, so the base instantiation is the right view of `this`.
+        const server = this as unknown as OPCUABaseServer<OPCUABaseServerEvents>;
         const _on_new_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
             server.emit("newChannel", channel, this);
         };
@@ -649,7 +652,7 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         let errMessage: string;
         let response: Response;
 
-        (this as OPCUABaseServer<OPCUABaseServerEvents>).emit("request", request, channel);
+        (this as unknown as OPCUABaseServer<OPCUABaseServerEvents>).emit("request", request, channel);
 
         try {
             // handler must be named _on_ActionRequest()
