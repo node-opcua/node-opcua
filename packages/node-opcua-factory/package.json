@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-factory",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module factory",
     "main": "./dist/index.js",

@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-variant",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module variant",
     "main": "./dist/index.js",

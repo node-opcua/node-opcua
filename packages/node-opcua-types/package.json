@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-types",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module types",
     "main": "./dist/index.js",

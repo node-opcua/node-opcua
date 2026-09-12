@@ -8,10 +8,7 @@ import { generate } from "node-opcua-generator";
 import { NumericRange } from "node-opcua-numeric-range";
 import { Variant } from "node-opcua-variant";
 
-// The one place this module learns where it sits on disk. `import.meta.dirname`
-// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
-// has this single line to change rather than several scattered uses.
-const here = __dirname;
+const here = import.meta.dirname;
 
 const _force_inclusion = NumericRange;
 const _force_inclusion_QualifiedName = QualifiedName;
