@@ -35,18 +35,20 @@ describe("CTS-1 convert Extension Object definition to Typescript 1", () => {
     LocalizedText,
     UAString
 } from "node-opcua";
-export enum HeaterStatus {
-    Off = 0,
-    Heating = 1,
-    Cooling = 2,
-}
-export enum Priority {
-    Low = 10,
-    Normal = 40,
-    High = 70,
-    Urgent = 90,
-    Immediate = 100,
-}
+export const HeaterStatus = {
+    Off: 0,
+    Heating: 1,
+    Cooling: 2,
+} as const;
+export type HeaterStatus = (typeof HeaterStatus)[keyof typeof HeaterStatus];
+export const Priority = {
+    Low: 10,
+    Normal: 40,
+    High: 70,
+    Urgent: 90,
+    Immediate: 100,
+} as const;
+export type Priority = (typeof Priority)[keyof typeof Priority];
 interface AccessRights {
     value: ByteString;
     validBits: ByteString;
@@ -112,19 +114,21 @@ describe("convert Extension Object definition to Typescript 2", () => {
     UAString,
     Variant
 } from "node-opcua";
-export enum SystemStateDataType {
-    PRD_1 = 1,
-    SBY_2 = 2,
-    ENG_3 = 3,
-    SDT_4 = 4,
-    UDT_5 = 5,
-    NST_6 = 6,
-}
-export enum TriStateBooleanDataType {
-    FALSE_0 = 0,
-    TRUE_1 = 1,
-    DONTCARE_2 = 2,
-}
+export const SystemStateDataType = {
+    PRD_1: 1,
+    SBY_2: 2,
+    ENG_3: 3,
+    SDT_4: 4,
+    UDT_5: 5,
+    NST_6: 6,
+} as const;
+export type SystemStateDataType = (typeof SystemStateDataType)[keyof typeof SystemStateDataType];
+export const TriStateBooleanDataType = {
+    FALSE_0: 0,
+    TRUE_1: 1,
+    DONTCARE_2: 2,
+} as const;
+export type TriStateBooleanDataType = (typeof TriStateBooleanDataType)[keyof typeof TriStateBooleanDataType];
 interface ConfigurationIdDataType {
     id: UAString;
     major?: Int32;

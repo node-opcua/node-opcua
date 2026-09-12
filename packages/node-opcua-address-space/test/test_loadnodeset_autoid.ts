@@ -38,12 +38,15 @@ describe("Testing AutoID custom types", async function (this: Mocha.Suite) {
     });
 
     it("should construct a ScanSettings", () => {
-        enum LocationTypeEnumeration {
-            NMEA = 0, // An NMEA string representing a coordinate as defined in 9.1.2.
-            LOCAL = 2, // A local coordinate as defined in 9.3.4
-            WGS84 = 4, // A lat / lon / alt coordinate as defined in 9.3.16
-            NAME = 5 // A name for a location as defined in 9.1.1
-        }
+        // a const object rather than an enum: an enum is not erasable syntax, so it cannot be
+        // run by Node's own type stripping (NATIVE_TS=1 in packages/run_all_mocha_tests.js)
+        const LocationTypeEnumeration = {
+            NMEA: 0, // An NMEA string representing a coordinate as defined in 9.1.2.
+            LOCAL: 2, // A local coordinate as defined in 9.3.4
+            WGS84: 4, // A lat / lon / alt coordinate as defined in 9.3.16
+            NAME: 5 // A name for a location as defined in 9.1.1
+        } as const;
+        type LocationTypeEnumeration = (typeof LocationTypeEnumeration)[keyof typeof LocationTypeEnumeration];
         interface ScanSettings extends ExtensionObject {
             duration: number;
             cycles: number;

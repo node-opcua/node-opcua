@@ -266,14 +266,16 @@ describe("BSHB - Binary Schemas Helper 2", () => {
         dataTypeFactory.hasEnumeration("SystemStateDataType").should.eql(true);
     });
 
-    enum SystemStateEnum2 {
-        PRD_1 = 1,
-        SBY_2 = 2,
-        ENG_3 = 3,
-        SDT_4 = 4,
-        UDT_5 = 5,
-        NST_6 = 6
-    }
+    // a const object rather than an enum: an enum is not erasable syntax, so it cannot be run
+    // by Node's own type stripping (NATIVE_TS=1 in packages/run_all_mocha_tests.js)
+    const SystemStateEnum2 = {
+        PRD_1: 1,
+        SBY_2: 2,
+        ENG_3: 3,
+        SDT_4: 4,
+        UDT_5: 5,
+        NST_6: 6
+    } as const;
 
     it("BSHB3 - should construct a dynamic object structure 1", () => {
         const SystemStateDescriptionDataType = getOrCreateConstructor("SystemStateDescriptionDataType", dataTypeFactory);
