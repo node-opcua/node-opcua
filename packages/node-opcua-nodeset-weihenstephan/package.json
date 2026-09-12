@@ -1,6 +1,7 @@
 {
     "name": "node-opcua-nodeset-weihenstephan",
     "version": "2.183.1",
+    "type": "module",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-weihenstephan",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
