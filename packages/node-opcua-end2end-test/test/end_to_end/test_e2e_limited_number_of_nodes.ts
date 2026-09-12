@@ -3,7 +3,6 @@
 // Validates server operationLimits (read, browse, translate) enforcement and crawler behavior
 // under constrained maxNodesPer* settings. Original JS archived as test_e2e_limited_number_of_nodes-old.js
 // --------------------------------------------------------------------------------------------
-import "should"; // assertion side-effects
 import {
     AttributeIds,
     assert,
@@ -17,7 +16,11 @@ import {
 } from "node-opcua";
 import { NodeCrawler } from "node-opcua-client-crawler";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import * as should from "should"; // explicit import to silence TS UMD global warning
+// The default export is the callable `should`, and the statics (`should.exist`) hang off it.
+// A namespace import is not the same object: `should` is CommonJS, so under ESM its namespace
+// carries only `default`, and `should.exist` silently becomes undefined. Calling it threw
+// inside a read callback, before resolve(), so the test hung until mocha timed out.
+import should from "should";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
 
 assert(typeof makeBrowsePath === "function");
