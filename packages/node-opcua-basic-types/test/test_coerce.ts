@@ -1,4 +1,4 @@
-import "should";
+import should from "should";
 
 import * as ec from "../dist/index.js";
 import { coerceBoolean, coerceByteString, coerceInt32, coerceInt64, coerceUInt32, coerceUInt64 } from "../dist/index.js";
@@ -144,9 +144,9 @@ describe("check coerce various types", () => {
             const randomFunc = ecByName[`random${type}`];
             //xx var isValidFunc = ecByName["isValid" + type];
 
-            ec.should.have.property(`coerce${type}`);
-            ec.should.have.property(`random${type}`);
-            ec.should.have.property(`isValid${type}`);
+            should(ec).have.property(`coerce${type}`);
+            should(ec).have.property(`random${type}`);
+            should(ec).have.property(`isValid${type}`);
 
             const random_value = randomFunc();
 
@@ -166,7 +166,7 @@ describe("check coerce various types", () => {
         it(`coerce${w(type, 8)} should preserves null or undefined values `, () => {
             const coerceFunc = ecByName[`coerce${type}`];
 
-            ec.should.have.property(`coerce${type}`);
+            should(ec).have.property(`coerce${type}`);
 
             const value1 = coerceFunc(null);
             if (Array.isArray(value1)) {

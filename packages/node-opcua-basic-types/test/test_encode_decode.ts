@@ -537,10 +537,10 @@ describe("check isValid and random for various types", () => {
             const randomFunc = ecByName[`random${type}`];
             const isValidFunc = ecByName[`isValid${type}`];
 
-            ec.should.have.property(`encode${type}`);
-            ec.should.have.property(`decode${type}`);
-            ec.should.have.property(`random${type}`);
-            ec.should.have.property(`isValid${type}`);
+            should(ec).have.property(`encode${type}`);
+            should(ec).have.property(`decode${type}`);
+            should(ec).have.property(`random${type}`);
+            should(ec).have.property(`isValid${type}`);
 
             const random_value = randomFunc();
             isValidFunc(random_value).should.eql(true);
