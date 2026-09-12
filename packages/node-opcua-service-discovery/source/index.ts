@@ -21,7 +21,7 @@ export {
     RegisterServerResponse,
     ServerOnNetwork
 } from "node-opcua-types";
-export { Announcement } from "./Announcement.js";
+export type { Announcement } from "./Announcement.js";
 export { announcementToServiceConfig } from "./announcement_to_service_config.js";
 export { BonjourHolder, multicastDNSInstanceCount } from "./bonjourHolder.js";
 export { serverCapabilities } from "./server_capabilities.js";

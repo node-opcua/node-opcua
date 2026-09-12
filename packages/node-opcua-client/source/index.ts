@@ -24,7 +24,8 @@
 export * from "node-opcua-alarm-condition";
 export { assert } from "node-opcua-assert";
 export { ServerState, ServiceCounterDataType } from "node-opcua-common";
-export { ClientSecureChannelLayer, ConnectionStrategyOptions, SecurityPolicy } from "node-opcua-secure-channel";
+export type { ConnectionStrategyOptions } from "node-opcua-secure-channel";
+export { ClientSecureChannelLayer, SecurityPolicy } from "node-opcua-secure-channel";
 export * from "node-opcua-utils";
 export * from "./alarms_and_conditions/client_alarm_tools.js";
 export * from "./alarms_and_conditions/client_tools.js";
@@ -66,6 +67,7 @@ export {
     setLogLevel,
     setWarningLogger
 } from "node-opcua-debug";
+export type { NodeIdLike } from "node-opcua-nodeid";
 ///
 export {
     coerceExpandedNodeId,
@@ -74,7 +76,6 @@ export {
     makeExpandedNodeId,
     makeNodeId,
     NodeId,
-    NodeIdLike,
     resolveNodeId,
     sameNodeId
 } from "node-opcua-nodeid";
@@ -94,6 +95,7 @@ export * from "node-opcua-service-session";
 export * from "node-opcua-service-subscription";
 export * from "node-opcua-service-translate-browse-path";
 export * from "node-opcua-service-write";
-export { ErrorCallback, StatusCode, StatusCodes } from "node-opcua-status-code";
+export type { ErrorCallback } from "node-opcua-status-code";
+export { StatusCode, StatusCodes } from "node-opcua-status-code";
 export { DataTypeDefinition } from "node-opcua-types";
 export * from "node-opcua-variant";

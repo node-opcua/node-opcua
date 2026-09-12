@@ -74,6 +74,7 @@ export {
 } from "node-opcua-data-model";
 export { DataValue, sameDataValue } from "node-opcua-data-value";
 export * from "node-opcua-hostname";
+export type { NodeIdLike } from "node-opcua-nodeid";
 export {
     coerceExpandedNodeId,
     coerceNodeId,
@@ -81,7 +82,6 @@ export {
     makeExpandedNodeId,
     makeNodeId,
     NodeId,
-    NodeIdLike,
     NodeIdType,
     resolveNodeId,
     sameNodeId
