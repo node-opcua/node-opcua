@@ -90,6 +90,7 @@ Each has its own README with the reasoning behind the rule.
 - `esm-convert/`: the mechanical half of converting a package to ESM (not a gate)
 - `check-module-identity/`: a file must reach any one package by a single route
 - `check-pack/`: declared entry points must actually be published
+- `check-build-graph/`: every publishable package is reachable in the build graph
 - `check-test-types/`: ratchet on test-suite type-checking
 - `check-test-ports/`: no hard-coded ports in tests
 - `clean/`: Cleanup utilities
@@ -113,6 +114,7 @@ tools/
 ├── check-entry-points/      # types describes the module main loads
 ├── check-short-circuit-assertion/  # Assertions an optional chain can switch off
 ├── check-pack/              # Declared entry points are published
+├── check-build-graph/       # Publishable packages are actually built
 ├── check-test-types/        # Test-suite type-check ratchet
 ├── clean/                   # Cleanup utilities
 ├── fix-tsconfigs/           # TypeScript config fixes
@@ -129,5 +131,6 @@ tools/
 ├── check-module-identity.mjs
 ├── check-entry-points.mjs
 ├── check-short-circuit-assertion.mjs
+├── check-build-graph.mjs
 └── README.md                # This file
 ``` 
