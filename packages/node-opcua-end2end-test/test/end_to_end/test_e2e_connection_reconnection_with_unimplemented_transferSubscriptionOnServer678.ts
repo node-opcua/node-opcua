@@ -29,7 +29,7 @@ const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 const serverScript1 = "simple_server_that_fails_to_republish.cjs";
-const serverScript2 = "simple_server_with_no_transferSubscription.js";
+const serverScript2 = "simple_server_with_no_transferSubscription.cjs";
 let serverScript = serverScript1;
 
 const port = 2049;
