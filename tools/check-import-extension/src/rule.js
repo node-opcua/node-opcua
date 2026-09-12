@@ -61,6 +61,9 @@ const SETTLED = /\.(js|mjs|cjs|json|node|css)$/;
 /** pure traversal with no filename: ".", "..", "../..", "../../.." */
 const PACKAGE_ROOT = /^\.{1,2}(\/\.\.)*\/?$/;
 
+/** characters an ESM specifier reads as URL syntax rather than as part of the path */
+const URL_RESERVED = /[#?]/;
+
 const SCRIPT_KIND = { ".ts": ts.ScriptKind.TS, ".tsx": ts.ScriptKind.TSX, ".mts": ts.ScriptKind.TS, ".cts": ts.ScriptKind.TS };
 
 /** every string literal that is genuinely a module specifier */
@@ -248,6 +251,24 @@ export function findViolations(text, filePath, repoRoot = ".") {
 
     for (const node of specifierNodes(sourceFile)) {
         const specifier = node.text;
+        // ESM resolves a specifier as a URL, so `#` starts a fragment and `?` a query: a file
+        // actually named `...issue#804.ts` is imported as `...issue` and reported missing,
+        // while CommonJS treated both as ordinary characters and found the file. The extension
+        // is present and correct in these, so every other rule here passes them over.
+        if (URL_RESERVED.test(specifier)) {
+            const { line } = ts.getLineAndCharacterOfPosition(sourceFile, node.getStart(sourceFile));
+            if (!(lines[line] ?? "").includes(IGNORE_MARKER)) {
+                out.push({
+                    line: line + 1,
+                    specifier,
+                    kind: "url-reserved",
+                    suggestion: null,
+                    fixable: false,
+                    text: (lines[line] ?? "").trim().slice(0, 100)
+                });
+                continue;
+            }
+        }
         // A specifier made only of traversal - ".", "..", "../.." - names a directory and
         // carries no filename, so it resolves only through that directory's package.json,
         // which NodeNext does not do for a relative specifier. There is no extension to
