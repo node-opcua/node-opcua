@@ -1,5 +1,6 @@
 {
     "name": "playground",
+    "type": "module",
     "version": "2.183.1",
     "description": "pure nodejs OPCUA SDK - module playground",
     "main": "sample1.js",

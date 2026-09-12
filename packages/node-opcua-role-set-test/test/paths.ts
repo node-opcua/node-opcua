@@ -13,7 +13,7 @@ import path from "node:path";
 import { findUp } from "node-opcua-test-helpers";
 
 /** this package's directory */
-export const packageRoot = findUp(__dirname, "package.json");
+export const packageRoot = findUp(import.meta.dirname, "package.json");
 
 /**
  * Somewhere under the package root that a test writes into. A plain path: several of these

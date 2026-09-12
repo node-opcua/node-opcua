@@ -1,4 +1,11 @@
 #!/usr/bin/env tsx
+import { createRequire } from "node:module";
+
+// `require` does not exist in an ES module. It is kept rather than replaced by import()
+// because import() is async and resolves against the emitted .js, neither of which is
+// safe to assume at a call site a tool has not read. Converting one by hand is fine.
+const require = createRequire(import.meta.url);
+
 import fs from "node:fs";
 import path from "node:path";
 import util, { types } from "node:util";
@@ -45,10 +52,7 @@ import { type Certificate, toPem } from "node-opcua-crypto";
 
 const { asTree } = require("treeify");
 
-// The one place this module learns where it sits on disk. `import.meta.dirname`
-// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
-// has this single line to change rather than several scattered uses.
-const here = __dirname;
+const here = import.meta.dirname;
 
 function w(str: string, l: number): string {
     return str.padEnd(l).substring(0, l);

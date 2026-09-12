@@ -30,7 +30,7 @@ import { findUp, modelingFile, samplesCertificateFolder } from "node-opcua-test-
  * `findUp` and the repo-level locations come from node-opcua-test-helpers, which is
  * `"private": true` and knows the workspace layout once for every package.
  */
-export const packageRoot = findUp(__dirname, "package.json");
+export const packageRoot = findUp(import.meta.dirname, "package.json");
 
 export { modelingFile };
 

@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-client-browser",
+    "type": "module",
     "version": "2.183.1",
     "description": "OPC UA SDK - browser WebSocket client (opc.ws / opc.wss)",
     "main": "./dist/index.js",

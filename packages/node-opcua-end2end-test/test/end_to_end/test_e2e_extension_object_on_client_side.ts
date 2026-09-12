@@ -16,11 +16,11 @@ describe("testing extension object with client residing on a different process t
 
     const options = {
         silent: true,
-        server_sourcefile: serverScript("simple_server_with_custom_extension_objects.js"),
+        server_sourcefile: serverScript("simple_server_with_custom_extension_objects.cjs"),
         port
     };
     if (!fs.existsSync(options.server_sourcefile)) {
-        options.server_sourcefile = serverScript("simple_server_with_custom_extension_objects.js");
+        options.server_sourcefile = serverScript("simple_server_with_custom_extension_objects.cjs");
     }
     fs.existsSync(options.server_sourcefile).should.eql(true, "cannot find simple_server_with_custom_extension_objects script");
 

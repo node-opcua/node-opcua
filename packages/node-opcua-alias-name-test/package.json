@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-alias-name-test",
+    "type": "module",
     "version": "2.183.1",
     "private": true,
     "description": "pure nodejs OPCUA SDK - integration tests for alias names (OPC 10000-17)",
