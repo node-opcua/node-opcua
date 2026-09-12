@@ -1,6 +1,6 @@
 // Fixture: multiple describe blocks across two files (block A)
-const assert = require("node:assert");
-const { describeWithLeakDetector } = require("../../src/resource_leak_detector");
+import assert from "node:assert";
+import { describeWithLeakDetector } from "../../src/resource_leak_detector.js";
 
 describeWithLeakDetector("fixture-multi-A", () => {
     it("block A test 1", () => {

@@ -1,6 +1,7 @@
 {
     "name": "node-opcua-leak-detector",
     "version": "2.183.0",
+    "type": "module",
     "description": "pure nodejs OPCUA SDK - module leak-detector",
     "main": "index.js",
     "types": "index.d.ts",

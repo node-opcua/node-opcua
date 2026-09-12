@@ -2,9 +2,9 @@
 // ref'd timer. Reproduces the hang where stop() reported the leak before
 // clearing the tracked timers, leaving the mocha worker's event loop alive
 // for the full duration of the leaked timer.
-const assert = require("node:assert");
-const { ObjectRegistry } = require("node-opcua-object-registry");
-const { describeWithLeakDetector } = require("../../src/resource_leak_detector");
+import assert from "node:assert";
+import { ObjectRegistry } from "node-opcua-object-registry";
+import { describeWithLeakDetector } from "../../src/resource_leak_detector.js";
 
 const registry = new ObjectRegistry();
 

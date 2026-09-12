@@ -1,9 +1,9 @@
 Error.stackTraceLimit = 30;
-const chalk = require("chalk");
-const { assert } = require("node-opcua-assert");
+import chalk from "chalk";
+import { assert } from "node-opcua-assert";
 
-const { ObjectRegistry } = require("node-opcua-object-registry");
-const { takeMemorySnapshot, checkForMemoryLeak } = require("./mem_leak_detector");
+import { ObjectRegistry } from "node-opcua-object-registry";
+import { checkForMemoryLeak, takeMemorySnapshot } from "./mem_leak_detector.js";
 
 const trace = false;
 
@@ -516,7 +516,7 @@ function traceFromThisProjectOnly(err) {
 
 let testHasFailed = false;
 
-exports.installResourceLeakDetector = function(isGlobal, func) {
+export function installResourceLeakDetector(isGlobal, func) {
 
     const _trace = traceFromThisProjectOnly();
     testHasFailed = false;
@@ -619,7 +619,7 @@ assert(typeof global_describe === "function", " expecting mocha to be defined");
 
 
 let g_inDescribeWithLeakDetector = false;
-exports.describeWithLeakDetector = function(message, func) {
+export function describeWithLeakDetector(message, func) {
 
     if (memLeakDetectionDisabled) {
         return global_describe(message, func);
@@ -631,7 +631,7 @@ exports.describeWithLeakDetector = function(message, func) {
     g_inDescribeWithLeakDetector = true;
     global.it = replacement_it;
     global_describe.call(this, message, function() {
-        exports.installResourceLeakDetector.call(this, true, func);
+        installResourceLeakDetector.call(this, true, func);
         g_inDescribeWithLeakDetector = false;
         global.it = global_it;
     });

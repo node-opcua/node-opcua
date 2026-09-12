@@ -1,6 +1,6 @@
 // Fixture: a test fails
-const assert = require("node:assert");
-const { describeWithLeakDetector } = require("../../src/resource_leak_detector");
+import assert from "node:assert";
+import { describeWithLeakDetector } from "../../src/resource_leak_detector.js";
 
 describeWithLeakDetector("fixture-fail", () => {
     it("passes first", () => {

@@ -1,7 +1,7 @@
 // Fixture: leaked net.Server socket handle
-const assert = require("node:assert");
-const net = require("node:net");
-const { describeWithLeakDetector } = require("../../src/resource_leak_detector");
+import assert from "node:assert";
+import net from "node:net";
+import { describeWithLeakDetector } from "../../src/resource_leak_detector.js";
 
 describeWithLeakDetector("fixture-leaked-socket", () => {
     it("creates a net.Server that is NOT closed", (done) => {
