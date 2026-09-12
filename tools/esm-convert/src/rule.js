@@ -442,15 +442,23 @@ export function entryShim(pkgDir, jsFile) {
 
 // ── CommonJS left behind in a .js file ──────────────────────────────────────────
 
-/** a `require(...)` call, `module.exports`, or `exports.x = ...` - the CommonJS a .js file carries */
+/**
+ * A `require(...)` call, `module.exports`, or `exports.x = ...` - the CommonJS a .js file
+ * carries.
+ *
+ * A `require` created by `createRequire(import.meta.url)` does not count. That is the ESM
+ * form of a deliberate synchronous require, and it is what this tool writes itself when it
+ * converts one, so reporting it would ask a person to fix code the tool had just produced.
+ */
 export function isCommonJsModule(text) {
     if (!/\brequire\s*\(|\bmodule\.exports\b|\bexports\s*\./.test(text)) return false;
     const sf = ts.createSourceFile("f.js", text, ts.ScriptTarget.ESNext, true, ts.ScriptKind.JS);
+    const localRequire = /\bcreateRequire\s*\(/.test(text);
     let found = false;
     const visit = (node) => {
         if (found) return;
         if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "require") {
-            found = true;
+            if (!localRequire) found = true;
         } else if (ts.isPropertyAccessExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "module" && node.name.text === "exports") {
             found = true;
         } else if (

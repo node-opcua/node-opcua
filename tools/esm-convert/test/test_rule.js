@@ -385,6 +385,22 @@ test("a shipped CommonJS .js file needs a decision", () => {
     );
 });
 
+test("a require made by createRequire is not CommonJS left behind: the tool writes that form itself", () => {
+    withTree(
+        {
+            "packages/p/package.json": JSON.stringify({ name: "p", type: "module", files: ["src"] }),
+            "packages/p/src/thing.js":
+                'import { createRequire } from "node:module";\nconst require = createRequire(import.meta.url);\nexport const y = require("y");\n'
+        },
+        (root) => {
+            const liveness = computeLiveJsFiles(root);
+            const { cjsModules, deadFiles } = classifyJsFiles(path.join(root, "packages/p"), "p", liveness);
+            assert.equal(cjsModules.length, 0, JSON.stringify(cjsModules));
+            assert.equal(deadFiles.length, 0);
+        }
+    );
+});
+
 test("an unreferenced CommonJS .js in a private package needs a decision too: it is run by hand", () => {
     withTree(
         {
