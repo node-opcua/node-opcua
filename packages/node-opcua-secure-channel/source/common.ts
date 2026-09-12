@@ -46,7 +46,7 @@ export interface ServiceFaultAnnotatedError extends Error {
     diagnosticsInfo?: unknown;
 }
 
-export { ICertificateKeyPairProvider } from "node-opcua-common";
+export type { ICertificateKeyPairProvider } from "node-opcua-common";
 
 export function extractFirstCertificateInChain(certificateChain?: Buffer | Buffer[] | null): Buffer | null {
     if (!certificateChain || certificateChain.length === 0) {

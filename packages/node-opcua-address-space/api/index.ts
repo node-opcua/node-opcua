@@ -98,8 +98,9 @@ export {
 } from "../impl/historical_access/read_processed_details_hook.js";
 /** @internal */
 export { isNonEmptyQualifiedName, NamespaceImpl } from "../impl/namespace_impl.js";
+export type { ConstructNodeIdOptions } from "../impl/nodeid_manager.js";
 /** How node ids are assigned within a namespace. */
-export { ConstructNodeIdOptions, NamespaceOptions, NodeIdManager } from "../impl/nodeid_manager.js";
+export { NamespaceOptions, NodeIdManager } from "../impl/nodeid_manager.js";
 /** Rewrites the server's namespace array to match the namespaces actually loaded. */
 export { adjustNamespaceArray } from "../impl/nodeset_tools/adjust_namespace_array.js";
 export * from "../impl/nodeset_tools/construct_namespace_dependency.js";
