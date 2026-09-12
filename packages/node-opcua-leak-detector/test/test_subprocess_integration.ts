@@ -14,9 +14,21 @@
  */
 
 import assert from "node:assert";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
 import path from "node:path";
+import process from "node:process";
 import { packageRoot, testPath } from "./paths.js";
+
+/**
+ * Run mocha's own entry point with this node, rather than through `npx`.
+ *
+ * These tests time the child to prove the leak detector lets a process exit, and `npx` has to
+ * resolve a binary before mocha even starts: measured at 8.5 to 10.3 seconds per spawn on a
+ * loaded Windows machine, which is the whole budget of the "does not hang" assertions. Timing
+ * the thing under test rather than the launcher is what makes those assertions mean something.
+ */
+const mochaBin = createRequire(import.meta.url).resolve("mocha/bin/mocha.js");
 
 const FIXTURES = testPath("fixtures");
 
@@ -24,7 +36,7 @@ const FIXTURES = testPath("fixtures");
 function runMocha(fixtureFiles: string | string[], extraArgs: string[] = []) {
     const files = Array.isArray(fixtureFiles) ? fixtureFiles : [fixtureFiles];
     const args = ["--no-config", "--timeout", "10000", ...extraArgs, ...files.map((f) => path.join(FIXTURES, f))];
-    const cmd = `npx mocha ${args.join(" ")}`;
+
     // Build a clean env so parent settings like
     // MEM_LEAK_DETECTION_DISABLED don't leak into the fixtures
     // (the fixtures NEED the leak detector active to produce
@@ -32,7 +44,7 @@ function runMocha(fixtureFiles: string | string[], extraArgs: string[] = []) {
     const env = { ...process.env };
     delete env.MEM_LEAK_DETECTION_DISABLED;
     try {
-        const stdout = execSync(cmd, {
+        const stdout = execFileSync(process.execPath, [mochaBin, ...args], {
             cwd: packageRoot,
             timeout: 15000,
             encoding: "utf8",
