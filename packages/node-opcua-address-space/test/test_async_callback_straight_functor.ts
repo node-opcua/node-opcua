@@ -10,7 +10,10 @@ import {
 
 class Stuff {}
 class Output {
-    constructor(public value: string) {}
+    public value: string;
+    constructor(value: string) {
+        this.value = value;
+    }
 }
 
 describe("Async Callback Straight functors", () => {

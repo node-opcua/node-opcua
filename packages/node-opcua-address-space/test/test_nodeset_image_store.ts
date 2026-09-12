@@ -30,7 +30,10 @@ import { get_mini_nodeset_filename } from "../test_helpers/get_mini_address_spac
 class SpyStore implements NodesetImageStore {
     public gets: string[] = [];
     public puts: string[] = [];
-    constructor(public readonly inner: NodesetImageStore = new MemoryNodesetImageStore()) {}
+    public readonly inner: NodesetImageStore;
+    constructor(inner: NodesetImageStore = new MemoryNodesetImageStore()) {
+        this.inner = inner;
+    }
     async get(key: string): Promise<Uint8Array | undefined> {
         this.gets.push(key);
         return this.inner.get(key);

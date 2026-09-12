@@ -932,7 +932,7 @@ describe("Server Side MonitoredItem", () => {
         const statusCode6 = monitoredItem.setMonitoringMode(MonitoringMode.Invalid);
         statusCode6.should.eql(StatusCodes.BadInvalidArgument);
 
-        const statusCode8 = monitoredItem.setMonitoringMode(<MonitoringMode>-2323);
+        const statusCode8 = monitoredItem.setMonitoringMode((-2323 as MonitoringMode));
         monitoredItem.monitoringMode.should.eql(MonitoringMode.Sampling);
         statusCode8.should.eql(StatusCodes.BadInternalError);
         monitoredItem.monitoringMode.should.not.eql(MonitoringMode.Invalid);

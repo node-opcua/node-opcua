@@ -44,7 +44,7 @@ describe("Convert to Typescript", () => {
     const options = {
         baseFolder: scratch("tmp"),
         prefix: "node-opcua-nodeset-",
-        licence: <"MIT">"MIT"
+        licence: "MIT" as const
     };
     const referenceFolder = testPath("references");
     const actualFolder = scratch("tmp");
@@ -157,7 +157,7 @@ describe("Convert to Typescript", () => {
         const options = {
             baseFolder: scratch("tmp"),
             prefix: "node-opcua-nodeset-",
-            licence: <"MIT">"MIT"
+            licence: "MIT" as const
         };
         const nsUA = 0;
         const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
