@@ -135,10 +135,9 @@ export function setDebugFlag(scriptFullPath: string, flag: boolean): void {
         const decoratedFilename = chalk.yellow(w(filename, 60));
         loggers.debugLogger(
             {
-                // `__filename` is undefined in ESM and in browser bundles; fall back to
-                // a stable placeholder so `setDebugFlag()` can be called safely from any
-                // runtime. The value is only ever used as a log label.
-                filename: typeof __filename === "undefined" ? "<browser>" : __filename,
+                // `import.meta.filename` is undefined in browser bundles, so keep the
+                // placeholder fallback. The value is only ever used as a log label.
+                filename: import.meta.filename ?? "<browser>",
                 callerline: -1
             },
             " Setting debug for ",
