@@ -12,7 +12,7 @@ import path from "node:path";
 import { findUp } from "node-opcua-test-helpers";
 
 /** this package's directory */
-export const packageRoot = findUp(__dirname, "package.json");
+export const packageRoot = findUp(import.meta.dirname, "package.json");
 
 /** a binary schema the generator reads: testFixture("SampleTypes.bsd") */
 export function testFixture(...segments: string[]): string {
