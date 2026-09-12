@@ -176,7 +176,7 @@ function addAnalogItemArrays(ctt: CttFolder): void {
         // element at engineeringUnitsRange.low, rather than a fixed 0 that falls outside an
         // unsigned range, keeps the node's own initial value conformant (PercentDeadband 006).
         const { engineeringUnitsRange, instrumentRange } = makeRange(dataType);
-        ctt.namespace.addAnalogDataItem({
+        const analogItem = ctt.namespace.addAnalogDataItem({
             organizedBy: folder,
             browseName: dataTypeName,
             nodeId: ctt.nodeId(`Static/DA Profile/AnalogItemType Arrays/${dataTypeName}`),
@@ -195,6 +195,19 @@ function addAnalogItemArrays(ctt: CttFolder): void {
             accessLevel: readWrite,
             userAccessLevel: readWrite
         });
+        // addAnalogDataItem builds EngineeringUnits read-only, EURange and InstrumentRange
+        // writable. A CTT run has to be able to change all three: Data Access Semantic Changes 013
+        // writes the three properties of these six items in one Write, and the six BadNotWritable
+        // results - legal, and on the script's accepted list - make it null those entries and then
+        // reuse the full-length expected-results array for its revert write, which its own
+        // WriteHelper refuses ("ExpectedOperationResultsArray[] (length: 18) must have the same
+        // size as Request.NodesToWrite[] (length: 12)"). Writable here, where the test nodes are
+        // configured, rather than changing what addAnalogDataItem gives every other server.
+        const engineeringUnitsProperty = analogItem.getPropertyByName("EngineeringUnits");
+        if (engineeringUnitsProperty) {
+            engineeringUnitsProperty.accessLevel = readWrite;
+            engineeringUnitsProperty.userAccessLevel = readWrite;
+        }
     }
 }
 
