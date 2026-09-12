@@ -190,10 +190,7 @@ import { bindRoleSet } from "./user_manager_ua.js";
 function isSubscriptionIdInvalid(subscriptionId: number): boolean {
     return subscriptionId < 0 || subscriptionId >= 0xffffffff;
 }
-// The one place this module learns where it sits on disk. `import.meta.dirname`
-// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
-// has this single line to change rather than several scattered uses.
-const here = __dirname;
+const here = import.meta.dirname;
 
 // Read rather than required: a JSON import needs an import attribute under ESM, and that
 // syntax is not available while this package still emits CommonJS. A read works under both.

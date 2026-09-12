@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-convert-nodeset-to-javascript",
+    "type": "module",
     "version": "2.183.1",
     "description": "pure nodejs OPCUA SDK - module convert-nodeset-to-javascript",
     "types": "dist/index.d.ts",

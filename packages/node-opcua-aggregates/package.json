@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-aggregates",
+    "type": "module",
     "version": "2.183.1",
     "description": "pure nodejs OPCUA SDK - module aggregates",
     "main": "./dist/index.js",

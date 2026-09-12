@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-role-set-client",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - client-side role-set management (OPC 10000-18)",
     "scripts": {
