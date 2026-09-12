@@ -24,7 +24,11 @@ const baselineFile = path.join(repoRoot, "tools", "test-types-baseline.json");
 const packagesRoot = path.join(repoRoot, "packages");
 
 const require = createRequire(path.join(repoRoot, "package.json"));
-const tscBin = require.resolve("typescript/bin/tsc");
+// Through the manifest rather than require.resolve("typescript/bin/tsc"): TypeScript 7 publishes an
+// exports map that does not expose ./bin/tsc, so the direct subpath is not resolvable. The bin
+// field names the same launcher in both 5.x and 7.x.
+const typescriptManifest = require.resolve("typescript/package.json");
+const tscBin = path.join(path.dirname(typescriptManifest), JSON.parse(fs.readFileSync(typescriptManifest, "utf8")).bin.tsc);
 
 /** every package that declares a test:check script, with the tsconfig it points at */
 function collectPackages() {

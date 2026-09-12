@@ -10,5 +10,8 @@
     "scripts": {
         "check": "node src/index.js",
         "test": "node test/test_rule.js"
+    },
+    "devDependencies": {
+        "typescript-5": "npm:typescript@5.9.3"
     }
 }

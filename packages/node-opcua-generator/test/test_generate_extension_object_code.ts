@@ -16,7 +16,8 @@ import { DataValue } from "node-opcua-data-value";
 import { NumericRange } from "node-opcua-numeric-range";
 import { Variant } from "node-opcua-variant";
 import should from "should";
-import ts from "typescript";
+// the classic compiler API, which TypeScript 7 no longer exposes: an aliased 5.x copy
+import ts from "typescript-5";
 
 import { generate } from "../dist/index.js";
 import { generatedFolder, testFixture } from "./paths.js";

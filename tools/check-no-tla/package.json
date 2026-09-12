@@ -12,6 +12,6 @@
         "test": "node test/test_detector.js"
     },
     "devDependencies": {
-        "typescript": "5.9.3"
+        "typescript-5": "npm:typescript@5.9.3"
     }
 }

@@ -7,7 +7,11 @@
         "incremental": true
     },
 
-    "include": [""],
+    // no inputs of its own: this project exists to build the references below, so that the
+    // generator and its dependencies are compiled before source/generate.ts runs. `files: []` is
+    // the spelling for that; the previous `include: [""]` happened to match nothing under
+    // TypeScript 5 and matches the whole package (tests included) under TypeScript 7.
+    "files": [],
     "exclude": ["node_modules", "dist", "source"],
     "references": [
         {
