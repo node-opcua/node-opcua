@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-address-space",
+    "type": "module",
     "version": "2.183.1",
     "description": "pure nodejs OPCUA SDK - module address-space",
     "main": "./dist/api/index.js",
@@ -98,7 +99,7 @@
         "bin"
     ],
     "bin": {
-        "opcua-nodeset-image": "bin/opcua-nodeset-image.js",
-        "opcua-nodeset-live": "bin/opcua-nodeset-live.js"
+        "opcua-nodeset-image": "bin/opcua-nodeset-image.cjs",
+        "opcua-nodeset-live": "bin/opcua-nodeset-live.cjs"
     }
 }
