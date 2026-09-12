@@ -166,4 +166,43 @@ describe("SemanticsChanged: the DataItem of a semantics-bearing Property", () =>
         await writeProperty(title, new Variant({ dataType: DataType.LocalizedText, value: { text: "other" } }));
         should(plain.semantic_version).eql(before);
     });
+
+    /**
+     * OPC 10000-5 6.4.31: the Server also reports a semantics change as a SemanticChangeEventType
+     * on the Server object, naming the affected Node and its TypeDefinition. CTT Base Info
+     * SemanticChange 001 subscribes to the Server's events and to the DataItem, writes EURange and
+     * expects both the event and the stamped data change.
+     */
+    it("SC7 raises a SemanticChangeEventType on the Server object naming the affected DataItem", async () => {
+        const analog = namespace.addAnalogDataItem({
+            organizedBy: addressSpace.rootFolder.objects,
+            browseName: "SC7_Analog",
+            engineeringUnits: standardUnits.degree_celsius,
+            engineeringUnitsRange: { low: -100, high: 100 },
+            instrumentRange: { low: -200, high: 200 },
+            dataType: "Double",
+            value: { dataType: DataType.Double, value: 1 }
+        }) as unknown as UAVariable;
+
+        const server = addressSpace.rootFolder.objects.server;
+        const semanticChangeEventTypeNodeId = addressSpace.findEventType("SemanticChangeEventType")!.nodeId;
+        const raised: Record<string, { value?: unknown }>[] = [];
+        const onEvent = (eventData: Record<string, { value?: unknown }>) => raised.push(eventData);
+        server.on("event", onEvent);
+        try {
+            await writeProperty(analog.getPropertyByName("EURange")!, range(-50, 50));
+        } finally {
+            server.removeListener("event", onEvent);
+        }
+
+        const semanticEvents = raised.filter(
+            (eventData) => String(eventData.eventType?.value) === semanticChangeEventTypeNodeId.toString()
+        );
+        should(semanticEvents.length).eql(1, "exactly one SemanticChangeEventType per semantics change");
+
+        const changes = semanticEvents[0].changes?.value as { affected: unknown; affectedType: unknown }[];
+        should(changes.length).eql(1);
+        should(String(changes[0].affected)).eql(analog.nodeId.toString());
+        should(String(changes[0].affectedType)).eql(analog.typeDefinitionObj.nodeId.toString());
+    });
 });
