@@ -66,14 +66,21 @@ ResourceLeakDetector.prototype.verify_registry_counts = (info) => {
 
     const monitoredResource = ObjectRegistry.registries;
 
+    // The registries are process-global and outlive any one block, so an absolute
+    // count answers the wrong question: it asks "has anything in this process ever
+    // leaked", and blames whichever block happens to run next. Compare against the
+    // baseline taken in start() instead, so a block is judged on what it leaked.
+    const baseline = self._registryBaseline;
+    const countOf = (res) => res.count() - (baseline ? (baseline.get(res) || 0) : 0);
+
     let totalLeak = 0;
     for (let i = 0; i < monitoredResource.length; i++) {
         const res = monitoredResource[i];
-        if (res.count() !== 0) {
+        if (countOf(res) > 0) {
             errorMessages.push(chalk.cyan(" some Resource have not been properly terminated: \n"));
             errorMessages.push(` ${res.toString()}`);
         }
-        totalLeak += res.count();
+        totalLeak += Math.max(0, countOf(res));
     }
 
     if (errorMessages.length) {
@@ -103,8 +110,8 @@ ResourceLeakDetector.prototype.verify_registry_counts = (info) => {
             }
             console.log(chalk.cyan("object leaks                     : "), totalLeak);
             for (const resource of Object.values(monitoredResource)) {
-                if (resource.count() !== 0) {
-                    console.log("   ", chalk.yellow(resource.getClassName()).padEnd(38), ":", resource.count());
+                if (countOf(resource) > 0) {
+                    console.log("   ", chalk.yellow(resource.getClassName()).padEnd(38), ":", countOf(resource));
                 }
             }
 
@@ -129,10 +136,23 @@ ResourceLeakDetector.prototype.start = (info) => {
     if (trace) {
         console.log("[LeakDetector] 🚀 starting resourceLeakDetector");
     }
-    assert(!self.setInterval_old, "resourceLeakDetector.stop hasn't been called !");
-    assert(!self.clearInterval_old, "resourceLeakDetector.stop hasn't been called !");
-    assert(!self.setTimeout_old, "resourceLeakDetector.stop hasn't been called !");
-    assert(!self.clearTimeout_old, "resourceLeakDetector.stop hasn't been called !");
+    // A block whose `before` hook fails never gets its `afterEach`, so mocha skips the
+    // stop() that would put the timer globals back. Asserting here turns that one failure
+    // into a failure of every block that follows. Restore what the previous block left
+    // behind and carry on: the block that actually failed has already been reported.
+    if (self.setInterval_old || self.clearInterval_old || self.setTimeout_old || self.clearTimeout_old) {
+        console.log(chalk.yellow("[LeakDetector] ⚠️  previous block never called stop() - restoring the timer globals"));
+        // restore in place rather than calling stop(), which would also close handles and
+        // run the leak check - neither belongs in the middle of starting a new block
+        if (self.setInterval_old) { global.setInterval = self.setInterval_old; }
+        if (self.clearInterval_old) { global.clearInterval = self.clearInterval_old; }
+        if (self.setTimeout_old) { global.setTimeout = self.setTimeout_old; }
+        if (self.clearTimeout_old) { global.clearTimeout = self.clearTimeout_old; }
+        self.setInterval_old = null;
+        self.clearInterval_old = null;
+        self.setTimeout_old = null;
+        self.clearTimeout_old = null;
+    }
 
     self.setIntervalCallCount = 0;
     self.clearIntervalCallCount = 0;
@@ -150,7 +170,13 @@ ResourceLeakDetector.prototype.start = (info) => {
     self.interval_map = {};
     self.timeout_map = {};
 
-    self.verify_registry_counts(self, info);
+    // Record what each registry already holds, so stop() can report what THIS block
+    // leaked rather than what the process has accumulated. This used to call
+    // verify_registry_counts(self, info) - one argument too many, so `info` was `self`,
+    // `info.silent` was undefined, and the check could never stay quiet: once anything
+    // anywhere in the process leaked, every later start() threw `LEAKS !!!` from a
+    // `before` hook, and every block after the first leak failed.
+    self._registryBaseline = new Map(ObjectRegistry.registries.map((res) => [res, res.count()]));
 
     // Track active timer handles for cleanup in stop().
     // This is a lightweight tracking that doesn't wrap the API (no assertions,
@@ -466,6 +492,7 @@ ResourceLeakDetector.prototype.stop = (info) => {
     } finally {
         self.interval_map = {};
         self.timeout_map = {};
+        self._registryBaseline = null;
 
         // call garbage collector
         if (typeof global.gc === "function") {
