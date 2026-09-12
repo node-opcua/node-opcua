@@ -429,6 +429,14 @@ jobs:
       - run: pnpm run check:pack
       - name: Unit tests for the packaging rule
         run: node tools/check-pack/test/test_rule.js
+      # publint reads the packed manifest, attw resolves the package the way a consumer's
+      # TypeScript does. check:pack proves a promised file is shipped; these two ask whether
+      # the promise itself is usable. Ratcheted against tools/package-shape-baseline.json, so
+      # known gaps stay green and the list can only shrink. Here rather than in lint because
+      # both tools pack every package.
+      - run: pnpm run check:shape
+      - name: Unit tests for the package-shape rule
+        run: node tools/check-package-shape/test/test_rule.js
       - run: pnpm run pretest
       # Dry run first. It loads every package's .mocharc and every test file but runs no
       # test body, so a config that cannot resolve fails here in seconds instead of
