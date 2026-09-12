@@ -140,7 +140,7 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
 
         // c8 ignore next
         doDebug && debugLog(" generated_source_is_outdated ", schemaName, " to ", generatedTypescriptSource);
-        if (exports.verbose) {
+        if (verbose) {
             console.log(" generating ", schemaName, " in ", generatedTypescriptSource);
         }
         const localSchemaFile1 = path.join("../schemas", `${schemaName}_schema`);

@@ -69,7 +69,7 @@ function get_class_folder(_schemaName: string, optionalFolder?: string): string 
         }
         folder = optionalFolder;
     } else {
-        folder = exports.folder_for_generated_file;
+        folder = "."; // was exports.folder_for_generated_file, a CommonJS leftover; this branch always throws next
         throw new Error("get_class_javascript_filename : DEPRECATED ");
     }
     return folder;

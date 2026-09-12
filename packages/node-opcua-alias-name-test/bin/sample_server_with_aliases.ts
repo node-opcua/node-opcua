@@ -35,6 +35,7 @@
  */
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { Command } from "commander";
 import type { IAddressSpace, ISessionContext, UAObject, UAVariable } from "node-opcua-address-space";
 import {
@@ -246,7 +247,7 @@ function buildTagTree(addressSpace: IAddressSpace, bulkAliasCount: number): Samp
 }
 
 // CLI entry point: parse args and keep the server running until Ctrl-C.
-if (require.main === module) {
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     const program = new Command()
         .name("sample-server-with-aliases")
         .description("Standalone OPC UA sample server publishing ISA-5.1 style AliasNames (OPC 10000-17)")
