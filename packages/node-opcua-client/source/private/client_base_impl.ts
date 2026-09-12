@@ -1722,7 +1722,10 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
             clientCertificateManager: this.clientCertificateManager
         };
-        __findEndpoint.call(this, discoveryUrl, params, (err: Error | null, result?: FindEndpointResult) => {
+        // through unknown: see the note in base_server.ts, `this` is ClientBaseImpl<Events> and
+        // Events could be a narrower subtype than the helper's parameter declares.
+        const self = this as unknown as ClientBaseImpl;
+        __findEndpoint.call(self, discoveryUrl, params, (err: Error | null, result?: FindEndpointResult) => {
             if (err) {
                 callback(err);
                 return;

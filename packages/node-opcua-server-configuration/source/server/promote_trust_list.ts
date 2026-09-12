@@ -11,7 +11,7 @@ import { fs as MemFs } from "memfs";
 import type {
     IAddressSpace,
     ISessionContext,
-    MethodFunctor,
+    MethodFunctorC,
     UAMethod,
     UAObject,
     UAObjectType,
@@ -248,7 +248,7 @@ async function _initializeLastUpdateTimeFromFilesystem(trustList: UATrustListEx)
 }
 
 interface UAMethodEx extends UAMethod {
-    _asyncExecutionFunction?: MethodFunctor;
+    _asyncExecutionFunction?: MethodFunctorC;
 }
 interface UATrustListEx extends UATrustList {
     $$certificateManager: OPCUACertificateManager;
@@ -366,7 +366,7 @@ async function _closeAndUpdate(
     this: UAMethod,
     inputArguments: Variant[],
     context: ISessionContext,
-    _close_method?: MethodFunctor
+    _close_method?: MethodFunctorC
 ): Promise<CallMethodResultOptions> {
     const trustList = context.object as UATrustListEx;
     const cm = trustList.$$certificateManager;
@@ -676,11 +676,11 @@ export async function promoteTrustList(trustList: UATrustList) {
 
     // we need to change the default open method
     const open = trustList.getChildByName("Open") as UAMethodEx;
-    const _open_asyncExecutionFunction = open._asyncExecutionFunction as MethodFunctor;
+    const _open_asyncExecutionFunction = open._asyncExecutionFunction as MethodFunctorC;
 
     // ... and bind the extended methods as well.
     const close = trustList.getChildByName("Close") as UAMethodEx;
-    const _close_asyncExecutionFunction = close._asyncExecutionFunction as MethodFunctor;
+    const _close_asyncExecutionFunction = close._asyncExecutionFunction as MethodFunctorC;
 
     const closeAndUpdate = trustList.getChildByName("CloseAndUpdate") as UAMethodEx;
     const openWithMasks = trustList.getChildByName("OpenWithMasks") as UAMethodEx;
