@@ -44,7 +44,14 @@ import {
     MonitoringParameters,
     type PseudoRange
 } from "node-opcua-service-subscription";
-import { type CallbackT, type ModifiableStatusCode, StatusCode, StatusCodes } from "node-opcua-status-code";
+import {
+    type CallbackT,
+    coerceStatusCode,
+    extraStatusCodeBits,
+    type ModifiableStatusCode,
+    StatusCode,
+    StatusCodes
+} from "node-opcua-status-code";
 import {
     EventFieldList,
     type MonitoringFilter,
@@ -1530,12 +1537,30 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             safeGuardVerify(this);
         }
         this.oldDataValue = dataValue.clone();
+
+        // the notification is built first, and from the stamped DataValue: apply_timestamps hands
+        // back a fresh DataValue, so clearing the bit below cannot reach the queued notification.
+        const notification = this._makeDataChangeNotification(this.oldDataValue);
+
+        // The SemanticsChanged bit marks one notification (OPC 10000-4 7.39); it is not a new state
+        // of the value, which did not change at all. oldDataValue is the baseline the next sample is
+        // compared against, so leaving the bit in it makes that sample differ by StatusCode alone:
+        // the item then reports a second, bit-less data change for an unchanged value, and that is
+        // the one the client reads as MonitoredItems[0] once the stamped notification has been
+        // delivered or discarded. CTT Data Access AnalogItemType 008 and Semantic Changes
+        // 010/013/014-017 all read the bit off a publish that follows a drained queue, and all saw
+        // that second notification instead ("Expected <16384> but got <0>").
+        if (this.oldDataValue.statusCode.hasSemanticChangedBit) {
+            this.oldDataValue.statusCode = coerceStatusCode(
+                this.oldDataValue.statusCode.value & ~extraStatusCodeBits.SemanticChanged
+            );
+        }
+
         // c8 ignore next
         if (doDebug) {
             safeGuardRegister(this);
         }
 
-        const notification = this._makeDataChangeNotification(this.oldDataValue);
         this._enqueue_notification(notification);
     }
 
