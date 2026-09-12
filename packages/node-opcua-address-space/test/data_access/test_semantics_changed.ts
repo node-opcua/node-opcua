@@ -16,7 +16,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { WriteValue } from "node-opcua-service-write";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import { AddressSpace, type Namespace, SessionContext, type UAVariable } from "../../dist/api/index.js";
+import { AddressSpace, type IEventData, type Namespace, SessionContext, type UAVariable } from "../../dist/api/index.js";
 import { generateAddressSpace } from "../../nodeJS.js";
 
 const context = SessionContext.defaultContext;
@@ -187,7 +187,9 @@ describe("SemanticsChanged: the DataItem of a semantics-bearing Property", () =>
         const server = addressSpace.rootFolder.objects.server;
         const semanticChangeEventTypeNodeId = addressSpace.findEventType("SemanticChangeEventType")!.nodeId;
         const raised: Record<string, { value?: unknown }>[] = [];
-        const onEvent = (eventData: Record<string, { value?: unknown }>) => raised.push(eventData);
+        const onEvent = (eventData: IEventData): void => {
+            raised.push(eventData as unknown as Record<string, { value?: unknown }>);
+        };
         server.on("event", onEvent);
         try {
             await writeProperty(analog.getPropertyByName("EURange")!, range(-50, 50));
