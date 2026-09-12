@@ -12,7 +12,7 @@
     "scripts": {
         "build": "tsc -b",
         "pretest": "npm run certificate",
-        "certificate": "npx pki demo --dev",
+        "certificate": "node ./bin/prepare_certificate_folder.cjs && npx pki demo --dev",
         "test": "echo no test",
         "clean": "npx rimraf -g certificates"
     },
