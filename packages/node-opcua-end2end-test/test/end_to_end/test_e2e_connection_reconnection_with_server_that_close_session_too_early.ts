@@ -37,7 +37,7 @@ const errorLog = make_errorLog("TEST");
 let server_data: ServerHandle | null = null;
 
 const port = 4850;
-const serverScript = "simple_server_that_terminate_session_too_early.js";
+const serverScript = "simple_server_that_terminate_session_too_early.cjs";
 
 async function start_external_opcua_server(): Promise<void> {
     const options = {

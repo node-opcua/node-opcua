@@ -32,7 +32,7 @@ const port = 2016;
 async function start_external_opcua_server() {
     const options = {
         silent: !doDebug,
-        server_sourcefile: serverScript("simple_server_with_custom_extension_objects.js"),
+        server_sourcefile: serverScript("simple_server_with_custom_extension_objects.cjs"),
         port
     };
     server_data = await start_simple_server(options);

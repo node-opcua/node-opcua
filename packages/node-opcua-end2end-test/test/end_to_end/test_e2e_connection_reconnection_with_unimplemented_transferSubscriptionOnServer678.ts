@@ -28,7 +28,7 @@ import { serverScript as serverScriptPath } from "../../test_helpers/paths.js";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-const serverScript1 = "simple_server_that_fails_to_republish.js";
+const serverScript1 = "simple_server_that_fails_to_republish.cjs";
 const serverScript2 = "simple_server_with_no_transferSubscription.js";
 let serverScript = serverScript1;
 

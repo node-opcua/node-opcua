@@ -7,17 +7,17 @@ describe("testing external fixture server", () => {
         /** */
         let serverHandle = await start_simple_server({
             port,
-            server_sourcefile: serverScript("simple_server_that_fails_to_republish.js")
+            server_sourcefile: serverScript("simple_server_that_fails_to_republish.cjs")
         });
         await crash_simple_server(serverHandle);
         serverHandle = await start_simple_server({
             port,
-            server_sourcefile: serverScript("simple_server_that_fails_to_republish.js")
+            server_sourcefile: serverScript("simple_server_that_fails_to_republish.cjs")
         });
         await crash_simple_server(serverHandle);
         serverHandle = await start_simple_server({
             port,
-            server_sourcefile: serverScript("simple_server_that_fails_to_republish.js")
+            server_sourcefile: serverScript("simple_server_that_fails_to_republish.cjs")
         });
         await crash_simple_server(serverHandle);
     });
@@ -25,17 +25,17 @@ describe("testing external fixture server", () => {
         /** */
         let serverHandle = await start_simple_server({
             port,
-            server_sourcefile: serverScript("simple_server_that_fails_to_republish.js")
+            server_sourcefile: serverScript("simple_server_that_fails_to_republish.cjs")
         });
         await stop_simple_server(serverHandle);
         serverHandle = await start_simple_server({
             port,
-            server_sourcefile: serverScript("simple_server_that_fails_to_republish.js")
+            server_sourcefile: serverScript("simple_server_that_fails_to_republish.cjs")
         });
         await stop_simple_server(serverHandle);
         serverHandle = await start_simple_server({
             port,
-            server_sourcefile: serverScript("simple_server_that_fails_to_republish.js")
+            server_sourcefile: serverScript("simple_server_that_fails_to_republish.cjs")
         });
         await stop_simple_server(serverHandle);
     });
