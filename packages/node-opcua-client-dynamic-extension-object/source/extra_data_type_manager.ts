@@ -10,6 +10,8 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import type { AnyConstructorFunc } from "node-opcua-schemas";
 
+import { readDataTypeDefinitionAndBuildType } from "./private/populate_data_type_manager_104.js";
+
 export class ExtraDataTypeManager {
     public namespaceArray: string[] = [];
     private dataTypeFactoryMapByNamespace: { [key: number]: DataTypeFactory } = {};
@@ -90,10 +92,6 @@ export class ExtraDataTypeManager {
 
         const session = this._session;
         const promise = (async () => {
-            // We'll need to make sure it's accessible and correctly used.
-            // For now, let's assume we can import it or move it.
-            // Actually, populate_data_type_manager_104.ts exports readDataTypeDefinitionAndBuildType
-            const { readDataTypeDefinitionAndBuildType } = require("./private/populate_data_type_manager_104");
             const cache = {}; // local cache for this extraction
             await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, undefined, this, cache);
 
