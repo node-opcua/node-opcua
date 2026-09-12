@@ -1,6 +1,7 @@
 {
     "name": "node-opcua-nodeset-glass-flat",
     "version": "2.183.1",
+    "type": "module",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-glass-flat",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

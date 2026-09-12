@@ -237,6 +237,10 @@ async function _output_package_json(info: Info, options: Options): Promise<void>
     content2.push(`{`);
     content2.push(`    "name": "${info.module}",`);
     content2.push(`    "version": "${version}",`);
+    // These packages are almost entirely type declarations: what they emit is a handful of
+    // enums and an index that re-exports types. ESM costs them nothing and keeps them in
+    // step with the rest of the workspace, which is flipping package by package (FEAT-2).
+    content2.push(`    "type": "module",`);
     content2.push(`    "description": "pure nodejs OPCUA SDK - module ${info.module}",`);
     content2.push(`    "main": "dist/index.js",`);
     content2.push(`    "types": "dist/index.d.ts",`);
