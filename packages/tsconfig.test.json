@@ -11,6 +11,9 @@
         "composite": false,
         "incremental": false,
         "declaration": false,
+        // both maps describe an emit that does not happen here, and TypeScript rejects
+        // declarationMap without declaration (TS5069)
+        "declarationMap": false,
         "sourceMap": false,
         "skipLibCheck": true,
         "types": ["node", "mocha"]
