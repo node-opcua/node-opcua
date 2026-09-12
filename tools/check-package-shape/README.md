@@ -44,18 +44,25 @@ node tools/check-package-shape.mjs --concurrency 8
 
 Never commit an `--update` that *adds* a package. The list only shrinks.
 
+Run it on a **fresh** build. A dist left over from before a package was flipped to ESM makes attw
+report `unexpected module syntax` for it, because the files on disk were compiled as CommonJS while
+the manifest now says `type: module`. That looks exactly like a real regression; `pnpm run
+build:all` on a cleaned tree tells the two apart.
+
 ### What is in the baseline today, and why
 
-- `node-opcua`, `node-opcua-client`, `node-opcua-modeler`, `node-opcua-secure-channel`:
-  attw's *named exports* problem. TypeScript lets an ESM consumer write
-  `import { OPCUAClient } from "node-opcua"`, but Node cannot statically detect those exports in
-  the CommonJS file, so the import crashes at run time. The ESM migration (FEAT-2) removes this by
-  making the packages real ESM; these entries should disappear as the flip reaches them.
-- `node-opcua-client-browser`: attw's *unexpected module syntax*, its second (browser) build
-  carries syntax that contradicts the module kind its extension implies.
-- `node-opcua-samples`: `bin.simple_client` names `./dist/simple_client_ts.js`, and no file of that
-  name exists anywhere in the package. Repairing it means either dropping a published command name
-  or pointing it at a different sample, which is a decision rather than a fix.
+The baseline started at six and is down to one, without anybody working on those entries:
+`node-opcua`, `node-opcua-client`, `node-opcua-modeler` and `node-opcua-secure-channel` were here
+for attw's *named exports* problem and left when FEAT-2 batches 5 and 6 made them real ESM;
+`node-opcua-client-browser` left with batch 7. That is the ratchet working as intended. One remains:
+
+- `node-opcua-samples`: attw's *resolution failed*. The package is a set of command line samples:
+  it declares `bin` entries and no `main`, `types` or `exports` at all, so importing it resolves to
+  nothing. attw is right that the `.d.ts` files in its tarball (a by-product of compiling
+  `bin/*.ts` into `dist`) are unreachable, but there is no API here for anyone to import. Compare
+  `node-opcua-local-discovery-server`, also command line only, which attw passes precisely because
+  it ships no declarations at all. Closing this means either declaring an entry point or not
+  publishing the declarations, rather than a fix to the manifest.
 
 ## Cost
 

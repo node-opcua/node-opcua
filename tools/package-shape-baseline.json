@@ -1,10 +1,5 @@
 {
     "failingPackages": [
-        "node-opcua",
-        "node-opcua-client",
-        "node-opcua-client-browser",
-        "node-opcua-modeler",
-        "node-opcua-samples",
-        "node-opcua-secure-channel"
+        "node-opcua-samples"
     ]
 }
