@@ -1,5 +1,6 @@
 import { once } from "node:events";
 import fs from "node:fs";
+import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 
@@ -65,6 +66,8 @@ async function ensureSelfSignedCertificate(
 
 export async function createDiscovery(port: number): Promise<OPCUADiscoveryServer> {
     assert(typeof port === "number", "expecting a port number");
+    // a previous LDS on this port may still be releasing its socket
+    await waitUntilPortIsFree(port);
     const serverCertificateManager = await createServerCertificateManager(port);
 
     const certificateFile = path.join(serverCertificateManager.rootDir, "certificate_discovery_server.pem");
@@ -94,11 +97,44 @@ export async function startDiscovery(port: number): Promise<OPCUADiscoveryServer
     return discoveryServer;
 }
 
+/**
+ * Wait until nothing holds `port` any more.
+ *
+ * `OPCUAServer.shutdown()` resolves before the operating system has released the listening
+ * socket, so a test that shuts an LDS down and immediately starts another one on the same
+ * port races that release. It is a race, so it passed on one Node version and failed on the
+ * other with EADDRINUSE, which reads as an unrelated CI flake.
+ *
+ * Probing with a throwaway listener asks the only question that matters: can this port be
+ * bound right now.
+ */
+export async function waitUntilPortIsFree(port: number, timeout = 10000): Promise<void> {
+    const deadline = Date.now() + timeout;
+    for (;;) {
+        const free = await new Promise<boolean>((resolve) => {
+            const probe = net.createServer();
+            probe.once("error", () => resolve(false));
+            probe.once("listening", () => probe.close(() => resolve(true)));
+            probe.listen(port);
+        });
+        if (free) {
+            return;
+        }
+        if (Date.now() >= deadline) {
+            throw new Error(`waitUntilPortIsFree: port ${port} is still in use after ${timeout} ms`);
+        }
+        await wait(50);
+    }
+}
+
 export const makeDiscoveryServer = async (
     port_discovery: number,
     test: TestHarness,
     options?: Partial<OPCUADiscoveryServerOptions>
 ) => {
+    // the previous LDS on this port may still be releasing its socket
+    await waitUntilPortIsFree(port_discovery);
+
     const discoveryServer = new OPCUADiscoveryServer({
         ...options,
         port: port_discovery,
