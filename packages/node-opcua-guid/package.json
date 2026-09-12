@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-guid",
+    "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "version": "2.183.0",
