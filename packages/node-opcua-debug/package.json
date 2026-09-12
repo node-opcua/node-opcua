@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-debug",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - module debug",
     "scripts": {

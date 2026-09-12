@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-nodesets",
+    "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "browser": "./dist/index_web.js",
