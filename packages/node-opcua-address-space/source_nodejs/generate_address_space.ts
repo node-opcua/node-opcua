@@ -145,10 +145,7 @@ async function siblingOrXml(xmlFile: string): Promise<{ source: NamedNodesetSour
     return { source: { name: `${xmlFile} (image)`, source: image }, path: "image" };
 }
 
-// The one place this module learns where it sits on disk. `import.meta.dirname`
-// cannot be used while this package emits CommonJS (TS1470), so the ESM migration
-// has this single line to change rather than several scattered uses.
-const here = __dirname;
+const here = import.meta.dirname;
 
 /** the version this package was built as, for the header of the images it writes */
 export function addressSpacePackageVersion(): string {

@@ -12,7 +12,7 @@ import path from "node:path";
  * behind it. Anchoring on the package root removes the question, and at the ESM flip
  * `__dirname` becomes `import.meta.dirname` here and nowhere else.
  */
-const here = __dirname;
+const here = import.meta.dirname;
 const packageRoot = findPackageRoot(here);
 
 /**

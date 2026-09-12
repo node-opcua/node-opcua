@@ -1,5 +1,6 @@
 {
     "name": "node-opcua-role-set-common",
+    "type": "module",
     "version": "2.183.0",
     "description": "pure nodejs OPCUA SDK - role-set common types and identity stores (OPC 10000-18)",
     "scripts": {

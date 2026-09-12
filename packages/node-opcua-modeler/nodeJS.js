@@ -1,1 +1,1 @@
-module.exports = require("./distNodeJS");
+export * from "./distNodeJS/index.js";
