@@ -30,7 +30,9 @@
         "node": ">=22.13.0"
     },
     "files": [
-        "src"
+        "src",
+        "index.js",
+        "index.d.ts"
     ],
     "dependencies": {
         "chalk": "4.1.2",

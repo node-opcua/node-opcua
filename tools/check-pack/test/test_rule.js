@@ -82,6 +82,18 @@ test("leading ./ is not significant either way", () => {
     assert.deepEqual(missingEntryPoints({ main: "./dist/index.js" }, ["dist/index.js"]), []);
 });
 
+// node-opcua-nodeset-i-4-aas shipped no dist at all and this rule stayed green: a target
+// without the ./ prefix was read as a bare specifier and skipped, which exempted a third of
+// the workspace. Only an exports target can be a bare specifier.
+test("an unprefixed main or types is a path, so a missing one is still reported", () => {
+    const pkg = { main: "dist/index.js", types: "dist/index.d.ts" };
+    const missing = missingEntryPoints(pkg, ["LICENSE", "package.json", "source/index.ts"]);
+    assert.deepEqual(
+        missing.map((m) => m.field).sort(),
+        ["main", "types"]
+    );
+});
+
 test("a subpath pattern is satisfied by any shipped file the star expands to", () => {
     const pkg = { exports: { "./dist/*": { types: "./dist/*.d.ts", default: "./dist/*.js" } } };
     assert.deepEqual(missingEntryPoints(pkg, ["dist/index.js", "dist/index.d.ts", "dist/104/index.js"]), []);
