@@ -31,24 +31,27 @@ const normalize = (p) => p.replace(/^\.\//, "").replace(/\\/g, "/");
  */
 export function declaredEntryPoints(pkg) {
     const out = [];
+    // main/types/typings/module/browser always name a file in this package, with or without a
+    // leading "./". Only an exports target can be a bare specifier redirecting elsewhere, so
+    // fromExports records which rule applies; see missingEntryPoints.
     for (const field of ["main", "types", "typings", "module"]) {
         if (typeof pkg[field] === "string") {
-            out.push({ field, target: pkg[field] });
+            out.push({ field, target: pkg[field], fromExports: false });
         }
     }
     // browser may be a string or a mapping
     if (typeof pkg.browser === "string") {
-        out.push({ field: "browser", target: pkg.browser });
+        out.push({ field: "browser", target: pkg.browser, fromExports: false });
     } else if (pkg.browser && typeof pkg.browser === "object") {
         for (const [k, v] of Object.entries(pkg.browser)) {
             if (typeof v === "string") {
-                out.push({ field: `browser["${k}"]`, target: v });
+                out.push({ field: `browser["${k}"]`, target: v, fromExports: false });
             }
         }
     }
     const walkExports = (node, trail) => {
         if (typeof node === "string") {
-            out.push({ field: `exports${trail}`, target: node });
+            out.push({ field: `exports${trail}`, target: node, fromExports: true });
             return;
         }
         if (node && typeof node === "object") {
@@ -71,10 +74,12 @@ export function missingEntryPoints(pkg, packedFiles) {
     const shippedList = packedFiles.map(normalize);
     const shipped = new Set(shippedList);
     const out = [];
-    for (const { field, target } of declaredEntryPoints(pkg)) {
-        // only relative targets describe a file in this tarball; a bare specifier in an
-        // exports map is a redirect to another package and is not ours to verify
-        if (!target.startsWith(".") && !target.startsWith("/")) {
+    for (const { field, target, fromExports } of declaredEntryPoints(pkg)) {
+        // a bare specifier in an exports map is a redirect to another package and is not ours
+        // to verify. main/types/module/browser have no such form: "dist/index.js" is the same
+        // file as "./dist/index.js", and skipping the unprefixed spelling silently exempted a
+        // third of the workspace, including a package that shipped no dist at all.
+        if (fromExports && !target.startsWith(".") && !target.startsWith("/")) {
             continue;
         }
         const wanted = normalize(target);

@@ -46,6 +46,7 @@
         { "path": "node-opcua-nodeset-di" },
         { "path": "node-opcua-nodeset-gds" },
         { "path": "node-opcua-nodeset-glass-flat" },
+        { "path": "node-opcua-nodeset-i-4-aas" },
         { "path": "node-opcua-nodeset-ia" },
         { "path": "node-opcua-nodeset-ijt-base" },
         { "path": "node-opcua-nodeset-ijt-tightening" },
