@@ -107,6 +107,7 @@
     "@types/node": "24.13.3",
     "app-module-path": "^2.2.0",
     "bignumber.js": "^11.1.5",
+    "c8": "12.0.0",
     "csv": "^6.6.3",
     "enum": "3.0.4",
     "ersatz-node-expat": "^0.1.6",

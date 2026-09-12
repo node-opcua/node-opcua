@@ -12,7 +12,6 @@ _test_generated_
 .coveralls.yml
 .DS_Store
 .idea/
-.nyc_output/
 .project
 .settings/
 .vagrant
