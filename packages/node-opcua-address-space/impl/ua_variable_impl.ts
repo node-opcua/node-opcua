@@ -84,7 +84,7 @@ import { apply_condition_refresh, type ConditionRefreshCache } from "./apply_con
 import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl.js";
 import { _clone, ToStringBuilder, UAVariable_toString, valueRankToString } from "./base_node_private.js";
 import { adjustDataValueStatusCode } from "./data_access/adjust_datavalue_status_code.js";
-import { notifySemanticsChangedIfNeeded } from "./data_access/semantics_changed.js";
+import { notifySemanticsChangedIfNeeded, raiseSemanticChangeEvent } from "./data_access/semantics_changed.js";
 import { _getBasicDataType } from "./get_basic_datatype.js";
 import { type EnumerationInfo, type IEnumItem, UADataTypeImpl } from "./ua_data_type_impl.js";
 import {
@@ -1997,6 +1997,9 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     public handle_semantic_changed(_dataValue: DataValue): void {
         this.semantic_version = this.semantic_version + 1;
         (this as UAVariable).emit("semantic_changed");
+        // the bit tells whoever monitors this DataItem; the event tells whoever monitors the
+        // Server object (OPC 10000-5 6.4.31). Both have to come from this one place.
+        raiseSemanticChangeEvent(this as UAVariable);
     }
 
     private _readDataType(): DataValue {

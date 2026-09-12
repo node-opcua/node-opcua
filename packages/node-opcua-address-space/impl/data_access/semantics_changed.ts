@@ -25,7 +25,9 @@
 import type { UAVariable, UAVariableType } from "node-opcua-address-space-base";
 import { VariableTypeIds } from "node-opcua-constants";
 import { NodeClass } from "node-opcua-data-model";
-import { resolveNodeId } from "node-opcua-nodeid";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { SemanticChangeStructureDataType } from "node-opcua-types";
+import { DataType, VariantArrayType } from "node-opcua-variant";
 
 /**
  * the Properties whose value carries the semantics of the DataItem they belong to.
@@ -99,4 +101,40 @@ export function notifySemanticsChangedIfNeeded(property: UAVariable): void {
     if (dataItem) {
         (dataItem as UAVariable & { handle_semantic_changed: (dataValue?: unknown) => void }).handle_semantic_changed();
     }
+}
+
+/**
+ * OPC 10000-5 6.4.31: besides the SemanticsChanged bit on the DataItem's next notification, the
+ * Server reports a semantics change as a SemanticChangeEventType on the Server object, carrying
+ * the affected Node and its TypeDefinition. A client subscribed to the Server's events learns of
+ * the change without monitoring the DataItem itself.
+ *
+ * Raised from `handle_semantic_changed`, the single point every semantics change goes through, so
+ * the event and the bit can never disagree. Modelled on how the address space raises
+ * GeneralModelChangeEventType.
+ */
+export function raiseSemanticChangeEvent(dataItem: UAVariable): void {
+    const addressSpace = dataItem.addressSpace;
+    // during construction and teardown there is no Server object to raise the event on
+    const server = addressSpace?.rootFolder?.objects?.server;
+    if (!server) {
+        return;
+    }
+    const eventTypeNode = addressSpace.findEventType("SemanticChangeEventType");
+    if (!eventTypeNode) {
+        return;
+    }
+    const changes = [
+        new SemanticChangeStructureDataType({
+            affected: dataItem.nodeId,
+            affectedType: dataItem.typeDefinitionObj?.nodeId ?? NodeId.nullNodeId
+        })
+    ];
+    server.raiseEvent(eventTypeNode, {
+        changes: {
+            dataType: DataType.ExtensionObject,
+            arrayType: VariantArrayType.Array,
+            value: changes
+        }
+    });
 }
