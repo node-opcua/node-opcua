@@ -15,8 +15,16 @@
 //    Nothing noticed because CI runs run_all_mocha_tests.js, which builds its Mocha
 //    instance programmatically and never reads this file - only per-package runs did,
 //    and those were broken.
+//
+// 3. tsx is registered as the ESM hook, matching packages/.mocharc.js. The CommonJS hook
+//    re-transpiles each package's compiled dist on the way to CommonJS, which means a run
+//    from the repo root exercised a CommonJS translation of code we publish as ESM. It also
+//    replaced every dist file's `//# sourceMappingURL=x.js.map`, so c8 could no longer follow
+//    the map back to the .ts: the same suite reported 55 dist/*.js rows under tsx/cjs and 55
+//    source/*.ts rows under tsx/esm.
 module.exports = {
-    require: [require.resolve("source-map-support/register"), require.resolve("tsx/cjs"), require.resolve("should")],
+    require: [require.resolve("source-map-support/register"), require.resolve("should")],
+    "node-option": ["import=tsx/esm"],
     timeout: 20000,
     extension: ["js", "ts"],
     bail: true
