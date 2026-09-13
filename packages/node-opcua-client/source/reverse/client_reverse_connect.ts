@@ -140,7 +140,7 @@ export class ClientReverseConnect {
         // listen() (e.g. EMFILE/ENFILE on accept). Without a listener Node throws an uncaught
         // exception and crashes the process, so keep one attached for the server's whole life.
         const onServerError = (err: Error) => {
-            // c8 ignore next
+            /* c8 ignore next */
             warningLog(`ClientReverseConnect server error: ${err.message}`);
         };
         server.on("error", onServerError);

@@ -27,7 +27,7 @@ interface ISubscriptionWithExpiredFunc {
  */
 export class ServerSidePublishEngineForOrphanSubscription extends ServerSidePublishEngine {
     public add_subscription(subscription: Subscription): Subscription {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog(chalk.bgCyan.yellow.bold(" adding live subscription with id="), subscription.id, " to orphan");
 
         // retain the identity of the owning session so that a later TransferSubscriptions request can
@@ -45,7 +45,7 @@ export class ServerSidePublishEngineForOrphanSubscription extends ServerSidePubl
         // so we can automatically remove it from the orphan table
         const subscriptionEx = subscription as unknown as ISubscriptionWithExpiredFunc;
         subscriptionEx._expired_func = function (this: Subscription) {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog(chalk.bgCyan.yellow(" Removing expired subscription with id="), this.id, " from orphan");
             // make sure all monitored item have been deleted
             // Xx subscription.terminate();

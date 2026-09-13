@@ -254,7 +254,7 @@ export class MessageBuilder extends MessageBuilderBase {
             return false;
         }
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (!this.messageHeader) {
             throw new Error("internal error");
         }
@@ -755,13 +755,13 @@ export class MessageBuilder extends MessageBuilderBase {
     }
 
     #_decrypt(binaryStream: BinaryStream) {
-        // c8 ignore next
+        /* c8 ignore next */
         if (!this.messageHeader) {
             throw new Error("internal error");
         }
         const msgType = this.messageHeader.msgType;
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (msgType !== "OPN" && this.securityPolicy === SecurityPolicy.Invalid) {
             throw new Error(`internal error : invalid securityPolicy${this.securityPolicy}`);
         }

@@ -1124,10 +1124,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
             const err = new Error(msg);
             this.emit("abort", err);
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog(err.message);
             this.close((_err) => {
-                // c8 ignore next
+                /* c8 ignore next */
                 if (doDebug) {
                     debugLog("_install_wait_for_open_secure_channel_request_timeout:");
                     debugLog("  closed()");
@@ -1137,7 +1137,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     #_on_initial_open_secure_channel_request(request: Request, requestId: number, channelId: number) {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("Just received first OpenSecureChannelRequest");
         this.#status = "connecting";
 
@@ -1231,7 +1231,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         // handle initial OpenSecureChannelRequest
         this.#_process_certificates(message, (err: Error | null, statusCode?: StatusCode) => {
-            // c8 ignore next
+            /* c8 ignore next */
             if (err || !statusCode) {
                 description = `Internal Error ${err?.message}`;
                 return this.#_on_OpenSecureChannelRequestError(statusCode || StatusCodes.BadInternalError, description, message);

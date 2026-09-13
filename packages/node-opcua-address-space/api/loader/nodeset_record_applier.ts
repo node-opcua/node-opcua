@@ -289,7 +289,7 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
             }
             found.add(namespaceUri);
             const namespace = this.addressSpace.getNamespace(namespaceUri);
-            // c8 ignore next
+            /* c8 ignore next */
             if (!namespace) {
                 throw new Error(
                     `cannot find namespace for ${namespaceUri}\nplease make sure to initialize your address space with the corresponding nodeset files`

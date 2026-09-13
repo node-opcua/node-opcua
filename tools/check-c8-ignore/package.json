@@ -1,0 +1,17 @@
+{
+    "name": "@sterfive/check-c8-ignore",
+    "version": "1.0.0",
+    "private": true,
+    "description": "a coverage ignore hint written as a line comment, which c8 does not read",
+    "bin": {
+        "check-c8-ignore": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "test": "node test/test_rule.js"
+    },
+    "devDependencies": {
+        "typescript-5": "npm:typescript@5.9.3"
+    }
+}

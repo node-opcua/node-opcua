@@ -16,7 +16,7 @@ const maxBytesPerDraw = 65536;
 
 function getCrypto(): Crypto {
     const c = globalThis.crypto;
-    // c8 ignore next 6
+    /* c8 ignore next 6 */
     if (!c || typeof c.getRandomValues !== "function") {
         throw new Error(
             "[NODE-OPCUA] no cryptographically secure random source available: " +

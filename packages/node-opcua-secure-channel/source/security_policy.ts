@@ -146,12 +146,12 @@ export enum SecurityPolicy {
 }
 
 export function fromURI(uri: string | null): SecurityPolicy {
-    // c8 ignore next
+    /* c8 ignore next */
     if (typeof uri !== "string") {
         return SecurityPolicy.Invalid;
     }
     const a: string[] = uri.split("#");
-    // c8 ignore next
+    /* c8 ignore next */
     if (a.length < 2) {
         return SecurityPolicy.Invalid;
     }
@@ -162,7 +162,7 @@ export function fromURI(uri: string | null): SecurityPolicy {
 export function toURI(value: SecurityPolicy | string): string {
     if (typeof value === "string") {
         const a: string[] = value.split("#");
-        // c8 ignore next
+        /* c8 ignore next */
         if (a.length < 2) {
             return SecurityPolicy[value as keyof typeof SecurityPolicy];
         }

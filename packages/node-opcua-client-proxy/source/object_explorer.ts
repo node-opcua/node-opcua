@@ -70,7 +70,7 @@ async function convertNodeIdToDataTypeAsync(
     };
     const dataValue = await session.read(nodeToRead);
     let dataType: DataType;
-    // c8 ignore next
+    /* c8 ignore next */
     if (dataValue.statusCode.isNotGood()) {
         dataType = DataType.Null;
         return dataType;

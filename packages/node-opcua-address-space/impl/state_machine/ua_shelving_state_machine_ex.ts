@@ -159,7 +159,7 @@ function _automatically_unshelve(shelvingState: UAShelvedStateMachineExImpl) {
     assert(shelvingState._timer, "expecting timerId to be set");
     shelvingState._timer = null;
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (doDebug) {
         debugLog("Automatically un-shelving variable ", shelvingState.browseName.toString());
     }

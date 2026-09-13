@@ -89,12 +89,12 @@ function evaluateOperand<TIn, T>(
 }
 
 function checkOfType(filterContext: FilterContext, ofType: ExtensionObject | null): boolean {
-    // c8 ignore next
+    /* c8 ignore next */
     if (!ofType || !(ofType instanceof LiteralOperand)) {
         warningLog("checkOfType : unsupported case ! ofType is not a LiteralOperand , ofType = ", ofType?.toString());
         return false;
     }
-    // c8 ignore next
+    /* c8 ignore next */
     if (ofType.value.dataType !== DataType.NodeId) {
         warningLog(`invalid operand type (expecting NodeId); got ${DataType[ofType.value.dataType]}`);
         return false;

@@ -213,7 +213,7 @@ function activate_session(client: IClientBase, session: ClientSessionImpl, newSe
             return;
         }
         client._activateSession(newSession, newSession.userIdentityInfo, (err: Error | null, _session1?: ClientSessionImpl) => {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog("    =>  activating a new session .... Done err=", err ? err.message : "null");
             if (err) {
                 doDebug &&
@@ -231,9 +231,9 @@ function activate_session(client: IClientBase, session: ClientSessionImpl, newSe
                     if (err2) {
                         warningLog("closing session", err2.message);
                     }
-                    // c8 ignore next
+                    /* c8 ignore next */
                     doDebug && debugLog("the temporary replacement session is now closed");
-                    // c8 ignore next
+                    /* c8 ignore next */
                     doDebug && debugLog(" err ", err.message, "propagated upwards");
                     reject(err);
                 });

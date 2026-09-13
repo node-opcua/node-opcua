@@ -166,7 +166,7 @@ export class FileTypeData {
                 }
                 const stat = await promisify(abstractFs.stat)(self.filename);
                 self._fileSize = stat.size;
-                // c8 ignore next
+                /* c8 ignore next */
                 doDebug && debugLog("original file size ", self.filename, " size = ", self._fileSize);
             } catch (err) {
                 self._fileSize = 0;
@@ -188,17 +188,17 @@ export class FileTypeData {
 export async function writeFile(fileSystem: AbstractFs, filename: string, content: Buffer): Promise<void> {
     await new Promise<void>((resolve, reject) => {
         fileSystem.open(filename, "w", (err, fd) => {
-            // c8 ignore next
+            /* c8 ignore next */
             if (err) {
                 return reject(err);
             }
             fileSystem.write(fd, content, 0, content.length, 0, (err) => {
-                // c8 ignore next
+                /* c8 ignore next */
                 if (err) {
                     return reject(err);
                 }
                 fileSystem.close(fd, (err) => {
-                    // c8 ignore next
+                    /* c8 ignore next */
                     if (err) {
                         return reject(err);
                     }

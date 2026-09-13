@@ -290,7 +290,7 @@ export class UAAlarmConditionImplBase extends UAAcknowledgeableConditionImplBase
 
             const _node = addressSpace._coerceNode(inputNode);
             if (_node === null) {
-                // c8 ignore next
+                /* c8 ignore next */
                 doDebug && debugLog(" cannot find nodeId ", inputNode);
             } else {
                 assert(_node, "Expecting a valid input node");

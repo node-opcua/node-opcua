@@ -177,7 +177,7 @@ export class NodeSetLoader {
                 dataType: DataType.String,
                 value: addressSpace1.getNamespaceArray().map((ns) => ns.namespaceUri)
             });
-            // c8 ignore next
+            /* c8 ignore next */
             if (doDebug) {
                 debugLog(
                     "addressSpace NS = ",
@@ -208,7 +208,7 @@ export class NodeSetLoader {
                 try {
                     await task(addressSpace1);
                 } catch (err) {
-                    // c8 ignore next
+                    /* c8 ignore next */
                     if (types.isNativeError(err)) {
                         errorLog(
                             `[NODE-OPCUA-W36] generateAddressSpace: post-loading task failed during "${stage}" and was skipped: ${err.message}`

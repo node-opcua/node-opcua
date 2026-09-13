@@ -59,7 +59,7 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
                 sampleMonitoredItem(monitoredItem);
                 counter++;
             }
-            // c8 ignore next
+            /* c8 ignore next */
             if (doDebug) {
                 const elapsed = hrtime(start);
                 debugLog(

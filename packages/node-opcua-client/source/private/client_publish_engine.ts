@@ -130,7 +130,7 @@ export class ClientSidePublishEngine {
      * @private
      */
     public terminate(): void {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("Terminated ClientPublishEngine ");
         this.session = null;
     }
@@ -139,7 +139,7 @@ export class ClientSidePublishEngine {
      * @private
      */
     public registerSubscription(subscription: ClientSubscription): void {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("ClientSidePublishEngine#registerSubscription ", subscription.subscriptionId);
 
         const _subscription = subscription as ClientSubscriptionImpl;
@@ -153,7 +153,7 @@ export class ClientSidePublishEngine {
 
         this.timeoutHint = Math.min(Math.max(this.timeoutHint, subscription.timeoutHint), 0x7ffffff);
 
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("                       setting timeoutHint = ", this.timeoutHint, subscription.timeoutHint);
 
         this.replenish_publish_request_queue();
@@ -183,7 +183,7 @@ export class ClientSidePublishEngine {
      * @private
      */
     public unregisterSubscription(subscriptionId: SubscriptionId): void {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("ClientSidePublishEngine#unregisterSubscription ", subscriptionId);
 
         assert(Number.isFinite(subscriptionId) && subscriptionId > 0);
@@ -194,7 +194,7 @@ export class ClientSidePublishEngine {
         if (Object.hasOwn(this.subscriptionMap, subscriptionId)) {
             delete this.subscriptionMap[subscriptionId];
         } else {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog("ClientSidePublishEngine#unregisterSubscription cannot find subscription  ", subscriptionId);
         }
     }
@@ -225,7 +225,7 @@ export class ClientSidePublishEngine {
 
         this.nbPendingPublishRequests += 1;
 
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog(chalk.yellow("sending publish request "), this.nbPendingPublishRequests);
 
         const subscriptionAcknowledgements = this.subscriptionAcknowledgements;
@@ -285,7 +285,7 @@ export class ClientSidePublishEngine {
             }
 
             if (err) {
-                // c8 ignore next
+                /* c8 ignore next */
                 if (doDebug) {
                     debugLog(
                         chalk.cyan("ClientSidePublishEngine.prototype.internalSendPublishRequest callback : "),
@@ -295,7 +295,7 @@ export class ClientSidePublishEngine {
                 }
 
                 if (err.message.match("not connected")) {
-                    // c8 ignore next
+                    /* c8 ignore next */
                     if (doDebug) {
                         debugLog(
                             chalk.bgWhite.red(" WARNING :  CLIENT IS NOT CONNECTED :" + " MAY BE RECONNECTION IS IN PROGRESS")
@@ -307,13 +307,13 @@ export class ClientSidePublishEngine {
                     // There is no need to send more publish request for the time being until reconnection is completed
                     active = false;
                 }
-                // c8 ignore next
+                /* c8 ignore next */
                 if (err.message.match(/BadNoSubscription/) && this.activeSubscriptionCount >= 1) {
                     // there is something wrong happening here.
                     // the server tells us that there is no subscription for this session
                     // but the client have some active subscription left.
                     // This could happen if the client has missed or not received the StatusChange Notification
-                    // c8 ignore next
+                    /* c8 ignore next */
                     if (doDebug) {
                         debugLog(chalk.bgWhite.red(" WARNING: server tells that there is no Subscription, but client disagree"));
                         debugLog("this.activeSubscriptionCount =", this.activeSubscriptionCount);
@@ -327,7 +327,7 @@ export class ClientSidePublishEngine {
                     // may be the session timeout is shorted than the subscription life time
                     // and the client does not send intermediate keepAlive request to keep the connection working.
                     //
-                    // c8 ignore next
+                    /* c8 ignore next */
                     if (doDebug) {
                         debugLog(chalk.bgWhite.red(" WARNING : Server tells that the session has closed ..."));
                         debugLog(
@@ -364,7 +364,7 @@ export class ClientSidePublishEngine {
                     // completed the session transfer. We should pause and let the
                     // reconnection flow replenish publish requests once the session
                     // transfer completes.
-                    // c8 ignore next
+                    /* c8 ignore next */
                     doDebug &&
                         debugLog(
                             chalk.bgWhite.yellow(
@@ -374,7 +374,7 @@ export class ClientSidePublishEngine {
                     active = false;
                 }
             } else if (response) {
-                // c8 ignore next
+                /* c8 ignore next */
                 if (doDebug) {
                     debugLog(chalk.cyan("ClientSidePublishEngine.prototype.internalSendPublishRequest callback "));
                 }
@@ -393,7 +393,7 @@ export class ClientSidePublishEngine {
     }
 
     private _receive_publish_response(response: PublishResponse) {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog(chalk.yellow("receive publish response"));
 
         // the id of the subscription sending the notification message
@@ -429,14 +429,14 @@ export class ClientSidePublishEngine {
                 // delegate notificationData to the subscription callback
                 subscription.onNotificationMessage(notificationMessage);
             } catch (err) {
-                // c8 ignore next
+                /* c8 ignore next */
                 if (doDebug) {
                     debugLog(err);
                     debugLog("Exception in onNotificationMessage");
                 }
             }
         } else {
-            // c8 ignore next
+            /* c8 ignore next */
             if (doDebug) {
                 debugLog(" ignoring notificationMessage", notificationMessage, " for subscription", subscriptionId);
                 debugLog(" because there is no subscription.");

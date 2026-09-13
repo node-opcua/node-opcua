@@ -11,7 +11,7 @@ import { BrowseDescription, type BrowseDescriptionOptions, type ReferenceDescrip
 import { resolveReferenceType } from "../../impl/reference_impl.js";
 
 export function referenceTypeToString(addressSpace: IAddressSpace, referenceTypeId: NodeIdLike | null): string {
-    // c8 ignore next
+    /* c8 ignore next */
     if (!referenceTypeId) {
         return "<null> ";
     } else {

@@ -89,7 +89,7 @@ export function encodeDataValue(dataValue: DataValue, stream: OutputBinaryStream
         if (!dataValue.value) {
             dataValue.value = new Variant();
         }
-        // c8 ignore next
+        /* c8 ignore next */
         if (!dataValue.value.encode) {
             errorLog(" CANNOT FIND ENCODE METHOD ON VARIANT !!! HELP", JSON.stringify(dataValue, null, " "));
         }

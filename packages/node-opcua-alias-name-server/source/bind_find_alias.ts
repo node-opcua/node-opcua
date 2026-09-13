@@ -94,7 +94,7 @@ function isValidReferenceTypeFilter(category: UAObject, filter: NodeId | undefin
         return false;
     }
     if (!aliasFor) {
-        // c8 ignore next: AliasFor is a standard ReferenceType, always present
+        /* c8 ignore next: AliasFor is a standard ReferenceType, always present */
         return true;
     }
     return sameNodeId(candidate.nodeId, aliasFor.nodeId) || candidate.isSubtypeOf(aliasFor);

@@ -48,9 +48,9 @@ function _sendRepublish(session: ClientSessionImpl, subscription: ClientSubscrip
             subscriptionId: subscription.subscriptionId
         });
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (doDebug) {
-            // c8 ignore next
+            /* c8 ignore next */
             debugLog(
                 chalk.bgCyan.yellow.bold(" republish Request for subscription"),
                 request.subscriptionId,
@@ -60,7 +60,7 @@ function _sendRepublish(session: ClientSessionImpl, subscription: ClientSubscrip
         }
 
         if (!session || session._closeEventHasBeenEmitted) {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog("ClientPublishEngine#_republish aborted ");
             return resolve({ isDone: true });
         }
@@ -87,7 +87,7 @@ function _sendRepublish(session: ClientSessionImpl, subscription: ClientSubscrip
             if (!err) {
                 err = new Error(response.responseHeader.serviceResult.toString());
             }
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog(" _send_republish ends with ", err.message);
             reject(err);
         });
@@ -106,7 +106,7 @@ async function _republish(engine: ClientSidePublishEngine, subscription: ClientS
         isDone = result.isDone;
     }
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (doDebug) {
         debugLog("nbPendingPublishRequest = ", engine.nbPendingPublishRequests);
         debugLog(" _republish ends with ", "null");
@@ -127,7 +127,7 @@ async function __askSubscriptionRepublish(engine: ClientSidePublishEngine, subsc
 
         const error = err as Error;
 
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("__askSubscriptionRepublish--------------------- err =", error.message);
 
         if (error.message.match(/BadSessionInvalid/)) {
@@ -144,7 +144,7 @@ async function __askSubscriptionRepublish(engine: ClientSidePublishEngine, subsc
             // In this case, Client must recreate a subscription and recreate monitored item without altering
             // the event handlers
             //
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug &&
                 debugLog(
                     chalk.bgWhite.red("__askSubscriptionRepublish failed " + " subscriptionId is not valid anymore on server side.")

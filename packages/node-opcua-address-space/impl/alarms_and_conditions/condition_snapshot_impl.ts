@@ -95,7 +95,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         for (const fullBrowsePath of this._map.keys()) {
             const node = this._node_index.get(fullBrowsePath);
             if (!node) {
-                // c8 ignore next
+                /* c8 ignore next */
                 doDebug && debugLog("cannot node for find key", fullBrowsePath);
                 continue;
             }

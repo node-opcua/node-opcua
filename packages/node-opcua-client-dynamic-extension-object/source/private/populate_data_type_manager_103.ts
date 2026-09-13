@@ -65,7 +65,7 @@ async function _readDeprecatedFlag(session: IBasicSessionAsync, dataTypeDictiona
     /* c8 ignore next */
     if (!a.targets || a.targets.length === 0) {
         // the server is probably version < 1.04.
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog(`Cannot find Deprecated property for dataTypeDictionary ${dataTypeDictionary.toString()}`);
         return false;
     }

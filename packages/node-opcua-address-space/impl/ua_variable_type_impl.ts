@@ -209,7 +209,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements 
                     options.value = this.value as Variant;
                     options.statusCode = StatusCodes.Good;
                 } else {
-                    // c8 ignore next
+                    /* c8 ignore next */
                     doDebug && debugLog(" warning Value not implemented");
                     options.value = { dataType: DataType.Null };
                     options.statusCode = StatusCodes.BadAttributeIdInvalid;
@@ -277,7 +277,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements 
         assertUnusedChildBrowseName(addressSpace, options);
 
         const baseVariableType = addressSpace.findVariableType("BaseVariableType");
-        // c8 ignore next
+        /* c8 ignore next */
         if (!baseVariableType) {
             throw new Error("BaseVariableType must be defined in the address space");
         }
@@ -298,7 +298,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements 
 
         const arrayDimensions = options.arrayDimensions !== undefined ? options.arrayDimensions : this.arrayDimensions;
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (!dataType || dataType.isEmpty()) {
             warningLog(" options.dataType", options.dataType ? options.dataType.toString() : "<null>");
             warningLog(" this.dataType", this.dataType ? this.dataType.toString() : "<null>");

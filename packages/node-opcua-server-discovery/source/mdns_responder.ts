@@ -43,7 +43,7 @@ export class MDNSResponder {
         };
 
         const addService = (service: Service) => {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog("adding server ", service.name, "port =", service.port);
 
             // example:
@@ -69,7 +69,7 @@ export class MDNSResponder {
 
             const existingIndex = findServiceIndex(service.name);
             if (existingIndex >= 0) {
-                // c8 ignore next
+                /* c8 ignore next */
                 doDebug && debugLog("Ignoring existing server ", service.name);
                 return;
             }

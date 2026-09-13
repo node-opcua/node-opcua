@@ -40,7 +40,7 @@ export async function promoteObjectAndVariablesInNamespace(namespace: INamespace
 
                 promoter.promoter(a as UAVariable & UAObject);
                 const after = a.constructor.name;
-                // c8 ignore next
+                /* c8 ignore next */
                 if (doDebug) {
                     debugLog(`promoting ${a.browseName.toString()} from ${before} to ${after}`);
                 }

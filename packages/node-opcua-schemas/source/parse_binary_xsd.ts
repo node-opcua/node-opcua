@@ -129,7 +129,7 @@ const state0: ReaderStateParser = {
                     },
                     finish: function (this: IImportParser) {
                         // _register_namespace_uri(this.text);
-                        // c8 ignore next
+                        /* c8 ignore next */
                         if (doDebug) {
                             debugLog("Import NameSpace = ", this.attrs.Namespace, " Location", this.attrs.Location);
                         }
@@ -139,7 +139,7 @@ const state0: ReaderStateParser = {
                 EnumeratedType: {
                     init: function (this: IEnumeratedTypeParser) {
                         this.typescriptDefinition = "";
-                        // c8 ignore next
+                        /* c8 ignore next */
                         if (doDebug) {
                             debugLog(
                                 chalk.cyan("EnumeratedType Name="),

@@ -624,7 +624,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         const endpoint_desc = this.getEndpointDescription(securityMode, securityPolicy, endpointUrl);
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (endpoint_desc) {
             throw new Error(" endpoint already exist");
         }
@@ -797,7 +797,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this._listen_callback = callback;
 
         this._server.on("error", (err: Error) => {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog(`${chalk.red.bold(" error")} port = ${this.port}`, err);
             this._started = false;
             this._end_listen(err);

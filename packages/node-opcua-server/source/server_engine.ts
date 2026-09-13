@@ -305,7 +305,7 @@ export function setNextSubscriptionId(n: number) {
     next_subscriptionId = Math.max(n, 1);
 }
 function _get_next_subscriptionId() {
-    // c8 ignore next
+    /* c8 ignore next */
     doDebug && debugLog(" next_subscriptionId = ", next_subscriptionId);
     return next_subscriptionId++;
 }
@@ -588,7 +588,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     /**
      */
     public async shutdown(): Promise<void> {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("ServerEngine#shutdown");
 
         this._internalState = "shutdown";
@@ -913,7 +913,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         const startTime = new Date();
 
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("Loading ", nodesetNames, "...");
 
         this.addressSpace = AddressSpace.create();
@@ -935,7 +935,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 const addressSpace = this.addressSpace;
 
                 const endTime = new Date();
-                // c8 ignore next
+                /* c8 ignore next */
                 doDebug && debugLog("Loading ", nodesetNames, " done : ", endTime.getTime() - startTime.getTime(), " ms");
 
                 const bindVariableIfPresent = (nodeId: NodeId, opts?: BindVariableOptions) => {
@@ -1715,7 +1715,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         }
         options = options || {};
         options.server = options.server || {};
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("createSession : increasing serverDiagnosticsSummary cumulatedSessionCount/currentSessionCount ");
         this.serverDiagnosticsSummary.cumulatedSessionCount += 1;
         this.serverDiagnosticsSummary.currentSessionCount += 1;
@@ -1731,7 +1731,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         // session's SessionContext (see ServerSession's constructor).
         const session = new ServerSession(this, options.server, sessionTimeout);
 
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("createSession :sessionTimeout = ", session.sessionTimeout);
 
         const key = session.authenticationToken.toString();
@@ -1811,12 +1811,12 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         assert(typeof reason === "string");
         assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
 
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("ServerEngine.closeSession ", authenticationToken.toString(), deleteSubscriptions);
 
         const session = this.getSession(authenticationToken);
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (!session) {
             throw new Error(`cannot find session with this authenticationToken ${authenticationToken.toString()}`);
         }

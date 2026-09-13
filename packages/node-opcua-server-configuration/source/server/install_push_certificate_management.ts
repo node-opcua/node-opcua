@@ -169,7 +169,7 @@ async function onApplyChangesCompleted(server: OPCUAServer, closeChannels: boole
     doDebug && debugLog(chalk.yellow(" onApplyChangesCompleted => end points resumed"));
 
     if (closeChannels) {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog(chalk.yellow("channels have been closed -> client should reconnect "));
     }
 }

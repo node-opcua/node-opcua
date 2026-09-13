@@ -161,7 +161,7 @@ function __findEndpoint(this: ClientBaseImpl, endpointUrl: string, params: FindE
                 client.on("backoff", handler as unknown as (retryCount: number, delay: number) => void);
             });
 
-            // c8 ignore next
+            /* c8 ignore next */
             if (doDebug) {
                 client.on("backoff", (retryCount: number, delay: number) => {
                     debugLog(

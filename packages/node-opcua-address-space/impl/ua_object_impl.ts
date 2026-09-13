@@ -61,7 +61,7 @@ export class UAObjectImpl<T extends UAObjectEvents & ListenerSignature<T> = UAOb
     public readonly symbolicName: string | null;
 
     get typeDefinitionObj(): UAObjectType {
-        // c8 ignore next
+        /* c8 ignore next */
         if (super.typeDefinitionObj.nodeClass !== NodeClass.ObjectType) {
             const msg = `Invalid type definition node class , expecting a ObjectType got ${
                 NodeClass[super.typeDefinitionObj.nodeClass]

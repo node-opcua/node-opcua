@@ -168,7 +168,7 @@ export abstract class ClientTransportBase extends TCP_transport {
             receiveBufferSize,
             sendBufferSize
         });
-        // c8 ignore next
+        /* c8 ignore next */
         doTraceHelloAck && warningLog(`sending Hello\n ${helloMessage.toString()} `);
 
         const messageChunk = packTcpMessage("HEL", helloMessage);

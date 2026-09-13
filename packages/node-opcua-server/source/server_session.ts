@@ -54,7 +54,7 @@ const theWatchDog = new WatchDog();
 const registeredNodeNameSpace = 9999;
 
 function on_channel_abort(this: ServerSession) {
-    // c8 ignore next
+    /* c8 ignore next */
     doDebug && debugLog("ON CHANNEL ABORT ON  SESSION!!!");
     /**
      * @event channel_aborted
@@ -241,7 +241,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     public dispose(): void {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("ServerSession#dispose()");
 
         assert(!this.sessionObject, " sessionObject has not been cleared !");

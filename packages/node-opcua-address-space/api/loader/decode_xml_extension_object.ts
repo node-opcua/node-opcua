@@ -14,7 +14,7 @@ const _errorLog = make_errorLog("decode_xml_extension_object");
 function encodingNodeIdToDataTypeNode(addressSpace: IAddressSpace, encodingNodeId: NodeId): UADataType {
     const encodingNode = addressSpace.findNode(encodingNodeId);
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (!encodingNode) {
         throw new Error(`findDataTypeNode:  Cannot find encoding NodeId${encodingNodeId.toString()}`);
     }

@@ -401,7 +401,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             // Object Not Found
             return new HistoryReadResult({ statusCode: StatusCodes.BadNodeIdUnknown });
         } else {
-            // c8 ignore next
+            /* c8 ignore next */
             if (!obj.historyRead) {
                 // note : Object and View may also support historyRead to provide Event historical data
                 //        todo implement historyRead for Object and View
@@ -416,7 +416,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
                     "\n" +
                     "HistoryReadDetails " +
                     historyReadDetails.toString();
-                // c8 ignore next
+                /* c8 ignore next */
                 if (doDebug) {
                     debugLog(chalk.cyan("ServerEngine#_historyReadNode "), chalk.white.bold(msg));
                 }
