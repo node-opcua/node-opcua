@@ -157,6 +157,68 @@ describe("testing Events  ", () => {
         selectClauseResults[0].should.eql(StatusCodes.BadNodeIdUnknown);
     });
 
+    describe("select clause with an empty browsePath (OPC 10000-4 7.4.4.5 - the instance of typeDefinitionId itself)", () => {
+        // FEAT-58: the CTT's Alarms and Conditions filter asks for the ConditionId with exactly this operand:
+        //   SimpleAttributeOperand { typeDefinitionId: ConditionType, browsePath: [], attributeId: NodeId }
+        // An empty browsePath is not "nothing to do": per the spec it denotes the instance of typeDefinitionId
+        // itself, so the clause is valid and must be reported Good, not BadNothingToDo.
+        let conditionType: UAEventType;
+        let condition: UAObject;
+
+        before(() => {
+            conditionType = addressSpace.findEventType("ConditionType")!;
+            should.exist(conditionType);
+            const myConditionType = namespace.addObjectType({
+                browseName: "MyTestConditionType",
+                subtypeOf: conditionType
+            });
+            condition = myConditionType.instantiate({
+                browseName: "MyTestCondition",
+                organizedBy: addressSpace.rootFolder.objects
+            }) as UAObject;
+        });
+
+        it("should report Good for the ConditionId select clause (empty browsePath, attributeId NodeId)", () => {
+            const eventFilter = new EventFilter({
+                selectClauses: [
+                    {
+                        typeDefinitionId: conditionType.nodeId,
+                        browsePath: [coerceQualifiedName("EventId")],
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        typeDefinitionId: conditionType.nodeId,
+                        browsePath: [coerceQualifiedName("EventType")],
+                        attributeId: AttributeIds.Value
+                    },
+                    { typeDefinitionId: conditionType.nodeId, browsePath: [], attributeId: AttributeIds.NodeId }
+                ],
+                whereClause: { elements: [] }
+            });
+
+            const selectClauseResults = checkSelectClauses(conditionType, eventFilter.selectClauses!);
+            selectClauseResults.length.should.eql(3);
+            selectClauseResults[2].should.eql(StatusCodes.Good);
+
+            // and the delivered event must carry the condition's own NodeId in that field
+            const eventData = new EventData(condition);
+            const eventFields = extractEventFields(SessionContext.defaultContext, eventFilter.selectClauses!, eventData);
+            eventFields.length.should.eql(3);
+            eventFields[2].dataType.should.eql(DataType.NodeId);
+            should(eventFields[2].value.toString()).eql(condition.nodeId.toString());
+        });
+
+        it("should not report Good for an empty browsePath whose typeDefinitionId the event is not of", () => {
+            const eventFilter = new EventFilter({
+                selectClauses: [{ typeDefinitionId: makeNodeId(123456, 9999), browsePath: [], attributeId: AttributeIds.NodeId }],
+                whereClause: { elements: [] }
+            });
+            const selectClauseResults = checkSelectClauses(conditionType, eventFilter.selectClauses!);
+            selectClauseResults.length.should.eql(1);
+            selectClauseResults[0].should.eql(StatusCodes.BadNodeIdUnknown);
+        });
+    });
+
     it("should filter an event", (done: () => void) => {
         const serverObject = addressSpace.findNode("Server")! as UAObject;
         serverObject.browseName.toString().should.eql("Server");

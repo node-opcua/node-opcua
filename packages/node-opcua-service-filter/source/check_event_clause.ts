@@ -39,6 +39,15 @@ export function checkSelectClause(parentNode: BaseNode, selectClause: SimpleAttr
         return StatusCodes.BadTypeMismatch;
     }
 
+    // OPC 10000-4 7.4.4.5: an empty browsePath does not mean "nothing to do" here - it denotes the
+    // instance of typeDefinitionId itself (e.g. the ConditionId of an Alarms and Conditions event).
+    // typeDefinitionId has already been checked above to resolve to an existing EventType, so the
+    // operand is valid and must be reported Good; it is extractEventField's job, at delivery time, to
+    // resolve it against the actual event instance.
+    if (!selectClause.browsePath || selectClause.browsePath.length === 0) {
+        return StatusCodes.Good;
+    }
+
     // navigate to the innerNode specified by the browsePath [ QualifiedName]
     const browsePath = constructBrowsePathFromQualifiedName(eventTypeNode, selectClause.browsePath);
     const browsePathResult = addressSpace.browsePath(browsePath);
