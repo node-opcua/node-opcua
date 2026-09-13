@@ -9,16 +9,18 @@ import { StructureDefinition } from "node-opcua-types";
 import { ExtraDataTypeManager } from "../source/extra_data_type_manager.js";
 import { serverImplementsDataTypeDefinition } from "../source/populate_data_type_manager.js";
 
-enum NodeClass {
-    Object = 1,
-    Variable = 2,
-    Method = 4,
-    ObjectType = 8,
-    VariableType = 16,
-    ReferenceType = 32,
-    DataType = 64,
-    View = 128
-}
+// a const object rather than an enum: an enum is not erasable syntax, so it cannot be run by
+// Node's own type stripping (NATIVE_TS=1 in packages/run_all_mocha_tests.js)
+const NodeClass = {
+    Object: 1,
+    Variable: 2,
+    Method: 4,
+    ObjectType: 8,
+    VariableType: 16,
+    ReferenceType: 32,
+    DataType: 64,
+    View: 128
+} as const;
 
 interface MockNode {
     nodeId: NodeId;

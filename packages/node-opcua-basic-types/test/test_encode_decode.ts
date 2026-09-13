@@ -537,10 +537,12 @@ describe("check isValid and random for various types", () => {
             const randomFunc = ecByName[`random${type}`];
             const isValidFunc = ecByName[`isValid${type}`];
 
-            ec.should.have.property(`encode${type}`);
-            ec.should.have.property(`decode${type}`);
-            ec.should.have.property(`random${type}`);
-            ec.should.have.property(`isValid${type}`);
+            // `ec` is a module namespace object, whose prototype is null: should.js patches
+            // Object.prototype, so `ec.should` is undefined. Pass the subject instead.
+            should(ec).have.property(`encode${type}`);
+            should(ec).have.property(`decode${type}`);
+            should(ec).have.property(`random${type}`);
+            should(ec).have.property(`isValid${type}`);
 
             const random_value = randomFunc();
             isValidFunc(random_value).should.eql(true);

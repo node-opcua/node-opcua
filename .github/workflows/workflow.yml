@@ -474,7 +474,18 @@ jobs:
       # generation is deliberately NOT part of it: that output is committed.
       - run: pnpm run build:all
       - run: pnpm run pretest
+      # NATIVE_TS runs the suite on Node's own type stripping instead of tsx. tsx rewrites a
+      # workspace package's compiled dist/*.js and substitutes its own source map, so c8 never
+      # follows the map back to the .ts: a package reached through its package name is
+      # reported as dist, the same package reached by a relative path is reported as source,
+      # and the two sets of counts never merge. Measured on node-opcua-aggregates, same tests:
+      # dist/aggregates.js 83.94% under tsx, source/aggregates.ts 86.20% without it.
+      # NO_BAIL because this branch is measuring: stopping at the first failure reports
+      # neither the full set of failures nor a usable coverage figure.
       - run: make test-cov
+        env:
+          NATIVE_TS: "1"
+          NO_BAIL: "1"
       - name: Coveralls
         uses: coverallsapp/github-action@v2.3.8
         with:
