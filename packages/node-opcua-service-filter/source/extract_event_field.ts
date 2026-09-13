@@ -1,14 +1,8 @@
 import { assert } from "node-opcua-assert";
-import { AttributeIds } from "node-opcua-data-model";
-import { make_warningLog } from "node-opcua-debug";
-import { resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { SimpleAttributeOperand } from "node-opcua-types";
-import { DataType, Variant } from "node-opcua-variant";
+import type { Variant } from "node-opcua-variant";
 import type { FilterContext } from "./filter_context.js";
-import { resolveOperand } from "./resolve_operand.js";
-
-const warningLog = make_warningLog("FILTER");
-const conditionTypeNodeId = resolveNodeId("ConditionType");
+import { resolveConditionIdOperand, resolveOperand } from "./resolve_operand.js";
 
 /**
  *
@@ -19,31 +13,11 @@ export function extractEventField(context: FilterContext, operand: SimpleAttribu
 
     operand.browsePath = operand.browsePath || [];
 
-    if (operand.browsePath.length === 0 && operand.attributeId === AttributeIds.NodeId) {
-        // "ns=0;i=2782" => ConditionType
-        // "ns=0;i=2041" => BaseEventType
-        if (!sameNodeId(operand.typeDefinitionId, conditionTypeNodeId)) {
-            // not a ConditionType
-            // but could be on of its derived type. for instance ns=0;i=2881 => AcknowledgeableConditionType
-            if (!context.isSubtypeOf(operand.typeDefinitionId, conditionTypeNodeId)) {
-                warningLog(" ", operand.typeDefinitionId.toString());
-                warningLog(`this case is not handled yet : selectClause.typeDefinitionId = ${operand.typeDefinitionId.toString()}`);
-                warningLog(operand.toString());
-                return new Variant({ dataType: DataType.NodeId, value: context.eventSource });
-            }
-        }
-
-        const eventSourceTypeDefinition = context.getTypeDefinition(context.eventSource);
-        if (!eventSourceTypeDefinition) {
-            // eventSource is a EventType class
-            return new Variant();
-        }
-
-        if (!context.isSubtypeOf(eventSourceTypeDefinition, conditionTypeNodeId)) {
-            return new Variant();
-        }
-        // Yeh : our EventType is a Condition Type !
-        return new Variant({ dataType: DataType.NodeId, value: context.eventSource });
+    // the ConditionId shape (empty browsePath, attributeId NodeId) is resolved the same way here
+    // (delivery) and in resolveOperand (where-clause evaluation) - see resolveConditionIdOperand.
+    const conditionIdValue = resolveConditionIdOperand(context, operand);
+    if (conditionIdValue) {
+        return conditionIdValue;
     }
     return resolveOperand(context, operand);
 }
