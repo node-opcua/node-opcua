@@ -10,11 +10,20 @@
 // tsx and should are part of the baseline because the tests are TypeScript and use
 // should-style assertions; without them a package with no config of its own cannot run
 // its own suite at all.
+//
+// tsx is registered as the ESM hook (`--import tsx/esm`), not as the CommonJS one. Every
+// package publishes ESM since FEAT-2, and `tsx/cjs` transpiles each test file to CommonJS
+// instead, so the suites exercised a CommonJS translation of the code we ship: different
+// evaluation order, different cycle behaviour, no `import.meta`, and named exports found by
+// a lexer rather than declared. It also meant `require("x")` and `await import("x")` returned
+// two different instances of the same module, so anything holding module-level state could
+// split in two without saying so, which is the failure that cost a day in FEAT-2 batch 3.
 const resolve = (id) => require.resolve(id);
 
 module.exports = {
     colors: true,
     recursive: true,
     extension: ["js", "ts"],
-    require: [resolve("source-map-support/register"), resolve("tsx/cjs"), resolve("should")]
+    require: [resolve("source-map-support/register"), resolve("should")],
+    "node-option": ["import=tsx/esm"]
 };

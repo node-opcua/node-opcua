@@ -13,6 +13,14 @@
         "noImplicitReturns": true,
         "target": "es2022",
         "module": "NodeNext",
+        // Type-check each file as if nothing else about the program were known, which is what
+        // every single-file transpiler actually does. tsx and esbuild run the test suites and
+        // cannot tell a re-exported type from a re-exported value; tsc can, and elided those
+        // re-exports silently, so `export { SomeInterface } from "..."` survived into the
+        // transpiled output and failed to link under ESM with "does not provide an export
+        // named ...". Twelve such re-exports existed when this was turned on, five of them in
+        // entry points, where they would have broken an ESM consumer of the published package.
+        "isolatedModules": true,
         "declaration": true,
         // the .d.ts is generated, so "go to definition" lands in it and stops there. The map
         // sends an editor on to the .ts the declaration came from, which every package publishes
