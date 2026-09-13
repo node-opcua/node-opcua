@@ -17,9 +17,17 @@ import { AttributeIds, coerceQualifiedName, NodeClass } from "node-opcua-data-mo
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { makeNodeId, NodeId } from "node-opcua-nodeid";
-import { checkSelectClauses, EventFilter, extractEventFields, SimpleAttributeOperand } from "node-opcua-service-filter";
+import {
+    checkFilter,
+    checkSelectClauses,
+    EventFilter,
+    extractEventFields,
+    FilterContextOnAddressSpace,
+    SimpleAttributeOperand
+} from "node-opcua-service-filter";
 import { EventFieldList } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
+import { ContentFilter, ContentFilterElement, FilterOperator, LiteralOperand } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 
@@ -216,6 +224,74 @@ describe("testing Events  ", () => {
             const selectClauseResults = checkSelectClauses(conditionType, eventFilter.selectClauses!);
             selectClauseResults.length.should.eql(1);
             selectClauseResults[0].should.eql(StatusCodes.BadNodeIdUnknown);
+        });
+    });
+
+    describe("where clause with an empty browsePath ConditionId operand (FEAT-59)", () => {
+        // The CTT's Alarms and Conditions collector narrows its subscription with exactly this
+        // where clause: InList(ConditionId, <the ConditionIds it saw on a wide subscription>).
+        // The operand has the same empty-browsePath shape as the FEAT-58 select clause; evaluating
+        // the where clause must resolve it to the event's own condition instance NodeId, the way
+        // extractEventField already does at delivery time, or the comparison is never true.
+        let conditionType: UAEventType;
+        let condition: UAObject;
+        let otherCondition: UAObject;
+
+        before(() => {
+            conditionType = addressSpace.findEventType("ConditionType")!;
+            const myConditionType = namespace.addObjectType({
+                browseName: "MyWhereClauseConditionType",
+                subtypeOf: conditionType
+            });
+            condition = myConditionType.instantiate({
+                browseName: "MyWhereClauseCondition",
+                organizedBy: addressSpace.rootFolder.objects
+            }) as UAObject;
+            otherCondition = myConditionType.instantiate({
+                browseName: "MyOtherWhereClauseCondition",
+                organizedBy: addressSpace.rootFolder.objects
+            }) as UAObject;
+        });
+
+        function conditionIdOperand(): SimpleAttributeOperand {
+            return new SimpleAttributeOperand({
+                attributeId: AttributeIds.NodeId,
+                browsePath: [],
+                typeDefinitionId: conditionType.nodeId
+            });
+        }
+
+        function evaluate(filterOperator: FilterOperator, literalNodeId: NodeId): boolean {
+            const eventData = new EventData(condition);
+            const context = new FilterContextOnAddressSpace(SessionContext.defaultContext, eventData);
+            const whereClause = new ContentFilter({
+                elements: [
+                    new ContentFilterElement({
+                        filterOperands: [
+                            conditionIdOperand(),
+                            new LiteralOperand({ value: { dataType: DataType.NodeId, value: literalNodeId } })
+                        ],
+                        filterOperator
+                    })
+                ]
+            });
+            return checkFilter(context, whereClause);
+        }
+
+        it("InList should match the event's own ConditionId", () => {
+            should(evaluate(FilterOperator.InList, condition.nodeId)).eql(true);
+        });
+
+        it("InList should reject a different ConditionId", () => {
+            should(evaluate(FilterOperator.InList, otherCondition.nodeId)).eql(false);
+        });
+
+        it("Equals should match the event's own ConditionId", () => {
+            should(evaluate(FilterOperator.Equals, condition.nodeId)).eql(true);
+        });
+
+        it("Equals should reject a different ConditionId", () => {
+            should(evaluate(FilterOperator.Equals, otherCondition.nodeId)).eql(false);
         });
     });
 
