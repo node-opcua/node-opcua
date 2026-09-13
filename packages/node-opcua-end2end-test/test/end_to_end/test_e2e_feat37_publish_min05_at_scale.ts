@@ -110,7 +110,6 @@ describe("FEAT-37 Subscription Publish Min 05 003 at scale", function (this: Moc
             const createdAt: number[] = [];
             for (let s = 0; s < sessionCount; s++) {
                 subscriptionIds[s] = [];
-                createdAt[s] = Date.now();
                 for (let i = 0; i < subscriptionsPerSession; i++) {
                     const created = await sessions[s].createSubscription({
                         requestedPublishingInterval: publishingInterval,
@@ -135,6 +134,13 @@ describe("FEAT-37 Subscription Publish Min 05 003 at scale", function (this: Moc
                     });
                     should(items.results?.[0]?.statusCode).eql(StatusCodes.Good);
                 }
+                // Stamped after the session's five subscriptions exist, not before. Each
+                // subscription's publishing timer starts when that subscription is created, so
+                // stamping first aimed the burst at subscription 1's tick while subscription 5
+                // ticked however long the five creations had taken. That skew is small on a bare
+                // runtime and grows under an instrumented one (c8), which is where the burst
+                // started missing a subscription's window.
+                createdAt[s] = Date.now();
             }
             phase(`${sessionCount * subscriptionsPerSession} subscriptions with one item each`);
             // the write that gives every subscription a data change
@@ -192,7 +198,11 @@ describe("FEAT-37 Subscription Publish Min 05 003 at scale", function (this: Moc
             phase("all Publish requests sent");
             const expected = sessionCount * subscriptionsPerSession;
             const deadline = Date.now() + 60 * 1000;
-            while (answers.length < expected && Date.now() < deadline) {
+            // Wait for every subscription to have answered, not merely for `expected` answers
+            // to have arrived: one subscription answering twice reaches the total while a
+            // sibling is still in flight, and the run was then judged on incomplete evidence.
+            const answeredSubscriptions = () => new Set(answers.map((a) => `${a.session}/${a.subscriptionId}`)).size;
+            while (answeredSubscriptions() < expected && Date.now() < deadline) {
                 await pause(100);
             }
             phase(`${answers.length}/${expected} answers`);
@@ -231,6 +241,9 @@ describe("FEAT-37 Subscription Publish Min 05 003 at scale", function (this: Moc
             if (unanswered.length || doubled.length) {
                 console.log([...unanswered, ...doubled].join("\n"));
             }
+            // A fault is recorded against subscriptionId -1, so it leaves a real subscription
+            // with no answer: assert it first, or a transport hiccup is reported as starvation.
+            should(kinds.fault).eql(0, "Publish requests that came back as a fault");
             should(unanswered).eql([], "subscriptions without any Publish response");
             should(doubled).eql([], "subscriptions that consumed more than one Publish request");
             answers.length.should.eql(expected);
