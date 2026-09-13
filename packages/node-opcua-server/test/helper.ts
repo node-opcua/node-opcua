@@ -18,7 +18,7 @@ interface IWithDefineGetter {
 export function add_mock_monitored_item(subscription: Subscription) {
     // pretend we have a monitored item
     const monitoredItem = {
-        queue: <unknown[]>[],
+        queue: [] as unknown[],
 
         extractMonitoredItemNotifications() {
             const tmp = this.queue;
