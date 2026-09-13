@@ -299,12 +299,20 @@ ResourceLeakDetector.prototype.start = (info) => {
     } else {
         // Lightweight setTimeout/clearTimeout tracking (no assertions, no wrapper IDs).
         // We just record raw timer handles so stop() can clear leaked ones.
-        global.setTimeout = (fn, ...rest) => {
-            const handle = self.setTimeout_old(() => {
-                // Timer fired naturally — remove from tracking
-                self._activeTimeouts.delete(handle);
-                fn();
-            }, ...rest);
+        // setTimeout(fn, delay, ...args) calls fn(...args): the arguments have to reach fn, or
+        // a caller that passes one gets undefined. undici does this for its parser timeout, so
+        // a fetch whose timeout fired under the detector threw
+        // "Cannot read properties of undefined (reading 'deref')" from inside undici.
+        global.setTimeout = (fn, delay, ...args) => {
+            const handle = self.setTimeout_old(
+                (...callbackArgs) => {
+                    // Timer fired naturally — remove from tracking
+                    self._activeTimeouts.delete(handle);
+                    fn(...callbackArgs);
+                },
+                delay,
+                ...args
+            );
             self._activeTimeouts.add(handle);
             return handle;
         };

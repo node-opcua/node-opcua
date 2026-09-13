@@ -10,15 +10,18 @@
         "nodeset-*, and more). Those are NOT reinstated here: they had never been in force, and",
         "switching them on moves the published figure by about 15 points, which is a decision",
         "about what the number should mean rather than a config repair. Same for thresholds:",
-        "c8 defaults --lines to 90, so enabling check-coverage would fail the job immediately."
+        "c8 defaults --lines to 90, so enabling check-coverage would fail the job immediately.",
+        "",
+        "Generated code (_generated_* and the nodeset packages) is deliberately still counted.",
+        "Excluding it drops the published figure by about 4 points, because the generated stubs",
+        "are near-100% covered and removing them removes that ballast: a change to what the",
+        "number means, kept out of a config repair."
     ],
     "all": false,
     "exclude": [
         "**/node_modules/**",
         "coverage/**",
         "**/*.d.ts",
-        "**/_generated_*",
-        "packages/node-opcua-nodeset-*/**",
         "packages/*/test/**",
         "packages/*/tests/**",
         "packages/*/test_helpers/**",
