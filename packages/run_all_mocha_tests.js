@@ -8,18 +8,28 @@ require("mocha-clean");
 const { registerHooks } = require("node:module");
 const { pathToFileURL, fileURLToPath } = require("node:url");
 
-// NATIVE_TS=1 runs the suite on Node's own type stripping instead of tsx.
+// The suite runs on Node's own type stripping. Set TSX=1 to fall back to tsx instead.
 //
-// It is not only about dropping a dependency. tsx intercepts every module, including the
-// already-compiled dist/*.js of the packages under test, and hands V8 its own transformed
-// source; c8 then attributes coverage to the compiled file rather than following its .js.map
-// back to the TypeScript. That is why the published figure counts dist/*.js, reports lines
-// that exist only after compilation (module interop preambles), and fell by ~9 points as the
-// ESM migration moved more packages through that path. Without tsx, c8 remaps and the numbers
-// land on the source a developer can act on.
+// This is not about dropping a dependency. tsx's CommonJS hook intercepts every module,
+// including the already-compiled dist/*.js of the packages under test, and hands V8 its own
+// transformed source with its own source map; c8 then attributes coverage to the compiled
+// file instead of following the .js.map back to the TypeScript. A package reached through
+// its package name was reported under dist/, the same package reached by a relative path was
+// reported under source/, and the two sets of counts never merged. Measured across the whole
+// suite, the same tests scored 79.06% of lines that way and 91.70% without tsx, on an
+// essentially unchanged denominator: 32,500 lines that were always covered but were being
+// counted against a file nobody edits. It also injects esbuild's <define:import.meta> shim,
+// which reaches the lcov as a source file and makes `c8 report` fail on Windows.
 //
-// Two redirects replace what tsx was doing for resolution. Neither rewrites a single import.
-if (process.env.NATIVE_TS) {
+// Two resolver redirects replace what tsx was doing. Neither rewrites a single import.
+//
+// TSX=1 is the escape hatch, for a file Node's stripper rejects outright: an enum, a
+// parameter property, an angle-bracket cast, a namespace, or `import =`. `check:erasable`
+// gates the test trees against exactly those, so reaching for it should mean the gate has
+// found something new rather than something known. It registers only the ESM hooks: the
+// CommonJS hook is what caused the misattribution above, so a fallback that re-registered it
+// would reintroduce the defect this replaced.
+if (!process.env.TSX) {
     const exists = (p) => fs.existsSync(p);
 
     /** the package a file belongs to, i.e. the nearest directory holding a package.json */
@@ -77,15 +87,12 @@ if (process.env.NATIVE_TS) {
         }
     });
 } else {
-    const tsx = require("tsx/cjs/api");
-    tsx.register();
-
-    // The ESM hooks, so mocha's import() can load a .ts in a "type": "module" package.
-    //
-    // Through its own api, not register("tsx/esm/api", ...): the module.register form
-    // installs hooks that never do the NodeNext .js -> .ts resolution, so `import "./x.js"`
-    // next to an x.ts throws ERR_MODULE_NOT_FOUND. It went unnoticed because the CJS hook
-    // above runs first and covered for it. ("tsx/esm" refuses outright, asking for --import.)
+    // The ESM hooks only, and through tsx's own api rather than
+    // register("tsx/esm/api", pathToFileURL(__filename)): the module.register form installs
+    // hooks that never do the NodeNext .js -> .ts resolution, so `import "./x.js"` next to an
+    // x.ts throws ERR_MODULE_NOT_FOUND. That went unnoticed for as long as the CommonJS hook
+    // was registered alongside it and covered for it. ("tsx/esm" refuses outright and asks to
+    // be loaded with --import.)
     require("tsx/esm/api").register();
 }
 
@@ -442,11 +449,11 @@ async function runtests({ selectedTests, reporter, dryRun, filterOpts, skipped }
     // Use async file loading so Mocha can fall back to import()
     // for .ts files in "type": "module" packages
     mocha.lazyLoadFiles(true);
-    if (process.env.NATIVE_TS) {
+    if (!process.env.TSX) {
         // Load one file at a time so a file Node cannot load does not abort the whole run.
-        // The suite is the inventory this mode is for: a file that fails here is one tsx used
-        // to paper over (a parameter property, an enum, `require` in an ES module). Reported
-        // at the end rather than thrown, so a single offender still leaves a usable run.
+        // A file that fails here carries syntax the stripper rejects (an enum, a parameter
+        // property, an angle-bracket cast) - the thing tsx used to paper over. Reported at the
+        // end rather than thrown, so a single offender still leaves a usable run.
         const unloadable = [];
         const queued = mocha.files.slice();
         for (const file of queued) {
@@ -459,7 +466,9 @@ async function runtests({ selectedTests, reporter, dryRun, filterOpts, skipped }
         }
         mocha.files = queued;
         if (unloadable.length) {
-            console.log(`\n${chalk.yellow(`NATIVE_TS: ${unloadable.length} file(s) could not be loaded`)}`);
+            console.log(
+                `\n${chalk.yellow(`${unloadable.length} file(s) could not be loaded; run \`pnpm run check:erasable\`, or set TSX=1 to fall back to tsx`)}`
+            );
             for (const u of unloadable) {
                 console.log(`  ${u.file}\n      ${u.message.split("\n")[0]}`);
             }
