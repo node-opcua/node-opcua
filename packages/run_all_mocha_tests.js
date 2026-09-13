@@ -5,7 +5,7 @@ const chalk = require("chalk");
 const { Mocha } = require("mocha");
 require("mocha-clean");
 
-const { register, registerHooks } = require("node:module");
+const { registerHooks } = require("node:module");
 const { pathToFileURL, fileURLToPath } = require("node:url");
 
 // NATIVE_TS=1 runs the suite on Node's own type stripping instead of tsx.
@@ -80,10 +80,13 @@ if (process.env.NATIVE_TS) {
     const tsx = require("tsx/cjs/api");
     tsx.register();
 
-    // Register tsx ESM loader hooks so that Mocha's import()
-    // fallback can transpile .ts files in "type": "module" packages.
-    // Requires Node.js >= 20.6
-    register("tsx/esm/api", pathToFileURL(__filename));
+    // The ESM hooks, so mocha's import() can load a .ts in a "type": "module" package.
+    //
+    // Through its own api, not register("tsx/esm/api", ...): the module.register form
+    // installs hooks that never do the NodeNext .js -> .ts resolution, so `import "./x.js"`
+    // next to an x.ts throws ERR_MODULE_NOT_FOUND. It went unnoticed because the CJS hook
+    // above runs first and covered for it. ("tsx/esm" refuses outright, asking for --import.)
+    require("tsx/esm/api").register();
 }
 
 Error.stackTraceLimit = 20;
