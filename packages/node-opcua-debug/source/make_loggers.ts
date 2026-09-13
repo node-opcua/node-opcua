@@ -21,7 +21,7 @@ export enum LogLevel {
     Debug = 7
 }
 
-// c8 ignore next
+/* c8 ignore next */
 const _activateDebug = false;
 if (_process.env && _activateDebug) {
     // this code can be activated to help detecting

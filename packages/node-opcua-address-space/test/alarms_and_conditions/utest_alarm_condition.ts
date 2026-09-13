@@ -230,7 +230,7 @@ export function utest_alarm_condition(test: MochaSuiteExWithEngine): void {
                     clearInterval(_timer);
                 }
 
-                // c8 ignore next
+                /* c8 ignore next */
                 if (doDebug) {
                     debugLog(
                         "                     unshelveTime value history = ",

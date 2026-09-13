@@ -25,7 +25,7 @@ export interface PseudoRange {
 function _isOutsideDeadbandScalar(value1: NumberType, value2: NumberType, dataType: DataType, absoluteDeadband: number): boolean {
     let diff: number;
     if (dataType === DataType.UInt64 || dataType === DataType.Int64) {
-        // c8 ignore next
+        /* c8 ignore next */
         if (!(Array.isArray(value1) && Array.isArray(value2))) {
             throw new Error("Invalid");
         }
@@ -41,7 +41,7 @@ function _isOutsideDeadbandScalar(value1: NumberType, value2: NumberType, dataTy
         assert(typeof diff === "number" && Number.isFinite(diff));
         return Math.abs(diff) > absoluteDeadband;
     }
-    // c8 ignore next
+    /* c8 ignore next */
     if (!(typeof value1 === "number" && typeof value2 === "number")) {
         throw new Error(
             `Invalid value in _isOutsideDeadbandScalar > expecting number only but got ${typeof value1} ${typeof value2}`

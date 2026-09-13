@@ -216,7 +216,7 @@ async function createX509IdentityToken(
     const endpoint = context.endpoint;
     assert(endpoint instanceof EndpointDescription);
     const userTokenPolicy = findUserTokenPolicy(endpoint, UserTokenType.Certificate);
-    // c8 ignore next
+    /* c8 ignore next */
     if (!userTokenPolicy) {
         throw new Error("Cannot find Certificate (X509) user token policy in end point description");
     }
@@ -240,7 +240,7 @@ async function createX509IdentityToken(
     // see Release 1.02 155 OPC Unified Architecture, Part 4
     const cryptoFactory = getCryptoFactory(securityPolicy);
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (!cryptoFactory) {
         throw new Error(" Unsupported security Policy");
     }
@@ -308,7 +308,7 @@ function createUserNameIdentityToken(
      */
     const userTokenPolicy = findUserTokenPolicy(endpoint, UserTokenType.UserName);
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (!userTokenPolicy) {
         throw new Error("Cannot find USERNAME user token policy in end point description");
     }
@@ -359,7 +359,7 @@ function createUserNameIdentityToken(
     // see Release 1.02 155 OPC Unified Architecture, Part 4
     const cryptoFactory = getCryptoFactory(securityPolicy);
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (!cryptoFactory) {
         throw new Error(` Unsupported security Policy ${securityPolicy.toString()}`);
     }

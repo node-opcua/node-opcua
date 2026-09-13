@@ -270,7 +270,7 @@ function channel_has_session(channel: ServerSecureChannelLayer, session: ServerS
 }
 
 function moveSessionToChannel(session: ServerSession, channel: ServerSecureChannelLayer) {
-    // c8 ignore next
+    /* c8 ignore next */
     doDebug && debugLog("moveSessionToChannel sessionId", session.nodeId, " channelId=", channel.channelId);
     if (session.publishEngine) {
         session.publishEngine.cancelPendingPublishRequestBeforeChannelChange();
@@ -598,7 +598,7 @@ function _installRegisterServerManager(self: OPCUAServer) {
          * connection process is raised
          * @event serverRegistrationPending
          */
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("serverRegistrationPending");
         self.emit("serverRegistrationPending");
     });
@@ -607,7 +607,7 @@ function _installRegisterServerManager(self: OPCUAServer) {
          * emitted when the server is successfully registered to the LDS
          * @event serverRegistered
          */
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("serverRegistered");
         self.emit("serverRegistered");
     });
@@ -616,13 +616,13 @@ function _installRegisterServerManager(self: OPCUAServer) {
          * emitted when the server has successfully renewed its registration to the LDS
          * @event serverRegistrationRenewed
          */
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("serverRegistrationRenewed");
         self.emit("serverRegistrationRenewed");
     });
 
     self.registerServerManager.on("serverUnregistered", () => {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("serverUnregistered");
         /**
          * emitted when the server is successfully unregistered to the LDS
@@ -666,7 +666,7 @@ function validate_security_endpoint(
     errCode: StatusCode;
     endpoint?: EndpointDescription;
 } {
-    // c8 ignore next
+    /* c8 ignore next */
     doDebug && debugLog("validate_security_endpoint = ", request.endpointUrl);
     let endpoints = server.findMatchingEndpoints(request.endpointUrl);
     // endpointUrl String The network address that the Client used to access the Session Endpoint.
@@ -717,7 +717,7 @@ function validate_security_endpoint(
         return { errCode: StatusCodes.BadSecurityPolicyRejected };
     }
     if (endpoints_matching_security_policy.length !== 1) {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("endpoints_matching_security_policy= ", endpoints_matching_security_policy.length);
     }
     return {

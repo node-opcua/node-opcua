@@ -37,11 +37,11 @@ async function extractDataTypeManagerPrivate(
     strategy: DataTypeExtractStrategy
 ): Promise<ExtraDataTypeManager> {
     const namespaceArray = await readNamespaceArray(session);
-    // c8 ignore next
+    /* c8 ignore next */
     if (namespaceArray.length === 0) {
         errorLog("namespaceArray is not populated ! Your server must expose a list of namespace ");
     }
-    // c8 ignore next
+    /* c8 ignore next */
     if (doDebug) {
         debugLog("Namespace Array = ", namespaceArray.join("\n                   "));
     }
@@ -54,7 +54,7 @@ async function extractDataTypeManagerPrivate(
     }
 
     await populateDataTypeManager(session, dataTypeManager, strategy);
-    // c8 ignore next
+    /* c8 ignore next */
     if (dataTypeManager.namespaceArray.length === 0) {
         throw new Error("namespaceArray is not populated ! Your server must expose a list of namespace ");
     }

@@ -90,7 +90,7 @@ function ensureFiniteStateMachineTypeGeneratesTransitionEvent(finiteStateMachine
     }
     const transitionEventType = addressSpace.findObjectType("TransitionEventType");
     if (!transitionEventType) {
-        // c8 ignore next
+        /* c8 ignore next */
         return;
     }
 
@@ -132,13 +132,13 @@ export function getFiniteStateMachineTypeStates(uaFiniteStateMachineType: UAObje
     const addressSpace = uaFiniteStateMachineType.addressSpace;
 
     const initialStateType = addressSpace.findObjectType("InitialStateType");
-    // c8 ignore next
+    /* c8 ignore next */
     if (!initialStateType) {
         throw new Error("cannot find InitialStateType");
     }
 
     const stateType = addressSpace.findObjectType("StateType");
-    // c8 ignore next
+    /* c8 ignore next */
     if (!stateType) {
         throw new Error("cannot find StateType");
     }
@@ -153,7 +153,7 @@ export function getFiniteStateMachineTypeTransitions(uaFiniteStateMachineType: U
     const addressSpace = uaFiniteStateMachineType.addressSpace;
 
     const transitionType = addressSpace.findObjectType("TransitionType");
-    // c8 ignore next
+    /* c8 ignore next */
     if (!transitionType) {
         throw new Error("cannot find TransitionType");
     }
@@ -222,7 +222,7 @@ export class UAStateMachineImplBase extends UAObjectImpl implements UAStateMachi
         const typeDef = this.typeDefinitionObj;
 
         const comp = getComponentOfType(typeDef, initialStateType);
-        // c8 ignore next
+        /* c8 ignore next */
         if (comp.length > 1) {
             throw new Error(" More than 1 initial state in stateMachine");
         }
@@ -258,7 +258,7 @@ export class UAStateMachineImplBase extends UAObjectImpl implements UAStateMachi
         // to be executed there must be a transition from currentState to toState
         const transition = this.findTransitionNode(this.currentStateNode, toStateNode, predicate);
         if (!transition) {
-            // c8 ignore next
+            /* c8 ignore next */
             if (doDebug) {
                 debugLog(" No transition from ", this.currentStateNode.browseName.toString(), " to ", toStateNode.toString());
             }
@@ -286,18 +286,18 @@ export class UAStateMachineImplBase extends UAObjectImpl implements UAStateMachi
             return null;
         }
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (_fromStateNode.nodeClass !== NodeClass.Object) {
             throw new Error("Internal Error");
         }
-        // c8 ignore next
+        /* c8 ignore next */
         if (_toStateNode && _toStateNode.nodeClass !== NodeClass.Object) {
             throw new Error("Internal Error");
         }
 
         const stateType = addressSpace.findObjectType("StateType");
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (!stateType) {
             throw new Error("Cannot find StateType");
         }
@@ -314,7 +314,7 @@ export class UAStateMachineImplBase extends UAObjectImpl implements UAStateMachi
             // cannot find a transition from fromState to toState
             return null;
         }
-        // c8 ignore next
+        /* c8 ignore next */
         if (transitions.length > 1) {
             const selectedTransition = (predicate || defaultPredicate)(
                 transitions,
@@ -360,7 +360,7 @@ export class UAStateMachineImplBase extends UAObjectImpl implements UAStateMachi
 
         if (typeof toStateNode === "string") {
             const state = this.getStateByName(toStateNode);
-            // c8 ignore next
+            /* c8 ignore next */
             if (!state) {
                 throw new Error(`Cannot find state with name ${toStateNode}`);
             }

@@ -83,7 +83,7 @@ describe("addExtensionObjectDataType", function (this: Mocha.Suite) {
         const tmpFile = path.join(os.tmpdir(), "test.NodeSet2.xml");
         console.log("tmpFile =", tmpFile);
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (doDebug) {
             for (const b of ns.nodeIterator()) {
                 const withTypeDefinition = b as BaseNode & {

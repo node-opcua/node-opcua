@@ -447,12 +447,12 @@ function _historyReadRaw(
 
     const session = context.session;
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (!session) {
         throw new Error("Internal Error: context.session not defined");
     }
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (!session.continuationPointManager) {
         throw new Error("Internal Error: context.session.continuationPointManager not defined");
     }

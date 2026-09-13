@@ -280,37 +280,37 @@ export class OPCUADiscoveryServer extends OPCUABaseServer<OPCUADiscoveryServerEv
         if (this.#shutting_down) return;
         this.#shutting_down = true;
 
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("stopping announcement of LDS on mDNS");
         //
         for (const registeredServer of this.registeredServers.values()) {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog("LDS is shutting down and is forcefuly unregistering server", registeredServer.serverUri);
             await this.#internalRegisterServerOffline(registeredServer, true);
         }
 
         if (this.mDnsResponder) {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog("disposing mDnsResponder");
             await this.mDnsResponder.dispose();
             this.mDnsResponder = undefined;
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog(" mDnsResponder disposed");
         }
 
         if (this.mDnsLDSAnnouncer) {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog("disposing mDnsLDSAnnouncer of this LDS to the mDNS");
             await this.mDnsLDSAnnouncer.stopAnnouncedOnMulticastSubnet();
             this.mDnsLDSAnnouncer = undefined;
         }
 
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("Shutting down Discovery Server");
         // OPCUAServerEndPoint#shutdown only calls back once the listening socket has emitted
         // 'close', so the port is free when this resolves: no extra delay is needed.
         await new Promise<void>((resolve, reject) => super.shutdown((err) => (err ? reject(err) : resolve())));
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("stopping announcement of LDS on mDNS - DONE");
     }
 

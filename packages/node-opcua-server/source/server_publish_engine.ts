@@ -25,7 +25,7 @@ function traceLog(...args: [unknown?, ...unknown[]]) {
     }
     const a: string[] = args.map((x?: unknown) => String(x));
     a.unshift(chalk.yellow(" TRACE "));
-    // c8 ignore next
+    /* c8 ignore next */
     doDebug && debugLog(...a);
 }
 
@@ -81,7 +81,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         srcPublishEngine: ServerSidePublishEngine,
         destPublishEngine: ServerSidePublishEngine
     ): void {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug &&
             debugLog(
                 chalk.yellow(
@@ -103,7 +103,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         }
         assert(srcPublishEngine.subscriptionCount === 0);
 
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug &&
             debugLog(
                 chalk.yellow(
@@ -132,12 +132,12 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         // remove pending StatusChangeNotification on the same session that may exist already
         destPublishEngine._purge_dangling_subscription(subscription.id);
 
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug &&
             debugLog(chalk.cyan("ServerSidePublishEngine.transferSubscription live subscriptionId ="), subscription.subscriptionId);
 
         // xx const internalNotification = subscription._flushSentNotifications();
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug &&
             debugLog(
                 chalk.cyan("ServerSidePublishEngine.transferSubscription with  = "),

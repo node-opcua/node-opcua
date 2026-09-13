@@ -77,7 +77,7 @@ export async function readDataTypeDefinitionAndBuildType(
         ]);
         if (isAbstractDataValue.statusCode === StatusCodes.BadNodeIdUnknown) {
             // may be model is incomplete and dataTypeNodeId is missing
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog("Cannot find dataTypeNodeId = ", dataTypeNodeId.toString());
             return dependentNamespaces;
         }

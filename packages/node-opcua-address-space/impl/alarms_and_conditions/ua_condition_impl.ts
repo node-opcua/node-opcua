@@ -570,7 +570,7 @@ export class UAConditionImplBase<T extends UAConditionEvents & ListenerSignature
         // for the time being , only current branch
         const currentBranch = this.currentBranch();
         if (currentBranch.getRetain()) {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog(` resending condition event for ${this.browseName.toString()}`);
             this.raiseConditionEvent(currentBranch, false);
             return 1;

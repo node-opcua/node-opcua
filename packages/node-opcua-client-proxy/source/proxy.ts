@@ -10,7 +10,7 @@ export function makeRefId(referenceTypeName: string): NodeId {
             (ObjectTypeIds as unknown as Record<string, number>)[referenceTypeName]
     );
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (nodeId.isEmpty()) {
         throw new Error(`makeRefId: cannot find ReferenceTypeName + ${referenceTypeName}`);
     }

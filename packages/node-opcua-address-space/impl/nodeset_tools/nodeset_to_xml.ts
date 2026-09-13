@@ -104,7 +104,7 @@ function _hasHigherPriorityThan(xw: XmlWriter, namespaceIndex1: number, namespac
 
 function _mustFindReferenceType(addressSpace: IAddressSpace, name: string): UAReferenceType {
     const referenceType = addressSpace.findReferenceType(name);
-    // c8 ignore next
+    /* c8 ignore next */
     if (!referenceType) {
         throw new Error(`Cannot find standard reference type ${name}: please check your nodeset file`);
     }

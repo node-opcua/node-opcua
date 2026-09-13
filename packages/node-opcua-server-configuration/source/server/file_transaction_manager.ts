@@ -17,7 +17,7 @@ type Functor = () => Promise<void>;
 
 async function _copyFile(source: string, dest: string): Promise<void> {
     try {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("copying file \n source ", source, "\n =>\n dest ", dest);
         const sourceExist = fs.existsSync(source);
         if (sourceExist) {
@@ -32,7 +32,7 @@ async function _deleteFile(file: string): Promise<void> {
     try {
         const exists = fs.existsSync(file);
         if (exists) {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog("deleting file ", file);
             await fs.promises.unlink(file);
         }
@@ -42,7 +42,7 @@ async function _deleteFile(file: string): Promise<void> {
 }
 
 async function _moveFile(source: string, dest: string): Promise<void> {
-    // c8 ignore next
+    /* c8 ignore next */
     doDebug && debugLog("moving file file \n source ", source, "\n =>\n dest ", dest);
     try {
         await _copyFile(source, dest);
@@ -54,7 +54,7 @@ async function _moveFile(source: string, dest: string): Promise<void> {
 
 async function _moveFileWithBackup(source: string, dest: string, backupPath: string): Promise<void> {
     // let make a copy of the destination file
-    // c8 ignore next
+    /* c8 ignore next */
     doDebug && debugLog("moveFileWithBackup file \n source ", source, "\n =>\n dest ", dest);
     await _copyFile(dest, backupPath);
     await _moveFile(source, dest);

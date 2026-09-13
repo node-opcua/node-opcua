@@ -62,7 +62,7 @@ export function innerBrowse(
         // handle continuation points
         results = results.map((result: BrowseResult, _index) => {
             assert(!result.continuationPoint);
-            // c8 ignore next
+            /* c8 ignore next */
             if (!engine.continuationPointManager) {
                 return new BrowseResult({ statusCode: StatusCodes.BadNoContinuationPoints });
             }

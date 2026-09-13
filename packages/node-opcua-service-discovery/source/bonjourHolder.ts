@@ -59,7 +59,7 @@ export async function _announceServerOnMulticastSubnet(multicastDNS: Bonjour, se
         assert(multicastDNS, "bonjour must have been initialized?");
 
         let timer: NodeJS.Timeout | undefined;
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog(chalk.cyan("  announceServerOnMulticastSubnet", serviceToString(serviceConfig)));
 
         // waitServiceUp(serviceConfig, () => {
@@ -88,7 +88,7 @@ export async function _announceServerOnMulticastSubnet(multicastDNS: Bonjour, se
                 clearTimeout(timer);
                 timer = undefined;
             }
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog("_announceServerOnMulticastSubnet: bonjour UP received ! ", serviceToString(serviceConfig));
             service.removeListener("error", onError);
             service.removeListener("up", onUp);

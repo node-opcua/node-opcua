@@ -41,7 +41,7 @@ export class ObjectRegistry {
             this._cache[obj._____hash] = typeof WeakRef !== "undefined" ? new WeakRef(obj) : obj;
         }
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (ObjectRegistry.doDebug) {
             // we capture the stack without processing it immediately to avoid massive CPU overhead at runtime
             obj._____trace = new Error("Trace captured at registration");

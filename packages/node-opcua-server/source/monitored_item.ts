@@ -214,7 +214,7 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
     }
 
     const trigger = this.filter.trigger;
-    // c8 ignore next
+    /* c8 ignore next */
     if (doDebug) {
         try {
             debugLog("filter pass ?", DataChangeTrigger[trigger], this.oldDataValue?.toString(), newDataValue.toString());
@@ -310,7 +310,7 @@ function apply_filter(this: MonitoredItem, newDataValue: DataValue) {
         return true; // keep
     }
 
-    // c8 ignore next
+    /* c8 ignore next */
     doDebug && safeGuardVerify(this);
 
     if (this.filter instanceof DataChangeFilter) {
@@ -510,7 +510,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         this._node = null;
         this._semantic_version = 0;
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (doDebug) {
             debugLog("Monitoring ", options.itemToMonitor.toString());
         }
@@ -584,7 +584,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     }
 
     public dispose(): void {
-        // c8 ignore next
+        /* c8 ignore next */
         if (doDebug) {
             debugLog("DISPOSING MONITORED ITEM", this._node?.nodeId.toString());
         }

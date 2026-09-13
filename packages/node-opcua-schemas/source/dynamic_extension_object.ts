@@ -53,7 +53,7 @@ export function getOrCreateConstructor(
     }
     const schema = dataTypeFactory.getStructuredTypeSchema(dataTypeName);
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (!schema) {
         throw new Error(`Unknown type in dictionary ${dataTypeName}`);
     }

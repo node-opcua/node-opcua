@@ -108,7 +108,7 @@ function constructRegisteredServer(server: IPartialServer, isOnline: boolean): R
     const _commonName = info.tbsCertificate.subject.commonName ?? "";
 
     const serverUri = info.tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier[0];
-    // c8 ignore next
+    /* c8 ignore next */
     if (serverUri !== server.serverInfo.applicationUri) {
         warningLog(
             chalk.yellow("Warning certificate uniformResourceIdentifier doesn't match serverInfo.applicationUri"),
@@ -123,9 +123,9 @@ function constructRegisteredServer(server: IPartialServer, isOnline: boolean): R
         );
     }
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (!server.serverInfo.applicationName.text) {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("warning: application name is missing");
     }
     // The globally unique identifier for the Server instance. The serverUri matches
@@ -202,7 +202,7 @@ async function sendRegisterServerRequest(server: IPartialServer, client: ClientB
         client.performMessageTransaction(request, (err: Error | null, _response?: RegisterServer2Response) => {
             if (!err) {
                 // RegisterServerResponse
-                // c8 ignore next
+                /* c8 ignore next */
                 doDebug &&
                     debugLog(
                         "RegisterServerManager#_registerServer sendRegisterServer2Request has succeeded (isOnline",
@@ -211,7 +211,7 @@ async function sendRegisterServerRequest(server: IPartialServer, client: ClientB
                     );
                 return resolve();
             }
-            // c8 ignore next
+            /* c8 ignore next */
             if (doDebug) {
                 debugLog(
                     "RegisterServerManager#_registerServer sendRegisterServer2Request has failed " + "(isOnline",
@@ -224,7 +224,7 @@ async function sendRegisterServerRequest(server: IPartialServer, client: ClientB
             const request1 = constructRegisterServerRequest(server, isOnline);
             client.performMessageTransaction(request1, (err1: Error | null, _response1?: RegisterServerResponse) => {
                 if (!err1) {
-                    // c8 ignore next
+                    /* c8 ignore next */
                     doDebug &&
                         debugLog(
                             "RegisterServerManager#_registerServer sendRegisterServerRequest " + "has succeeded (isOnline",
@@ -233,7 +233,7 @@ async function sendRegisterServerRequest(server: IPartialServer, client: ClientB
                         );
                     return resolve();
                 }
-                // c8 ignore next
+                /* c8 ignore next */
                 doDebug &&
                     debugLog(
                         "RegisterServerManager#_registerServer sendRegisterServerRequest " + "has failed (isOnline",
@@ -326,7 +326,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
 
     public dispose(): void {
         this.server = null;
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("RegisterServerManager#dispose", this.state.toString());
 
         if (this._registrationTimerId) {
@@ -340,7 +340,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
 
     #_emitEvent(eventName: string): void {
         setImmediate(() => {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog("emiting event", eventName);
             this.emit(eventName);
         });
@@ -348,7 +348,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
 
     #_setState(status: RegisterServerManagerStatus): void {
         const previousState = this.state || RegisterServerManagerStatus.INACTIVE;
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug &&
             debugLog(
                 "RegisterServerManager#setState : ",
@@ -364,7 +364,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
      * It immediately returns while the actual work is performed in a background task.
      */
     public async start(): Promise<void> {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("RegisterServerManager#start");
         if (this.state !== RegisterServerManagerStatus.INACTIVE) {
             throw new Error(`RegisterServer process already started: ${RegisterServerManagerStatus[this.state]}`);

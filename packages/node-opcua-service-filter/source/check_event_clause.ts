@@ -22,7 +22,7 @@ export function checkSelectClause(parentNode: BaseNode, selectClause: SimpleAttr
     //
     const addressSpace = parentNode.addressSpace;
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (selectClause.typeDefinitionId.isEmpty()) {
         return StatusCodes.Good;
     }
@@ -34,7 +34,7 @@ export function checkSelectClause(parentNode: BaseNode, selectClause: SimpleAttr
     }
     // ... and that node must be an ObjectType (an EventType)
     if (eventTypeNode.nodeClass !== NodeClass.ObjectType) {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog(" checkSelectClause", eventTypeNode.toString());
         return StatusCodes.BadTypeMismatch;
     }

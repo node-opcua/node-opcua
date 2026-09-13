@@ -81,7 +81,7 @@ export async function browseAll2(
             result.statusCode.equals(StatusCodes.BadContinuationPointInvalid)
         ) {
             // there was not enough continuation points
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog("There is not enough browse continuation points");
             // we will have to re-inject this browse to a new browse command
             browseToRedo.push({ index: i, nodeToBrowse: nodesToBrowse[i] });

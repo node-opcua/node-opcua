@@ -43,12 +43,12 @@ async function adjustMonitoredItemNodeIds(_subscription: ClientSubscription, _ol
 
  */
 export async function recreateSubscriptionAndMonitoredItem(_subscription: ClientSubscription): Promise<void> {
-    // c8 ignore next
+    /* c8 ignore next */
     doDebug && debugLog("recreateSubscriptionAndMonitoredItem", _subscription.subscriptionId.toString());
 
     const subscription = _subscription as ClientSubscriptionImpl;
     if (subscription.subscriptionId === TERMINATED_SUBSCRIPTION_ID) {
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug && debugLog("Subscription is not in a valid state");
         return;
     }
@@ -71,7 +71,7 @@ export async function recreateSubscriptionAndMonitoredItem(_subscription: Client
 
     const _test = subscription.publishEngine.getSubscription(subscription.subscriptionId);
 
-    // c8 ignore next
+    /* c8 ignore next */
     doDebug && debugLog("recreating ", Object.keys(oldMonitoredItems).length, " monitored Items");
     // re-create monitored items
     const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
@@ -94,12 +94,12 @@ export async function recreateSubscriptionAndMonitoredItem(_subscription: Client
     });
 
     const session = subscription.session;
-    // c8 ignore next
+    /* c8 ignore next */
     if (!session) {
         throw new Error("no session");
     }
 
-    // c8 ignore next
+    /* c8 ignore next */
     doDebug && debugLog("Recreating ", itemsToCreate.length, " monitored items");
 
     const response = await createMonitoredItemsAndRespectOperationalLimits(session, createMonitorItemsRequest);

@@ -116,7 +116,7 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
         const pojo = fieldsToJson(fields, eventFields);
         const { eventType, eventId, conditionId, conditionName } = pojo;
 
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug &&
             debugLog(
                 "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ---- ALARM RECEIVED " +

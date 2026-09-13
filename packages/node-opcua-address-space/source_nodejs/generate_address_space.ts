@@ -34,7 +34,7 @@ const debugLog = make_debugLog("generate_address_space");
 const errorLog = make_errorLog("generate_address_space");
 
 function checkNodeSet2XmlFileExists(xmlFile: string): void {
-    // c8 ignore next
+    /* c8 ignore next */
     if (!fs.existsSync(xmlFile)) {
         const msg = `[NODE-OPCUA-E02] generateAddressSpace : cannot find nodeset2 xml file at ${xmlFile}`;
         errorLog(msg);

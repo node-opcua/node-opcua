@@ -57,11 +57,11 @@ describe("Bonjour", () => {
         });
 
         browser.on("up", (service) => {
-            // c8 ignore next
+            /* c8 ignore next */
             debugLog("MDNSResponder : service is up with  ", serviceToString(service));
         });
         browser.on("down", (service) => {
-            // c8 ignore next
+            /* c8 ignore next */
             debugLog("MDNSResponder : service is down with  ", serviceToString(service));
         });
 

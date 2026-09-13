@@ -66,7 +66,7 @@ const minimumMaxKeepAliveCount = 3;
 function displayKeepAliveWarning(sessionTimeout: number, maxKeepAliveCount: number, publishingInterval: number): boolean {
     const keepAliveInterval = maxKeepAliveCount * publishingInterval;
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (sessionTimeout < keepAliveInterval) {
         warningLog(
             chalk.yellowBright(

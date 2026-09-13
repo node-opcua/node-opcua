@@ -254,7 +254,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     public __waiting_callbacks?: CallbackT<DataValue>[];
 
     get typeDefinitionObj(): UAVariableType {
-        // c8 ignore next
+        /* c8 ignore next */
         if (super.typeDefinitionObj && super.typeDefinitionObj.nodeClass !== NodeClass.VariableType) {
             // this could happen in faulty external nodeset and has been seen once
             // in an nano server
@@ -484,7 +484,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             dataValue.statusCode.equals(StatusCodes.BadWaitingForInitialData) ||
             dataValue.statusCode.equals(StatusCodes.UncertainInitialValue)
         ) {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug &&
                 debugLog(
                     chalk.red(" Warning:  UAVariable#readValue ") +
@@ -1883,13 +1883,13 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
 
         const addressSpace = this.addressSpace;
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (!addressSpace) {
             warningLog("UAVariable#_internal_set_dataValue : no addressSpace ! may be node has already been deleted ?");
             return;
         }
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (dataValue.value.arrayType === VariantArrayType.Matrix) {
             if (!dataValue.value.dimensions) {
                 throw new Error("missing dimensions: a Matrix Variant needs a dimension");

@@ -64,7 +64,7 @@ export function _recomputeRequiredModelsFromTypes(namespace: INamespace, cache?:
         if (_visitedDataType.has(dataType.toString())) {
             return;
         }
-        // c8 ignore next
+        /* c8 ignore next */
         if (dataTypeNode.nodeClass !== NodeClass.DataType) {
             warningLog("exploreDataTypes! ignoring ", dataTypeNode.toString());
             return;
@@ -87,12 +87,12 @@ export function _recomputeRequiredModelsFromTypes(namespace: INamespace, cache?:
         assert(!(e instanceof Variant));
         const nodeId = e.schema.encodingDefaultXml || e.schema.dataTypeNodeId || e.schema.dataTypeNodeId;
         consider(nodeId.namespace);
-        // c8 ignore next
+        /* c8 ignore next */
         if (e.schema.dataTypeNodeId.isEmpty()) {
             warningLog("Cannot find dataTypeNodeId for ", e.schema.name);
         }
         const d = addressSpace.findNode(e.schema.dataTypeNodeId) as UADataType | null;
-        // c8 ignore next
+        /* c8 ignore next */
         if (!d) return;
         exploreDataTypes(d);
     }
@@ -137,7 +137,7 @@ export function _recomputeRequiredModelsFromTypes(namespace: INamespace, cache?:
                 if (dataTypeNode) {
                     consider(dataTypeNode.nodeId.namespace);
                 } else {
-                    // c8 ignore next
+                    /* c8 ignore next */
                     if (dataTypeNodeId.value !== 0) {
                         warningLog("Warning: Cannot find dataType", dataTypeNodeId.toString());
                     }

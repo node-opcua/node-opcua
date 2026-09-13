@@ -53,7 +53,7 @@ function removeElementByIndex<T extends ExtensionObject>(uaArrayVariableNode: UA
     }
 
     const hasComponent = uaArrayVariableNode.addressSpace.findReferenceType("HasComponent");
-    // c8 ignore next
+    /* c8 ignore next */
     if (!hasComponent) {
         throw new Error("cannot find HasComponent reference type: please check your nodeset file");
     }
@@ -95,7 +95,7 @@ export function createExtObjArrayNode<T extends ExtensionObject>(
     const namespace = parentFolder.namespace;
 
     const complexVariableType = addressSpace.findVariableType(options.complexVariableType);
-    // c8 ignore next
+    /* c8 ignore next */
     if (!complexVariableType) {
         throw new Error("cannot find complex variable type");
     }
@@ -108,14 +108,14 @@ export function createExtObjArrayNode<T extends ExtensionObject>(
     assert(!variableType.nodeId.isEmpty());
 
     const structure = addressSpace.findDataType("Structure");
-    // c8 ignore next
+    /* c8 ignore next */
     if (!structure) {
         throw new Error("Structure Type not found: please check your nodeset file");
     }
 
     const dataType = addressSpace.findDataType(variableType.dataType);
 
-    // c8 ignore next
+    /* c8 ignore next */
     if (!dataType) {
         errorLog(variableType.toString());
         throw new Error("cannot find Data Type");
@@ -170,7 +170,7 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
     const addressSpace = uaArrayVariableNode.addressSpace;
 
     const variableType = addressSpace.findVariableType(variableTypeNodeId);
-    // c8 ignore next
+    /* c8 ignore next */
     if (!variableType || variableType.nodeId.isEmpty()) {
         throw new Error(`Cannot find VariableType ${variableTypeNodeId.toString()}`);
     }

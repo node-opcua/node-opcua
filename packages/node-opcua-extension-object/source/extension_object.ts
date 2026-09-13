@@ -82,7 +82,7 @@ export function encodeExtensionObject(object: BaseUAObject | null, stream: Outpu
         // ensure we have a valid encoding Default Binary ID !!!
         /* c8 ignore next */
         if (!object.schema) {
-            // c8 ignore next
+            /* c8 ignore next */
             doDebug && debugLog(" object = ", object);
             throw new Error(`object has no schema ${object.constructor.name}`);
         }

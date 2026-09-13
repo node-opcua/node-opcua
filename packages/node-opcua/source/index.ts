@@ -30,7 +30,7 @@ import semver from "semver";
 
 const minimumNodeJsVersionRequired = ">=16.7.0"; // minimum
 
-// c8 ignore next
+/* c8 ignore next */
 if (typeof process === "object" && !semver.satisfies(process.version, minimumNodeJsVersionRequired)) {
     console.log(
         chalk.cyan(

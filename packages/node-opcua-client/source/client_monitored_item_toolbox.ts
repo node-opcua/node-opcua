@@ -85,7 +85,7 @@ export namespace ClientMonitoredItemToolbox {
         session.createMonitoredItems(createMonitorItemsRequest, (err?: Error | null, response?: CreateMonitoredItemsResponse) => {
             /* c8 ignore next */
             if (err) {
-                // c8 ignore next
+                /* c8 ignore next */
                 doDebug &&
                     debugLog(chalk.red("ClientMonitoredItemBase#_toolbox_monitor:  ERROR in createMonitoredItems ", err.message));
             } else {

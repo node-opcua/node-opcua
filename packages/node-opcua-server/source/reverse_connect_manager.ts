@@ -139,7 +139,7 @@ export class ReverseConnectManager {
         const serverUri = this.#context.getServerUri();
         const endpointUrl = this.#context.getEndpointUrl();
 
-        // c8 ignore next
+        /* c8 ignore next */
         doDebug &&
             debugLog(`reverse connect: dialing ${state.clientEndpointUrl} (serverUri=${serverUri}, endpointUrl=${endpointUrl})`);
 

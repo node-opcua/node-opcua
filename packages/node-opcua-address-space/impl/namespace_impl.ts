@@ -140,7 +140,7 @@ function _makeHashKey(nodeId: NodeId): string | number {
         case NodeIdType.NUMERIC:
             return nodeId.value as number;
         default:
-            // c8 ignore next
+            /* c8 ignore next */
             if (nodeId.identifierType !== NodeIdType.BYTESTRING) {
                 throw new Error("invalid nodeIdType");
             }
@@ -265,7 +265,7 @@ export class NamespaceImpl implements NamespacePrivate {
     private defaultRolePermissions?: RolePermissionType[];
 
     constructor(options: NamespaceConstructorOptions) {
-        // c8 ignore next
+        /* c8 ignore next */
         if (!(typeof options.namespaceUri === "string")) {
             throw new Error(`NamespaceImpl constructor: namespaceUri must exists and be a string : got ${options.namespaceUri}`);
         }

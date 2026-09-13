@@ -23,7 +23,7 @@ export function addSimulationVariables(namespace: Namespace, scalarFolder: UAObj
         const dataType = findDataType(realTypeName);
         const randomFunc = getRandomFuncForType(dataType, custom);
 
-        // c8 ignore next
+        /* c8 ignore next */
         if (typeof randomFunc !== "function") {
             throw new Error(`a random function must exist for basicType ${dataTypeName}`);
         }

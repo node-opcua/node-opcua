@@ -20,7 +20,7 @@ export function installCertificateFileWatcher(
         (_eventType: "rename" | "change", filename) => {
             /** */
             if (filename === fileToWatch) {
-                // c8 ignore next
+                /* c8 ignore next */
                 doDebug && debugLog("filename changed = ", filename, fileToWatch);
                 node.emit("certificateChange");
             }

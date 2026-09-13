@@ -313,12 +313,12 @@ export function makeExtensionObjectParser<T>(
                                 }
                                 break;
                             default: {
-                                // c8 ignore next
+                                /* c8 ignore next */
                                 if (!this._cloneFragment) {
                                     // the XML file is probably not exposing standard UA extension object correctly.
                                     // this has been seen in some generated xml files using the dataType nodeId instead of the default encoding
                                     // nodeid
-                                    // c8 ignore next
+                                    /* c8 ignore next */
                                     doDebug &&
                                         errorLog(
                                             "[NODE-OPCUA-E12] standard OPCUA Extension object from (namespace=0) has a invalid TypeId",
@@ -332,7 +332,7 @@ export function makeExtensionObjectParser<T>(
                                 // the "Default Xml" encoding  nodeId
                                 const xmlEncodingNodeId = typeDefinitionId;
                                 if (typeDefinitionId.isEmpty()) {
-                                    // c8 ignore next
+                                    /* c8 ignore next */
                                     doDebug && debugLog(`xmlEncodingNodeId is empty for ${typeDefinitionId.toString()}`);
                                     break;
                                 }
