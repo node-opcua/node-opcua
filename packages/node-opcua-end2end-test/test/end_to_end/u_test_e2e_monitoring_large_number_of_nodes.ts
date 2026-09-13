@@ -223,22 +223,36 @@ export function t(test: UmbrellaTestContext) {
                         "expecting some raw notification"
                     );
 
-                    keepAlive.resetHistory();
-                    await waitUntilCondition(async () => keepAlive.callCount >= 2, 5000, "expecting a keepalive notification");
+                    // Wait for the condition the assertions below are about: data received
+                    // for every monitored item.
+                    //
+                    // This used to wait for two keepalives instead, which made the test
+                    // depend on scheduler luck. A keepalive is only sent on a publish cycle
+                    // that has nothing to report, and 5000 items on continuously changing
+                    // Scalar_Simulation_* variables rarely leave one; keepalives only appear
+                    // in the gaps between simulation ticks. Anything that slows the backlog
+                    // down - c8's instrumentation, a loaded machine - fills those gaps, and
+                    // the 5s budget expired before a second keepalive ever arrived.
+                    const dataNotifications = () =>
+                        notificationMessageSpy
+                            .getCalls()
+                            .map((call) => call.args[0] as NotificationMessage)
+                            .filter((n) => n.notificationData!.length > 0);
 
-                    //      keepAlive.resetHistory();
-                    //       await waitUntilCondition(async () => keepAlive.callCount >= 2, 5000, "expecting a keepalive notification");
+                    const countReportedItems = () =>
+                        dataNotifications().reduce((acc, n) => {
+                            const dataChangeNotification = n.notificationData?.[0] as DataChangeNotification;
+                            return acc + dataChangeNotification.monitoredItems!.length;
+                        }, 0);
 
-                    // find the first raw notification that as notification.length > 0 inside the notificationMessageSpy calls
-                    const rawNotifs = notificationMessageSpy
-                        .getCalls()
-                        .map((call) => call.args[0] as NotificationMessage)
-                        .filter((n) => n.notificationData!.length > 0);
+                    await waitUntilCondition(
+                        async () => countReportedItems() >= itemsToMonitor.length,
+                        30_000,
+                        "expecting data for all monitored items"
+                    );
 
-                    const totalItemsCreated = rawNotifs.reduce((acc, n) => {
-                        const dataChangeNotification = n.notificationData?.[0] as DataChangeNotification;
-                        return acc + dataChangeNotification.monitoredItems!.length;
-                    }, 0);
+                    const rawNotifs = dataNotifications();
+                    const totalItemsCreated = countReportedItems();
 
                     rawNotifs.length.should.be.greaterThan(0, "expecting at least one notification with some data");
                     totalItemsCreated.should.be.greaterThan(
