@@ -135,12 +135,18 @@ describe("Condition refresh and the EventFilter where clause", function (this: M
 
     let nextMonitoredItemId = 1;
 
+    /** what a Subscription holds, as ConditionRefresh2 and the MonitoredItem see it */
+    const itemsOfSubscription = new Map<ISubscriptionBase, Map<number, MonitoredItem>>();
+
     function makeSubscription(id: number): ISubscriptionBase {
-        return {
+        const items = new Map<number, MonitoredItem>();
+        const subscription = {
             id,
-            getMonitoredItem: () => null,
+            getMonitoredItem: (monitoredItemId: number) => items.get(monitoredItemId) || null,
             $session: { sessionContext: SessionContext.defaultContext }
         } as unknown as ISubscriptionBase;
+        itemsOfSubscription.set(subscription, items);
+        return subscription;
     }
 
     async function makeEventMonitoredItem(subscription: ISubscriptionBase, whereClause?: ContentFilter) {
@@ -158,6 +164,7 @@ describe("Condition refresh and the EventFilter where clause", function (this: M
         monitoredItems.push(monitoredItem);
 
         monitoredItem.$subscription = subscription as unknown as MonitoredItem["$subscription"];
+        itemsOfSubscription.get(subscription)?.set(monitoredItemId, monitoredItem);
         monitoredItem.setNode(serverObject);
         monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
         // the "event" listener is installed on the next tick (see MonitoredItem#_start_sampling)
@@ -185,14 +192,30 @@ describe("Condition refresh and the EventFilter where clause", function (this: M
     const refreshStart = "ns=0;i=2787";
     const refreshEnd = "ns=0;i=2788";
 
-    function conditionRefresh(subscription: ISubscriptionBase): Promise<CallMethodResultOptions> {
-        const session: ISessionBase = {
+    function makeSession(subscription: ISubscriptionBase): ISessionBase {
+        return {
             ...mockSession,
             getSubscription: (subscriptionId: number) => (subscriptionId === subscription.id ? subscription : null)
         };
-        const context = new SessionContext({ object: conditionType, server: {}, session });
+    }
+
+    function conditionRefresh(subscription: ISubscriptionBase): Promise<CallMethodResultOptions> {
+        const context = new SessionContext({ object: conditionType, server: {}, session: makeSession(subscription) });
         const method = conditionType.getMethodByName("ConditionRefresh")!;
         return method.execute(null, [new Variant({ dataType: DataType.UInt32, value: subscription.id })], context);
+    }
+
+    function conditionRefresh2(subscription: ISubscriptionBase, monitoredItemId: number): Promise<CallMethodResultOptions> {
+        const context = new SessionContext({ object: conditionType, server: {}, session: makeSession(subscription) });
+        const method = conditionType.getMethodByName("ConditionRefresh2")!;
+        return method.execute(
+            null,
+            [
+                new Variant({ dataType: DataType.UInt32, value: subscription.id }),
+                new Variant({ dataType: DataType.UInt32, value: monitoredItemId })
+            ],
+            context
+        );
     }
 
     it("CRW-1 - an item whose where clause names one ConditionId still receives the RefreshStart/RefreshEnd bracket", async () => {
@@ -262,5 +285,128 @@ describe("Condition refresh and the EventFilter where clause", function (this: M
 
         should(eventTypesOf(otherItem)).not.containEql(refreshStart);
         should(eventTypesOf(otherItem)).not.containEql(refreshEnd);
+    });
+
+    /**
+     * OPC 10000-9 5.5.7: the SubscriptionId argument indicates "which Client Subscription shall be
+     * refreshed"; the bracket is queued "into the Event stream for every Notifier MonitoredItem in
+     * the Subscription" and the Retained Conditions replayed in between are the ones meeting "the
+     * Subscriptions content filter criteria". 5.5.8 narrows both to the one MonitoredItem named.
+     *
+     * The address space raises all of it on the Server Object, from where it bubbles to every
+     * event MonitoredItem of the whole Server, so a Subscription nobody refreshed used to be
+     * handed the bracket and somebody else's Conditions.
+     */
+    describe("a refresh reaches only the Subscription it was asked for", () => {
+        it("CRS-1 - an item with NO where clause on another Subscription receives no bracket", async () => {
+            const refreshedSubscription = makeSubscription(106);
+            const otherSubscription = makeSubscription(107);
+
+            const refreshedItem = await makeEventMonitoredItem(refreshedSubscription);
+            const otherItem = await makeEventMonitoredItem(otherSubscription);
+
+            const result = await conditionRefresh(refreshedSubscription);
+            should(result.statusCode).eql(StatusCodes.Good);
+
+            should(eventTypesOf(refreshedItem)).containEql(refreshStart);
+            should(eventTypesOf(refreshedItem)).containEql(refreshEnd);
+
+            // no where clause to discard anything: only the scope of the refresh keeps it out
+            should(eventTypesOf(otherItem)).not.containEql(refreshStart);
+            should(eventTypesOf(otherItem)).not.containEql(refreshEnd);
+        });
+
+        it("CRS-2 - and no replayed Retained Condition either: that item receives nothing at all", async () => {
+            const refreshedSubscription = makeSubscription(108);
+            const otherSubscription = makeSubscription(109);
+
+            const refreshedItem = await makeEventMonitoredItem(refreshedSubscription);
+            const otherItem = await makeEventMonitoredItem(otherSubscription);
+
+            await conditionRefresh(refreshedSubscription);
+
+            const refreshedConditionIds = conditionIdsOf(refreshedItem).slice(1, -1);
+            should(refreshedConditionIds).containEql(conditionA.nodeId.toString());
+            should(refreshedConditionIds).containEql(conditionB.nodeId.toString());
+
+            should(otherItem.queue.length).eql(
+                0,
+                `expecting an empty queue, got ${eventTypesOf(otherItem).join(", ")} / ${conditionIdsOf(otherItem).join(", ")}`
+            );
+        });
+
+        it("CRS-3 - the refreshed Subscription still gets everything, with and without a where clause", async () => {
+            const subscription = makeSubscription(110);
+            const plainItem = await makeEventMonitoredItem(subscription);
+            const filteredItem = await makeEventMonitoredItem(subscription, whereConditionIdIs(conditionA.nodeId));
+
+            await conditionRefresh(subscription);
+
+            for (const monitoredItem of [plainItem, filteredItem]) {
+                const eventTypes = eventTypesOf(monitoredItem);
+                should(eventTypes[0]).eql(refreshStart);
+                should(eventTypes[eventTypes.length - 1]).eql(refreshEnd);
+            }
+
+            const plainConditionIds = conditionIdsOf(plainItem).slice(1, -1);
+            should(plainConditionIds).containEql(conditionA.nodeId.toString());
+            should(plainConditionIds).containEql(conditionB.nodeId.toString());
+
+            // 5.5.7 step 2: the Retained Conditions still meet the Subscription's content filter
+            const filteredConditionIds = conditionIdsOf(filteredItem).slice(1, -1);
+            should(filteredConditionIds.length).be.greaterThan(0);
+            should(filteredConditionIds.every((nodeId) => nodeId === conditionA.nodeId.toString())).eql(
+                true,
+                `expecting only ConditionA, got ${filteredConditionIds.join(", ")}`
+            );
+        });
+
+        it("CRS-4 - ConditionRefresh2 delivers to the named MonitoredItem and to no other", async () => {
+            const subscription = makeSubscription(111);
+            const otherSubscription = makeSubscription(112);
+
+            const namedItem = await makeEventMonitoredItem(subscription);
+            const siblingItem = await makeEventMonitoredItem(subscription);
+            const otherItem = await makeEventMonitoredItem(otherSubscription);
+
+            const result = await conditionRefresh2(subscription, namedItem.monitoredItemId);
+            should(result.statusCode).eql(StatusCodes.Good);
+
+            const eventTypes = eventTypesOf(namedItem);
+            should(eventTypes[0]).eql(refreshStart);
+            should(eventTypes[eventTypes.length - 1]).eql(refreshEnd);
+            should(conditionIdsOf(namedItem).slice(1, -1)).containEql(conditionA.nodeId.toString());
+
+            // 5.5.8: the sibling is in the same Subscription but was not named
+            should(siblingItem.queue.length).eql(0, `expecting an empty queue, got ${eventTypesOf(siblingItem).join(", ")}`);
+            should(otherItem.queue.length).eql(0, `expecting an empty queue, got ${eventTypesOf(otherItem).join(", ")}`);
+        });
+
+        it("CRS-5 - outside a refresh every Subscription still receives every Event", async () => {
+            const subscription1 = makeSubscription(113);
+            const subscription2 = makeSubscription(114);
+
+            const item1 = await makeEventMonitoredItem(subscription1);
+            const item2 = await makeEventMonitoredItem(subscription2);
+
+            conditionA.raiseConditionEvent(conditionA.currentBranch(), true);
+            conditionB.raiseConditionEvent(conditionB.currentBranch(), true);
+
+            for (const monitoredItem of [item1, item2]) {
+                const conditionIds = conditionIdsOf(monitoredItem);
+                should(conditionIds).eql([conditionA.nodeId.toString(), conditionB.nodeId.toString()]);
+            }
+
+            // and once a refresh of subscription1 has come and gone, ordinary delivery resumes
+            item1.queue.length = 0;
+            item2.queue.length = 0;
+            await conditionRefresh(subscription1);
+            item1.queue.length = 0;
+            item2.queue.length = 0;
+
+            conditionB.raiseConditionEvent(conditionB.currentBranch(), true);
+            should(conditionIdsOf(item1)).eql([conditionB.nodeId.toString()]);
+            should(conditionIdsOf(item2)).eql([conditionB.nodeId.toString()]);
+        });
     });
 });

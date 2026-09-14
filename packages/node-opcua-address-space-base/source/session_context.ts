@@ -72,9 +72,15 @@ export interface ISubscriptionBase {
  * The retained Condition Events sent in between still have to "meet the Subscriptions content
  * filter criteria" (5.5.7), so only the bracket bypasses the where clause.
  *
- * The address space raises the bracket but knows nothing about Subscriptions, so it publishes
- * the scope of the refresh in progress and the server side reads it back: that keeps the bypass
- * to the Subscription the ConditionRefresh call named.
+ * 5.5.7 also says which Subscription all of it is for: the bracket is queued "for every Notifier
+ * MonitoredItem in the Subscription" named by the SubscriptionId argument, and the Retained
+ * Conditions are the ones meeting that Subscription's content filter. 5.5.8 narrows both to the
+ * single MonitoredItem ConditionRefresh2 names.
+ *
+ * The address space raises all of it on the Server Object and knows nothing about Subscriptions -
+ * from there an Event bubbles to every event MonitoredItem of the whole Server. So it publishes
+ * the scope of the refresh in progress and the server side reads it back: a MonitoredItem outside
+ * the scope drops the refresh, one inside it applies the bypass.
  */
 export interface ConditionRefreshScope {
     /** the Subscription of the SubscriptionId argument */

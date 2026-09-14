@@ -12,7 +12,13 @@ import {
     SessionContext,
     type UAVariable
 } from "node-opcua-address-space";
-import type { IConditionRefreshScopeHolder, ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
+import type {
+    ConditionRefreshScope,
+    IConditionRefreshScopeHolder,
+    ISessionContext,
+    UAMethod,
+    UAObject
+} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import type { DateTime, UInt32 } from "node-opcua-basic-types";
 import { ObjectTypeIds } from "node-opcua-constants";
@@ -1222,45 +1228,22 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     }
 
     /**
-     * OPC 10000-9 4.5: "To ensure a Client is always informed, the three special EventTypes
-     * (RefreshEndEventType, RefreshStartEventType and RefreshRequiredEventType) ignore the Event
-     * content filtering associated with a Subscription and will always be delivered to the
-     * Client." The retained Condition Events sent in between still have to "meet the
-     * Subscriptions content filter criteria" (5.5.7), so only the bracket is exempt.
+     * OPC 10000-9 5.5.7: the SubscriptionId argument of ConditionRefresh "indicat[es] which Client
+     * Subscription shall be refreshed"; the bracket is queued "into the Event stream for every
+     * Notifier MonitoredItem in the Subscription" and the Retained Conditions replayed in between
+     * are the ones that "meet the Subscriptions content filter criteria" - that Subscription's.
+     * 5.5.8 narrows both to the single MonitoredItem ConditionRefresh2 names.
      *
-     * Without this, a where clause testing a Condition field discards RefreshStart/RefreshEnd -
-     * they are not Conditions and carry no ConditionId - and a Client that filtered down to one
-     * Condition waits for a RefreshEnd that never comes. Measured with the CTT's A & C Refresh
-     * Test_002: the item filtering on a ConditionId received its 78 Condition Events and neither
-     * end of the bracket, while the unfiltered item on the same Subscription received both.
-     *
-     * The exemption is no wider than that sentence:
-     * - only those two EventTypes, recognised by their EventType field;
-     * - only while the ConditionRefresh that raised them runs - the address space sets the scope
-     *   around the synchronous raise and clears it in a `finally`;
-     * - only for the Subscription the call named, compared by object identity, so an item of any
-     *   other Subscription keeps filtering the bracket exactly as before;
-     * - ConditionRefresh2 (5.5.8) names one MonitoredItem, and only that item is exempt.
-     * The select clauses are untouched: the Client still gets the fields it asked for.
-     *
-     * The third EventType of the sentence, RefreshRequiredEventType, is not raised by a
-     * ConditionRefresh - it is how a Server asks for one - so there is no refresh scope to
-     * recognise it in and nothing here exempts it.
+     * So a refresh belongs to exactly one Subscription (or one MonitoredItem), and this says
+     * whether it is ours. The comparison is by object identity, not by id: the Subscription the
+     * call resolved has to be the very object this MonitoredItem belongs to.
      */
-    private _is_refresh_bracket_addressed_to_me(addressSpace: AddressSpace, eventData: IEventData): boolean {
-        const scope = (addressSpace as Partial<IConditionRefreshScopeHolder>)._condition_refresh_scope;
-        if (!scope) {
-            return false;
-        }
-        // identity, not id: the Subscription named by the call has to be the very object this
-        // MonitoredItem belongs to
+    private _is_refresh_addressed_to_me(scope: ConditionRefreshScope): boolean {
         if ((scope.subscription as unknown) !== (this.$subscription as unknown)) {
             return false;
         }
-        if (scope.monitoredItemId !== undefined && scope.monitoredItemId !== this.monitoredItemId) {
-            return false;
-        }
-        return _is_refresh_bracket_event(eventData);
+        // ConditionRefresh2 (5.5.8) names one MonitoredItem; ConditionRefresh (5.5.7) names none
+        return scope.monitoredItemId === undefined || scope.monitoredItemId === this.monitoredItemId;
     }
 
     private _on_opcua_event(eventData: IEventData) {
@@ -1271,8 +1254,57 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
 
         const addressSpace: AddressSpace = eventData.getEventDataSource().addressSpace as AddressSpace;
 
+        /**
+         * The ConditionRefresh in progress, if any. The address space sets the scope around the
+         * synchronous raise of the bracket and the replay of the Retained Conditions, and clears
+         * it in a `finally`, so it is `null` at every other moment - an Event raised outside a
+         * refresh reaches the where clause below exactly as it always did. It is also `null` for a
+         * refresh asked for by something that owns no Subscription (a PseudoSession, an in-process
+         * caller): nothing is named, so nothing is narrowed.
+         */
+        const scope = (addressSpace as Partial<IConditionRefreshScopeHolder>)._condition_refresh_scope || null;
+
+        if (scope && !this._is_refresh_addressed_to_me(scope)) {
+            // 5.5.7 / 5.5.8: everything a refresh produces - the bracket and the Retained
+            // Conditions replayed between its two halves - belongs to the Subscription the call
+            // named. The address space raises all of it on the Server Object, from where it
+            // bubbles to every event MonitoredItem of every Subscription of every Session, so the
+            // Subscriptions the call did not name have to drop it here.
+            //
+            // The refresh runs synchronously, so nothing else can raise an Event while the scope
+            // is set: what arrives here inside the window is the refresh and nothing else. (5.5.7
+            // step 3 lets a Server intersperse genuinely new Events with the refresh; this Server
+            // never does, because it cannot reach the event loop in between.)
+            return;
+        }
+
+        /**
+         * OPC 10000-9 4.5: "To ensure a Client is always informed, the three special EventTypes
+         * (RefreshEndEventType, RefreshStartEventType and RefreshRequiredEventType) ignore the
+         * Event content filtering associated with a Subscription and will always be delivered to
+         * the Client." The Retained Conditions sent in between still have to "meet the
+         * Subscriptions content filter criteria" (5.5.7), so only the bracket is exempt.
+         *
+         * Without this, a where clause testing a Condition field discards RefreshStart/RefreshEnd
+         * - they are not Conditions and carry no ConditionId - and a Client that filtered down to
+         * one Condition waits for a RefreshEnd that never comes. Measured with the CTT's A & C
+         * Refresh Test_002: the item filtering on a ConditionId received its 78 Condition Events
+         * and neither end of the bracket, while the unfiltered item on the same Subscription
+         * received both.
+         *
+         * The exemption is no wider than that sentence: only those two EventTypes, recognised by
+         * their EventType field, and only inside a refresh addressed to this item - by the test
+         * just above, a refresh addressed elsewhere never gets this far. The select clauses are
+         * untouched: the Client still gets the fields it asked for.
+         *
+         * The third EventType of the sentence, RefreshRequiredEventType, is not raised by a
+         * ConditionRefresh - it is how a Server asks for one - so there is no refresh scope to
+         * recognise it in and nothing here exempts it.
+         */
+        const isRefreshBracketForMe = scope !== null && _is_refresh_bracket_event(eventData);
+
         if (
-            !this._is_refresh_bracket_addressed_to_me(addressSpace, eventData) &&
+            !isRefreshBracketForMe &&
             !checkWhereClauseOnAddressSpace(addressSpace, SessionContext.defaultContext, this.filter.whereClause, eventData)
         ) {
             return;
