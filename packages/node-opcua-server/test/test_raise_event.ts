@@ -10,7 +10,8 @@ import {
     type Namespace,
     SessionContext,
     type UAEventType,
-    type UAObject
+    type UAObject,
+    type UAVariable
 } from "node-opcua-address-space";
 import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers.js";
 import { AttributeIds, coerceQualifiedName, NodeClass } from "node-opcua-data-model";
@@ -224,6 +225,68 @@ describe("testing Events  ", () => {
             const selectClauseResults = checkSelectClauses(conditionType, eventFilter.selectClauses!);
             selectClauseResults.length.should.eql(1);
             selectClauseResults[0].should.eql(StatusCodes.BadNodeIdUnknown);
+        });
+    });
+
+    describe("select clause whose typeDefinitionId is a supertype of the type declaring the field (FEAT-60)", () => {
+        // OPC 10000-4 7.4.4.5: typeDefinitionId restricts the operand to instances of that type *or its
+        // subtypes*, so BaseEventType acts as a wildcard. The CTT's Alarms and Conditions client asks for
+        // [BranchId] and [Retain] with typeDefinitionId = BaseEventType, although both are declared on
+        // ConditionType. Validating the browsePath against BaseEventType's own declarations reported
+        // BadNoMatch and the client never received Retain.
+        let baseEventType2: UAEventType;
+        let condition2: UAObject;
+
+        before(() => {
+            baseEventType2 = addressSpace.findEventType("BaseEventType")!;
+            should.exist(baseEventType2);
+            const conditionType = addressSpace.findEventType("ConditionType")!;
+            should.exist(conditionType);
+            const myConditionType2 = namespace.addObjectType({
+                browseName: "MyTestConditionType2",
+                subtypeOf: conditionType
+            });
+            condition2 = myConditionType2.instantiate({
+                browseName: "MyTestCondition2",
+                organizedBy: addressSpace.rootFolder.objects
+            }) as UAObject;
+        });
+
+        function checkOne(browsePathName: string, attributeId: AttributeIds = AttributeIds.Value) {
+            const eventFilter = new EventFilter({
+                selectClauses: [
+                    { typeDefinitionId: baseEventType2.nodeId, browsePath: [coerceQualifiedName(browsePathName)], attributeId }
+                ],
+                whereClause: { elements: [] }
+            });
+            const selectClauseResults = checkSelectClauses(baseEventType2, eventFilter.selectClauses!);
+            selectClauseResults.length.should.eql(1);
+            return { eventFilter, statusCode: selectClauseResults[0] };
+        }
+
+        it("should report Good for BaseEventType + browsePath [Retain] and deliver the Retain value", () => {
+            const { eventFilter, statusCode } = checkOne("Retain");
+            should(statusCode).eql(StatusCodes.Good);
+
+            const retain = condition2.getChildByName("Retain") as UAVariable;
+            should.exist(retain);
+            retain.setValueFromSource({ dataType: DataType.Boolean, value: true });
+
+            const eventData = new EventData(condition2);
+            const eventFields = extractEventFields(SessionContext.defaultContext, eventFilter.selectClauses!, eventData);
+            should(eventFields.length).eql(1);
+            should(eventFields[0].dataType).eql(DataType.Boolean);
+            should(eventFields[0].value).eql(true);
+        });
+
+        it("should report Good for BaseEventType + browsePath [BranchId]", () => {
+            const { statusCode } = checkOne("BranchId");
+            should(statusCode).eql(StatusCodes.Good);
+        });
+
+        it("should still reject a field declared by no event type at all", () => {
+            const { statusCode } = checkOne("ThisFieldDoesNotExist");
+            should(statusCode).eql(StatusCodes.BadNoMatch);
         });
     });
 
