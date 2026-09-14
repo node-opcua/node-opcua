@@ -76,6 +76,14 @@ build_and_test_node_24:
   <<: *build_template
   image: node:24
 
+# Node 26 is the current release line. It is allowed to fail for now: it runs so
+# the next LTS promotion is not the first time we hear about a breakage, but a red
+# result on the newest runtime must not block a merge.
+build_and_test_node_26:
+  <<: *build_template
+  image: node:26
+  allow_failure: true
+
 
 # build_and_test_node_21:
 #   <<: *build_template
