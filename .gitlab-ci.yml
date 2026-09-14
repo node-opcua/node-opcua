@@ -16,13 +16,22 @@ variables:
     # isolation, and is why the identical suite is green there and red here.
     FF_NETWORK_PER_BUILD: "true"
 
+# Cache the pnpm store and nothing else. `packages/` used to be listed here, and that
+# is a trap: the cache is restored AFTER the checkout, so the archive - which holds
+# tracked source, not just build output - was extracted over the freshly checked-out
+# tree and jobs silently ran the previous pipeline's code. A fix to any file under
+# packages/ appeared to have no effect. `node_modules/` is a pnpm symlink farm that is
+# not portable and that install rebuilds anyway, `.npm/` is npm's cache in a repo that
+# installs with pnpm, and `~/.pnpm-store` is outside the project directory, so GitLab
+# never cached it - the store actually lives at $CI_PROJECT_DIR/.pnpm-store.
+#
+# The key is versioned because the poisoned archives are still on the cache server
+# under the old key; restoring one would clobber the checkout again no matter what
+# this paths list says.
 cache:
-    key: ${CI_COMMIT_REF_SLUG}
+    key: ${CI_COMMIT_REF_SLUG}-v2
     paths:
-        - .npm/
-        - node_modules/
-        - packages/
-        - ~/.pnpm-store
+        - .pnpm-store/
 
 .build_template: &build_template
     variables:
