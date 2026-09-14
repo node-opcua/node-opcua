@@ -9,7 +9,7 @@ import { DataTypeIds } from "node-opcua-constants";
 import { AttributeIds, type LocalizedText, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
 import { DataValue, type DataValueLike } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { ExpandedNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { ExpandedNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import {
@@ -323,10 +323,31 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
         const union = addressSpace.findDataType("Union");
 
         // we have a data type from a companion specification
-        // let's see if this data type need to be registered
-        const isEnumeration = enumeration && this.isSubtypeOf(enumeration);
-        const isStructure = structure && this.isSubtypeOf(structure);
-        const isUnion = !!(structure && union && this.isSubtypeOf(union));
+        // let's see if this data type need to be registered.
+        //
+        // One walk up the chain answers all three questions. `isSubtypeOf` would answer each of
+        // them, and memoizes — but its memo is keyed on a counter bumped every time a HasSubtype
+        // reference is added anywhere, so during a load, which adds thousands of them, the memo
+        // is thrown away before it is ever read and each call walks the chain from scratch. Three
+        // walks become one, and the one uses `subtypeOfObj`, which is cached per node, instead of
+        // filtering the node's whole reference list at every level.
+        let isEnumeration = false;
+        let isStructure = false;
+        let isUnion = false;
+        {
+            let ancestor: UADataTypeImpl | null = this;
+            // a chain longer than this is a cycle in a broken nodeset, not a model
+            let guard = 128;
+            while (ancestor && guard-- > 0) {
+                const nodeId = ancestor.nodeId;
+                if (enumeration && sameNodeId(nodeId, enumeration.nodeId)) isEnumeration = true;
+                if (structure && sameNodeId(nodeId, structure.nodeId)) isStructure = true;
+                if (union && sameNodeId(nodeId, union.nodeId)) isUnion = true;
+                ancestor = ancestor.subtypeOfObj as UADataTypeImpl | null;
+            }
+            // a Union is a Structure; the original asked for both and so does this
+            isUnion = isUnion && !!structure;
+        }
 
         const isRootDataType = (n: UADataType) => n.nodeId.namespace === 0 && n.nodeId.value === DataTypeIds.BaseDataType;
 
