@@ -58,14 +58,12 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
     const models: NodesetModelRecord[] = [];
     const aliases: Record<string, NodeId> = Object.create(null);
     let headerEmitted = false;
-    // every id string of the file resolved once: "i=47" alone appears tens of thousands of times
+    // every id string of the file resolved once: "i=47" alone appears tens of thousands of times.
+    // The aliases are seeded into the same table as they are declared — an alias is just another
+    // spelling of an id — so the fifty thousand lookups a document costs are one probe, not two.
     const ids = new Map<string, NodeId>();
 
     function nodeIdOf(text: string): NodeId {
-        const alias = aliases[text];
-        if (alias) {
-            return alias;
-        }
         let nodeId = ids.get(text);
         if (!nodeId) {
             nodeId = resolveNodeId(text);
@@ -108,7 +106,11 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
 
     const state_Alias = {
         finish(this: State) {
-            aliases[this.attrs.Alias] = resolveNodeId(this.text);
+            const name = this.attrs.Alias;
+            const nodeId = resolveNodeId(this.text);
+            aliases[name] = nodeId;
+            // the alias table still travels in the header record; the id table is what nodeIdOf reads
+            ids.set(name, nodeId);
         }
     };
 

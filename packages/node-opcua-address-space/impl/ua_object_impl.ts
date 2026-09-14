@@ -75,7 +75,11 @@ export class UAObjectImpl<T extends UAObjectEvents & ListenerSignature<T> = UAOb
     constructor(options: InternalBaseNodeOptions & { eventNotifier?: number; symbolicName?: string | null }) {
         super(options);
         this._eventNotifier = options.eventNotifier || EventNotifierFlags.None;
-        assert(typeof this.eventNotifier === "number" && isValidByte(this.eventNotifier));
+        // the declared flags, not the getter: reading the getter here scans the node's references
+        // for event sources and notifiers, twice, for a node that has just been built and whose
+        // references the loader has not wired yet. The getter answers the same value for a node in
+        // that state, and it still runs — and still caches — at the first real read.
+        assert(typeof this._eventNotifier === "number" && isValidByte(this._eventNotifier));
         this.symbolicName = options.symbolicName || null;
         // every event MonitoredItem on this object is one "event" listener, and the Server
         // object collects them for every Session: more than ten is the normal case, not a
