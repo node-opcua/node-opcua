@@ -588,6 +588,8 @@ const OPTIONAL_PLAIN: Array<keyof NodesetNodeRecord & keyof NodesetImageNode> = 
     "accessLevel",
     "userAccessLevel"
 ];
+/** the same keys, for the reader, which asks of a key the image carries whether it is one of these */
+const OPTIONAL_PLAIN_SET = new Set<string>(OPTIONAL_PLAIN);
 
 export function encodeNode(record: NodesetNodeRecord): NodesetImageNode {
     const out: NodesetImageNode = {
@@ -650,24 +652,36 @@ export function decodeNode(json: NodesetImageNode): NodesetNodeRecord {
     if (typeof json.nodeClass !== "number" || !(json.nodeClass in NodeClass)) {
         throw new NodesetImageError(`not a node record: ${JSON.stringify(json).slice(0, 80)}`);
     }
+    // a sized array filled in place: a nodeset carries twenty thousand references, and `map` over
+    // the encoded ones allocated a closure per node and grew the array as it went
+    const encoded = json.references || [];
+    const references: NodesetReferenceRecord[] = new Array(encoded.length);
+    for (let i = 0; i < encoded.length; i++) {
+        const r = encoded[i];
+        references[i] = {
+            isForward: r[0] === 1,
+            referenceType: decodeNodeId(r[1]),
+            nodeId: decodeNodeId(r[2]),
+            inverseDeclared: r.length === 3
+        };
+    }
     const record: NodesetNodeRecord = {
         kind: "node",
         nodeClass: json.nodeClass,
         nodeId: decodeNodeId(json.nodeId),
         browseName: decodeQualifiedName(json.browseName),
-        references: (json.references || []).map(
-            (r): NodesetReferenceRecord => ({
-                isForward: r[0] === 1,
-                referenceType: decodeNodeId(r[1]),
-                nodeId: decodeNodeId(r[2]),
-                inverseDeclared: r.length === 3
-            })
-        )
+        references
     };
-    for (const key of OPTIONAL_PLAIN) {
-        const v = (json as unknown as Record<string, unknown>)[key];
-        if (v !== undefined) {
-            (record as unknown as Record<string, unknown>)[key] = v;
+    // the keys the writer actually emitted, not the nineteen it might have: a node carries a
+    // handful of them, and probing for each of the nineteen was most of this loop's work
+    const plain = json as unknown as Record<string, unknown>;
+    const out = record as unknown as Record<string, unknown>;
+    for (const key in plain) {
+        if (OPTIONAL_PLAIN_SET.has(key)) {
+            const v = plain[key];
+            if (v !== undefined) {
+                out[key] = v;
+            }
         }
     }
     // an absent displayName is the browse name: what the writer left out because it was the same
