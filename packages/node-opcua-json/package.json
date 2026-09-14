@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-json",
     "type": "module",
-    "version": "2.184.0",
+    "version": "2.184.1",
     "description": "pure nodejs OPCUA SDK - the OPC UA JSON encoding of OPC 10000-6 clause 5.4",
     "scripts": {
         "build": "tsc -b",
@@ -53,21 +53,21 @@
         "npm": ">=10.x"
     },
     "dependencies": {
-        "node-opcua-basic-types": "2.184.0",
-        "node-opcua-data-model": "2.184.0",
-        "node-opcua-data-value": "2.184.0",
-        "node-opcua-date-time": "2.184.0",
+        "node-opcua-basic-types": "2.184.1",
+        "node-opcua-data-model": "2.184.1",
+        "node-opcua-data-value": "2.184.1",
+        "node-opcua-date-time": "2.184.1",
         "node-opcua-debug": "2.184.0",
-        "node-opcua-extension-object": "2.184.0",
-        "node-opcua-factory": "2.184.0",
-        "node-opcua-nodeid": "2.184.0",
-        "node-opcua-numeric-range": "2.184.0",
-        "node-opcua-status-code": "2.184.0",
-        "node-opcua-types": "2.184.0",
-        "node-opcua-variant": "2.184.0"
+        "node-opcua-extension-object": "2.184.1",
+        "node-opcua-factory": "2.184.1",
+        "node-opcua-nodeid": "2.184.1",
+        "node-opcua-numeric-range": "2.184.1",
+        "node-opcua-status-code": "2.184.1",
+        "node-opcua-types": "2.184.1",
+        "node-opcua-variant": "2.184.1"
     },
     "devDependencies": {
-        "node-opcua-address-space": "2.184.0",
+        "node-opcua-address-space": "2.184.1",
         "node-opcua-constants": "2.184.0",
         "node-opcua-nodesets": "2.184.0"
     },

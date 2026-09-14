@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-service-node-management",
     "type": "module",
-    "version": "2.184.0",
+    "version": "2.184.1",
     "description": "pure nodejs OPCUA SDK - module service-node-management",
     "scripts": {
         "build": "tsc -b",
@@ -16,7 +16,7 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-types": "2.184.0"
+        "node-opcua-types": "2.184.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

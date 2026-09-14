@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-common",
     "type": "module",
-    "version": "2.184.0",
+    "version": "2.184.1",
     "description": "pure nodejs OPCUA SDK - module common",
     "scripts": {
         "test": "mocha",
@@ -29,8 +29,8 @@
     "dependencies": {
         "node-opcua-assert": "2.184.0",
         "node-opcua-crypto": "5.10.1",
-        "node-opcua-status-code": "2.184.0",
-        "node-opcua-types": "2.184.0"
+        "node-opcua-status-code": "2.184.1",
+        "node-opcua-types": "2.184.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

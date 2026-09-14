@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-packet-assembler",
     "type": "module",
-    "version": "2.184.0",
+    "version": "2.184.1",
     "description": "pure nodejs OPCUA SDK - module packet-assembler",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -40,7 +40,7 @@
         "source"
     ],
     "devDependencies": {
-        "node-opcua-binary-stream": "2.184.0",
-        "node-opcua-variant": "2.184.0"
+        "node-opcua-binary-stream": "2.184.1",
+        "node-opcua-variant": "2.184.1"
     }
 }
