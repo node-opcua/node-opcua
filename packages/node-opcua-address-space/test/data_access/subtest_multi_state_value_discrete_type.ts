@@ -86,6 +86,31 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
             multiStateValueDiscreteVariable.getValueAsNumber().should.eql(0xff0000);
         });
 
+        it("should keep the description of each entry of the enumValues array", () => {
+            const objectsFolder = addressSpace.rootFolder.objects;
+
+            const multiStateValueDiscreteVariable = namespace.addMultiStateValueDiscrete({
+                browseName: "MyMultiStateValueVariableWithDescriptions",
+                enumValues: [
+                    { displayName: "Empty", value: 0, description: "the transport line is empty" },
+                    { displayName: "Filled", value: 1, description: { text: "the transport line is filled" } },
+                    { displayName: "Transitioning", value: 2 }
+                ],
+                organizedBy: objectsFolder,
+                value: 0
+            });
+
+            const enumValues = multiStateValueDiscreteVariable.getPropertyByName("EnumValues")?.readValue().value.value as
+                | EnumValueType[]
+                | undefined;
+            should.exist(enumValues);
+
+            should(enumValues![0].description.text).eql("the transport line is empty");
+            should(enumValues![1].description.text).eql("the transport line is filled");
+            // an entry that provides no description is left with an empty one
+            should(enumValues![2].description.text).eql(null);
+        });
+
         it("ZZ3 should create a MultiStateValueDiscreteType with value getter/setter", async () => {
             const namespace = addressSpace.getOwnNamespace();
 

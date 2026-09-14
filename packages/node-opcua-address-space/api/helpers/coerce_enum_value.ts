@@ -14,6 +14,7 @@ export function coerceEnumValues(enumValues: EnumValueTypeOptionsLike[] | { [key
             assert(Object.hasOwn(en, "value"));
             assert(Object.hasOwn(en, "displayName"));
             return new EnumValueType({
+                description: en.description !== undefined ? coerceLocalizedText(en.description) : null,
                 displayName: coerceLocalizedText(en.displayName),
                 value: coerceInt64(en.value || 0)
             });
