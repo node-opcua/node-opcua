@@ -211,11 +211,13 @@ jobs:
   build_on_windows:
     runs-on: windows-latest
     timeout-minutes: 45
-    # The Node 24 and Node 26 entries are sentinels, not gates. There is currently no
-    # Node 24 release Windows can pass on, so that entry is expected to be red; it must
-    # not block a merge or a release. 26.x is new here and unproven on Windows, so it
-    # starts non-blocking too - promote it to a gate once it has been green for a while.
-    # 22.x is the entry that gates.
+    # The Node 24 entry is a sentinel, not a gate. There is currently no Node 24
+    # release Windows can pass on, so this entry is expected to be red; it must not
+    # block a merge or a release. 22.x and 26.x gate.
+    #
+    # 26.x gates from the day it was added: it was green on Windows on its first run
+    # (34840989003) while 24.x failed in the same run, which is the evidence that the
+    # two libuv fixes below are in 26.x and still not in any 24.x release.
     #
     # Two libuv bugs are in play, and as of 2026-08-25 neither is in any released
     # 24.x - both are fixed on main only:
@@ -243,7 +245,7 @@ jobs:
     # attributing, the resolved version is in the setup-node step of the run.
     #
     # Drop continue-on-error once it stays green, and re-check both issues first.
-    continue-on-error: ${{ matrix.node-version != '22.x' }}
+    continue-on-error: ${{ startsWith(matrix.node-version, '24') }}
     strategy:
       # Don't cancel the whole matrix when one Node version fails.
       fail-fast: false
