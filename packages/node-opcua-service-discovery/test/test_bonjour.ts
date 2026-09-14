@@ -49,7 +49,15 @@ describe("Bonjour", () => {
     });
     const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    function startListner() {
+    /**
+     * mDNS is a subnet-wide broadcast protocol, so this browser hears every `opcua-tcp`
+     * announcement on the network, not only the one the test made: another package's suite
+     * running in parallel, or another checkout on the same machine, reaches it too. The spies
+     * therefore count only `serviceName`. Without that filter the call-count assertions below
+     * are assertions about the whole subnet, which no test can control, and they failed
+     * exactly that way under a concurrent `pnpm m run test`.
+     */
+    function startListner(serviceName: string) {
         const bonjour = new Bonjour();
         const browser = bonjour.find({
             protocol: "tcp",
@@ -67,8 +75,16 @@ describe("Bonjour", () => {
 
         const spyUp = sinon.spy();
         const spyDown = sinon.spy();
-        browser.on("up", spyUp);
-        browser.on("down", spyDown);
+        browser.on("up", (service) => {
+            if (service.name === serviceName) {
+                spyUp(service);
+            }
+        });
+        browser.on("down", (service) => {
+            if (service.name === serviceName) {
+                spyDown(service);
+            }
+        });
 
         return {
             spyUp,
@@ -82,13 +98,15 @@ describe("Bonjour", () => {
         };
     }
     it("should start/stop a BonjourHolder", async () => {
-        const { spyUp, spyDown, shutdown } = startListner();
+        // unique per run, so a stale announcement from an earlier run cannot be counted either
+        const serviceName = `holder-${process.pid}-${Date.now()}`;
+        const { spyUp, spyDown, shutdown } = startListner(serviceName);
 
         const holder = new BonjourHolder();
         should(holder.serviceConfig).eql(undefined);
 
         const announcement: Announcement = {
-            name: "name",
+            name: serviceName,
             capabilities: ["capability1", "capability2"],
             host: "host",
             path: "path",
@@ -102,8 +120,8 @@ describe("Bonjour", () => {
 
         await pause(500);
 
-        spyUp.callCount.should.eql(1);
-        spyDown.callCount.should.eql(0);
+        should(spyUp.callCount).eql(1);
+        should(spyDown.callCount).eql(0);
 
         await holder.stopAnnouncedOnMulticastSubnet();
         await pause(500);
@@ -111,8 +129,8 @@ describe("Bonjour", () => {
         should(holder.isStarted()).eql(false);
         should(holder.serviceConfig).eql(undefined);
 
-        spyDown.callCount.should.eql(1);
-        spyUp.callCount.should.eql(1);
+        should(spyDown.callCount).eql(1);
+        should(spyUp.callCount).eql(1);
         shutdown();
     });
 });
