@@ -211,9 +211,11 @@ jobs:
   build_on_windows:
     runs-on: windows-latest
     timeout-minutes: 45
-    # The Node 24 entry is a sentinel, not a gate. There is currently no Node 24
-    # release Windows can pass on, so this entry is expected to be red; it must not
-    # block a merge or a release. 22.x is the entry that gates.
+    # The Node 24 and Node 26 entries are sentinels, not gates. There is currently no
+    # Node 24 release Windows can pass on, so that entry is expected to be red; it must
+    # not block a merge or a release. 26.x is new here and unproven on Windows, so it
+    # starts non-blocking too - promote it to a gate once it has been green for a while.
+    # 22.x is the entry that gates.
     #
     # Two libuv bugs are in play, and as of 2026-08-25 neither is in any released
     # 24.x - both are fixed on main only:
@@ -241,13 +243,13 @@ jobs:
     # attributing, the resolved version is in the setup-node step of the run.
     #
     # Drop continue-on-error once it stays green, and re-check both issues first.
-    continue-on-error: ${{ startsWith(matrix.node-version, '24') }}
+    continue-on-error: ${{ matrix.node-version != '22.x' }}
     strategy:
       # Don't cancel the whole matrix when one Node version fails.
       fail-fast: false
       matrix:
         # Node 18/20 dropped: pnpm 11 requires a recent Node (>=22.13 in our setup).
-        node-version: [22.x, 24.x]
+        node-version: [22.x, 24.x, 26.x]
 
     steps:
       - uses: actions/checkout@v7
@@ -338,11 +340,11 @@ jobs:
       fail-fast: false
       matrix:
         # Node 18/20 dropped: pnpm 11 requires a recent Node (>=22.13 in our setup).
-        # Both entries gate here, unlike build_on_windows where 24.x is a
-        # non-blocking sentinel: every abnormal-exit crash on record came from that
-        # job, and the libuv bug behind it (nodejs/node#56645) is Windows-only.
-        # Linux has never reproduced it.
-        node-version: [22.x, 24.x]
+        # All three entries gate here, unlike build_on_windows where anything past
+        # 22.x is a non-blocking sentinel: every abnormal-exit crash on record came
+        # from that job, and the libuv bug behind it (nodejs/node#56645) is
+        # Windows-only. Linux has never reproduced it.
+        node-version: [22.x, 24.x, 26.x]
 
     steps:
       - uses: actions/checkout@v7
