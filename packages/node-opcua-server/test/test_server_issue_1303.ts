@@ -1,3 +1,4 @@
+import dns from "node:dns";
 import net from "node:net";
 import os from "node:os";
 import should from "should";
@@ -79,7 +80,15 @@ describe("OPCUAServer - issue#1303", () => {
         const host = "localhost";
 
         const lanIP = findLanIp();
-        const endpointsToTest = ["localhost"];
+        // listen({ host }) resolves the name to a SINGLE address. Inside a container
+        // getaddrinfo answers ::1 first even though /etc/hosts lists 127.0.0.1 first, so the
+        // server binds [::1] - and connecting by the name again does not come back to the
+        // same family: it chose 127.0.0.1 and failed with ECONNREFUSED on every GitLab
+        // runtime. A GitHub VM orders the two the other way round, which is why the same
+        // suite was green there. Resolve the way listen() does, so this asserts on the
+        // binding rather than on which family the resolver happens to prefer.
+        const { address: loopback } = await dns.promises.lookup(host);
+        const endpointsToTest = [loopback];
 
         console.log(lanIP ? `WARNING: LAN IP found: ${lanIP}` : "WARNING: No LAN IP available, skipping test...");
 
@@ -88,7 +97,7 @@ describe("OPCUAServer - issue#1303", () => {
 
             const results = await testServerStartupAndShutdown(host, port, endpointsToTest);
 
-            should(results[0]).eql(true, "It should be possible to connect to loopback interface (localhost)");
+            should(results[0]).eql(true, `It should be possible to connect to loopback interface (${loopback})`);
             should(results[1]).eql(false, "It should not be possible to connect to external LAN IP");
         }
     });
