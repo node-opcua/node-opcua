@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-object-registry",
     "type": "module",
-    "version": "2.183.0",
+    "version": "2.184.0",
     "description": "pure nodejs OPCUA SDK - module object-registry",
     "main": "./dist/index.js",
     "scripts": {
@@ -18,7 +18,7 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-debug": "2.183.0"
+        "node-opcua-debug": "2.184.0"
     },
     "repository": {
         "type": "git",
