@@ -1,6 +1,21 @@
 
 stages:
     - build
+
+variables:
+    # Every job of a pipeline runs as a container on this runner's default docker0
+    # bridge, so all of them share one link-local multicast domain. The discovery
+    # tests announce their servers over mDNS, and FindServersOnNetwork then returns
+    # the servers of whichever sibling job happens to be running its own discovery
+    # tests at that moment - DISCO3-2 counted 7 or 8 servers where it expected 6,
+    # and the surplus was traced to an LDS advertised from another container
+    # (concurrent-2 at 172.17.0.3, while the job itself was concurrent-4).
+    #
+    # GitHub Actions never sees this because each matrix entry gets its own VM. A
+    # network per build gives each job a bridge of its own, which is the same
+    # isolation, and is why the identical suite is green there and red here.
+    FF_NETWORK_PER_BUILD: "true"
+
 cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
