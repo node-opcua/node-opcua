@@ -4,6 +4,10 @@ import { ObjectRegistry } from "node-opcua-object-registry";
 import { describeWithLeakDetector } from "../../src/resource_leak_detector.js";
 
 const registry = new ObjectRegistry();
+// The registry holds WeakRefs, so an object nobody else references is garbage rather
+// than a leak: Node 26's V8 collects it in the next turn and the registry is empty by
+// the time the detector looks. Keep the leaked ones reachable, as a real leak would be.
+const leaked = [];
 
 class FakeResource {
     constructor(id) {
@@ -24,7 +28,7 @@ describeWithLeakDetector("fixture-leaked-registry", () => {
         const r1 = new FakeResource(1);
         const r2 = new FakeResource(2); // intentionally leaked
         const r3 = new FakeResource(3); // intentionally leaked
-        void r2; void r3;
+        leaked.push(r2, r3);
         assert.strictEqual(registry.count(), 3);
         // Only dispose one — 2 remain leaked
         r1.dispose();
