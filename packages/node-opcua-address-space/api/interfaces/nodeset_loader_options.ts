@@ -55,4 +55,21 @@ export interface NodeSetLoaderOptions {
      * @default undefined (no store)
      */
     imageStore?: NodesetImageStore | boolean;
+    /**
+     * accept a sibling `<name>.ndjson.gz` on the strength of the source length it records,
+     * without reading and hashing the XML to prove it.
+     *
+     * Validating a sibling image costs a read and a SHA-256 of the whole document — around
+     * 30 ms of the ~110 ms it takes to replay the standard nodeset, spent proving that a file
+     * nobody edited has not changed. This skips that: the recorded source length against the
+     * file size becomes the whole check, and the XML is never read. The image's schema, trailer
+     * and node count are still verified.
+     *
+     * What it gives up is precise: an XML edited in place to exactly the same byte length,
+     * beside an image built from the earlier content, is replayed from the stale image. For the
+     * nodesets a package ships — immutable, installed once — that cannot happen. For files a
+     * user edits it can, so leave this off there.
+     * @default false
+     */
+    trustSiblingImages?: boolean;
 }
