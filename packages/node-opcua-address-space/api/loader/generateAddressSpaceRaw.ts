@@ -2,6 +2,7 @@ import type { IAddressSpace, RequiredModel } from "node-opcua-address-space-base
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import type { CallbackT } from "node-opcua-status-code";
 import semver from "semver";
+import { beginBulkLoadClock, endBulkLoadClock } from "../../impl/bulk_load_clock.js";
 import type { NamespacePrivate } from "../../impl/namespace_private.js";
 import { adjustNamespaceArray } from "../../impl/nodeset_tools/adjust_namespace_array.js";
 import type { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options.js";
@@ -341,32 +342,41 @@ export async function generateAddressSpaceRaw(
         }
     }
 
-    for (let index = 0; index < order.length; index++) {
-        const nodesetIndex = order[index];
-        const nodeset = nodesetDesc[nodesetIndex];
-        // c8 ignore next
-        doDebug && debugLog(" loading ", nodesetIndex, nodeset.reader.name);
-        try {
-            if (nodeset.format.name === NDJSON_IMAGE_FORMAT) {
-                // an image is already the cache: replaying it through the cache would be storing
-                // a copy of what was just read
-                try {
-                    await nodesetLoader.addRecords(nodeset.format.records(nodeset.document));
-                } finally {
-                    releaseInflatedImageLines(await nodeset.document.rawBytes());
+    // Everything this load creates is stamped with ONE clock reading rather than one apiece:
+    // see impl/bulk_load_clock.ts. Scoped to this address space and reference counted, so a
+    // load of another address space, or a write to one that is not loading, is unaffected.
+    // `finally` matters: a load that throws must not leave the clock frozen.
+    beginBulkLoadClock(addressSpace);
+    try {
+        for (let index = 0; index < order.length; index++) {
+            const nodesetIndex = order[index];
+            const nodeset = nodesetDesc[nodesetIndex];
+            // c8 ignore next
+            doDebug && debugLog(" loading ", nodesetIndex, nodeset.reader.name);
+            try {
+                if (nodeset.format.name === NDJSON_IMAGE_FORMAT) {
+                    // an image is already the cache: replaying it through the cache would be storing
+                    // a copy of what was just read
+                    try {
+                        await nodesetLoader.addRecords(nodeset.format.records(nodeset.document));
+                    } finally {
+                        releaseInflatedImageLines(await nodeset.document.rawBytes());
+                    }
+                } else {
+                    await loadThroughCache(nodesetLoader, nodeset.format, nodeset.document, nodeset.reader, store);
                 }
-            } else {
-                await loadThroughCache(nodesetLoader, nodeset.format, nodeset.document, nodeset.reader, store);
+            } catch (err) {
+                const cause = err instanceof Error ? err.message : String(err);
+                const message = `generateAddressSpace: loading nodeset ${nodeset.reader.name} failed: ${cause}`;
+                errorLog(message);
+                throw new Error(message, { cause: err });
             }
-        } catch (err) {
-            const cause = err instanceof Error ? err.message : String(err);
-            const message = `generateAddressSpace: loading nodeset ${nodeset.reader.name} failed: ${cause}`;
-            errorLog(message);
-            throw new Error(message, { cause: err });
         }
-    }
 
-    await nodesetLoader.terminate();
+        await nodesetLoader.terminate();
+    } finally {
+        endBulkLoadClock(addressSpace);
+    }
     adjustNamespaceArray(addressSpace);
     // however process them in series
 }

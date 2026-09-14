@@ -101,11 +101,25 @@ export function siblingImageFileOf(xmlFile: string): string {
 /**
  * the sibling store: when `<file>.ndjson.gz` sits next to `<file>.xml` and its trailer digest is
  * the SHA-256 of the XML bytes, the image is what the loader gets; otherwise the XML is. The
- * digest check is not optional and not cached: an XML edited in place next to a stale image
- * loads from the XML. Nothing is written here; writing images is the opt-in `imageStore`.
+ * digest check is not cached: an XML edited in place next to a stale image loads from the XML.
+ * Nothing is written here; writing images is the opt-in `imageStore`.
  * Returns the source to load, and which path was taken for the debug log.
+ *
+ * `trustByLength` trades that guarantee for the cost of it. Validating an image means reading
+ * and hashing the whole XML — about 30 ms of the ~110 ms it takes to replay the standard
+ * nodeset, spent proving that a file nobody edited has not changed. With it, the recorded
+ * source length against the file size is the whole check, and the XML is never read at all.
+ * Every structural check on the image still runs; only the content digest is skipped.
+ *
+ * The risk it accepts is precise: an XML edited in place to exactly the same byte length, beside
+ * an image built from the earlier content, is replayed from the stale image. For the nodesets a
+ * package ships that cannot happen; for a file being edited it can, which is why this is off by
+ * default and why a loader that watches user files should leave it off.
  */
-async function siblingOrXml(xmlFile: string): Promise<{ source: NamedNodesetSource; path: "image" | "xml"; reason?: string }> {
+async function siblingOrXml(
+    xmlFile: string,
+    trustByLength = false
+): Promise<{ source: NamedNodesetSource; path: "image" | "xml"; reason?: string }> {
     checkNodeSet2XmlFileExists(xmlFile);
     // the XML is read only when it is going to be parsed or hashed; the image decision starts
     // with what costs nothing: its size
@@ -129,15 +143,21 @@ async function siblingOrXml(xmlFile: string): Promise<{ source: NamedNodesetSour
         // the inflate (zlib, off the main thread) and the hash of the XML (web crypto, off the
         // main thread too) run alongside; the digest is what decides, the length only rejects early
         const infoPending = readNodesetImageInfo(image);
-        const digestPending = readXml().then(sha256Hex);
-        digestPending.catch(() => undefined);
+        // not started at all when trusted by length: starting it is the cost being avoided
+        const digestPending = trustByLength ? undefined : readXml().then(sha256Hex);
+        digestPending?.catch(() => undefined);
         const info = await infoPending;
         const sourceLength = info.header.sourceLength;
-        if (sourceLength !== undefined && sourceLength !== fs.statSync(xmlFile).size) {
+        if (sourceLength === undefined) {
+            // nothing cheap to check it against, so a trusted read has no ground to stand on
+            if (trustByLength) return asXml("the image records no source length, so it cannot be trusted by length alone");
+        } else if (sourceLength !== fs.statSync(xmlFile).size) {
             return asXml(`the image is stale: it was built from ${sourceLength} bytes, the XML has ${fs.statSync(xmlFile).size}`);
         }
-        // a catalog package older or newer than this loader, a stale or truncated image: its XML is still right
-        const problem = nodesetImageProblem(info, await digestPending);
+        // a catalog package older or newer than this loader, a stale or truncated image: its XML
+        // is still right. Without a digest this still checks the schema, the trailer and the node
+        // count — `nodesetImageProblem` skips only the comparison it is not given.
+        const problem = nodesetImageProblem(info, digestPending ? await digestPending : undefined);
         if (problem) return asXml(problem);
     } catch (err) {
         return asXml(`the image cannot be read: ${(err as Error).message}`);
@@ -194,7 +214,7 @@ export async function generateAddressSpace(
             sources.push(document);
             continue;
         }
-        const { source, path: taken, reason } = await siblingOrXml(document);
+        const { source, path: taken, reason } = await siblingOrXml(document, !!loaderOptions.trustSiblingImages);
         debugLog(`generateAddressSpace: ${path.basename(document)} from ${taken}${reason ? ` (${reason})` : ""}`);
         sources.push(source);
     }

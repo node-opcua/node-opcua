@@ -83,6 +83,7 @@ import { SessionContext } from "../api/session_context.js";
 import { apply_condition_refresh, type ConditionRefreshCache } from "./apply_condition_refresh.js";
 import { BaseNodeImpl, type InternalBaseNodeOptions } from "./base_node_impl.js";
 import { _clone, ToStringBuilder, UAVariable_toString, valueRankToString } from "./base_node_private.js";
+import { loadClock } from "./bulk_load_clock.js";
 import { adjustDataValueStatusCode } from "./data_access/adjust_datavalue_status_code.js";
 import { notifySemanticsChangedIfNeeded, raiseSemanticChangeEvent } from "./data_access/semantics_changed.js";
 import { _getBasicDataType } from "./get_basic_datatype.js";
@@ -288,8 +289,10 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         // a Variant built from null takes the constructor's short path; the options form costs twice as much.
         // Stamped with the clock of the construction: a variable nobody gives a value to (a nodeset
         // Variable of an abstract data type has no default to make up) is read as it is, and the
-        // requested timestamps are expected on that Uncertain result too (FEAT-34)
-        const now = getCurrentClock();
+        // requested timestamps are expected on that Uncertain result too (FEAT-34).
+        // One reading for a whole load — see impl/bulk_load_clock.ts; outside a load of THIS
+        // address space this is getCurrentClock(), unchanged.
+        const now = loadClock(this.addressSpace);
         this.$dataValue = new DataValue({
             statusCode: StatusCodes.UncertainInitialValue,
             value: new Variant(null),
@@ -846,7 +849,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             if (variant1.dataType === DataType.ExtensionObject && !this.checkExtensionObjectIsCorrect(variant1.value)) {
                 throw new Error("invalid extension object");
             }
-            const now = getCurrentClock();
+            // the load's reading while this address space is being loaded, a fresh one otherwise
+            const now = loadClock(this.addressSpace);
             this.$dataValue = new DataValue({
                 value: variant1,
                 statusCode,
