@@ -14,7 +14,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { evaluate, exitCode, formatReport, publishableTargets, readBaseline, writeBaseline } from "../src/rule.js";
+import { evaluate, exitCode, formatReport, hasImportSurface, publishableTargets, readBaseline, writeBaseline } from "../src/rule.js";
 
 const ok = { ok: true, output: "" };
 const bad = (output = "boom") => ({ ok: false, output });
@@ -83,7 +83,7 @@ function makeRepo(packages) {
     for (const [name, spec] of Object.entries(packages)) {
         const dir = path.join(root, "packages", name);
         fs.mkdirSync(dir, { recursive: true });
-        fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({ name, private: spec.private === true }));
+        fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({ name, ...spec, private: spec.private === true }));
     }
     return root;
 }
@@ -106,4 +106,27 @@ test("the baseline round-trips and stays sorted", () => {
 
 test("a missing baseline file means nothing is grandfathered", () => {
     assert.equal(readBaseline(makeRepo({ a: {} })).size, 0);
+});
+
+// ── bin-only packages have nothing for attw to resolve ──────────────────────────────
+
+test("a package naming main, types, typings or exports has an import surface", () => {
+    assert.equal(hasImportSurface({ main: "./dist/index.js" }), true);
+    assert.equal(hasImportSurface({ types: "./dist/index.d.ts" }), true);
+    assert.equal(hasImportSurface({ typings: "./dist/index.d.ts" }), true);
+    assert.equal(hasImportSurface({ exports: { ".": "./dist/index.js" } }), true);
+});
+
+test("a bin-only package has none", () => {
+    assert.equal(hasImportSurface({ bin: { thing: "./bin/thing.cjs" } }), false);
+    assert.equal(hasImportSurface({}), false);
+});
+
+test("publishableTargets marks which packages are importable", () => {
+    const root = makeRepo({
+        lib: { main: "./dist/index.js" },
+        cli: { bin: { cli: "./bin/cli.cjs" } }
+    });
+    const byName = Object.fromEntries(publishableTargets(root).map((t) => [t.name, t.importable]));
+    assert.deepEqual(byName, { lib: true, cli: false });
 });
