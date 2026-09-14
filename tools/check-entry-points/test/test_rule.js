@@ -20,6 +20,7 @@ import {
     currentCounts,
     exitCode,
     exportedSymbols,
+    findInternalDeepImports,
     formatReport,
     overBaseline,
     publishedDeclarations,
@@ -261,4 +262,51 @@ test("publishedDeclarations separates what has a value from what only has a type
             assert.ok(d.get("promised").ambient, "a declare records where it was promised");
         }
     );
+});
+
+// ── reaching into another package's implementation ──────────────────────────────────
+
+const deep = (src) => findInternalDeepImports(src).map((f) => f.specifier);
+
+test("a bare specifier into another package's impl is a finding", () => {
+    assert.deepEqual(deep('import { X } from "node-opcua-address-space/dist/impl/ua_object_impl.js";'), [
+        "node-opcua-address-space/dist/impl/ua_object_impl.js"
+    ]);
+    assert.deepEqual(deep('import { X } from "node-opcua-address-space/impl/ua_object_impl.js";'), [
+        "node-opcua-address-space/impl/ua_object_impl.js"
+    ]);
+});
+
+test("a scoped package is matched too", () => {
+    assert.deepEqual(deep('import { X } from "@sterfive/thing/dist/impl/x.js";'), ["@sterfive/thing/dist/impl/x.js"]);
+});
+
+test("export-from, dynamic import and import type are all specifiers", () => {
+    assert.equal(deep('export { X } from "pkg/dist/impl/x.js";').length, 1);
+    assert.equal(deep('const m = await import("pkg/dist/impl/x.js");').length, 1);
+    assert.equal(deep('type T = import("pkg/dist/impl/x.js").X;').length, 1);
+});
+
+test("a relative reach into a package's own impl is not a finding", () => {
+    assert.deepEqual(deep('import { X } from "../dist/impl/ua_object_impl.js";'), []);
+    assert.deepEqual(deep('import { X } from "./impl/ua_object_impl.js";'), []);
+});
+
+test("the published surface of the same package is not a finding", () => {
+    assert.deepEqual(deep('import { UAObject } from "node-opcua-address-space";'), []);
+    assert.deepEqual(deep('import { X } from "node-opcua-address-space/dist/api/index.js";'), []);
+    assert.deepEqual(deep('import { X } from "node-opcua-nodeset-ua/dist/ua_thing.js";'), []);
+});
+
+test("a path merely containing the word is not a finding", () => {
+    assert.deepEqual(deep('import { X } from "pkg/dist/implementation_notes.js";'), []);
+    assert.deepEqual(deep('const s = "pkg/dist/impl/x.js";'), []);
+});
+
+test("the marker exempts a line", () => {
+    assert.deepEqual(deep(`import { X } from "pkg/dist/impl/x.js"; // ${IGNORE_MARKER} - why`), []);
+});
+
+test("a deep import fails the run", () => {
+    assert.equal(exitCode({ entryFindings: [], internalFindings: [], phantomFindings: [], deepImportFindings: [{ package: "p", file: "f.ts", line: 1, specifier: "pkg/dist/impl/x.js" }] }, {}), 1);
 });

@@ -27,6 +27,7 @@ import path from "node:path";
 // the classic compiler API, which TypeScript 7 no longer exposes: an aliased 5.x copy
 import ts from "typescript-5";
 import { shippedDirsOf } from "../../shared/shipped_dirs.mjs";
+import { TEST_DIRS } from "../../shared/test_dirs.mjs";
 
 /** opt out on one line, with a reason: `// check-entry-points: ok - why` */
 export const IGNORE_MARKER = "check-entry-points: ok";
@@ -37,6 +38,58 @@ const SKIP_DIRS = new Set(["node_modules", "dist", "dist-esm", "distNodeJS", "di
 
 /** the shapes that say "implementation" rather than "API" */
 export const INTERNAL_SHAPE = /Impl$|ImplBase$|^_/;
+
+/**
+ * A bare specifier reaching into another package's implementation: `<pkg>/impl/...` or
+ * `<pkg>/dist/impl/...`.
+ *
+ * FEAT-11 moved the implementation behind `impl/` and marked it internal; FEAT-14 then
+ * published the parts downstream actually needed, so there is a supported form to reach for
+ * instead. What is left is a path no consumer should take, and an `exports` map closes it at
+ * 3.0. Until then nothing stops this repository's own tests and playground taking it, which is
+ * how the deep-import surface FEAT-3 had to measure accumulated in the first place. A gate that
+ * starts at zero is cheap; one added after the count grows is a negotiation.
+ *
+ * Relative specifiers are deliberately not matched. A package's own tests reaching
+ * `../dist/impl/...` are exercising their own internals, which is theirs to do. This is about
+ * crossing a package boundary.
+ */
+export const INTERNAL_DEEP_IMPORT = /^(?:@[^/]+\/[^/]+|[^.@][^/]*)\/(?:dist\/)?impl\//;
+
+/** every module specifier in a file, with the line it sits on */
+export function moduleSpecifiers(text, filePath) {
+    const sf = ts.createSourceFile(filePath, text, ts.ScriptTarget.ESNext, true, ts.ScriptKind.TS);
+    const out = [];
+    const add = (node, literal) => {
+        if (!literal || !ts.isStringLiteral(literal)) {
+            return;
+        }
+        const { line } = ts.getLineAndCharacterOfPosition(sf, node.getStart(sf));
+        out.push({ specifier: literal.text, line: line + 1 });
+    };
+    const visit = (node) => {
+        if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier) {
+            add(node, node.moduleSpecifier);
+        } else if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+            add(node, node.arguments[0]);
+        } else if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)) {
+            add(node, node.argument.literal);
+        }
+        ts.forEachChild(node, visit);
+    };
+    visit(sf);
+    return out;
+}
+
+/** specifiers in one file that reach into another package's implementation */
+export function findInternalDeepImports(text, filePath = "file.ts") {
+    const lines = text.split("\n");
+    return moduleSpecifiers(text, filePath)
+        .filter((s) => INTERNAL_DEEP_IMPORT.test(s.specifier))
+        .filter((s) => !(lines[s.line - 1] ?? "").includes(IGNORE_MARKER))
+        .map((s) => ({ line: s.line, specifier: s.specifier }));
+}
+
 
 /**
  * Does `types` describe what `main` loads?
@@ -194,7 +247,10 @@ export function findPackages(repoRoot = ".", packageFilter) {
             const pjPath = path.join(dir, "package.json");
             if (!fs.existsSync(pjPath)) continue;
             const files = shippedDirsOf(dir).flatMap((sub) => sourceFilesUnder(path.join(dir, sub)));
-            packages.push({ name: entry.name, dir, pjPath, files });
+            // the deep-import check needs these; the other two deliberately look only at what
+            // a package publishes
+            const testFiles = TEST_DIRS.flatMap((sub) => sourceFilesUnder(path.join(dir, sub)));
+            packages.push({ name: entry.name, dir, pjPath, files, testFiles });
         }
     }
     return packages;
@@ -227,10 +283,21 @@ export function analyze({ repoRoot = ".", packageFilter } = {}) {
     const entryFindings = [];
     const internalFindings = [];
     const phantomFindings = [];
+    const deepImportFindings = [];
     let scanned = 0;
 
     for (const pkg of packages) {
         const p = JSON.parse(fs.readFileSync(pkg.pjPath, "utf8"));
+
+        // Reaching into another package internals is worth reporting wherever it happens, so
+        // this check runs before the private skip and covers the test trees: playground is a
+        // private package, and the tests are exactly where it would start.
+        for (const file of [...pkg.files, ...pkg.testFiles]) {
+            for (const f of findInternalDeepImports(fs.readFileSync(file, "utf8"), file)) {
+                deepImportFindings.push({ package: pkg.name, file, ...f });
+            }
+        }
+
         if (p.private) continue;
 
         const entry = classifyEntry(p);
@@ -264,7 +331,7 @@ export function analyze({ repoRoot = ".", packageFilter } = {}) {
             }
         }
     }
-    return { packages: packages.length, scanned, entryFindings, internalFindings, phantomFindings };
+    return { packages: packages.length, scanned, entryFindings, internalFindings, phantomFindings, deepImportFindings };
 }
 
 /**
@@ -294,7 +361,8 @@ export function currentCounts(result) {
 
 export function exitCode(result, baseline = {}) {
     const phantoms = result.phantomFindings ?? [];
-    return result.entryFindings.length > 0 || phantoms.length > 0 || overBaseline(result, baseline).length > 0 ? 1 : 0;
+    const deep = result.deepImportFindings ?? [];
+    return result.entryFindings.length > 0 || phantoms.length > 0 || deep.length > 0 || overBaseline(result, baseline).length > 0 ? 1 : 0;
 }
 
 export function formatReport(result, baseline = {}) {
@@ -302,6 +370,19 @@ export function formatReport(result, baseline = {}) {
     const over = overBaseline(result, baseline);
 
     const phantoms = result.phantomFindings ?? [];
+    const deep = result.deepImportFindings ?? [];
+
+    if (deep.length) {
+        lines.push(`check-entry-points: ${deep.length} import(s) reaching into another package implementation`, "");
+        for (const f of deep.slice(0, 20)) {
+            lines.push(`  ${f.file}:${f.line}  "${f.specifier}"`);
+        }
+        lines.push("");
+        lines.push("  `impl/` is internal: FEAT-11 moved it there and FEAT-14 published what downstream");
+        lines.push("  actually needed, so there is a supported name to use instead. An `exports` map closes");
+        lines.push("  this path at 3.0, and anything written against it now has to be rewritten then.");
+        lines.push("");
+    }
 
     if (phantoms.length) {
         lines.push(`check-entry-points: ${phantoms.length} name(s) declared in the types and defined nowhere`, "");
@@ -315,11 +396,11 @@ export function formatReport(result, baseline = {}) {
         lines.push("");
     }
 
-    if (result.entryFindings.length === 0 && over.length === 0 && phantoms.length === 0) {
+    if (result.entryFindings.length === 0 && over.length === 0 && phantoms.length === 0 && deep.length === 0) {
         const tally = result.internalFindings.length;
         lines.push(
             `check-entry-points: ${result.packages} packages, ${result.scanned} files. Every types field describes ` +
-                `its own main, every declared name is defined` +
+                `its own main, every declared name is defined, no import crosses into another package implementation` +
                 `${tally ? `, and no package exceeds its untagged-export baseline (${tally} total)` : ""}.`
         );
         return lines.join("\n");
