@@ -1124,14 +1124,22 @@ function _condition_refresh_method(
 }
 
 /**
- * OPC 10000-9 4.5: the RefreshStart/RefreshEnd bracket "ignore[s] the Event content filtering
- * associated with a Subscription and will always be delivered to the Client". The address space
- * cannot apply that itself - it does not evaluate where clauses, the MonitoredItem does - so it
- * says which Subscription the refresh is for and the server side bypasses the where clause for
- * those two EventTypes, for that Subscription only.
+ * Who the refresh in progress is for.
+ *
+ * OPC 10000-9 5.5.7: the SubscriptionId argument says "which Client Subscription shall be
+ * refreshed", and both halves of the bracket and the Retained Conditions replayed in between go to
+ * that Subscription's Notifier MonitoredItems; 5.5.8 narrows all of it to the one MonitoredItem
+ * ConditionRefresh2 names. But the bracket is raised on the Server Object and the Conditions on
+ * their own nodes, and from there every Event bubbles to every event MonitoredItem of the whole
+ * Server - the address space knows nothing of Subscriptions. So it publishes what the call named
+ * and the MonitoredItem drops a refresh addressed elsewhere.
+ *
+ * The same scope carries 4.5's other half: the RefreshStart/RefreshEnd bracket "ignore[s] the
+ * Event content filtering associated with a Subscription", which the MonitoredItem applies for
+ * the named Subscription only.
  *
  * `null` when there is no Session behind the call (a PseudoSession, an in-process caller, a unit
- * test): nothing is named, so nothing is bypassed.
+ * test): nothing is named, so nothing is narrowed and nothing is bypassed.
  */
 function _refresh_scope(inputArguments: VariantLike[], context: ISessionContext): ConditionRefreshScope | null {
     const subscription = context.session?.getSubscription?.(inputArguments[0]?.value);
