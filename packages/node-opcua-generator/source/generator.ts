@@ -8,6 +8,7 @@ import fs from "node:fs";
 const { mkdir } = fs.promises;
 
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import type { ConstructorFunc } from "node-opcua-factory";
@@ -131,7 +132,10 @@ export async function generateCode(schemaName: string, localSchemaFile: string, 
     const generatedSourceIsOutdated = !generatedSourceExists || codeGeneratorIsNewer || schemaFileIsNewer;
 
     if (generatedSourceIsOutdated) {
-        const module = await import(localSchemaFile);
+        // a file URL, not the path: an absolute Windows path starts "C:", which the ESM
+        // loader reads as a URL scheme and rejects with ERR_UNSUPPORTED_ESM_URL_SCHEME. POSIX
+        // paths start with "/" and happen to resolve, which is why CI never saw this.
+        const module = await import(pathToFileURL(localSchemaFile).href);
         const schema = module[`${schemaName}_Schema`];
 
         if (!schema) {
@@ -176,7 +180,7 @@ export async function registerObject(schema: string, generateCodeFolder?: string
 
     const schemaName = `${schema}_Schema`;
     const schemaFile = path.join(folderHint, `${schema}_schema.ts`);
-    const module = await import(schemaFile);
+    const module = await import(pathToFileURL(schemaFile).href);
     if (!module) {
         throw new Error(`cannot find ${schemaFile}`);
     }
