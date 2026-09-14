@@ -110,6 +110,7 @@ import { UANonExclusiveDeviationAlarmImplBase } from "./alarms_and_conditions/ua
 import { UANonExclusiveLimitAlarmImplBase } from "./alarms_and_conditions/ua_non_exclusive_limit_alarm_impl.js";
 import { type UAOffNormalAlarmEx, UAOffNormalAlarmImplBase } from "./alarms_and_conditions/ua_off_normal_alarm_impl.js";
 import { BaseNodeImpl } from "./base_node_impl.js";
+import { BaseNode_getPrivate } from "./base_node_private.js";
 import { add_dataItem_stuff } from "./data_access/add_dataItem_stuff.js";
 import { _addMultiStateDiscrete } from "./data_access/ua_multistate_discrete_impl.js";
 import { _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete_impl.js";
@@ -828,6 +829,89 @@ export class NamespaceImpl implements NamespacePrivate {
             const namespace = addressSpace.getNamespace(node.nodeId.namespace);
             namespace._deleteNode(node);
         });
+    }
+
+    /**
+     * Empty the namespace: every node it holds goes, and so does every reference that crossed
+     * between one of them and a node of another namespace. The namespace object itself survives,
+     * registered under the same index and uri, ready to be populated again - this is a recycle,
+     * not a {@link dispose}.
+     *
+     * Only the references that cross out are severed. A reference between two nodes of this
+     * namespace needs no work at all: both ends are about to be dropped and nothing outside will
+     * ever ask about them again. On a model grafted onto loaded base nodesets the crossing
+     * references are a small fraction of the total, which is what makes this cheaper than
+     * deleting the nodes one by one.
+     *
+     * @internal
+     *
+     * Callers want {@link IAddressSpace.deleteNamespace}: the rest of the operation - the single
+     * model-change transaction, the DataType factory of this namespace, the address space's set
+     * of historizing nodes - is address-space state that a namespace has no business reaching
+     * into.
+     */
+    public _deleteAllNodes(): void {
+        const addressSpace = this.addressSpace;
+        const index = this.index;
+
+        // a node deleted while someone watches for model changes still has to say so; the probe
+        // is skipped wholesale when nobody is listening (see AddressSpace#suspendModelChangeEvents)
+        for (const node of this._nodeid_index.values()) {
+            _handle_delete_node_model_change_event(node);
+        }
+
+        for (const node of this._nodeid_index.values()) {
+            const _private = BaseNode_getPrivate(node);
+            // snapshot first: removing the far end of a reference mutates this node's own indexes
+            const crossing: UAReference[] = [];
+            for (const ref of _private._referenceIdx.values()) {
+                if (ref.nodeId.namespace !== index) {
+                    crossing.push(ref);
+                }
+            }
+            for (const ref of _private._back_referenceIdx.values()) {
+                if (ref.nodeId.namespace !== index) {
+                    crossing.push(ref);
+                }
+            }
+            for (const ref of crossing) {
+                const other = addressSpace.findNode(ref.nodeId);
+                if (!other) {
+                    // the other end was never there, or has gone already: nothing holds this
+                    continue;
+                }
+                // removeReference copes with the reference being held by either end, and undoes
+                // the child accessor, the hierarchical index and the memoized scans on both
+                other.removeReference({
+                    isForward: !ref.isForward,
+                    nodeId: node.nodeId,
+                    referenceType: ref.referenceType
+                });
+            }
+        }
+
+        for (const node of this._nodeid_index.values()) {
+            (<BaseNodeImpl>node).dispose();
+        }
+
+        // the per-node unregister of _deleteNode would walk every map entry; emptying them
+        // outright says the same thing and is what makes the namespace reusable
+        this._nodeid_index = new Map();
+        this._aliases = new Map();
+        this._objectTypeMap = new Map();
+        this._variableTypeMap = new Map();
+        this._referenceTypeMap = new Map();
+        this._referenceTypeMapInv = new Map();
+        this._dataTypeMap = new Map();
+
+        // the counter restarts, so a second population hands out the same ids as the first; the
+        // symbolic name table is kept, for the same reason
+        this._nodeIdManager.reset();
+
+        // the header the nodeset carried, which the next population will set again
+        this._requiredModels = undefined;
+        this.version = "0.0.0";
+        this.publicationDate = new Date(Date.UTC(1900, 0, 1));
     }
 
     /**
@@ -1959,6 +2043,12 @@ export class NamespaceImpl implements NamespacePrivate {
             case NodeClass.VariableType:
                 this._unregisterVariableType(node as UAVariableType);
                 break;
+            case NodeClass.ReferenceType:
+                this._unregisterReferenceType(node as UAReferenceType);
+                break;
+            case NodeClass.DataType:
+                this._unregisterDataType(node as UADataType);
+                break;
             case NodeClass.Object:
             case NodeClass.Variable:
             case NodeClass.Method:
@@ -2099,6 +2189,33 @@ export class NamespaceImpl implements NamespacePrivate {
     private _unregisterVariableType(node: UAVariableType): void {
         const key = node.browseName.name || "";
         this._variableTypeMap.delete(key);
+    }
+
+    /**
+     * the mirror of `_registerReferenceType`: both maps it fills have to be emptied, the inverse
+     * one keyed on the inverse name rather than the browse name.
+     *
+     * Only an entry that still points at this very node goes: `_registerReferenceType` does not
+     * refuse a duplicate key the way the object/variable/dataType ones do, so a second reference
+     * type of the same browse name (or the same inverse name) would otherwise have its entry
+     * removed by the deletion of the first.
+     */
+    private _unregisterReferenceType(node: UAReferenceType): void {
+        const key = node.browseName.name || "";
+        if (this._referenceTypeMap.get(key) === node) {
+            this._referenceTypeMap.delete(key);
+        }
+        const inverseKey = node.inverseName?.text || "";
+        if (this._referenceTypeMapInv.get(inverseKey) === node) {
+            this._referenceTypeMapInv.delete(inverseKey);
+        }
+    }
+
+    private _unregisterDataType(node: UADataType): void {
+        const key = node.browseName.name || "";
+        if (this._dataTypeMap.get(key) === node) {
+            this._dataTypeMap.delete(key);
+        }
     }
 
     /**

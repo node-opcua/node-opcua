@@ -30,6 +30,9 @@ export interface NamespacePrivate extends Namespace {
 
     _deleteNode(node: BaseNode): void;
 
+    /** @see IAddressSpace.deleteNamespace, which is the way to reach this */
+    _deleteAllNodes(): void;
+
     internalCreateNode(options: CreateNodeOptions): BaseNode;
 
     registerSymbolicNames: boolean;

@@ -32,6 +32,7 @@ export interface AddressSpacePrivate extends IAddressSpace {
 
     isFrugal: boolean;
     suspendBackReference: boolean;
+    suspendModelChangeEvents: boolean;
 
     _condition_refresh_in_progress: boolean;
 

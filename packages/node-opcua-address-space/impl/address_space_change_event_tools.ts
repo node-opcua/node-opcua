@@ -47,6 +47,7 @@ function _getTypeDef(node: BaseNode) {
 }
 export function _handle_add_reference_change_event(node1: BaseNode, node2id: NodeId): void {
     const addressSpace = node1.addressSpace as AddressSpacePrivate;
+    if (addressSpace.suspendModelChangeEvents) return;
     const node2 = addressSpace.findNode(node2id);
     if (!node2) return;
 
@@ -98,6 +99,7 @@ try {
 
 export function _handle_model_change_event(node: BaseNodeImpl): void {
     const addressSpace = node.addressSpace as AddressSpacePrivate;
+    if (addressSpace.suspendModelChangeEvents) return;
     //
     const parents = node.parent ? [node.parent] : [];
 
@@ -143,6 +145,11 @@ export function _handle_model_change_event(node: BaseNodeImpl): void {
 
 export function _handle_delete_node_model_change_event(node: BaseNode): void {
     const addressSpace = node.addressSpace as AddressSpacePrivate;
+    // The probe below - an inverse reference scan, then a findNode and a getNodeVersion per
+    // parent - runs on every node deleted, only to conclude that nothing has a NodeVersion and
+    // there is nothing to record. A loader or a compiler has no GeneralModelChangeEventType
+    // subscriber at all, and says so by setting this; see AddressSpace#suspendModelChangeEvents.
+    if (addressSpace.suspendModelChangeEvents) return;
 
     // get backward references
     const references = node.findReferencesEx("HierarchicalReferences", BrowseDirection.Inverse);
