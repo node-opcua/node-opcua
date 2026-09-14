@@ -60,7 +60,10 @@ async function collect(repoRoot, targets, concurrency) {
                 name: t.name,
                 // the esm-only profile is deliberate: see the note in rule.js
                 publint: await run(publint, [], t.dir),
-                attw: await run(attw, ["--pack", ".", "--profile", "esm-only"], t.dir)
+                // a package with no import entry point has nothing for attw to resolve
+                attw: t.importable
+                    ? await run(attw, ["--pack", ".", "--profile", "esm-only"], t.dir)
+                    : { ok: true, output: "no import entry point: attw does not apply to a bin-only package" }
             });
             if (process.stdout.isTTY) {
                 process.stdout.write(`${results.length}/${targets.length}\r`);

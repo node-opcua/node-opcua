@@ -28,6 +28,22 @@ import path from "node:path";
 
 export const SOURCE_ROOTS = ["packages", "packages_extra"];
 
+/**
+ * Whether a package offers anything to import.
+ *
+ * A CLI-only package declares `bin` and no `main`, `types` or `exports`: node-opcua-samples
+ * and node-opcua-local-discovery-server both do. attw asks whether an import resolves to type
+ * declarations, and for these there is deliberately no import to resolve, so it answered
+ * "Import failed to resolve" and the package sat in the baseline as though it were a defect.
+ * It is a category error, not a packaging fault, and baselining it hid a real question behind
+ * a meaningless one.
+ *
+ * publint still runs on them: it reads the rest of the manifest, which these packages do have.
+ */
+export function hasImportSurface(pkg) {
+    return Boolean(pkg.main || pkg.types || pkg.typings || pkg.exports);
+}
+
 /** every publishable package, the ones a consumer can install */
 export function publishableTargets(repoRoot = ".") {
     const out = [];
@@ -53,7 +69,7 @@ export function publishableTargets(repoRoot = ".") {
             if (pkg.private === true) {
                 continue;
             }
-            out.push({ name: pkg.name ?? entry.name, dir: path.join(base, entry.name) });
+            out.push({ name: pkg.name ?? entry.name, dir: path.join(base, entry.name), importable: hasImportSurface(pkg) });
         }
     }
     return out.sort((a, b) => a.name.localeCompare(b.name));
