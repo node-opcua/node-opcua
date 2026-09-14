@@ -47,10 +47,19 @@ export { TEST_DIRS };
  * A scope says which directories to scan. `shipped` means "whatever this package publishes",
  * resolved per package rather than assumed; `extra` is scanned on top of it.
  */
+/**
+ * `bin/` holds standalone scripts Node runs directly, so they must be valid ES modules, but
+ * `shippedDirsOf` excludes it: a package does not publish it as importable source. That left
+ * no gate looking at it, and two real defects sat there unreported - a specifier of `".."`,
+ * which NodeNext does not resolve, and a missing extension. Scanned in every scope, following
+ * `check-cjs-globals`, which reached the same conclusion from the other direction.
+ */
+export const BIN_DIRS = ["bin"];
+
 export const SCOPES = {
-    source: { shipped: true, extra: [] },
-    tests: { shipped: false, extra: TEST_DIRS },
-    all: { shipped: true, extra: TEST_DIRS }
+    source: { shipped: true, extra: BIN_DIRS },
+    tests: { shipped: false, extra: [...TEST_DIRS, ...BIN_DIRS] },
+    all: { shipped: true, extra: [...TEST_DIRS, ...BIN_DIRS] }
 };
 
 const SKIP_DIRS = new Set(["node_modules", "dist", "dist-esm", "coverage", "build"]);

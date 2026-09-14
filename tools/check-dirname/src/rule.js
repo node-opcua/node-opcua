@@ -29,6 +29,9 @@ import path from "node:path";
 import ts from "typescript-5";
 import { shippedDirsOf, SOURCE_ROOTS } from "../../shared/shipped_dirs.mjs";
 
+/** standalone scripts that Node runs directly: not published, but still ES modules */
+const BIN_DIRS = ["bin"];
+
 export { SOURCE_ROOTS };
 
 /** opt out on one line, with a reason: `// check-dirname: ok - why` */
@@ -110,7 +113,10 @@ export function findSourceFiles(repoRoot = ".", packageFilter) {
                 continue;
             }
             const pkgDir = path.join(full, pkg.name);
-            for (const dir of shippedDirsOf(pkgDir, SOURCE_DIRS)) {
+            // bin/ is not part of what a package publishes, so shippedDirsOf excludes it, but
+            // those scripts run directly under Node and neither global exists there either.
+            // One `path.join(__dirname, ...)` sat in bin/ unreported for exactly that reason.
+            for (const dir of [...shippedDirsOf(pkgDir, SOURCE_DIRS), ...BIN_DIRS]) {
                 walk(path.join(pkgDir, dir), files);
             }
         }

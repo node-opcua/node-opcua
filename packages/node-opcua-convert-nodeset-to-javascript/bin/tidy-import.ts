@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { cleanUpTypescriptModule } from "../source/remove_unused";
+import { cleanUpTypescriptModule } from "../source/remove_unused.js";
 
 async function main() {
     const d = await fs.promises.readdir("..");
