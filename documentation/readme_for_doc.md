@@ -42,6 +42,12 @@ await client.disconnect();
 - 🧭 [**Migrating to key operations**](https://github.com/node-opcua/node-opcua/blob/master/documentation/migrating_to_key_operations.md) —
   Before/after mapping for every deprecated or removed raw-private-key pattern.
 
+## Upgrade Guides
+
+- 📦 [**Upgrading to 2.184.0: the ESM change**](https://github.com/node-opcua/node-opcua/blob/master/documentation/migrating_to_esm.md) —
+  Every package is now an ES module. `require()` still works; a CommonJS TypeScript project
+  needs one `tsconfig.json` line changed. Covers `TS1479` / `TS1541` / `TS1542`.
+
 ## Learn More
 
 - 📘 [**NodeOPCUA by Example**](https://leanpub.com/node-opcuabyexample-edition2024) —
