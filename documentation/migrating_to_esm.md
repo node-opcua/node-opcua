@@ -151,35 +151,55 @@ The moment you set `"type": "module"`, your own project inherits ESM specifier s
 None of that applies if you stay CommonJS under `nodenext`. Convert when you want to, for
 your own reasons, not because this upgrade made you.
 
+### If you do convert: named imports from CommonJS dependencies can fail at run time
+
+This one has no compile-time warning at all, which makes it the most dangerous item on the
+conversion path. When an ES module imports a **CommonJS** dependency by name, Node has to
+discover that dependency's named exports by reading its source with a static lexer, and the
+lexer cannot always follow it:
+
+```ts
+import { cyan } from "chalk";   // compiles clean, then throws on first load
+```
+
+```
+SyntaxError: Named export 'cyan' not found.
+The requested module 'chalk' is a CommonJS module...
+```
+
+It is **per dependency, not a general rule**, so test rather than rewrite everything. Of five
+CommonJS packages imported by name in one real conversion, `chalk` and `showdown` failed while
+`closest-match`, `yaml` and `js-yaml` were fine.
+
+The failure happens the first time that module is loaded, which for a rarely-taken code path can
+be in production. Default-import-and-destructure always works:
+
+```ts
+import chalk from "chalk";
+const { cyan } = chalk;
+```
+
 ## Bundlers: one known break
 
 `tsc` being satisfied does not settle your bundler, and this is the one place where the
 `nodenext` fix does not help. It is not a TypeScript question at all: the type-check passes and
 the failure happens downstream.
 
-**Most bundlers are fine. The distinction is not ES module support.** It is whether the bundler
-simply emits your `require()` and lets Node resolve it, or whether it pre-validates the
-externalisation request against a rule that predates Node 22.12.
-
-| bundler behaviour | outcome | known examples |
-| --- | --- | --- |
-| emits the `require()`, lets Node resolve it | **works** on Node 22.12+ | esbuild (verified); webpack `externals` and Vite `rollupOptions.external` expected, untested |
-| validates the externalisation first, refuses, bundles instead | **fails** | Next.js 16.2.6 with Turbopack (confirmed) |
-
-**esbuild is verified working.** Externalising the whole family from a CommonJS output:
+**Most bundlers are fine.** esbuild externalises the whole family from a CommonJS output and
+works:
 
 ```bash
 esbuild src/server.ts --bundle --format=cjs --platform=node --external:node-opcua*
 ```
 
 The bundle emits `require("node-opcua-...")` for the ESM packages, plain CommonJS loads the
-result, and a 658-test suite passes against 2.184.0.
+result, and a 658-test suite passes against 2.184.0. esbuild does not adjudicate: you said
+external, it emits the `require()`, and Node 22.12+ resolves it.
 
 ### Known broken: Next.js 16.2.6 with Turbopack
 
-Reported from a real production build, not reproduced here:
-
 ```
+./packages/your-lib/dist/load_yaml/resolvers
 Package node-opcua-variant can't be external
 The request node-opcua-variant matches serverExternalPackages (or the default list).
 The package seems invalid. require() resolves to a EcmaScript module,
@@ -189,18 +209,37 @@ which would result in an error in Node.js.
 The build then reports "Compiled successfully" and dies while collecting page data, with
 `TypeError: The "path" argument must be of type string. Received undefined`.
 
-Turbopack can bundle ES modules perfectly well. What it declines is to leave one *external*: it
-checks the request, concludes that `require()` of an ES module "would result in an error in
-Node.js", and bundles the package instead. That premise stopped being true in Node 22.12. The
-build then fails downstream, because packages are put on an external list precisely when they
-use `__dirname` and read files from disk, which is what nodeset lookup does. Hence the undefined
-path.
+**Read the first line: it names the module doing the importing, not the package being
+complained about.** Turbopack is not saying `node-opcua-variant` is invalid. It is saying *this
+CommonJS module* would have to `require()` it, and declining to externalise on that basis, even
+though Node 22.12+ does exactly that happily. It bundles the package instead, and the build then
+fails downstream, because packages get externalised precisely when they use `__dirname` and read
+files from disk, which is what nodeset lookup does. Hence the undefined path.
 
-**Turbopack's wording, "The package seems invalid", describes its own check rather than the
-package.** No change to node-opcua can fix this one; the outdated rule is in the bundler.
+**So the affected shape is narrow**: a **CommonJS** module in the bundle graph importing an
+externalised ESM package. Not "any build that externalises node-opcua". Confirmed by changing
+one variable: the same Next.js 16.2.6, the same `serverExternalPackages`, the same ESM
+node-opcua, and an untouched `next.config.ts` all build clean once the importing package is
+itself ESM. The passing build contains zero occurrences of "can't be external".
 
-A workaround is not yet established. If you are blocked on this, NodeOPCUA Subscription members
-can reach us through the [private support channel](https://support.sterfive.com).
+### What to do about it
+
+1. **Find the CommonJS module named on that first line.** That is the blocker, and it is the
+   only thing worth changing.
+2. **If you own it, convert that one package to ESM.** In the 22-package workspace this was
+   measured in, exactly one package needed it. The other twenty-one took the `nodenext` line.
+3. **If it is third-party CommonJS you cannot convert**, `--webpack` is the fallback, but it is
+   not a general escape: webpack fails on the same shape with a different message,
+   `ESM packages (node-opcua-assert) need to be imported. Use 'import' to reference the package
+   instead`.
+
+No node-opcua change can fix this; the conservative check is in the bundler. Whether a newer
+Turbopack helps is untested here, and this guide will not name a version: the dev-mode form of
+this message was fixed in the Next 14 era, while production-build reports continue against
+16.1.x and 16.2.0.
+
+If you are blocked on it, NodeOPCUA Subscription members can reach us through the
+[private support channel](https://support.sterfive.com).
 
 ## FAQ
 
@@ -245,12 +284,13 @@ here.
 ## How much of this is likely to affect you
 
 In the 22-package workspace where all of this was measured, **twenty-one packages came through
-the upgrade untouched**, including a CLI, a language server, an editor extension, and several
-back-end services. One Next.js application broke, on the Turbopack issue
-[above](#bundlers-one-known-break).
+the upgrade on the two tsconfig settings alone**, including a CLI, a language server, an editor
+extension, and several back-end services. **One package was converted to ESM**, which was what
+unblocked the Next.js application, as described [above](#bundlers-one-known-break).
 
-The whole migration for that workspace was two settings in one shared `tsconfig.base.json`, plus
-knowing to clear the build cache afterwards.
+That migration is complete and green against 2.184.0: two settings in one shared
+`tsconfig.base.json`, one package converted, and 6 500 tests passing across the workspace
+including the full Next.js build.
 
 If you are stuck on something this guide does not cover, NodeOPCUA Subscription members can
 reach us through the [private support channel](https://support.sterfive.com).
