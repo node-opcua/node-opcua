@@ -5,6 +5,7 @@
 import type {
     AddReferenceOpts,
     BaseNode,
+    ConditionRefreshScope,
     IAddressSpace,
     MethodCallInterceptor,
     UADataType,
@@ -35,6 +36,9 @@ export interface AddressSpacePrivate extends IAddressSpace {
     suspendModelChangeEvents: boolean;
 
     _condition_refresh_in_progress: boolean;
+
+    /** what the refresh in progress was asked for; `null` outside a refresh */
+    _condition_refresh_scope: ConditionRefreshScope | null;
 
     $$extraDataTypeManager?: ExtraDataTypeManager;
 

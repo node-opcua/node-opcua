@@ -6,6 +6,7 @@ import chalk from "chalk";
 import type {
     AddReferenceOpts,
     BaseNode,
+    ConditionRefreshScope,
     IEventData,
     IHistoricalDataNodeOptions,
     ISessionContext,
@@ -226,6 +227,11 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
     }
     public historizingNodes: Set<UAVariable> = new Set();
     public _condition_refresh_in_progress = false;
+    /**
+     * the Subscription (and, for ConditionRefresh2, the MonitoredItem) the refresh in progress
+     * was asked for; `null` outside a refresh. See ConditionRefreshScope.
+     */
+    public _condition_refresh_scope: ConditionRefreshScope | null = null;
 
     public readonly isNodeIdString = isNodeIdString;
     private readonly _private_namespaceIndex: number;
