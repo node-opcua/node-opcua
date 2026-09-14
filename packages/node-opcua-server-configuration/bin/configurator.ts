@@ -24,7 +24,11 @@ import {
 } from "node-opcua-crypto/web";
 import { CertificateAuthority } from "node-opcua-pki";
 import type { TrustListDataType } from "node-opcua-types";
-import { CertificateType, ClientPushCertificateManagement } from "..";
+import { CertificateType, ClientPushCertificateManagement } from "../dist/index.js";
+
+// The one place this module learns where it sits on disk: the global it used before
+// does not exist in an ES module, and this package has published ESM since FEAT-2.
+const here = import.meta.dirname;
 
 const endpointUrl = "opc.tcp://localhost:48010";
 
@@ -131,7 +135,7 @@ async function addApplicationCertificate(session: IBasicSessionAsync) {
     const ag = await s.getApplicationGroup();
     const trustList = await ag.getTrustList();
 
-    const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+    const certificateFile = path.join(here, "../../node-opcua-samples/certificates/client_cert_2048.pem");
 
     const certificate = await readCertificateChainAsync(certificateFile);
     await trustList.addCertificate(combine_der(certificate), true);
@@ -205,7 +209,7 @@ export async function replaceServerCertificate(session: IBasicSessionAsync, caAu
 }
 (async () => {
     try {
-        const configFolder = path.join(__dirname, "../temp/aa");
+        const configFolder = path.join(here, "../temp/aa");
         if (!fs.existsSync(configFolder)) {
             fs.mkdirSync(configFolder);
         }
