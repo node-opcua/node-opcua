@@ -139,6 +139,40 @@ export interface IAddressSpace {
 
     deleteNode(node: NodeId | BaseNode): void;
 
+    /**
+     * Empty a namespace, leaving the rest of the address space exactly as it was before that
+     * namespace was populated, and the namespace itself registered under the same index and uri,
+     * ready to be populated again.
+     *
+     * This is what lets an address space be recycled rather than rebuilt: the base nodesets stay
+     * loaded and only the namespace being edited is rebuilt. Every node of the namespace goes,
+     * and so does every reference between one of them and a node of another namespace, in one
+     * model-change transaction.
+     *
+     * Namespace 0 cannot be deleted.
+     *
+     * @param namespaceIndexOrUri the namespace index, or its uri
+     */
+    deleteNamespace(namespaceIndexOrUri: number | string): void;
+
+    /**
+     * Run `action` with the model-change bookkeeping batched: the changes every node addition
+     * and deletion inside it collects are reported as one GeneralModelChangeEventType event when
+     * the outermost transaction ends, rather than one event per change.
+     *
+     * Re-entrant - a nested call joins the transaction already open.
+     */
+    modelChangeTransaction(action: () => void): void;
+
+    /**
+     * Stop collecting GeneralModelChangeEventType material, and stop bumping NodeVersion.
+     *
+     * Defaults to `false`. Set it only while nothing subscribes to model change events - around
+     * a bulk load or a bulk delete - where the per-node probe the bookkeeping performs is pure
+     * cost.
+     */
+    suspendModelChangeEvents: boolean;
+
     getDefaultNamespace(): INamespace;
 
     getOwnNamespace(): INamespace;

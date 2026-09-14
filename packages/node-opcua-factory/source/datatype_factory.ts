@@ -50,6 +50,16 @@ export class DataTypeFactory {
         this.baseDataFactories = baseDataFactories;
     }
 
+    /**
+     * the factories this one falls back to for the types it does not define itself.
+     *
+     * Exposed so that a caller about to discard a factory can tell whether another one still
+     * depends on it - see `ExtraDataTypeManager.unregisterDataTypeFactory`.
+     */
+    public getBaseDataFactories(): readonly DataTypeFactory[] {
+        return this.baseDataFactories;
+    }
+
     public hasBuiltInType(name: string): boolean {
         return hasBuiltInType(name);
     }

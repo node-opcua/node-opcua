@@ -194,6 +194,20 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
     public suspendBackReference = false;
     public isFrugal = false;
 
+    /**
+     * Stop collecting GeneralModelChangeEventType material.
+     *
+     * Every node added, deleted or re-referenced pays a probe - an inverse reference scan and a
+     * `getNodeVersion` per hierarchical parent - before the bookkeeping can conclude that no node
+     * involved carries a NodeVersion and there is nothing to report. A loader, a compiler or a
+     * test fixture has no subscriber for those events, so the probe is pure cost.
+     *
+     * Defaults to `false`, which is the behaviour every existing caller has. While it is `true`
+     * no ModelChangeStructure is collected and no NodeVersion is bumped, so set it only when
+     * nothing is listening - typically around a bulk load or a bulk delete.
+     */
+    public suspendModelChangeEvents = false;
+
     public registerChildAccessorNames(browseNames: string[]): void {
         defineSharedChildAccessors(browseNames);
     }
@@ -216,6 +230,8 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
     public readonly isNodeIdString = isNodeIdString;
     private readonly _private_namespaceIndex: number;
     private readonly _namespaceArray: NamespacePrivate[];
+    /** uri -> index into `_namespaceArray`; registering and resolving a uri were linear scans */
+    private readonly _namespaceIndexByUri = new Map<string, number>();
     private _shutdownTask?: ShutdownTask[];
     private _eventIdCounter?: Buffer;
     public $$extraDataTypeManager?: ExtraDataTypeManager;
@@ -301,7 +317,8 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
      */
     public getNamespaceIndex(namespaceUri: string): number {
         assert(typeof namespaceUri === "string");
-        return this._namespaceArray.findIndex((ns: NamespacePrivate) => ns.namespaceUri === namespaceUri);
+        const index = this._namespaceIndexByUri.get(namespaceUri);
+        return index === undefined ? -1 : index;
     }
 
     /**
@@ -314,12 +331,12 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
      * @returns {Namespace}
      */
     public registerNamespace(namespaceUri: string): NamespacePrivate {
-        let index = this._namespaceArray.findIndex((ns) => ns.namespaceUri === namespaceUri);
-        if (index !== -1) {
-            assert(this._namespaceArray[index].addressSpace === this);
-            return this._namespaceArray[index];
+        const existing = this._namespaceIndexByUri.get(namespaceUri);
+        if (existing !== undefined) {
+            assert(this._namespaceArray[existing].addressSpace === this);
+            return this._namespaceArray[existing];
         }
-        index = this._namespaceArray.length;
+        const index = this._namespaceArray.length;
         this._namespaceArray.push(
             new NamespaceImpl({
                 addressSpace: this,
@@ -329,7 +346,59 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
                 version: "undefined"
             })
         );
+        this._namespaceIndexByUri.set(namespaceUri, index);
         return this._namespaceArray[index];
+    }
+
+    /**
+     * Empty a namespace, leaving the rest of the address space as it was before that namespace
+     * was ever populated, and the namespace itself registered under the same index and uri and
+     * ready to be populated again.
+     *
+     * This is the recycle that lets a compiler keep its loaded base nodesets across an edit:
+     * rebuilding the model's own namespace costs a fraction of rebuilding the whole address
+     * space. Everything goes in one model-change transaction, and only the references that cross
+     * the namespace boundary are severed - the ones inside it die with their nodes.
+     *
+     * It lives here rather than on Namespace because most of what it touches is not the
+     * namespace's: references held by nodes of other namespaces, the DataType factory this
+     * namespace registered with the address space's DataType manager, the address space's set of
+     * historizing nodes.
+     *
+     * Namespace 0 cannot be deleted: it is the standard namespace every other node resolves
+     * against.
+     *
+     * A structure DataType of the namespace also registered an ExtensionObject constructor with
+     * the address space's DataType manager; the factory holding those is dropped here, so that
+     * a later `ensureDatatypeExtracted` builds a fresh one for the repopulated namespace rather
+     * than colliding with the leftovers of the previous one.
+     */
+    public deleteNamespace(namespaceIndexOrUri: number | string): void {
+        const namespace = this.getNamespace(namespaceIndexOrUri);
+        /* c8 ignore next */
+        if (!namespace) {
+            throw new Error(`deleteNamespace: no namespace ${namespaceIndexOrUri.toString()} in this address space`);
+        }
+        const index = namespace.index;
+        if (index === 0) {
+            throw new Error("deleteNamespace: the standard namespace (index 0) cannot be deleted");
+        }
+
+        this.modelChangeTransaction(() => {
+            namespace._deleteAllNodes();
+        });
+
+        // a historized variable of the namespace is gone; the address space must stop listing it
+        if (this.historizingNodes.size) {
+            for (const node of [...this.historizingNodes]) {
+                if (node.nodeId.namespace === index) {
+                    this.historizingNodes.delete(node);
+                }
+            }
+        }
+
+        // the structures and enumerations this namespace registered go with their factory
+        this.$$extraDataTypeManager?.unregisterDataTypeFactory(index);
     }
 
     /***

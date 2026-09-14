@@ -5,12 +5,15 @@ import { format } from "node:util";
 
 import { assert } from "node-opcua-assert";
 import { BrowseDirection, NodeClassMask, ResultMask } from "node-opcua-data-model";
+import { make_warningLog } from "node-opcua-debug";
 import { type ConstructorFunc, type DataTypeFactory, getStandardDataTypeFactory, type StructureInfo } from "node-opcua-factory";
 import type { NodeId } from "node-opcua-nodeid";
 import type { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import type { AnyConstructorFunc } from "node-opcua-schemas";
 
 import { readDataTypeDefinitionAndBuildType } from "./private/populate_data_type_manager_104.js";
+
+const warningLog = make_warningLog("ExtraDataTypeManager");
 
 export class ExtraDataTypeManager {
     public namespaceArray: string[] = [];
@@ -40,6 +43,50 @@ export class ExtraDataTypeManager {
             throw new Error("Dictionary already registered");
         }
         this.dataTypeFactoryMapByNamespace[namespaceIndex] = dataTypeFactory;
+    }
+
+    /**
+     * Forget the factory of a namespace, and with it every structure, enumeration and
+     * ExtensionObject constructor that namespace registered.
+     *
+     * A namespace that is emptied and loaded again (see `IAddressSpace.deleteNamespace`) must
+     * come back to a manager that has no memory of the previous load: `registerDataTypeFactory`
+     * refuses a second factory for the same index, and the schemas of the old load carry the
+     * NodeIds of nodes that no longer exist.
+     *
+     * Namespace 0 has no factory of its own - it is served by the standard one - and is refused.
+     *
+     * A factory that other namespaces list among their base factories keeps being referenced by
+     * them; those namespaces have to be re-extracted as well if they used its types.
+     */
+    public unregisterDataTypeFactory(namespaceIndex: number): void {
+        /* c8 ignore next */
+        if (namespaceIndex === 0) {
+            throw new Error("unregisterDataTypeFactory cannot be used for namespace 0");
+        }
+        const dropped = this.dataTypeFactoryMapByNamespace[namespaceIndex];
+        if (!dropped) {
+            return;
+        }
+        delete this.dataTypeFactoryMapByNamespace[namespaceIndex];
+
+        // A namespace whose types are built on this one keeps the factory just dropped in its
+        // fallback chain, and will go on resolving those types through schemas of the load that
+        // has gone. Nothing fails when that happens, which is why it is said out loud here: the
+        // dependent namespaces have to be extracted again too.
+        const dependents: number[] = [];
+        for (const [key, factory] of Object.entries(this.dataTypeFactoryMapByNamespace)) {
+            if (factory.getBaseDataFactories().includes(dropped)) {
+                dependents.push(Number.parseInt(key, 10));
+            }
+        }
+        if (dependents.length) {
+            warningLog(
+                `unregisterDataTypeFactory: namespace ${namespaceIndex} (${dropped.targetNamespace}) is a base of ` +
+                    `namespace(s) ${dependents.join(", ")}, whose DataType factories now refer to a discarded one. ` +
+                    "Those namespaces must be reloaded as well."
+            );
+        }
     }
 
     public getDataTypeFactoryForNamespace(namespaceIndex: number): DataTypeFactory {

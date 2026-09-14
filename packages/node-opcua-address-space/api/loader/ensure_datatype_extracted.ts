@@ -55,64 +55,100 @@ export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Prom
     const addressSpacePriv = addressSpace as AddressSpacePrivateWithDataTypeManager;
 
     if (!addressSpacePriv.$$extraDataTypeManager) {
-        const dataTypeManager = new ExtraDataTypeManager();
+        addressSpacePriv.$$extraDataTypeManager = new ExtraDataTypeManager();
+    }
+    const dataTypeManager = addressSpacePriv.$$extraDataTypeManager;
 
-        const namespaceArray = addressSpace.getNamespaceArray().map((n: INamespace) => n.namespaceUri);
+    const namespaceArray = addressSpace.getNamespaceArray().map((n: INamespace) => n.namespaceUri);
 
-        doDebug && debugLog("INamespace Array = ", namespaceArray.join("\n                   "));
+    doDebug && debugLog("INamespace Array = ", namespaceArray.join("\n                   "));
 
-        dataTypeManager.setNamespaceArray(namespaceArray);
+    dataTypeManager.setNamespaceArray(namespaceArray);
 
-        addressSpacePriv.$$extraDataTypeManager = dataTypeManager;
+    const factories: DataTypeFactory[] = [getStandardDataTypeFactory()];
 
-        const factories: DataTypeFactory[] = [getStandardDataTypeFactory()];
+    // A namespace with no factory is one this call has not seen yet: the first call sees them
+    // all, and a later one sees a namespace registered since, or one emptied by
+    // `deleteNamespace` and populated again - `deleteNamespace` drops that namespace's factory
+    // precisely so that its structures are extracted afresh rather than colliding with the
+    // schemas of the previous load. When every namespace already has one there is nothing to
+    // extract and this returns as fast as it always did.
+    let hasNewFactory = false;
 
-        const priorityTable = constructNamespacePriorityTable(addressSpace).priorityTable;
+    for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
+        const namespace = addressSpace.getNamespace(namespaceIndex);
 
-        for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
-            const namespace = addressSpace.getNamespace(namespaceIndex);
-
-            if (doDebug) {
-                debugLog("namespaceIndex = ", namespaceIndex);
-                debugLog("namespace = ", namespace.namespaceUri);
-                debugLog("factories = ", factories.map((f) => f.targetNamespace).join(" "));
-                // find dependent namespaces
-                let dependency = constructNamespaceDependency(namespace);
-                // remove last element that is my namespace
-                dependency = dependency.filter((ns) => ns.index !== namespaceIndex);
-                const dependFactories = dependency.map((ns) => {
-                    const df = factories[ns.index];
-                    if (!df) {
-                        debugLog("namespaceIndex = ", namespaceIndex);
-                        debugLog("namespace = ", namespace.namespaceUri);
-                        debugLog("priorityTable", priorityTable);
-                        debugLog(dependency.map((ns) => `${ns.index} ${ns.namespaceUri}`).join("\n"));
-                        throw new Error(`Cannot find factory for namespace ${ns.namespaceUri}`);
-                    }
-                    return df;
-                });
-                //            getStandardDataTypeFactory()
-
-                const _dataTypeFactory1 = new DataTypeFactory(dependFactories);
-            }
-            const dataTypeFactory1 = new DataTypeFactory([...factories]);
-            dataTypeFactory1.targetNamespace = namespace.namespaceUri;
-
-            factories.push(dataTypeFactory1);
-
-            dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
+        if (dataTypeManager.hasDataTypeFactory(namespaceIndex)) {
+            factories.push(dataTypeManager.getDataTypeFactory(namespaceIndex));
+            continue;
         }
+
+        if (doDebug) {
+            debugLog("namespaceIndex = ", namespaceIndex);
+            debugLog("namespace = ", namespace.namespaceUri);
+            debugLog("factories = ", factories.map((f) => f.targetNamespace).join(" "));
+            debugLog("priorityTable", constructNamespacePriorityTable(addressSpace).priorityTable);
+        }
+
+        // Chain this factory to the namespaces this one DEPENDS ON, rather than to
+        // every namespace that happens to have been loaded before it.
+        //
+        // The positional form — `new DataTypeFactory([...factories])` — made each
+        // namespace hold a reference to every earlier one. That was harmless while
+        // nothing could be unloaded, and stops being harmless now that
+        // `deleteNamespace` exists: dropping a namespace leaves everything loaded
+        // after it chained to a discarded factory, and nothing clears that
+        // reference, so the factory, its schemas and its ExtensionObject
+        // constructors stay alive. A model whose own namespace is registered before
+        // its dependencies — index 1, as the modeler does it — would be chained
+        // through by every companion spec, and leak one factory per reload.
+        //
+        // The computation is not new: it was already here, under `if (doDebug)`,
+        // with its result assigned to a variable nobody read. This is that
+        // computation, used. `constructNamespaceDependency` always reports
+        // namespace 0, so the standard factory stays in every chain.
+        const dependency = constructNamespaceDependency(namespace).filter((ns) => ns.index !== namespaceIndex);
+        const dependFactories: DataTypeFactory[] = [];
+        for (const ns of dependency) {
+            const df = factories[ns.index];
+            if (!df) {
+                // A declared dependency whose factory does not exist yet, which can
+                // happen when namespaces arrive out of dependency order. Fall back
+                // to the positional chain rather than fail: that is what shipped for
+                // years, so it cannot resolve less than it used to.
+                doDebug &&
+                    debugLog(
+                        `ensureDatatypeExtracted: no factory yet for namespace ${ns.index} (${ns.namespaceUri}), ` +
+                            `keeping the positional chain for ${namespace.namespaceUri}`
+                    );
+                dependFactories.length = 0;
+                break;
+            }
+            dependFactories.push(df);
+        }
+        const dataTypeFactory1 = new DataTypeFactory(dependFactories.length > 0 ? dependFactories : [...factories]);
+        dataTypeFactory1.targetNamespace = namespace.namespaceUri;
+
+        factories.push(dataTypeFactory1);
+
+        dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
+        hasNewFactory = true;
+    }
+
+    if (hasNewFactory) {
         // inject simple types
 
         // now extract structure and enumeration from old form
         const session = new PseudoSession(addressSpace);
 
+        // the extraction skips a dataType whose factory already knows it, so the namespaces that
+        // were extracted by an earlier call are walked but not rebuilt
         await populateDataTypeManager(session, dataTypeManager, DataTypeExtractStrategy.Auto);
 
         // turn old <=103 structure to have valid DataTypeDefinition
         fixDefinition103(addressSpace, namespaceArray, dataTypeManager);
     }
-    return addressSpacePriv.$$extraDataTypeManager as ExtraDataTypeManager;
+    return dataTypeManager;
 }
 
 export function ensureDatatypeExtractedWithCallback(addressSpace: IAddressSpace, callback: CallbackT<ExtraDataTypeManager>): void {

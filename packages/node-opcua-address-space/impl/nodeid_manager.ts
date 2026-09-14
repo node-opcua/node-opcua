@@ -123,6 +123,19 @@ export class NodeIdManager {
         this.addressSpace = addressSpace;
     }
 
+    /**
+     * Put the id counter back where a fresh manager starts, so that a namespace emptied and
+     * populated again hands out the same generated ids as the first time.
+     *
+     * The symbolic name table is deliberately kept: it is the mapping the caller supplied (or
+     * that the first population established) between a name and the id that name must keep, and
+     * a recycled namespace has to honour it again. Nothing can clash with a retired id -
+     * `buildNewNodeId` skips both the ids in that table and any nodeId still registered.
+     */
+    public reset(): void {
+        this._internal_id_counter = 1000;
+    }
+
     public setSymbols(symbols: NodeEntry1[]): void {
         function convertNodeClass(nodeClass: string): NodeClass {
             return (NodeClass as unknown as Record<string, NodeClass>)[nodeClass];
