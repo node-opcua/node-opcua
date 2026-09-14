@@ -4,6 +4,7 @@
 import chalk from "chalk";
 import {
     type BaseNode,
+    type ConditionRefreshScope,
     fullPath2,
     type INamespace,
     type ISessionContext,
@@ -1122,7 +1123,27 @@ function _condition_refresh_method(
     });
 }
 
-function _perform_condition_refresh(addressSpace: AddressSpacePrivate, _inputArguments: VariantLike[], context: ISessionContext) {
+/**
+ * OPC 10000-9 4.5: the RefreshStart/RefreshEnd bracket "ignore[s] the Event content filtering
+ * associated with a Subscription and will always be delivered to the Client". The address space
+ * cannot apply that itself - it does not evaluate where clauses, the MonitoredItem does - so it
+ * says which Subscription the refresh is for and the server side bypasses the where clause for
+ * those two EventTypes, for that Subscription only.
+ *
+ * `null` when there is no Session behind the call (a PseudoSession, an in-process caller, a unit
+ * test): nothing is named, so nothing is bypassed.
+ */
+function _refresh_scope(inputArguments: VariantLike[], context: ISessionContext): ConditionRefreshScope | null {
+    const subscription = context.session?.getSubscription?.(inputArguments[0]?.value);
+    if (!subscription) {
+        return null;
+    }
+    // ConditionRefresh2 names one MonitoredItem (5.5.8); ConditionRefresh names none (5.5.7)
+    const monitoredItemId = inputArguments.length > 1 ? (inputArguments[1]?.value as number) : undefined;
+    return { subscription, monitoredItemId };
+}
+
+function _perform_condition_refresh(addressSpace: AddressSpacePrivate, inputArguments: VariantLike[], context: ISessionContext) {
     // --- possible StatusCodes:
     //
     // Bad_SubscriptionIdInvalid  See Part 4 for the description of this result code
@@ -1149,6 +1170,7 @@ function _perform_condition_refresh(addressSpace: AddressSpacePrivate, _inputArg
     }
 
     addressSpace._condition_refresh_in_progress = true;
+    addressSpace._condition_refresh_scope = _refresh_scope(inputArguments, context);
     try {
         server?.raiseEvent(refreshStartEventType, {});
 
@@ -1160,8 +1182,10 @@ function _perform_condition_refresh(addressSpace: AddressSpacePrivate, _inputArg
         server?.raiseEvent(refreshEndEventType, {});
     } finally {
         // whatever a condition's event handler throws, the next refresh must not be
-        // answered Bad_RefreshInProgress for ever
+        // answered Bad_RefreshInProgress for ever, and no later event must be taken
+        // for part of a refresh
         addressSpace._condition_refresh_in_progress = false;
+        addressSpace._condition_refresh_scope = null;
     }
 
     return StatusCodes.Good;

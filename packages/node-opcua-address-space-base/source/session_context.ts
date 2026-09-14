@@ -63,6 +63,34 @@ export interface ISubscriptionBase {
     getMonitoredItem(monitoredItemId: number): object | null;
 }
 
+/**
+ * The Subscription a ConditionRefresh is running for, while it runs.
+ *
+ * OPC 10000-9 4.5: "To ensure a Client is always informed, the three special EventTypes
+ * (RefreshEndEventType, RefreshStartEventType and RefreshRequiredEventType) ignore the Event
+ * content filtering associated with a Subscription and will always be delivered to the Client."
+ * The retained Condition Events sent in between still have to "meet the Subscriptions content
+ * filter criteria" (5.5.7), so only the bracket bypasses the where clause.
+ *
+ * The address space raises the bracket but knows nothing about Subscriptions, so it publishes
+ * the scope of the refresh in progress and the server side reads it back: that keeps the bypass
+ * to the Subscription the ConditionRefresh call named.
+ */
+export interface ConditionRefreshScope {
+    /** the Subscription of the SubscriptionId argument */
+    subscription: ISubscriptionBase;
+    /** ConditionRefresh2 only: the single MonitoredItem of the MonitoredItemId argument */
+    monitoredItemId?: number;
+}
+
+/**
+ * The address space, seen from the server side, while a ConditionRefresh runs.
+ * `null` at every other moment: the refresh raises its bracket synchronously.
+ */
+export interface IConditionRefreshScopeHolder {
+    readonly _condition_refresh_scope: ConditionRefreshScope | null;
+}
+
 export interface ISessionBase {
     userIdentityToken?: UserIdentityToken;
     channel?: IChannelBase;

@@ -12,9 +12,10 @@ import {
     SessionContext,
     type UAVariable
 } from "node-opcua-address-space";
-import type { ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
+import type { IConditionRefreshScopeHolder, ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import type { DateTime, UInt32 } from "node-opcua-basic-types";
+import { ObjectTypeIds } from "node-opcua-constants";
 import { AttributeIds, NodeClass, type QualifiedNameOptions } from "node-opcua-data-model";
 import {
     apply_timestamps,
@@ -26,7 +27,7 @@ import {
 } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
-import type { NodeId } from "node-opcua-nodeid";
+import { makeNodeId, type NodeId, sameNodeId } from "node-opcua-nodeid";
 import { type NumericalRange0, NumericRange } from "node-opcua-numeric-range";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { EventFilter, extractEventFields } from "node-opcua-service-filter";
@@ -59,7 +60,7 @@ import {
     type SimpleAttributeOperand,
     type SubscriptionDiagnosticsDataType
 } from "node-opcua-types";
-import { sameVariant, Variant } from "node-opcua-variant";
+import { DataType, sameVariant, Variant } from "node-opcua-variant";
 import { checkWhereClauseOnAdressSpace as checkWhereClauseOnAddressSpace } from "./filter/check_where_clause_on_address_space.js";
 import { appendToTimer, removeFromTimer } from "./node_sampler.js";
 import type { SamplingFunc } from "./sampling_func.js";
@@ -74,6 +75,24 @@ const defaultItemToMonitor: ReadValueIdOptions = new ReadValueId({
     attributeId: AttributeIds.Value,
     indexRange: undefined
 });
+
+const refreshStartEventTypeNodeId = makeNodeId(ObjectTypeIds.RefreshStartEventType);
+const refreshEndEventTypeNodeId = makeNodeId(ObjectTypeIds.RefreshEndEventType);
+
+/** every EventData carries its EventType field: constructEventData fills it from the raised type */
+interface IEventDataWithEventType {
+    eventType?: Variant;
+}
+
+/** the RefreshStart / RefreshEnd bracket of a ConditionRefresh, and nothing else */
+function _is_refresh_bracket_event(eventData: IEventData): boolean {
+    const eventType = (eventData as IEventDataWithEventType).eventType;
+    if (!eventType || eventType.dataType !== DataType.NodeId) {
+        return false;
+    }
+    const eventTypeNodeId = eventType.value as NodeId;
+    return sameNodeId(eventTypeNodeId, refreshStartEventTypeNodeId) || sameNodeId(eventTypeNodeId, refreshEndEventTypeNodeId);
+}
 
 const debugLog = make_debugLog("monitored_item");
 const doDebug = checkDebugFlag("monitored_item");
@@ -1202,15 +1221,49 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         this._on_value_changed(dataValue);
     }
 
-    private _on_opcua_event(eventData: IEventData) {
-        // TO DO : => Improve Filtering, bearing in mind that ....
-        // Release 1.04 8 OPC Unified Architecture, Part 9
-        // 4.5 Condition state synchronization
-        // To ensure a Client is always informed, the three special EventTypes
-        // (RefreshEndEventType, RefreshStartEventType and RefreshRequiredEventType)
-        // ignore the Event content filtering associated with a Subscription and will always be
-        // delivered to the Client.
+    /**
+     * OPC 10000-9 4.5: "To ensure a Client is always informed, the three special EventTypes
+     * (RefreshEndEventType, RefreshStartEventType and RefreshRequiredEventType) ignore the Event
+     * content filtering associated with a Subscription and will always be delivered to the
+     * Client." The retained Condition Events sent in between still have to "meet the
+     * Subscriptions content filter criteria" (5.5.7), so only the bracket is exempt.
+     *
+     * Without this, a where clause testing a Condition field discards RefreshStart/RefreshEnd -
+     * they are not Conditions and carry no ConditionId - and a Client that filtered down to one
+     * Condition waits for a RefreshEnd that never comes. Measured with the CTT's A & C Refresh
+     * Test_002: the item filtering on a ConditionId received its 78 Condition Events and neither
+     * end of the bracket, while the unfiltered item on the same Subscription received both.
+     *
+     * The exemption is no wider than that sentence:
+     * - only those two EventTypes, recognised by their EventType field;
+     * - only while the ConditionRefresh that raised them runs - the address space sets the scope
+     *   around the synchronous raise and clears it in a `finally`;
+     * - only for the Subscription the call named, compared by object identity, so an item of any
+     *   other Subscription keeps filtering the bracket exactly as before;
+     * - ConditionRefresh2 (5.5.8) names one MonitoredItem, and only that item is exempt.
+     * The select clauses are untouched: the Client still gets the fields it asked for.
+     *
+     * The third EventType of the sentence, RefreshRequiredEventType, is not raised by a
+     * ConditionRefresh - it is how a Server asks for one - so there is no refresh scope to
+     * recognise it in and nothing here exempts it.
+     */
+    private _is_refresh_bracket_addressed_to_me(addressSpace: AddressSpace, eventData: IEventData): boolean {
+        const scope = (addressSpace as Partial<IConditionRefreshScopeHolder>)._condition_refresh_scope;
+        if (!scope) {
+            return false;
+        }
+        // identity, not id: the Subscription named by the call has to be the very object this
+        // MonitoredItem belongs to
+        if ((scope.subscription as unknown) !== (this.$subscription as unknown)) {
+            return false;
+        }
+        if (scope.monitoredItemId !== undefined && scope.monitoredItemId !== this.monitoredItemId) {
+            return false;
+        }
+        return _is_refresh_bracket_event(eventData);
+    }
 
+    private _on_opcua_event(eventData: IEventData) {
         // c8 ignore next
         if (!this.filter || !(this.filter instanceof EventFilter)) {
             throw new Error("Internal Error : a EventFilter is requested");
@@ -1218,7 +1271,10 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
 
         const addressSpace: AddressSpace = eventData.getEventDataSource().addressSpace as AddressSpace;
 
-        if (!checkWhereClauseOnAddressSpace(addressSpace, SessionContext.defaultContext, this.filter.whereClause, eventData)) {
+        if (
+            !this._is_refresh_bracket_addressed_to_me(addressSpace, eventData) &&
+            !checkWhereClauseOnAddressSpace(addressSpace, SessionContext.defaultContext, this.filter.whereClause, eventData)
+        ) {
             return;
         }
 
