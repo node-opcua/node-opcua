@@ -50,7 +50,13 @@ function typeDefinitionOf(addressSpace: IAddressSpace, node: UAInstance): UAType
  * walks the chain once per member
  */
 class DeclarationIndex {
-    private readonly cache = new Map<string, BaseNode | null>();
+    /**
+     * per type, the answer for each browse name asked of it. Keyed on the type node itself
+     * rather than on a `${nodeId}|${browseName}` string: a sweep asks this thousands of times,
+     * and building that key rendered a NodeId to text, rendered a QualifiedName to text and
+     * joined them — on every hit as much as on every miss.
+     */
+    private readonly cache = new Map<BaseNode, Map<string, BaseNode | null>>();
     /** absent from a standard nodeset older than 1.04: then no type has interfaces to look into */
     private readonly hasInterface: UAReferenceType | null;
     private readonly hasModellingRule: UAReferenceType;
@@ -76,22 +82,29 @@ class DeclarationIndex {
     }
 
     public find(type: UAType, browseName: QualifiedName): BaseNode | null {
-        const key = `${type.nodeId.toString()}|${browseName.toString()}`;
-        const cached = this.cache.get(key);
+        let perType = this.cache.get(type);
+        if (!perType) {
+            perType = new Map<string, BaseNode | null>();
+            this.cache.set(type, perType);
+        }
+        // the browse name still needs a key, but only the one string, and only on a miss for
+        // this type; `toString` renders the namespace index with it, so two names that differ
+        // only by namespace do not collide
+        const key = browseName.toString();
+        const cached = perType.get(key);
         if (cached !== undefined) {
             return cached;
         }
-        const found = this.walk(type, browseName, new Set<string>());
-        this.cache.set(key, found);
+        const found = this.walk(type, browseName, new Set<BaseNode>());
+        perType.set(key, found);
         return found;
     }
 
-    private walk(type: UAType, browseName: QualifiedName, visited: Set<string>): BaseNode | null {
-        const typeKey = type.nodeId.toString();
-        if (visited.has(typeKey)) {
+    private walk(type: UAType, browseName: QualifiedName, visited: Set<BaseNode>): BaseNode | null {
+        if (visited.has(type)) {
             return null;
         }
-        visited.add(typeKey);
+        visited.add(type);
         const child = type.getChildByName(browseName);
         if (child) {
             return child;
