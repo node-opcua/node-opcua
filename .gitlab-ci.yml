@@ -32,6 +32,12 @@ cache:
         KUBERNETES_MEMORY_LIMIT: 4Gi
     stage: build
     before_script:
+        # Node 26 no longer bundles corepack, so `corepack enable` exits 127 there and the
+        # job died before reaching the suite - allow_failure hid it, leaving that runtime
+        # untested rather than tested-and-tolerated. Install it only when it is missing;
+        # 22 and 24 keep using the bundled one. GitHub never hit this: it provisions pnpm
+        # with pnpm/action-setup instead of going through corepack.
+        - command -v corepack >/dev/null 2>&1 || npm i -g corepack
         - corepack enable
         - corepack prepare --activate
         - pnpm --version
