@@ -431,6 +431,50 @@ function thumbprint(certificate?: Certificate | null): string {
     return certificate ? certificate.toString("base64") : "";
 }
 
+/**
+ * OPC 10000-5 6.4.3 AuditEventType / ClientUserId:
+ *
+ * "The ClientUserId identifies the user of the client requesting an action. The ClientUserId
+ * can be obtained from the UserIdentityToken passed in the ActivateSession call. If the
+ * UserIdentityToken is a UserNameIdentityToken then the ClientUserId shall be the UserName.
+ * If the UserIdentityToken is an X509IdentityToken then the ClientUserId shall be the X509
+ * Subject Name of the Certificate. [...] If an AnonymousIdentityToken is being used, the
+ * ClientUserId shall be null."
+ *
+ * Mirrors the identity classification already used for RBAC role resolution
+ * (node-opcua-address-space/api/session_context.ts#getUserName), adapted to the audit
+ * semantics above (anonymous -> "" rather than the literal string "anonymous").
+ *
+ * IssuedIdentityToken is deliberately left as "": the spec's rule for it depends on parsing
+ * the token as a JWT and reading its `iss`/`sub` claims, and no tested JWT-decoding path
+ * exists anywhere else in this codebase to reuse. Guessing at one here, for a security audit
+ * field, risks reporting a wrong identity - which is worse than reporting none. Certificate
+ * parsing is wrapped in try/catch because a malformed X509IdentityToken must not prevent the
+ * audit event (or the ActivateSession response) from being raised.
+ */
+function getClientUserIdForAudit(userIdentityToken?: UserIdentityToken | null): string {
+    if (!userIdentityToken || userIdentityToken instanceof AnonymousIdentityToken) {
+        return "";
+    }
+    if (userIdentityToken instanceof UserNameIdentityToken) {
+        return typeof userIdentityToken.userName === "string" ? userIdentityToken.userName : "";
+    }
+    if (userIdentityToken instanceof X509IdentityToken) {
+        try {
+            const cert = Array.isArray(userIdentityToken.certificateData)
+                ? userIdentityToken.certificateData[0]
+                : userIdentityToken.certificateData;
+            const certInfo = exploreCertificate(cert);
+            const subjectCommonName = certInfo.tbsCertificate.subject.commonName;
+            return typeof subjectCommonName === "string" ? subjectCommonName : "";
+        } catch {
+            return "";
+        }
+    }
+    // IssuedIdentityToken or any future/unknown token type: see comment above.
+    return "";
+}
+
 /*=== private
  *
  * perform the read operation on a given node for a monitored item.
@@ -2508,35 +2552,40 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
 
         this.emit("create_session", session);
 
-        session.on("session_closed", (session1: ServerSession, deleteSubscriptions: boolean, reason: string) => {
-            assert(typeof reason === "string");
-            if (this.isAuditing) {
-                assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
-                const sourceName = `Session/${reason}`;
+        session.on(
+            "session_closed",
+            (session1: ServerSession, deleteSubscriptions: boolean, reason: string, auditEntryId?: string) => {
+                assert(typeof reason === "string");
+                if (this.isAuditing) {
+                    assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
+                    const sourceName = `Session/${reason}`;
 
-                this.raiseEvent("AuditSessionEventType", {
-                    /* part 5 -  6.4.3 AuditEventType */
-                    actionTimeStamp: { dataType: "DateTime", value: new Date() },
-                    status: { dataType: "Boolean", value: true },
+                    this.raiseEvent("AuditSessionEventType", {
+                        /* part 5 -  6.4.3 AuditEventType */
+                        actionTimeStamp: { dataType: "DateTime", value: new Date() },
+                        status: { dataType: "Boolean", value: true },
 
-                    serverId: { dataType: "String", value: "" },
+                        serverId: { dataType: "String", value: this.serverInfo.applicationUri || "" },
 
-                    // ClientAuditEntryId contains the human-readable AuditEntryId defined in Part 3.
-                    clientAuditEntryId: { dataType: "String", value: "" },
+                        // ClientAuditEntryId contains the human-readable AuditEntryId defined in Part 3.
+                        // Only present when this close was caused by a client CloseSession request
+                        // (reason === "CloseSession"); Timeout/Terminated/Forcing have no request to take it from.
+                        clientAuditEntryId: { dataType: "String", value: auditEntryId ?? "" },
 
-                    // The ClientUserId identifies the user of the client requesting an action. The ClientUserId can be
-                    // obtained from the UserIdentityToken passed in the ActivateSession call.
-                    clientUserId: { dataType: "String", value: "" },
+                        // The ClientUserId identifies the user of the client requesting an action. The ClientUserId can be
+                        // obtained from the UserIdentityToken passed in the ActivateSession call.
+                        clientUserId: { dataType: "String", value: "" },
 
-                    sourceName: { dataType: "String", value: sourceName },
+                        sourceName: { dataType: "String", value: sourceName },
 
-                    /* part 5 - 6.4.7 AuditSessionEventType */
-                    sessionId: { dataType: "NodeId", value: session1.nodeId }
-                });
+                        /* part 5 - 6.4.7 AuditSessionEventType */
+                        sessionId: { dataType: "NodeId", value: session1.nodeId }
+                    });
+                }
+
+                this.emit("session_closed", session1, deleteSubscriptions);
             }
-
-            this.emit("session_closed", session1, deleteSubscriptions);
-        });
+        );
 
         if (this.isAuditing) {
             // ------------------------------------------------------------------------------------------------------
@@ -2545,13 +2594,16 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 actionTimeStamp: { dataType: "DateTime", value: new Date() },
                 status: { dataType: "Boolean", value: true },
 
-                serverId: { dataType: "String", value: "" },
+                serverId: { dataType: "String", value: this.serverInfo.applicationUri || "" },
 
                 // ClientAuditEntryId contains the human-readable AuditEntryId defined in Part 3.
-                clientAuditEntryId: { dataType: "String", value: "" },
+                clientAuditEntryId: { dataType: "String", value: request.requestHeader.auditEntryId ?? "" },
 
                 // The ClientUserId identifies the user of the client requesting an action. The ClientUserId can be
-                // obtained from the UserIdentityToken passed in the ActivateSession call.
+                // obtained from the UserIdentityToken passed in the ActivateSession call. No UserIdentityToken has
+                // been supplied yet at CreateSession time (part 5 6.4.8 says this parameter "shall be set to the
+                // 'System/CreateSession'" for that reason); left as "" here, unchanged from before this fix, since
+                // that specific wording is out of scope for this change.
                 clientUserId: { dataType: "String", value: "" },
 
                 sourceName: { dataType: "String", value: "Session/CreateSession" },
@@ -2782,7 +2834,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                             // xx assert(session.channel.clientCertificate instanceof Buffer);
                             assert(session.sessionTimeout > 0);
 
-                            raiseAuditActivateSessionEventType.call(this, session);
+                            raiseAuditActivateSessionEventType.call(this, session, request.requestHeader.auditEntryId ?? "");
 
                             this.emit("session_activated", session, userIdentityTokenPasswordRemoved(session.userIdentityToken));
 
@@ -3052,7 +3104,12 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         );
     }
 
-    private async _closeSession(authenticationToken: NodeId, deleteSubscriptions: boolean, reason: ClosingReason): Promise<void> {
+    private async _closeSession(
+        authenticationToken: NodeId,
+        deleteSubscriptions: boolean,
+        reason: ClosingReason,
+        auditEntryId?: string
+    ): Promise<void> {
         if (deleteSubscriptions && this.options.onDeleteMonitoredItem) {
             const session = this.getSession(authenticationToken);
             if (session) {
@@ -3065,7 +3122,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 }
             }
         }
-        await this.engine.closeSession(authenticationToken, deleteSubscriptions, reason);
+        await this.engine.closeSession(authenticationToken, deleteSubscriptions, reason, auditEntryId);
     }
     /**
      * @param message
@@ -3112,7 +3169,12 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
 
         (async () => {
             try {
-                await this._closeSession(request.requestHeader.authenticationToken, request.deleteSubscriptions, "CloseSession");
+                await this._closeSession(
+                    request.requestHeader.authenticationToken,
+                    request.deleteSubscriptions,
+                    "CloseSession",
+                    request.requestHeader.auditEntryId ?? ""
+                );
 
                 // if (false && wasNotActivated) {
                 //  return sendError(StatusCodes.BadSessionNotActivated);
@@ -4251,22 +4313,22 @@ const userIdentityTokenPasswordRemoved = (userIdentityToken?: UserIdentityToken)
     return a;
 };
 
-function raiseAuditActivateSessionEventType(this: OPCUAServer, session: ServerSession) {
+function raiseAuditActivateSessionEventType(this: OPCUAServer, session: ServerSession, auditEntryId: string) {
     if (this.isAuditing) {
         this.raiseEvent("AuditActivateSessionEventType", {
             /* part 5 -  6.4.3 AuditEventType */
             actionTimeStamp: { dataType: "DateTime", value: new Date() },
             status: { dataType: "Boolean", value: true },
 
-            serverId: { dataType: "String", value: "" },
+            serverId: { dataType: "String", value: this.serverInfo.applicationUri || "" },
 
             // ClientAuditEntryId contains the human-readable AuditEntryId defined in Part 3.
-            clientAuditEntryId: { dataType: "String", value: "" },
+            clientAuditEntryId: { dataType: "String", value: auditEntryId },
 
             // The ClientUserId identifies the user of the client requesting an action.
             // The ClientUserId can be obtained from the UserIdentityToken passed in the
             // ActivateSession call.
-            clientUserId: { dataType: "String", value: "cc" },
+            clientUserId: { dataType: "String", value: getClientUserIdForAudit(session.userIdentityToken) },
 
             sourceName: { dataType: "String", value: "Session/ActivateSession" },
 

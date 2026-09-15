@@ -1795,6 +1795,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * @param deleteSubscriptions {Boolean} : true if session's subscription shall be deleted
      * @param {String} [reason = "CloseSession"] the reason for closing the session (
      *                 shall be "Timeout", "Terminated" or "CloseSession")
+     * @param [auditEntryId] the RequestHeader.auditEntryId of the CloseSession request that caused
+     *        this close, when there is one. See ServerSession#close.
      *
      *
      * what the specs say:
@@ -1806,7 +1808,12 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * against data loss in the case of a Session termination. In these cases, the Subscription can be reassigned to
      * another Client before its lifetime expires.
      */
-    public closeSession(authenticationToken: NodeId, deleteSubscriptions: boolean, reason: ClosingReason): void {
+    public closeSession(
+        authenticationToken: NodeId,
+        deleteSubscriptions: boolean,
+        reason: ClosingReason,
+        auditEntryId?: string
+    ): void {
         reason = reason || "CloseSession";
         assert(typeof reason === "string");
         assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
@@ -1833,7 +1840,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             ServerSidePublishEngine.transferSubscriptionsToOrphan(session.publishEngine, this._orphanPublishEngine);
         }
 
-        session.close(deleteSubscriptions, reason);
+        session.close(deleteSubscriptions, reason, auditEntryId);
 
         assert(session.status === "closed");
 
