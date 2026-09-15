@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-service-subscription",
     "type": "module",
-    "version": "2.184.1",
+    "version": "2.184.4",
     "description": "pure nodejs OPCUA SDK - module service-subscription",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -25,7 +25,7 @@
         "node-opcua-debug": "2.184.0",
         "node-opcua-nodeid": "2.184.1",
         "node-opcua-packet-analyzer": "2.184.1",
-        "node-opcua-secure-channel": "2.184.1",
+        "node-opcua-secure-channel": "2.184.4",
         "node-opcua-service-read": "2.184.1",
         "node-opcua-status-code": "2.184.1"
     },
