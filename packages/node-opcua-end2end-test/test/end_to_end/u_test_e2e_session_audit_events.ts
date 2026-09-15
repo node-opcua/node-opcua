@@ -1,10 +1,13 @@
 import "should"; // extends Object with should
 import {
+    ActivateSessionRequest,
     AnonymousIdentityToken,
     AttributeIds,
     type ClientMonitoredItem,
     type ClientSession,
     type ClientSubscription,
+    CloseSessionRequest,
+    CreateSessionRequest,
     constructEventFilter,
     DataType,
     OPCUAClient,
@@ -18,7 +21,37 @@ import {
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
+// performMessageTransaction is public on the client implementation but not exposed on the
+// public OPCUAClient interface; reached here so a test can attach a known
+// RequestHeader.AuditEntryId to the CreateSession / ActivateSession / CloseSession requests a
+// normal OPCUAClient session never lets the caller set (see FEAT-64).
+// biome-ignore lint/suspicious/noExplicitAny: monkey-patching a private client implementation internal
+type InternalAny = any;
+
 type RecordedEvent = Record<string, Variant>;
+
+/**
+ * Patches `client`'s outgoing-request path so that any CreateSession / ActivateSession /
+ * CloseSession request is stamped with a known RequestHeader.AuditEntryId before being sent,
+ * so the resulting AuditCreateSessionEventType / AuditActivateSessionEventType /
+ * AuditSessionEventType Event's ClientAuditEntryId can be verified to carry that same value.
+ *
+ * Returns a function that restores the original behaviour.
+ */
+function injectAuditEntryId(client: OPCUAClient, auditEntryIdOf: (request: InternalAny) => string | undefined): () => void {
+    const internal = client as InternalAny;
+    const original = internal.performMessageTransaction.bind(internal);
+    internal.performMessageTransaction = (request: InternalAny, callback: InternalAny) => {
+        const auditEntryId = auditEntryIdOf(request);
+        if (auditEntryId !== undefined) {
+            request.requestHeader.auditEntryId = auditEntryId;
+        }
+        return original(request, callback);
+    };
+    return () => {
+        internal.performMessageTransaction = original;
+    };
+}
 
 async function waitUntil(predicate: () => boolean, timeout: number, interval = 100): Promise<void> {
     const start = Date.now();
@@ -54,7 +87,10 @@ export function t(test: UmbrellaTestContext): void {
             "Severity",
             "Message",
             "SessionId",
-            "UserIdentityToken"
+            "UserIdentityToken",
+            // part 5 6.4.3 AuditEventType Properties, inherited by every Event raised below (FEAT-64)
+            "ClientAuditEntryId",
+            "ClientUserId"
         ];
 
         function resetEventLog() {
@@ -207,6 +243,18 @@ export function t(test: UmbrellaTestContext): void {
                 eventTypeNodeIdStr: auditSessionEventTypeNodeIdStr,
                 sessionIdStr
             });
+
+            // FEAT-64: this client never sent a RequestHeader.AuditEntryId (the default OPCUAClient
+            // never sets one). Every ClientAuditEntryId must still come back as the empty string,
+            // never undefined (which would mean the field was dropped) and never a crash.
+            for (const e of events) {
+                (typeof e.ClientAuditEntryId.value).should.eql("string");
+                e.ClientAuditEntryId.value.should.eql("");
+            }
+
+            // Anonymous identity: part 5 6.4.3 says "If an AnonymousIdentityToken is being used,
+            // the ClientUserId shall be null" - "" here, and not the old "cc" placeholder.
+            events[1].ClientUserId.value.should.eql("");
         });
 
         it("NominalCase: auditing secure client connections", async () => {
@@ -241,6 +289,64 @@ export function t(test: UmbrellaTestContext): void {
                 eventTypeNodeIdStr: auditSessionEventTypeNodeIdStr,
                 sessionIdStr
             });
+
+            // FEAT-64: ClientUserId must reflect the UserNameIdentityToken used to activate the
+            // session (part 5 6.4.3: "If the UserIdentityToken is a UserNameIdentityToken then the
+            // ClientUserId shall be the UserName"), not the "cc" placeholder it used to be hardcoded to.
+            events[1].ClientUserId.value.should.eql("user1");
+            events[1].ClientUserId.value.should.not.eql("cc");
+        });
+
+        it("FEAT-64: a known RequestHeader.AuditEntryId reaches ClientAuditEntryId on CreateSession, ActivateSession and CloseSession", async () => {
+            const client1 = OPCUAClient.create({ keepSessionAlive: true });
+            const endpointUrl = test.endpointUrl!;
+            await client1.connect(endpointUrl);
+
+            // three distinct ids: proves the value genuinely comes from each request's own
+            // RequestHeader.AuditEntryId, rather than some shared/sticky value.
+            const auditEntryIdOfCreateSession = `create-${Date.now()}`;
+            const auditEntryIdOfActivateSession = `activate-${Date.now()}`;
+            const auditEntryIdOfCloseSession = `close-${Date.now()}`;
+
+            const restore = injectAuditEntryId(client1, (request) => {
+                if (request instanceof CreateSessionRequest) return auditEntryIdOfCreateSession;
+                if (request instanceof ActivateSessionRequest) return auditEntryIdOfActivateSession;
+                if (request instanceof CloseSessionRequest) return auditEntryIdOfCloseSession;
+                return undefined;
+            });
+
+            let sessionIdStr: string;
+            try {
+                const the_session = await client1.createSession();
+                sessionIdStr = the_session.sessionId.toString();
+                await the_session.close();
+            } finally {
+                restore();
+                await client1.disconnect();
+            }
+
+            await waitForEvents(3);
+
+            expectEvent(events[0], {
+                sourceName: "Session/CreateSession",
+                eventTypeNodeIdStr: auditCreateSessionEventTypeNodeIdStr,
+                sessionIdStr
+            });
+            events[0].ClientAuditEntryId.value.should.eql(auditEntryIdOfCreateSession);
+
+            expectEvent(events[1], {
+                sourceName: "Session/ActivateSession",
+                eventTypeNodeIdStr: auditActivateSessionEventTypeNodeIdStr,
+                sessionIdStr
+            });
+            events[1].ClientAuditEntryId.value.should.eql(auditEntryIdOfActivateSession);
+
+            expectEvent(events[2], {
+                sourceName: "Session/CloseSession",
+                eventTypeNodeIdStr: auditSessionEventTypeNodeIdStr,
+                sessionIdStr
+            });
+            events[2].ClientAuditEntryId.value.should.eql(auditEntryIdOfCloseSession);
         });
     });
 }

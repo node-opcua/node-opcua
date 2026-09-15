@@ -474,9 +474,12 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * @param deleteSubscriptions : should we delete subscription ?
      * @param [reason = "CloseSession"] the reason for closing the session
      *         (shall be "Timeout", "Terminated" or "CloseSession")
+     * @param [auditEntryId] the RequestHeader.auditEntryId of the CloseSession request that caused
+     *        this close, when there is one (part 5 6.4.3 ClientAuditEntryId). Absent for a
+     *        server-initiated close (Timeout, Terminated, Forcing), where there is no client request.
      *
      */
-    public close(deleteSubscriptions: boolean, reason: string): void {
+    public close(deleteSubscriptions: boolean, reason: string, auditEntryId?: string): void {
         // c8 ignore next
         doDebug && debugLog(" closing session deleteSubscriptions = ", deleteSubscriptions);
         if (this.publishEngine) {
@@ -507,8 +510,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
          * @event session_closed
          * @param deleteSubscriptions {Boolean}
          * @param reason {String}
+         * @param auditEntryId {String}
          */
-        this.emit("session_closed", this, deleteSubscriptions, reason);
+        this.emit("session_closed", this, deleteSubscriptions, reason, auditEntryId ?? "");
 
         // ---------------- shut down publish engine
         if (this.publishEngine) {
