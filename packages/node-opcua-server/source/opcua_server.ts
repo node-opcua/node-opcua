@@ -9,6 +9,7 @@ import chalk from "chalk";
 import {
     type AddressSpace,
     type EventTypeLike,
+    ensureDatatypeExtracted,
     type IRolePolicyOverride,
     type IRoleResolver,
     type IServerBase,
@@ -1687,6 +1688,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         // real again if this attempt also needs to tear things down.
         this.#shutdownPromise = undefined;
 
+        await this.#preExtractDataTypes();
+
         try {
             await super.startAsync();
         } catch (err) {
@@ -1711,6 +1714,33 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 this.options.reverseConnect
             );
             this.#reverseConnectManager.start();
+        }
+    }
+
+    /**
+     * Extract the address space data types now, while no client is connected.
+     *
+     * The Call and Write services need an ExtraDataTypeManager and build it lazily, the first
+     * time one of them is served (`AddressSpaceAccessor#call` / `#write`). That walk goes
+     * through a PseudoSession, whose browse defers every batch by one `setImmediate`, so it
+     * costs a few hundred event loop turns - about 100 ms on an idle server, and nothing at
+     * all once it has run. On a server that is already sampling thousands of monitored items
+     * a single turn costs tens of milliseconds, and the same walk takes 20 to 60 s: the first
+     * Call a client makes times out, every later one answers in milliseconds. That is how CTT
+     * "Base Info ResendData Method 001" failed - not in ResendData, which needs ~100 ms, but
+     * in the extraction its Call was the first to pay for.
+     *
+     * Paying it here costs the same work at a moment when nothing competes for the loop.
+     * A failure is not fatal: the lazy path is still there and will report it per request.
+     */
+    async #preExtractDataTypes(): Promise<void> {
+        if (!this.engine.addressSpace) {
+            return;
+        }
+        try {
+            await ensureDatatypeExtracted(this.engine.addressSpace);
+        } catch (err) {
+            warningLog("OPCUAServer: data type extraction failed at startup: ", (err as Error).message);
         }
     }
 
