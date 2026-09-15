@@ -68,6 +68,7 @@ import {
     computeSignatureAsync,
     fromURI,
     getCryptoFactory,
+    MAX_NONCE_LENGTH,
     type Message,
     MessageSecurityMode,
     nonceAlreadyBeenUsed,
@@ -2426,6 +2427,14 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
 
                 return rejectConnection(this, StatusCodes.BadNonceInvalid);
             }
+        }
+        // Reject an over-long client nonce before it reaches the replay cache. This applies in
+        // every security mode, including None: a nonce is only key material, so a legitimate value
+        // never exceeds MAX_NONCE_LENGTH, and the check keeps the CreateSession path from retaining
+        // an arbitrarily large value.
+        if (request.clientNonce && request.clientNonce.length > MAX_NONCE_LENGTH) {
+            errorLog(chalk.red("SERVER: client Nonce is too large "), request.clientNonce.length, " > ", MAX_NONCE_LENGTH);
+            return rejectConnection(this, StatusCodes.BadNonceInvalid);
         }
         if (nonceAlreadyBeenUsed(request.clientNonce)) {
             errorLog(chalk.red("SERVER with secure connection: Nonce has already been used"), request.clientNonce?.toString("hex"));

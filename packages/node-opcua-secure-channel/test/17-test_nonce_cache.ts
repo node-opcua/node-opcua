@@ -1,5 +1,12 @@
 import { randomBytes } from "node-opcua-utils";
-import { _getNonceStore, _setNonceCacheParameters, isEmptyNonce, nonceAlreadyBeenUsed } from "../source/server/nonce_cache.js";
+import {
+    _getNonceStore,
+    _nonceKey,
+    _setNonceCacheParameters,
+    isEmptyNonce,
+    MAX_NONCE_LENGTH,
+    nonceAlreadyBeenUsed
+} from "../source/server/nonce_cache.js";
 
 describe("NonceCache – replay detection with TTL eviction", () => {
     beforeEach(() => {
@@ -73,7 +80,7 @@ describe("NonceCache – replay detection with TTL eviction", () => {
         nonceAlreadyBeenUsed(nonce).should.equal(true, "replay within TTL rejected");
 
         // Simulate expiry by backdating the entry
-        const hash = nonce.toString("base64");
+        const hash = _nonceKey(nonce);
         store.set(hash, Date.now() - 2000); // 2 seconds ago, past the 1s TTL
 
         // After expiry, the nonce is no longer in the cache
@@ -112,13 +119,13 @@ describe("NonceCache – replay detection with TTL eviction", () => {
         store.size.should.equal(maxSize);
 
         // The first 2 nonces should have been evicted (oldest)
-        const hash0 = nonces[0].toString("base64");
-        const hash1 = nonces[1].toString("base64");
+        const hash0 = _nonceKey(nonces[0]);
+        const hash1 = _nonceKey(nonces[1]);
         store.has(hash0).should.equal(false, "oldest nonce should be evicted");
         store.has(hash1).should.equal(false, "second oldest nonce should be evicted");
 
         // The last nonce should still be present
-        const hashLast = nonces[nonces.length - 1].toString("base64");
+        const hashLast = _nonceKey(nonces[nonces.length - 1]);
         store.has(hashLast).should.equal(true, "newest nonce should still be present");
     });
 
@@ -152,7 +159,7 @@ describe("NonceCache – replay detection with TTL eviction", () => {
         store.size.should.be.belowOrEqual(maxSize, "cache must remain bounded");
 
         // The first nonce has been evicted
-        const hash = firstNonce.toString("base64");
+        const hash = _nonceKey(firstNonce);
         store.has(hash).should.equal(false, "first nonce should be evicted when maxSize is reached");
     });
 
@@ -168,5 +175,36 @@ describe("NonceCache – replay detection with TTL eviction", () => {
 
         store.clear();
         store.size.should.equal(0, "store should be empty after clear()");
+    });
+
+    // -- constant-size key (per-entry memory is bounded) ---------------------
+
+    it("stores a fixed-width key whatever the nonce length", () => {
+        const store = _getNonceStore();
+
+        const small = randomBytes(32);
+        const large = randomBytes(1024 * 1024); // 1 MiB nonce
+
+        nonceAlreadyBeenUsed(small);
+        nonceAlreadyBeenUsed(large);
+
+        const keys = [...store.keys()];
+        keys.length.should.equal(2);
+        // base64 of a 32-byte digest is always 44 characters, independent of the nonce size
+        for (const key of keys) {
+            key.length.should.equal(44, "each cache key should be a constant-size digest");
+        }
+    });
+
+    it("still detects a replay of a large nonce", () => {
+        const large = randomBytes(512 * 1024);
+        nonceAlreadyBeenUsed(large).should.equal(false, "first use accepted");
+        nonceAlreadyBeenUsed(large).should.equal(true, "replay detected via digest key");
+    });
+
+    it("exposes a small maximum nonce length for callers to enforce", () => {
+        MAX_NONCE_LENGTH.should.be.a.Number();
+        MAX_NONCE_LENGTH.should.be.aboveOrEqual(32, "must admit the 32-byte standard nonce");
+        MAX_NONCE_LENGTH.should.be.belowOrEqual(256, "must stay small enough to bound pre-cache work");
     });
 });
