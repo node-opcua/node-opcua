@@ -171,7 +171,7 @@ function isValidSecurityPolicy(securityPolicy: SecurityPolicy) {
 // `Nonce` is a type: a transpiler that compiles one file at a time (tsx, esbuild) cannot
 // know that, so a plain re-export survives into the output and fails to link under ESM.
 export type { Nonce } from "./nonce_cache.js";
-export { isEmptyNonce, nonceAlreadyBeenUsed } from "./nonce_cache.js";
+export { isEmptyNonce, MAX_NONCE_LENGTH, nonceAlreadyBeenUsed } from "./nonce_cache.js";
 
 import type { Nonce } from "./nonce_cache.js";
 import { nonceAlreadyBeenUsed } from "./nonce_cache.js";
