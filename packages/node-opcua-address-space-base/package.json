@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-address-space-base",
     "type": "module",
-    "version": "2.184.2",
+    "version": "2.184.3",
     "description": "pure nodejs OPCUA SDK - module address-space-base",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
