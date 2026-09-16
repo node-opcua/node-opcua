@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-alias-name-test",
     "type": "module",
-    "version": "2.184.4",
+    "version": "2.184.5",
     "private": true,
     "description": "pure nodejs OPCUA SDK - integration tests for alias names (OPC 10000-17)",
     "scripts": {
@@ -24,11 +24,11 @@
         "node-opcua-certificate-manager": "2.184.1",
         "node-opcua-client": "2.184.4",
         "node-opcua-data-model": "2.184.1",
-        "node-opcua-file-transfer": "2.184.4",
+        "node-opcua-file-transfer": "2.184.5",
         "node-opcua-leak-detector": "2.184.1",
         "node-opcua-nodeid": "2.184.1",
         "node-opcua-nodesets": "2.184.0",
-        "node-opcua-server": "2.184.4",
+        "node-opcua-server": "2.184.5",
         "node-opcua-status-code": "2.184.1",
         "node-opcua-types": "2.184.1",
         "node-opcua-variant": "2.184.1",

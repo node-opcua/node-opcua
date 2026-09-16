@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-role-set-test",
     "type": "module",
-    "version": "2.184.4",
+    "version": "2.184.5",
     "private": true,
     "description": "pure nodejs OPCUA SDK - integration tests for role-set management (OPC 10000-18)",
     "scripts": {
@@ -26,7 +26,7 @@
         "node-opcua-role-set-client": "2.184.4",
         "node-opcua-role-set-common": "2.184.1",
         "node-opcua-role-set-server": "2.184.4",
-        "node-opcua-server": "2.184.4",
+        "node-opcua-server": "2.184.5",
         "node-opcua-status-code": "2.184.1",
         "node-opcua-test-helpers": "2.184.0",
         "node-opcua-types": "2.184.1",

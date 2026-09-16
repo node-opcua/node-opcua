@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-server-configuration",
-    "version": "2.184.4",
+    "version": "2.184.5",
     "description": "pure nodejs OPCUA SDK - module server-configuration",
     "scripts": {
         "build": "tsc -b",
@@ -29,13 +29,13 @@
         "node-opcua-crypto": "5.10.1",
         "node-opcua-data-model": "2.184.1",
         "node-opcua-debug": "2.184.0",
-        "node-opcua-file-transfer": "2.184.4",
+        "node-opcua-file-transfer": "2.184.5",
         "node-opcua-hostname": "2.184.0",
         "node-opcua-nodeid": "2.184.1",
         "node-opcua-pki": "6.22.0",
         "node-opcua-pseudo-session": "2.184.4",
         "node-opcua-secure-channel": "2.184.4",
-        "node-opcua-server": "2.184.4",
+        "node-opcua-server": "2.184.5",
         "node-opcua-service-translate-browse-path": "2.184.1",
         "node-opcua-status-code": "2.184.1",
         "node-opcua-types": "2.184.1",
