@@ -123,6 +123,16 @@ export function t(test: UmbrellaTestContext): void {
             e.EventType.value.toString().should.eql(eventTypeNodeIdStr);
         }
 
+        // OPC 10000-5 6.4.2 BaseEventType/Severity: "Values will range from 1 to 1 000 [...]".
+        // The CTT's own check (Auditing Connections 007/011/012/020) is InRange(1, 1000) inclusive,
+        // and specifically flags 0 - node-opcua's previous defect (FEAT-66).
+        function expectValidSeverity(e: RecordedEvent) {
+            const severity = e.Severity.value;
+            severity.should.not.eql(0);
+            should(severity).be.aboveOrEqual(1);
+            should(severity).be.belowOrEqual(1000);
+        }
+
         beforeEach(() => resetEventLog());
 
         before(async () => {
@@ -252,9 +262,19 @@ export function t(test: UmbrellaTestContext): void {
                 e.ClientAuditEntryId.value.should.eql("");
             }
 
+            // FEAT-66: every session audit event must carry a Severity in 1..1000, never the 0
+            // that every raise site used to leave it at.
+            for (const e of events) {
+                expectValidSeverity(e);
+            }
+
             // Anonymous identity: part 5 6.4.3 says "If an AnonymousIdentityToken is being used,
             // the ClientUserId shall be null" - "" here, and not the old "cc" placeholder.
             events[1].ClientUserId.value.should.eql("");
+
+            // FEAT-66: OPC 10000-5 6.4.8 AuditCreateSessionEventType - "The ClientUserId is not
+            // available for this call thus this parameter shall be set to the 'System/CreateSession'".
+            events[0].ClientUserId.value.should.eql("System/CreateSession");
         });
 
         it("NominalCase: auditing secure client connections", async () => {
@@ -293,8 +313,19 @@ export function t(test: UmbrellaTestContext): void {
             // FEAT-64: ClientUserId must reflect the UserNameIdentityToken used to activate the
             // session (part 5 6.4.3: "If the UserIdentityToken is a UserNameIdentityToken then the
             // ClientUserId shall be the UserName"), not the "cc" placeholder it used to be hardcoded to.
+            // Kept here as a regression guard for FEAT-66, which touches ClientUserId again (on the
+            // CreateSession event only) and must not disturb this one.
             events[1].ClientUserId.value.should.eql("user1");
             events[1].ClientUserId.value.should.not.eql("cc");
+
+            // FEAT-66: every session audit event must carry a Severity in 1..1000, never 0.
+            for (const e of events) {
+                expectValidSeverity(e);
+            }
+
+            // FEAT-66: OPC 10000-5 6.4.8 AuditCreateSessionEventType - "The ClientUserId is not
+            // available for this call thus this parameter shall be set to the 'System/CreateSession'".
+            events[0].ClientUserId.value.should.eql("System/CreateSession");
         });
 
         it("FEAT-64: a known RequestHeader.AuditEntryId reaches ClientAuditEntryId on CreateSession, ActivateSession and CloseSession", async () => {

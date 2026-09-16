@@ -433,6 +433,48 @@ function thumbprint(certificate?: Certificate | null): string {
 }
 
 /**
+ * OPC 10000-5 6.4.2 BaseEventType / Severity:
+ *
+ * "Severity is an indication of the urgency of the Event. This is also commonly called
+ * "priority". Values will range from 1 to 1 000, with 1 being the lowest severity and 1 000
+ * being the highest. Typically, a severity of 1 would indicate an Event which is informational
+ * in nature, while a value of 1 000 would indicate an Event of catastrophic nature [...] it is
+ * recommended that Server developers map Events of high urgency into the OPC severity range of
+ * 667 to 1 000 [...] and Events of low urgency into OPC severities of 1 to 333."
+ *
+ * The spec gives a range and a recommended banding, not per-EventType values, and has no
+ * audit-specific guidance beyond this. These two constants are this server's own choice, used
+ * by every "Audit*EventType" raised below instead of a magic number at each of the nine call
+ * sites:
+ *  - AUDIT_SEVERITY_INFO: a normal, successful operation (a session created, activated or
+ *    closed) - informational, in the recommended 1-333 "low urgency" band.
+ *  - AUDIT_SEVERITY_SECURITY_FAILURE: a security failure an operator watching audit events
+ *    needs to see (an untrusted/expired/revoked/mismatched certificate, an invalid user
+ *    signature, a URL mismatch) - in the recommended 667-1 000 "high urgency" band.
+ *
+ * None of the nine raise sites has a dynamic outcome that isn't already reflected by which
+ * constant applies: the three session-lifecycle events (CreateSession, ActivateSession, the
+ * session-closed AuditSessionEventType) hardcode status = true - they are only ever raised
+ * after the operation already succeeded - while the five security events below are only ever
+ * reached on the corresponding failure. So a single constant per class is enough; nothing is
+ * invented to read a "status" that isn't genuinely available at these sites.
+ */
+const AUDIT_SEVERITY_INFO = 100;
+const AUDIT_SEVERITY_SECURITY_FAILURE = 900;
+
+/**
+ * OPC 10000-5 6.4.8 AuditCreateSessionEventType:
+ *
+ * "The ClientUserId is not available for this call thus this parameter shall be set to the
+ * 'System/CreateSession'."
+ *
+ * No UserIdentityToken exists yet at CreateSession time (it is only supplied in the later
+ * ActivateSession call), hence the fixed literal rather than a derived value. Used at both
+ * AuditCreateSessionEventType raise sites below.
+ */
+const CLIENT_USER_ID_CREATE_SESSION = "System/CreateSession";
+
+/**
  * OPC 10000-5 6.4.3 AuditEventType / ClientUserId:
  *
  * "The ClientUserId identifies the user of the client requesting an action. The ClientUserId
@@ -737,6 +779,7 @@ function validate_security_endpoint(
             warningLog("Cannot find suitable endpoints in available endpoints. endpointUri =", request.endpointUrl);
         }
         ua_server?.raiseEvent("AuditUrlMismatchEventType", {
+            severity: { dataType: "UInt16", value: AUDIT_SEVERITY_SECURITY_FAILURE },
             endpointUrl: { dataType: DataType.String, value: request.endpointUrl }
         });
         if (OPCUAServer.requestExactEndpointUrl) {
@@ -2087,7 +2130,10 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         }
 
         if (!userTokenSignature?.signature) {
-            this.raiseEvent("AuditCreateSessionEventType", {});
+            this.raiseEvent("AuditCreateSessionEventType", {
+                severity: { dataType: "UInt16", value: AUDIT_SEVERITY_SECURITY_FAILURE },
+                clientUserId: { dataType: "String", value: CLIENT_USER_ID_CREATE_SESSION }
+            });
             callback(null, StatusCodes.BadUserSignatureInvalid);
             return;
         }
@@ -2126,6 +2172,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                         break;
                     case StatusCodes.BadCertificateUntrusted:
                         this.raiseEvent("AuditCertificateUntrustedEventType", {
+                            severity: { dataType: "UInt16", value: AUDIT_SEVERITY_SECURITY_FAILURE },
                             certificate: {
                                 dataType: DataType.ByteString,
                                 value: certificate
@@ -2139,6 +2186,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                     case StatusCodes.BadCertificateTimeInvalid:
                     case StatusCodes.BadCertificateIssuerTimeInvalid:
                         this.raiseEvent("AuditCertificateExpiredEventType", {
+                            severity: { dataType: "UInt16", value: AUDIT_SEVERITY_SECURITY_FAILURE },
                             certificate: {
                                 dataType: DataType.ByteString,
                                 value: certificate
@@ -2153,6 +2201,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                     case StatusCodes.BadCertificateRevocationUnknown:
                     case StatusCodes.BadCertificateIssuerRevocationUnknown:
                         this.raiseEvent("AuditCertificateRevokedEventType", {
+                            severity: { dataType: "UInt16", value: AUDIT_SEVERITY_SECURITY_FAILURE },
                             certificate: {
                                 dataType: DataType.ByteString,
                                 value: certificate
@@ -2167,6 +2216,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                     case StatusCodes.BadCertificateUseNotAllowed:
                     case StatusCodes.BadSecurityChecksFailed:
                         this.raiseEvent("AuditCertificateMismatchEventType", {
+                            severity: { dataType: "UInt16", value: AUDIT_SEVERITY_SECURITY_FAILURE },
                             certificate: {
                                 dataType: DataType.ByteString,
                                 value: certificate
@@ -2573,6 +2623,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                         /* part 5 -  6.4.3 AuditEventType */
                         actionTimeStamp: { dataType: "DateTime", value: new Date() },
                         status: { dataType: "Boolean", value: true },
+                        severity: { dataType: "UInt16", value: AUDIT_SEVERITY_INFO },
 
                         serverId: { dataType: "String", value: this.serverInfo.applicationUri || "" },
 
@@ -2602,18 +2653,17 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 /* part 5 -  6.4.3 AuditEventType */
                 actionTimeStamp: { dataType: "DateTime", value: new Date() },
                 status: { dataType: "Boolean", value: true },
+                severity: { dataType: "UInt16", value: AUDIT_SEVERITY_INFO },
 
                 serverId: { dataType: "String", value: this.serverInfo.applicationUri || "" },
 
                 // ClientAuditEntryId contains the human-readable AuditEntryId defined in Part 3.
                 clientAuditEntryId: { dataType: "String", value: request.requestHeader.auditEntryId ?? "" },
 
-                // The ClientUserId identifies the user of the client requesting an action. The ClientUserId can be
-                // obtained from the UserIdentityToken passed in the ActivateSession call. No UserIdentityToken has
-                // been supplied yet at CreateSession time (part 5 6.4.8 says this parameter "shall be set to the
-                // 'System/CreateSession'" for that reason); left as "" here, unchanged from before this fix, since
-                // that specific wording is out of scope for this change.
-                clientUserId: { dataType: "String", value: "" },
+                // The ClientUserId identifies the user of the client requesting an action. No UserIdentityToken
+                // has been supplied yet at CreateSession time, and part 5 6.4.8 says this parameter "shall be
+                // set to the 'System/CreateSession'" for that reason (see CLIENT_USER_ID_CREATE_SESSION).
+                clientUserId: { dataType: "String", value: CLIENT_USER_ID_CREATE_SESSION },
 
                 sourceName: { dataType: "String", value: "Session/CreateSession" },
 
@@ -4328,6 +4378,7 @@ function raiseAuditActivateSessionEventType(this: OPCUAServer, session: ServerSe
             /* part 5 -  6.4.3 AuditEventType */
             actionTimeStamp: { dataType: "DateTime", value: new Date() },
             status: { dataType: "Boolean", value: true },
+            severity: { dataType: "UInt16", value: AUDIT_SEVERITY_INFO },
 
             serverId: { dataType: "String", value: this.serverInfo.applicationUri || "" },
 
