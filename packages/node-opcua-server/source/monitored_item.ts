@@ -141,7 +141,33 @@ function _adjust_sampling_interval(
 
 const maxQueueSize = 5000;
 
-function _adjust_queue_size(queueSize: number): number {
+// OPC 10000-4 7.21 MonitoringParameters / queueSize gives 0, 1 and MaxUInt32 a different meaning on an
+// *event* monitored item than on a data one: there they are not sizes but questions about the Server's
+// own Event buffer - 0 asks for its default Event queue size, 1 for the minimum it requires, MaxUInt32
+// for the maximum it supports, and a value in between is honoured as asked (a value outside is bounded).
+// Answering an event item the way a data item is answered (0 or 1 => 1) leaves it holding a single Event,
+// so any two Events raised inside one publishing cycle overwrite each other and the older one is lost
+// with nothing to show for it. That is how session audit Events went missing (FEAT-65): a client that
+// asks for queueSize 1, meaning "tell me your minimum", is told 1 and then silently loses every Event
+// but the last of each cycle.
+const minimumEventQueueSize = 100;
+const defaultEventQueueSize = 1000;
+
+function _adjust_event_queue_size(queueSize: number): number {
+    if (queueSize === 0) {
+        return defaultEventQueueSize;
+    }
+    if (queueSize === 1) {
+        return minimumEventQueueSize;
+    }
+    // MaxUInt32 (and anything above the maximum) lands on maxQueueSize through this bound.
+    return Math.min(Math.max(queueSize, minimumEventQueueSize), maxQueueSize);
+}
+
+function _adjust_queue_size(queueSize: number, isEventMonitoredItem: boolean): number {
+    if (isEventMonitoredItem) {
+        return _adjust_event_queue_size(queueSize);
+    }
     queueSize = Math.min(queueSize, maxQueueSize);
     queueSize = Math.max(1, queueSize);
     return queueSize;
@@ -1492,7 +1518,8 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 : _adjust_sampling_interval(requestedSamplingInterval, node_minimumSamplingInterval, this._minSupportedSampleRate);
         this._exceptionBased = isValueAttribute && requestedSamplingInterval === 0 && node_minimumSamplingInterval === 0;
         this.discardOldest = monitoredParameters.discardOldest;
-        this.queueSize = _adjust_queue_size(monitoredParameters.queueSize);
+        const isEventMonitoredItem = this.itemToMonitor.attributeId === AttributeIds.EventNotifier;
+        this.queueSize = _adjust_queue_size(monitoredParameters.queueSize, isEventMonitoredItem);
 
         // change filter
         this.filter = (monitoredParameters.filter as MonitoringFilter) || null;
