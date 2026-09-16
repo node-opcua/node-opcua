@@ -128,7 +128,7 @@ export function t(test: UmbrellaTestContext): void {
         // and specifically flags 0 - node-opcua's previous defect (FEAT-66).
         function expectValidSeverity(e: RecordedEvent) {
             const severity = e.Severity.value;
-            severity.should.not.eql(0);
+            should(severity).not.eql(0);
             should(severity).be.aboveOrEqual(1);
             should(severity).be.belowOrEqual(1000);
         }
@@ -274,7 +274,7 @@ export function t(test: UmbrellaTestContext): void {
 
             // FEAT-66: OPC 10000-5 6.4.8 AuditCreateSessionEventType - "The ClientUserId is not
             // available for this call thus this parameter shall be set to the 'System/CreateSession'".
-            events[0].ClientUserId.value.should.eql("System/CreateSession");
+            should(events[0].ClientUserId.value).eql("System/CreateSession");
         });
 
         it("NominalCase: auditing secure client connections", async () => {
@@ -325,7 +325,7 @@ export function t(test: UmbrellaTestContext): void {
 
             // FEAT-66: OPC 10000-5 6.4.8 AuditCreateSessionEventType - "The ClientUserId is not
             // available for this call thus this parameter shall be set to the 'System/CreateSession'".
-            events[0].ClientUserId.value.should.eql("System/CreateSession");
+            should(events[0].ClientUserId.value).eql("System/CreateSession");
         });
 
         it("FEAT-64: a known RequestHeader.AuditEntryId reaches ClientAuditEntryId on CreateSession, ActivateSession and CloseSession", async () => {
