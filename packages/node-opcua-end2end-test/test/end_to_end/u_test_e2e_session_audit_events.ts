@@ -1,4 +1,3 @@
-import "should"; // extends Object with should
 import {
     ActivateSessionRequest,
     AnonymousIdentityToken,
@@ -19,6 +18,7 @@ import {
     type Variant
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should"; // also extends Object with should
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 // performMessageTransaction is public on the client implementation but not exposed on the
@@ -347,6 +347,66 @@ export function t(test: UmbrellaTestContext): void {
                 sessionIdStr
             });
             events[2].ClientAuditEntryId.value.should.eql(auditEntryIdOfCloseSession);
+        });
+
+        it("FEAT-65: an audit subscription that asked for queueSize 1 still receives every Event of a publishing cycle", async () => {
+            // OPC 10000-4 7.21 MonitoringParameters: on an event monitored item queueSize 1 asks the
+            // Server for the minimum Event queue size it requires, it does not ask for a one-Event
+            // buffer. The CTT's "Auditing Connections" unit subscribes exactly like this (publishing
+            // interval 500ms, queueSize 1, maxNotificationsPerPublish 0) and node-opcua answered 1,
+            // then silently dropped every audit Event but the last of each cycle: a CloseSession
+            // followed within the same cycle by the next client's CreateSession never arrived, and
+            // the CTT reported "Unable to Find Entry for ClientAuditEntryId".
+            const endpointUrl = test.endpointUrl!;
+            const observerClient = OPCUAClient.create({ keepSessionAlive: true });
+            await observerClient.connect(endpointUrl);
+            const observerSession = await observerClient.createSession();
+            const observed: RecordedEvent[] = [];
+            try {
+                const observerSubscription = await observerSession.createSubscription2({
+                    requestedPublishingInterval: 500,
+                    requestedLifetimeCount: 10 * 60,
+                    requestedMaxKeepAliveCount: 10,
+                    maxNotificationsPerPublish: 0,
+                    publishingEnabled: true,
+                    priority: 0
+                });
+                const observerItem = await observerSubscription.monitor(
+                    { nodeId: resolveNodeId("Server"), attributeId: AttributeIds.EventNotifier },
+                    { samplingInterval: 0, discardOldest: true, queueSize: 1, filter: constructEventFilter(fields) },
+                    TimestampsToReturn.Both
+                );
+                should(observerItem.result?.revisedQueueSize).be.greaterThan(
+                    1,
+                    "queueSize 1 on an event item asks for the server's minimum, not for a one-Event buffer"
+                );
+                observerItem.on("changed", (eventFields: Variant[]) => {
+                    observed.push(
+                        eventFields.reduce<RecordedEvent>((acc, variant, index) => {
+                            acc[fields[index]] = variant;
+                            return acc;
+                        }, {} as RecordedEvent)
+                    );
+                });
+
+                // three audit Events (CreateSession, ActivateSession, CloseSession) raised back to
+                // back, well inside a single 500ms publishing cycle
+                const client1 = OPCUAClient.create({ keepSessionAlive: true });
+                await client1.connect(endpointUrl);
+                const the_session = await client1.createSession();
+                const sessionIdStr = the_session.sessionId.toString();
+                await the_session.close();
+                await client1.disconnect();
+
+                const sourceNamesOfSession = () =>
+                    observed.filter((e) => e.SessionId.value.toString() === sessionIdStr).map((e) => e.SourceName.value);
+                await waitUntil(() => sourceNamesOfSession().length === 3, 10_000);
+                should(sourceNamesOfSession()).eql(["Session/CreateSession", "Session/ActivateSession", "Session/CloseSession"]);
+                await observerSubscription.terminate();
+            } finally {
+                await observerSession.close();
+                await observerClient.disconnect();
+            }
         });
     });
 }

@@ -1148,6 +1148,66 @@ describe("MonitoredItem requested with samplingInterval 0 (CTT Monitor Basic 038
         valueItem.terminate();
         valueItem.dispose();
     });
+
+    it("FEAT-65 an EventNotifier item reads queueSize 0 / 1 / MaxUInt32 as the server default / minimum / maximum", () => {
+        // OPC 10000-4 7.21 MonitoringParameters: on an event monitored item those three values are not
+        // sizes, they ask the Server for its own Event buffer settings. Answering them the way a data
+        // item is answered (0 or 1 => 1) leaves the item holding a single Event, so every Event but the
+        // last of each publishing cycle is lost with nothing to show for it.
+        const revised = (queueSize: number) => {
+            const eventNode = new FakeNode();
+            eventNode.nodeClass = NodeClass.Object;
+            const eventItem = createMonitoredItem({
+                clientHandle: 1,
+                discardOldest: true,
+                queueSize,
+                samplingInterval: 0,
+                monitoredItemId: 52,
+                itemToMonitor: { attributeId: AttributeIds.EventNotifier }
+            });
+            eventItem.$subscription = fakeSubscription;
+            eventItem.setNode(eventNode);
+            const value = eventItem.queueSize;
+            eventItem.terminate();
+            eventItem.dispose();
+            return value;
+        };
+
+        const theDefault = revised(0);
+        const theMinimum = revised(1);
+        const theMaximum = revised(0xffffffff);
+
+        should(theMinimum).be.greaterThan(1, "an event queue of one Event loses Events silently");
+        should(theDefault).be.greaterThanOrEqual(theMinimum);
+        should(theMaximum).be.greaterThanOrEqual(theDefault);
+
+        // "If a Client chooses a value between the minimum and maximum settings of the Server the value
+        //  shall be returned in the revisedQueueSize. If the requested queueSize is outside the minimum
+        //  or maximum, the Server shall return the corresponding bounding value."
+        should(revised(theMinimum + 1)).eql(theMinimum + 1);
+        should(revised(2)).eql(theMinimum, "below the minimum, bounded up");
+        should(revised(theMaximum + 1)).eql(theMaximum, "above the maximum, bounded down");
+
+        // a data monitored item is untouched: 0 and 1 still mean "no queuing"
+        const revisedForData = (queueSize: number) => {
+            const dataItem = createMonitoredItem({
+                clientHandle: 1,
+                discardOldest: true,
+                queueSize,
+                samplingInterval: 100,
+                monitoredItemId: 53
+            });
+            dataItem.$subscription = fakeSubscription;
+            dataItem.setNode(fakeNode);
+            const value = dataItem.queueSize;
+            dataItem.terminate();
+            dataItem.dispose();
+            return value;
+        };
+        should(revisedForData(0)).eql(1);
+        should(revisedForData(1)).eql(1);
+        should(revisedForData(2)).eql(2);
+    });
 });
 describe("MonitoredItem with DataChangeFilter", () => {
     let monitoredItem: IMonitoredItem | undefined;
