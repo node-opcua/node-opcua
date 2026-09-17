@@ -48,7 +48,7 @@ import {
     ResolvedCertificateKeyPairProvider,
     ServerState
 } from "node-opcua-common";
-import { type Certificate, combine_der, exploreCertificate, type Nonce } from "node-opcua-crypto/web";
+import { type Certificate, combine_der, exploreCertificate, makeSHA1Thumbprint, type Nonce } from "node-opcua-crypto/web";
 import {
     AttributeIds,
     filterDiagnosticOperationLevel,
@@ -429,8 +429,24 @@ function getTokenType(userIdentityToken: UserIdentityToken): UserTokenType {
     }
     return UserTokenType.Invalid;
 }
-function thumbprint(certificate?: Certificate | null): string {
-    return certificate ? certificate.toString("base64") : "";
+/**
+ * The clientCertificate parameter of a CreateSession Service call (OPC 10000-4 5.6.2), normalized
+ * the same way on every path that reads it: an absent or zero-length certificate becomes null,
+ * never an empty Buffer. Used by both the success and the refused CreateSession audit paths so
+ * they read the same value and cannot drift apart.
+ */
+function getRequestClientCertificate(request: CreateSessionRequest): Certificate | null {
+    return request.clientCertificate && request.clientCertificate.length > 0 ? request.clientCertificate : null;
+}
+
+/**
+ * OPC 10000-6 defines a certificate thumbprint as the SHA-1 hash of the DER-encoded certificate
+ * (this is also how node-opcua-certificate-manager and ServerSecureChannelLayer#_prepare_response_security_header
+ * compute and format every other certificate thumbprint it raises or checks). Returns null when
+ * there is no certificate, never the base64 of the certificate itself.
+ */
+function thumbprint(certificate?: Certificate | null): string | null {
+    return certificate ? makeSHA1Thumbprint(certificate).toString("hex") : null;
 }
 
 /**
@@ -765,7 +781,7 @@ function raiseAuditCreateSessionFailure(
     if (!server.isAuditing) {
         return;
     }
-    const clientCertificate = request.clientCertificate && request.clientCertificate.length > 0 ? request.clientCertificate : null;
+    const clientCertificate = getRequestClientCertificate(request);
     server.raiseEvent("AuditCreateSessionEventType", {
         /* part 5 - 6.4.3 AuditEventType */
         actionTimeStamp: { dataType: "DateTime", value: new Date() },
@@ -785,7 +801,7 @@ function raiseAuditCreateSessionFailure(
         /* part 5 - 6.4.8 AuditCreateSessionEventType */
         secureChannelId: { dataType: "String", value: channel.channelId?.toString() ?? "" },
         clientCertificate: { dataType: "ByteString", value: clientCertificate },
-        clientCertificateThumbprint: { dataType: "String", value: clientCertificate ? thumbprint(clientCertificate) : null }
+        clientCertificateThumbprint: { dataType: "String", value: thumbprint(clientCertificate) }
     });
 }
 
@@ -2762,16 +2778,21 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                     value: session.sessionTimeout
                 },
 
-                // clientCertificate
+                // clientCertificate: OPC 10000-5 6.4.8 "is the clientCertificate parameter of the
+                // CreateSession Service call" - the request's own parameter, the same source the
+                // refused-CreateSession path (raiseAuditCreateSessionFailure) already uses, not
+                // session.channel.clientCertificate (the certificate that secures the channel
+                // itself: a related but distinct value, populated asynchronously and only for a
+                // channel whose message security mode is not None).
                 clientCertificate: {
                     dataType: "ByteString",
-                    value: session.channel?.clientCertificate ?? null
+                    value: getRequestClientCertificate(request)
                 },
 
                 // clientCertificateThumbprint
                 clientCertificateThumbprint: {
                     dataType: "String",
-                    value: thumbprint(session.channel?.clientCertificate)
+                    value: thumbprint(getRequestClientCertificate(request))
                 }
             });
         }

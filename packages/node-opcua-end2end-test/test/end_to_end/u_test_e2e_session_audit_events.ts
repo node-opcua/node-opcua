@@ -27,7 +27,13 @@ import {
     WellKnownRoles,
     X509IdentityToken
 } from "node-opcua";
-import { exploreCertificate, keyOperationsFromPrivateKey, readCertificateChain, readPrivateKey } from "node-opcua-crypto";
+import {
+    exploreCertificate,
+    keyOperationsFromPrivateKey,
+    makeSHA1Thumbprint,
+    readCertificateChain,
+    readPrivateKey
+} from "node-opcua-crypto";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should"; // also extends Object with should
 import { certificateFolder } from "../../test_helpers/paths.js";
@@ -106,7 +112,11 @@ export function t(test: UmbrellaTestContext): void {
             // part 5 6.4.3 AuditEventType Properties, inherited by every Event raised below (FEAT-64)
             "ClientAuditEntryId",
             "ClientUserId",
-            "Status"
+            "Status",
+            // part 5 6.4.8 AuditCreateSessionEventType Properties (FEAT-67); absent on every other
+            // Event type monitored here, which simply reports them as null
+            "ClientCertificate",
+            "ClientCertificateThumbprint"
         ];
 
         function resetEventLog() {
@@ -710,6 +720,151 @@ export function t(test: UmbrellaTestContext): void {
             should(e.SessionId.value.isEmpty()).eql(true);
             // nothing reached the ActivateSession stage
             should(events.filter((x) => x.EventType.value.toString() === auditActivateSessionEventTypeNodeIdStr).length).eql(0);
+
+            // FEAT-67: a refused CreateSession still carries the request's own clientCertificate
+            // (raiseAuditCreateSessionFailure, PR 1742) - node-opcua's client always attaches its
+            // certificate to the CreateSessionRequest, even over a channel that does not need it to
+            // secure the transport, so this is a cheap way to check the refused-path thumbprint too.
+            const expectedCertificate = client1.getCertificate();
+            should(expectedCertificate).not.eql(null);
+            should(Buffer.isBuffer(e.ClientCertificate.value)).eql(true);
+            should(Buffer.from(e.ClientCertificate.value as Buffer).equals(expectedCertificate as Buffer)).eql(
+                true,
+                "a refused CreateSession's ClientCertificate must equal the request's own clientCertificate parameter"
+            );
+            should(e.ClientCertificateThumbprint.value).eql(makeSHA1Thumbprint(expectedCertificate as Buffer).toString("hex"));
+        });
+
+        // FEAT-67: OPC 10000-5 6.4.8 AuditCreateSessionEventType - ClientCertificate "is the
+        // clientCertificate parameter of the CreateSession Service call" and ClientCertificateThumbprint
+        // is its thumbprint (OPC 10000-6: SHA-1 of the DER-encoded certificate). A regression on
+        // node-opcua reported this as always empty on a signed channel (CTT Auditing Connections 007).
+        it("FEAT-67: a successful CreateSession over SignAndEncrypt carries the client's ClientCertificate and its SHA-1 thumbprint", async () => {
+            const client1 = OPCUAClient.create({
+                keepSessionAlive: false,
+                endpointMustExist: false,
+                securityMode: MessageSecurityMode.SignAndEncrypt,
+                securityPolicy: SecurityPolicy.Basic256Sha256
+            });
+            await client1.connect(test.endpointUrl!);
+            const auditEntryIdOfCreateSession = `create-cert-${Date.now()}`;
+            const restore = injectAuditEntryId(client1, (request) =>
+                request instanceof CreateSessionRequest ? auditEntryIdOfCreateSession : undefined
+            );
+            let sessionIdStr: string;
+            try {
+                const the_session = await client1.createSession();
+                sessionIdStr = the_session.sessionId.toString();
+                await the_session.close();
+            } finally {
+                restore();
+                await client1.disconnect();
+            }
+
+            const eventsOfRequest = () => events.filter((e) => e.ClientAuditEntryId.value === auditEntryIdOfCreateSession);
+            await waitUntil(() => eventsOfRequest().length >= 1, 10_000);
+            should(eventsOfRequest().length).eql(1, "exactly one audit Event per successful CreateSession request");
+            const e = eventsOfRequest()[0];
+            should(e.EventType.value.toString()).eql(auditCreateSessionEventTypeNodeIdStr);
+            should(e.SourceName.value).eql("Session/CreateSession");
+            should(e.SessionId.value.toString()).eql(sessionIdStr);
+
+            const expectedCertificate = client1.getCertificate();
+            should(expectedCertificate).not.eql(null);
+            should(Buffer.isBuffer(e.ClientCertificate.value)).eql(true);
+            should(Buffer.from(e.ClientCertificate.value as Buffer).equals(expectedCertificate as Buffer)).eql(
+                true,
+                "ClientCertificate must equal the client's own certificate (DER bytes)"
+            );
+            should(e.ClientCertificateThumbprint.value).eql(makeSHA1Thumbprint(expectedCertificate as Buffer).toString("hex"));
+        });
+
+        // FEAT-67: the CTT's "admin-signandencrypt" run context opens its channel with MessageSecurityMode
+        // None (confirmed from the generated project) but still sends its application certificate as the
+        // CreateSessionRequest.clientCertificate parameter - exactly what node-opcua's own client does by
+        // default. The old success path read session.channel.clientCertificate, which is empty for a None
+        // channel regardless of what the request itself carried, so Auditing Connections 007 read back a
+        // null ClientCertificate where the CTT expected its own 1354-byte certificate.
+        it("FEAT-67: a successful CreateSession over None whose request carries a certificate still reports it", async () => {
+            const client1 = OPCUAClient.create({
+                keepSessionAlive: false,
+                endpointMustExist: false,
+                securityMode: MessageSecurityMode.None,
+                securityPolicy: SecurityPolicy.None
+            });
+            await client1.connect(test.endpointUrl!);
+            const auditEntryIdOfCreateSession = `create-none-with-cert-${Date.now()}`;
+            // node-opcua's client attaches its own certificate to the CreateSessionRequest even over
+            // None; left untouched here (unlike the null-certificate test below) so the request carries
+            // a real certificate while the channel itself carries none.
+            const restore = injectAuditEntryId(client1, (request) =>
+                request instanceof CreateSessionRequest ? auditEntryIdOfCreateSession : undefined
+            );
+            let sessionIdStr: string;
+            try {
+                const the_session = await client1.createSession();
+                sessionIdStr = the_session.sessionId.toString();
+                await the_session.close();
+            } finally {
+                restore();
+                await client1.disconnect();
+            }
+
+            const eventsOfRequest = () => events.filter((e) => e.ClientAuditEntryId.value === auditEntryIdOfCreateSession);
+            await waitUntil(() => eventsOfRequest().length >= 1, 10_000);
+            should(eventsOfRequest().length).eql(1, "exactly one audit Event per successful CreateSession request");
+            const e = eventsOfRequest()[0];
+            should(e.EventType.value.toString()).eql(auditCreateSessionEventTypeNodeIdStr);
+            should(e.SessionId.value.toString()).eql(sessionIdStr);
+
+            const expectedCertificate = client1.getCertificate();
+            should(expectedCertificate).not.eql(null);
+            should(Buffer.isBuffer(e.ClientCertificate.value)).eql(
+                true,
+                "the request's own clientCertificate must be reported even though the None channel carries none"
+            );
+            should(Buffer.from(e.ClientCertificate.value as Buffer).equals(expectedCertificate as Buffer)).eql(
+                true,
+                "ClientCertificate must equal the client's own certificate (DER bytes)"
+            );
+            should(e.ClientCertificateThumbprint.value).eql(makeSHA1Thumbprint(expectedCertificate as Buffer).toString("hex"));
+        });
+
+        it("FEAT-67: a successful CreateSession with no clientCertificate parameter carries a null ClientCertificate and ClientCertificateThumbprint", async () => {
+            const client1 = OPCUAClient.create({
+                keepSessionAlive: false,
+                endpointMustExist: false,
+                securityMode: MessageSecurityMode.None,
+                securityPolicy: SecurityPolicy.None
+            });
+            await client1.connect(test.endpointUrl!);
+            const auditEntryIdOfCreateSession = `create-nocert-${Date.now()}`;
+            const restore = injectAuditEntryId(client1, (request) => {
+                if (!(request instanceof CreateSessionRequest)) return undefined;
+                // node-opcua's client always attaches its own certificate to the CreateSessionRequest,
+                // even over None; strip it here to exercise the "no certificate was presented" case
+                // that OPC 10000-5 6.4.8 leaves as null.
+                (request as InternalAny).clientCertificate = null;
+                return auditEntryIdOfCreateSession;
+            });
+            let sessionIdStr: string;
+            try {
+                const the_session = await client1.createSession();
+                sessionIdStr = the_session.sessionId.toString();
+                await the_session.close();
+            } finally {
+                restore();
+                await client1.disconnect();
+            }
+
+            const eventsOfRequest = () => events.filter((e) => e.ClientAuditEntryId.value === auditEntryIdOfCreateSession);
+            await waitUntil(() => eventsOfRequest().length >= 1, 10_000);
+            should(eventsOfRequest().length).eql(1, "exactly one audit Event per successful CreateSession request");
+            const e = eventsOfRequest()[0];
+            should(e.EventType.value.toString()).eql(auditCreateSessionEventTypeNodeIdStr);
+            should(e.SessionId.value.toString()).eql(sessionIdStr);
+            should(e.ClientCertificate.value).eql(null);
+            should(e.ClientCertificateThumbprint.value).eql(null);
         });
 
         it("AuditUrlMismatchEventType is raised only while the server is auditing", async () => {
