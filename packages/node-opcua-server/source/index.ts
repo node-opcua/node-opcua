@@ -33,6 +33,7 @@
 // back as an XML parse error.
 import "node-opcua-uanodeset-json";
 
+export * from "./audit_event_permissions.js";
 export * from "./base_server.js";
 export * from "./helper.js";
 export * from "./invalidate_server_certificate_cache.js";

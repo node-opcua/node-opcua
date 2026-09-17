@@ -17,6 +17,7 @@ import {
     TimestampsToReturn,
     type UAAlarmConditionEx,
     type UAVariable,
+    UserTokenType,
     Variant
 } from "node-opcua";
 import { construct_demo_alarm_in_address_space, type IAlarmTestData } from "node-opcua-address-space/testHelpers.js";
@@ -61,6 +62,14 @@ export function t(umbrellaTest: UmbrellaTestContext) {
     const test = umbrellaTest as AlarmConditionsTestContext;
     describe("A&C monitoring conditions", () => {
         let client: OPCUAClient;
+
+        // these tests assert the AuditCondition*EventTypes a comment or an acknowledge raises, and
+        // Audit Events reach only the SecurityAdmin Role by default (OPC 10000-2 4.14, OPC 10000-3
+        // ReceiveEvents): user1 holds it on the umbrella server
+        const securityAdminEndpoint = () => ({
+            endpointUrl: test.endpointUrl!,
+            userIdentity: { type: UserTokenType.UserName as const, userName: "user1", password: "password1" }
+        });
 
         beforeEach(() => {
             // add a condition to the server
@@ -552,7 +561,7 @@ export function t(umbrellaTest: UmbrellaTestContext) {
             const levelNode = test.tankLevel;
             const alarmNode = test.tankLevelCondition;
 
-            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
+            await perform_operation_on_subscription(client, securityAdminEndpoint(), async (session, subscription) => {
                 await (async function given_a_enabled_condition() {
                     alarmNode.enabledState.setValue(true);
                     alarmNode.enabledState.getValue().should.eql(true);
@@ -755,7 +764,7 @@ export function t(umbrellaTest: UmbrellaTestContext) {
             let branch2_EventId: Buffer | null = null;
             let dataValues: Variant[];
 
-            await perform_operation_on_subscription(client, test.endpointUrl!, async (session, subscription) => {
+            await perform_operation_on_subscription(client, securityAdminEndpoint(), async (session, subscription) => {
                 async function initial_state_of_condition() {
                     levelNode.setValueFromSource({ dataType: "Double", value: 0.5 });
 

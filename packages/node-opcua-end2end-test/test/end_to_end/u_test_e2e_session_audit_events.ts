@@ -12,6 +12,7 @@ import {
     constructEventFilter,
     DataType,
     IssuedIdentityToken,
+    makeRoles,
     OPCUAClient,
     resolveNodeId,
     TimestampsToReturn,
@@ -19,6 +20,7 @@ import {
     UserTokenType,
     VariableIds,
     type Variant,
+    WellKnownRoles,
     X509IdentityToken
 } from "node-opcua";
 import { exploreCertificate, keyOperationsFromPrivateKey, readCertificateChain, readPrivateKey } from "node-opcua-crypto";
@@ -35,6 +37,9 @@ import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 type InternalAny = any;
 
 type RecordedEvent = Record<string, Variant>;
+
+/** user1 holds the SecurityAdmin Role on the umbrella server (build_server_with_temperature_device) */
+const securityAdminIdentity = { type: UserTokenType.UserName, userName: "user1", password: "password1" } as const;
 
 /**
  * Patches `client`'s outgoing-request path so that any CreateSession / ActivateSession /
@@ -152,7 +157,9 @@ export function t(test: UmbrellaTestContext): void {
             const endpointUrl = test.endpointUrl!;
             auditingClient = OPCUAClient.create({ keepSessionAlive: true });
             await auditingClient.connect(endpointUrl);
-            auditingSession = await auditingClient.createSession();
+            // OPC 10000-2 4.14: Audit Events only reach the Roles allowed to receive them, SecurityAdmin
+            // by default - user1 holds it on the umbrella server
+            auditingSession = await auditingClient.createSession(securityAdminIdentity);
             auditingSubscription = await auditingSession.createSubscription2({
                 requestedPublishingInterval: 50,
                 requestedLifetimeCount: 10 * 60,
@@ -588,7 +595,7 @@ export function t(test: UmbrellaTestContext): void {
             const endpointUrl = test.endpointUrl!;
             const observerClient = OPCUAClient.create({ keepSessionAlive: true });
             await observerClient.connect(endpointUrl);
-            const observerSession = await observerClient.createSession();
+            const observerSession = await observerClient.createSession(securityAdminIdentity);
             const observed: RecordedEvent[] = [];
             try {
                 const observerSubscription = await observerSession.createSubscription2({
@@ -634,6 +641,101 @@ export function t(test: UmbrellaTestContext): void {
             } finally {
                 await observerSession.close();
                 await observerClient.disconnect();
+            }
+        });
+
+        // OPC 10000-2 4.14: "the ability to subscribe for Audit Events is restricted to appropriate
+        // users and/or applications"; OPC 10000-3 PermissionType ReceiveEvents (bit 11) is how: a
+        // Client only receives an Event if it holds that bit on the EventType and on the SourceNode.
+        it("only a SecurityAdmin Session receives Audit Events, while every Session receives the other Events", async () => {
+            const server = test.server!;
+            const addressSpace = server.engine.addressSpace!;
+            const auditEventType = addressSpace.findObjectType("AuditEventType")!;
+            const isAuditEvent = (e: RecordedEvent) => {
+                const eventType = addressSpace.findNode(e.EventType.value);
+                return !!eventType && (eventType as InternalAny).isSubtypeOf(auditEventType);
+            };
+
+            // user2 resolves to AuthenticatedUser alone for the duration of this test
+            server.setRolePolicyOverride({
+                getUserRoles: (userName: string) => (userName === "user2" ? makeRoles([WellKnownRoles.AuthenticatedUser]) : null)
+            });
+
+            const observers: { name: string; client: OPCUAClient; session: ClientSession; received: RecordedEvent[] }[] = [];
+            const identities: [string, InternalAny][] = [
+                ["anonymous", undefined],
+                ["authenticated user", { type: UserTokenType.UserName, userName: "user2", password: "password2" }],
+                ["security admin", securityAdminIdentity]
+            ];
+            const marker = `non-audit-event-${Date.now()}`;
+            try {
+                for (const [name, identity] of identities) {
+                    const client = OPCUAClient.create({ keepSessionAlive: true });
+                    await client.connect(test.endpointUrl!);
+                    const session = await client.createSession(identity);
+                    const received: RecordedEvent[] = [];
+                    observers.push({ name, client, session, received });
+                    const subscription = await session.createSubscription2({
+                        requestedPublishingInterval: 50,
+                        requestedLifetimeCount: 10 * 60,
+                        requestedMaxKeepAliveCount: 5,
+                        maxNotificationsPerPublish: 0,
+                        publishingEnabled: true,
+                        priority: 6
+                    });
+                    const item = await subscription.monitor(
+                        { nodeId: resolveNodeId("Server"), attributeId: AttributeIds.EventNotifier },
+                        { samplingInterval: 50, discardOldest: true, queueSize: 100, filter: constructEventFilter(fields) },
+                        TimestampsToReturn.Both
+                    );
+                    item.on("changed", (eventFields: Variant[]) =>
+                        received.push(
+                            eventFields.reduce<RecordedEvent>((acc, variant, index) => {
+                                acc[fields[index]] = variant;
+                                return acc;
+                            }, {} as RecordedEvent)
+                        )
+                    );
+                }
+
+                // Audit Events: a CreateSession, ActivateSession and CloseSession
+                const client1 = OPCUAClient.create({ keepSessionAlive: false });
+                await client1.connect(test.endpointUrl!);
+                const the_session = await client1.createSession();
+                const sessionIdStr = the_session.sessionId.toString();
+                await the_session.close();
+                await client1.disconnect();
+                // a non-audit Event
+                addressSpace.rootFolder.objects.server.raiseEvent("BaseEventType", {
+                    message: { dataType: DataType.LocalizedText, value: { text: marker } }
+                });
+
+                const hasMarker = (received: RecordedEvent[]) => received.some((e) => e.Message.value?.text === marker);
+                const auditOfSession = (received: RecordedEvent[]) =>
+                    received.filter((e) => isAuditEvent(e) && e.SessionId.value?.toString() === sessionIdStr);
+                await waitUntil(() => observers.every((o) => hasMarker(o.received)), 10_000);
+                const admin = observers[2];
+                await waitUntil(() => auditOfSession(admin.received).length === 3, 10_000);
+
+                for (const observer of observers) {
+                    should(hasMarker(observer.received)).eql(true, `${observer.name} should receive the non-audit Event`);
+                }
+                should(observers[0].received.filter(isAuditEvent).length).eql(0, "an anonymous Session receives no Audit Event");
+                should(observers[1].received.filter(isAuditEvent).length).eql(
+                    0,
+                    "an AuthenticatedUser Session receives no Audit Event"
+                );
+                should(auditOfSession(admin.received).map((e) => e.SourceName.value)).eql([
+                    "Session/CreateSession",
+                    "Session/ActivateSession",
+                    "Session/CloseSession"
+                ]);
+            } finally {
+                server.setRolePolicyOverride(null);
+                for (const observer of observers) {
+                    await observer.session.close();
+                    await observer.client.disconnect();
+                }
             }
         });
     });

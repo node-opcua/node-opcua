@@ -80,6 +80,7 @@ import {
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
 import { AddressSpaceAccessor } from "./addressSpace_accessor.js";
+import { defaultAuditEventRoles, restrictAuditEventReception } from "./audit_event_permissions.js";
 import { HistoryServerCapabilities, type HistoryServerCapabilitiesOptions } from "./history_server_capabilities.js";
 import type { IAddressSpaceAccessor } from "./i_address_space_accessor.js";
 import { MonitoredItem } from "./monitored_item.js";
@@ -946,6 +947,12 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     }
                     return obj;
                 };
+
+                // OPC 10000-2 4.14: Audit Events only reach the Roles allowed to see them
+                // (OPCUAServerOptions.auditEventRoles; null leaves the types as declared)
+                if (options.auditEventRoles !== null) {
+                    restrictAuditEventReception(addressSpace, options.auditEventRoles ?? defaultAuditEventRoles);
+                }
 
                 // -------------------------------------------- install default get/put handler
                 const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
