@@ -2688,7 +2688,12 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 assert(typeof reason === "string");
                 if (this.isAuditing) {
                     assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
-                    const sourceName = `Session/${reason}`;
+                    // OPC 10000-4 6.5.6: "The SourceName for Events of this type shall be
+                    // 'Session/Timeout' for a Session timeout, 'Session/CloseSession' for a CloseSession
+                    // Service call and 'Session/Terminated' for all other cases." "Forcing" (the oldest
+                    // unactivated Session closed to make room) is one of the other cases.
+                    const sourceName =
+                        reason === "Timeout" || reason === "CloseSession" ? `Session/${reason}` : "Session/Terminated";
 
                     this.raiseEvent("AuditSessionEventType", {
                         /* part 5 -  6.4.3 AuditEventType */
@@ -2704,8 +2709,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                         clientAuditEntryId: { dataType: "String", value: auditEntryId ?? "" },
 
                         // The ClientUserId identifies the user of the client requesting an action. The ClientUserId can be
-                        // obtained from the UserIdentityToken passed in the ActivateSession call.
-                        clientUserId: { dataType: "String", value: "" },
+                        // obtained from the UserIdentityToken passed in the ActivateSession call (OPC 10000-5 6.4.3).
+                        clientUserId: { dataType: "String", value: getClientUserIdForAudit(session1.userIdentityToken) },
 
                         sourceName: { dataType: "String", value: sourceName },
 

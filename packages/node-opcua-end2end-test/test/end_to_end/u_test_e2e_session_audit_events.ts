@@ -336,6 +336,10 @@ export function t(test: UmbrellaTestContext): void {
             events[1].ClientUserId.value.should.eql("user1");
             events[1].ClientUserId.value.should.not.eql("cc");
 
+            // OPC 10000-5 6.4.3: the ClientUserId of the session close is the user of the Session too,
+            // not the empty string it used to be
+            should(events[2].ClientUserId.value).eql("user1");
+
             // FEAT-66: every session audit event must carry a Severity in 1..1000, never 0.
             for (const e of events) {
                 expectValidSeverity(e);
@@ -641,6 +645,32 @@ export function t(test: UmbrellaTestContext): void {
 
         // OPC 10000-4 6.5.6: "The CreateSession service shall generate AuditCreateSessionEventType
         // events" for failed invocations too; OPC 10000-5 6.4.8 and 6.4.7 give its fields.
+        // OPC 10000-4 6.5.6: "'Session/Timeout' for a Session timeout, 'Session/CloseSession' for a
+        // CloseSession Service call and 'Session/Terminated' for all other cases."
+        it("a Session the server forces closed raises an AuditSessionEventType with SourceName Session/Terminated", async () => {
+            const server = test.server!;
+            const client1 = OPCUAClient.create({ keepSessionAlive: false });
+            await client1.connect(test.endpointUrl!);
+            try {
+                const session = await client1.createSession(securityAdminIdentity);
+                const sessionIdStr = session.sessionId.toString();
+                // the reason the server uses when it closes the oldest unactivated Session to make room
+                await server.engine.closeSession((session as InternalAny).authenticationToken, false, "Forcing");
+                const closeEvents = () =>
+                    events.filter(
+                        (e) =>
+                            e.EventType.value.toString() === auditSessionEventTypeNodeIdStr &&
+                            e.SessionId.value?.toString() === sessionIdStr
+                    );
+                await waitUntil(() => closeEvents().length >= 1, 10_000);
+                should(closeEvents().length).eql(1);
+                should(closeEvents()[0].SourceName.value).eql("Session/Terminated");
+                should(closeEvents()[0].ClientUserId.value).eql("user1");
+            } finally {
+                await client1.disconnect();
+            }
+        });
+
         it("a refused CreateSession raises one AuditCreateSessionEventType with Status false", async () => {
             const client1 = OPCUAClient.create({ keepSessionAlive: false });
             await client1.connect(test.endpointUrl!);
