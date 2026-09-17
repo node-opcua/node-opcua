@@ -103,9 +103,12 @@ export class MessageChunker {
                 );
                 return { statusCode: StatusCodes.BadTcpMessageTooLarge, chunkManager: null };
             }
-            if (this.maxMessageSize > 0 && totalLength > this.maxMessageSize) {
+            // OPC 10000-6 7.1.2.3/7.1.2.4: "The Message size is calculated using the
+            // unencrypted Message body." totalLength is whole chunks - headers, signature,
+            // padding, the last one rounded up - and refused bodies the peer accepts.
+            if (this.maxMessageSize > 0 && messageLength > this.maxMessageSize) {
                 errorLog(
-                    `[NODE-OPCUA-E11] message size ${totalLength} exceeds the negotiated message size ${this.maxMessageSize} nb chunks ${chunkCount}`
+                    `[NODE-OPCUA-E11] message body ${messageLength} exceeds the negotiated message size ${this.maxMessageSize} nb chunks ${chunkCount}`
                 );
                 return { statusCode: StatusCodes.BadTcpMessageTooLarge, chunkManager: null };
             }
@@ -114,6 +117,23 @@ export class MessageChunker {
             return { statusCode: StatusCodes.BadTcpInternalError, chunkManager: null };
         }
     }
+    /**
+     * The largest message body {@link prepareChunk} accepts with these parameters, or 0
+     * when neither limit applies: the negotiated maxMessageSize, and maxChunkCount times
+     * what one chunk carries under the channel's security. The second is the tighter one
+     * whenever a peer derives its chunk count as maxMessageSize / bufferSize, as the CTT
+     * does, because every chunk also spends bytes on headers.
+     */
+    public maxBodySize(msgType: string, params: ChunkMessageParameters): number {
+        const byMessageSize = this.maxMessageSize > 0 ? this.maxMessageSize : Number.POSITIVE_INFINITY;
+        const byChunkCount =
+            this.maxChunkCount > 0
+                ? this.maxChunkCount * this.#_build_chunk_manager(msgType, params).maxBodySize
+                : Number.POSITIVE_INFINITY;
+        const limit = Math.min(byMessageSize, byChunkCount);
+        return Number.isFinite(limit) ? limit : 0;
+    }
+
     /**
      * Encode the message and prepare the chunk manager, wired to the chunk
      * callback — the part {@link chunkSecureMessage} and

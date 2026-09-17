@@ -118,6 +118,11 @@ export class SecureMessageChunkManager extends EventEmitter {
         return this.#chunkManager.evaluateTotalLengthAndChunks(bodySize);
     }
 
+    /** the body bytes one chunk carries, once headers, signature and padding are paid for */
+    public get maxBodySize(): number {
+        return this.#chunkManager.maxBodySize;
+    }
+
     public write_header(finalC: string, buffer: Buffer, length: number): void {
         assert(buffer.length > 12);
         assert(finalC.length === 1);
