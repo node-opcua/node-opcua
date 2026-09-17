@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-uanodeset-rdf",
     "type": "module",
-    "version": "2.184.6",
+    "version": "2.184.7",
     "description": "pure nodejs OPCUA SDK - a one-way JSON-LD (RDF) export of an OPC UA information model",
     "scripts": {
         "build": "tsc -b",
@@ -37,11 +37,11 @@
         "npm": ">=10.x"
     },
     "dependencies": {
-        "node-opcua-address-space": "2.184.6",
+        "node-opcua-address-space": "2.184.7",
         "node-opcua-data-model": "2.184.1",
-        "node-opcua-json": "2.184.6",
+        "node-opcua-json": "2.184.7",
         "node-opcua-nodeid": "2.184.1",
-        "node-opcua-pseudo-session": "2.184.6",
+        "node-opcua-pseudo-session": "2.184.7",
         "node-opcua-service-browse": "2.184.1",
         "node-opcua-variant": "2.184.1"
     },
