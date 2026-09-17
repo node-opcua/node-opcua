@@ -746,6 +746,49 @@ function validate_applicationUri(channel: ServerSecureChannelLayer, request: Cre
     return applicationUriFromCert === applicationUri;
 }
 
+/**
+ * Raises the AuditCreateSessionEventType of a refused CreateSession call.
+ *
+ * OPC 10000-5 6.4.8: SourceName "Session/CreateSession"; "The ClientUserId is not available for
+ * this call thus this parameter shall be set to the 'System/CreateSession'"; ClientCertificate "is
+ * the clientCertificate parameter of the CreateSession Service call". 6.4.7: "If no session context
+ * exists (e.g. for a failed CreateSession Service call) the SessionId shall be null." The
+ * RevisedSessionTimeout "is the returned revisedSessionTimeout parameter", and a refused call returns
+ * none, so it stays null.
+ */
+function raiseAuditCreateSessionFailure(
+    server: OPCUAServer,
+    request: CreateSessionRequest,
+    channel: ServerSecureChannelLayer,
+    statusCode: StatusCode
+): void {
+    if (!server.isAuditing) {
+        return;
+    }
+    const clientCertificate = request.clientCertificate && request.clientCertificate.length > 0 ? request.clientCertificate : null;
+    server.raiseEvent("AuditCreateSessionEventType", {
+        /* part 5 - 6.4.3 AuditEventType */
+        actionTimeStamp: { dataType: "DateTime", value: new Date() },
+        status: { dataType: "Boolean", value: false },
+        severity: { dataType: "UInt16", value: AUDIT_SEVERITY_SECURITY_FAILURE },
+        // OPC 10000-4 6.5.6: "For the failure case the Message for Events of this type should
+        // include a description of why the Service failed."
+        message: { dataType: "LocalizedText", value: { text: `CreateSession rejected: ${statusCode.name}` } },
+        serverId: { dataType: "String", value: server.serverInfo.applicationUri || "" },
+        clientAuditEntryId: { dataType: "String", value: request.requestHeader.auditEntryId ?? "" },
+        clientUserId: { dataType: "String", value: CLIENT_USER_ID_CREATE_SESSION },
+        sourceName: { dataType: "String", value: "Session/CreateSession" },
+
+        /* part 5 - 6.4.7 AuditSessionEventType */
+        sessionId: { dataType: "NodeId", value: new NodeId() },
+
+        /* part 5 - 6.4.8 AuditCreateSessionEventType */
+        secureChannelId: { dataType: "String", value: channel.channelId?.toString() ?? "" },
+        clientCertificate: { dataType: "ByteString", value: clientCertificate },
+        clientCertificateThumbprint: { dataType: "String", value: clientCertificate ? thumbprint(clientCertificate) : null }
+    });
+}
+
 function validate_security_endpoint(
     server: OPCUAServer,
     request: CreateSessionRequest,
@@ -778,10 +821,12 @@ function validate_security_endpoint(
         if (!request.endpointUrl?.match(/localhost/i) || OPCUAServer.requestExactEndpointUrl) {
             warningLog("Cannot find suitable endpoints in available endpoints. endpointUri =", request.endpointUrl);
         }
-        ua_server?.raiseEvent("AuditUrlMismatchEventType", {
-            severity: { dataType: "UInt16", value: AUDIT_SEVERITY_SECURITY_FAILURE },
-            endpointUrl: { dataType: DataType.String, value: request.endpointUrl }
-        });
+        if (server.isAuditing) {
+            ua_server?.raiseEvent("AuditUrlMismatchEventType", {
+                severity: { dataType: "UInt16", value: AUDIT_SEVERITY_SECURITY_FAILURE },
+                endpointUrl: { dataType: DataType.String, value: request.endpointUrl }
+            });
+        }
         if (OPCUAServer.requestExactEndpointUrl) {
             return { errCode: StatusCodes.BadServiceUnsupported };
         } else {
@@ -2436,7 +2481,12 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         const request = message.request as CreateSessionRequest;
         assert(request instanceof CreateSessionRequest);
 
+        // OPC 10000-4 6.5.6: the Session Service Set "shall generate audit Events for both successful
+        // and failed Service invocations [...] The CreateSession service shall generate
+        // AuditCreateSessionEventType events". Every refusal below goes through here, so each failed
+        // request raises exactly one, with Status false.
         function rejectConnection(server: OPCUAServer, statusCode: StatusCode): void {
+            raiseAuditCreateSessionFailure(server, request, channel, statusCode);
             server.engine.incrementSecurityRejectedSessionCount();
 
             const response1 = new ServiceFault({
