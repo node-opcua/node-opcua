@@ -168,9 +168,34 @@ describe("MessageChunker single-pass encoding", () => {
     it("should never report Good for a message beyond the ceiling", () => {
         const chunker = freshChunker(256);
 
-        for (const count of [1, 100, 5000]) {
+        for (const count of [100, 5000]) {
             const { statusCode } = chunkAll(chunker, makeReadResponse(count));
             should(statusCode.name).not.eql("Good", `${count} values should not have been accepted`);
         }
+    });
+
+    it("FEAT-68 should weigh the body against maxMessageSize, not the whole chunks", () => {
+        // OPC 10000-6 7.1.2.3: "The Message size is calculated using the unencrypted
+        // Message body". One value is a body of a few dozen bytes, in an 8192-byte chunk.
+        const { statusCode, bytes } = chunkAll(freshChunker(256), makeReadResponse(1));
+
+        should(statusCode).eql(StatusCodes.Good);
+        should(bytes.length).be.below(256);
+    });
+
+    it("FEAT-68 should report the largest body the chunk count lets through", () => {
+        // 128 unsecured chunks of 8192 carry 128 x (8192 - 24) bytes of body, less than
+        // the 128 x 8192 maxMessageSize a peer derives from the same numbers
+        const chunker = new MessageChunker({
+            securityMode: MessageSecurityMode.None,
+            maxMessageSize: 128 * 8192,
+            maxChunkCount: 128
+        });
+        should(chunker.maxBodySize("MSG", makeOptions(8192))).eql(128 * 8168);
+
+        should(freshChunker(256).maxBodySize("MSG", makeOptions(8192))).eql(256);
+        chunker.maxChunkCount = 0;
+        chunker.maxMessageSize = 0;
+        should(chunker.maxBodySize("MSG", makeOptions(8192))).eql(0);
     });
 });

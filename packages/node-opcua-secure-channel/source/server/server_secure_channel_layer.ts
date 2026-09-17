@@ -486,6 +486,40 @@ export class ServerSecureChannelLayer extends EventEmitter {
         return { maxMessageSize: this.#transport.maxMessageSize };
     }
 
+    #maxResponseBodySize?: { securityMode: MessageSecurityMode; value: number };
+    /**
+     * The largest response body this channel can send, or 0 for no limit: the client's
+     * MaxMessageSize, and its MaxChunkCount times the body one chunk carries under the
+     * channel's security (OPC 10000-6 7.1.2.3). A response sized to MaxMessageSize alone
+     * can still need one chunk more than the client accepts, and is then refused.
+     */
+    public getMaxResponseBodySize(): number {
+        if (this.#maxResponseBodySize?.securityMode !== this.securityMode) {
+            const tokenId = this.#tokenStack.getLatestTokenDerivedKeys()?.tokenId ?? 0;
+            const securityOptions = this.#_get_security_options_for_MSG(tokenId);
+            if (this.securityMode !== MessageSecurityMode.None && !securityOptions) {
+                // no keys yet to size a secured chunk: nothing better than the message size
+                return this.#transport.maxMessageSize;
+            }
+            this.#messageChunker.securityMode = this.securityMode;
+            const value = this.#messageChunker.maxBodySize("MSG", {
+                channelId: this.channelId,
+                securityHeader: new SymmetricAlgorithmSecurityHeader({ tokenId }),
+                securityOptions: {
+                    chunkSize: this.#transport.receiveBufferSize,
+                    requestId: 1,
+                    signatureLength: 0,
+                    plainBlockSize: 0,
+                    cipherBlockSize: 0,
+                    sequenceHeaderSize: 0,
+                    ...securityOptions
+                }
+            });
+            this.#maxResponseBodySize = { securityMode: this.securityMode, value };
+        }
+        return this.#maxResponseBodySize.value;
+    }
+
     public dispose(): void {
         // c8 ignore next
         doDebug && debugLog("ServerSecureChannelLayer#dispose");

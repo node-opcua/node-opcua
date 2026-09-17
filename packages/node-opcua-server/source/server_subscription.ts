@@ -577,9 +577,10 @@ export class Subscription extends EventEmitter {
 
     /**
      * Byte budget for one NotificationMessage, or 0 when there is no limit to
-     * respect. Taken from the maxMessageSize the client declared when it opened
-     * the channel: a response longer than that is refused by the client, which
-     * surfaces as a transport error on a Publish whose service result was Good.
+     * respect. Taken from the limits the client declared when it opened the
+     * channel - its maxMessageSize, and its maxChunkCount times what one chunk
+     * carries: a response beyond either is refused, which surfaces as a
+     * transport error on a Publish whose service result was Good (FEAT-68).
      *
      * Overridable so a test can state a budget without a channel behind it, and
      * so an application can be stricter than the transport if it wants to.
@@ -589,7 +590,8 @@ export class Subscription extends EventEmitter {
         if (this.maxNotificationMessageSizeOverride) {
             return this.maxNotificationMessageSizeOverride;
         }
-        const negotiated = this.$session?.channel?.getTransportSettings?.()?.maxMessageSize ?? 0;
+        const channel = this.$session?.channel;
+        const negotiated = channel?.getMaxResponseBodySize?.() ?? channel?.getTransportSettings?.()?.maxMessageSize ?? 0;
         // 0 means "no limit announced" on the wire, and is passed through as such
         return negotiated > notificationMessageOverhead ? negotiated : 0;
     }
