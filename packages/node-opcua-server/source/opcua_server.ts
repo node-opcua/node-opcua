@@ -4370,6 +4370,12 @@ const userIdentityTokenPasswordRemoved = (userIdentityToken?: UserIdentityToken)
         // remove password
         a.password = Buffer.from("*************", "ascii");
     }
+    // An IssuedIdentityToken's tokenData is a bearer credential (e.g. a JWT): whoever holds it can
+    // present it again. OPC 10000-2 4.14 warns that audit records may carry sensitive data, so it
+    // is masked the same way as a password. X509 certificateData is public and stays.
+    if (a instanceof IssuedIdentityToken) {
+        a.tokenData = Buffer.from("*************", "ascii");
+    }
     // if (a instanceof X509IdentityToken) {
     //     a.certificateData = Buffer.alloc(0);
     // }
