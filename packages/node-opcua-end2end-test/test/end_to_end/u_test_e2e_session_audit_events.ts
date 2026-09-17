@@ -12,9 +12,13 @@ import {
     constructEventFilter,
     DataType,
     IssuedIdentityToken,
+    MessageSecurityMode,
     makeRoles,
+    NodeId,
+    NodeIdType,
     OPCUAClient,
     resolveNodeId,
+    SecurityPolicy,
     TimestampsToReturn,
     UserNameIdentityToken,
     UserTokenType,
@@ -508,9 +512,10 @@ export function t(test: UmbrellaTestContext): void {
          */
         async function activateAndCollectAudit(
             userIdentity: InternalAny,
-            substitute: (data: InternalAny) => void
+            substitute: (data: InternalAny) => void,
+            options: { clientOptions?: InternalAny; mutateActivateSessionRequest?: (request: ActivateSessionRequest) => void } = {}
         ): Promise<{ activateEvents: RecordedEvent[]; capturedError?: Error }> {
-            const client1 = OPCUAClient.create({ keepSessionAlive: false });
+            const client1 = OPCUAClient.create({ keepSessionAlive: false, ...options.clientOptions });
             await client1.connect(test.endpointUrl!);
             const internal = client1 as InternalAny;
             const createUserIdentityToken = internal.createUserIdentityToken;
@@ -526,9 +531,11 @@ export function t(test: UmbrellaTestContext): void {
                 });
             };
             const auditEntryIdOfActivateSession = `activate-secret-${Date.now()}`;
-            const restore = injectAuditEntryId(client1, (request) =>
-                request instanceof ActivateSessionRequest ? auditEntryIdOfActivateSession : undefined
-            );
+            const restore = injectAuditEntryId(client1, (request) => {
+                if (!(request instanceof ActivateSessionRequest)) return undefined;
+                options.mutateActivateSessionRequest?.(request);
+                return auditEntryIdOfActivateSession;
+            });
             let capturedError: Error | undefined;
             try {
                 const session = await client1.createSession(userIdentity);
@@ -541,8 +548,96 @@ export function t(test: UmbrellaTestContext): void {
             }
             const activateEventsOf = () => events.filter((e) => e.ClientAuditEntryId.value === auditEntryIdOfActivateSession);
             await waitUntil(() => activateEventsOf().length >= 1, 10_000);
+            // give a second Event for the same request the time to arrive before anyone counts
+            await new Promise((r) => setTimeout(r, 500));
             return { activateEvents: activateEventsOf(), capturedError };
         }
+
+        /**
+         * OPC 10000-4 6.5.6: a failed ActivateSession shall generate an audit Event; OPC 10000-5
+         * 6.4.10: an AuditActivateSessionEventType, SourceName "Session/ActivateSession". The CTT
+         * (Auditing Connections 014) looks it up by ClientAuditEntryId and wants exactly one.
+         */
+        function expectOneRejectedActivateSession(
+            activateEvents: RecordedEvent[],
+            statusCodeName: string,
+            expectedClientUserId: string
+        ): RecordedEvent {
+            should(activateEvents.length).eql(1, "exactly one audit Event per rejected ActivateSession request");
+            const e = activateEvents[0];
+            should(e.EventType.value.toString()).eql(auditActivateSessionEventTypeNodeIdStr);
+            should(e.SourceName.value).eql("Session/ActivateSession");
+            should(e.Status.value).eql(false);
+            should(e.Severity.value).be.aboveOrEqual(667);
+            should(e.Severity.value).be.belowOrEqual(1000);
+            should(e.Message.value.text).match(new RegExp(statusCodeName));
+            should(e.ClientUserId.value).eql(expectedClientUserId);
+            return e;
+        }
+
+        it("a wrong password raises one AuditActivateSessionEventType with Status false and no password", async () => {
+            const wrongPassword = "not-the-password-of-user1";
+            let sentPassword: Buffer | undefined;
+            const { activateEvents, capturedError } = await activateAndCollectAudit(
+                { type: UserTokenType.UserName, userName: "user1", password: wrongPassword },
+                (data) => {
+                    sentPassword = Buffer.from(data.userIdentityToken.password);
+                }
+            );
+            const statusCodeName = /BadUserAccessDenied/.test(capturedError?.message ?? "")
+                ? "BadUserAccessDenied"
+                : "BadIdentityTokenRejected";
+            should(capturedError?.message).match(new RegExp(statusCodeName));
+            const e = expectOneRejectedActivateSession(activateEvents, statusCodeName, "user1");
+            should(e.UserIdentityToken.value).be.instanceOf(UserNameIdentityToken);
+            expectSecretAbsentFromEvent(e, [Buffer.from(wrongPassword, "utf-8"), sentPassword as Buffer]);
+        });
+
+        it("a bad client signature raises one AuditActivateSessionEventType with Status false", async () => {
+            const { activateEvents, capturedError } = await activateAndCollectAudit(
+                { type: UserTokenType.UserName, userName: "user1", password: "password1" },
+                () => {
+                    /* the token is left as it is */
+                },
+                {
+                    clientOptions: {
+                        endpointMustExist: false,
+                        securityMode: MessageSecurityMode.SignAndEncrypt,
+                        securityPolicy: SecurityPolicy.Basic256Sha256
+                    },
+                    mutateActivateSessionRequest: (request) => {
+                        const signature = request.clientSignature?.signature;
+                        if (signature && signature.length > 2) {
+                            const corrupted = Buffer.from(signature);
+                            corrupted[0] ^= 0xff;
+                            corrupted[1] ^= 0xff;
+                            request.clientSignature.signature = corrupted;
+                        }
+                    }
+                }
+            );
+            should(capturedError?.message).match(/BadApplicationSignatureInvalid/);
+            const e = expectOneRejectedActivateSession(activateEvents, "BadApplicationSignatureInvalid", "user1");
+            should(e.SessionId.value.isEmpty()).eql(false);
+        });
+
+        it("an ActivateSession naming no known Session raises one AuditActivateSessionEventType with a null SessionId", async () => {
+            const { activateEvents, capturedError } = await activateAndCollectAudit(
+                undefined,
+                () => {
+                    /* anonymous */
+                },
+                {
+                    mutateActivateSessionRequest: (request) => {
+                        request.requestHeader.authenticationToken = new NodeId(NodeIdType.BYTESTRING, Buffer.alloc(16, 0x5a));
+                    }
+                }
+            );
+            should(capturedError?.message).match(/BadSessionIdInvalid/);
+            const e = expectOneRejectedActivateSession(activateEvents, "BadSessionIdInvalid", "");
+            // OPC 10000-5 6.4.7: "If no session context exists [...] the SessionId shall be null."
+            should(e.SessionId.value.isEmpty()).eql(true);
+        });
 
         it("the password of a UserName token appears nowhere in the AuditActivateSessionEventType", async () => {
             const clearPassword = "password1";
