@@ -393,11 +393,17 @@ export function reconstructNonHierarchicalReferences(extraInfo: CloneHelper): vo
     // c8 ignore next
     doTrace && traceLog("reconstructNonHierarchicalReferences");
 
-    for (const { original, cloned } of cloneInfoArray) {
-        apply(original, cloned);
-    }
+    // context by context: a node cloned twice (OPC 40001-1 Machinery's ProcessValueType
+    // declares a LimitAlarm and a DeviationAlarm, both cloning the states of their alarm
+    // type) has one clone per context, and the reference must stay inside the context it
+    // belongs to.
+    extraInfo.forEachContext((context) => {
+        for (const { original, cloned } of context.values()) {
+            apply(original, cloned, context);
+        }
+    });
 
-    function apply(original: BaseNode, cloned: BaseNode) {
+    function apply(original: BaseNode, cloned: BaseNode, context: ReadonlyMap<string, CloneInfo>) {
         const addressSpace = original.addressSpace;
         // find NonHierarchical References on original object
         const originalNonHierarchical = findNonHierarchicalReferences(original);
@@ -410,13 +416,23 @@ export function reconstructNonHierarchicalReferences(extraInfo: CloneHelper): vo
         doTrace && traceLog(" investigation ", "original", fullPath2(original), NodeClass[cloned.nodeClass], fullPath2(cloned));
 
         for (const ref of originalNonHierarchical) {
-            const info = findImplementedObject(cloneInfoArray, ref);
+            // the clone made in the SAME context wins. The flat list keeps the first clone of
+            // an original, which wired the second alarm's EnabledState to the FIRST alarm's
+            // AckedState. Fall back to it only when the target was cloned elsewhere.
+            const info = context.get(ref.nodeId.toString()) || findImplementedObject(cloneInfoArray, ref);
             if (!info) continue;
 
             // if the object pointed by this reference is also cloned ...
 
             const _originalDest = info.original;
             const cloneDest = info.cloned;
+
+            // a node registered under several originals (a subtype re-declaring what its base
+            // declared) is reached more than once; adding the same reference twice made
+            // addReference assert "reference exists already in _references" and threw away
+            // the whole instantiation.
+            const already = cloned.findReferences(ref.referenceType, false).some((r) => sameNodeId(r.nodeId, cloneDest.nodeId));
+            if (already) continue;
 
             // c8 ignore next
             doTrace &&
