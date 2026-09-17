@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-json",
     "type": "module",
-    "version": "2.184.7",
+    "version": "2.184.8",
     "description": "pure nodejs OPCUA SDK - the OPC UA JSON encoding of OPC 10000-6 clause 5.4",
     "scripts": {
         "build": "tsc -b",
@@ -67,7 +67,7 @@
         "node-opcua-variant": "2.184.1"
     },
     "devDependencies": {
-        "node-opcua-address-space": "2.184.7",
+        "node-opcua-address-space": "2.184.8",
         "node-opcua-constants": "2.184.0",
         "node-opcua-nodesets": "2.184.0"
     },

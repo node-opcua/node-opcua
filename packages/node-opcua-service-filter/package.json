@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-service-filter",
     "type": "module",
-    "version": "2.184.3",
+    "version": "2.184.8",
     "description": "pure nodejs OPCUA SDK - module service-filter",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -15,7 +15,7 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-address-space-base": "2.184.3",
+        "node-opcua-address-space-base": "2.184.8",
         "node-opcua-assert": "2.184.0",
         "node-opcua-basic-types": "2.184.1",
         "node-opcua-constants": "2.184.0",

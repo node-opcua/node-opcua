@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-alias-name-client",
     "type": "module",
-    "version": "2.184.7",
+    "version": "2.184.8",
     "description": "pure nodejs OPCUA SDK - client-side alias names (OPC 10000-17)",
     "scripts": {
         "build": "tsc -b",
@@ -31,8 +31,8 @@
         "node-opcua-variant": "2.184.1"
     },
     "devDependencies": {
-        "node-opcua-address-space": "2.184.7",
-        "node-opcua-alias-name-server": "2.184.7",
+        "node-opcua-address-space": "2.184.8",
+        "node-opcua-alias-name-server": "2.184.8",
         "node-opcua-leak-detector": "2.184.1",
         "node-opcua-nodesets": "2.184.0"
     },
