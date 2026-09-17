@@ -169,7 +169,18 @@ export class ClientTCP_transport extends ClientTransportBase {
             this._socket.removeListener("end", _on_socket_end_for_connect);
         };
 
-        this._install_socket(socket);
+        try {
+            this._install_socket(socket);
+        } catch (err) {
+            // a transport object may be reused across reconnection attempts. If a
+            // previous socket is somehow still installed, _install_socket asserts.
+            // Report that synchronously through the callback instead of letting it
+            // escape into a caller's reconnection timer, and drop the fresh socket
+            // we just created so it does not linger unmonitored.
+            socket.destroy();
+            callback(err as Error);
+            return;
+        }
 
         this._socket?.once("error", _on_socket_error_for_connect);
         this._socket?.once("end", _on_socket_end_for_connect);
