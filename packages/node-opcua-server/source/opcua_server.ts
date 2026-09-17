@@ -449,15 +449,14 @@ function thumbprint(certificate?: Certificate | null): string {
  *  - AUDIT_SEVERITY_INFO: a normal, successful operation (a session created, activated or
  *    closed) - informational, in the recommended 1-333 "low urgency" band.
  *  - AUDIT_SEVERITY_SECURITY_FAILURE: a security failure an operator watching audit events
- *    needs to see (an untrusted/expired/revoked/mismatched certificate, an invalid user
- *    signature, a URL mismatch) - in the recommended 667-1 000 "high urgency" band.
+ *    needs to see (an untrusted/expired/revoked/mismatched certificate, a rejected
+ *    ActivateSession such as an invalid user signature, a URL mismatch) - in the recommended
+ *    667-1 000 "high urgency" band.
  *
- * None of the nine raise sites has a dynamic outcome that isn't already reflected by which
- * constant applies: the three session-lifecycle events (CreateSession, ActivateSession, the
- * session-closed AuditSessionEventType) hardcode status = true - they are only ever raised
- * after the operation already succeeded - while the five security events below are only ever
- * reached on the corresponding failure. So a single constant per class is enough; nothing is
- * invented to read a "status" that isn't genuinely available at these sites.
+ * The CreateSession and session-closed events hardcode status = true - they are only ever raised
+ * after the operation already succeeded - and the certificate / URL events are only ever reached
+ * on the corresponding failure. The AuditActivateSessionEventType is raised on both outcomes, so
+ * its Status and Severity follow the outcome (see raiseAuditActivateSessionEventType).
  */
 const AUDIT_SEVERITY_INFO = 100;
 const AUDIT_SEVERITY_SECURITY_FAILURE = 900;
@@ -469,8 +468,8 @@ const AUDIT_SEVERITY_SECURITY_FAILURE = 900;
  * 'System/CreateSession'."
  *
  * No UserIdentityToken exists yet at CreateSession time (it is only supplied in the later
- * ActivateSession call), hence the fixed literal rather than a derived value. Used at both
- * AuditCreateSessionEventType raise sites below.
+ * ActivateSession call), hence the fixed literal rather than a derived value. Used at the
+ * AuditCreateSessionEventType raise site of the CreateSession service below.
  */
 const CLIENT_USER_ID_CREATE_SESSION = "System/CreateSession";
 
@@ -2129,11 +2128,10 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             return;
         }
 
+        // no audit event here: this validates the token of an ActivateSession call, and the caller
+        // (_on_ActivateSessionRequest) raises the AuditActivateSessionEventType for any rejection,
+        // with the request's AuditEntryId this method has no access to (OPC 10000-4 6.5.6).
         if (!userTokenSignature?.signature) {
-            this.raiseEvent("AuditCreateSessionEventType", {
-                severity: { dataType: "UInt16", value: AUDIT_SEVERITY_SECURITY_FAILURE },
-                clientUserId: { dataType: "String", value: CLIENT_USER_ID_CREATE_SESSION }
-            });
             callback(null, StatusCodes.BadUserSignatureInvalid);
             return;
         }
@@ -2840,11 +2838,17 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             endpoint,
             (_err: Error | null, statusCode?: StatusCode) => {
                 if (!statusCode || statusCode.isNotGood()) {
-                    /* c8 ignore next */
-                    if (!(statusCode && statusCode instanceof StatusCode)) {
-                        return rejectConnection(this, StatusCodes.BadCertificateInvalid);
-                    }
-                    return rejectConnection(this, statusCode);
+                    const rejectionStatusCode =
+                        statusCode && statusCode instanceof StatusCode ? statusCode : StatusCodes.BadCertificateInvalid;
+                    // OPC 10000-4 6.5.6: a failed ActivateSession shall generate an
+                    // AuditActivateSessionEventType (Status false), e.g. for an X509 user token
+                    // whose signature is missing or invalid (Bad_UserSignatureInvalid).
+                    raiseAuditActivateSessionEventType.call(this, session, request.requestHeader.auditEntryId ?? "", {
+                        statusCode: rejectionStatusCode,
+                        userIdentityToken: request.userIdentityToken as UserIdentityToken,
+                        channel
+                    });
+                    return rejectConnection(this, rejectionStatusCode);
                 }
 
                 // check if user access is granted
@@ -4372,13 +4376,45 @@ const userIdentityTokenPasswordRemoved = (userIdentityToken?: UserIdentityToken)
     return a;
 };
 
-function raiseAuditActivateSessionEventType(this: OPCUAServer, session: ServerSession, auditEntryId: string) {
+/**
+ * The outcome of a rejected ActivateSession call, for its audit event.
+ *
+ * OPC 10000-4 6.5.6: the Session Service Set "shall generate audit Events for both successful and
+ * failed Service invocations [...] The ActivateSession service shall generate
+ * AuditActivateSessionEventType events or subtypes of it." On a rejected call the Session still
+ * holds its previous identity (or none), so the token and the channel are those of the request.
+ */
+interface ActivateSessionAuditFailure {
+    statusCode: StatusCode;
+    userIdentityToken: UserIdentityToken;
+    channel: ServerSecureChannelLayer;
+}
+
+function raiseAuditActivateSessionEventType(
+    this: OPCUAServer,
+    session: ServerSession,
+    auditEntryId: string,
+    failure?: ActivateSessionAuditFailure
+) {
     if (this.isAuditing) {
+        const userIdentityToken = failure ? failure.userIdentityToken : session.userIdentityToken;
+        const channelId = failure ? failure.channel.channelId : session.channel?.channelId;
         this.raiseEvent("AuditActivateSessionEventType", {
             /* part 5 -  6.4.3 AuditEventType */
             actionTimeStamp: { dataType: "DateTime", value: new Date() },
-            status: { dataType: "Boolean", value: true },
-            severity: { dataType: "UInt16", value: AUDIT_SEVERITY_INFO },
+            status: { dataType: "Boolean", value: !failure },
+            severity: { dataType: "UInt16", value: failure ? AUDIT_SEVERITY_SECURITY_FAILURE : AUDIT_SEVERITY_INFO },
+
+            // OPC 10000-4 6.5.6: "For the failure case the Message for Events of this type should
+            // include a description of why the Service failed."
+            ...(failure
+                ? {
+                      message: {
+                          dataType: "LocalizedText",
+                          value: { text: `ActivateSession rejected: ${failure.statusCode.name}` }
+                      }
+                  }
+                : {}),
 
             serverId: { dataType: "String", value: this.serverInfo.applicationUri || "" },
 
@@ -4388,7 +4424,7 @@ function raiseAuditActivateSessionEventType(this: OPCUAServer, session: ServerSe
             // The ClientUserId identifies the user of the client requesting an action.
             // The ClientUserId can be obtained from the UserIdentityToken passed in the
             // ActivateSession call.
-            clientUserId: { dataType: "String", value: getClientUserIdForAudit(session.userIdentityToken) },
+            clientUserId: { dataType: "String", value: getClientUserIdForAudit(userIdentityToken) },
 
             sourceName: { dataType: "String", value: "Session/ActivateSession" },
 
@@ -4406,7 +4442,7 @@ function raiseAuditActivateSessionEventType(this: OPCUAServer, session: ServerSe
             // For Username/Password tokens the password should NOT be included.
             userIdentityToken: {
                 dataType: "ExtensionObject" /*  UserIdentityToken */,
-                value: userIdentityTokenPasswordRemoved(session.userIdentityToken)
+                value: userIdentityTokenPasswordRemoved(userIdentityToken)
             },
 
             // SecureChannelId shall uniquely identify the SecureChannel. The application shall
@@ -4415,7 +4451,7 @@ function raiseAuditActivateSessionEventType(this: OPCUAServer, session: ServerSe
             // the SecureChannel Service Set (AuditChannelEventType and its subtypes).
             secureChannelId: {
                 dataType: "String",
-                value: session.channel?.channelId?.toString() ?? ""
+                value: channelId?.toString() ?? ""
             }
         });
     }
