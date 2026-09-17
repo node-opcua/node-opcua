@@ -639,6 +639,85 @@ export function t(test: UmbrellaTestContext): void {
             should(e.SessionId.value.isEmpty()).eql(true);
         });
 
+        // OPC 10000-4 6.5.6: "The CreateSession service shall generate AuditCreateSessionEventType
+        // events" for failed invocations too; OPC 10000-5 6.4.8 and 6.4.7 give its fields.
+        it("a refused CreateSession raises one AuditCreateSessionEventType with Status false", async () => {
+            const client1 = OPCUAClient.create({ keepSessionAlive: false });
+            await client1.connect(test.endpointUrl!);
+            const auditEntryIdOfCreateSession = `create-refused-${Date.now()}`;
+            const restore = injectAuditEntryId(client1, (request) => {
+                if (!(request instanceof CreateSessionRequest)) return undefined;
+                // longer than any nonce the server accepts (MAX_NONCE_LENGTH): refused with Bad_NonceInvalid
+                request.clientNonce = Buffer.alloc(4096, 0x42);
+                return auditEntryIdOfCreateSession;
+            });
+            let capturedError: Error | undefined;
+            try {
+                const session = await client1.createSession();
+                await session.close();
+            } catch (err) {
+                capturedError = err as Error;
+            } finally {
+                restore();
+                await client1.disconnect();
+            }
+            should(capturedError?.message).match(/BadNonceInvalid/);
+
+            const eventsOfRequest = () => events.filter((e) => e.ClientAuditEntryId.value === auditEntryIdOfCreateSession);
+            await waitUntil(() => eventsOfRequest().length >= 1, 10_000);
+            await new Promise((r) => setTimeout(r, 500));
+            should(eventsOfRequest().length).eql(1, "exactly one audit Event per refused CreateSession request");
+            const e = eventsOfRequest()[0];
+            should(e.EventType.value.toString()).eql(auditCreateSessionEventTypeNodeIdStr);
+            should(e.SourceName.value).eql("Session/CreateSession");
+            should(e.Status.value).eql(false);
+            should(e.Severity.value).be.aboveOrEqual(667);
+            should(e.Severity.value).be.belowOrEqual(1000);
+            should(e.Message.value.text).match(/BadNonceInvalid/);
+            should(e.ClientUserId.value).eql("System/CreateSession");
+            // OPC 10000-5 6.4.7: "If no session context exists (e.g. for a failed CreateSession
+            // Service call) the SessionId shall be null."
+            should(e.SessionId.value.isEmpty()).eql(true);
+            // nothing reached the ActivateSession stage
+            should(events.filter((x) => x.EventType.value.toString() === auditActivateSessionEventTypeNodeIdStr).length).eql(0);
+        });
+
+        it("AuditUrlMismatchEventType is raised only while the server is auditing", async () => {
+            const server = test.server!;
+            const auditUrlMismatchEventTypeNodeIdStr = resolveNodeId("AuditUrlMismatchEventType").toString();
+            const mismatchEvents = () => events.filter((e) => e.EventType.value.toString() === auditUrlMismatchEventTypeNodeIdStr);
+            // an endpointUrl whose host is none of the server's: CreateSession raises the mismatch
+            const mismatchingUrl = test.endpointUrl!.replace(/\/\/[^:/]+/, "//127.0.0.1");
+            should(mismatchingUrl).not.eql(test.endpointUrl);
+
+            async function createSessionThroughMismatchingUrl() {
+                const client1 = OPCUAClient.create({ keepSessionAlive: false, endpointMustExist: false });
+                await client1.connect(mismatchingUrl);
+                try {
+                    const session = await client1.createSession();
+                    await session.close();
+                } catch {
+                    /* the outcome does not matter here, only the audit Event */
+                } finally {
+                    await client1.disconnect();
+                }
+            }
+
+            server.engine.isAuditing = false;
+            try {
+                await createSessionThroughMismatchingUrl();
+                await new Promise((r) => setTimeout(r, 500));
+                should(mismatchEvents().length).eql(0, "a server that is not auditing raises no AuditUrlMismatchEventType");
+            } finally {
+                server.engine.isAuditing = true;
+            }
+
+            // the same call while auditing does raise it, so the silence above is the guard
+            await createSessionThroughMismatchingUrl();
+            await waitUntil(() => mismatchEvents().length >= 1, 10_000);
+            should(mismatchEvents().length).eql(1);
+        });
+
         it("the password of a UserName token appears nowhere in the AuditActivateSessionEventType", async () => {
             const clearPassword = "password1";
             let sentPassword: Buffer | undefined;
