@@ -3,6 +3,7 @@ import {
     ActivateSessionRequest,
     AnonymousIdentityToken,
     AttributeIds,
+    BinaryStream,
     type ClientMonitoredItem,
     type ClientSession,
     type ClientSubscription,
@@ -10,6 +11,7 @@ import {
     CreateSessionRequest,
     constructEventFilter,
     DataType,
+    IssuedIdentityToken,
     OPCUAClient,
     resolveNodeId,
     TimestampsToReturn,
@@ -476,6 +478,103 @@ export function t(test: UmbrellaTestContext): void {
                 corrupted[1] ^= 0xff;
                 signature.signature = corrupted;
             });
+        });
+
+        // OPC 10000-5 6.4.10: "For Username/Password tokens the password shall not be included", and
+        // OPC 10000-2 4.14 warns that audit records may carry sensitive data. A bearer credential
+        // (the password as sent, an IssuedIdentityToken's tokenData) must appear nowhere in what an
+        // audit subscriber receives.
+        function expectSecretAbsentFromEvent(e: RecordedEvent, secrets: Buffer[]) {
+            for (const [fieldName, variant] of Object.entries(e)) {
+                const stream = new BinaryStream(variant.binaryStoreSize());
+                variant.encode(stream);
+                for (const secret of secrets) {
+                    should(stream.buffer.indexOf(secret)).eql(-1, `secret bytes found in the ${fieldName} field`);
+                }
+            }
+        }
+
+        /**
+         * Activates a session through `client1`, letting `substitute` inspect (and possibly replace)
+         * the identity token the client is about to send, and returns the audit events whose
+         * ClientAuditEntryId is that of the ActivateSession request.
+         */
+        async function activateAndCollectAudit(
+            userIdentity: InternalAny,
+            substitute: (data: InternalAny) => void
+        ): Promise<{ activateEvents: RecordedEvent[]; capturedError?: Error }> {
+            const client1 = OPCUAClient.create({ keepSessionAlive: false });
+            await client1.connect(test.endpointUrl!);
+            const internal = client1 as InternalAny;
+            const createUserIdentityToken = internal.createUserIdentityToken;
+            internal.createUserIdentityToken = function (
+                this: InternalAny,
+                context: InternalAny,
+                userIdentityInfo: InternalAny,
+                callback: InternalAny
+            ) {
+                createUserIdentityToken.call(this, context, userIdentityInfo, (err: Error | null, data: InternalAny) => {
+                    if (data) substitute(data);
+                    callback(err, data);
+                });
+            };
+            const auditEntryIdOfActivateSession = `activate-secret-${Date.now()}`;
+            const restore = injectAuditEntryId(client1, (request) =>
+                request instanceof ActivateSessionRequest ? auditEntryIdOfActivateSession : undefined
+            );
+            let capturedError: Error | undefined;
+            try {
+                const session = await client1.createSession(userIdentity);
+                await session.close();
+            } catch (err) {
+                capturedError = err as Error;
+            } finally {
+                restore();
+                await client1.disconnect();
+            }
+            const activateEventsOf = () => events.filter((e) => e.ClientAuditEntryId.value === auditEntryIdOfActivateSession);
+            await waitUntil(() => activateEventsOf().length >= 1, 10_000);
+            return { activateEvents: activateEventsOf(), capturedError };
+        }
+
+        it("the password of a UserName token appears nowhere in the AuditActivateSessionEventType", async () => {
+            const clearPassword = "password1";
+            let sentPassword: Buffer | undefined;
+            const { activateEvents, capturedError } = await activateAndCollectAudit(
+                { type: UserTokenType.UserName, userName: "user1", password: clearPassword },
+                (data) => {
+                    sentPassword = Buffer.from(data.userIdentityToken.password);
+                }
+            );
+            should(capturedError).eql(undefined);
+            should(sentPassword).not.eql(undefined);
+            should(activateEvents.length).eql(1);
+            const e = activateEvents[0];
+            should(e.EventType.value.toString()).eql(auditActivateSessionEventTypeNodeIdStr);
+            should(e.Status.value).eql(true);
+            should(e.UserIdentityToken.value).be.instanceOf(UserNameIdentityToken);
+            expectSecretAbsentFromEvent(e, [Buffer.from(clearPassword, "utf-8"), sentPassword as Buffer]);
+        });
+
+        it("the tokenData of an Issued token appears nowhere in the AuditActivateSessionEventType", async () => {
+            // node-opcua's client cannot send an IssuedIdentityToken and the umbrella server offers
+            // no Issued token policy, so the token is substituted on the wire and rejected by the
+            // server: the audit event of that failed ActivateSession still carries the token.
+            const tokenData = Buffer.from("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhdWRpdC10ZXN0In0.c2VjcmV0LWJlYXJlci10b2tlbg", "ascii");
+            const { activateEvents, capturedError } = await activateAndCollectAudit(
+                { type: UserTokenType.UserName, userName: "user1", password: "password1" },
+                (data) => {
+                    data.userIdentityToken = new IssuedIdentityToken({ policyId: "issued-token-policy", tokenData });
+                    data.userTokenSignature = {};
+                }
+            );
+            should(capturedError).not.eql(undefined);
+            should(activateEvents.length).eql(1);
+            const e = activateEvents[0];
+            should(e.EventType.value.toString()).eql(auditActivateSessionEventTypeNodeIdStr);
+            should(e.Status.value).eql(false);
+            should(e.UserIdentityToken.value).be.instanceOf(IssuedIdentityToken);
+            expectSecretAbsentFromEvent(e, [tokenData]);
         });
 
         it("FEAT-65: an audit subscription that asked for queueSize 1 still receives every Event of a publishing cycle", async () => {
