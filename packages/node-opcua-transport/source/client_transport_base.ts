@@ -208,6 +208,9 @@ export abstract class ClientTransportBase extends TCP_transport {
         /* c8 ignore next */
         if (messageHeader.isFinal !== "F") {
             err = new Error(" invalid ACK message");
+            // a failed handshake must not leave a half-open socket alive if the
+            // peer keeps it open; tear it down as on the other failure paths.
+            this._destroySocket();
             callback(err);
             return;
         }
@@ -235,6 +238,9 @@ export abstract class ClientTransportBase extends TCP_transport {
             // c8 ignore next
             doTraceHelloAck && warningLog("receiving ERR instead of Ack", response.toString());
 
+            // a well-formed ERR reply still ends the handshake in failure: release
+            // the socket here too, matching the malformed/no-data paths above.
+            this._destroySocket();
             callback(err);
         } else {
             responseClass = AcknowledgeMessage;

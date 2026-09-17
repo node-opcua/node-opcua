@@ -607,4 +607,62 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
             }
         });
     });
+
+    it("TCS-11 should release the socket on a well-formed ERR reply when the server holds the connection open", (done) => {
+        const spyOnServerWrite = sinon.spy((socket: net.Socket, _data: Buffer) => {
+            // A well-formed ERR whose StatusCode does not appear on the client's
+            // backoff abort list. The server deliberately keeps the connection open,
+            // so the client is responsible for tearing the socket down - as it
+            // already does on the malformed and no-data failure paths.
+            const errorResponse = makeError(StatusCodes.BadTcpServerTooBusy);
+            socket.write(packTcpMessage("ERR", errorResponse));
+        });
+        fakeServer.pushResponse(spyOnServerWrite);
+
+        clientTransport.timeout = 1000;
+
+        clientTransport.connect(endpointUrl, (err) => {
+            if (err) {
+                err.message.should.match(/BadTcpServerTooBusy/);
+                spyOnConnect.callCount.should.eql(0);
+                // the failed handshake must not leave a half-open socket behind
+                should.not.exist((clientTransport as unknown as { _socket: net.Socket | null })._socket);
+                done();
+            } else {
+                done(new Error("transport.connect should have raised a connection error"));
+            }
+        });
+    });
+
+    it("TCS-12 should not throw when connect() is retried on the same transport after a well-formed ERR", (done) => {
+        const spyOnServerWrite = sinon.spy((socket: net.Socket, _data: Buffer) => {
+            const errorResponse = makeError(StatusCodes.BadTcpServerTooBusy);
+            socket.write(packTcpMessage("ERR", errorResponse));
+        });
+        fakeServer.pushResponse(spyOnServerWrite);
+
+        clientTransport.timeout = 1000;
+
+        clientTransport.connect(endpointUrl, (err1) => {
+            should.exist(err1);
+            should.not.exist((clientTransport as unknown as { _socket: net.Socket | null })._socket);
+
+            // Re-enter connect() on the SAME transport object, exactly as the backoff
+            // retry does. Before the fix a leaked socket was still installed and
+            // _install_socket asserted "already have a socket", throwing synchronously
+            // out of the reconnection timer and crashing the process. The retry here
+            // targets a refused port so it fails cleanly through the callback instead.
+            let synchronousThrow: Error | null = null;
+            try {
+                clientTransport.connect("opc.tcp://localhost:1", (err2) => {
+                    should.exist(err2);
+                    should(synchronousThrow).eql(null);
+                    done();
+                });
+            } catch (e) {
+                synchronousThrow = e as Error;
+                done(new Error(`connect() retry threw synchronously: ${synchronousThrow.message}`));
+            }
+        });
+    });
 });
