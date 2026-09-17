@@ -60,7 +60,7 @@ import {
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, dump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName, isIPAddress } from "node-opcua-hostname";
-import type { NodeId } from "node-opcua-nodeid";
+import { NodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import {
     asymmetricDecryptWithKeyOps,
@@ -2751,7 +2751,16 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
 
         const session = this.getSession(authenticationToken);
 
+        // OPC 10000-4 6.5.6: the Session Service Set "shall generate audit Events for both successful
+        // and failed Service invocations"; OPC 10000-5 6.4.10: ActivateSession raises an
+        // AuditActivateSessionEventType. Every refusal below goes through here, so each failed
+        // request raises exactly one, with Status false.
         function rejectConnection(server: OPCUAServer, statusCode: StatusCode): void {
+            raiseAuditActivateSessionEventType.call(server, session, request.requestHeader.auditEntryId ?? "", {
+                statusCode,
+                userIdentityToken: request.userIdentityToken as UserIdentityToken | null,
+                channel
+            });
             if (statusCode.equals(StatusCodes.BadSessionIdInvalid)) {
                 server.engine.incrementRejectedSessionCount();
             } else {
@@ -2863,14 +2872,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 if (!statusCode || statusCode.isNotGood()) {
                     const rejectionStatusCode =
                         statusCode && statusCode instanceof StatusCode ? statusCode : StatusCodes.BadCertificateInvalid;
-                    // OPC 10000-4 6.5.6: a failed ActivateSession shall generate an
-                    // AuditActivateSessionEventType (Status false), e.g. for an X509 user token
-                    // whose signature is missing or invalid (Bad_UserSignatureInvalid).
-                    raiseAuditActivateSessionEventType.call(this, session, request.requestHeader.auditEntryId ?? "", {
-                        statusCode: rejectionStatusCode,
-                        userIdentityToken: request.userIdentityToken as UserIdentityToken,
-                        channel
-                    });
+                    // e.g. an X509 user token whose signature is missing or invalid (Bad_UserSignatureInvalid)
                     return rejectConnection(this, rejectionStatusCode);
                 }
 
@@ -4415,19 +4417,25 @@ const userIdentityTokenPasswordRemoved = (userIdentityToken?: UserIdentityToken)
  */
 interface ActivateSessionAuditFailure {
     statusCode: StatusCode;
-    userIdentityToken: UserIdentityToken;
+    /** the token of the request, null when the request carried none */
+    userIdentityToken: UserIdentityToken | null;
     channel: ServerSecureChannelLayer;
 }
 
+/**
+ * Raises the AuditActivateSessionEventType of one ActivateSession call (OPC 10000-5 6.4.10), for
+ * its success or, with `failure`, for its rejection. `session` is null when the request named no
+ * known Session: OPC 10000-5 6.4.7 "If no session context exists [...] the SessionId shall be null."
+ */
 function raiseAuditActivateSessionEventType(
     this: OPCUAServer,
-    session: ServerSession,
+    session: ServerSession | null | undefined,
     auditEntryId: string,
     failure?: ActivateSessionAuditFailure
 ) {
     if (this.isAuditing) {
-        const userIdentityToken = failure ? failure.userIdentityToken : session.userIdentityToken;
-        const channelId = failure ? failure.channel.channelId : session.channel?.channelId;
+        const userIdentityToken = failure ? failure.userIdentityToken : session?.userIdentityToken;
+        const channelId = failure ? failure.channel.channelId : session?.channel?.channelId;
         this.raiseEvent("AuditActivateSessionEventType", {
             /* part 5 -  6.4.3 AuditEventType */
             actionTimeStamp: { dataType: "DateTime", value: new Date() },
@@ -4458,7 +4466,7 @@ function raiseAuditActivateSessionEventType(
             sourceName: { dataType: "String", value: "Session/ActivateSession" },
 
             /* part 5 - 6.4.7 AuditSessionEventType */
-            sessionId: { dataType: "NodeId", value: session.nodeId },
+            sessionId: { dataType: "NodeId", value: session ? session.nodeId : new NodeId() },
 
             /* part 5 - 6.4.10 AuditActivateSessionEventType */
             clientSoftwareCertificates: {
@@ -4471,7 +4479,7 @@ function raiseAuditActivateSessionEventType(
             // For Username/Password tokens the password should NOT be included.
             userIdentityToken: {
                 dataType: "ExtensionObject" /*  UserIdentityToken */,
-                value: userIdentityTokenPasswordRemoved(userIdentityToken)
+                value: userIdentityTokenPasswordRemoved(userIdentityToken ?? undefined)
             },
 
             // SecureChannelId shall uniquely identify the SecureChannel. The application shall
