@@ -1,3 +1,4 @@
+import path from "node:path";
 import {
     ActivateSessionRequest,
     AnonymousIdentityToken,
@@ -15,10 +16,13 @@ import {
     UserNameIdentityToken,
     UserTokenType,
     VariableIds,
-    type Variant
+    type Variant,
+    X509IdentityToken
 } from "node-opcua";
+import { exploreCertificate, keyOperationsFromPrivateKey, readCertificateChain, readPrivateKey } from "node-opcua-crypto";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should"; // also extends Object with should
+import { certificateFolder } from "../../test_helpers/paths.js";
 import type { UmbrellaTestContext } from "./_helper_umbrella.js";
 
 // performMessageTransaction is public on the client implementation but not exposed on the
@@ -90,7 +94,8 @@ export function t(test: UmbrellaTestContext): void {
             "UserIdentityToken",
             // part 5 6.4.3 AuditEventType Properties, inherited by every Event raised below (FEAT-64)
             "ClientAuditEntryId",
-            "ClientUserId"
+            "ClientUserId",
+            "Status"
         ];
 
         function resetEventLog() {
@@ -378,6 +383,99 @@ export function t(test: UmbrellaTestContext): void {
                 sessionIdStr
             });
             events[2].ClientAuditEntryId.value.should.eql(auditEntryIdOfCloseSession);
+        });
+
+        // OPC 10000-4 6.5.6: the Session Service Set "shall generate audit Events for both successful
+        // and failed Service invocations [...] The ActivateSession service shall generate
+        // AuditActivateSessionEventType events or subtypes of it." A rejected X509 user token
+        // signature is an ActivateSession failure: it used to raise an AuditCreateSessionEventType
+        // (missing signature) or nothing at all (wrong signature).
+        async function activateWithTamperedX509Signature(tamper: (signature: { signature: Buffer | null }) => void) {
+            const certificate = readCertificateChain(path.join(certificateFolder, "client_cert_2048.pem"))[0];
+            const keyOperations = keyOperationsFromPrivateKey(readPrivateKey(path.join(certificateFolder, "client_key_2048.pem")));
+            const expectedClientUserId = exploreCertificate(certificate).tbsCertificate.subject.commonName;
+
+            const client1 = OPCUAClient.create({ keepSessionAlive: false });
+            await client1.connect(test.endpointUrl!);
+            const internal = client1 as InternalAny;
+            const createUserIdentityToken = internal.createUserIdentityToken;
+            let tampered = false;
+            internal.createUserIdentityToken = function (
+                this: InternalAny,
+                context: InternalAny,
+                userIdentityInfo: InternalAny,
+                callback: InternalAny
+            ) {
+                createUserIdentityToken.call(this, context, userIdentityInfo, (err: Error | null, data: InternalAny) => {
+                    if (data?.userTokenSignature) {
+                        tamper(data.userTokenSignature);
+                        tampered = true;
+                    }
+                    callback(err, data);
+                });
+            };
+            const auditEntryIdOfActivateSession = `activate-x509-${Date.now()}`;
+            const restore = injectAuditEntryId(client1, (request) =>
+                request instanceof ActivateSessionRequest ? auditEntryIdOfActivateSession : undefined
+            );
+            let capturedError: Error | undefined;
+            try {
+                const session = await client1.createSession({
+                    type: UserTokenType.Certificate,
+                    certificateData: certificate,
+                    keyOperations
+                });
+                await session.close();
+            } catch (err) {
+                capturedError = err as Error;
+            } finally {
+                restore();
+                await client1.disconnect();
+            }
+            should(tampered).eql(true);
+            should(capturedError?.message).match(/BadUserSignatureInvalid/);
+
+            const activateEventsOf = () => events.filter((e) => e.ClientAuditEntryId.value === auditEntryIdOfActivateSession);
+            await waitUntil(() => activateEventsOf().length >= 1, 10_000);
+            // let a stray second event arrive before counting
+            await new Promise((r) => setTimeout(r, 300));
+
+            // no AuditCreateSessionEventType for an ActivateSession failure
+            const createSessionEvents = events.filter((e) => e.EventType.value.toString() === auditCreateSessionEventTypeNodeIdStr);
+            should(createSessionEvents.length).eql(
+                1,
+                "only the successful CreateSession call raises an AuditCreateSessionEventType"
+            );
+            should(createSessionEvents[0].SourceName.value).eql("Session/CreateSession");
+
+            const activateEvents = activateEventsOf();
+            should(activateEvents.length).eql(1);
+            const e = activateEvents[0];
+            should(e.EventType.value.toString()).eql(auditActivateSessionEventTypeNodeIdStr);
+            should(e.SourceName.value).eql("Session/ActivateSession");
+            should(e.Status.value).eql(false);
+            should(e.Severity.value).be.aboveOrEqual(667);
+            should(e.Severity.value).be.belowOrEqual(1000);
+            should(e.ClientUserId.value).eql(expectedClientUserId);
+            should(e.ClientUserId.value).not.eql("System/CreateSession");
+            should(e.SessionId.value.toString()).eql(createSessionEvents[0].SessionId.value.toString());
+            should(e.UserIdentityToken.value).be.instanceOf(X509IdentityToken);
+            should(e.Message.value.text).match(/BadUserSignatureInvalid/);
+        }
+
+        it("an X509 user token with no signature raises an AuditActivateSessionEventType with Status false", async () => {
+            await activateWithTamperedX509Signature((signature) => {
+                signature.signature = null;
+            });
+        });
+
+        it("an X509 user token with an invalid signature raises an AuditActivateSessionEventType with Status false", async () => {
+            await activateWithTamperedX509Signature((signature) => {
+                const corrupted = Buffer.from(signature.signature as Buffer);
+                corrupted[0] ^= 0xff;
+                corrupted[1] ^= 0xff;
+                signature.signature = corrupted;
+            });
         });
 
         it("FEAT-65: an audit subscription that asked for queueSize 1 still receives every Event of a publishing cycle", async () => {
