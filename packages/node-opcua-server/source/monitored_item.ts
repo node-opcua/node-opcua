@@ -67,6 +67,7 @@ import {
     type SubscriptionDiagnosticsDataType
 } from "node-opcua-types";
 import { DataType, sameVariant, Variant } from "node-opcua-variant";
+import { canReceiveEvent } from "./audit_event_permissions.js";
 import { checkWhereClauseOnAdressSpace as checkWhereClauseOnAddressSpace } from "./filter/check_where_clause_on_address_space.js";
 import { appendToTimer, removeFromTimer } from "./node_sampler.js";
 import type { SamplingFunc } from "./sampling_func.js";
@@ -1328,6 +1329,15 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
          * recognise it in and nothing here exempts it.
          */
         const isRefreshBracketForMe = scope !== null && _is_refresh_bracket_event(eventData);
+
+        // OPC 10000-3 PermissionType ReceiveEvents (bit 11): the Session receives the Event only if
+        // it holds the permission on the EventType and on the SourceNode - how Audit Events are
+        // kept for the Roles OPCUAServerOptions.auditEventRoles names. The bracket of the Client's
+        // own refresh is exempt, as it is from the content filter (OPC 10000-9 4.5).
+        const sessionContext = this.getSessionContext();
+        if (!isRefreshBracketForMe && sessionContext && !canReceiveEvent(sessionContext, addressSpace, eventData)) {
+            return;
+        }
 
         if (
             !isRefreshBracketForMe &&

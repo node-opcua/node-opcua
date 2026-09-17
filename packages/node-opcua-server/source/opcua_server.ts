@@ -30,6 +30,7 @@ import {
     type PseudoVariantString,
     type PseudoVariantStringPredefined,
     type RaiseEventData,
+    type RoleIdLike,
     SessionContext,
     type UAEventType,
     type UAObject,
@@ -1073,6 +1074,28 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      * @default true
      */
     isAuditing?: boolean;
+
+    /**
+     * the Roles whose Sessions receive Audit Events.
+     *
+     * OPC 10000-2 4.14: "the ability to subscribe for Audit Events is restricted to appropriate users
+     * and/or applications". An event MonitoredItem delivers an Event only to a Session that holds
+     * ReceiveEvents on its EventType and on its SourceNode (OPC 10000-3 PermissionType bit 11), and
+     * at start-up the server rewrites that one bit on AuditEventType and all its subtypes so that
+     * these Roles, and only these, hold it. Every other permission the nodesets declare is kept: the
+     * types stay browsable and readable by every Session. Opc.Ua.NodeSet2.xml already grants
+     * ReceiveEvents on the standard audit types to SecurityAdmin alone, which is the default here.
+     *
+     * - `[WellKnownRoles.Anonymous]` hands Audit Events to every Session, the behaviour of
+     *   node-opcua before ReceiveEvents was enforced.
+     * - `null` leaves the RolePermissions exactly as the loaded nodesets declare them.
+     *
+     * A subtype created after start-up (Namespace.addEventType) is not covered and needs
+     * RolePermissions of its own.
+     *
+     * @default [WellKnownRoles.SecurityAdmin]
+     */
+    auditEventRoles?: RoleIdLike[] | null;
 
     /**
      * OPC UA Part 4 §5.13.7 (TransferSubscriptions) rules that a Subscription created by an anonymous
