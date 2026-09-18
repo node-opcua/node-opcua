@@ -113,7 +113,7 @@ export function t(test: UmbrellaTestContext): void {
             "ClientAuditEntryId",
             "ClientUserId",
             "Status",
-            // part 5 6.4.8 AuditCreateSessionEventType Properties (FEAT-67); absent on every other
+            // OPC 10000-5 v1.05.06 §6.4.8 AuditCreateSessionEventType Properties (FEAT-67); absent on every other
             // Event type monitored here, which simply reports them as null
             "ClientCertificate",
             "ClientCertificateThumbprint"
@@ -149,7 +149,7 @@ export function t(test: UmbrellaTestContext): void {
             e.EventType.value.toString().should.eql(eventTypeNodeIdStr);
         }
 
-        // OPC 10000-5 6.4.2 BaseEventType/Severity: "Values will range from 1 to 1 000 [...]".
+        // OPC 10000-5 v1.05.06 §6.4.2 BaseEventType/Severity: "Values will range from 1 to 1 000 [...]".
         // The CTT's own check (Auditing Connections 007/011/012/020) is InRange(1, 1000) inclusive,
         // and specifically flags 0 - node-opcua's previous defect (FEAT-66).
         function expectValidSeverity(e: RecordedEvent) {
@@ -171,7 +171,7 @@ export function t(test: UmbrellaTestContext): void {
             const endpointUrl = test.endpointUrl!;
             auditingClient = OPCUAClient.create({ keepSessionAlive: true });
             await auditingClient.connect(endpointUrl);
-            // OPC 10000-2 4.14: Audit Events only reach the Roles allowed to receive them, SecurityAdmin
+            // OPC 10000-2 v1.05.06 §4.14: Audit Events only reach the Roles allowed to receive them, SecurityAdmin
             // by default - user1 holds it on the umbrella server
             auditingSession = await auditingClient.createSession(securityAdminIdentity);
             auditingSubscription = await auditingSession.createSubscription2({
@@ -300,7 +300,7 @@ export function t(test: UmbrellaTestContext): void {
             // the ClientUserId shall be null" - "" here, and not the old "cc" placeholder.
             events[1].ClientUserId.value.should.eql("");
 
-            // FEAT-66: OPC 10000-5 6.4.8 AuditCreateSessionEventType - "The ClientUserId is not
+            // FEAT-66: OPC 10000-5 v1.05.06 §6.4.8 AuditCreateSessionEventType - "The ClientUserId is not
             // available for this call thus this parameter shall be set to the 'System/CreateSession'".
             should(events[0].ClientUserId.value).eql("System/CreateSession");
         });
@@ -346,7 +346,7 @@ export function t(test: UmbrellaTestContext): void {
             events[1].ClientUserId.value.should.eql("user1");
             events[1].ClientUserId.value.should.not.eql("cc");
 
-            // OPC 10000-5 6.4.3: the ClientUserId of the session close is the user of the Session too,
+            // OPC 10000-5 v1.05.06 §6.4.3: the ClientUserId of the session close is the user of the Session too,
             // not the empty string it used to be
             should(events[2].ClientUserId.value).eql("user1");
 
@@ -355,7 +355,7 @@ export function t(test: UmbrellaTestContext): void {
                 expectValidSeverity(e);
             }
 
-            // FEAT-66: OPC 10000-5 6.4.8 AuditCreateSessionEventType - "The ClientUserId is not
+            // FEAT-66: OPC 10000-5 v1.05.06 §6.4.8 AuditCreateSessionEventType - "The ClientUserId is not
             // available for this call thus this parameter shall be set to the 'System/CreateSession'".
             should(events[0].ClientUserId.value).eql("System/CreateSession");
         });
@@ -412,7 +412,7 @@ export function t(test: UmbrellaTestContext): void {
             events[2].ClientAuditEntryId.value.should.eql(auditEntryIdOfCloseSession);
         });
 
-        // OPC 10000-4 6.5.6: the Session Service Set "shall generate audit Events for both successful
+        // OPC 10000-4 v1.05.07 §6.5.6: the Session Service Set "shall generate audit Events for both successful
         // and failed Service invocations [...] The ActivateSession service shall generate
         // AuditActivateSessionEventType events or subtypes of it." A rejected X509 user token
         // signature is an ActivateSession failure: it used to raise an AuditCreateSessionEventType
@@ -505,8 +505,8 @@ export function t(test: UmbrellaTestContext): void {
             });
         });
 
-        // OPC 10000-5 6.4.10: "For Username/Password tokens the password shall not be included", and
-        // OPC 10000-2 4.14 warns that audit records may carry sensitive data. A bearer credential
+        // OPC 10000-5 v1.05.06 §6.4.10: "For Username/Password tokens the password shall not be included", and
+        // OPC 10000-2 v1.05.06 §4.14 warns that audit records may carry sensitive data. A bearer credential
         // (the password as sent, an IssuedIdentityToken's tokenData) must appear nowhere in what an
         // audit subscriber receives.
         function expectSecretAbsentFromEvent(e: RecordedEvent, secrets: Buffer[]) {
@@ -568,8 +568,8 @@ export function t(test: UmbrellaTestContext): void {
         }
 
         /**
-         * OPC 10000-4 6.5.6: a failed ActivateSession shall generate an audit Event; OPC 10000-5
-         * 6.4.10: an AuditActivateSessionEventType, SourceName "Session/ActivateSession". The CTT
+         * OPC 10000-4 v1.05.07 §6.5.6: a failed ActivateSession shall generate an audit Event; OPC 10000-5 v1.05.06
+         * §6.4.10: an AuditActivateSessionEventType, SourceName "Session/ActivateSession". The CTT
          * (Auditing Connections 014) looks it up by ClientAuditEntryId and wants exactly one.
          */
         function expectOneRejectedActivateSession(
@@ -649,13 +649,13 @@ export function t(test: UmbrellaTestContext): void {
             );
             should(capturedError?.message).match(/BadSessionIdInvalid/);
             const e = expectOneRejectedActivateSession(activateEvents, "BadSessionIdInvalid", "");
-            // OPC 10000-5 6.4.7: "If no session context exists [...] the SessionId shall be null."
+            // OPC 10000-5 v1.05.06 §6.4.7: "If no session context exists [...] the SessionId shall be null."
             should(e.SessionId.value.isEmpty()).eql(true);
         });
 
-        // OPC 10000-4 6.5.6: "The CreateSession service shall generate AuditCreateSessionEventType
-        // events" for failed invocations too; OPC 10000-5 6.4.8 and 6.4.7 give its fields.
-        // OPC 10000-4 6.5.6: "'Session/Timeout' for a Session timeout, 'Session/CloseSession' for a
+        // OPC 10000-4 v1.05.07 §6.5.6: "The CreateSession service shall generate AuditCreateSessionEventType
+        // events" for failed invocations too; OPC 10000-5 v1.05.06 §6.4.8 and 6.4.7 give its fields.
+        // OPC 10000-4 v1.05.07 §6.5.6: "'Session/Timeout' for a Session timeout, 'Session/CloseSession' for a
         // CloseSession Service call and 'Session/Terminated' for all other cases."
         it("a Session the server forces closed raises an AuditSessionEventType with SourceName Session/Terminated", async () => {
             const server = test.server!;
@@ -715,7 +715,7 @@ export function t(test: UmbrellaTestContext): void {
             should(e.Severity.value).be.belowOrEqual(1000);
             should(e.Message.value.text).match(/BadNonceInvalid/);
             should(e.ClientUserId.value).eql("System/CreateSession");
-            // OPC 10000-5 6.4.7: "If no session context exists (e.g. for a failed CreateSession
+            // OPC 10000-5 v1.05.06 §6.4.7: "If no session context exists (e.g. for a failed CreateSession
             // Service call) the SessionId shall be null."
             should(e.SessionId.value.isEmpty()).eql(true);
             // nothing reached the ActivateSession stage
@@ -735,7 +735,7 @@ export function t(test: UmbrellaTestContext): void {
             should(e.ClientCertificateThumbprint.value).eql(makeSHA1Thumbprint(expectedCertificate as Buffer).toString("hex"));
         });
 
-        // FEAT-67: OPC 10000-5 6.4.8 AuditCreateSessionEventType - ClientCertificate "is the
+        // FEAT-67: OPC 10000-5 v1.05.06 §6.4.8 AuditCreateSessionEventType - ClientCertificate "is the
         // clientCertificate parameter of the CreateSession Service call" and ClientCertificateThumbprint
         // is its thumbprint (OPC 10000-6: SHA-1 of the DER-encoded certificate). A regression on
         // node-opcua reported this as always empty on a signed channel (CTT Auditing Connections 007).
@@ -843,7 +843,7 @@ export function t(test: UmbrellaTestContext): void {
                 if (!(request instanceof CreateSessionRequest)) return undefined;
                 // node-opcua's client always attaches its own certificate to the CreateSessionRequest,
                 // even over None; strip it here to exercise the "no certificate was presented" case
-                // that OPC 10000-5 6.4.8 leaves as null.
+                // that OPC 10000-5 v1.05.06 §6.4.8 leaves as null.
                 (request as InternalAny).clientCertificate = null;
                 return auditEntryIdOfCreateSession;
             });
@@ -944,7 +944,7 @@ export function t(test: UmbrellaTestContext): void {
         });
 
         it("FEAT-65: an audit subscription that asked for queueSize 1 still receives every Event of a publishing cycle", async () => {
-            // OPC 10000-4 7.21 MonitoringParameters: on an event monitored item queueSize 1 asks the
+            // OPC 10000-4 v1.05.07 §7.21 MonitoringParameters: on an event monitored item queueSize 1 asks the
             // Server for the minimum Event queue size it requires, it does not ask for a one-Event
             // buffer. The CTT's "Auditing Connections" unit subscribes exactly like this (publishing
             // interval 500ms, queueSize 1, maxNotificationsPerPublish 0) and node-opcua answered 1,
@@ -1003,7 +1003,7 @@ export function t(test: UmbrellaTestContext): void {
             }
         });
 
-        // OPC 10000-2 4.14: "the ability to subscribe for Audit Events is restricted to appropriate
+        // OPC 10000-2 v1.05.06 §4.14: "the ability to subscribe for Audit Events is restricted to appropriate
         // users and/or applications"; OPC 10000-3 PermissionType ReceiveEvents (bit 11) is how: a
         // Client only receives an Event if it holds that bit on the EventType and on the SourceNode.
         it("only a SecurityAdmin Session receives Audit Events, while every Session receives the other Events", async () => {

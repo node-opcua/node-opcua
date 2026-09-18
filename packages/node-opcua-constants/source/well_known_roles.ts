@@ -5,7 +5,7 @@
  * All Servers should support the well-known Roles defined in Table 2.
  * The NodeIds for the well-known Roles are defined in Part 6.
  *
- * @see OPC 10000-3 §4.8.2
+ * @see OPC 10000-3 v1.05.06 §4.9.2
  */
 /** biome-ignore-all lint/style/useLiteralEnumMembers: uses ObjectIds constants */
 import { ObjectIds } from "./opcua_node_ids.js";

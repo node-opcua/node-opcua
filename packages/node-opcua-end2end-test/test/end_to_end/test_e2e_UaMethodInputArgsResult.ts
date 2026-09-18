@@ -76,7 +76,7 @@ describe("list status codes for input arguments", () => {
             methodId: "ns=1;s=RingDoor",
             inputArguments: [{ dataType: DataType.UInt32, value: 1 }]
         });
-        // Part 4 5.11.2: the operation reports BadInvalidArgument, inputArgumentResults says why
+        // OPC 10000-4 v1.05.07 §5.12.2: the operation reports BadInvalidArgument, inputArgumentResults says why
         result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
         should(result.inputArgumentResults?.[0]).eql(StatusCodes.BadTypeMismatch);
     });

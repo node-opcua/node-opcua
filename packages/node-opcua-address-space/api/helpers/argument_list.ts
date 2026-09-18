@@ -293,7 +293,7 @@ export function verifyArguments_ArgumentList(
         return { inputArgumentResults, statusCode: StatusCodes.BadTooManyArguments };
     }
 
-    // Part 4 5.11.2 (Call): when one of the input arguments is not valid the
+    // OPC 10000-4 v1.05.07 §5.12.2 (Call): when one of the input arguments is not valid the
     // operation statusCode is BadInvalidArgument and inputArgumentResults[i]
     // carries the per-argument reason (BadTypeMismatch for a wrong DataType or
     // ValueRank, BadOutOfRange for a value outside the range). A per-argument

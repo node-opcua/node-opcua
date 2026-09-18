@@ -175,7 +175,7 @@ describe("MessageChunker single-pass encoding", () => {
     });
 
     it("FEAT-68 should weigh the body against maxMessageSize, not the whole chunks", () => {
-        // OPC 10000-6 7.1.2.3: "The Message size is calculated using the unencrypted
+        // OPC 10000-6 v1.05.07 §7.1.2.3: "The Message size is calculated using the unencrypted
         // Message body". One value is a body of a few dozen bytes, in an 8192-byte chunk.
         const { statusCode, bytes } = chunkAll(freshChunker(256), makeReadResponse(1));
 

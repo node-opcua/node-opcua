@@ -490,7 +490,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     /**
      * The largest response body this channel can send, or 0 for no limit: the client's
      * MaxMessageSize, and its MaxChunkCount times the body one chunk carries under the
-     * channel's security (OPC 10000-6 7.1.2.3). A response sized to MaxMessageSize alone
+     * channel's security (OPC 10000-6 v1.05.07 §7.1.2.3). A response sized to MaxMessageSize alone
      * can still need one chunk more than the client accepts, and is then refused.
      */
     public getMaxResponseBodySize(): number {

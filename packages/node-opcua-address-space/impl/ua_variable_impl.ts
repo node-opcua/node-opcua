@@ -2002,7 +2002,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         this.semantic_version = this.semantic_version + 1;
         (this as UAVariable).emit("semantic_changed");
         // the bit tells whoever monitors this DataItem; the event tells whoever monitors the
-        // Server object (OPC 10000-5 6.4.31). Both have to come from this one place.
+        // Server object (OPC 10000-5 v1.05.06 §6.4.33). Both have to come from this one place.
         raiseSemanticChangeEvent(this as UAVariable);
     }
 

@@ -122,7 +122,7 @@ describe("verifyArguments_ArgumentList", () => {
         });
     });
     it("verifyArguments_ArgumentList - One UInt32 - TypeMismatch", () => {
-        // Part 4 5.11.2: the operation code is BadInvalidArgument, the per-argument
+        // OPC 10000-4 v1.05.07 §5.12.2: the operation code is BadInvalidArgument, the per-argument
         // code says why (CTT Method Call Err-004)
         const argsBad = [new Variant({ dataType: DataType.String, value: "Bad" })];
         const result = verifyArguments_ArgumentList(addressSpace, methodInputArgumentsOneUInt32, argsBad);

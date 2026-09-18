@@ -128,7 +128,7 @@ export function t(test: UmbrellaTestContext) {
 
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 const results = await session.call(methodsToCall);
-                // Part 4 5.11.2 (CTT Method Call Err-004): BadInvalidArgument at the operation level,
+                // OPC 10000-4 v1.05.07 §5.12.2 (CTT Method Call Err-004): BadInvalidArgument at the operation level,
                 // BadTypeMismatch on the argument
                 results[0].statusCode.should.eql(StatusCodes.BadInvalidArgument);
                 should(results[0].inputArgumentResults?.length).eql(1);
@@ -149,7 +149,7 @@ export function t(test: UmbrellaTestContext) {
 
             await perform_operation_on_client_session(client, endpointUrl, async (session) => {
                 const results = await session.call(methodsToCall);
-                // Part 4 5.11.2 (CTT Method Call Err-004): BadInvalidArgument at the operation level,
+                // OPC 10000-4 v1.05.07 §5.12.2 (CTT Method Call Err-004): BadInvalidArgument at the operation level,
                 // BadTypeMismatch on the argument
                 results[0].statusCode.should.eql(StatusCodes.BadInvalidArgument);
                 should(results[0].inputArgumentResults?.length).eql(1);

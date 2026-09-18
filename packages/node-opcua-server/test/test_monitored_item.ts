@@ -1150,7 +1150,7 @@ describe("MonitoredItem requested with samplingInterval 0 (CTT Monitor Basic 038
     });
 
     it("FEAT-65 an EventNotifier item reads queueSize 0 / 1 / MaxUInt32 as the server default / minimum / maximum", () => {
-        // OPC 10000-4 7.21 MonitoringParameters: on an event monitored item those three values are not
+        // OPC 10000-4 v1.05.07 §7.21 MonitoringParameters: on an event monitored item those three values are not
         // sizes, they ask the Server for its own Event buffer settings. Answering them the way a data
         // item is answered (0 or 1 => 1) leaves the item holding a single Event, so every Event but the
         // last of each publishing cycle is lost with nothing to show for it.

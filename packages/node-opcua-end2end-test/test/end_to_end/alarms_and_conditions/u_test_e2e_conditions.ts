@@ -64,8 +64,8 @@ export function t(umbrellaTest: UmbrellaTestContext) {
         let client: OPCUAClient;
 
         // these tests assert the AuditCondition*EventTypes a comment or an acknowledge raises, and
-        // Audit Events reach only the SecurityAdmin Role by default (OPC 10000-2 4.14, OPC 10000-3
-        // ReceiveEvents): user1 holds it on the umbrella server
+        // Audit Events reach only the SecurityAdmin Role by default (OPC 10000-2 v1.05.06 §4.14, OPC 10000-3 v1.05.06
+        // §8.55 PermissionType ReceiveEvents): user1 holds it on the umbrella server
         const securityAdminEndpoint = () => ({
             endpointUrl: test.endpointUrl!,
             userIdentity: { type: UserTokenType.UserName as const, userName: "user1", password: "password1" }

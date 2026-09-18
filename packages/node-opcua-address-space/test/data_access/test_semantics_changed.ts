@@ -168,7 +168,7 @@ describe("SemanticsChanged: the DataItem of a semantics-bearing Property", () =>
     });
 
     /**
-     * OPC 10000-5 6.4.31: the Server also reports a semantics change as a SemanticChangeEventType
+     * OPC 10000-5 v1.05.06 §6.4.33: the Server also reports a semantics change as a SemanticChangeEventType
      * on the Server object, naming the affected Node and its TypeDefinition. CTT Base Info
      * SemanticChange 001 subscribes to the Server's events and to the DataItem, writes EURange and
      * expects both the event and the stamped data change.

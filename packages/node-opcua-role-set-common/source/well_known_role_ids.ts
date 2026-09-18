@@ -2,7 +2,7 @@
  * @module node-opcua-role-set-common
  *
  * Pre-built NodeId objects for the OPC UA Well-Known Roles
- * (OPC 10000-3 §4.8.2).
+ * (OPC 10000-3 v1.05.06 §4.9.2).
  *
  * These save callers from repeatedly calling `resolveNodeId(WellKnownRoles.X)`.
  */

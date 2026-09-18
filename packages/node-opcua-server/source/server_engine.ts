@@ -948,7 +948,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     return obj;
                 };
 
-                // OPC 10000-2 4.14: Audit Events only reach the Roles allowed to see them
+                // OPC 10000-2 v1.05.06 §4.14: Audit Events only reach the Roles allowed to see them
                 // (OPCUAServerOptions.auditEventRoles; null leaves the types as declared)
                 if (options.auditEventRoles !== null) {
                     restrictAuditEventReception(addressSpace, options.auditEventRoles ?? defaultAuditEventRoles);
