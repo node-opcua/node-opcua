@@ -32,7 +32,7 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "@inquirer/prompts": "8.7.1",
+        "@inquirer/prompts": "8.7.2",
         "command-line-args": "6.0.2",
         "env-paths": "2.2.1",
         "node-opcua": "2.184.8",
