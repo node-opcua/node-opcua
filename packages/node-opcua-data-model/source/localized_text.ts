@@ -36,6 +36,49 @@ export function coerceLocalizedTextStrict(value?: null | string | LocalizedTextO
     return result;
 }
 
+/**
+ * Picks the entry of `texts` that best matches `preferredLocales`.
+ *
+ * OPC 10000-4 v1.05.07 §5.7.3 ActivateSession: "When a Server returns a string to the
+ * Client, it first determines if there are available translations for it. If there are,
+ * then the Server returns the string whose locale id exactly matches the locale id with
+ * the highest priority in the Client-supplied list. If there are no exact matches, then
+ * the Server ignores the <country/region> component of the locale id, and returns the
+ * string whose <language> component matches the <language> component of the locale id
+ * with the highest priority in the Client supplied list. If there still are no matches,
+ * then the Server returns the string that it has along with the locale id." See also
+ * §5.4 Locale Negotiation.
+ *
+ * Matching is case-insensitive. `preferredLocales` in priority order (most preferred
+ * first); a `null`/empty entry is skipped. Returns the first element of `texts` when
+ * nothing matches or `preferredLocales` is null/empty, and `undefined` when `texts`
+ * itself is null/empty.
+ */
+export function selectLocalizedText(
+    texts: readonly LocalizedText[] | null | undefined,
+    preferredLocales: readonly (string | null | undefined)[] | null | undefined
+): LocalizedText | undefined {
+    if (!texts || texts.length === 0) {
+        return undefined;
+    }
+    const language = (locale: string) => locale.split("-")[0];
+    for (const wanted of preferredLocales ?? []) {
+        if (!wanted) {
+            continue;
+        }
+        const w = wanted.toLowerCase();
+        const exact = texts.find((t) => (t.locale ?? "").toLowerCase() === w);
+        if (exact) {
+            return exact;
+        }
+        const sameLanguage = texts.find((t) => t.locale && language(t.locale.toLowerCase()) === language(w));
+        if (sameLanguage) {
+            return sameLanguage;
+        }
+    }
+    return texts[0];
+}
+
 // --------------------------------------------------------------------------------------------
 // see Part 3 - $8.5 page 63
 const schemaLocalizedText = buildStructuredType({

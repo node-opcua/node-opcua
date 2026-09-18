@@ -483,6 +483,15 @@ export class SessionContext implements ISessionContext {
         return this.session?.getEndpointUrl?.() ?? null;
     }
 
+    /**
+     * The Session's preferred locales, most preferred first (OPC 10000-4 v1.05.07 §5.7.3
+     * ActivateSession localeIds, §5.4 Locale Negotiation). `[]` without a Session, or before
+     * the Session's first successful ActivateSession with a non-empty localeIds.
+     */
+    public getPreferredLocales(): string[] {
+        return this.session?.localeIds ? [...this.session.localeIds] : [];
+    }
+
     public toJSON(): Record<string, string | null> {
         return {
             userName: this.getUserName(),
