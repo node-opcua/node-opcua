@@ -102,6 +102,12 @@ export interface ISessionBase {
     channel?: IChannelBase;
     getSessionId(): NodeId; // session NodeID
     continuationPointManager: IContinuationPointManager;
+    /**
+     * The localeIds of the Session's last successful ActivateSession, most preferred first.
+     * OPC 10000-4 v1.05.07 §5.7.3: a later ActivateSession with a null/empty localeIds keeps
+     * this list unchanged. Empty (or absent) until the Session has been activated once.
+     */
+    localeIds?: readonly string[];
     /** The URL of the Endpoint the Session was created on, if known. */
     getEndpointUrl?(): string | undefined;
     /**
@@ -126,6 +132,13 @@ export interface ISessionContext {
 
     /** Returns the NodeIds of all roles assigned to the current user. */
     getCurrentUserRoles(): NodeId[];
+
+    /**
+     * The Session's preferred locales, most preferred first (OPC 10000-4 v1.05.07 §5.7.3
+     * ActivateSession localeIds, §5.4 Locale Negotiation). Empty when there is no Session,
+     * or the Session has not been activated with a non-empty localeIds yet.
+     */
+    getPreferredLocales(): string[];
 
     /** Check whether the current user has the given permission on a node. */
     checkPermission(node: BaseNode, action: PermissionType): boolean;

@@ -2971,6 +2971,10 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                             }
                             session.userIdentityToken = request.userIdentityToken as UserIdentityToken;
 
+                            // OPC 10000-4 v1.05.07 §5.7.3 ActivateSession: a null/empty
+                            // localeIds keeps the Session's current list, see setLocaleIds.
+                            session.setLocaleIds(request.localeIds);
+
                             // extract : OPC UA part 4 - 5.6.3
                             // Once used, a serverNonce cannot be used again. For that reason, the Server returns a new
                             // serverNonce each time the ActivateSession Service is called.

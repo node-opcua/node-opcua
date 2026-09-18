@@ -120,6 +120,11 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public nonce?: Buffer;
     public userIdentityToken?: UserIdentityToken;
     /**
+     * The localeIds of the Session's last successful ActivateSession, most preferred first;
+     * empty until the first one. Set only through {@link ServerSession.setLocaleIds}.
+     */
+    public localeIds: string[] = [];
+    /**
      * Set by a `userManager` during authentication to indicate that the user
      * must change the password (OPC 10000-18 §5.2.8). When true, ActivateSession
      * returns `Good_PasswordChangeRequired` so the Client can react.
@@ -291,6 +296,25 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             this.emit("statusChanged", value);
         }
         this.__status = value;
+    }
+
+    /**
+     * Records the localeIds of a successful ActivateSession.
+     *
+     * OPC 10000-4 v1.05.07 §5.7.3 ActivateSession, localeIds: "This parameter only needs to
+     * be specified during the first call to ActivateSession during a single application
+     * Session. If it is null or empty the Server shall keep using the current localeIds for
+     * the Session." A null/empty/all-blank list is therefore a no-op, not a reset to [].
+     */
+    public setLocaleIds(localeIds?: ReadonlyArray<string | null> | null): void {
+        if (!localeIds) {
+            return;
+        }
+        const cleaned = localeIds.filter((l): l is string => typeof l === "string" && l.length > 0);
+        if (cleaned.length === 0) {
+            return;
+        }
+        this.localeIds = cleaned;
     }
 
     get addressSpace(): AddressSpace | null {
