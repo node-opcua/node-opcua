@@ -2,6 +2,7 @@
  * @module node-opcua-client
  */
 
+import type { LocaleId } from "node-opcua-basic-types";
 import type { DataTypeExtractStrategy } from "node-opcua-client-dynamic-extension-object";
 import type { ResponseCallback } from "node-opcua-pseudo-session";
 import type { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
@@ -50,6 +51,16 @@ export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
      * default value : "Auto" : the client will attempt to extract DataTypeDefinition using the most efficient strategy
      */
     dataTypeExtractStrategy?: DataTypeExtractStrategy;
+
+    /**
+     * List of locale ids to send in ActivateSession, in priority order (the first is the
+     * most preferred). OPC 10000-4 v1.05.07 §5.7.3 ActivateSession: sent with every
+     * ActivateSession call, including a reactivation after reconnect, since the Server
+     * keeps its current list when it receives a null or empty one.
+     *
+     * @default [] - unset, so the Server keeps whatever locale it already uses.
+     */
+    localeIds?: LocaleId[];
 }
 
 export interface EndpointWithUserIdentity {
