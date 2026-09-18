@@ -20,7 +20,7 @@ import should from "should";
 import { MonitoredItem, type MonitoredItemOptions, type OPCUAServerOptions, ServerEngine } from "../source/index.js";
 
 /**
- * OPC 10000-2 4.14: "the ability to subscribe for Audit Events is restricted to appropriate users
+ * OPC 10000-2 v1.05.06 §4.14: "the ability to subscribe for Audit Events is restricted to appropriate users
  * and/or applications"; OPC 10000-3 PermissionType: "ReceiveEvents, bit 11: A Client only receives
  * an Event if this bit is set on the Node identified by the EventTypeId field and on the Node
  * identified by the SourceNode field."

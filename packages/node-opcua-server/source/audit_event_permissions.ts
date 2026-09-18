@@ -19,8 +19,8 @@ import type { Variant } from "node-opcua-variant";
 /**
  * The Roles that receive Audit Events when OPCUAServerOptions.auditEventRoles is not given.
  *
- * OPC 10000-2 4.14: "the ability to subscribe for Audit Events is restricted to appropriate users
- * and/or applications". OPC 10000-3 4.8.2 describes SecurityAdmin as the Role "allowed to change
+ * OPC 10000-2 v1.05.06 §4.14: "the ability to subscribe for Audit Events is restricted to appropriate users
+ * and/or applications". OPC 10000-3 v1.05.06 §4.9.2 describes SecurityAdmin as the Role "allowed to change
  * security related settings", the one an audit trail of sessions, certificates and identities
  * belongs to.
  */
@@ -43,7 +43,7 @@ function collectSubtypes(typeNode: BaseNode, result: BaseNode[]): void {
 
 /**
  * Makes `roles` the only Roles holding ReceiveEvents on AuditEventType and on every subtype loaded so
- * far, so that event MonitoredItems deliver Audit Events to their Sessions alone (OPC 10000-2 6.7:
+ * far, so that event MonitoredItems deliver Audit Events to their Sessions alone (OPC 10000-2 v1.05.06 §6.7:
  * "Administrative AccessRestrictions should also be used to control Audit Events").
  *
  * Only the ReceiveEvents bit is rewritten: every other permission a type declares stays as its

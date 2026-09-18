@@ -103,7 +103,7 @@ export class MessageChunker {
                 );
                 return { statusCode: StatusCodes.BadTcpMessageTooLarge, chunkManager: null };
             }
-            // OPC 10000-6 7.1.2.3/7.1.2.4: "The Message size is calculated using the
+            // OPC 10000-6 v1.05.07 §7.1.2.3/7.1.2.4: "The Message size is calculated using the
             // unencrypted Message body." totalLength is whole chunks - headers, signature,
             // padding, the last one rounded up - and refused bodies the peer accepts.
             if (this.maxMessageSize > 0 && messageLength > this.maxMessageSize) {

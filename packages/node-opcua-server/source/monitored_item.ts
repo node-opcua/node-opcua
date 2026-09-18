@@ -142,7 +142,7 @@ function _adjust_sampling_interval(
 
 const maxQueueSize = 5000;
 
-// OPC 10000-4 7.21 MonitoringParameters / queueSize gives 0, 1 and MaxUInt32 a different meaning on an
+// OPC 10000-4 v1.05.07 §7.21 MonitoringParameters / queueSize gives 0, 1 and MaxUInt32 a different meaning on an
 // *event* monitored item than on a data one: there they are not sizes but questions about the Server's
 // own Event buffer - 0 asks for its default Event queue size, 1 for the minimum it requires, MaxUInt32
 // for the maximum it supports, and a value in between is honoured as asked (a value outside is bounded).
@@ -1333,7 +1333,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         // OPC 10000-3 PermissionType ReceiveEvents (bit 11): the Session receives the Event only if
         // it holds the permission on the EventType and on the SourceNode - how Audit Events are
         // kept for the Roles OPCUAServerOptions.auditEventRoles names. The bracket of the Client's
-        // own refresh is exempt, as it is from the content filter (OPC 10000-9 4.5).
+        // own refresh is exempt, as it is from the content filter (OPC 10000-9 v1.05.06 §4.5).
         const sessionContext = this.getSessionContext();
         if (!isRefreshBracketForMe && sessionContext && !canReceiveEvent(sessionContext, addressSpace, eventData)) {
             return;

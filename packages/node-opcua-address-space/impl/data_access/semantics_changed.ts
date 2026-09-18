@@ -104,7 +104,7 @@ export function notifySemanticsChangedIfNeeded(property: UAVariable): void {
 }
 
 /**
- * OPC 10000-5 6.4.31: besides the SemanticsChanged bit on the DataItem's next notification, the
+ * OPC 10000-5 v1.05.06 §6.4.33: besides the SemanticsChanged bit on the DataItem's next notification, the
  * Server reports a semantics change as a SemanticChangeEventType on the Server object, carrying
  * the affected Node and its TypeDefinition. A client subscribed to the Server's events learns of
  * the change without monitoring the DataItem itself.

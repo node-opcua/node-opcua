@@ -430,7 +430,7 @@ function getTokenType(userIdentityToken: UserIdentityToken): UserTokenType {
     return UserTokenType.Invalid;
 }
 /**
- * The clientCertificate parameter of a CreateSession Service call (OPC 10000-4 5.6.2), normalized
+ * The clientCertificate parameter of a CreateSession Service call (OPC 10000-4 v1.05.07 §5.7.2), normalized
  * the same way on every path that reads it: an absent or zero-length certificate becomes null,
  * never an empty Buffer. Used by both the success and the refused CreateSession audit paths so
  * they read the same value and cannot drift apart.
@@ -450,7 +450,7 @@ function thumbprint(certificate?: Certificate | null): string | null {
 }
 
 /**
- * OPC 10000-5 6.4.2 BaseEventType / Severity:
+ * OPC 10000-5 v1.05.06 §6.4.2 BaseEventType / Severity:
  *
  * "Severity is an indication of the urgency of the Event. This is also commonly called
  * "priority". Values will range from 1 to 1 000, with 1 being the lowest severity and 1 000
@@ -479,7 +479,7 @@ const AUDIT_SEVERITY_INFO = 100;
 const AUDIT_SEVERITY_SECURITY_FAILURE = 900;
 
 /**
- * OPC 10000-5 6.4.8 AuditCreateSessionEventType:
+ * OPC 10000-5 v1.05.06 §6.4.8 AuditCreateSessionEventType:
  *
  * "The ClientUserId is not available for this call thus this parameter shall be set to the
  * 'System/CreateSession'."
@@ -765,7 +765,7 @@ function validate_applicationUri(channel: ServerSecureChannelLayer, request: Cre
 /**
  * Raises the AuditCreateSessionEventType of a refused CreateSession call.
  *
- * OPC 10000-5 6.4.8: SourceName "Session/CreateSession"; "The ClientUserId is not available for
+ * OPC 10000-5 v1.05.06 §6.4.8: SourceName "Session/CreateSession"; "The ClientUserId is not available for
  * this call thus this parameter shall be set to the 'System/CreateSession'"; ClientCertificate "is
  * the clientCertificate parameter of the CreateSession Service call". 6.4.7: "If no session context
  * exists (e.g. for a failed CreateSession Service call) the SessionId shall be null." The
@@ -783,11 +783,11 @@ function raiseAuditCreateSessionFailure(
     }
     const clientCertificate = getRequestClientCertificate(request);
     server.raiseEvent("AuditCreateSessionEventType", {
-        /* part 5 - 6.4.3 AuditEventType */
+        /* OPC 10000-5 v1.05.06 §6.4.3 AuditEventType */
         actionTimeStamp: { dataType: "DateTime", value: new Date() },
         status: { dataType: "Boolean", value: false },
         severity: { dataType: "UInt16", value: AUDIT_SEVERITY_SECURITY_FAILURE },
-        // OPC 10000-4 6.5.6: "For the failure case the Message for Events of this type should
+        // OPC 10000-4 v1.05.07 §6.5.6: "For the failure case the Message for Events of this type should
         // include a description of why the Service failed."
         message: { dataType: "LocalizedText", value: { text: `CreateSession rejected: ${statusCode.name}` } },
         serverId: { dataType: "String", value: server.serverInfo.applicationUri || "" },
@@ -795,10 +795,10 @@ function raiseAuditCreateSessionFailure(
         clientUserId: { dataType: "String", value: CLIENT_USER_ID_CREATE_SESSION },
         sourceName: { dataType: "String", value: "Session/CreateSession" },
 
-        /* part 5 - 6.4.7 AuditSessionEventType */
+        /* OPC 10000-5 v1.05.06 §6.4.7 AuditSessionEventType */
         sessionId: { dataType: "NodeId", value: new NodeId() },
 
-        /* part 5 - 6.4.8 AuditCreateSessionEventType */
+        /* OPC 10000-5 v1.05.06 §6.4.8 AuditCreateSessionEventType */
         secureChannelId: { dataType: "String", value: channel.channelId?.toString() ?? "" },
         clientCertificate: { dataType: "ByteString", value: clientCertificate },
         clientCertificateThumbprint: { dataType: "String", value: thumbprint(clientCertificate) }
@@ -1139,7 +1139,7 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
     /**
      * the Roles whose Sessions receive Audit Events.
      *
-     * OPC 10000-2 4.14: "the ability to subscribe for Audit Events is restricted to appropriate users
+     * OPC 10000-2 v1.05.06 §4.14: "the ability to subscribe for Audit Events is restricted to appropriate users
      * and/or applications". An event MonitoredItem delivers an Event only to a Session that holds
      * ReceiveEvents on its EventType and on its SourceNode (OPC 10000-3 PermissionType bit 11), and
      * at start-up the server rewrites that one bit on AuditEventType and all its subtypes so that
@@ -2214,7 +2214,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
 
         // no audit event here: this validates the token of an ActivateSession call, and the caller
         // (_on_ActivateSessionRequest) raises the AuditActivateSessionEventType for any rejection,
-        // with the request's AuditEntryId this method has no access to (OPC 10000-4 6.5.6).
+        // with the request's AuditEntryId this method has no access to (OPC 10000-4 v1.05.07 §6.5.6).
         if (!userTokenSignature?.signature) {
             callback(null, StatusCodes.BadUserSignatureInvalid);
             return;
@@ -2497,7 +2497,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         const request = message.request as CreateSessionRequest;
         assert(request instanceof CreateSessionRequest);
 
-        // OPC 10000-4 6.5.6: the Session Service Set "shall generate audit Events for both successful
+        // OPC 10000-4 v1.05.07 §6.5.6: the Session Service Set "shall generate audit Events for both successful
         // and failed Service invocations [...] The CreateSession service shall generate
         // AuditCreateSessionEventType events". Every refusal below goes through here, so each failed
         // request raises exactly one, with Status false.
@@ -2704,7 +2704,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 assert(typeof reason === "string");
                 if (this.isAuditing) {
                     assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
-                    // OPC 10000-4 6.5.6: "The SourceName for Events of this type shall be
+                    // OPC 10000-4 v1.05.07 §6.5.6: "The SourceName for Events of this type shall be
                     // 'Session/Timeout' for a Session timeout, 'Session/CloseSession' for a CloseSession
                     // Service call and 'Session/Terminated' for all other cases." "Forcing" (the oldest
                     // unactivated Session closed to make room) is one of the other cases.
@@ -2725,7 +2725,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                         clientAuditEntryId: { dataType: "String", value: auditEntryId ?? "" },
 
                         // The ClientUserId identifies the user of the client requesting an action. The ClientUserId can be
-                        // obtained from the UserIdentityToken passed in the ActivateSession call (OPC 10000-5 6.4.3).
+                        // obtained from the UserIdentityToken passed in the ActivateSession call (OPC 10000-5 v1.05.06 §6.4.3).
                         clientUserId: { dataType: "String", value: getClientUserIdForAudit(session1.userIdentityToken) },
 
                         sourceName: { dataType: "String", value: sourceName },
@@ -2753,7 +2753,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 clientAuditEntryId: { dataType: "String", value: request.requestHeader.auditEntryId ?? "" },
 
                 // The ClientUserId identifies the user of the client requesting an action. No UserIdentityToken
-                // has been supplied yet at CreateSession time, and part 5 6.4.8 says this parameter "shall be
+                // has been supplied yet at CreateSession time, and OPC 10000-5 v1.05.06 §6.4.8 says this parameter "shall be
                 // set to the 'System/CreateSession'" for that reason (see CLIENT_USER_ID_CREATE_SESSION).
                 clientUserId: { dataType: "String", value: CLIENT_USER_ID_CREATE_SESSION },
 
@@ -2778,7 +2778,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                     value: session.sessionTimeout
                 },
 
-                // clientCertificate: OPC 10000-5 6.4.8 "is the clientCertificate parameter of the
+                // clientCertificate: OPC 10000-5 v1.05.06 §6.4.8 "is the clientCertificate parameter of the
                 // CreateSession Service call" - the request's own parameter, the same source the
                 // refused-CreateSession path (raiseAuditCreateSessionFailure) already uses, not
                 // session.channel.clientCertificate (the certificate that secures the channel
@@ -2827,8 +2827,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
 
         const session = this.getSession(authenticationToken);
 
-        // OPC 10000-4 6.5.6: the Session Service Set "shall generate audit Events for both successful
-        // and failed Service invocations"; OPC 10000-5 6.4.10: ActivateSession raises an
+        // OPC 10000-4 v1.05.07 §6.5.6: the Session Service Set "shall generate audit Events for both successful
+        // and failed Service invocations"; OPC 10000-5 v1.05.06 §6.4.10: ActivateSession raises an
         // AuditActivateSessionEventType. Every refusal below goes through here, so each failed
         // request raises exactly one, with Status false.
         function rejectConnection(server: OPCUAServer, statusCode: StatusCode): void {
@@ -4472,7 +4472,7 @@ const userIdentityTokenPasswordRemoved = (userIdentityToken?: UserIdentityToken)
         a.password = Buffer.from("*************", "ascii");
     }
     // An IssuedIdentityToken's tokenData is a bearer credential (e.g. a JWT): whoever holds it can
-    // present it again. OPC 10000-2 4.14 warns that audit records may carry sensitive data, so it
+    // present it again. OPC 10000-2 v1.05.06 §4.14 warns that audit records may carry sensitive data, so it
     // is masked the same way as a password. X509 certificateData is public and stays.
     if (a instanceof IssuedIdentityToken) {
         a.tokenData = Buffer.from("*************", "ascii");
@@ -4486,7 +4486,7 @@ const userIdentityTokenPasswordRemoved = (userIdentityToken?: UserIdentityToken)
 /**
  * The outcome of a rejected ActivateSession call, for its audit event.
  *
- * OPC 10000-4 6.5.6: the Session Service Set "shall generate audit Events for both successful and
+ * OPC 10000-4 v1.05.07 §6.5.6: the Session Service Set "shall generate audit Events for both successful and
  * failed Service invocations [...] The ActivateSession service shall generate
  * AuditActivateSessionEventType events or subtypes of it." On a rejected call the Session still
  * holds its previous identity (or none), so the token and the channel are those of the request.
@@ -4499,9 +4499,9 @@ interface ActivateSessionAuditFailure {
 }
 
 /**
- * Raises the AuditActivateSessionEventType of one ActivateSession call (OPC 10000-5 6.4.10), for
+ * Raises the AuditActivateSessionEventType of one ActivateSession call (OPC 10000-5 v1.05.06 §6.4.10), for
  * its success or, with `failure`, for its rejection. `session` is null when the request named no
- * known Session: OPC 10000-5 6.4.7 "If no session context exists [...] the SessionId shall be null."
+ * known Session: OPC 10000-5 v1.05.06 §6.4.7 "If no session context exists [...] the SessionId shall be null."
  */
 function raiseAuditActivateSessionEventType(
     this: OPCUAServer,
@@ -4518,7 +4518,7 @@ function raiseAuditActivateSessionEventType(
             status: { dataType: "Boolean", value: !failure },
             severity: { dataType: "UInt16", value: failure ? AUDIT_SEVERITY_SECURITY_FAILURE : AUDIT_SEVERITY_INFO },
 
-            // OPC 10000-4 6.5.6: "For the failure case the Message for Events of this type should
+            // OPC 10000-4 v1.05.07 §6.5.6: "For the failure case the Message for Events of this type should
             // include a description of why the Service failed."
             ...(failure
                 ? {
