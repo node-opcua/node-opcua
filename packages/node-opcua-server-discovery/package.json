@@ -21,7 +21,7 @@
         "node-opcua-basic-types": "2.184.1",
         "node-opcua-certificate-manager": "2.184.1",
         "node-opcua-common": "2.184.1",
-        "node-opcua-crypto": "5.10.1",
+        "node-opcua-crypto": "6.0.0",
         "node-opcua-debug": "2.184.0",
         "node-opcua-object-registry": "2.184.0",
         "node-opcua-secure-channel": "2.184.7",
@@ -53,6 +53,6 @@
         "source"
     ],
     "devDependencies": {
-        "node-opcua-pki": "6.22.0"
+        "node-opcua-pki": "7.0.0"
     }
 }

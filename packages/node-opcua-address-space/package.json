@@ -29,7 +29,7 @@
         "node-opcua-binary-stream": "2.184.1",
         "node-opcua-client-dynamic-extension-object": "2.184.7",
         "node-opcua-constants": "2.184.0",
-        "node-opcua-crypto": "5.10.1",
+        "node-opcua-crypto": "6.0.0",
         "node-opcua-data-access": "2.184.1",
         "node-opcua-data-model": "2.184.1",
         "node-opcua-data-value": "2.184.1",

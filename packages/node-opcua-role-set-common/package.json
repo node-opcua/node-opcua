@@ -24,7 +24,7 @@
         "node-opcua-basic-types": "2.184.1",
         "node-opcua-binary-stream": "2.184.1",
         "node-opcua-constants": "2.184.0",
-        "node-opcua-crypto": "5.10.1",
+        "node-opcua-crypto": "6.0.0",
         "node-opcua-nodeid": "2.184.1",
         "node-opcua-status-code": "2.184.1",
         "node-opcua-types": "2.184.1",

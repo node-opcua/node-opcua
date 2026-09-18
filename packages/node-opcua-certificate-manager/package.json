@@ -30,10 +30,10 @@
         "env-paths": "2.2.1",
         "node-opcua-assert": "2.184.0",
         "node-opcua-common": "2.184.1",
-        "node-opcua-crypto": "5.10.1",
+        "node-opcua-crypto": "6.0.0",
         "node-opcua-debug": "2.184.0",
         "node-opcua-object-registry": "2.184.0",
-        "node-opcua-pki": "6.22.0",
+        "node-opcua-pki": "7.0.0",
         "node-opcua-status-code": "2.184.1",
         "thenify-ex": "4.4.0"
     },
