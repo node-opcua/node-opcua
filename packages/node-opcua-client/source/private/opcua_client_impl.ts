@@ -7,6 +7,7 @@ import { callbackify } from "node:util";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
+import type { LocaleId } from "node-opcua-basic-types";
 import { DataTypeExtractStrategy } from "node-opcua-client-dynamic-extension-object";
 import {
     type Certificate,
@@ -411,6 +412,8 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
 
     private endpointMustExist: boolean;
     private requestedSessionTimeout: number;
+    /** OPC 10000-4 v1.05.07 §5.7.3: sent with every ActivateSession, including a reactivation. */
+    private localeIds: LocaleId[];
     private ___sessionName_counter: number;
     private serverUri?: string;
     private clientNonce?: Nonce;
@@ -439,6 +442,8 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
         this.endpointMustExist = isNullOrUndefined(options.endpointMustExist) ? true : !!options.endpointMustExist;
 
         this.requestedSessionTimeout = options.requestedSessionTimeout || 60000; // 1 minute
+
+        this.localeIds = options.localeIds || [];
 
         this.___sessionName_counter = 0;
         this.endpoint = undefined;
@@ -1043,7 +1048,10 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
                 // This parameter only needs to be specified during the first call to ActivateSession during
                 // a single application Session. If it is not specified the Server shall keep using the current
                 // localeIds for the Session.
-                localeIds: [],
+                // Sent on every call (including a reactivation after reconnect): the Server
+                // ignores a null/empty list and keeps its current one, per OPC 10000-4
+                // v1.05.07 §5.7.3, so an unset `localeIds` client option is a no-op here.
+                localeIds: this.localeIds,
 
                 // The credentials of the user associated with the Client application. The Server uses these
                 // credentials to determine whether the Client should be allowed to activate a Session and what
