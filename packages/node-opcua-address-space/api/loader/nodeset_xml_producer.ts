@@ -216,6 +216,7 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
         init(this: NodeState, _name: string, attrs: XmlAttributes) {
             this.obj = baseRecord(NodeClass.ReferenceType, attrs);
             this.obj.isAbstract = coerceBoolean(attrs.IsAbstract);
+            this.obj.symmetric = coerceBoolean(attrs.Symmetric);
         },
         ...emit,
         parser: {

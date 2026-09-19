@@ -21,8 +21,8 @@
   },
   "machineVision": {
     "uri": "http://opcfoundation.org/UA/MachineVision",
-    "length": 826570,
-    "sha1": "d91feb3582a24a672db027c42eea433418c94c31"
+    "length": 826536,
+    "sha1": "136aeeae9b3701576a584b882d3e3710db5dd1e4"
   },
   "commercialKitchenEquipment": {
     "uri": "http://opcfoundation.org/UA/CommercialKitchenEquipment/",

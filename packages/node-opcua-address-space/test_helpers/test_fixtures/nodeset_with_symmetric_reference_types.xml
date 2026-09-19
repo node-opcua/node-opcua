@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- three ReferenceTypes as companion specifications write them: a symmetric one without InverseName
+     (DI's ConnectsTo), a non-symmetric one that gives no InverseName either (machineVision's
+     FromTransition), and an ordinary one with an InverseName -->
+<UANodeSet xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
+  <NamespaceUris>
+    <Uri>http://sterfive.com/UA/SymmetricTest/</Uri>
+  </NamespaceUris>
+  <Models>
+    <Model ModelUri="http://sterfive.com/UA/SymmetricTest/" Version="1.0.0" PublicationDate="2026-09-19T00:00:00Z">
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.04" PublicationDate="2024-06-13T00:00:00Z" />
+    </Model>
+  </Models>
+  <Aliases>
+    <Alias Alias="HasSubtype">i=45</Alias>
+  </Aliases>
+  <UAReferenceType NodeId="ns=1;i=4001" BrowseName="1:ConnectsTo" Symmetric="true">
+    <DisplayName>ConnectsTo</DisplayName>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+    </References>
+  </UAReferenceType>
+  <UAReferenceType NodeId="ns=1;i=4002" BrowseName="1:FromTransition">
+    <DisplayName>FromTransition</DisplayName>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+    </References>
+  </UAReferenceType>
+  <UAReferenceType NodeId="ns=1;i=4003" BrowseName="1:HasWidget">
+    <DisplayName>HasWidget</DisplayName>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+    </References>
+    <InverseName>IsWidgetOf</InverseName>
+  </UAReferenceType>
+</UANodeSet>

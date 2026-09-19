@@ -120,7 +120,8 @@ export class UAReferenceTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements
     constructor(options: UAReferenceTypeOptions) {
         super(options);
         this.isAbstract = options.isAbstract === undefined ? false : !!options.isAbstract;
-        this.symmetric = options.symmetric === undefined ? false : !!options.symmetric;
+        // without either, a type is symmetric: that is how it has always been exported
+        this.symmetric = options.symmetric === undefined ? !options.inverseName : !!options.symmetric;
         // Note: Inverse name is not required anymore in 1.0.4
         this.inverseName = new LocalizedText(options.inverseName || this.browseName.name);
 

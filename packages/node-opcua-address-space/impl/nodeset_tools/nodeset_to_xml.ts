@@ -1095,6 +1095,17 @@ function writeAliases(xw: XmlWriter, aliases: Record<string, NodeIdString>) {
     xw.endElement();
 }
 
+/**
+ * The InverseName the document gave, if any. A symmetric type has none, and the node stores a missing
+ * one as its browse name: writing that back would add an InverseName the source never had
+ * (machineVision's FromTransition is neither symmetric nor named the other way).
+ */
+export function explicitInverseName(referenceType: UAReferenceType): string | undefined {
+    if (referenceType.symmetric) return undefined;
+    const text = referenceType.inverseName?.text;
+    return text && text !== referenceType.browseName?.name ? text : undefined;
+}
+
 function dumpReferenceType(xw: XmlWriter, referenceType: UAReferenceType) {
     _markAsVisited(xw, referenceType);
 
@@ -1102,16 +1113,16 @@ function dumpReferenceType(xw: XmlWriter, referenceType: UAReferenceType) {
 
     dumpCommonAttributes(xw, referenceType);
 
-    const isSymmetric = !referenceType.inverseName || referenceType.inverseName?.text === referenceType.browseName?.name;
-    if (isSymmetric) {
+    if (referenceType.symmetric) {
         xw.writeAttribute("Symmetric", "true");
     }
 
     dumpCommonElements(xw, referenceType);
 
-    if (!isSymmetric) {
+    const inverseName = explicitInverseName(referenceType);
+    if (inverseName !== undefined) {
         xw.startElement("InverseName");
-        xw.text(referenceType.inverseName?.text || "");
+        xw.text(inverseName);
         xw.endElement();
     }
 
