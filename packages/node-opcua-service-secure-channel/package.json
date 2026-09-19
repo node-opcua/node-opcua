@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-service-secure-channel",
     "type": "module",
-    "version": "2.184.1",
+    "version": "2.185.0",
     "description": "pure nodejs OPCUA SDK - module service-secure-channel",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -16,15 +16,15 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.184.0",
-        "node-opcua-basic-types": "2.184.1",
+        "node-opcua-basic-types": "2.185.0",
         "node-opcua-binary-stream": "2.184.1",
-        "node-opcua-factory": "2.184.1",
-        "node-opcua-types": "2.184.1"
+        "node-opcua-factory": "2.185.0",
+        "node-opcua-types": "2.185.0"
     },
     "devDependencies": {
         "node-opcua-buffer-utils": "2.184.1",
         "node-opcua-debug": "2.184.0",
-        "node-opcua-packet-analyzer": "2.184.1",
+        "node-opcua-packet-analyzer": "2.185.0",
         "node-opcua-status-code": "2.184.1"
     },
     "author": "Etienne Rossignon",

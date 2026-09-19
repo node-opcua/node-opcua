@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-ijt-base",
-    "version": "2.184.8",
+    "version": "2.185.0",
     "type": "module",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-ijt-base",
     "main": "dist/index.js",
@@ -15,19 +15,19 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-address-space-base": "2.184.8",
-        "node-opcua-basic-types": "2.184.1",
-        "node-opcua-data-access": "2.184.1",
-        "node-opcua-data-model": "2.184.1",
-        "node-opcua-extension-object": "2.184.1",
-        "node-opcua-nodeid": "2.184.1",
-        "node-opcua-nodeset-di": "2.184.8",
-        "node-opcua-nodeset-ia": "2.184.8",
-        "node-opcua-nodeset-machinery": "2.184.8",
-        "node-opcua-nodeset-machinery-result": "2.184.8",
-        "node-opcua-nodeset-ua": "2.184.8",
+        "node-opcua-address-space-base": "2.185.0",
+        "node-opcua-basic-types": "2.185.0",
+        "node-opcua-data-access": "2.185.0",
+        "node-opcua-data-model": "2.185.0",
+        "node-opcua-extension-object": "2.185.0",
+        "node-opcua-nodeid": "2.185.0",
+        "node-opcua-nodeset-di": "2.185.0",
+        "node-opcua-nodeset-ia": "2.185.0",
+        "node-opcua-nodeset-machinery": "2.185.0",
+        "node-opcua-nodeset-machinery-result": "2.185.0",
+        "node-opcua-nodeset-ua": "2.185.0",
         "node-opcua-status-code": "2.184.1",
-        "node-opcua-variant": "2.184.1"
+        "node-opcua-variant": "2.185.0"
     },
     "files": [
         "dist",

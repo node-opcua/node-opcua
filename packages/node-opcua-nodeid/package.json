@@ -3,7 +3,7 @@
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.184.1",
+    "version": "2.185.0",
     "description": "pure nodejs OPCUA SDK - module nodeid",
     "scripts": {
         "build": "tsc -b",
@@ -17,7 +17,7 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.184.0",
-        "node-opcua-constants": "2.184.0",
+        "node-opcua-constants": "2.185.0",
         "node-opcua-guid": "2.184.0"
     },
     "devDependencies": {

@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-service-translate-browse-path",
     "type": "module",
-    "version": "2.184.1",
+    "version": "2.185.0",
     "description": "pure nodejs OPCUA SDK - module service-translate-browse-path",
     "scripts": {
         "test": "mocha",
@@ -16,10 +16,10 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.184.0",
-        "node-opcua-constants": "2.184.0",
-        "node-opcua-data-model": "2.184.1",
-        "node-opcua-nodeid": "2.184.1",
-        "node-opcua-types": "2.184.1"
+        "node-opcua-constants": "2.185.0",
+        "node-opcua-data-model": "2.185.0",
+        "node-opcua-nodeid": "2.185.0",
+        "node-opcua-types": "2.185.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
