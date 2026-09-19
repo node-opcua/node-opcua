@@ -1,6 +1,7 @@
+import type { ISessionContext } from "node-opcua-address-space-base";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { RequestHeader } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
+import { DataType, type Variant } from "node-opcua-variant";
 import should from "should";
 
 import { type AddressSpace, PseudoSession, SessionContext, type UAMethod, type UAObject } from "../dist/api/index.js";
@@ -62,7 +63,7 @@ describe("PseudoSession.call exposes the context's RequestHeader to a bound Meth
             nodeId: "s=EchoAuditEntryId",
             outputArguments: [{ name: "auditEntryId", dataType: DataType.String }]
         });
-        method.bindMethod(async (_inputArguments, context) => {
+        method.bindMethod(async (_inputArguments: Variant[], context: ISessionContext) => {
             return {
                 outputArguments: [{ dataType: DataType.String, value: context.getAuditEntryId() ?? "" }]
             };
