@@ -633,6 +633,7 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
                 const params = {
                     ...this.common(record),
                     isAbstract: record.isAbstract,
+                    symmetric: !!record.symmetric,
                     displayName: record.displayName,
                     description: record.description,
                     inverseName: record.inverseName

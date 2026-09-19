@@ -17,6 +17,7 @@ import type {
     UADataType,
     UAObject,
     UAReference,
+    UAReferenceType,
     UAVariable,
     UAVariableType
 } from "node-opcua-address-space-base";
@@ -76,6 +77,7 @@ import {
 import {
     _dumpVariantExtensionObjectValue_Body,
     coerceInt64ToInt32,
+    explicitInverseName,
     initXmlWriterEx,
     makeTypeXsd,
     sortByBrowseName
@@ -430,7 +432,7 @@ class RecordExporter {
                 this.dumpDataType(node as UADataType);
                 break;
             case NodeClass.ReferenceType:
-                this.dumpReferenceType(node as BaseNode & { inverseName?: LocalizedText | null });
+                this.dumpReferenceType(node as UAReferenceType);
                 break;
             case NodeClass.View:
                 this.dumpView(node);
@@ -485,15 +487,12 @@ class RecordExporter {
         }
     }
 
-    private dumpReferenceType(node: BaseNode & { inverseName?: LocalizedText | null }): void {
+    private dumpReferenceType(node: UAReferenceType): void {
         this.markVisited(node);
         const record = this.common(node);
-        const isSymmetric = !node.inverseName || node.inverseName?.text === node.browseName?.name;
-        if (isSymmetric) {
-            record.symmetric = true;
-        } else {
-            record.inverseName = node.inverseName?.text || "";
-        }
+        if (node.symmetric) record.symmetric = true;
+        const inverseName = explicitInverseName(node);
+        if (inverseName !== undefined) record.inverseName = inverseName;
         this.records.push(record);
     }
 

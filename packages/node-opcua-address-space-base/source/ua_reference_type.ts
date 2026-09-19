@@ -8,6 +8,8 @@ export interface UAReferenceType extends BaseNode {
     readonly subtypeOfObj: UAReferenceType | null;
     readonly subtypeOf: NodeId | null;
     readonly isAbstract: boolean;
+    /** the Symmetric attribute: the reference means the same in both directions */
+    readonly symmetric: boolean;
     readonly inverseName: LocalizedText;
 
     isSubtypeOf(baseType: UAReferenceType | NodeIdLike): boolean;
