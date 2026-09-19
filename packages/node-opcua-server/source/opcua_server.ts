@@ -4231,7 +4231,15 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                     return sendError(StatusCodes.BadTooManyOperations);
                 }
 
-                const context = session.sessionContext;
+                // a fresh per-call context, never session.sessionContext itself: see
+                // SessionContext#withRequestHeader for why that instance must stay untouched.
+                // A context an application substituted that is not a SessionContext is used as is
+                // (its method handlers then see no RequestHeader).
+                const sessionContext = session.sessionContext;
+                const context =
+                    sessionContext instanceof SessionContext
+                        ? sessionContext.withRequestHeader(request.requestHeader)
+                        : sessionContext;
                 this.engine
                     .call(context, request.methodsToCall)
                     .then((results) => {

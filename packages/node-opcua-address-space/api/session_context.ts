@@ -32,6 +32,7 @@ import {
     AnonymousIdentityToken,
     MessageSecurityMode,
     PermissionType,
+    type RequestHeader,
     type RolePermissionType,
     UserNameIdentityToken,
     X509IdentityToken
@@ -192,6 +193,8 @@ export interface SessionContextOptions {
     session?: ISessionBase /* ServerSession */;
     object?: UAObject | UAObjectType;
     server?: IServerBase /* OPCUAServer*/;
+    /** see {@link SessionContext.requestHeader} */
+    requestHeader?: RequestHeader;
 }
 
 function getPermissionForRole(
@@ -442,6 +445,7 @@ export class SessionContext implements ISessionContext {
     public continuationPoints: Buffer[] = [];
     public readonly session?: ISessionBase;
     public readonly server?: IServerBase;
+    public readonly requestHeader?: RequestHeader;
 
     constructor(options?: SessionContextOptions) {
         options = options || {};
@@ -449,6 +453,31 @@ export class SessionContext implements ISessionContext {
         this.object = options.object;
         this.server = options.server;
         this.currentTime = undefined;
+        this.requestHeader = options.requestHeader;
+    }
+
+    /**
+     * A SessionContext identical to this one, plus `requestHeader` (and the `getAuditEntryId()`
+     * it feeds). Deliberately a **new** instance rather than a mutation of `this`: build one per
+     * Call service invocation (see opcua_server.ts _on_CallRequest), never by writing onto the
+     * Session's own long-lived sessionContext. That object is shared and read concurrently by
+     * every request in flight on the Session (ServerSession#sessionContext is one instance for
+     * the Session's whole lifetime - see also UAMethodImpl#execute, which already mutates
+     * `context.object` on whatever context it is handed), so a shared mutable RequestHeader
+     * field would let two Calls running at once on the same Session overwrite or read back the
+     * wrong id. A fresh instance per Call has none of that: nothing but the caller holds a
+     * reference to it.
+     */
+    public withRequestHeader(requestHeader: RequestHeader): SessionContext {
+        return new SessionContext({ session: this.session, object: this.object, server: this.server, requestHeader });
+    }
+
+    /**
+     * `requestHeader?.auditEntryId`, or `undefined` when either is absent or the id is empty -
+     * see {@link ISessionContext.getAuditEntryId}.
+     */
+    public getAuditEntryId(): string | undefined {
+        return this.requestHeader?.auditEntryId || undefined;
     }
 
     /**

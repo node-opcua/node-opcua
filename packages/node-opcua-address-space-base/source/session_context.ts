@@ -3,7 +3,7 @@ import type { DataValue } from "node-opcua-data-value";
 import type { PreciseClock } from "node-opcua-date-time";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import type { StatusCode } from "node-opcua-status-code";
-import type { MessageSecurityMode, PermissionType, ReferenceDescription, UserIdentityToken } from "node-opcua-types";
+import type { MessageSecurityMode, PermissionType, ReferenceDescription, RequestHeader, UserIdentityToken } from "node-opcua-types";
 import type { BaseNode } from "./base_node.js";
 import type { ContinuationPoint } from "./continuation_point.js";
 import type { UAObject } from "./ua_object.js";
@@ -173,6 +173,24 @@ export interface ISessionContext {
 
     /** The URL of the Endpoint the Session was created on, or `null` if unknown. */
     readonly endpointUrl: string | null;
+
+    /**
+     * The RequestHeader of the request currently being served through this context, when one is
+     * available. A context built for one Call service invocation (see ServerSession's
+     * per-request context, opcua_server.ts _on_CallRequest) carries the RequestHeader of that
+     * CallRequest, so a bound Method handler can read `context.requestHeader?.auditEntryId` -
+     * OPC 10000-4 v1.05.07 §7.32 RequestHeader - and copy it into ClientAuditEntryId when it
+     * raises an AuditEventType - OPC 10000-5 v1.05.06 §6.4.3. `undefined` for a context with no
+     * request behind it, e.g. a Session's own long-lived sessionContext, or most PseudoSession
+     * calls.
+     */
+    readonly requestHeader?: RequestHeader;
+
+    /**
+     * Convenience accessor for `requestHeader?.auditEntryId`; `undefined` when either is absent
+     * or the id is empty.
+     */
+    getAuditEntryId(): string | undefined;
 
     /**
      * Returns a JSON representation of the context
