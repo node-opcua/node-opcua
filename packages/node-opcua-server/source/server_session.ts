@@ -133,6 +133,13 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public clientDescription?: ApplicationDescription;
     public channelId?: number | null;
     public continuationPointManager: ContinuationPointManager;
+    /**
+     * The Session's long-lived context, shared by every request currently in flight on this
+     * Session. A Call service invocation must never write a per-request field (e.g.
+     * RequestHeader) onto this instance - build a derived context with
+     * `SessionContext#withRequestHeader` instead, one per CallRequest (see
+     * OPCUAServer#_on_CallRequest).
+     */
     public sessionContext: ISessionContext;
 
     // ISubscriber
