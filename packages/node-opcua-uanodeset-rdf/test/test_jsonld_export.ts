@@ -17,7 +17,7 @@ import { addressSpaceToJsonLd, addressSpaceToJsonLdText, prefixOfNamespace } fro
 /** what the exporter produced when this test was written, for DI on top of the standard nodeset */
 // FEAT-53: an omitted DataType attribute now reads BaseDataType (i=24), not Null; the export
 // text carries that through wherever a DI field or VariableType had no explicit DataType.
-const DI_SHA1 = "44540c387c8df6f685fdbffe0904d537d7b15826";
+const DI_SHA1 = "1247042989a327578d772515243b7e334e7a6f58";
 
 type JsonLd = {
     "@context": Record<string, unknown>;
