@@ -4511,20 +4511,20 @@ importers:
   tools/check-c8-ignore:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@7.0.2
-        version: typescript@7.0.2
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
 
   tools/check-cjs-globals:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@7.0.2
-        version: typescript@7.0.2
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
 
   tools/check-construction-cast:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@7.0.2
-        version: typescript@7.0.2
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
 
   tools/check-debug-log: {}
 
@@ -4533,34 +4533,34 @@ importers:
   tools/check-dirname:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@7.0.2
-        version: typescript@7.0.2
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
 
   tools/check-engines: {}
 
   tools/check-entry-points:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@7.0.2
-        version: typescript@7.0.2
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
 
   tools/check-erasable:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@7.0.2
-        version: typescript@7.0.2
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
 
   tools/check-import-cycles:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@7.0.2
-        version: typescript@7.0.2
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
 
   tools/check-import-extension:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@7.0.2
-        version: typescript@7.0.2
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
 
   tools/check-mocharc: {}
 
@@ -4569,8 +4569,8 @@ importers:
   tools/check-no-tla:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@7.0.2
-        version: typescript@7.0.2
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
 
   tools/check-pack: {}
 
@@ -4579,16 +4579,16 @@ importers:
   tools/check-short-circuit-assertion:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@7.0.2
-        version: typescript@7.0.2
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
 
   tools/check-test-ports: {}
 
   tools/esm-convert:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@7.0.2
-        version: typescript@7.0.2
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
 
   tools/fix-tsconfigs:
     dependencies:
