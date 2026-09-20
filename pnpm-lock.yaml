@@ -4576,6 +4576,12 @@ importers:
 
   tools/check-package-shape: {}
 
+  tools/check-proto-pollution:
+    devDependencies:
+      typescript-5:
+        specifier: npm:typescript@5.9.3
+        version: typescript@5.9.3
+
   tools/check-short-circuit-assertion:
     devDependencies:
       typescript-5:
