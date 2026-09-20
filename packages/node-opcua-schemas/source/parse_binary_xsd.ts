@@ -24,6 +24,16 @@ function w(s: string, l: number): string {
     return s.padEnd(l).substring(0, l);
 }
 
+/**
+ * Writes a type name straight off a server-supplied TypeDictionary onto a per-connection map -
+ * Object.defineProperty rather than `obj[key] = value`, because for key === "__proto__" the
+ * bracket form does not create a data property at all: it invokes [[SetPrototypeOf]] and
+ * reparents `obj`. The server providing these names is not assumed trustworthy here.
+ */
+function setKey<T>(obj: Record<string, T>, key: string, value: T): void {
+    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
+}
+
 export interface EnumeratedType {
     name: string;
     documentation?: string;
@@ -56,7 +66,7 @@ export class InternalTypeDictionary implements ITypeDictionary {
     // tns: "http://opcfoundation.org/a/b"
     public _namespaces: Record<string, string> = {};
     public addEnumeration(name: string, e: EnumeratedType): void {
-        this.enumeratedTypesRaw[name] = e;
+        setKey(this.enumeratedTypesRaw, name, e);
     }
     public getEnumerations(): EnumeratedType[] {
         return Object.values(this.enumeratedTypesRaw);
@@ -65,7 +75,7 @@ export class InternalTypeDictionary implements ITypeDictionary {
         return Object.values(this.structuredTypesRaw);
     }
     public addStructureRaw(structuredType: StructureTypeRaw): void {
-        this.structuredTypesRaw[structuredType.name] = structuredType;
+        setKey(this.structuredTypesRaw, structuredType.name, structuredType);
     }
     public getStructuredTypesRawByName(name: string): StructureTypeRaw | undefined {
         name = name.split(":")[1] || name;
@@ -117,8 +127,8 @@ const state0: ReaderStateParser = {
                 for (const [k, v] of Object.entries(attributes)) {
                     if (k.match(/xmlns:/)) {
                         const ns = k.split(":")[1];
-                        this.typeDictionary._namespaces[ns] = v;
-                        this.typeDictionary._namespaces[v] = ns;
+                        setKey(this.typeDictionary._namespaces, ns, v);
+                        setKey(this.typeDictionary._namespaces, v, ns);
                     }
                 }
             },
@@ -173,8 +183,8 @@ const state0: ReaderStateParser = {
                                 const value = parseInt(this.attrs.Value, 10);
                                 const _enum = this.parent.enumeratedType.enumeratedValues;
                                 // bidirectional enum map: name -> value and value -> name
-                                _enum[key] = value;
-                                _enum[value] = key;
+                                setKey(_enum, key, value);
+                                setKey(_enum, String(value), key);
                                 this.parent.typescriptDefinition += `\n  ${key} = ${value},`;
                             }
                         }
@@ -363,7 +373,7 @@ export async function parseBinaryXSD(
         }
         function markAsVisited(name: string) {
             name = name.split(":")[1] || name;
-            _map[name] = "1";
+            setKey(_map, name, "1");
         }
         function visitStructure(structuredType: StructureTypeRaw) {
             if (!structuredType || structuredType.name === "ua:ExtensionObject") {
