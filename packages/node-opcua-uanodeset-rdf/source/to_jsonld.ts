@@ -188,7 +188,10 @@ export function modelToJsonLd(model: RdfModel, options: JsonLdOptions = {}): Rec
     }
 
     const context: Record<string, unknown> = { opcua: OPCUA_NAMESPACE };
-    context[prefixOfNamespace(target.namespaceUri)] = target.namespaceUri;
+    // prefixOfNamespace derives its result from the model's own namespace URI - itself
+    // untrusted, from a loaded nodeset - so this is the same computed-key write as the
+    // ReferenceType/BrowseName-derived terms below, and gets the same treatment.
+    setTerm(context, prefixOfNamespace(target.namespaceUri), target.namespaceUri);
     for (const [term, value] of PROPERTY_TERMS) {
         context[term] = value;
     }
@@ -278,10 +281,10 @@ export function modelToJsonLd(model: RdfModel, options: JsonLdOptions = {}): Rec
     }
 
     for (const term of [...referenceTerms.keys()].sort()) {
-        context[term] = { "@id": referenceTerms.get(term), "@type": "@id" };
+        setTerm(context, term, { "@id": referenceTerms.get(term), "@type": "@id" });
     }
     for (const term of [...childTerms.keys()].sort()) {
-        context[term] = { "@type": "@id" };
+        setTerm(context, term, { "@type": "@id" });
     }
 
     const included: Record<string, unknown>[] = [];
@@ -319,11 +322,22 @@ function variableFields(node: RdfNode, entry: Record<string, unknown>, curieOfId
     }
 }
 
+/**
+ * a JSON-LD term onto a plain object - Object.defineProperty rather than `obj[term] = value`,
+ * because for term === "__proto__" the bracket form does not create a data property at all: it
+ * invokes [[SetPrototypeOf]] and reparents `obj`. `term` here can be an unprefixed ReferenceType
+ * or child BrowseName straight out of the model being serialized, i.e. untrusted input (a hostile
+ * server or nodeset can name a ReferenceType "__proto__"), not a value this module controls.
+ */
+function setTerm(obj: Record<string, unknown>, term: string, value: unknown): void {
+    Object.defineProperty(obj, term, { value, writable: true, enumerable: true, configurable: true });
+}
+
 function addValue(entry: Record<string, unknown>, term: string, value: string): void {
-    const existing = entry[term];
-    if (existing === undefined) entry[term] = value;
+    const existing = Object.hasOwn(entry, term) ? entry[term] : undefined;
+    if (existing === undefined) setTerm(entry, term, value);
     else if (Array.isArray(existing)) existing.push(value);
-    else entry[term] = [existing, value];
+    else setTerm(entry, term, [existing, value]);
 }
 
 function objectPropertyOf(
