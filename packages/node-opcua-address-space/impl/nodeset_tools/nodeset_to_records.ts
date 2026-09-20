@@ -366,6 +366,12 @@ class RecordExporter {
         if (node.releaseStatus) {
             record.releaseStatus = node.releaseStatus;
         }
+        if (node.nodesetCategory && node.nodesetCategory.length > 0) {
+            record.category = [...node.nodesetCategory];
+        }
+        if (node.nodesetDocumentation) {
+            record.documentation = node.nodesetDocumentation;
+        }
         const parentNode = this.parentOf(node);
         if (parentNode && parentNode.nodeId.namespace <= node.nodeId.namespace) {
             record.parentNodeId = this.t(parentNode.nodeId);

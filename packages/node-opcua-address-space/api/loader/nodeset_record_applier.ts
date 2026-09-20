@@ -526,6 +526,8 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
             references: this.references(record),
             // documentation, not behaviour, but the document said it and it must survive the trip
             releaseStatus: record.releaseStatus,
+            nodesetDocumentation: record.documentation,
+            nodesetCategory: record.category,
             ...this.permissions(record)
         };
     }

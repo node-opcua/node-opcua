@@ -88,6 +88,16 @@ function _dumpDescription(xw: XmlWriter, node: { description?: LocalizedText }):
         xw.startElement("Description").text(desc).endElement();
     }
 }
+// what the working group filed the node under and where the specification defines it: nothing
+// in the address space acts on either, but the document said them
+function _dumpCategoryAndDocumentation(xw: XmlWriter, node: BaseNode): void {
+    for (const category of node.nodesetCategory ?? []) {
+        xw.startElement("Category").text(category).endElement();
+    }
+    if (node.nodesetDocumentation) {
+        xw.startElement("Documentation").text(node.nodesetDocumentation).endElement();
+    }
+}
 
 function hasHigherPriorityThan(namespaceIndex1: number, namespaceIndex2: number, priorityTable: number[]) {
     const order1 = priorityTable[namespaceIndex1];
@@ -757,6 +767,7 @@ function _dumpRolePermissions(xw: XmlWriter, node: BaseNode) {
 function dumpCommonElements(xw: XmlWriter, node: BaseNode) {
     _dumpDisplayName(xw, node);
     _dumpDescription(xw, node);
+    _dumpCategoryAndDocumentation(xw, node);
     _dumpReferences(xw, node);
     _dumpRolePermissions(xw, node);
 }

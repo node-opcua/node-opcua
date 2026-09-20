@@ -158,6 +158,24 @@ export interface BaseNode<T extends BaseNodeEvents & ListenerSignature<T> = Base
     releaseStatus?: "Draft" | "Deprecated";
 
     /**
+     * the `<Documentation>` element of the nodeset: a link into the specification text that
+     * defines this node (https://reference.opcfoundation.org/...), at most one. It is not the
+     * Description attribute and no service exposes it; it is kept so that a tool can show where a
+     * node comes from, and so that the node can be written back out as the document that created it.
+     *
+     * Named after the element, not `documentation`: the children of a node are reachable as
+     * properties under their browse name, and DI's ISupportInfoType has a Documentation folder.
+     */
+    nodesetDocumentation?: string;
+
+    /**
+     * the `<Category>` elements of the nodeset, in order: the conformance units or facets the
+     * working group filed this node under. Kept, and named, for the same reasons as
+     * `nodesetDocumentation`: I4AAS has types with a Category property.
+     */
+    nodesetCategory?: string[];
+
+    /**
      * the AccessRestrictions the nodeset declared, verbatim, whether or not this loader was asked
      * to apply them. `accessRestrictions` above is what is *enforced* and is gated by the loader's
      * option; this is what the document *said*, and is documentation only. Without it a document
