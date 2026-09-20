@@ -1,0 +1,43 @@
+name: Semgrep
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '32 3 * * 1'
+
+concurrency:
+  group: semgrep-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v7
+      # Reports to the Security tab rather than failing the job: this is the
+      # first scan over an existing 500+ package tree, so the finding count
+      # needs a human triage pass before anything here can gate a merge.
+      # Re-add --error (optionally scoped with --severity) once that baseline
+      # is clean.
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config p/owasp-top-ten \
+            --config p/javascript \
+            --config p/typescript \
+            --config .semgrep/node-opcua.yml \
+            --sarif --output semgrep.sarif
+      - uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
