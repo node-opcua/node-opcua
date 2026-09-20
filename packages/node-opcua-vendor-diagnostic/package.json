@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-vendor-diagnostic",
     "type": "module",
-    "version": "2.185.0",
+    "version": "2.186.0",
     "description": "pure nodejs OPCUA SDK - module vendor-diagnostic",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -15,11 +15,11 @@
     },
     "dependencies": {
         "humanize": "0.0.9",
-        "node-opcua-address-space": "2.185.0",
+        "node-opcua-address-space": "2.186.0",
         "node-opcua-assert": "2.184.0",
         "node-opcua-constants": "2.185.0",
         "node-opcua-debug": "2.184.0",
-        "node-opcua-server": "2.185.0",
+        "node-opcua-server": "2.186.0",
         "node-opcua-status-code": "2.184.1",
         "node-opcua-variant": "2.185.0"
     },

@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-alarm-condition",
     "type": "module",
-    "version": "2.185.0",
+    "version": "2.186.0",
     "description": "pure nodejs OPCUA SDK - module pseudo-session",
     "scripts": {
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
@@ -24,7 +24,7 @@
         "node-opcua-debug": "2.184.0",
         "node-opcua-nodeid": "2.185.0",
         "node-opcua-pseudo-session": "2.185.0",
-        "node-opcua-service-filter": "2.185.0",
+        "node-opcua-service-filter": "2.186.0",
         "node-opcua-service-read": "2.185.0",
         "node-opcua-service-subscription": "2.185.0",
         "node-opcua-service-translate-browse-path": "2.185.0",
