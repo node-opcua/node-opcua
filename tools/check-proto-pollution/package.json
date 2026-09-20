@@ -1,0 +1,17 @@
+{
+    "name": "@sterfive/check-proto-pollution",
+    "version": "1.0.0",
+    "private": true,
+    "description": "fail the build when a computed property key could write __proto__/constructor/prototype",
+    "bin": {
+        "check-proto-pollution": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "test": "node test/test_rule.js"
+    },
+    "devDependencies": {
+        "typescript-5": "npm:typescript@5.9.3"
+    }
+}
