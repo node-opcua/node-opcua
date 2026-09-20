@@ -2,6 +2,16 @@ import { lowerFirstLetter } from "node-opcua-utils";
 import { type IReaderState, ReaderStateBase, type Xml2Json, type XmlAttributes } from "./xml2json.js";
 export type withPojoLambda = (name: string, pojo: unknown) => void;
 
+/**
+ * a raw XML tag/attribute name onto a plain object - Object.defineProperty rather than
+ * `obj[key] = value`, because for key === "__proto__" the bracket form does not create a
+ * data property at all: it invokes [[SetPrototypeOf]] and reparents `obj`. The name comes
+ * straight from unsanitized XML being parsed.
+ */
+function setKey<T>(obj: Record<string, T>, key: string, value: T): void {
+    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
+}
+
 export class ReaderState2 extends ReaderStateBase {
     public _stack: unknown[];
     public _pojo: unknown;
@@ -46,7 +56,7 @@ export class ReaderState2 extends ReaderStateBase {
                 this._element.push(array);
                 this._element = array;
             } else {
-                this._element[elName] = [];
+                setKey(this._element, elName, []);
                 this._element = this._element[elName];
             }
         } else {
@@ -56,7 +66,7 @@ export class ReaderState2 extends ReaderStateBase {
                 this._element.push(obj);
                 this._element = obj;
             } else {
-                this._element[elName] = {};
+                setKey(this._element, elName, {});
                 this._element = this._element[elName];
             }
         }
@@ -70,7 +80,7 @@ export class ReaderState2 extends ReaderStateBase {
         this._element = this._stack.pop();
         if (this.text.length > 0 && this._element) {
             const elName = lowerFirstLetter(elementName);
-            this._element[elName] = this.text;
+            setKey(this._element, elName, this.text);
             // this.engine!._pojo = this._pojo;
         } else {
             const elName = lowerFirstLetter(elementName);
