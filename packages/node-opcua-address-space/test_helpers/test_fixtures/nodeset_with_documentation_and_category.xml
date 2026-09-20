@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+  <NamespaceUris>
+    <Uri>urn:documentation:test</Uri>
+  </NamespaceUris>
+  <Models>
+    <Model ModelUri="urn:documentation:test" Version="1.0.0" PublicationDate="2026-01-01T00:00:00Z">
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/" />
+    </Model>
+  </Models>
+  <Aliases>
+    <Alias Alias="Double">i=11</Alias>
+    <Alias Alias="HasComponent">i=47</Alias>
+    <Alias Alias="HasModellingRule">i=37</Alias>
+    <Alias Alias="HasSubtype">i=45</Alias>
+    <Alias Alias="HasTypeDefinition">i=40</Alias>
+  </Aliases>
+  <UAObjectType NodeId="ns=1;i=1000" BrowseName="1:PumpType">
+    <DisplayName>PumpType</DisplayName>
+    <Description>A pump</Description>
+    <Category>Pump Base</Category>
+    <Category>Pump Extended</Category>
+    <Documentation>https://reference.opcfoundation.org/Pumps/v100/docs/7.1</Documentation>
+    <References>
+      <Reference ReferenceType="HasComponent">ns=1;i=2000</Reference>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+    </References>
+  </UAObjectType>
+  <UAVariable NodeId="ns=1;i=2000" BrowseName="1:Speed" ParentNodeId="ns=1;i=1000" DataType="Double">
+    <DisplayName>Speed</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/Pumps/v100/docs/7.2</Documentation>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1000</Reference>
+    </References>
+  </UAVariable>
+  <UAObjectType NodeId="ns=1;i=1001" BrowseName="1:UndocumentedType">
+    <DisplayName>UndocumentedType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+    </References>
+  </UAObjectType>
+</UANodeSet>

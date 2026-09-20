@@ -180,6 +180,10 @@ export interface InternalBaseNodeOptions {
     rolePermissions?: RolePermissionTypeOptions[];
     /** "Draft" or "Deprecated" as the nodeset declared it; see BaseNode.releaseStatus */
     releaseStatus?: "Draft" | "Deprecated";
+    /** the `<Documentation>` link as the nodeset declared it; see BaseNode.nodesetDocumentation */
+    nodesetDocumentation?: string;
+    /** the `<Category>` elements as the nodeset declared them; see BaseNode.nodesetCategory */
+    nodesetCategory?: string[];
     /** the AccessRestrictions as declared, whatever this loader applies; see BaseNode */
     declaredAccessRestrictions?: string;
 }
@@ -225,6 +229,10 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
     /** see BaseNode.releaseStatus; only set when the nodeset declared one, so that it costs
      * nothing on the overwhelming majority of nodes, which are Released */
     public releaseStatus?: "Draft" | "Deprecated";
+    /** see BaseNode.nodesetDocumentation; only set when the nodeset declared one */
+    public nodesetDocumentation?: string;
+    /** see BaseNode.nodesetCategory; only set when the nodeset declared at least one */
+    public nodesetCategory?: string[];
     /** see BaseNode.declaredAccessRestrictions */
     public declaredAccessRestrictions?: string;
     private _accessRestrictions?: AccessRestrictionsFlag;
@@ -444,6 +452,12 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         this._rolePermissions = coerceRolePermissions(options.rolePermissions);
         if (options.releaseStatus) {
             this.releaseStatus = options.releaseStatus;
+        }
+        if (options.nodesetDocumentation) {
+            this.nodesetDocumentation = options.nodesetDocumentation;
+        }
+        if (options.nodesetCategory && options.nodesetCategory.length > 0) {
+            this.nodesetCategory = [...options.nodesetCategory];
         }
         if (options.parentNodeId) {
             _private._declaredParentNodeId =

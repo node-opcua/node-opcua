@@ -1,4 +1,22 @@
 
+A node keeps the `<Documentation>` link and the `<Category>` elements of its nodeset
+==================================================================================
+
+  - `BaseNode` gains two optional fields, `nodesetDocumentation?: string` and
+    `nodesetCategory?: string[]`. A NodeSet2 document states, for many nodes, where the
+    specification defines them (`https://reference.opcfoundation.org/...`) and which conformance
+    units they belong to. The loader read both and the node forgot them, so nothing that works on
+    a loaded address space could see them, and `toNodeset2XML()` wrote a document without them:
+    DI lost 79 links, Machinery 17.
+  - `toNodeset2XML()` and the record walk now write them back, in the order the schema requires
+    (Description, Category, Documentation, References). An exported document therefore differs from
+    what 2.185 wrote for any namespace that declares them; for the others it is byte-identical.
+  - they are not named `documentation` and `category` because the children of a node are reachable
+    as properties under their browse name: DI's `ISupportInfoType` has a `Documentation` folder and
+    I4AAS has types with a `Category` property.
+  - unchanged: neither is an OPC UA attribute and no service exposes them. They are set only on
+    the nodes whose document declared them, and an instance does not inherit them from its type.
+
 Nodeset packages load fewer files at startup, and need TypeScript 5.0 to compile against
 =======================================================================================
 
