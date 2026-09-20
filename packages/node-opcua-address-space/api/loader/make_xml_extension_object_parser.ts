@@ -32,6 +32,16 @@ const warningLog = make_warningLog("make_xml_extension_object_parser");
 const debugLog = make_debugLog("make_xml_extension_object_parser");
 const doDebug = checkDebugFlag("make_xml_extension_object_parser");
 
+/**
+ * a StructureDefinition field name / DataType browseName drawn from a loaded NodeSet2 XML file or a
+ * client-decoded server type dictionary, onto a plain XML sub-parser dispatch table -
+ * Object.defineProperty rather than `obj[key] = value`, because for key === "__proto__" the bracket
+ * form does not create a data property at all: it invokes [[SetPrototypeOf]] and reparents `obj`.
+ */
+function setKey<T>(obj: Record<string, T>, key: string, value: T): void {
+    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
+}
+
 // textual form of an ExpandedNodeId, as found in <ExpandedNodeId><Identifier>...</Identifier></ExpandedNodeId>:
 // an optional server index, an optional namespace uri, then a plain nodeId. see OPC UA part 6.
 const regexServerIndex = /^svr=([0-9]+);(.*)$/;
@@ -384,7 +394,7 @@ function _makeTypeReader(
                     throw new Error(`??? ${field.dataType}  ${field.name}`);
                 }
 
-                readerParser[field.name || ""] = {
+                setKey(readerParser, field.name || "", {
                     parser: fieldParser.parser,
                     // the field reader borrows the partial's sub-parsers: it must borrow its init
                     // too, or the state those sub-parsers write into is never set up.
@@ -405,7 +415,7 @@ function _makeTypeReader(
                         this.parent.value = this.parent.value || Object.create(null);
                         (this.parent.value as Record<string, unknown>)[elName] = _clone(this.value);
                     }
-                };
+                });
             } else if (field.valueRank === 1) {
                 const listReader: ReaderStateParserLike = {
                     init(this: AnyParserState) {
@@ -431,8 +441,8 @@ function _makeTypeReader(
                 if (!listReaderParser) {
                     throw new Error("internal error: listReader.parser must be defined");
                 }
-                listReaderParser[fieldTypename] = fieldParser;
-                readerParser[field.name || ""] = listReader;
+                setKey(listReaderParser, fieldTypename, fieldParser);
+                setKey(readerParser, field.name || "", listReader);
             } else {
                 throw new Error("Unsupported ValueRank !");
             }
@@ -512,7 +522,7 @@ export function makeXmlExtensionObjectReader(
     if (!reader1Parser) {
         throw new Error("internal error: reader1.parser must be defined");
     }
-    reader1Parser[name] = reader as unknown as AnyParserState;
+    setKey(reader1Parser, name, reader as unknown as AnyParserState);
 
     return new ReaderState(reader1 as unknown as ReaderStateParser);
 }

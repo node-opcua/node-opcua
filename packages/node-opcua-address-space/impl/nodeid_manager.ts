@@ -109,6 +109,16 @@ export interface ConstructNodeIdOptions {
 export type NodeEntry = [string, number, NodeClass];
 export type NodeEntry1 = [string, number, string /*"Object" | "Variable" etc...*/];
 
+/**
+ * a symbolic name drawn from `setSymbols()` input or a browseName while constructing node ids from
+ * a loaded/reverse-engineered nodeset, onto the namespace's long-lived plain-object cache -
+ * Object.defineProperty rather than `obj[key] = value`, because for key === "__proto__" the bracket
+ * form does not create a data property at all: it invokes [[SetPrototypeOf]] and reparents `obj`.
+ */
+function setKey(obj: { [key: string]: [number, NodeClass] }, key: string, value: [number, NodeClass]): void {
+    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
+}
+
 export class NodeIdManager {
     private _cacheSymbolicName: { [key: string]: [number, NodeClass] } = {};
     private _cacheSymbolicNameRev: Set<number> = new Set<number>();
@@ -146,7 +156,7 @@ export class NodeIdManager {
             NodeClass
         ][];
         for (const [name, value, nodeClass] of symbols2) {
-            this._cacheSymbolicName[name] = [value, nodeClass];
+            setKey(this._cacheSymbolicName, name, [value, nodeClass]);
             this._cacheSymbolicNameRev.add(value);
         }
     }
@@ -209,7 +219,7 @@ export class NodeIdManager {
             }
             const nodeId = this._constructNodeId(options);
             if (nodeId.identifierType === NodeIdType.NUMERIC && !cached) {
-                this._cacheSymbolicName[fullName] = [nodeId.value as number, options.nodeClass || NodeClass.Unspecified];
+                setKey(this._cacheSymbolicName, fullName, [nodeId.value as number, options.nodeClass || NodeClass.Unspecified]);
                 this._cacheSymbolicNameRev.add(nodeId.value as number);
             }
             return nodeId;
@@ -228,7 +238,7 @@ export class NodeIdManager {
             }
             const fullName = compose(fullParentName, prepareName(options.browseName));
             if (!this._cacheSymbolicName[fullName]) {
-                this._cacheSymbolicName[fullName] = [nodeId.value as number, options.nodeClass || NodeClass.Unspecified];
+                setKey(this._cacheSymbolicName, fullName, [nodeId.value as number, options.nodeClass || NodeClass.Unspecified]);
                 this._cacheSymbolicNameRev.add(nodeId.value as number);
             }
         }
