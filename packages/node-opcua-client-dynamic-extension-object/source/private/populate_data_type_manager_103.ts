@@ -40,6 +40,17 @@ const debugLog = make_debugLog("populate_data_type_manager_103");
 const errorLog = make_errorLog("populate_data_type_manager_103");
 const warningLog = make_warningLog("populate_data_type_manager_103");
 
+/**
+ * a namespace URI / xmlns prefix / browseName, straight off a server-supplied TypeDictionary,
+ * onto a plain lookup object - Object.defineProperty rather than `obj[key] = value`, because for
+ * key === "__proto__" the bracket form does not create a data property at all: it invokes
+ * [[SetPrototypeOf]] and reparents `obj`. The server that provides these names is not assumed
+ * trustworthy here, only reachable.
+ */
+function setKey<T>(obj: Record<string, T>, key: string, value: T): void {
+    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
+}
+
 // DataType
 //    | 1
 //    | n
@@ -466,7 +477,7 @@ async function _extractNodeIds(
         if (!dataTypeDescription.browseName.name || !dataTypeDescription.encodings) {
             continue;
         }
-        map[dataTypeDescription.browseName.name.toString()] = dataTypeDescription.encodings;
+        setKey(map, dataTypeDescription.browseName.name.toString(), dataTypeDescription.encodings);
     }
 
     return {
@@ -778,7 +789,7 @@ export async function populateDataTypeManager103(
                         const r = extraNamespaceRef(attribute);
                         if (r) {
                             const { xmlns, namespace } = r;
-                            nsKeyNamespace[xmlns] = namespace;
+                            setKey(nsKeyNamespace, xmlns, namespace);
                             // c8 ignore next
                             doDebug && debugLog("xxxx ns= ", xmlns, "=>", namespace);
                         }
@@ -786,14 +797,14 @@ export async function populateDataTypeManager103(
                     info.dependencies = nsKeyNamespace;
                     // c8 ignore next
                     doDebug && debugLog("xxx targetNamespace = ", info.targetNamespace);
-                    innerMap[info.targetNamespace] = info;
+                    setKey(innerMap, info.targetNamespace, info);
                 }
             } else {
                 // may be 1.04 => the rawSchema is no more needed in new version
                 info.targetNamespace = namespaceArray[dataTypeDictionaryNodeId.namespace];
                 // c8 ignore next
                 doDebug && debugLog("xxx targetNamespace = ", info.targetNamespace);
-                innerMap[info.targetNamespace] = info;
+                setKey(innerMap, info.targetNamespace, info);
             }
             // assert(info.targetNamespace.length !== 0);
         };
@@ -807,7 +818,7 @@ export async function populateDataTypeManager103(
             if (visited[d.targetNamespace]) {
                 return;
             }
-            visited[d.targetNamespace] = 1;
+            setKey(visited, d.targetNamespace, 1);
             for (const [_xmlns, namespace] of Object.entries(d.dependencies)) {
                 if (!innerMap[namespace] || namespace === d.targetNamespace) {
                     continue;
@@ -831,7 +842,7 @@ export async function populateDataTypeManager103(
     const map: { [key: string]: TypeDictionaryInfo } = {};
     const map2: { [key: string]: DataTypeFactory[] } = {};
     for (const d of dataTypeDictionaryInfo) {
-        map[d.targetNamespace] = d;
+        setKey(map, d.targetNamespace, d);
 
         doDebug &&
             debugLog(
@@ -864,7 +875,7 @@ export async function populateDataTypeManager103(
             }
         }
         doDebug && debugLog("    baseDataFactories = ", baseDataFactories.map((f) => f.targetNamespace).join(" "));
-        map2[d.targetNamespace] = baseDataFactories;
+        setKey(map2, d.targetNamespace, baseDataFactories);
     }
 
     namespaceArray = dataTypeManager.namespaceArray;
