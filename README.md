@@ -114,7 +114,11 @@ npx node-opcua-modeler-mcp-server
 
 ### OPC UA Modeler
 
-**[OPC UA Modeler](https://opcua-modeler.sterfive.com)** — Create, validate, and generate OPC UA information models using a YAML-first workflow with full companion spec support.
+**[OPC UA Modeler](https://github.com/node-opcua/opcua-modeler)** — Designing an information model? Write it in YAML, get standard NodeSet2.xml: create, validate, and generate OPC UA information models with full companion spec support, then load the result with `nodeset_filename`.
+
+- [Open specification, JSON Schema and example models](https://github.com/node-opcua/opcua-modeler) on GitHub
+- [Online NodeSet2 editor](https://opcua-modeler.sterfive.io) — nothing to install
+- [Documentation](https://opcua-modeler.doc.sterfive.com/), starting with [How to create a NodeSet2.xml file](https://opcua-modeler.doc.sterfive.com/docs/guides/create-nodeset2-xml)
 
 ## Supported Features
 
