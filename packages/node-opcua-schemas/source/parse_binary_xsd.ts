@@ -60,11 +60,12 @@ export class InternalTypeDictionary implements ITypeDictionary {
     public defaultByteOrder = "";
     public imports: string[] = [];
 
-    private structuredTypesRaw: Record<string, StructureTypeRaw> = {};
-    private enumeratedTypesRaw: Record<string, EnumeratedType> = {};
+    // no prototype: a lookup by a name taken from the dictionary must never find an inherited member
+    private structuredTypesRaw: Record<string, StructureTypeRaw> = Object.create(null);
+    private enumeratedTypesRaw: Record<string, EnumeratedType> = Object.create(null);
 
     // tns: "http://opcfoundation.org/a/b"
-    public _namespaces: Record<string, string> = {};
+    public _namespaces: Record<string, string> = Object.create(null);
     public addEnumeration(name: string, e: EnumeratedType): void {
         setKey(this.enumeratedTypesRaw, name, e);
     }
@@ -366,7 +367,7 @@ export async function parseBinaryXSD(
     // create area in navigation order
     function createExplorationOrder(): StructureTypeRaw[] {
         const array: StructureTypeRaw[] = [];
-        const _map: Record<string, string> = {};
+        const _map: Record<string, string> = Object.create(null);
         function alreadyVisited(name: string) {
             name = name.split(":")[1] || name;
             return !!_map[name];

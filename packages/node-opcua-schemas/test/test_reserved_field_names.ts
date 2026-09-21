@@ -66,4 +66,20 @@ describe("dynamic extension object - reserved structure field names", () => {
         // no global pollution
         should((Object.prototype as unknown as Record<string, unknown>).__evil).eql(undefined);
     });
+
+    it("refuses a field named constructor, which would shadow the class on every instance", () => {
+        should(() =>
+            build({
+                name: "EvilConstructor",
+                baseType: "ExtensionObject",
+                fields: [{ name: "constructor", fieldType: "opc:Int32" }]
+            })
+        ).throw(/Unsupported structure field name/);
+    });
+
+    it("does not resolve a type name to a member inherited from Object.prototype", () => {
+        const dictionary = new InternalTypeDictionary();
+        should(dictionary.getStructuredTypesRawByName("tns:constructor")).eql(undefined);
+        should(dictionary.getStructuredTypesRawByName("toString")).eql(undefined);
+    });
 });
