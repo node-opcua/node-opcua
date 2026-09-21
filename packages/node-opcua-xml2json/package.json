@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-xml2json",
     "type": "module",
-    "version": "2.184.1",
+    "version": "2.186.1",
     "description": "pure nodejs OPCUA SDK - module xml2json",
     "main": "dist/source/index.js",
     "types": "dist/source/index.d.ts",
@@ -18,7 +18,7 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.184.0",
-        "node-opcua-utils": "2.184.1",
+        "node-opcua-utils": "2.186.1",
         "xml-writer": "^1.7.0"
     },
     "author": "Etienne Rossignon",

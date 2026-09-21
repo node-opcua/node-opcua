@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-service-session",
     "type": "module",
-    "version": "2.185.0",
+    "version": "2.186.1",
     "description": "pure nodejs OPCUA SDK - module service-session",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -15,11 +15,11 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-factory": "2.185.0",
-        "node-opcua-types": "2.185.0"
+        "node-opcua-factory": "2.186.1",
+        "node-opcua-types": "2.186.1"
     },
     "devDependencies": {
-        "node-opcua-service-endpoints": "2.185.0"
+        "node-opcua-service-endpoints": "2.186.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

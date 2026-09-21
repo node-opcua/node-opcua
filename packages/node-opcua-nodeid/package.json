@@ -3,7 +3,7 @@
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.185.0",
+    "version": "2.186.1",
     "description": "pure nodejs OPCUA SDK - module nodeid",
     "scripts": {
         "build": "tsc -b",
@@ -21,7 +21,7 @@
         "node-opcua-guid": "2.184.0"
     },
     "devDependencies": {
-        "node-opcua-benchmarker": "2.184.1",
+        "node-opcua-benchmarker": "2.186.1",
         "node-opcua-debug": "2.184.0"
     },
     "author": "Etienne Rossignon",
