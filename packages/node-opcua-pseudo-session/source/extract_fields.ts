@@ -40,7 +40,8 @@ export async function extractFields(
     session: ISessionForExtractField,
     nodeId: NodeIdLike
 ): Promise<{ path: QualifiedName[]; nodeId: NodeId }[]> {
-    const _duplicateMap: Record<string, QualifiedName[]> = {};
+    // no prototype: the key is a browse path the server chose, and must not match an inherited member
+    const _duplicateMap: Record<string, QualifiedName[]> = Object.create(null);
 
     const fields1: { path: QualifiedName[]; nodeId: NodeId }[] = [];
 
