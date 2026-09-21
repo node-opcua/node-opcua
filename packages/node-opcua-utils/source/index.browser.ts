@@ -37,6 +37,7 @@ export { randomBytes } from "./nodejs/random_bytes.browser.js";
 export { getObjectClassName } from "./object_classname.js";
 export { replaceBufferWithHexDump } from "./replace_buffer_with_hex_dump.js";
 export { setDeprecated } from "./set_deprecated.js";
+export { setOwnProperty } from "./set_own_property.js";
 export { capitalizeFirstLetter, lowerFirstLetter } from "./string_utils.js";
 export * from "./timestamp.js";
 export * from "./watchdog.js";

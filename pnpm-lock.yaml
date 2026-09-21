@@ -1279,6 +1279,9 @@ importers:
       node-opcua-types:
         specifier: 2.185.0
         version: link:../node-opcua-types
+      node-opcua-utils:
+        specifier: 2.184.1
+        version: link:../node-opcua-utils
       node-opcua-variant:
         specifier: 2.185.0
         version: link:../node-opcua-variant
@@ -4313,6 +4316,9 @@ importers:
       node-opcua-nodeid:
         specifier: 2.185.0
         version: link:../node-opcua-nodeid
+      node-opcua-utils:
+        specifier: 2.184.1
+        version: link:../node-opcua-utils
       node-opcua-variant:
         specifier: 2.185.0
         version: link:../node-opcua-variant
@@ -4341,6 +4347,9 @@ importers:
       node-opcua-service-browse:
         specifier: 2.185.0
         version: link:../node-opcua-service-browse
+      node-opcua-utils:
+        specifier: 2.184.1
+        version: link:../node-opcua-utils
       node-opcua-variant:
         specifier: 2.185.0
         version: link:../node-opcua-variant

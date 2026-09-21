@@ -10,23 +10,13 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import type { ReferenceDescription } from "node-opcua-service-browse";
 import { type Argument, CallMethodRequest } from "node-opcua-service-call";
-import { lowerFirstLetter } from "node-opcua-utils";
+import { lowerFirstLetter, setOwnProperty } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 import { makeRefId } from "./proxy.js";
 import type { ArgumentEx, MethodDescription, ProxyBaseNode } from "./proxy_base_node.js";
 import type { UAProxyManager } from "./proxy_manager.js";
 import { ProxyVariable } from "./proxy_variable.js";
-
-/**
- * a server-supplied browseName/method name onto an object - Object.defineProperty rather
- * than `obj[key] = value`, because for key === "__proto__" the bracket form does not
- * create a data property at all: it invokes [[SetPrototypeOf]] and reparents `obj`. The
- * server providing these names is not assumed trustworthy here, only reachable.
- */
-function setKey(obj: Record<string, unknown>, key: string, value: unknown): void {
-    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
-}
 
 const doDebug = false;
 const debugLog = make_debugLog("Proxy");
@@ -191,7 +181,7 @@ function makeFunction(obj: ProxyNodeUnderConstruction, methodName: string) {
         methodDef.outputArguments.forEach((arg: Argument, index: number) => {
             const variant = callResult?.outputArguments?.[index];
             const propName = lowerFirstLetter(arg.name || "");
-            setKey(output, propName, variant?.value);
+            setOwnProperty(output, propName, variant?.value);
         });
 
         return { statusCode: callResult.statusCode, output };
@@ -245,7 +235,7 @@ async function add_method(
         inputArguments,
         outputArguments
     };
-    setKey(obj.$methods as unknown as Record<string, unknown>, methodName, methodObj);
+    setOwnProperty(obj.$methods as unknown as Record<string, unknown>, methodName, methodObj);
     // the callable is also exposed directly as obj[methodName](...), decorated with the
     // same input/output argument metadata carried by methodObj, for convenience.
     const callableMethod = methodObj.func as MethodDescription["func"] & {
@@ -254,7 +244,7 @@ async function add_method(
     };
     callableMethod.inputArguments = inputArguments;
     callableMethod.outputArguments = outputArguments;
-    setKey(obj as unknown as Record<string, unknown>, methodName, callableMethod);
+    setOwnProperty(obj as unknown as Record<string, unknown>, methodName, callableMethod);
 
     doDebug && debugLog("installing method name", methodName);
     await proxyManager._monitor_execution_flag(methodObj);
@@ -273,7 +263,7 @@ async function add_component(
         parent: obj,
         proxyManager
     });
-    setKey(obj as unknown as Record<string, unknown>, name, childObj);
+    setOwnProperty(obj as unknown as Record<string, unknown>, name, childObj);
     // childObj is an unresolved placeholder here; $resolve() below pushes the real,
     // fully-typed ProxyNode once the child has been fetched.
     obj.$components.push(childObj as unknown as ProxyNode);
@@ -294,7 +284,7 @@ async function addFolderElement(
         proxyManager
     });
 
-    setKey(obj as unknown as Record<string, unknown>, name, childObj);
+    setOwnProperty(obj as unknown as Record<string, unknown>, name, childObj);
     // childObj is an unresolved placeholder here; $resolve() below pushes the real,
     // fully-typed ProxyNode once the child has been fetched.
     obj.$organizes.push(childObj as unknown as ProxyNode);
@@ -309,8 +299,8 @@ async function add_property(
     const name = lowerFirstLetter(reference.browseName.name || "");
 
     const propertyNode = new ProxyVariable(proxyManager, reference.nodeId, reference);
-    setKey(obj as unknown as Record<string, unknown>, name, propertyNode);
-    setKey(obj.$properties as unknown as Record<string, unknown>, name, propertyNode);
+    setOwnProperty(obj as unknown as Record<string, unknown>, name, propertyNode);
+    setOwnProperty(obj.$properties as unknown as Record<string, unknown>, name, propertyNode);
 }
 
 async function add_typeDefinition(
@@ -359,7 +349,7 @@ export class ObjectExplorer {
 
     public async $resolve(): Promise<void> {
         const childObj = await this.proxyManager.getObject(this.nodeId);
-        setKey(this.parent as unknown as Record<string, unknown>, this.name, childObj);
+        setOwnProperty(this.parent as unknown as Record<string, unknown>, this.name, childObj);
         this.parent.$components.push(childObj);
     }
 }

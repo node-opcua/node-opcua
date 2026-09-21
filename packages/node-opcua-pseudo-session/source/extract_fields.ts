@@ -3,6 +3,7 @@ import { make_debugLog } from "node-opcua-debug";
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { BrowseDescriptionOptions } from "node-opcua-service-browse";
 import { NodeClass } from "node-opcua-types";
+import { setOwnProperty } from "node-opcua-utils";
 import type {
     IBasicSessionBrowseAsyncMultiple,
     IBasicSessionBrowseAsyncSimple,
@@ -11,15 +12,6 @@ import type {
 
 const doDebug = false;
 const debugLog = make_debugLog("extract_fields");
-
-/**
- * a server-supplied BrowseName-derived key onto a plain object - Object.defineProperty
- * rather than `obj[key] = value`, because for key === "__proto__" the bracket form does
- * not create a data property at all: it invokes [[SetPrototypeOf]] and reparents `obj`.
- */
-function setKey<T>(obj: Record<string, T>, key: string, value: T): void {
-    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
-}
 
 export type ISessionForExtractField = IBasicSessionBrowseAsyncSimple &
     IBasicSessionBrowseAsyncMultiple &
@@ -54,7 +46,7 @@ export async function extractFields(
 
         if (!_duplicateMap[key]) {
             fields1.push({ path: e, nodeId });
-            setKey(_duplicateMap, key, e);
+            setOwnProperty(_duplicateMap, key, e);
         }
     }
 

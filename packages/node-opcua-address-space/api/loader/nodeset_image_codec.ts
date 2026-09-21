@@ -42,6 +42,7 @@ import type { ExtensionObject } from "node-opcua-extension-object";
 import { ExpandedNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { coerceStatusCode, StatusCode } from "node-opcua-status-code";
 import { Argument, EnumValueType, EUInformation } from "node-opcua-types";
+import { setOwnProperty } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, type VariantOptions } from "node-opcua-variant";
 import {
     NODESET_RECORD_SCHEMA,
@@ -66,16 +67,6 @@ export type JsonQualifiedName = [number, string];
 
 /** what a corrupt or foreign image raises; the loader discards such an image and rebuilds it */
 export class NodesetImageError extends Error {}
-
-/**
- * an alias name ultimately drawn from `<Alias Alias="...">` in a NodeSet2 XML file, onto a plain
- * alias table - Object.defineProperty rather than `obj[key] = value`, because for key === "__proto__"
- * the bracket form does not create a data property at all: it invokes [[SetPrototypeOf]] and
- * reparents `obj`.
- */
-function setKey<T>(obj: Record<string, T>, key: string, value: T): void {
-    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
-}
 
 // #region ids
 const KIND_OF_TYPE: Record<number, "i" | "s" | "g" | "b"> = {
@@ -481,7 +472,7 @@ const decodeDateOrInvalid = (iso: string | null | undefined): Date => (iso ? new
 export function encodeHeader(record: NodesetHeaderRecord, options: EncodeHeaderOptions = {}): NodesetImageHeader {
     const aliases: Record<string, JsonNodeId> = {};
     for (const [name, nodeId] of Object.entries(record.aliases)) {
-        setKey(aliases, name, encodeNodeId(nodeId));
+        setOwnProperty(aliases, name, encodeNodeId(nodeId));
     }
     const header: NodesetImageHeader = {
         kind: "header",
@@ -520,7 +511,7 @@ export function decodeHeader(json: NodesetImageHeader): NodesetHeaderRecord {
     }
     const aliases: Record<string, NodeId> = {};
     for (const [name, id] of Object.entries(json.aliases || {})) {
-        setKey(aliases, name, decodeNodeId(id));
+        setOwnProperty(aliases, name, decodeNodeId(id));
     }
     const models: NodesetModelRecord[] = (json.models || []).map((m) => {
         const model: NodesetModelRecord = {

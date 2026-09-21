@@ -19,22 +19,12 @@ import {
     type StructuredTypeField
 } from "node-opcua-factory";
 import { coerceNodeId, ExpandedNodeId, type NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
+import { setOwnProperty } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 
 const debugLog = make_debugLog("dynamic_extension_object");
 const errorLog = make_errorLog("dynamic_extension_object");
 const doDebug = checkDebugFlag("dynamic_extension_object");
-
-// Field names come from a StructureDefinition that may originate from a remote
-// peer. A plain `obj[name] = value` assignment gives special meaning to the keys
-// "__proto__", "constructor" and "prototype": for "__proto__" it invokes
-// [[SetPrototypeOf]] on the instance instead of creating a data property, which
-// would silently detach the object from its class prototype. Writing through
-// Object.defineProperty always creates a genuine own data property, whatever the
-// name, so the field is stored as intended and the instance keeps its methods.
-function setFieldValue(obj: Record<string, unknown>, name: string, value: unknown): void {
-    Object.defineProperty(obj, name, { value, writable: true, enumerable: true, configurable: true });
-}
 
 function associateEncoding(
     dataTypeFactory: DataTypeFactory,
@@ -191,17 +181,17 @@ function decodeArrayOrElement(
         const array = [];
         const nbElements = stream.readUInt32();
         if (nbElements === 0xffffffff) {
-            setFieldValue(obj, field.name, null);
+            setOwnProperty(obj, field.name, null);
         } else {
             stream.checkArrayLength(nbElements);
             for (let i = 0; i < nbElements; i++) {
                 const element = decodeElement(dataTypeFactory, field, stream, decodeFunc);
                 array.push(element);
             }
-            setFieldValue(obj, field.name, array);
+            setOwnProperty(obj, field.name, array);
         }
     } else {
-        setFieldValue(obj, field.name, decodeElement(dataTypeFactory, field, stream, decodeFunc));
+        setOwnProperty(obj, field.name, decodeElement(dataTypeFactory, field, stream, decodeFunc));
     }
 }
 
@@ -362,14 +352,14 @@ function initializeField(
             if (field.allowSubTypes) {
                 validateSubTypeA(dataTypeFactory, field, value);
 
-                setFieldValue(thisAny, name, coerceExtensionObject(dataTypeFactory, field, value, { allowSubTypes: true }));
+                setOwnProperty(thisAny, name, coerceExtensionObject(dataTypeFactory, field, value, { allowSubTypes: true }));
             } else {
                 const hasStructure = dataTypeFactory.hasStructureByTypeName(field.fieldType);
                 // We could have a structure or a enumeration
                 if (!hasStructure) {
-                    setFieldValue(thisAny, name, coerceEnumeration(dataTypeFactory, field, value));
+                    setOwnProperty(thisAny, name, coerceEnumeration(dataTypeFactory, field, value));
                 } else {
-                    setFieldValue(thisAny, name, coerceExtensionObject(dataTypeFactory, field, value));
+                    setOwnProperty(thisAny, name, coerceExtensionObject(dataTypeFactory, field, value));
                 }
             }
             break;
@@ -380,9 +370,9 @@ function initializeField(
                 validateSubTypeA(dataTypeFactory, field, value);
             }
             if (field.isArray) {
-                setFieldValue(thisAny, name, initialize_field_array(field, value, dataTypeFactory));
+                setOwnProperty(thisAny, name, initialize_field_array(field, value, dataTypeFactory));
             } else {
-                setFieldValue(thisAny, name, initialize_field(field, value, dataTypeFactory));
+                setOwnProperty(thisAny, name, initialize_field(field, value, dataTypeFactory));
             }
             break;
     }
@@ -415,7 +405,7 @@ function initializeFields(
 
         // dealing with optional fields
         if (field.switchBit !== undefined && value === undefined) {
-            setFieldValue(thisAny, name, undefined);
+            setOwnProperty(thisAny, name, undefined);
             continue;
         }
         initializeField(field, thisAny, options, schema, dataTypeFactory);
@@ -514,7 +504,7 @@ function internal_decodeFields(
         // ignore fields that have a switch bit when bit is not set
         if (hasOptionalFields && field.switchBit !== undefined) {
             if ((bitField & (1 << field.switchBit)) === 0) {
-                setFieldValue(thisAny, field.name, undefined);
+                setOwnProperty(thisAny, field.name, undefined);
                 continue;
             } else {
                 if (field.category === FieldCategory.complex && thisAny[field.name] === undefined) {
@@ -596,7 +586,7 @@ function encodeToJson(thisAny: Record<string, unknown>, schema: IStructuredTypeS
         if (value === undefined) {
             continue;
         }
-        setFieldValue(pojo, field.name, fieldToJSON(field, value));
+        setOwnProperty(pojo, field.name, fieldToJSON(field, value));
     }
 }
 

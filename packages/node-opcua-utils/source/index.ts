@@ -19,6 +19,7 @@ export { getObjectClassName } from "./object_classname.js";
 export { randomBytes } from "./random_bytes.js";
 export { replaceBufferWithHexDump } from "./replace_buffer_with_hex_dump.js";
 export { setDeprecated } from "./set_deprecated.js";
+export { setOwnProperty } from "./set_own_property.js";
 export { capitalizeFirstLetter, lowerFirstLetter } from "./string_utils.js";
 export * from "./timestamp.js";
 export * from "./watchdog.js";

@@ -21,6 +21,7 @@ import {
     type StructureFieldOptions,
     StructureType
 } from "node-opcua-types";
+import { setOwnProperty } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import type { ExtensionObjectConstructorFuncWithSchema } from "../api/interfaces/extension_object_constructor.js";
 import { SessionContext } from "../api/session_context.js";
@@ -36,16 +37,6 @@ import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_i
 
 const debugLog = make_debugLog("DATA_TYPE");
 const doDebug = checkDebugFlag("DATA_TYPE");
-
-/**
- * an EnumValueType/LocalizedText name drawn from a UADataType's EnumStrings/EnumValues, populated
- * from a decoded server response or loaded nodeset, onto the shared plain-object nameIndex map -
- * Object.defineProperty rather than `obj[key] = value`, because for key === "__proto__" the bracket
- * form does not create a data property at all: it invokes [[SetPrototypeOf]] and reparents `obj`.
- */
-function setKey(obj: { [id: string]: IEnumItem }, key: string, value: IEnumItem): void {
-    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
-}
 
 export interface StructureFieldOptionsEx extends StructureFieldOptions {
     allowSubTypes: boolean;
@@ -289,7 +280,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
             valueIndex: {}
         };
         for (const e of definition) {
-            setKey(indexes.nameIndex, e.name, e);
+            setOwnProperty(indexes.nameIndex, e.name, e);
             indexes.valueIndex[e.value] = e;
         }
         return indexes;

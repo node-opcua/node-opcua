@@ -45,7 +45,7 @@ import {
     type StructureDefinition,
     StructureType
 } from "node-opcua-types";
-import { isNullOrUndefined } from "node-opcua-utils";
+import { isNullOrUndefined, setOwnProperty } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, type VariantOptions } from "node-opcua-variant";
 import XMLWriter from "xml-writer";
 import { makeDefinitionMap } from "../../api/loader/decode_xml_extension_object.js";
@@ -84,16 +84,6 @@ import {
 } from "./nodeset_to_xml.js";
 
 const warningLog = make_warningLog("nodeset_to_records");
-
-/**
- * a DataType/ReferenceType browse name resolved from nodes in the address space, onto a plain
- * alias table - Object.defineProperty rather than `obj[key] = value`, because for key === "__proto__"
- * the bracket form does not create a data property at all: it invokes [[SetPrototypeOf]] and
- * reparents `obj`.
- */
-function setKey(obj: Record<string, NodeId>, key: string, value: NodeId): void {
-    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
-}
 
 export interface ToNodesetRecordsOptions {
     /**
@@ -284,14 +274,14 @@ class RecordExporter {
             if (nodeV.dataType && nodeV.dataType.value !== 0) {
                 const dataTypeName = this.b(this.resolveDataTypeName(nodeV.dataType));
                 if (dataTypeName && !aliases[dataTypeName]) {
-                    setKey(aliases, dataTypeName, this.t(nodeV.dataType));
+                    setOwnProperty(aliases, dataTypeName, this.t(nodeV.dataType));
                 }
             }
         }
         for (const reference of node.allReferences()) {
             const key = this.b(getReferenceType(reference).browseName);
             // the XML export overwrites a reference-type alias each time it meets it; same value every time
-            setKey(aliases, key, this.t(reference.referenceType));
+            setOwnProperty(aliases, key, this.t(reference.referenceType));
         }
     }
 

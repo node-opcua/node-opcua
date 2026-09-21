@@ -22,6 +22,7 @@ import { getStandardDataTypeFactory } from "node-opcua-factory";
 import type { ExtensionObjectBuilder, ExtensionObjectConstructorFuncWithSchema, VariantJSON105 } from "node-opcua-json";
 import { JsonEncoderMode105, opcuaJsonDecodeVariant, opcuaJsonEncodeVariant105 } from "node-opcua-json";
 import type { NodeId } from "node-opcua-nodeid";
+import { setOwnProperty } from "node-opcua-utils";
 import { Variant, type VariantOptions } from "node-opcua-variant";
 import type { AnnexIVariant } from "./annex_i_types.js";
 
@@ -58,17 +59,6 @@ function isExtensionObject(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * a field name straight out of a parsed record onto a plain object - Object.defineProperty
- * rather than `obj[key] = value`, because for key === "__proto__" the bracket form does not
- * create a data property at all: it invokes [[SetPrototypeOf]] and reparents `obj`. A record
- * carrying a field literally named "__proto__" reaches this code from the raw nodeset2-JSON
- * being decoded, so the key is untrusted input, not a schema-known name.
- */
-function setField(obj: Record<string, unknown>, key: string, value: unknown): void {
-    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
-}
-
-/**
  * the same value with every inline ExtensionObject body moved into `UaBody`.
  *
  * Applied recursively: a structure may hold another, and an array of structures is the ordinary
@@ -88,7 +78,7 @@ function nestBodies(value: unknown): unknown {
     const body: Record<string, unknown> = {};
     for (const [key, field] of Object.entries(value)) {
         if (!RESERVED.has(key)) {
-            setField(body, key, nestBodies(field));
+            setOwnProperty(body, key, nestBodies(field));
         }
     }
     return { UaTypeId: value.UaTypeId, UaBody: body };
@@ -157,7 +147,7 @@ function inlineBodies(value: unknown): unknown {
     const body = value.UaBody as Record<string, unknown>;
     const out: Record<string, unknown> = { UaTypeId: value.UaTypeId };
     for (const [key, field] of Object.entries(body ?? {})) {
-        setField(out, key, inlineBodies(field));
+        setOwnProperty(out, key, inlineBodies(field));
     }
     return out;
 }

@@ -7,22 +7,12 @@ import { assert } from "node-opcua-assert";
 import { coerceExpandedNodeId, NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { type BrowsePath, BrowsePathResult } from "node-opcua-types";
-import { lowerFirstLetter } from "node-opcua-utils";
+import { lowerFirstLetter, setOwnProperty } from "node-opcua-utils";
 import { Variant, type VariantLike } from "node-opcua-variant";
 import type { EventField } from "./event_layout.js";
 
 type NodeIdString = string;
 type FullBrowsePath = string;
-
-/**
- * a field name drawn from event-type metadata (browse-path-derived, can come from a loaded
- * nodeset or a remote server's event-type description) onto a class instance - Object.defineProperty
- * rather than `obj[key] = value`, because for key === "__proto__" the bracket form does not create
- * a data property at all: it invokes [[SetPrototypeOf]] and reparents `obj`.
- */
-function setKey(obj: Record<string, unknown>, key: string, value: unknown): void {
-    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
-}
 
 /**
  */
@@ -59,7 +49,7 @@ export class EventData implements IEventData {
     /** the value of one field of the layout */
     public _setField(field: EventField, variant: VariantLike): void {
         const value = Variant.coerce(variant);
-        setKey(this as Record<string, unknown>, field.lowerName, value);
+        setOwnProperty(this as Record<string, unknown>, field.lowerName, value);
         if (!this.#sharedPaths) {
             this.#pathToNodeId.set(field.fullBrowsePath, field.node.nodeId);
         }

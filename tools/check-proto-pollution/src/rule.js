@@ -449,11 +449,11 @@ export function formatReport(result, baseline) {
     lines.push("a NodeSet file, a StructureField/browse name), this is a per-instance DoS (class");
     lines.push("instance) or Object.prototype pollution (plain object used as a map).");
     lines.push("");
-    lines.push("Fix it the way packages/node-opcua-schemas/source/dynamic_extension_object.ts does:");
-    lines.push("write through Object.defineProperty, or reject __proto__/constructor/prototype before");
-    lines.push("the key is used, the way convert_data_type_definition_to_structuretype_schema.ts's");
-    lines.push("createField() does. If you've reviewed this one and it's genuinely safe (numeric array");
-    lines.push("index the checker can't see, Object.create(null) target one level removed, etc.), mark it");
+    lines.push("Write it with setOwnProperty(obj, key, value) from node-opcua-utils, which always");
+    lines.push("creates an ordinary own property, or refuse the name before it is used. A table that is");
+    lines.push("also READ with such keys should have no prototype: Object.create(null), or a Map. If");
+    lines.push("you've reviewed this one and it's genuinely safe (a numeric index the checker can't");
+    lines.push("see, a null-prototype target one level removed, etc.), mark it");
     lines.push(`with a trailing comment "// ${IGNORE_MARKER} - <why>", or run --update to accept it into`);
     lines.push("the baseline as a reviewed, tracked exception.");
     return lines.join("\n");

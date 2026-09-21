@@ -13,8 +13,8 @@ import {
     type StructuredTypeOptions
 } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
+import { setOwnProperty } from "node-opcua-utils";
 import { type ReaderStateParser, Xml2Json, type XmlAttributes } from "node-opcua-xml2json";
-
 import { getOrCreateStructuredTypeSchema } from "./tools.js";
 
 const doDebug = checkDebugFlag("parse_binary_xsd");
@@ -22,16 +22,6 @@ const debugLog = make_debugLog("parse_binary_xsd");
 
 function w(s: string, l: number): string {
     return s.padEnd(l).substring(0, l);
-}
-
-/**
- * Writes a type name straight off a server-supplied TypeDictionary onto a per-connection map -
- * Object.defineProperty rather than `obj[key] = value`, because for key === "__proto__" the
- * bracket form does not create a data property at all: it invokes [[SetPrototypeOf]] and
- * reparents `obj`. The server providing these names is not assumed trustworthy here.
- */
-function setKey<T>(obj: Record<string, T>, key: string, value: T): void {
-    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
 }
 
 export interface EnumeratedType {
@@ -67,7 +57,7 @@ export class InternalTypeDictionary implements ITypeDictionary {
     // tns: "http://opcfoundation.org/a/b"
     public _namespaces: Record<string, string> = Object.create(null);
     public addEnumeration(name: string, e: EnumeratedType): void {
-        setKey(this.enumeratedTypesRaw, name, e);
+        setOwnProperty(this.enumeratedTypesRaw, name, e);
     }
     public getEnumerations(): EnumeratedType[] {
         return Object.values(this.enumeratedTypesRaw);
@@ -76,7 +66,7 @@ export class InternalTypeDictionary implements ITypeDictionary {
         return Object.values(this.structuredTypesRaw);
     }
     public addStructureRaw(structuredType: StructureTypeRaw): void {
-        setKey(this.structuredTypesRaw, structuredType.name, structuredType);
+        setOwnProperty(this.structuredTypesRaw, structuredType.name, structuredType);
     }
     public getStructuredTypesRawByName(name: string): StructureTypeRaw | undefined {
         name = name.split(":")[1] || name;
@@ -128,8 +118,8 @@ const state0: ReaderStateParser = {
                 for (const [k, v] of Object.entries(attributes)) {
                     if (k.match(/xmlns:/)) {
                         const ns = k.split(":")[1];
-                        setKey(this.typeDictionary._namespaces, ns, v);
-                        setKey(this.typeDictionary._namespaces, v, ns);
+                        setOwnProperty(this.typeDictionary._namespaces, ns, v);
+                        setOwnProperty(this.typeDictionary._namespaces, v, ns);
                     }
                 }
             },
@@ -184,8 +174,8 @@ const state0: ReaderStateParser = {
                                 const value = parseInt(this.attrs.Value, 10);
                                 const _enum = this.parent.enumeratedType.enumeratedValues;
                                 // bidirectional enum map: name -> value and value -> name
-                                setKey(_enum, key, value);
-                                setKey(_enum, String(value), key);
+                                setOwnProperty(_enum, key, value);
+                                setOwnProperty(_enum, String(value), key);
                                 this.parent.typescriptDefinition += `\n  ${key} = ${value},`;
                             }
                         }
@@ -374,7 +364,7 @@ export async function parseBinaryXSD(
         }
         function markAsVisited(name: string) {
             name = name.split(":")[1] || name;
-            setKey(_map, name, "1");
+            setOwnProperty(_map, name, "1");
         }
         function visitStructure(structuredType: StructureTypeRaw) {
             if (!structuredType || structuredType.name === "ua:ExtensionObject") {

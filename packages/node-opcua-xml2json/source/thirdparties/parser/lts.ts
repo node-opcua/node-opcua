@@ -1,16 +1,7 @@
 import { EventEmitter } from "node:events";
+import { setOwnProperty } from "node-opcua-utils";
 import type { XmlAttributes } from "../../xml2json.js";
 import { unescapeXML } from "../escape.js";
-
-/**
- * a raw XML tag/attribute name onto a plain object - Object.defineProperty rather than
- * `obj[key] = value`, because for key === "__proto__" the bracket form does not create a
- * data property at all: it invokes [[SetPrototypeOf]] and reparents `obj`. The name comes
- * straight from unsanitized XML being parsed.
- */
-function setKey(obj: XmlAttributes, key: string, value: string): void {
-    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true });
-}
 
 const STATE_TEXT = 0;
 const STATE_IGNORE_COMMENT = 1;
@@ -328,7 +319,7 @@ export class SaxLtx extends EventEmitter {
                         if (c === attrQuote) {
                             const recorded = endRecording();
                             if (recorded !== undefined && attrName !== undefined) {
-                                setKey(attrs as XmlAttributes, attrName, unescapeXML(recorded));
+                                setOwnProperty(attrs as XmlAttributes, attrName, unescapeXML(recorded));
                             }
                             attrName = undefined;
                             state = STATE_TAG;

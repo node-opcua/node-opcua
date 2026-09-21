@@ -14,6 +14,18 @@ now writes through `Object.defineProperty` instead of `obj[name] = value`, and
 `packages/node-opcua-client-dynamic-extension-object/source/convert_data_type_definition_to_structuretype_schema.ts`'s
 `createField()` rejects the three dangerous names before they are ever used as a key.
 
+## The fix
+
+```ts
+import { setOwnProperty } from "node-opcua-utils";
+
+setOwnProperty(obj, key, value); // instead of obj[key] = value
+```
+
+It goes through `Object.defineProperty`, so the key always becomes an ordinary own
+property. For a table that is also *read* with outside keys, start from
+`Object.create(null)` or use a `Map`.
+
 ## What it checks
 
 Walks every `.ts` file under `packages/*` and `packages_extra/*` (skipping
