@@ -466,7 +466,8 @@ async function _extractNodeIds(
     session: IBasicSessionAsync2,
     dataTypeDictionaryNodeId: NodeId
 ): Promise<MapDataTypeAndEncodingIdProvider> {
-    const map: { [key: string]: DataTypeAndEncodingId } = {};
+    // no prototype: these maps are read with names the server chose
+    const map: { [key: string]: DataTypeAndEncodingId } = Object.create(null);
 
     const dataTypeDescriptions = await _getDataTypeDescriptions(session, dataTypeDictionaryNodeId);
 
@@ -736,7 +737,7 @@ export async function populateDataTypeManager103(
 
     async function putInCorrectOrder(): Promise<TypeDictionaryInfo[]> {
         const infos: TypeDictionaryInfo[] = [];
-        const innerMap: { [key: string]: TypeDictionaryInfo } = {};
+        const innerMap: { [key: string]: TypeDictionaryInfo } = Object.create(null);
 
         const innerF = async (reference: ReferenceDescription) => {
             const dataTypeDictionaryNodeId = reference.nodeId;
@@ -784,7 +785,7 @@ export async function populateDataTypeManager103(
 
                     info.targetNamespace = extractTargetNamespaceAttribute(typeDictionaryElementAttributes);
 
-                    const nsKeyNamespace: { [key: string]: string } = {};
+                    const nsKeyNamespace: { [key: string]: string } = Object.create(null);
                     for (const attribute of typeDictionaryElementAttributes.split(" ")) {
                         const r = extraNamespaceRef(attribute);
                         if (r) {
@@ -813,7 +814,7 @@ export async function populateDataTypeManager103(
 
         // ----------------------------------
         const orderedList: TypeDictionaryInfo[] = [];
-        const visited: Record<string, number> = {};
+        const visited: Record<string, number> = Object.create(null);
         function explore(d: TypeDictionaryInfo): void {
             if (visited[d.targetNamespace]) {
                 return;
@@ -839,8 +840,8 @@ export async function populateDataTypeManager103(
     const dataTypeDictionaryInfo = await putInCorrectOrder();
 
     // setup dependencies
-    const map: { [key: string]: TypeDictionaryInfo } = {};
-    const map2: { [key: string]: DataTypeFactory[] } = {};
+    const map: { [key: string]: TypeDictionaryInfo } = Object.create(null);
+    const map2: { [key: string]: DataTypeFactory[] } = Object.create(null);
     for (const d of dataTypeDictionaryInfo) {
         setKey(map, d.targetNamespace, d);
 
