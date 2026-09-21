@@ -54,8 +54,6 @@ const SKIP_PATH_SEGMENTS = ["/test/", "/tests/", "/fixtures/", "/examples/", "/e
 const SKIP_FILE_SUFFIXES = [".d.ts", "_enum.ts"];
 const SKIP_FILE_INFIXES = ["nodeids"];
 
-const DANGEROUS_KEYS = new Set(["__proto__", "constructor", "prototype"]);
-
 const ASSIGNMENT_OPERATORS = new Set([
     ts.SyntaxKind.EqualsToken,
     ts.SyntaxKind.PlusEqualsToken,
@@ -103,29 +101,63 @@ function isForLoopCounter(keyNode, sf) {
     return false;
 }
 
-/** the object expression was declared `= Object.create(null)` somewhere in this file */
-function buildNullProtoVars(sf) {
-    const vars = new Set();
+function isObjectCreateNull(init) {
+    const target = ts.isAsExpression(init) || ts.isSatisfiesExpression(init) ? init.expression : init;
+    return (
+        ts.isCallExpression(target) &&
+        ts.isPropertyAccessExpression(target.expression) &&
+        target.expression.name.text === "create" &&
+        ts.isIdentifier(target.expression.expression) &&
+        target.expression.expression.text === "Object" &&
+        target.arguments.length >= 1 &&
+        target.arguments[0].kind === ts.SyntaxKind.NullKeyword
+    );
+}
+
+const isScope = (n) => ts.isSourceFile(n) || ts.isBlock(n) || ts.isFunctionLike(n) || ts.isForStatement(n) || ts.isForOfStatement(n) || ts.isForInStatement(n) || ts.isCaseBlock(n) || ts.isModuleBlock(n);
+
+/** every binding of every name, with the scope that owns it: [{ scope, nullProto }] by name */
+function buildBindings(sf) {
+    const byName = new Map();
+    const add = (name, scope, nullProto) => {
+        if (!byName.has(name)) byName.set(name, []);
+        byName.get(name).push({ scope, nullProto });
+    };
     const visit = (n) => {
-        if (ts.isVariableDeclaration(n) && n.initializer && ts.isIdentifier(n.name)) {
-            const init = n.initializer;
-            const target = ts.isAsExpression(init) || ts.isSatisfiesExpression(init) ? init.expression : init;
-            if (
-                ts.isCallExpression(target) &&
-                ts.isPropertyAccessExpression(target.expression) &&
-                target.expression.name.text === "create" &&
-                ts.isIdentifier(target.expression.expression) &&
-                target.expression.expression.text === "Object" &&
-                target.arguments.length >= 1 &&
-                target.arguments[0].kind === ts.SyntaxKind.NullKeyword
-            ) {
-                vars.add(n.name.text);
-            }
+        if (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name)) {
+            add(n.name.text, ts.findAncestor(n.parent, isScope) ?? sf, !!n.initializer && isObjectCreateNull(n.initializer));
+        } else if (ts.isParameter(n) && ts.isIdentifier(n.name)) {
+            add(n.name.text, n.parent, false);
         }
         ts.forEachChild(n, visit);
     };
     ts.forEachChild(sf, visit);
-    return vars;
+    return byName;
+}
+
+/**
+ * Is the binding this use resolves to - the innermost one in scope, not any same-named variable
+ * elsewhere in the file - declared `= Object.create(null)`?
+ */
+function resolvesToNullProto(useNode, name, bindings) {
+    const candidates = bindings.get(name);
+    if (!candidates) return false;
+    for (let n = useNode.parent; n; n = n.parent) {
+        if (!isScope(n)) continue;
+        const here = candidates.filter((c) => c.scope === n);
+        if (here.length) return here.every((c) => c.nullProto);
+    }
+    return false;
+}
+
+/** `{ a: 1, b }` - no spread and no computed key, so no way to carry an own "__proto__" */
+function isPlainLiteral(node) {
+    return (
+        ts.isObjectLiteralExpression(node) &&
+        node.properties.every(
+            (p) => !ts.isSpreadAssignment(p) && !(p.name && ts.isComputedPropertyName(p.name)) && !(p.name && ts.isStringLiteralLike(p.name) && p.name.text === "__proto__")
+        )
+    );
 }
 
 function objectRootIdentifier(node) {
@@ -136,11 +168,56 @@ function objectRootIdentifier(node) {
     return ts.isIdentifier(n) ? n.text : null;
 }
 
-/** does the text of `node` mention the key identifier alongside a dangerous-key literal? */
-function textGuardsKey(node, keyName, text) {
-    const slice = text.slice(node.getStart(), node.getEnd());
-    if (!keyName || !slice.includes(keyName)) return false;
-    return [...DANGEROUS_KEYS].some((k) => slice.includes(`"${k}"`) || slice.includes(`'${k}'`));
+const EQUALITY = new Set([
+    ts.SyntaxKind.EqualsEqualsEqualsToken,
+    ts.SyntaxKind.ExclamationEqualsEqualsToken,
+    ts.SyntaxKind.EqualsEqualsToken,
+    ts.SyntaxKind.ExclamationEqualsToken
+]);
+
+/**
+ * Does this condition really test the key against "__proto__"?
+ *
+ * Either `key === "__proto__"` (any equality operator, either side), or `X.has(key)` /
+ * `X.includes(key)` where X is an array literal, or a variable of this file, that names
+ * "__proto__". It is the identifier that is matched, not its spelling inside another word, and
+ * "__proto__" is required: it is the one name with a setter behind it, so a check that only
+ * excludes "constructor" has not closed anything.
+ */
+function conditionGuardsKey(cond, keyName, sf, text) {
+    let found = false;
+    const isKey = (n) => ts.isIdentifier(n) && n.text === keyName;
+    const isProto = (n) => ts.isStringLiteralLike(n) && n.text === "__proto__";
+    const namesProto = (receiver) => {
+        if (ts.isArrayLiteralExpression(receiver)) return receiver.elements.some(isProto);
+        if (!ts.isIdentifier(receiver)) return false;
+        let ok = false;
+        const look = (n) => {
+            if (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name) && n.name.text === receiver.text && n.initializer) {
+                ok = ok || /["']__proto__["']/.test(text.slice(n.initializer.getStart(sf), n.initializer.getEnd()));
+            }
+            ts.forEachChild(n, look);
+        };
+        ts.forEachChild(sf, look);
+        return ok;
+    };
+    const visit = (n) => {
+        if (found) return;
+        if (ts.isBinaryExpression(n) && EQUALITY.has(n.operatorToken.kind)) {
+            if ((isKey(n.left) && isProto(n.right)) || (isKey(n.right) && isProto(n.left))) found = true;
+        } else if (
+            ts.isCallExpression(n) &&
+            ts.isPropertyAccessExpression(n.expression) &&
+            (n.expression.name.text === "has" || n.expression.name.text === "includes") &&
+            n.arguments.some(isKey) &&
+            namesProto(n.expression.expression)
+        ) {
+            found = true;
+        }
+        ts.forEachChild(n, visit);
+    };
+    visit(cond);
+    return found;
 }
 
 /**
@@ -148,7 +225,7 @@ function textGuardsKey(node, keyName, text) {
  * statement (`if (DANGEROUS.includes(key)) continue; obj[key] = v;` or
  * `if (key !== "__proto__") obj[key] = v;`).
  */
-function isGuardedByDenylistCheck(assignStmt, keyNode, text) {
+function isGuardedByDenylistCheck(assignStmt, keyNode, text, sf) {
     if (!ts.isIdentifier(keyNode)) return false;
     const keyName = keyNode.text;
 
@@ -156,10 +233,10 @@ function isGuardedByDenylistCheck(assignStmt, keyNode, text) {
     let n = assignStmt;
     while (n) {
         const p = n.parent;
-        if (p && ts.isIfStatement(p) && p.thenStatement === n && textGuardsKey(p.expression, keyName, text)) {
+        if (p && ts.isIfStatement(p) && p.thenStatement === n && conditionGuardsKey(p.expression, keyName, sf, text)) {
             return true;
         }
-        if (ts.isConditionalExpression(n) && textGuardsKey(n.condition, keyName, text)) return true;
+        if (ts.isConditionalExpression(n) && conditionGuardsKey(n.condition, keyName, sf, text)) return true;
         n = p;
     }
 
@@ -171,7 +248,7 @@ function isGuardedByDenylistCheck(assignStmt, keyNode, text) {
             if (stmt === assignStmt || stmt.getStart() >= assignStmt.getStart()) break;
             if (
                 ts.isIfStatement(stmt) &&
-                textGuardsKey(stmt.expression, keyName, text) &&
+                conditionGuardsKey(stmt.expression, keyName, sf, text) &&
                 stmt.thenStatement &&
                 /return|throw|continue|break/.test(stmt.thenStatement.getText())
             ) {
@@ -190,7 +267,7 @@ function isGuardedByDenylistCheck(assignStmt, keyNode, text) {
 export function findViolations(text, filePath) {
     const sf = parse(text, filePath);
     const lines = text.split("\n");
-    const nullProtoVars = buildNullProtoVars(sf);
+    const bindings = buildBindings(sf);
     const out = [];
 
     const visit = (node) => {
@@ -204,10 +281,10 @@ export function findViolations(text, filePath) {
 
             if (!isLiteralKey(keyNode) && !isForLoopCounter(keyNode, sf)) {
                 const rootId = objectRootIdentifier(access.expression);
-                const isNullProto = rootId && nullProtoVars.has(rootId);
+                const isNullProto = !!rootId && rootId === access.expression.getText(sf) && resolvesToNullProto(access, rootId, bindings);
                 const assignStmt = ts.findAncestor(node, ts.isExpressionStatement) ?? node;
 
-                if (!isNullProto && !isGuardedByDenylistCheck(assignStmt, keyNode, text)) {
+                if (!isNullProto && !isGuardedByDenylistCheck(assignStmt, keyNode, text, sf)) {
                     const { line } = ts.getLineAndCharacterOfPosition(sf, node.getStart(sf));
                     if (!(lines[line] ?? "").includes(IGNORE_MARKER)) {
                         out.push({
@@ -217,6 +294,35 @@ export function findViolations(text, filePath) {
                             objText: access.expression.getText(sf).slice(0, 60)
                         });
                     }
+                }
+            }
+        }
+        // Object.assign copies with [[Set]], so an own "__proto__" key on a source - which is what
+        // JSON.parse produces - reaches the setter exactly as a bracket write does. A literal
+        // source with plain keys cannot carry one; anything else can.
+        if (
+            ts.isCallExpression(node) &&
+            ts.isPropertyAccessExpression(node.expression) &&
+            node.expression.name.text === "assign" &&
+            ts.isIdentifier(node.expression.expression) &&
+            node.expression.expression.text === "Object" &&
+            node.arguments.length >= 2
+        ) {
+            const target = node.arguments[0];
+            const targetId = ts.isIdentifier(target) ? target.text : null;
+            const safeTarget =
+                (ts.isCallExpression(target) && isObjectCreateNull(target)) ||
+                (!!targetId && resolvesToNullProto(node, targetId, bindings));
+            const opaque = node.arguments.slice(1).filter((a) => !isPlainLiteral(a));
+            if (!safeTarget && opaque.length) {
+                const { line } = ts.getLineAndCharacterOfPosition(sf, node.getStart(sf));
+                if (!(lines[line] ?? "").includes(IGNORE_MARKER)) {
+                    out.push({
+                        line: line + 1,
+                        text: (lines[line] ?? "").trim().slice(0, 130),
+                        keyText: `...${opaque[0].getText(sf).slice(0, 50)}`,
+                        objText: `Object.assign(${target.getText(sf).slice(0, 40)}`
+                    });
                 }
             }
         }
@@ -271,16 +377,37 @@ export function analyze({ repoRoot = ".", packageFilter } = {}) {
     return { scanned: files.length, findings };
 }
 
+/** how many findings the baseline accepts under each key: { key: count } */
 export function currentBaseline(result) {
     const baseline = {};
     for (const f of result.findings) {
-        baseline[baselineKey(f.file, f)] = true;
+        const key = baselineKey(f.file, f);
+        baseline[key] = (baseline[key] ?? 0) + 1;
     }
     return baseline;
 }
 
+/**
+ * Findings beyond what the baseline accepts.
+ *
+ * The key carries no line number, so it survives edits above it; the COUNT is what stops a
+ * second write with the same text in the same file from riding in on the first one's entry.
+ * When a key is over its count every site under it is listed, since the tool cannot tell which
+ * of them is the newcomer.
+ */
 export function newFindings(result, baseline) {
-    return result.findings.filter((f) => !baseline[baselineKey(f.file, f)]);
+    const byKey = new Map();
+    for (const f of result.findings) {
+        const key = baselineKey(f.file, f);
+        if (!byKey.has(key)) byKey.set(key, []);
+        byKey.get(key).push(f);
+    }
+    const out = [];
+    for (const [key, list] of byKey) {
+        const accepted = baseline[key] === true ? 1 : (baseline[key] ?? 0);
+        if (list.length > accepted) out.push(...(accepted === 0 ? list : list.map((f) => ({ ...f, overCount: accepted }))));
+    }
+    return out.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
 }
 
 export function exitCode(result, baseline) {
@@ -311,7 +438,7 @@ export function formatReport(result, baseline) {
         ""
     );
     for (const f of fresh.slice(0, 40)) {
-        lines.push(`    ${f.file}:${f.line}  ${f.text}`);
+        lines.push(`    ${f.file}:${f.line}  ${f.text}${f.overCount ? `   (baseline accepts ${f.overCount} of these)` : ""}`);
     }
     if (fresh.length > 40) {
         lines.push(`    ... and ${fresh.length - 40} more`);

@@ -22,11 +22,28 @@ Walks every `.ts` file under `packages/*` and `packages_extra/*` (skipping
 
 - `key` is a string/numeric/no-substitution-template literal.
 - `key` is a `for (let i = 0; ...; i++)` loop counter (an array index, not a name).
-- `obj` was declared `= Object.create(null)` in the same file — no prototype to hit.
+- `obj` resolves to a binding declared `= Object.create(null)` — no prototype to hit.
 - `key` is denylist-checked against the three dangerous names earlier in the same
   block, or in the `if` guarding the write — the shape of the reference fix.
 - the write goes through `Object.defineProperty(...)` or a `Map`/`Set` — different
   syntax, not matched by this rule.
+
+`Object.assign(target, source)` is flagged too unless `source` is a literal with plain
+keys or `target` has no prototype: it copies with `[[Set]]`, so an own `"__proto__"` key
+on the source (which is what `JSON.parse` produces) reaches the same setter.
+
+Two details keep the exemptions honest. A guard counts only when the condition compares
+*that identifier* with `"__proto__"` (or passes it to `has()`/`includes()` on something
+that names `"__proto__"`); excluding only `"constructor"` closes nothing. And
+`Object.create(null)` exempts the binding the write resolves to, not every variable in
+the file that shares its name.
+
+The baseline stores a **count** per `file::object[key]`. No line number, so it survives
+edits above it; a count, so a second identical write in the same file is still new.
+
+Writes are only half of it: a plain `{}` *read* with an untrusted key finds inherited
+members (`map["constructor"]` is a function). This tool does not look for those; prefer
+`Object.create(null)` or a `Map` for any table keyed by outside data.
 
 This is a **syntactic** heuristic, not a taint analysis: it cannot tell an internal
 enum key from a wire-decoded field name. That judgement is what a person does in

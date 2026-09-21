@@ -97,6 +97,60 @@ test("a key built from a template literal is still flagged (it is not a literal)
     assert.equal(find("obj[`${prefix}${name}`] = value;\n").length, 1);
 });
 
+test("a guard is matched on the identifier, not on its letters inside another word", () => {
+    assert.equal(find(['if (kind === "__proto__") { return; }', "obj[k] = v;", ""].join("\n")).length, 1);
+});
+
+test("a check that leaves __proto__ out has not guarded anything", () => {
+    assert.equal(find('if (key !== "constructor") { obj[key] = v; }').length, 1);
+});
+
+test("a denylist set consulted with has() is a guard when it names __proto__", () => {
+    const text = [
+        'const RESERVED = new Set(["__proto__", "constructor"]);',
+        "function f(key, v) {",
+        '    if (RESERVED.has(key)) { throw new Error("no"); }',
+        "    obj[key] = v;",
+        "}",
+        ""
+    ].join("\n");
+    assert.equal(find(text).length, 0);
+});
+
+test("Object.create(null) exempts that binding, not every variable of the same name", () => {
+    const text = ["function a() { const map = Object.create(null); map[x] = 1; }", "function b() { const map = {}; map[y] = v; }", ""].join("\n");
+    const v = find(text);
+    assert.equal(v.length, 1);
+    assert.equal(v[0].line, 2);
+});
+
+test("a parameter shadowing a null-prototype variable is not exempt", () => {
+    const text = ["const map = Object.create(null);", "function b(map) { map[y] = v; }", ""].join("\n");
+    assert.equal(find(text).length, 1);
+});
+
+test("Object.assign from anything but a plain literal is a sink", () => {
+    assert.equal(find("Object.assign(target, JSON.parse(untrusted));").length, 1);
+    assert.equal(find("Object.assign(target, { [key]: value });").length, 1);
+    assert.equal(find("Object.assign(target, { ...parsed });").length, 1);
+});
+
+test("Object.assign from a plain literal, or onto a null-prototype target, is not", () => {
+    assert.equal(find("Object.assign(target, { a: 1, b });").length, 0);
+    assert.equal(find(["const t = Object.create(null);", "Object.assign(t, parsed);"].join("\n")).length, 0);
+    assert.equal(find("Object.assign(Object.create(null), parsed);").length, 0);
+});
+
+test("the baseline counts: a second identical write in the same file is new", () => {
+    withTree({ "packages/p/source/a.ts": "const m = {};\nm[fieldName] = value;\n" }, (root) => {
+        const baseline = currentBaseline(analyze({ repoRoot: root }));
+        fs.appendFileSync(path.join(root, "packages/p/source/a.ts"), "function later() { m[fieldName] = value; }\n");
+        const result = analyze({ repoRoot: root });
+        assert.equal(newFindings(result, baseline).length, 2, "both sites are listed, the tool cannot tell which is new");
+        assert.equal(exitCode(result, baseline), 1);
+    });
+});
+
 test("analyze walks the package trees, and the baseline suppresses known findings", () => {
     withTree({ "packages/p/source/a.ts": "const m = {};\nm[fieldName] = value;\n" }, (root) => {
         const result = analyze({ repoRoot: root });
