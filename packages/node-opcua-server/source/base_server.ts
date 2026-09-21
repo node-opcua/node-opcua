@@ -38,6 +38,7 @@ import { FindServersRequest, FindServersResponse } from "node-opcua-service-disc
 import { ApplicationDescription, ApplicationType, GetEndpointsResponse } from "node-opcua-service-endpoints";
 import { ServiceFault } from "node-opcua-service-secure-channel";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { parseEndpointUrl } from "node-opcua-transport";
 import { type ApplicationDescriptionOptions, EndpointDescription, type GetEndpointsRequest } from "node-opcua-types";
 import { checkFileExistsAndIsNotEmpty, matchUri } from "node-opcua-utils";
 import type { IChannelData } from "./i_channel_data.js";
@@ -48,6 +49,64 @@ const doDebug = checkDebugFlag("base_server");
 const debugLog = make_debugLog("base_server");
 const errorLog = make_errorLog("base_server");
 const warningLog = make_warningLog("base_server");
+
+/**
+ * Rewrite the DiscoveryUrls of an ApplicationDescription so that they are reachable
+ * through the network address the Client actually used.
+ *
+ * OPC 10000-4 v1.05.07 5.5.2.1: "A Server may have multiple HostNames. For this reason, the
+ * Client shall pass the URL it used to connect to the Endpoint to this Service. The
+ * implementation of this Service shall use this information to return responses that are
+ * accessible to the Client via the provided URL." and 5.5.2.2 (endpointUrl parameter):
+ * "The Server uses this information [...] to determine what URLs to return in the response.
+ *  The Server should return a suitable default URL if it does not recognize the HostName in
+ *  the URL."
+ *
+ * Only the host part is substituted, and only on the DiscoveryUrls that the server serves on
+ * the very port the client used: a requested URL on a port this server does not serve, an
+ * unparsable URL, or an empty one leaves the DiscoveryUrls untouched (the "suitable default").
+ *
+ * @internal
+ */
+export function adaptDiscoveryUrls(discoveryUrls: (string | null)[] | null, requestedEndpointUrl: string | null): string[] {
+    const urls = (discoveryUrls || []).filter((url): url is string => typeof url === "string");
+    if (!requestedEndpointUrl) {
+        return urls;
+    }
+    let requested: ReturnType<typeof parseEndpointUrl>;
+    try {
+        requested = parseEndpointUrl(requestedEndpointUrl);
+    } catch {
+        return urls;
+    }
+    const defaultPort = "4840";
+    const requestedPort = requested.port || defaultPort;
+
+    const adapted: string[] = [];
+    for (const url of urls) {
+        let parsed: ReturnType<typeof parseEndpointUrl>;
+        try {
+            parsed = parseEndpointUrl(url);
+        } catch {
+            adapted.push(url);
+            continue;
+        }
+        const port = parsed.port || defaultPort;
+        if (parsed.protocol !== requested.protocol || port !== requestedPort) {
+            // this server does not serve the requested protocol/port here: keep the default
+            adapted.push(url);
+            continue;
+        }
+        if (matchUri(parsed.hostname, requested.hostname)) {
+            adapted.push(url);
+            continue;
+        }
+        const portPart = parsed.port ? `:${parsed.port}` : "";
+        adapted.push(`${parsed.protocol}//${requested.hostname}${portPart}${parsed.pathname || ""}`);
+    }
+    // the substitution may have collapsed two host names onto the same URL
+    return [...new Set(adapted)];
+}
 
 const default_server_info = {
     // The globally unique identifier for the application instance. This URI is used as
@@ -885,13 +944,14 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
                 });
             }
 
+            const requestedEndpointUrl = request.endpointUrl;
             function adapt(applicationDescription: ApplicationDescription): ApplicationDescription {
                 return new ApplicationDescription({
                     applicationName: applicationDescription.applicationName,
                     applicationType: applicationDescription.applicationType,
                     applicationUri: applicationDescription.applicationUri,
                     discoveryProfileUri: applicationDescription.discoveryProfileUri,
-                    discoveryUrls: applicationDescription.discoveryUrls,
+                    discoveryUrls: adaptDiscoveryUrls(applicationDescription.discoveryUrls, requestedEndpointUrl),
                     gatewayServerUri: applicationDescription.gatewayServerUri,
                     productUri: applicationDescription.productUri
                 });
