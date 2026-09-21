@@ -1,6 +1,5 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import { BaseUAObject, DataTypeFactory } from "node-opcua-factory";
-import { NodeId } from "node-opcua-nodeid";
 import should from "should";
 import {
     type AnyConstructorFunc,
@@ -47,7 +46,7 @@ describe("dynamic extension object - reserved structure field names", () => {
         const evil = new Evil();
         should(evil instanceof BaseUAObject).eql(true);
         should(typeof (evil as unknown as { encode: unknown }).encode).eql("function");
-        should(Object.prototype.hasOwnProperty.call(evil, "__proto__")).eql(true);
+        should(Object.hasOwn(evil, "__proto__")).eql(true);
     });
 
     it("keeps the prototype chain when decoding an absent array field named __proto__", () => {
@@ -62,9 +61,20 @@ describe("dynamic extension object - reserved structure field names", () => {
         (evil as unknown as { decode: (s: BinaryStream) => void }).decode(new BinaryStream(wire));
 
         should(evil instanceof BaseUAObject).eql(true);
-        should((evil as unknown as Record<string, unknown>)["__proto__"]).eql(null);
+        should(Object.getOwnPropertyDescriptor(evil, "__proto__")?.value).eql(null);
         // no global pollution
         should((Object.prototype as unknown as Record<string, unknown>).__evil).eql(undefined);
+    });
+
+    it("keeps an array field named __proto__ as an own key of toJSON()", () => {
+        const Evil = build({
+            name: "EvilArrayJson",
+            baseType: "ExtensionObject",
+            fields: [{ name: "__proto__", isArray: true, fieldType: "opc:Int32" }]
+        });
+        const json = new Evil().toJSON() as Record<string, unknown>;
+        should(Object.getPrototypeOf(json)).equal(Object.prototype);
+        should(Object.hasOwn(json, "__proto__")).eql(true);
     });
 
     it("refuses a field named constructor, which would shadow the class on every instance", () => {

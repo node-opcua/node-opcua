@@ -596,7 +596,7 @@ function encodeToJson(thisAny: Record<string, unknown>, schema: IStructuredTypeS
         if (value === undefined) {
             continue;
         }
-        pojo[field.name] = fieldToJSON(field, value);
+        setFieldValue(pojo, field.name, fieldToJSON(field, value));
     }
 }
 
