@@ -50,6 +50,10 @@ const debugLog = make_debugLog("convert_data_type_definition_to_structuretype_sc
 const doDebug = checkDebugFlag("convert_data_type_definition_to_structuretype_schema");
 const errorLog = make_errorLog("convert_data_type_definition_to_structuretype_schema");
 
+// Property names that carry special semantics on a JavaScript object and must not
+// be used as data-field names on a decoded structure instance.
+const RESERVED_FIELD_NAMES = new Set(["__proto__", "constructor", "prototype"]);
+
 export interface CacheForFieldResolution {
     fieldTypeName: string;
     schema: TypeDefinition;
@@ -685,6 +689,12 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
     ): { field: FieldInterfaceOptions; switchBit: number; switchValue: number; allowSubTypes?: boolean } {
         if (!fieldD.name) {
             throw new Error("Internal error: expecting field name to be defined");
+        }
+        // "__proto__", "constructor" and "prototype" have special meaning when used
+        // as a bracket-assignment key on a JS object, so a StructureField carrying
+        // one of these names is rejected rather than mapped onto the decoded instance.
+        if (RESERVED_FIELD_NAMES.has(fieldD.name)) {
+            throw new Error(`Unsupported structure field name: ${fieldD.name}`);
         }
         const field: FieldInterfaceOptions = {
             fieldType: "",
