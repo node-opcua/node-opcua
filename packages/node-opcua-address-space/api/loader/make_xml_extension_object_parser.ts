@@ -14,7 +14,7 @@ import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug
 import { coerceNodeId, ExpandedNodeId, type INodeId, type NodeId, NodeIdType } from "node-opcua-nodeid";
 import { coerceStatusCode, StatusCodes } from "node-opcua-status-code";
 import { EnumDefinition, StructureDefinition } from "node-opcua-types";
-import { lowerFirstLetter } from "node-opcua-utils";
+import { lowerFirstLetter, setOwnProperty } from "node-opcua-utils";
 import { DataType, Variant, type VariantOptions } from "node-opcua-variant";
 import {
     type IReaderState,
@@ -384,7 +384,7 @@ function _makeTypeReader(
                     throw new Error(`??? ${field.dataType}  ${field.name}`);
                 }
 
-                readerParser[field.name || ""] = {
+                setOwnProperty(readerParser, field.name || "", {
                     parser: fieldParser.parser,
                     // the field reader borrows the partial's sub-parsers: it must borrow its init
                     // too, or the state those sub-parsers write into is never set up.
@@ -405,7 +405,7 @@ function _makeTypeReader(
                         this.parent.value = this.parent.value || Object.create(null);
                         (this.parent.value as Record<string, unknown>)[elName] = _clone(this.value);
                     }
-                };
+                });
             } else if (field.valueRank === 1) {
                 const listReader: ReaderStateParserLike = {
                     init(this: AnyParserState) {
@@ -431,8 +431,8 @@ function _makeTypeReader(
                 if (!listReaderParser) {
                     throw new Error("internal error: listReader.parser must be defined");
                 }
-                listReaderParser[fieldTypename] = fieldParser;
-                readerParser[field.name || ""] = listReader;
+                setOwnProperty(listReaderParser, fieldTypename, fieldParser);
+                setOwnProperty(readerParser, field.name || "", listReader);
             } else {
                 throw new Error("Unsupported ValueRank !");
             }
@@ -512,7 +512,7 @@ export function makeXmlExtensionObjectReader(
     if (!reader1Parser) {
         throw new Error("internal error: reader1.parser must be defined");
     }
-    reader1Parser[name] = reader as unknown as AnyParserState;
+    setOwnProperty(reader1Parser, name, reader as unknown as AnyParserState);
 
     return new ReaderState(reader1 as unknown as ReaderStateParser);
 }

@@ -96,6 +96,7 @@ Each has its own README with the reasoning behind the rule.
 - `check-package-shape/`: publint and attw on the published shape, ratcheted
 - `check-test-types/`: ratchet on test-suite type-checking
 - `check-test-ports/`: no hard-coded ports in tests
+- `check-proto-pollution/`: a computed property key that could write `__proto__`/`constructor`/`prototype`
 - `clean/`: Cleanup utilities
 - `fix-tsconfigs/`: TypeScript configuration fixes
 
@@ -118,6 +119,7 @@ tools/
 ├── check-module-identity/   # One route per package
 ├── check-entry-points/      # types describes the module main loads
 ├── check-short-circuit-assertion/  # Assertions an optional chain can switch off
+├── check-proto-pollution/   # __proto__/constructor/prototype as a computed key
 ├── check-pack/              # Declared entry points are published
 ├── check-build-graph/       # Publishable packages are actually built
 ├── check-package-shape/     # publint + attw on the published shape
@@ -139,6 +141,7 @@ tools/
 ├── check-module-identity.mjs
 ├── check-entry-points.mjs
 ├── check-short-circuit-assertion.mjs
+├── check-proto-pollution.mjs
 ├── check-build-graph.mjs
 ├── check-package-shape.mjs
 └── README.md                # This file

@@ -42,6 +42,7 @@ import type { ExtensionObject } from "node-opcua-extension-object";
 import { ExpandedNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { coerceStatusCode, StatusCode } from "node-opcua-status-code";
 import { Argument, EnumValueType, EUInformation } from "node-opcua-types";
+import { setOwnProperty } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, type VariantOptions } from "node-opcua-variant";
 import {
     NODESET_RECORD_SCHEMA,
@@ -471,7 +472,7 @@ const decodeDateOrInvalid = (iso: string | null | undefined): Date => (iso ? new
 export function encodeHeader(record: NodesetHeaderRecord, options: EncodeHeaderOptions = {}): NodesetImageHeader {
     const aliases: Record<string, JsonNodeId> = {};
     for (const [name, nodeId] of Object.entries(record.aliases)) {
-        aliases[name] = encodeNodeId(nodeId);
+        setOwnProperty(aliases, name, encodeNodeId(nodeId));
     }
     const header: NodesetImageHeader = {
         kind: "header",
@@ -510,7 +511,7 @@ export function decodeHeader(json: NodesetImageHeader): NodesetHeaderRecord {
     }
     const aliases: Record<string, NodeId> = {};
     for (const [name, id] of Object.entries(json.aliases || {})) {
-        aliases[name] = decodeNodeId(id);
+        setOwnProperty(aliases, name, decodeNodeId(id));
     }
     const models: NodesetModelRecord[] = (json.models || []).map((m) => {
         const model: NodesetModelRecord = {

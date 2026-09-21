@@ -3,6 +3,7 @@ import { assert } from "node-opcua-assert";
 import { NodeClass, type QualifiedName, type QualifiedNameOptions } from "node-opcua-data-model";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, type NodeIdLike, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { setOwnProperty } from "node-opcua-utils";
 import { BaseNodeImpl } from "./base_node_impl.js";
 import { type ReferenceImpl, resolveReferenceType } from "./reference_impl.js";
 
@@ -146,7 +147,7 @@ export class NodeIdManager {
             NodeClass
         ][];
         for (const [name, value, nodeClass] of symbols2) {
-            this._cacheSymbolicName[name] = [value, nodeClass];
+            setOwnProperty(this._cacheSymbolicName, name, [value, nodeClass]);
             this._cacheSymbolicNameRev.add(value);
         }
     }
@@ -209,7 +210,10 @@ export class NodeIdManager {
             }
             const nodeId = this._constructNodeId(options);
             if (nodeId.identifierType === NodeIdType.NUMERIC && !cached) {
-                this._cacheSymbolicName[fullName] = [nodeId.value as number, options.nodeClass || NodeClass.Unspecified];
+                setOwnProperty(this._cacheSymbolicName, fullName, [
+                    nodeId.value as number,
+                    options.nodeClass || NodeClass.Unspecified
+                ]);
                 this._cacheSymbolicNameRev.add(nodeId.value as number);
             }
             return nodeId;
@@ -228,7 +232,10 @@ export class NodeIdManager {
             }
             const fullName = compose(fullParentName, prepareName(options.browseName));
             if (!this._cacheSymbolicName[fullName]) {
-                this._cacheSymbolicName[fullName] = [nodeId.value as number, options.nodeClass || NodeClass.Unspecified];
+                setOwnProperty(this._cacheSymbolicName, fullName, [
+                    nodeId.value as number,
+                    options.nodeClass || NodeClass.Unspecified
+                ]);
                 this._cacheSymbolicNameRev.add(nodeId.value as number);
             }
         }

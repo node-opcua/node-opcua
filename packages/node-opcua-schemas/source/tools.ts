@@ -90,6 +90,11 @@ export function getOrCreateStructuredTypeSchema(
                 return index < 0;
             });
         }
+        // an own "constructor" data property would shadow the class on every instance, and
+        // clone() and the sub-type checks reach the class through it
+        if (structuredType.fields.some((field) => field.name === "constructor")) {
+            throw new Error(`Unsupported structure field name: constructor (in ${structuredType.name})`);
+        }
         applyOnFields(structuredType);
         const schema = new StructuredTypeSchema({
             ...structuredType,

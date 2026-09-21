@@ -150,6 +150,14 @@ jobs:
       # path (HSM/KMS capable); the baseline ratchet only ever tightens, so a
       # new .getPrivateKey( call site fails here instead of slipping in.
       - run: pnpm run check:privatekey
+      # obj[key] = value does not write a data property when key is "__proto__" - it
+      # invokes [[SetPrototypeOf]]. GHSA-vjmq-2f58-rg3x was exactly this: a StructureField
+      # name taken from wire/nodeset data used as a dynamic key with no check. Syntactic,
+      # so it flags every unguarded computed-key write and leans on a baseline (any
+      # already-reviewed finding) to keep the gate to just what's new.
+      - run: pnpm run check:protopollution
+      - name: Unit tests for the proto-pollution rule
+        run: node tools/check-proto-pollution/test/test_rule.js
 
   # A gate rather than a lint step, because what it guards is not style. Two test files
   # holding one fixed port collide as soon as the runner schedules them together, and the

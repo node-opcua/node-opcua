@@ -10,7 +10,7 @@ import type { NodeId } from "node-opcua-nodeid";
 import type { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import type { ReferenceDescription } from "node-opcua-service-browse";
 import { type Argument, CallMethodRequest } from "node-opcua-service-call";
-import { lowerFirstLetter } from "node-opcua-utils";
+import { lowerFirstLetter, setOwnProperty } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 import { makeRefId } from "./proxy.js";
@@ -181,7 +181,7 @@ function makeFunction(obj: ProxyNodeUnderConstruction, methodName: string) {
         methodDef.outputArguments.forEach((arg: Argument, index: number) => {
             const variant = callResult?.outputArguments?.[index];
             const propName = lowerFirstLetter(arg.name || "");
-            output[propName] = variant?.value;
+            setOwnProperty(output, propName, variant?.value);
         });
 
         return { statusCode: callResult.statusCode, output };
@@ -235,7 +235,7 @@ async function add_method(
         inputArguments,
         outputArguments
     };
-    obj.$methods[methodName] = methodObj;
+    setOwnProperty(obj.$methods as unknown as Record<string, unknown>, methodName, methodObj);
     // the callable is also exposed directly as obj[methodName](...), decorated with the
     // same input/output argument metadata carried by methodObj, for convenience.
     const callableMethod = methodObj.func as MethodDescription["func"] & {
@@ -244,7 +244,7 @@ async function add_method(
     };
     callableMethod.inputArguments = inputArguments;
     callableMethod.outputArguments = outputArguments;
-    obj[methodName] = callableMethod;
+    setOwnProperty(obj as unknown as Record<string, unknown>, methodName, callableMethod);
 
     doDebug && debugLog("installing method name", methodName);
     await proxyManager._monitor_execution_flag(methodObj);
@@ -263,7 +263,7 @@ async function add_component(
         parent: obj,
         proxyManager
     });
-    obj[name] = childObj;
+    setOwnProperty(obj as unknown as Record<string, unknown>, name, childObj);
     // childObj is an unresolved placeholder here; $resolve() below pushes the real,
     // fully-typed ProxyNode once the child has been fetched.
     obj.$components.push(childObj as unknown as ProxyNode);
@@ -284,7 +284,7 @@ async function addFolderElement(
         proxyManager
     });
 
-    obj[name] = childObj;
+    setOwnProperty(obj as unknown as Record<string, unknown>, name, childObj);
     // childObj is an unresolved placeholder here; $resolve() below pushes the real,
     // fully-typed ProxyNode once the child has been fetched.
     obj.$organizes.push(childObj as unknown as ProxyNode);
@@ -299,8 +299,8 @@ async function add_property(
     const name = lowerFirstLetter(reference.browseName.name || "");
 
     const propertyNode = new ProxyVariable(proxyManager, reference.nodeId, reference);
-    obj[name] = propertyNode;
-    obj.$properties[name] = propertyNode;
+    setOwnProperty(obj as unknown as Record<string, unknown>, name, propertyNode);
+    setOwnProperty(obj.$properties as unknown as Record<string, unknown>, name, propertyNode);
 }
 
 async function add_typeDefinition(
@@ -349,7 +349,7 @@ export class ObjectExplorer {
 
     public async $resolve(): Promise<void> {
         const childObj = await this.proxyManager.getObject(this.nodeId);
-        this.parent[this.name] = childObj;
+        setOwnProperty(this.parent as unknown as Record<string, unknown>, this.name, childObj);
         this.parent.$components.push(childObj);
     }
 }

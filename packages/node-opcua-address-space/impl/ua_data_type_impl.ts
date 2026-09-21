@@ -21,6 +21,7 @@ import {
     type StructureFieldOptions,
     StructureType
 } from "node-opcua-types";
+import { setOwnProperty } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import type { ExtensionObjectConstructorFuncWithSchema } from "../api/interfaces/extension_object_constructor.js";
 import { SessionContext } from "../api/session_context.js";
@@ -279,7 +280,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
             valueIndex: {}
         };
         for (const e of definition) {
-            indexes.nameIndex[e.name] = e;
+            setOwnProperty(indexes.nameIndex, e.name, e);
             indexes.valueIndex[e.value] = e;
         }
         return indexes;

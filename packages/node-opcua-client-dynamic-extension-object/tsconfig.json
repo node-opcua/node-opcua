@@ -56,6 +56,9 @@
             "path": "../node-opcua-types"
         },
         {
+            "path": "../node-opcua-utils"
+        },
+        {
             "path": "../node-opcua-variant"
         }
     ],

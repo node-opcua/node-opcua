@@ -29,6 +29,7 @@ import {
 } from "node-opcua-service-browse";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { type ReadValueIdOptions, StructureDefinition } from "node-opcua-types";
+import { setOwnProperty } from "node-opcua-utils";
 import {
     type CacheForFieldResolution,
     convertDataTypeDefinitionToStructureTypeSchema
@@ -455,7 +456,8 @@ async function _extractNodeIds(
     session: IBasicSessionAsync2,
     dataTypeDictionaryNodeId: NodeId
 ): Promise<MapDataTypeAndEncodingIdProvider> {
-    const map: { [key: string]: DataTypeAndEncodingId } = {};
+    // no prototype: these maps are read with names the server chose
+    const map: { [key: string]: DataTypeAndEncodingId } = Object.create(null);
 
     const dataTypeDescriptions = await _getDataTypeDescriptions(session, dataTypeDictionaryNodeId);
 
@@ -466,7 +468,7 @@ async function _extractNodeIds(
         if (!dataTypeDescription.browseName.name || !dataTypeDescription.encodings) {
             continue;
         }
-        map[dataTypeDescription.browseName.name.toString()] = dataTypeDescription.encodings;
+        setOwnProperty(map, dataTypeDescription.browseName.name.toString(), dataTypeDescription.encodings);
     }
 
     return {
@@ -725,7 +727,7 @@ export async function populateDataTypeManager103(
 
     async function putInCorrectOrder(): Promise<TypeDictionaryInfo[]> {
         const infos: TypeDictionaryInfo[] = [];
-        const innerMap: { [key: string]: TypeDictionaryInfo } = {};
+        const innerMap: { [key: string]: TypeDictionaryInfo } = Object.create(null);
 
         const innerF = async (reference: ReferenceDescription) => {
             const dataTypeDictionaryNodeId = reference.nodeId;
@@ -773,12 +775,12 @@ export async function populateDataTypeManager103(
 
                     info.targetNamespace = extractTargetNamespaceAttribute(typeDictionaryElementAttributes);
 
-                    const nsKeyNamespace: { [key: string]: string } = {};
+                    const nsKeyNamespace: { [key: string]: string } = Object.create(null);
                     for (const attribute of typeDictionaryElementAttributes.split(" ")) {
                         const r = extraNamespaceRef(attribute);
                         if (r) {
                             const { xmlns, namespace } = r;
-                            nsKeyNamespace[xmlns] = namespace;
+                            setOwnProperty(nsKeyNamespace, xmlns, namespace);
                             // c8 ignore next
                             doDebug && debugLog("xxxx ns= ", xmlns, "=>", namespace);
                         }
@@ -786,14 +788,14 @@ export async function populateDataTypeManager103(
                     info.dependencies = nsKeyNamespace;
                     // c8 ignore next
                     doDebug && debugLog("xxx targetNamespace = ", info.targetNamespace);
-                    innerMap[info.targetNamespace] = info;
+                    setOwnProperty(innerMap, info.targetNamespace, info);
                 }
             } else {
                 // may be 1.04 => the rawSchema is no more needed in new version
                 info.targetNamespace = namespaceArray[dataTypeDictionaryNodeId.namespace];
                 // c8 ignore next
                 doDebug && debugLog("xxx targetNamespace = ", info.targetNamespace);
-                innerMap[info.targetNamespace] = info;
+                setOwnProperty(innerMap, info.targetNamespace, info);
             }
             // assert(info.targetNamespace.length !== 0);
         };
@@ -802,12 +804,12 @@ export async function populateDataTypeManager103(
 
         // ----------------------------------
         const orderedList: TypeDictionaryInfo[] = [];
-        const visited: Record<string, number> = {};
+        const visited: Record<string, number> = Object.create(null);
         function explore(d: TypeDictionaryInfo): void {
             if (visited[d.targetNamespace]) {
                 return;
             }
-            visited[d.targetNamespace] = 1;
+            setOwnProperty(visited, d.targetNamespace, 1);
             for (const [_xmlns, namespace] of Object.entries(d.dependencies)) {
                 if (!innerMap[namespace] || namespace === d.targetNamespace) {
                     continue;
@@ -828,10 +830,10 @@ export async function populateDataTypeManager103(
     const dataTypeDictionaryInfo = await putInCorrectOrder();
 
     // setup dependencies
-    const map: { [key: string]: TypeDictionaryInfo } = {};
-    const map2: { [key: string]: DataTypeFactory[] } = {};
+    const map: { [key: string]: TypeDictionaryInfo } = Object.create(null);
+    const map2: { [key: string]: DataTypeFactory[] } = Object.create(null);
     for (const d of dataTypeDictionaryInfo) {
-        map[d.targetNamespace] = d;
+        setOwnProperty(map, d.targetNamespace, d);
 
         doDebug &&
             debugLog(
@@ -864,7 +866,7 @@ export async function populateDataTypeManager103(
             }
         }
         doDebug && debugLog("    baseDataFactories = ", baseDataFactories.map((f) => f.targetNamespace).join(" "));
-        map2[d.targetNamespace] = baseDataFactories;
+        setOwnProperty(map2, d.targetNamespace, baseDataFactories);
     }
 
     namespaceArray = dataTypeManager.namespaceArray;

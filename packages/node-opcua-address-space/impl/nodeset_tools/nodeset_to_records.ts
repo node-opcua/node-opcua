@@ -45,7 +45,7 @@ import {
     type StructureDefinition,
     StructureType
 } from "node-opcua-types";
-import { isNullOrUndefined } from "node-opcua-utils";
+import { isNullOrUndefined, setOwnProperty } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, type VariantOptions } from "node-opcua-variant";
 import XMLWriter from "xml-writer";
 import { makeDefinitionMap } from "../../api/loader/decode_xml_extension_object.js";
@@ -274,14 +274,14 @@ class RecordExporter {
             if (nodeV.dataType && nodeV.dataType.value !== 0) {
                 const dataTypeName = this.b(this.resolveDataTypeName(nodeV.dataType));
                 if (dataTypeName && !aliases[dataTypeName]) {
-                    aliases[dataTypeName] = this.t(nodeV.dataType);
+                    setOwnProperty(aliases, dataTypeName, this.t(nodeV.dataType));
                 }
             }
         }
         for (const reference of node.allReferences()) {
             const key = this.b(getReferenceType(reference).browseName);
             // the XML export overwrites a reference-type alias each time it meets it; same value every time
-            aliases[key] = this.t(reference.referenceType);
+            setOwnProperty(aliases, key, this.t(reference.referenceType));
         }
     }
 

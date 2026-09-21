@@ -1,4 +1,4 @@
-import { lowerFirstLetter } from "node-opcua-utils";
+import { lowerFirstLetter, setOwnProperty } from "node-opcua-utils";
 import { type IReaderState, ReaderStateBase, type Xml2Json, type XmlAttributes } from "./xml2json.js";
 export type withPojoLambda = (name: string, pojo: unknown) => void;
 
@@ -46,7 +46,7 @@ export class ReaderState2 extends ReaderStateBase {
                 this._element.push(array);
                 this._element = array;
             } else {
-                this._element[elName] = [];
+                setOwnProperty(this._element, elName, []);
                 this._element = this._element[elName];
             }
         } else {
@@ -56,7 +56,7 @@ export class ReaderState2 extends ReaderStateBase {
                 this._element.push(obj);
                 this._element = obj;
             } else {
-                this._element[elName] = {};
+                setOwnProperty(this._element, elName, {});
                 this._element = this._element[elName];
             }
         }
@@ -70,7 +70,7 @@ export class ReaderState2 extends ReaderStateBase {
         this._element = this._stack.pop();
         if (this.text.length > 0 && this._element) {
             const elName = lowerFirstLetter(elementName);
-            this._element[elName] = this.text;
+            setOwnProperty(this._element, elName, this.text);
             // this.engine!._pojo = this._pojo;
         } else {
             const elName = lowerFirstLetter(elementName);

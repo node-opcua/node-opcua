@@ -22,6 +22,7 @@ import { getStandardDataTypeFactory } from "node-opcua-factory";
 import type { ExtensionObjectBuilder, ExtensionObjectConstructorFuncWithSchema, VariantJSON105 } from "node-opcua-json";
 import { JsonEncoderMode105, opcuaJsonDecodeVariant, opcuaJsonEncodeVariant105 } from "node-opcua-json";
 import type { NodeId } from "node-opcua-nodeid";
+import { setOwnProperty } from "node-opcua-utils";
 import { Variant, type VariantOptions } from "node-opcua-variant";
 import type { AnnexIVariant } from "./annex_i_types.js";
 
@@ -77,7 +78,7 @@ function nestBodies(value: unknown): unknown {
     const body: Record<string, unknown> = {};
     for (const [key, field] of Object.entries(value)) {
         if (!RESERVED.has(key)) {
-            body[key] = nestBodies(field);
+            setOwnProperty(body, key, nestBodies(field));
         }
     }
     return { UaTypeId: value.UaTypeId, UaBody: body };
@@ -146,7 +147,7 @@ function inlineBodies(value: unknown): unknown {
     const body = value.UaBody as Record<string, unknown>;
     const out: Record<string, unknown> = { UaTypeId: value.UaTypeId };
     for (const [key, field] of Object.entries(body ?? {})) {
-        out[key] = inlineBodies(field);
+        setOwnProperty(out, key, inlineBodies(field));
     }
     return out;
 }

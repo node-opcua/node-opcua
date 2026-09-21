@@ -1,4 +1,5 @@
 import { EventEmitter } from "node:events";
+import { setOwnProperty } from "node-opcua-utils";
 import type { XmlAttributes } from "../../xml2json.js";
 import { unescapeXML } from "../escape.js";
 
@@ -318,7 +319,7 @@ export class SaxLtx extends EventEmitter {
                         if (c === attrQuote) {
                             const recorded = endRecording();
                             if (recorded !== undefined && attrName !== undefined) {
-                                (attrs as XmlAttributes)[attrName] = unescapeXML(recorded);
+                                setOwnProperty(attrs as XmlAttributes, attrName, unescapeXML(recorded));
                             }
                             attrName = undefined;
                             state = STATE_TAG;

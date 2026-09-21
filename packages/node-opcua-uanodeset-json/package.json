@@ -50,6 +50,7 @@
         "node-opcua-factory": "2.185.0",
         "node-opcua-json": "2.186.0",
         "node-opcua-nodeid": "2.185.0",
+        "node-opcua-utils": "2.184.1",
         "node-opcua-variant": "2.185.0"
     },
     "devDependencies": {

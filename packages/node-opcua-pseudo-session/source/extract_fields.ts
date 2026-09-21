@@ -3,6 +3,7 @@ import { make_debugLog } from "node-opcua-debug";
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { BrowseDescriptionOptions } from "node-opcua-service-browse";
 import { NodeClass } from "node-opcua-types";
+import { setOwnProperty } from "node-opcua-utils";
 import type {
     IBasicSessionBrowseAsyncMultiple,
     IBasicSessionBrowseAsyncSimple,
@@ -31,7 +32,8 @@ export async function extractFields(
     session: ISessionForExtractField,
     nodeId: NodeIdLike
 ): Promise<{ path: QualifiedName[]; nodeId: NodeId }[]> {
-    const _duplicateMap: Record<string, QualifiedName[]> = {};
+    // no prototype: the key is a browse path the server chose, and must not match an inherited member
+    const _duplicateMap: Record<string, QualifiedName[]> = Object.create(null);
 
     const fields1: { path: QualifiedName[]; nodeId: NodeId }[] = [];
 
@@ -44,7 +46,7 @@ export async function extractFields(
 
         if (!_duplicateMap[key]) {
             fields1.push({ path: e, nodeId });
-            _duplicateMap[key] = e;
+            setOwnProperty(_duplicateMap, key, e);
         }
     }
 

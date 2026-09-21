@@ -7,7 +7,7 @@ import { assert } from "node-opcua-assert";
 import { coerceExpandedNodeId, NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { type BrowsePath, BrowsePathResult } from "node-opcua-types";
-import { lowerFirstLetter } from "node-opcua-utils";
+import { lowerFirstLetter, setOwnProperty } from "node-opcua-utils";
 import { Variant, type VariantLike } from "node-opcua-variant";
 import type { EventField } from "./event_layout.js";
 
@@ -49,7 +49,7 @@ export class EventData implements IEventData {
     /** the value of one field of the layout */
     public _setField(field: EventField, variant: VariantLike): void {
         const value = Variant.coerce(variant);
-        (this as Record<string, unknown>)[field.lowerName] = value;
+        setOwnProperty(this as Record<string, unknown>, field.lowerName, value);
         if (!this.#sharedPaths) {
             this.#pathToNodeId.set(field.fullBrowsePath, field.node.nodeId);
         }

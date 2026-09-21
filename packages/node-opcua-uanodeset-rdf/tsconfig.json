@@ -29,6 +29,9 @@
             "path": "../node-opcua-service-browse"
         },
         {
+            "path": "../node-opcua-utils"
+        },
+        {
             "path": "../node-opcua-variant"
         }
     ],

@@ -35,6 +35,9 @@
             "path": "../node-opcua-nodeid"
         },
         {
+            "path": "../node-opcua-utils"
+        },
+        {
             "path": "../node-opcua-variant"
         }
     ],
