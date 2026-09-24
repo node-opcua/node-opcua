@@ -25,9 +25,16 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
     private readonly optionalsMap: OptionalMap;
     private readonly references: UAReference[];
     private readonly copyAlsoAllOptionals: boolean = false;
+    /**
+     * the clone is an instance declaration of a type (instantiate() inside a type): the
+     * placeholders its type declares are part of it, as the ModelCompiler emits them
+     * (OPC 10000-100 DI DeviceType/DeviceTypeImage/<ImageIdentifier>). An instance never takes one.
+     */
+    private readonly keepPlaceholders: boolean = false;
 
-    constructor(instance: BaseNode, copyAlsoAllOptionals: boolean, optionalsMap: OptionalMap) {
+    constructor(instance: BaseNode, copyAlsoAllOptionals: boolean, optionalsMap: OptionalMap, keepPlaceholders = false) {
         this.copyAlsoAllOptionals = copyAlsoAllOptionals;
+        this.keepPlaceholders = keepPlaceholders;
         // should we clone the node to be a component or propertyOf of a instance
         assert(null !== instance);
         this.optionalsMap = optionalsMap;
@@ -78,7 +85,8 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
                 // only if in requested optionals
                 return this.copyAlsoAllOptionals || (node.browseName?.name || "") in this.optionalsMap;
             case "OptionalPlaceholder":
-                return false; // ignored
+            case "MandatoryPlaceholder":
+                return this.keepPlaceholders;
             default:
                 return false; // ignored
         }
@@ -94,7 +102,16 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
         }
         /* c8 ignore next */
         doTrace && traceLog("filterFor ", browseName, map);
-        const newFilter = new MandatoryChildOrRequestedOptionalFilter(childInstance, false, map);
+        // a placeholder's copy takes its own members, not the placeholders of its type: the walk
+        // would never end on a type whose placeholder is typed by a type holding one in turn
+        const isPlaceholder =
+            childInstance.modellingRule === "OptionalPlaceholder" || childInstance.modellingRule === "MandatoryPlaceholder";
+        const newFilter = new MandatoryChildOrRequestedOptionalFilter(
+            childInstance,
+            false,
+            map,
+            this.keepPlaceholders && !isPlaceholder
+        );
         return newFilter;
     }
 }

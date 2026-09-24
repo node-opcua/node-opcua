@@ -61,7 +61,13 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
         return; // nothing to do
     }
 
-    const filter = new MandatoryChildOrRequestedOptionalFilter(instance, copyAlsoAllOptionals, optionalsMap);
+    // an instance declaration of a type (copyAlsoModellingRules) takes its type's placeholders too
+    const filter = new MandatoryChildOrRequestedOptionalFilter(
+        instance,
+        copyAlsoAllOptionals,
+        optionalsMap,
+        copyAlsoModellingRules
+    );
 
     doTrace &&
         traceLog(
