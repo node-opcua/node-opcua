@@ -1,13 +1,13 @@
 {
   "standard": {
     "uri": "http://opcfoundation.org/UA/",
-    "length": 4375149,
-    "sha1": "22de3231eebd7d795d48cb496057216d910b1eac"
+    "length": 4375215,
+    "sha1": "322c3ebd0d45be323a8d6ebead8f4d7cda71d7cf"
   },
   "di": {
     "uri": "http://opcfoundation.org/UA/DI/",
-    "length": 311123,
-    "sha1": "58e9ba1df2e80541d36b7eeda33ec786ff987206"
+    "length": 311321,
+    "sha1": "1c73d17a2325b35c06f1d3cb0c73d3111c4f44f9"
   },
   "adi": {
     "uri": "http://opcfoundation.org/UA/ADI/",

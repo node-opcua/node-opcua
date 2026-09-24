@@ -113,6 +113,8 @@ export interface NodesetNodeRecord {
     documentation?: string;
     references: NodesetReferenceRecord[];
     releaseStatus?: "Draft" | "Deprecated";
+    /** `DesignToolOnly="true"`: the node is there for design tools only (DI's Configuration, Tuning, ... FunctionalGroups) */
+    designToolOnly?: boolean;
     symbolicName?: string;
     /** the access policy as declared, whatever the loader options; the consumer applies its options */
     accessRestrictions?: string;

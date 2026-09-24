@@ -176,6 +176,13 @@ export interface BaseNode<T extends BaseNodeEvents & ListenerSignature<T> = Base
     nodesetCategory?: string[];
 
     /**
+     * the nodeset's `DesignToolOnly="true"`: the node is there for design tools only (a name to
+     * reuse, such as OPC 10000-100 DI's Configuration, Tuning, ... FunctionalGroups), so nothing is
+     * expected to reference it. Documentation only, kept so the node is written back out as declared.
+     */
+    designToolOnly?: boolean;
+
+    /**
      * the AccessRestrictions the nodeset declared, verbatim, whether or not this loader was asked
      * to apply them. `accessRestrictions` above is what is *enforced* and is gated by the loader's
      * option; this is what the document *said*, and is documentation only. Without it a document

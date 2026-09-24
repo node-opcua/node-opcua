@@ -366,6 +366,9 @@ class RecordExporter {
         if (node.releaseStatus) {
             record.releaseStatus = node.releaseStatus;
         }
+        if (node.designToolOnly) {
+            record.designToolOnly = true;
+        }
         if (node.nodesetCategory && node.nodesetCategory.length > 0) {
             record.category = [...node.nodesetCategory];
         }
