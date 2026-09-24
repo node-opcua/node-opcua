@@ -2584,6 +2584,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             return rejectConnection(this, StatusCodes.BadCertificateUriInvalid);
         }
 
+        this._warnIfEndpointHostNotInCertificate(request.endpointUrl);
+
         const { errCode, endpoint } = validate_security_endpoint(this, request, channel);
         if (errCode !== StatusCodes.Good) {
             return rejectConnection(this, errCode);
