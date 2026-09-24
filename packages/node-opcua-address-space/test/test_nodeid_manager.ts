@@ -1,8 +1,15 @@
-import "should";
 import { coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { makeNodeId, type NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { AddressSpace, type ConstructNodeIdOptions, getNodeIdManager, NodeIdManager, setSymbols } from "../dist/api/index.js";
+import should from "should";
+import {
+    AddressSpace,
+    type ConstructNodeIdOptions,
+    getNodeIdManager,
+    getSymbols,
+    NodeIdManager,
+    setSymbols
+} from "../dist/api/index.js";
 import { get_mini_nodeset_filename } from "../distHelpers/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
@@ -280,11 +287,12 @@ describe("NodeIdManager", () => {
         nodeId.toString().should.not.eql(firstChild.nodeId.toString());
     });
 
-    it("should recognize a genuine duplicate among top-level nodes that have no parent", () => {
+    it("should give a distinct id to a second top-level node of the same name that shares no organizer", () => {
         const ns = addressSpace.getOwnNamespace();
         setSymbols(ns, []);
 
-        // a top-level node has no componentOf/organizedBy, so parentNodeId is undefined
+        // a top-level node has no componentOf/organizedBy, so parentNodeId is undefined; two of
+        // them merely share a browse name (OPC 40502 CNC ships three parentless X axes)
         const firstChild = ns.addObject({ browseName: "TopLevelObject" });
 
         const options: ConstructNodeIdOptions = {
@@ -296,7 +304,27 @@ describe("NodeIdManager", () => {
         };
         const nodeId = nodeIdManager.constructNodeId(options);
 
-        nodeId.toString().should.eql(firstChild.nodeId.toString());
+        should(nodeId.toString()).not.eql(firstChild.nodeId.toString());
+        should(getSymbols(ns).find(([name]) => name === "TopLevelObject__2")?.[1]).eql(nodeId.value);
+    });
+
+    it("should recognize a genuine duplicate among top-level nodes that one node organizes", () => {
+        const ns = addressSpace.getOwnNamespace();
+        setSymbols(ns, []);
+
+        const folder = ns.addFolder(addressSpace.rootFolder.objects, { browseName: "Folder" });
+        const firstChild = ns.addObject({ browseName: "TopLevelObject", organizedBy: folder });
+
+        const options: ConstructNodeIdOptions = {
+            browseName: coerceQualifiedName({ name: "TopLevelObject", namespaceIndex: ns.index }),
+            nodeClass: NodeClass.Object,
+            registerSymbolicNames: true,
+            references: [{ isForward: false, nodeId: folder.nodeId, referenceType: resolveNodeId("Organizes") }]
+        };
+        const nodeId = nodeIdManager.constructNodeId(options);
+
+        // a genuine duplicate still resolves to the same id, so that registerNode() reports it
+        should(nodeId.toString()).eql(firstChild.nodeId.toString());
     });
 
     it("should not reuse a top-level cached id for a lookup that resolves to a real parent", () => {
