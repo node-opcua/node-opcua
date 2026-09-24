@@ -595,6 +595,21 @@ function _merge_base_declaration(
     );
 }
 
+/**
+ * whether `declaringNode` is the declared parent (ParentNodeId) of `node` while `reference` links the
+ * two without aggregating it: the parent then names the node, the reference does not
+ */
+function _isDeclaredNonAggregatedMemberOf(node: BaseNode, declaringNode: BaseNode, reference: UAReference): boolean {
+    const declaredParent = node.parentNodeId;
+    if (!declaredParent || !sameNodeId(declaredParent, declaringNode.nodeId)) {
+        return false;
+    }
+    const addressSpace = node.addressSpace;
+    const referenceType = addressSpace.findReferenceType(reference.referenceType);
+    const aggregates = addressSpace.findReferenceType("Aggregates");
+    return !!referenceType && !!aggregates && !referenceType.isSubtypeOf(aggregates);
+}
+
 /*
  * clone properties and methods
  * @private
@@ -670,6 +685,13 @@ function _clone_collection_new(
             copyAlsoModellingRules,
             baseDeclarations: _base_declarations_of(nodeToClone, node.browseName)
         };
+        // a member that the template declares under the node being cloned (its ParentNodeId), but links
+        // through a reference that does not aggregate it (Organizes), is named after that parent on the
+        // type (`DirectoryType_CertificateGroups`): the clone declares its own parent likewise, or it is
+        // named after its browse name alone and misses its id (`Directory_CertificateGroups`)
+        if (_isDeclaredNonAggregatedMemberOf(node, nodeToClone, reference)) {
+            options.parentNodeId = newParent.nodeId;
+        }
 
         const alreadyCloned = extraInfo.getCloned({ originalParent: nodeToClone, clonedParent: newParent, originalNode: node });
         if (alreadyCloned) {

@@ -76,6 +76,12 @@ export interface CloneOptions /* extends ConstructNodeIdOptions */ {
 
     // ------------
     componentOf?: UAObjectType | UAObject;
+    /**
+     * the declared parent of the clone (its ParentNodeId): set when the template declares the node
+     * being cloned as the member's parent, so that the clone is named after its own parent whatever
+     * reference links the two, as the template was (see ConstructNodeIdOptions.parentNodeId)
+     */
+    parentNodeId?: NodeIdLike;
 
     copyAlsoModellingRules?: boolean;
     ignoreChildren?: boolean;

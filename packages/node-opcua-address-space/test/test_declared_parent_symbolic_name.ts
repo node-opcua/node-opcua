@@ -87,6 +87,27 @@ describe("the declared parent names the node (NodeIdManager, instantiate)", () =
         should(names()).containEql("DeviceType_Sample");
     });
 
+    it("DPSN-6 instantiating the type names the clone of a declared, organized member after the instance", () => {
+        // OPC 10000-12 GDS: DirectoryType organizes CertificateGroups, whose ParentNodeId is the type;
+        // NodeIds.csv then lists Directory_CertificateGroups for the instance's copy
+        const ns = addressSpace.getOwnNamespace();
+        setSymbols(ns, [["Device_BuildingBlocks", 2001, "Object"]]);
+        ns.addObject({
+            browseName: "BuildingBlocks",
+            organizedBy: deviceType,
+            parentNodeId: deviceType,
+            typeDefinition: "FolderType",
+            modellingRule: "Mandatory"
+        });
+        const device = deviceType.instantiate({ browseName: "Device", organizedBy: addressSpace.rootFolder.objects });
+        const clone = device.getFolderElementByName("BuildingBlocks");
+
+        should(clone).be.ok();
+        should(clone?.parentNodeId?.toString()).eql(device.nodeId.toString());
+        should(clone?.nodeId.toString()).eql(`ns=${ns.index};i=2001`);
+        should(names()).containEql("Device_BuildingBlocks");
+    });
+
     it("DPSN-5 when the declared parent is also the aggregating parent, the name is unchanged", () => {
         const ns = addressSpace.getOwnNamespace();
         ns.addVariable({
