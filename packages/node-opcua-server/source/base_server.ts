@@ -108,6 +108,77 @@ export function adaptDiscoveryUrls(discoveryUrls: (string | null)[] | null, requ
     return [...new Set(adapted)];
 }
 
+/**
+ * Check whether the host name a Client used to reach this server is covered by the
+ * server certificate, and return it when it is not.
+ *
+ * OPC 10000-4 v1.05.07 5.6.2.1 (OpenSecureChannel): "Servers shall add all possible
+ * HostNames like MyHost and MyHost.mycompany.com into the Server Certificate. This
+ * includes IP addresses of the host or the HostName exposed by a NAT router used to
+ * connect to the Server." and "a Client shall verify the HostName specified in the
+ * Server Certificate is the same as the HostName contained in the endpointUrl."
+ *
+ * Returns null (nothing to report) when: the URL is empty or cannot be parsed, the host
+ * is a loopback address (localhost, 127.0.0.0/8, ::1, [::1]), the host is an IPv6
+ * literal (IPv6 SAN entries are not matched here, mirroring checkCertificateSAN()), the
+ * certificate cannot be explored, or the host is already covered by a dNSName (matched
+ * case-insensitively) or, for an IPv4 literal, an iPAddress SAN entry.
+ *
+ * Otherwise returns the host exactly as it appears in the URL, lower-cased.
+ *
+ * @internal
+ */
+export function findEndpointHostMissingFromCertificate(endpointUrl: string | null | undefined, certificate: Buffer): string | null {
+    if (!endpointUrl) {
+        return null;
+    }
+
+    let hostname: string;
+    try {
+        hostname = parseEndpointUrl(endpointUrl).hostname;
+    } catch {
+        return null;
+    }
+    if (!hostname) {
+        return null;
+    }
+    const host = hostname.toLowerCase();
+
+    if (host === "localhost") {
+        return null;
+    }
+
+    // Strip the brackets that the URL parser keeps around an IPv6 literal so that
+    // isIP() (and, for IPv4, ipv4ToHex()) can recognize it.
+    const bareHost = host.startsWith("[") && host.endsWith("]") ? host.slice(1, -1) : host;
+    const family = isIP(bareHost);
+
+    if (family === 6) {
+        // IPv6 SAN entries are not matched here, mirroring checkCertificateSAN().
+        return null;
+    }
+    if (family === 4 && bareHost.startsWith("127.")) {
+        // 127.0.0.0/8 is loopback.
+        return null;
+    }
+
+    let info: ReturnType<typeof exploreCertificate>;
+    try {
+        info = exploreCertificate(certificate);
+    } catch {
+        return null;
+    }
+
+    if (family === 4) {
+        const sanIpsHex: string[] = info.tbsCertificate.extensions?.subjectAltName?.iPAddress || [];
+        return sanIpsHex.includes(ipv4ToHex(bareHost)) ? null : host;
+    }
+
+    const sanDns: string[] = info.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
+    const isCovered = sanDns.some((name) => name.toLowerCase() === host);
+    return isCovered ? null : host;
+}
+
 const default_server_info = {
     // The globally unique identifier for the application instance. This URI is used as
     // ServerUri in Services if the application is a Server.
@@ -199,6 +270,21 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
     public readonly serverCertificateManager: ICertificateStore;
     public capabilitiesForMDNS: string[];
     protected _preInitTask: (() => Promise<void>)[];
+    /**
+     * Per-host "is this host covered by the certificate" verdicts backing
+     * _warnIfEndpointHostNotInCertificate(), keyed by the lower-cased host. Covers
+     * both outcomes so a correctly covered host is never rechecked either. Left
+     * undefined until first used: tests build a server with
+     * Object.create(OPCUABaseServer.prototype), which skips the constructor.
+     */
+    protected _endpointHostCertificateCache?: Map<string, boolean>;
+    /**
+     * The certificate (compared by reference) that _endpointHostCertificateCache was
+     * computed against. Every certificate provider in this codebase hands back the
+     * same Buffer instance from getCertificate() until it is invalidated, so a
+     * reference change reliably signals a new certificate and resets the cache.
+     */
+    protected _endpointHostCertificateCacheCertificate?: Buffer;
 
     protected options: OPCUABaseServerOptions;
 
@@ -541,6 +627,99 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
     }
 
     /**
+     * Thin wrapper around findEndpointHostMissingFromCertificate() (the exploreCertificate()
+     * ASN.1 parse), extracted so tests can spy on how many times the expensive check
+     * actually runs when _warnIfEndpointHostNotInCertificate() caches its verdicts.
+     */
+    protected _findEndpointHostMissingFromCertificate(endpointUrl: string, certificate: Buffer): string | null {
+        return findEndpointHostMissingFromCertificate(endpointUrl, certificate);
+    }
+
+    /**
+     * Warn once per host when a Client reaches this server through a host name that
+     * the server certificate does not cover (see findEndpointHostMissingFromCertificate()
+     * for the spec reference). Called from the GetEndpoints and CreateSession request
+     * paths, both reachable before any Session exists.
+     *
+     * OPC 10000-4 v1.05.07 5.5.4.1 (GetEndpoints): "the Server should minimize the
+     * amount of processing required to send the response for this Service." GetEndpoints
+     * is unauthenticated, so a host, once checked against the current certificate, is
+     * never rechecked, whether it turned out covered or missing, and the number of
+     * distinct hosts remembered (MAX_CACHED_HOSTS) and warned about (MAX_WARNED_HOSTS)
+     * are both capped so an attacker sending arbitrarily many host names cannot grow
+     * the cache or the log without bound. The cache is reset when the certificate
+     * itself changes (e.g. after regenerateSelfSignedCertificate()), so a still-missing
+     * host is warned about once more.
+     *
+     * Never throws: a failure here must not change the response sent to the Client.
+     */
+    protected _warnIfEndpointHostNotInCertificate(endpointUrl: string | null | undefined): void {
+        const MAX_CACHED_HOSTS = 64;
+        const MAX_WARNED_HOSTS = 20;
+
+        if (!endpointUrl) {
+            return;
+        }
+        let host: string;
+        try {
+            host = parseEndpointUrl(endpointUrl).hostname.toLowerCase();
+        } catch {
+            return;
+        }
+
+        let certificate: Buffer;
+        try {
+            certificate = this.getCertificate();
+        } catch {
+            return;
+        }
+
+        let cache = this._endpointHostCertificateCache;
+        if (this._endpointHostCertificateCacheCertificate !== certificate || !cache) {
+            // First use, or the certificate changed: start a fresh cache so a
+            // still-missing host is warned about once more.
+            cache = new Map<string, boolean>();
+            this._endpointHostCertificateCache = cache;
+            this._endpointHostCertificateCacheCertificate = certificate;
+        }
+
+        if (cache.has(host)) {
+            // Already checked against the current certificate, covered or missing:
+            // nothing left to compute or log.
+            return;
+        }
+        if (cache.size >= MAX_CACHED_HOSTS) {
+            return;
+        }
+
+        try {
+            const missingHost = this._findEndpointHostMissingFromCertificate(endpointUrl, certificate);
+            cache.set(host, missingHost === null);
+            if (missingHost === null) {
+                return;
+            }
+            let warnedCount = 0;
+            for (const covered of cache.values()) {
+                if (!covered) {
+                    warnedCount++;
+                }
+            }
+            if (warnedCount > MAX_WARNED_HOSTS) {
+                return;
+            }
+            warningLog(
+                `[NODE-OPCUA-W27] A client reached this server as "${missingHost}", which is not in the server certificate. ` +
+                    "Clients that verify the host name will report Bad_CertificateHostNameInvalid. " +
+                    `Add "${missingHost}" to alternateHostname (or advertisedEndpoints) and regenerate the certificate ` +
+                    "(server.regenerateSelfSignedCertificate() for a self-signed one)."
+            );
+        } catch (_err) {
+            // ignore errors (e.g. certificate not yet loaded); nothing was cached, so
+            // this host is retried on the next request
+        }
+    }
+
+    /**
      * start all registered endPoint, in parallel, and call done when all endPoints are listening.
      */
     public start(): Promise<void>;
@@ -858,6 +1037,8 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         const request = message.request as GetEndpointsRequest;
 
         assert(request.schema.name === "GetEndpointsRequest");
+
+        this._warnIfEndpointHostNotInCertificate(request.endpointUrl);
 
         const response = new GetEndpointsResponse({});
 
