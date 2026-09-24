@@ -199,11 +199,14 @@ export class NodeIdManager {
     }
 
     /**
-     * Whether a node whose symbolic name another node holds takes the next free `name__n`. A
-     * parentless node does: its name is its browse name alone, which two distinct nodes share.
+     * Whether a node whose symbolic name another node holds takes the next free `name__n`: a
+     * parentless node (its name is its browse name alone, which distinct nodes share), and a
+     * child whose browse name differs from its sibling's by the namespace only (`1:Speed` next to
+     * `0:Speed`), which the name does not spell. A child of a string NodeId is not named at all:
+     * its id is built from its parent's.
      */
     private _mayTakeAnotherName(parentInfo: [NodeId, Suffix] | null): boolean {
-        return parentInfo === null;
+        return parentInfo === null || parentInfo[0].identifierType === NodeIdType.NUMERIC;
     }
 
     public getSymbols(): NodeEntry1[] {
