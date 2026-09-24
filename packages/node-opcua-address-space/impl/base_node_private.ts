@@ -595,6 +595,39 @@ function _merge_base_declaration(
     );
 }
 
+/**
+ * whether `declaringNode` is the declared parent (ParentNodeId) of `node` while `reference` links the
+ * two without aggregating it: the parent then names the node, the reference does not
+ */
+function _isDeclaredNonAggregatedMemberOf(node: BaseNode, declaringNode: BaseNode, reference: UAReference): boolean {
+    const declaredParent = node.parentNodeId;
+    if (!declaredParent || !sameNodeId(declaredParent, declaringNode.nodeId)) {
+        return false;
+    }
+    const addressSpace = node.addressSpace;
+    const referenceType = addressSpace.findReferenceType(reference.referenceType);
+    const aggregates = addressSpace.findReferenceType("Aggregates");
+    return !!referenceType && !!aggregates && !referenceType.isSubtypeOf(aggregates);
+}
+
+/**
+ * whether `organizer` reaches `node` through a reference that does not aggregate it, while the
+ * node's declared parent (ParentNodeId) is another node that aggregates it: its owner
+ */
+function _isOrganizedWhileOwnedByAnother(node: BaseNode, organizer: BaseNode, reference: UAReference): boolean {
+    const owner = node.parentNodeId;
+    if (!owner || sameNodeId(owner, organizer.nodeId)) {
+        return false;
+    }
+    const addressSpace = node.addressSpace;
+    const referenceType = addressSpace.findReferenceType(reference.referenceType);
+    const aggregates = addressSpace.findReferenceType("Aggregates");
+    if (!referenceType || !aggregates || referenceType.isSubtypeOf(aggregates)) {
+        return false;
+    }
+    return node.findReferencesEx("Aggregates", BrowseDirection.Inverse).some((r) => sameNodeId(r.nodeId, owner));
+}
+
 /*
  * clone properties and methods
  * @private
@@ -662,6 +695,23 @@ function _clone_collection_new(
         }
         browseNameMap?.add(key);
 
+        // a node this one only organizes, while another node of the template owns it (aggregates
+        // it, as its ParentNodeId), is left to its owner: cloned through this reference first, it
+        // was parentless and named after its browse name alone (OPC 30100 IO-Link:
+        // IOLinkDeviceType/General organizes MethodSet/ApplicationReset). Once the whole tree is
+        // cloned, the owner's clone gets this reference too; a node no owner cloned is cloned here.
+        if (
+            extraInfo instanceof CloneHelper &&
+            extraInfo.canDefer &&
+            _isOrganizedWhileOwnedByAnother(node, nodeToClone, reference)
+        ) {
+            extraInfo.deferInCurrentContext(() => attach(reference, node));
+            continue;
+        }
+        attach(reference, node);
+    }
+
+    function attach(reference: UAReference, node: UAVariable | UAObject | UAMethod): void {
         // assert(reference.isForward);
         // assert(reference.referenceType instanceof NodeId, "" + reference.referenceType.toString());
         const options: CloneOptions = {
@@ -670,6 +720,13 @@ function _clone_collection_new(
             copyAlsoModellingRules,
             baseDeclarations: _base_declarations_of(nodeToClone, node.browseName)
         };
+        // a member that the template declares under the node being cloned (its ParentNodeId), but links
+        // through a reference that does not aggregate it (Organizes), is named after that parent on the
+        // type (`DirectoryType_CertificateGroups`): the clone declares its own parent likewise, or it is
+        // named after its browse name alone and misses its id (`Directory_CertificateGroups`)
+        if (_isDeclaredNonAggregatedMemberOf(node, nodeToClone, reference)) {
+            options.parentNodeId = newParent.nodeId;
+        }
 
         const alreadyCloned = extraInfo.getCloned({ originalParent: nodeToClone, clonedParent: newParent, originalNode: node });
         if (alreadyCloned) {

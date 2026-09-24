@@ -685,6 +685,9 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
     if (node.releaseStatus) {
         xw.writeAttribute("ReleaseStatus", node.releaseStatus);
     }
+    if (node.designToolOnly) {
+        xw.writeAttribute("DesignToolOnly", "true");
+    }
     if (Object.hasOwn(node, "isAbstract")) {
         const isAbstract = (node as unknown as { isAbstract: boolean }).isAbstract;
         if (isAbstract) {

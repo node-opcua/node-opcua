@@ -101,6 +101,7 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
         if (attrs.AccessRestrictions !== undefined && attrs.AccessRestrictions !== "")
             record.accessRestrictions = attrs.AccessRestrictions;
         if (attrs.HasNoPermissions !== undefined) record.hasNoPermissions = coerceBoolean(attrs.HasNoPermissions);
+        if (attrs.DesignToolOnly !== undefined && coerceBoolean(attrs.DesignToolOnly)) record.designToolOnly = true;
         return record;
     }
 

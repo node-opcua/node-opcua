@@ -1,6 +1,6 @@
 import type { BaseNode, UAReference, UAReferenceType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { NodeClass, type QualifiedName, type QualifiedNameOptions } from "node-opcua-data-model";
+import { BrowseDirection, NodeClass, type QualifiedName, type QualifiedNameOptions } from "node-opcua-data-model";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, type NodeIdLike, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { setOwnProperty } from "node-opcua-utils";
@@ -86,6 +86,16 @@ function _findParentNodeId(addressSpace: AddressSpacePartial, options: Construct
     return references.length ? _filterAggregates(addressSpace, references) : null;
 }
 
+/** whether the node being built hangs, through an inverse reference, from a node `occupant` hangs from */
+function _shareAnOrganizer(occupant: BaseNode, options: ConstructNodeIdOptions): boolean {
+    const references = (options.references ?? []).filter((r) => !r.isForward);
+    if (references.length === 0) {
+        return false;
+    }
+    const parents = occupant.findReferencesEx("HierarchicalReferences", BrowseDirection.Inverse).map((r) => r.nodeId);
+    return references.some((r) => parents.some((p) => sameNodeId(p, r.nodeId)));
+}
+
 function prepareName(browseName?: QualifiedName | QualifiedNameOptions): string {
     const m = browseName?.name?.toString().replace(/[ ]/g, "").replace(/(<|>)/g, "");
     return m || "";
@@ -110,9 +120,14 @@ export interface ConstructNodeIdOptions {
 export type NodeEntry = [string, number, NodeClass];
 export type NodeEntry1 = [string, number, string /*"Object" | "Variable" etc...*/];
 
+/** the separator of a disambiguated symbolic name (`X__2`): prepareName never produces it from a browse name */
+export const SYMBOLIC_NAME_OCCURRENCE_SEPARATOR = "__";
+
 export class NodeIdManager {
     private _cacheSymbolicName: { [key: string]: [number, NodeClass] } = {};
     private _cacheSymbolicNameRev: Set<number> = new Set<number>();
+    /** the symbolic name each id was registered under, so that a node's members are named after it */
+    private _nameOfId: Map<number, string> = new Map<number, string>();
 
     private _internal_id_counter: number;
     private namespaceIndex: number;
@@ -149,7 +164,49 @@ export class NodeIdManager {
         for (const [name, value, nodeClass] of symbols2) {
             setOwnProperty(this._cacheSymbolicName, name, [value, nodeClass]);
             this._cacheSymbolicNameRev.add(value);
+            if (!this._nameOfId.has(value)) {
+                this._nameOfId.set(value, name);
+            }
         }
+    }
+
+    private _registerName(name: string, value: number, nodeClass: NodeClass | undefined): void {
+        setOwnProperty(this._cacheSymbolicName, name, [value, nodeClass || NodeClass.Unspecified]);
+        this._cacheSymbolicNameRev.add(value);
+        this._nameOfId.set(value, name);
+    }
+
+    /**
+     * The first `name__n` (n >= 2) a node may take: one the table does not list, or, for a node
+     * whose id is not fixed yet, one listed with an id that no node holds (a preset). A node whose
+     * id is fixed (`nodeId`) takes the name listed with that id, or a new one.
+     */
+    private _nextFreeName(fullName: string, nodeId?: number): { name: string; value?: number } {
+        for (let n = 2; ; n++) {
+            const name = `${fullName}${SYMBOLIC_NAME_OCCURRENCE_SEPARATOR}${n}`;
+            const cached = this._cacheSymbolicName[name];
+            if (!cached) {
+                return { name };
+            }
+            if (
+                nodeId === undefined
+                    ? !this.addressSpace.findNode(makeNodeId(cached[0], this.namespaceIndex))
+                    : cached[0] === nodeId
+            ) {
+                return { name, value: cached[0] };
+            }
+        }
+    }
+
+    /**
+     * Whether a node whose symbolic name another node holds takes the next free `name__n`: a
+     * parentless node (its name is its browse name alone, which distinct nodes share), and a
+     * child whose browse name differs from its sibling's by the namespace only (`1:Speed` next to
+     * `0:Speed`), which the name does not spell. A child of a string NodeId is not named at all:
+     * its id is built from its parent's.
+     */
+    private _mayTakeAnotherName(parentInfo: [NodeId, Suffix] | null): boolean {
+        return parentInfo === null || parentInfo[0].identifierType === NodeIdType.NUMERIC;
     }
 
     public getSymbols(): NodeEntry1[] {
@@ -185,6 +242,13 @@ export class NodeIdManager {
         };
 
         const buildUpName2 = (nodeId: NodeId, suffix: string) => {
+            // a parent registered under a name of its own (`X__2`) passes that name on to its members
+            if (nodeId.namespace === this.namespaceIndex && nodeId.identifierType === NodeIdType.NUMERIC) {
+                const registered = this._nameOfId.get(nodeId.value as number);
+                if (registered !== undefined) {
+                    return registered + suffix;
+                }
+            }
             const namespaceIndex = nodeId.namespace;
             let name = "";
             let n: BaseNode | null = this.addressSpace.findNode(nodeId);
@@ -204,17 +268,27 @@ export class NodeIdManager {
                 fullParentName = buildUpName2(parentNodeId, suffix);
             }
             const fullName = compose(fullParentName, prepareName(options.browseName));
+            let name = fullName;
             const cached = this._cacheSymbolicName[fullName];
-            if (cached && this._isCacheHitReusable(cached[0], options, parentInfo)) {
-                return makeNodeId(cached[0], this.namespaceIndex);
+            if (cached) {
+                if (this._isCacheHitReusable(cached[0], options, parentInfo)) {
+                    return makeNodeId(cached[0], this.namespaceIndex);
+                }
+                if (!this._mayTakeAnotherName(parentInfo)) {
+                    // a fresh id, with no name
+                    return this._constructNodeId(options);
+                }
+                // another node holds the name: this one takes the next free `name__n`
+                const free = this._nextFreeName(fullName);
+                if (free.value !== undefined) {
+                    this._nameOfId.set(free.value, free.name);
+                    return makeNodeId(free.value, this.namespaceIndex);
+                }
+                name = free.name;
             }
             const nodeId = this._constructNodeId(options);
-            if (nodeId.identifierType === NodeIdType.NUMERIC && !cached) {
-                setOwnProperty(this._cacheSymbolicName, fullName, [
-                    nodeId.value as number,
-                    options.nodeClass || NodeClass.Unspecified
-                ]);
-                this._cacheSymbolicNameRev.add(nodeId.value as number);
+            if (nodeId.identifierType === NodeIdType.NUMERIC) {
+                this._registerName(name, nodeId.value as number, options.nodeClass);
             }
             return nodeId;
         }
@@ -231,12 +305,17 @@ export class NodeIdManager {
                 fullParentName = buildUpName2(parentNodeId, suffix);
             }
             const fullName = compose(fullParentName, prepareName(options.browseName));
-            if (!this._cacheSymbolicName[fullName]) {
-                setOwnProperty(this._cacheSymbolicName, fullName, [
-                    nodeId.value as number,
-                    options.nodeClass || NodeClass.Unspecified
-                ]);
-                this._cacheSymbolicNameRev.add(nodeId.value as number);
+            const value = nodeId.value as number;
+            const cached = this._cacheSymbolicName[fullName];
+            if (!cached) {
+                this._registerName(fullName, value, options.nodeClass);
+            } else if (cached[0] === value) {
+                this._nameOfId.set(value, fullName);
+            } else if (this._mayTakeAnotherName(parentInfo)) {
+                // another node holds the name (OPC 40502 CNC's three parentless X axes): this
+                // one is listed under the next free `name__n`, as it would be named when built
+                const free = this._nextFreeName(fullName, value);
+                this._registerName(free.name, value, options.nodeClass);
             }
         }
         return nodeId;
@@ -275,9 +354,11 @@ export class NodeIdManager {
             (occupant.browseName.namespaceIndex ?? 0) === (options.browseName?.namespaceIndex ?? 0);
 
         const expectedParentNodeId = parentInfo ? parentInfo[0] : null;
+        // two parentless nodes are the same node only when one node organizes both (the same
+        // node declared twice in a folder); otherwise they merely share a browse name
         const sameParent = expectedParentNodeId
             ? !!occupant.parentNodeId && sameNodeId(occupant.parentNodeId, expectedParentNodeId)
-            : !occupant.parentNodeId;
+            : !occupant.parentNodeId && _shareAnOrganizer(occupant, options);
 
         return sameBrowseName && sameParent;
     }

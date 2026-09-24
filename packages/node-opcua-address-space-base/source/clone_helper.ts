@@ -192,11 +192,40 @@ type Context = Map<string, CloneInfo>;
 
 export class CloneHelper {
     public level = 0;
+    /**
+     * set by a walk that calls flushDeferred() once the whole tree is cloned (instantiate): only
+     * then may a clone be put off until the node that owns it has had its chance to clone it
+     */
+    public canDefer = false;
     private _context: Context | null = null;
     private _contextStack: Context[] = [];
     private readonly mapTypeInstanceChildren: Map<string, Map<string, CloneInfo>> = new Map();
+    private readonly _deferred: (() => void)[] = [];
     public pad(): string {
         return " ".padEnd(this.level * 2, " ");
+    }
+
+    /** run `action` in flushDeferred(), in the context that is current now */
+    public deferInCurrentContext(action: () => void): void {
+        const context = this._context;
+        this._deferred.push(() => {
+            const saved = this._context;
+            this._context = context;
+            try {
+                action();
+            } finally {
+                this._context = saved;
+            }
+        });
+    }
+
+    /** run what was deferred, and what that defers in turn, in order */
+    public flushDeferred(): void {
+        while (this._deferred.length > 0) {
+            for (const action of this._deferred.splice(0)) {
+                action();
+            }
+        }
     }
 
     /** each context in turn: the (original -> cloned) map of one type/instance pair */

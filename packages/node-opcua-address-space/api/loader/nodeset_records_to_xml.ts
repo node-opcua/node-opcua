@@ -250,6 +250,9 @@ function writeCommonAttributes(xw: XmlWriter, record: NodesetNodeRecord): void {
     if (record.releaseStatus) {
         xw.writeAttribute("ReleaseStatus", record.releaseStatus);
     }
+    if (record.designToolOnly) {
+        xw.writeAttribute("DesignToolOnly", "true");
+    }
     if (record.isAbstract) {
         xw.writeAttribute("IsAbstract", "true");
     }

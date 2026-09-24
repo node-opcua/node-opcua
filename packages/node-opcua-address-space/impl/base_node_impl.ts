@@ -184,6 +184,8 @@ export interface InternalBaseNodeOptions {
     nodesetDocumentation?: string;
     /** the `<Category>` elements as the nodeset declared them; see BaseNode.nodesetCategory */
     nodesetCategory?: string[];
+    /** `DesignToolOnly="true"` as the nodeset declared it; see BaseNode.designToolOnly */
+    designToolOnly?: boolean;
     /** the AccessRestrictions as declared, whatever this loader applies; see BaseNode */
     declaredAccessRestrictions?: string;
 }
@@ -233,6 +235,8 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
     public nodesetDocumentation?: string;
     /** see BaseNode.nodesetCategory; only set when the nodeset declared at least one */
     public nodesetCategory?: string[];
+    /** see BaseNode.designToolOnly; only set when the nodeset declared it */
+    public designToolOnly?: boolean;
     /** see BaseNode.declaredAccessRestrictions */
     public declaredAccessRestrictions?: string;
     private _accessRestrictions?: AccessRestrictionsFlag;
@@ -458,6 +462,9 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         }
         if (options.nodesetCategory && options.nodesetCategory.length > 0) {
             this.nodesetCategory = [...options.nodesetCategory];
+        }
+        if (options.designToolOnly) {
+            this.designToolOnly = true;
         }
         if (options.parentNodeId) {
             _private._declaredParentNodeId =

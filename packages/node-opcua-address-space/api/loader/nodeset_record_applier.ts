@@ -528,6 +528,7 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
             releaseStatus: record.releaseStatus,
             nodesetDocumentation: record.documentation,
             nodesetCategory: record.category,
+            designToolOnly: record.designToolOnly,
             ...this.permissions(record)
         };
     }
