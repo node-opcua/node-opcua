@@ -115,6 +115,8 @@ export function initialize_properties_and_components<
     optionals?: string[]
 ): void {
     const extraInfo = new CloneHelper();
+    // flushed below, once the whole tree is cloned
+    extraInfo.canDefer = true;
 
     extraInfo.pushContext({
         clonedParent: instance,
@@ -150,6 +152,9 @@ export function initialize_properties_and_components<
         optionalsMap,
         browseNameMap
     );
+
+    // the members a node only organizes, now that their owners were cloned
+    extraInfo.flushDeferred();
 
     reconstructFunctionalGroupType(extraInfo);
 
