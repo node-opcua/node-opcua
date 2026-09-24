@@ -132,7 +132,23 @@ function dumpDataTypeStructure(
     xw.endElement();
 }
 
+/**
+ * whether the 1.03 dictionary describes `dataType`: it lists Structures and Enumerations only. A
+ * basic type's subtype (OPC 30010 AutoID's CodeTypeDataType, a String) has no definition at all,
+ * and a bit-mask OptionSet's lists bits, not values: asking for them threw.
+ */
+function isDescribedInBSD(dataType: UADataType): boolean {
+    if (dataType.isStructure()) {
+        return true;
+    }
+    const isOptionSet = !!(dataType as UADataType & { isOptionSetDataType?: boolean }).isOptionSetDataType;
+    return !isOptionSet && dataType.isEnumeration();
+}
+
 function dumpDataTypeToBSD(xw: XmlWriter, dataType: UADataType, map: Map<number, string>) {
+    if (!isDescribedInBSD(dataType)) {
+        return;
+    }
     const addressSpace = dataType.addressSpace;
 
     const name: string = dataType.browseName.name || "";

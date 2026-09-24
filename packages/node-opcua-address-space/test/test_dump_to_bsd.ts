@@ -1,5 +1,6 @@
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
+import should from "should";
 
 import { AddressSpace, dumpToBSD } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
@@ -142,6 +143,16 @@ describe("converting DataType to BSD schema files", () => {
         <opc:Field Name="Extra" TypeName="ua:LocalizedText"/>
     </opc:StructuredType>
 </opc:TypeDictionary>`);
+    });
+    it("BSD7 - a basic type's subtype, which has no definition, is left out instead of throwing", () => {
+        // OPC 30010 AutoID's CodeTypeDataType is a String subtype: the whole dictionary threw
+        const namespace = addressSpace.getOwnNamespace();
+        namespace.createDataType({ browseName: "CodeTypeDataType", isAbstract: false, subtypeOf: "String" });
+        namespace.addEnumerationType({ browseName: "MyEnumType3", enumeration: ["ON", "OFF"] });
+
+        const xml = dumpToBSD(namespace);
+        should(xml).not.match(/CodeTypeDataType/);
+        should(xml).match(/<opc:EnumeratedType Name="MyEnumType3" LengthInBits="32">/);
     });
     it("BSD5 - Opaque", async () => {
         /* to do :
