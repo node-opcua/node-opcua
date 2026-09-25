@@ -13,6 +13,7 @@ import {
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 
+const OPERATION_LOCALIZED_TEXT = 0x40;
 const OPERATION_ADDITIONAL_INFO = 0x80;
 const REASON = "refused: device not in the inventory";
 
@@ -34,7 +35,8 @@ describe("Call: DiagnosticInfo for the result statusCode (OPC 10000-4 §5.12.2)"
             .addMethod(folder, { browseName: "Refuse", nodeId: "ns=1;s=Refuse" })
             .bindMethod(async (_inputArguments: Variant[], _context: ISessionContext) => ({
                 statusCode: StatusCodes.BadRequestNotAllowed,
-                diagnosticInfo: { additionalInfo: REASON }
+                diagnosticInfo: { additionalInfo: REASON },
+                statusText: REASON
             }));
         namespace
             .addMethod(folder, {
@@ -77,6 +79,23 @@ describe("Call: DiagnosticInfo for the result statusCode (OPC 10000-4 §5.12.2)"
         should(diagnosticInfos.length).eql(2);
         should(diagnosticInfos[0].additionalInfo).eql(null);
         should(diagnosticInfos[1].additionalInfo).eql(REASON);
+    });
+
+    it("returns the text as LocalizedText, through the string table, to a client asking only for 0x40", async () => {
+        const { results, diagnosticInfos, localizedTexts } = await session.callWithDiagnostics(
+            [accept, refuse],
+            OPERATION_LOCALIZED_TEXT
+        );
+        should(results[1].statusCode).eql(StatusCodes.BadRequestNotAllowed);
+        should(diagnosticInfos.length).eql(2);
+        should(localizedTexts).eql([null, REASON]);
+        // AdditionalInfo was not asked for, so it is filtered out.
+        should(diagnosticInfos[1].additionalInfo).eql(null);
+    });
+
+    it("sends no LocalizedText to a client asking only for AdditionalInfo", async () => {
+        const { localizedTexts } = await session.callWithDiagnostics([refuse], OPERATION_ADDITIONAL_INFO);
+        should(localizedTexts).eql([null]);
     });
 
     it("leaves the plain call() unchanged", async () => {

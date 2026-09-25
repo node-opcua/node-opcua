@@ -1879,7 +1879,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         const results: CallMethodResult[] = response.results || [];
         await promoteOpaqueStructureForCall(this, results);
         const diagnosticInfos = (response.diagnosticInfos || []).map((d) => d ?? new DiagnosticInfo());
-        return { results, diagnosticInfos };
+        const stringTable = response.responseHeader.stringTable || [];
+        const localizedTexts = diagnosticInfos.map((d) =>
+            typeof d.localizedText === "number" && d.localizedText >= 0 ? (stringTable[d.localizedText] ?? null) : null
+        );
+        return { results, diagnosticInfos, localizedTexts };
     }
 
     /**
