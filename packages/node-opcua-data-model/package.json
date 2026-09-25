@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-data-model",
     "type": "module",
-    "version": "2.186.1",
+    "version": "2.186.4",
     "description": "pure nodejs OPCUA SDK - module data-model",
     "scripts": {
         "build": "tsc -b",
