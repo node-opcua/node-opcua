@@ -9,12 +9,13 @@ import type { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-o
 import type { ServerState } from "node-opcua-common";
 import type { AggregateFunction } from "node-opcua-constants";
 import type { Certificate } from "node-opcua-crypto/web";
-import type { LocalizedTextLike } from "node-opcua-data-model";
+import type { DiagnosticInfo, LocalizedTextLike } from "node-opcua-data-model";
 import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import type {
     ArgumentDefinition,
+    CallMethodRequestLike,
     IBasicSession,
     IBasicSessionBrowse,
     IBasicSessionBrowseNext,
@@ -26,6 +27,7 @@ import type {
     MethodId,
     ResponseCallback
 } from "node-opcua-pseudo-session";
+import type { CallMethodResult } from "node-opcua-service-call";
 import type { EndpointDescription } from "node-opcua-service-endpoints";
 import type { HistoryReadResult } from "node-opcua-service-history";
 import type { QueryFirstRequestOptions, QueryFirstResponse } from "node-opcua-service-query";
@@ -239,7 +241,25 @@ export interface ClientSessionQueryService {
  * The `call()` method is inherited from
  * {@link node-opcua-pseudo-session!IBasicSessionCall}.
  */
+/** The results of a Call, with the DiagnosticInfo the server returned for each result's statusCode. */
+export interface CallResultsWithDiagnostics {
+    results: CallMethodResult[];
+    /**
+     * OPC 10000-4 v1.05.07 §5.12.2: one per result, in the same order, when the server returned any; empty
+     * otherwise (the server had none, or `returnDiagnostics` asked for no operation-level field).
+     */
+    diagnosticInfos: DiagnosticInfo[];
+}
+
 export interface ClientSessionCallService extends IBasicSessionCall {
+    /**
+     * Call methods and ask the server for the DiagnosticInfo of each result's statusCode.
+     *
+     * @param returnDiagnostics - RequestHeader.returnDiagnostics (OPC 10000-4 §7.33), e.g. 0x80 for the
+     *   operation-level AdditionalInfo, 0x3e0 for every operation-level field.
+     */
+    callWithDiagnostics(methodsToCall: CallMethodRequestLike[], returnDiagnostics: number): Promise<CallResultsWithDiagnostics>;
+
     /**
      * Retrieve the input and output argument definitions of a method.
      *
