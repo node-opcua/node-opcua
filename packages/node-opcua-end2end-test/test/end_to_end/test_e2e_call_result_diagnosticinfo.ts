@@ -13,6 +13,7 @@ import {
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 
+const OPERATION_SYMBOLIC_ID = 0x20;
 const OPERATION_LOCALIZED_TEXT = 0x40;
 const OPERATION_ADDITIONAL_INFO = 0x80;
 const REASON = "refused: device not in the inventory";
@@ -25,6 +26,8 @@ describe("Call: DiagnosticInfo for the result statusCode (OPC 10000-4 §5.12.2)"
 
     const refuse = { objectId: "ns=1;s=diag", methodId: "ns=1;s=Refuse", inputArguments: [] };
     const accept = { objectId: "ns=1;s=diag", methodId: "ns=1;s=Accept", inputArguments: [] };
+    const fail = { objectId: "ns=1;s=diag", methodId: "ns=1;s=Fail", inputArguments: [] };
+    const refuseInFrench = { objectId: "ns=1;s=diag", methodId: "ns=1;s=RefuseInFrench", inputArguments: [] };
 
     before(async () => {
         await server.initialize();
@@ -37,6 +40,18 @@ describe("Call: DiagnosticInfo for the result statusCode (OPC 10000-4 §5.12.2)"
                 statusCode: StatusCodes.BadRequestNotAllowed,
                 diagnosticInfo: { additionalInfo: REASON },
                 statusText: REASON
+            }));
+        // a method that says nothing about its failure
+        namespace
+            .addMethod(folder, { browseName: "Fail", nodeId: "ns=1;s=Fail" })
+            .bindMethod(async (_inputArguments: Variant[], _context: ISessionContext) => ({
+                statusCode: StatusCodes.BadInvalidState
+            }));
+        namespace
+            .addMethod(folder, { browseName: "RefuseInFrench", nodeId: "ns=1;s=RefuseInFrench" })
+            .bindMethod(async (_inputArguments: Variant[], _context: ISessionContext) => ({
+                statusCode: StatusCodes.BadRequestNotAllowed,
+                statusText: { text: "refusé : appareil inconnu", locale: "fr-FR" }
             }));
         namespace
             .addMethod(folder, {
@@ -82,20 +97,48 @@ describe("Call: DiagnosticInfo for the result statusCode (OPC 10000-4 §5.12.2)"
     });
 
     it("returns the text as LocalizedText, through the string table, to a client asking only for 0x40", async () => {
-        const { results, diagnosticInfos, localizedTexts } = await session.callWithDiagnostics(
+        const { results, diagnosticInfos, diagnosticStrings } = await session.callWithDiagnostics(
             [accept, refuse],
             OPERATION_LOCALIZED_TEXT
         );
         should(results[1].statusCode).eql(StatusCodes.BadRequestNotAllowed);
         should(diagnosticInfos.length).eql(2);
-        should(localizedTexts).eql([null, REASON]);
+        should(diagnosticStrings.map((s) => s.localizedText)).eql([null, REASON]);
         // AdditionalInfo was not asked for, so it is filtered out.
         should(diagnosticInfos[1].additionalInfo).eql(null);
     });
 
     it("sends no LocalizedText to a client asking only for AdditionalInfo", async () => {
-        const { localizedTexts } = await session.callWithDiagnostics([refuse], OPERATION_ADDITIONAL_INFO);
-        should(localizedTexts).eql([null]);
+        const { diagnosticStrings } = await session.callWithDiagnostics([refuse], OPERATION_ADDITIONAL_INFO);
+        should(diagnosticStrings[0].localizedText).eql(null);
+    });
+
+    it("describes a failure the method said nothing about: its symbolic id and standard description", async () => {
+        const { results, diagnosticStrings } = await session.callWithDiagnostics(
+            [accept, fail],
+            OPERATION_SYMBOLIC_ID | OPERATION_LOCALIZED_TEXT
+        );
+        should(results[1].statusCode).eql(StatusCodes.BadInvalidState);
+        should(diagnosticStrings[0]).eql({ symbolicId: null, namespaceUri: null, localizedText: null, locale: null });
+        should(diagnosticStrings[1]).eql({
+            symbolicId: "BadInvalidState",
+            namespaceUri: "http://opcfoundation.org/UA/",
+            localizedText: StatusCodes.BadInvalidState.description,
+            locale: null
+        });
+    });
+
+    it("returns the SymbolicId and its namespace only when 0x20 is asked for", async () => {
+        const { diagnosticStrings } = await session.callWithDiagnostics([fail], OPERATION_LOCALIZED_TEXT);
+        should(diagnosticStrings[0].symbolicId).eql(null);
+        should(diagnosticStrings[0].namespaceUri).eql(null);
+        should(diagnosticStrings[0].localizedText).eql(StatusCodes.BadInvalidState.description);
+    });
+
+    it("returns the locale of the method's text with its LocalizedText", async () => {
+        const { diagnosticStrings } = await session.callWithDiagnostics([refuseInFrench], OPERATION_LOCALIZED_TEXT);
+        should(diagnosticStrings[0].localizedText).eql("refusé : appareil inconnu");
+        should(diagnosticStrings[0].locale).eql("fr-FR");
     });
 
     it("leaves the plain call() unchanged", async () => {

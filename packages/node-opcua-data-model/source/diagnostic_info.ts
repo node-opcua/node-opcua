@@ -154,9 +154,13 @@ export class DiagnosticInfo extends BaseUAObject {
         requestedDiagnostics: number,
         diagnosticInfoMask: DiagnosticInfo_Mask
     ): DiagnosticInfo {
+        // OPC 10000-4 v1.05.07 §7.12: namespaceURI qualifies symbolicId and locale qualifies localizedText, so each
+        // travels with the field it qualifies (§7.32 has no bit of its own for them).
         const options: DiagnosticInfoOptions = {
             symbolicId: requestedDiagnostics & diagnosticInfoMask.SymbolicId ? diagnostic.symbolicId : undefined,
+            namespaceURI: requestedDiagnostics & diagnosticInfoMask.SymbolicId ? diagnostic.namespaceURI : undefined,
             localizedText: requestedDiagnostics & diagnosticInfoMask.LocalizedText ? diagnostic.localizedText : undefined,
+            locale: requestedDiagnostics & diagnosticInfoMask.LocalizedText ? diagnostic.locale : undefined,
             additionalInfo: requestedDiagnostics & diagnosticInfoMask.AdditionalInfo ? diagnostic.additionalInfo : undefined,
             innerStatusCode: requestedDiagnostics & diagnosticInfoMask.InnerStatusCode ? diagnostic.innerStatusCode : undefined,
             innerDiagnosticInfo:

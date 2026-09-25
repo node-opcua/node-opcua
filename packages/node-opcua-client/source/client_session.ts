@@ -241,6 +241,14 @@ export interface ClientSessionQueryService {
  * The `call()` method is inherited from
  * {@link node-opcua-pseudo-session!IBasicSessionCall}.
  */
+/** The strings of one DiagnosticInfo, resolved through the ResponseHeader stringTable (OPC 10000-4 §7.12). */
+export interface DiagnosticStrings {
+    symbolicId: string | null;
+    namespaceUri: string | null;
+    localizedText: string | null;
+    locale: string | null;
+}
+
 /** The results of a Call, with the DiagnosticInfo the server returned for each result's statusCode. */
 export interface CallResultsWithDiagnostics {
     results: CallMethodResult[];
@@ -250,11 +258,11 @@ export interface CallResultsWithDiagnostics {
      */
     diagnosticInfos: DiagnosticInfo[];
     /**
-     * The text each DiagnosticInfo's `localizedText` points at in the ResponseHeader `stringTable` (OPC 10000-4
-     * §7.12), one per entry of `diagnosticInfos`; `null` where there is none. Requires the operation-level
-     * LocalizedText bit (0x40) in `returnDiagnostics`.
+     * The strings each DiagnosticInfo points at in the ResponseHeader `stringTable` (OPC 10000-4 §7.12), one per entry
+     * of `diagnosticInfos`; `null` where there is none. `symbolicId` and `namespaceUri` need the operation-level
+     * SymbolicId bit (0x20) in `returnDiagnostics`, `localizedText` and `locale` the LocalizedText bit (0x40).
      */
-    localizedTexts: (string | null)[];
+    diagnosticStrings: DiagnosticStrings[];
 }
 
 export interface ClientSessionCallService extends IBasicSessionCall {
