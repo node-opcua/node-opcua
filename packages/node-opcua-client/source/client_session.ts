@@ -249,14 +249,20 @@ export interface CallResultsWithDiagnostics {
      * otherwise (the server had none, or `returnDiagnostics` asked for no operation-level field).
      */
     diagnosticInfos: DiagnosticInfo[];
+    /**
+     * The text each DiagnosticInfo's `localizedText` points at in the ResponseHeader `stringTable` (OPC 10000-4
+     * §7.12), one per entry of `diagnosticInfos`; `null` where there is none. Requires the operation-level
+     * LocalizedText bit (0x40) in `returnDiagnostics`.
+     */
+    localizedTexts: (string | null)[];
 }
 
 export interface ClientSessionCallService extends IBasicSessionCall {
     /**
      * Call methods and ask the server for the DiagnosticInfo of each result's statusCode.
      *
-     * @param returnDiagnostics - RequestHeader.returnDiagnostics (OPC 10000-4 §7.33), e.g. 0x80 for the
-     *   operation-level AdditionalInfo, 0x3e0 for every operation-level field.
+     * @param returnDiagnostics - RequestHeader.returnDiagnostics (OPC 10000-4 §7.32), e.g. 0x40 for the
+     *   operation-level LocalizedText, 0x80 for AdditionalInfo, 0x3e0 for every operation-level field.
      */
     callWithDiagnostics(methodsToCall: CallMethodRequestLike[], returnDiagnostics: number): Promise<CallResultsWithDiagnostics>;
 

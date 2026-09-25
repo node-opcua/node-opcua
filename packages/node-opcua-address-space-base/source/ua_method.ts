@@ -22,6 +22,16 @@ import type { UAVariable } from "./ua_variable.js";
  */
 export interface MethodResult extends CallMethodResultOptions {
     diagnosticInfo?: DiagnosticInfoOptions;
+    /**
+     * Human-readable text for `statusCode`, e.g. why a request was refused.
+     *
+     * OPC 10000-4 v1.05.07 §7.12 DiagnosticInfo: `localizedText` is an index into the ResponseHeader
+     * `stringTable`, holding "up to 256 bytes of localized text that describes the symbolic id". A method cannot
+     * reach the string table, so it returns the text here: the server adds it to the table (truncated to 256 bytes)
+     * and points the result's DiagnosticInfo `localizedText` at it. Sent only when the Client asks for
+     * operation-level LocalizedText (RequestHeader.returnDiagnostics 0x40, §7.32).
+     */
+    statusText?: string;
 }
 
 export declare type MethodFunctorC = (

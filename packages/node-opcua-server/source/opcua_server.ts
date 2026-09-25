@@ -881,16 +881,61 @@ function validate_security_endpoint(
 /** the operation-level bits of RequestHeader.returnDiagnostics (OPC 10000-4 v1.05.07 §7.33) */
 const OPERATION_LEVEL_DIAGNOSTICS = 0x3e0;
 
+/** the operation-level LocalizedText bit of RequestHeader.returnDiagnostics (OPC 10000-4 v1.05.07 §7.32) */
+const OPERATION_LEVEL_LOCALIZED_TEXT = 0x40;
+/** OPC 10000-4 v1.05.07 §7.12: "up to 256 bytes of localized text" */
+const MAX_LOCALIZED_TEXT_BYTES = 256;
+
+/** `text` cut to at most `maxBytes` of UTF-8, never in the middle of a character */
+function truncateUtf8(text: string, maxBytes: number): string {
+    if (Buffer.byteLength(text, "utf8") <= maxBytes) {
+        return text;
+    }
+    let bytes = 0;
+    let end = 0;
+    for (const char of text) {
+        const size = Buffer.byteLength(char, "utf8");
+        if (bytes + size > maxBytes) {
+            break;
+        }
+        bytes += size;
+        end += char.length;
+    }
+    return text.slice(0, end);
+}
+
 /**
  * OPC 10000-4 v1.05.07 §5.12.2: CallResponse.diagnosticInfos, one per result, in the order of the results, built from
  * the DiagnosticInfo each method implementation returned for its statusCode. Empty unless the Client asked for
  * operation-level diagnostics, or when no method returned one.
+ *
+ * When `stringTable` is given and the Client asked for operation-level LocalizedText, each `statusText` is added to
+ * it (§7.12: `localizedText` is an index into the ResponseHeader stringTable) and referenced by `localizedText`.
  */
-export function callResultDiagnosticInfos(returnDiagnostics: number, results: MethodResult[]): DiagnosticInfo[] {
-    if (!(returnDiagnostics & OPERATION_LEVEL_DIAGNOSTICS) || !results.some((r) => r.diagnosticInfo)) {
+export function callResultDiagnosticInfos(
+    returnDiagnostics: number,
+    results: MethodResult[],
+    stringTable?: string[]
+): DiagnosticInfo[] {
+    const withText = stringTable !== undefined && (returnDiagnostics & OPERATION_LEVEL_LOCALIZED_TEXT) !== 0;
+    if (
+        !(returnDiagnostics & OPERATION_LEVEL_DIAGNOSTICS) ||
+        !results.some((r) => r.diagnosticInfo || (withText && r.statusText))
+    ) {
         return [];
     }
-    return results.map((r) => new DiagnosticInfo(r.diagnosticInfo ?? {}));
+    return results.map((r) => {
+        const diagnosticInfo = new DiagnosticInfo(r.diagnosticInfo ?? {});
+        if (withText && r.statusText) {
+            const text = truncateUtf8(r.statusText, MAX_LOCALIZED_TEXT_BYTES);
+            let index = stringTable.indexOf(text);
+            if (index < 0) {
+                index = stringTable.push(text) - 1;
+            }
+            diagnosticInfo.localizedText = index;
+        }
+        return diagnosticInfo;
+    });
 }
 
 export function filterDiagnosticInfo(returnDiagnostics: number, response: CallResponse): void {
@@ -4262,10 +4307,18 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 this.engine
                     .call(context, request.methodsToCall)
                     .then((results) => {
+                        const stringTable: string[] = [];
                         const response = new CallResponse({
-                            results: results.map(({ diagnosticInfo: _, ...result }: MethodResult) => result),
-                            diagnosticInfos: callResultDiagnosticInfos(request.requestHeader.returnDiagnostics, results)
+                            results: results.map(({ diagnosticInfo: _, statusText: __, ...result }: MethodResult) => result),
+                            diagnosticInfos: callResultDiagnosticInfos(
+                                request.requestHeader.returnDiagnostics,
+                                results,
+                                stringTable
+                            )
                         });
+                        if (stringTable.length > 0) {
+                            response.responseHeader.stringTable = stringTable;
+                        }
                         filterDiagnosticInfo(request.requestHeader.returnDiagnostics, response);
                         sendResponse(response);
                     })

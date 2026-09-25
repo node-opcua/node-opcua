@@ -28,6 +28,30 @@ describe("callResultDiagnosticInfos", () => {
         should(callResultDiagnosticInfos(SERVICE_ADDITIONAL_INFO, [refused])).eql([]);
     });
 
+    it("puts statusText in the string table and points localizedText at it when LocalizedText (0x40) is asked for", () => {
+        const stringTable: string[] = [];
+        const withText = { statusCode: StatusCodes.BadRequestNotAllowed, statusText: "rejected by the approver: unknown device" };
+        const infos = callResultDiagnosticInfos(0x40, [plain, withText, withText], stringTable);
+        should(stringTable).eql(["rejected by the approver: unknown device"]);
+        should(infos.map((d) => d.localizedText >= 0)).eql([false, true, true]);
+        should(infos[1].localizedText).eql(0);
+        should(infos[2].localizedText).eql(0);
+    });
+
+    it("leaves the string table alone when LocalizedText is not asked for", () => {
+        const stringTable: string[] = [];
+        const withText = { statusCode: StatusCodes.BadRequestNotAllowed, statusText: "nope" };
+        should(callResultDiagnosticInfos(OPERATION_ADDITIONAL_INFO, [withText], stringTable)).eql([]);
+        should(stringTable).eql([]);
+    });
+
+    it("caps statusText at 256 bytes of UTF-8 without splitting a character (§7.12)", () => {
+        const stringTable: string[] = [];
+        callResultDiagnosticInfos(0x40, [{ statusCode: StatusCodes.Bad, statusText: "é".repeat(200) }], stringTable);
+        should(Buffer.byteLength(stringTable[0], "utf8")).eql(256);
+        should(stringTable[0]).eql("é".repeat(128));
+    });
+
     it("returns nothing when no method provided one", () => {
         should(callResultDiagnosticInfos(OPERATION_ADDITIONAL_INFO, [plain, plain])).eql([]);
     });
