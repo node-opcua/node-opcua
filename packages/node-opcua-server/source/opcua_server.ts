@@ -39,6 +39,7 @@ import {
     type UAView,
     type UnresolvedPermissionPolicy
 } from "node-opcua-address-space";
+import type { MethodResult } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import type { ByteString, UAString } from "node-opcua-basic-types";
 import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -51,6 +52,7 @@ import {
 import { type Certificate, combine_der, exploreCertificate, makeSHA1Thumbprint, type Nonce } from "node-opcua-crypto/web";
 import {
     AttributeIds,
+    DiagnosticInfo,
     filterDiagnosticOperationLevel,
     filterDiagnosticServiceLevel,
     LocalizedText,
@@ -874,6 +876,21 @@ function validate_security_endpoint(
         errCode: StatusCodes.Good,
         endpoint: endpoints_matching_security_policy[0]
     };
+}
+
+/** the operation-level bits of RequestHeader.returnDiagnostics (OPC 10000-4 v1.05.07 §7.33) */
+const OPERATION_LEVEL_DIAGNOSTICS = 0x3e0;
+
+/**
+ * OPC 10000-4 v1.05.07 §5.12.2: CallResponse.diagnosticInfos, one per result, in the order of the results, built from
+ * the DiagnosticInfo each method implementation returned for its statusCode. Empty unless the Client asked for
+ * operation-level diagnostics, or when no method returned one.
+ */
+export function callResultDiagnosticInfos(returnDiagnostics: number, results: MethodResult[]): DiagnosticInfo[] {
+    if (!(returnDiagnostics & OPERATION_LEVEL_DIAGNOSTICS) || !results.some((r) => r.diagnosticInfo)) {
+        return [];
+    }
+    return results.map((r) => new DiagnosticInfo(r.diagnosticInfo ?? {}));
 }
 
 export function filterDiagnosticInfo(returnDiagnostics: number, response: CallResponse): void {
@@ -4245,7 +4262,10 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 this.engine
                     .call(context, request.methodsToCall)
                     .then((results) => {
-                        const response = new CallResponse({ results });
+                        const response = new CallResponse({
+                            results: results.map(({ diagnosticInfo: _, ...result }: MethodResult) => result),
+                            diagnosticInfos: callResultDiagnosticInfos(request.requestHeader.returnDiagnostics, results)
+                        });
                         filterDiagnosticInfo(request.requestHeader.returnDiagnostics, response);
                         sendResponse(response);
                     })

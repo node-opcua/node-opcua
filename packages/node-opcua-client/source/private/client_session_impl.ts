@@ -16,7 +16,7 @@ import {
 } from "node-opcua-client-dynamic-extension-object";
 import type { AggregateFunction } from "node-opcua-constants";
 import type { Certificate, Nonce } from "node-opcua-crypto/web";
-import { BrowseDirection, type LocalizedTextLike } from "node-opcua-data-model";
+import { BrowseDirection, DiagnosticInfo, type LocalizedTextLike } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
@@ -116,6 +116,7 @@ import { DataType, type Variant, type VariantLike } from "node-opcua-variant";
 import type {
     ArgumentDefinition,
     CallMethodRequestLike,
+    CallResultsWithDiagnostics,
     ClientSession,
     CreateMonitoredItemsRequestLike,
     CreateSubscriptionRequestLike,
@@ -1859,6 +1860,26 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                     callback(err);
                 });
         });
+    }
+
+    public async callWithDiagnostics(
+        methodsToCall: CallMethodRequestLike[],
+        returnDiagnostics: number
+    ): Promise<CallResultsWithDiagnostics> {
+        const request = new CallRequest({ requestHeader: { returnDiagnostics }, methodsToCall });
+        const response = await new Promise<Response | undefined>((resolve, reject) =>
+            this.performMessageTransaction(request, (err: Error | null, response?: Response) =>
+                err ? reject(err) : resolve(response)
+            )
+        );
+        /* c8 ignore next */
+        if (!response || !(response instanceof CallResponse)) {
+            throw new Error("internal error");
+        }
+        const results: CallMethodResult[] = response.results || [];
+        await promoteOpaqueStructureForCall(this, results);
+        const diagnosticInfos = (response.diagnosticInfos || []).map((d) => d ?? new DiagnosticInfo());
+        return { results, diagnosticInfos };
     }
 
     /**

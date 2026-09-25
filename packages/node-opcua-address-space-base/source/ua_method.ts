@@ -1,4 +1,4 @@
-import type { NodeClass } from "node-opcua-data-model";
+import type { DiagnosticInfoOptions, NodeClass } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import type { CallbackT } from "node-opcua-status-code";
 import type { Argument, CallMethodResultOptions } from "node-opcua-types";
@@ -10,17 +10,27 @@ import type { UAObject } from "./ua_object.js";
 import type { UAObjectType } from "./ua_object_type.js";
 import type { UAVariable } from "./ua_variable.js";
 
+/**
+ * What a method implementation returns: the CallMethodResult, plus an optional DiagnosticInfo for its statusCode.
+ *
+ * OPC 10000-4 v1.05.07 §5.12.2 Call: the CallResponse `diagnosticInfos` is the "List of diagnostic information for
+ * the statusCode of the results", returned when the Client asks for operation-level diagnostics through
+ * `returnDiagnostics` in the RequestHeader (§7.33). A Server that reuses a StatusCode for an application specific
+ * meaning should put the application specific description there. `diagnosticInfo` is not part of the encoded
+ * CallMethodResult: the server moves it into `CallResponse.diagnosticInfos`, at the index of this result.
+ * Prefer `additionalInfo`: it needs no entry in the response string table.
+ */
+export interface MethodResult extends CallMethodResultOptions {
+    diagnosticInfo?: DiagnosticInfoOptions;
+}
+
 export declare type MethodFunctorC = (
     this: UAMethod,
     inputArguments: Variant[],
     context: ISessionContext,
-    callback: CallbackT<CallMethodResultOptions>
+    callback: CallbackT<MethodResult>
 ) => void;
-export declare type MethodFunctorA = (
-    this: UAMethod,
-    inputArguments: Variant[],
-    context: ISessionContext
-) => Promise<CallMethodResultOptions>;
+export declare type MethodFunctorA = (this: UAMethod, inputArguments: Variant[], context: ISessionContext) => Promise<MethodResult>;
 
 export type MethodFunctor = MethodFunctorC | MethodFunctorA;
 
