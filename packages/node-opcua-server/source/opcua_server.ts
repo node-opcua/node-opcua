@@ -143,7 +143,7 @@ import {
     TranslateBrowsePathsToNodeIdsResponse
 } from "node-opcua-service-translate-browse-path";
 import { WriteRequest, WriteResponse } from "node-opcua-service-write";
-import { type CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type CallbackT, coerceStatusCode, StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     type ApplicationDescriptionOptions,
     type BrowseDescriptionOptions,
@@ -881,8 +881,12 @@ function validate_security_endpoint(
 /** the operation-level bits of RequestHeader.returnDiagnostics (OPC 10000-4 v1.05.07 §7.33) */
 const OPERATION_LEVEL_DIAGNOSTICS = 0x3e0;
 
+/** the operation-level SymbolicId bit of RequestHeader.returnDiagnostics (OPC 10000-4 v1.05.07 §7.32) */
+const OPERATION_LEVEL_SYMBOLIC_ID = 0x20;
 /** the operation-level LocalizedText bit of RequestHeader.returnDiagnostics (OPC 10000-4 v1.05.07 §7.32) */
 const OPERATION_LEVEL_LOCALIZED_TEXT = 0x40;
+/** the namespace of the StatusCodes OPC 10000-6 defines: the namespace of a StatusCode's symbolic id */
+const OPC_UA_NAMESPACE_URI = "http://opcfoundation.org/UA/";
 /** OPC 10000-4 v1.05.07 §7.12: "up to 256 bytes of localized text" */
 const MAX_LOCALIZED_TEXT_BYTES = 256;
 
@@ -904,38 +908,60 @@ function truncateUtf8(text: string, maxBytes: number): string {
     return text.slice(0, end);
 }
 
+/** the index of `value` in `stringTable`, added when absent: one entry per unique string (OPC 10000-4 v1.05.07 §7.33) */
+function stringIndex(stringTable: string[], value: string): number {
+    const index = stringTable.indexOf(value);
+    return index >= 0 ? index : stringTable.push(value) - 1;
+}
+
 /**
- * OPC 10000-4 v1.05.07 §5.12.2: CallResponse.diagnosticInfos, one per result, in the order of the results, built from
- * the DiagnosticInfo each method implementation returned for its statusCode. Empty unless the Client asked for
- * operation-level diagnostics, or when no method returned one.
+ * OPC 10000-4 v1.05.07 §5.12.2: CallResponse.diagnosticInfos, one per result, in the order of the results. Empty unless
+ * the Client asked for operation-level diagnostics and at least one result has something to report.
  *
- * When `stringTable` is given and the Client asked for operation-level LocalizedText, each `statusText` is added to
- * it (§7.12: `localizedText` is an index into the ResponseHeader stringTable) and referenced by `localizedText`.
+ * Each entry starts from the DiagnosticInfo the method implementation returned. When `stringTable` is given, the
+ * fields §7.12 defines as indexes into the ResponseHeader stringTable are filled for every non-Good result, according
+ * to the bits the Client asked for (§7.32):
+ * - SymbolicId (0x20): `symbolicId` is the symbolic name of the StatusCode, `namespaceURI` the OPC UA namespace it is
+ *   defined in;
+ * - LocalizedText (0x40): `localizedText` is the method's `statusText` (at most 256 bytes of UTF-8), else the standard
+ *   description of the StatusCode; `locale` is the locale of `statusText`, when given.
+ * A field the method already set is kept. A Good result gets only what its method returned, or its `statusText`.
  */
 export function callResultDiagnosticInfos(
     returnDiagnostics: number,
     results: MethodResult[],
     stringTable?: string[]
 ): DiagnosticInfo[] {
-    const withText = stringTable !== undefined && (returnDiagnostics & OPERATION_LEVEL_LOCALIZED_TEXT) !== 0;
-    if (
-        !(returnDiagnostics & OPERATION_LEVEL_DIAGNOSTICS) ||
-        !results.some((r) => r.diagnosticInfo || (withText && r.statusText))
-    ) {
+    if (!(returnDiagnostics & OPERATION_LEVEL_DIAGNOSTICS)) {
         return [];
     }
-    return results.map((r) => {
+    const wantSymbolicId = stringTable !== undefined && (returnDiagnostics & OPERATION_LEVEL_SYMBOLIC_ID) !== 0;
+    const wantText = stringTable !== undefined && (returnDiagnostics & OPERATION_LEVEL_LOCALIZED_TEXT) !== 0;
+    let reported = false;
+    const diagnosticInfos = results.map((r) => {
         const diagnosticInfo = new DiagnosticInfo(r.diagnosticInfo ?? {});
-        if (withText && r.statusText) {
-            const text = truncateUtf8(r.statusText, MAX_LOCALIZED_TEXT_BYTES);
-            let index = stringTable.indexOf(text);
-            if (index < 0) {
-                index = stringTable.push(text) - 1;
+        reported = reported || r.diagnosticInfo !== undefined;
+        const statusCode = r.statusCode ? coerceStatusCode(r.statusCode) : StatusCodes.Good;
+        const notGood = statusCode.isNotGood();
+        if (wantSymbolicId && notGood && !(diagnosticInfo.symbolicId >= 0)) {
+            diagnosticInfo.symbolicId = stringIndex(stringTable, statusCode.name);
+            diagnosticInfo.namespaceURI = stringIndex(stringTable, OPC_UA_NAMESPACE_URI);
+            reported = true;
+        }
+        if (wantText && !(diagnosticInfo.localizedText >= 0)) {
+            const statusText = typeof r.statusText === "string" ? { text: r.statusText } : r.statusText;
+            const text = statusText?.text || (notGood ? statusCode.description : "");
+            if (text) {
+                diagnosticInfo.localizedText = stringIndex(stringTable, truncateUtf8(text, MAX_LOCALIZED_TEXT_BYTES));
+                if (statusText?.locale) {
+                    diagnosticInfo.locale = stringIndex(stringTable, statusText.locale);
+                }
+                reported = true;
             }
-            diagnosticInfo.localizedText = index;
         }
         return diagnosticInfo;
     });
+    return reported ? diagnosticInfos : [];
 }
 
 export function filterDiagnosticInfo(returnDiagnostics: number, response: CallResponse): void {

@@ -52,6 +52,38 @@ describe("callResultDiagnosticInfos", () => {
         should(stringTable[0]).eql("é".repeat(128));
     });
 
+    it("describes a non-Good result the method said nothing about, from its StatusCode", () => {
+        const stringTable: string[] = [];
+        const infos = callResultDiagnosticInfos(0x20 | 0x40, [plain, { statusCode: StatusCodes.BadInvalidState }], stringTable);
+        should(infos.length).eql(2);
+        should(infos[0].symbolicId >= 0).eql(false);
+        should(stringTable[infos[1].symbolicId]).eql("BadInvalidState");
+        should(stringTable[infos[1].namespaceURI]).eql("http://opcfoundation.org/UA/");
+        should(stringTable[infos[1].localizedText]).eql(StatusCodes.BadInvalidState.description);
+    });
+
+    it("keeps a field the method already set", () => {
+        const stringTable: string[] = ["already there"];
+        const infos = callResultDiagnosticInfos(
+            0x40,
+            [{ statusCode: StatusCodes.BadInvalidState, diagnosticInfo: { localizedText: 0 } }],
+            stringTable
+        );
+        should(infos[0].localizedText).eql(0);
+        should(stringTable).eql(["already there"]);
+    });
+
+    it("adds the locale of statusText to the string table", () => {
+        const stringTable: string[] = [];
+        const infos = callResultDiagnosticInfos(
+            0x40,
+            [{ statusCode: StatusCodes.BadRequestNotAllowed, statusText: { text: "refusé", locale: "fr-FR" } }],
+            stringTable
+        );
+        should(stringTable[infos[0].localizedText]).eql("refusé");
+        should(stringTable[infos[0].locale]).eql("fr-FR");
+    });
+
     it("returns nothing when no method provided one", () => {
         should(callResultDiagnosticInfos(OPERATION_ADDITIONAL_INFO, [plain, plain])).eql([]);
     });

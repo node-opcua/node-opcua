@@ -1880,10 +1880,15 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         await promoteOpaqueStructureForCall(this, results);
         const diagnosticInfos = (response.diagnosticInfos || []).map((d) => d ?? new DiagnosticInfo());
         const stringTable = response.responseHeader.stringTable || [];
-        const localizedTexts = diagnosticInfos.map((d) =>
-            typeof d.localizedText === "number" && d.localizedText >= 0 ? (stringTable[d.localizedText] ?? null) : null
-        );
-        return { results, diagnosticInfos, localizedTexts };
+        const lookup = (index: number | undefined) =>
+            typeof index === "number" && index >= 0 ? (stringTable[index] ?? null) : null;
+        const diagnosticStrings = diagnosticInfos.map((d) => ({
+            symbolicId: lookup(d.symbolicId),
+            namespaceUri: lookup(d.namespaceURI),
+            localizedText: lookup(d.localizedText),
+            locale: lookup(d.locale)
+        }));
+        return { results, diagnosticInfos, diagnosticStrings };
     }
 
     /**
