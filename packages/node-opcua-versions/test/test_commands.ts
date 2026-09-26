@@ -178,6 +178,87 @@ describe("planCheck", () => {
         const report = planCheck({ dependencies: { "node-opcua": "2.181.1" } }, matrix, "2.179.0");
         report.mismatches.should.eql([{ field: "dependencies", name: "node-opcua", actual: "2.181.1", expected: "2.179.0" }]);
     });
+
+    // A library declares the family only in peerDependencies. Left unreported, a floor that
+    // stayed behind installs a second copy of the family beside the one the release pins.
+    const library: PackageManifest = {
+        peerDependencies: { "node-opcua-debug": ">=2.179.0", "node-opcua-pseudo-session": ">=2.181.1" }
+    };
+
+    it("does not call a peers-only library empty, and leaves the exit code alone by default", () => {
+        const report = planCheck(library, matrix);
+        should(report.managed).eql(0);
+        should(report.uncheckedPeers).eql([
+            { name: "node-opcua-debug", specifier: ">=2.179.0" },
+            { name: "node-opcua-pseudo-session", specifier: ">=2.181.1" }
+        ]);
+        should(report.ok).eql(true); // reported, not failed: --include-peers is opt-in
+    });
+
+    it("fails a stale peer floor when peers are included, and never tells a peer to pin exactly", () => {
+        const report = planCheck(library, matrix, "2.181.1", ["dependencies", "devDependencies", "peerDependencies"]);
+        should(report.uncheckedPeers).eql([]);
+        should(report.ranges).eql([]); // a peer range is the contract, not a missing pin
+        should(report.mismatches).eql([
+            { field: "peerDependencies", name: "node-opcua-debug", actual: ">=2.179.0", expected: ">=2.181.0" }
+        ]);
+        should(report.ok).eql(false);
+    });
+
+    it("accepts peer floors that are already the release's versions, operator kept", () => {
+        const report = planCheck(
+            { peerDependencies: { "node-opcua-debug": "^2.181.0", "node-opcua-pseudo-session": ">=2.181.1" } },
+            matrix,
+            "2.181.1",
+            ["dependencies", "devDependencies", "peerDependencies"]
+        );
+        should(report.mismatches).eql([]);
+        should(report.ok).eql(true);
+    });
+
+    it("leaves a wildcard peer alone: it already accepts the release", () => {
+        const report = planCheck({ peerDependencies: { "node-opcua-debug": "*" } }, matrix, "2.181.1", [
+            "dependencies",
+            "devDependencies",
+            "peerDependencies"
+        ]);
+        should(report.mismatches).eql([]);
+        should(report.ok).eql(true);
+    });
+
+    it("is inconclusive rather than green when peer floors are all there is to go on", () => {
+        // no exact pin anywhere, so no release can be named; voting on the floors would
+        // "confirm" whatever stale release they are stuck at
+        const report = planCheck(library, matrix, undefined, ["dependencies", "devDependencies", "peerDependencies"]);
+        should(report.release).eql(null);
+        should(report.inconclusive).eql(true);
+        should(report.unrecognised).eql(false);
+        should(report.ok).eql(false);
+    });
+
+    it("stays conclusive when an exact pin names the release, peers included", () => {
+        const report = planCheck(
+            { dependencies: { "node-opcua": "2.181.1" }, peerDependencies: { "node-opcua-debug": ">=2.179.0" } },
+            matrix,
+            undefined,
+            ["dependencies", "devDependencies", "peerDependencies"]
+        );
+        should(report.release).eql("2.181.1");
+        should(report.inconclusive).eql(false);
+        should(report.mismatches).eql([
+            { field: "peerDependencies", name: "node-opcua-debug", actual: ">=2.179.0", expected: ">=2.181.0" }
+        ]);
+    });
+
+    it("does not become inconclusive for a manifest that has nothing of the family", () => {
+        const report = planCheck({ dependencies: { express: "4.0.0" } }, matrix, undefined, [
+            "dependencies",
+            "devDependencies",
+            "peerDependencies"
+        ]);
+        should(report.inconclusive).eql(false);
+        should(report.ok).eql(true);
+    });
 });
 
 describe("planExpand", () => {

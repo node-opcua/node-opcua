@@ -252,26 +252,46 @@ program
 
 program
     .command("check")
-    .description("verify that every node-opcua-* dependency is an exact pin belonging to one release (exit 1 otherwise)")
+    .description(
+        "verify that every node-opcua-* dependency is an exact pin belonging to one release (exit 1 otherwise); peerDependencies are reported, and verified with --include-peers"
+    )
     .option("-r, --release <version>", "the release to check against (inferred by default)")
     .option("--fix", "rewrite ranges and off-release pins to the release's exact versions (dependencies and devDependencies)")
-    .action(async (opts: { release?: string; fix?: boolean }) => {
+    .option(
+        "--include-peers",
+        "also verify peerDependencies: a floor that is not the release's version fails, the operator is left alone"
+    )
+    .action(async (opts: { release?: string; fix?: boolean; includePeers?: boolean }) => {
         const ctx = context();
         const { common, matrix, client } = ctx;
+        const fields: DependencyField[] = opts.includePeers
+            ? ["dependencies", "devDependencies", "peerDependencies"]
+            : ["dependencies", "devDependencies"];
         let skipped = 0;
         for (const manifest of ctx.manifests) {
-            if (skippable(manifest, ctx, ["dependencies", "devDependencies"])) {
+            // all three fields, whatever is being verified: a library that declares the family
+            // only in peerDependencies must still get a heading, or the run stays silent about
+            // exactly the packages a stale floor hurts
+            if (skippable(manifest, ctx, ["dependencies", "devDependencies", "peerDependencies"])) {
                 skipped++;
                 continue;
             }
             heading(manifest, ctx);
             const release = opts.release ?? (await resolveManifestRelease(manifest.json, matrix, client, common)) ?? undefined;
             if (release) await resolveRelease(release, matrix, client, common);
-            const report = planCheck(manifest.json, matrix, release);
+            const report = planCheck(manifest.json, matrix, release, fields);
             if (report.release) console.log(`  release ${report.release}`);
             else if (report.unrecognised)
                 console.log(
                     `  ! the node-opcua-* pins belong to no published release${common.offline ? ` (offline: only ${matrix.latest().release} is known)` : ""}; bump to a release, or pass --release`
+                );
+            else if (report.inconclusive)
+                console.log(
+                    `  ! ${report.managed} node-opcua-* ${report.managed === 1 ? "dependency" : "dependencies"}, none of them an exact pin to infer a release from; pass --release`
+                );
+            else if (report.uncheckedPeers.length > 0)
+                console.log(
+                    `  ! the node-opcua-* family is declared only in peerDependencies here; pass --include-peers to verify its floors`
                 );
             else console.log(`  no node-opcua-* dependency in ${displayPath(manifest)}: nothing to check`);
             const scriptWarnings = warnAboutScripts(manifest);
@@ -280,6 +300,10 @@ program
                 console.log(`  ! ${m.name} is ${m.actual}, release ${report.release} carries ${m.expected}`);
             for (const u of report.unmanaged)
                 console.log(`  ? ${u.name} ${u.specifier} is unknown to the release matrix (not checked)`);
+            // never silently: an unchecked stale floor is what makes the package manager
+            // install a second copy of the family beside the one the release pins
+            for (const p of report.uncheckedPeers)
+                console.log(`  ? ${p.name} ${p.specifier} is a peerDependency (not checked; pass --include-peers)`);
             if (report.ok && scriptWarnings === 0) {
                 if (report.release) console.log("  ok: every node-opcua-* dependency is an exact pin of one release");
                 continue;
@@ -290,7 +314,7 @@ program
             }
             if (opts.fix && report.release) {
                 const set = matrix.get(report.release) as NonNullable<ReturnType<ReleaseMatrix["get"]>>;
-                const plan = planBump(manifest.json, set, matrix);
+                const plan = planBump(manifest.json, set, matrix, fields);
                 applyChanges(manifest.json, plan.changes);
                 writeManifest(manifest);
                 for (const c of plan.changes) console.log(`  fixed ${c.name}: ${c.from} -> ${c.to} (${c.field})`);
