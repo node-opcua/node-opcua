@@ -150,21 +150,44 @@ export interface CheckReport {
      * versions that were never released together
      */
     unrecognised: boolean;
+    /**
+     * there was something to verify but no release to verify it against, so the run proves
+     * nothing: pass `--release`. Only reachable when the checked fields hold no exact pin,
+     * i.e. a library checked with its peer ranges included.
+     */
+    inconclusive: boolean;
     /** exact pins that do not belong to the release */
     mismatches: { field: DependencyField; name: string; actual: string; expected: string }[];
     /** managed dependencies written as a range instead of an exact version */
     ranges: { field: DependencyField; name: string; specifier: string }[];
     /** node-opcua-* dependencies the matrix has never seen (a package unknown to every release) */
     unmanaged: { field: DependencyField; name: string; specifier: string }[];
+    /**
+     * managed peer dependencies that were not checked, because `peerDependencies` was not
+     * among the fields. Reported so that a library whose whole family lives in peers is
+     * never described as having no node-opcua-* dependency: silence there is what lets a
+     * stale floor reach a release.
+     */
+    uncheckedPeers: { name: string; specifier: string }[];
+    /** how many managed dependencies were examined; 0 means the manifest really has none */
+    managed: number;
 }
 
 /**
  * is every managed dependency of the manifest an exact pin belonging to one release?
  *
- * `release` forces the release to check against; otherwise it is inferred.
+ * `release` forces the release to check against; otherwise it is inferred. `fields` says
+ * which fields to verify: the two exact-pin fields by default, `peerDependencies` as well
+ * when the caller asks. A peer is then judged on its floor rather than told to become an
+ * exact pin, which is the same rule `bump --include-peers` writes by. A managed peer left
+ * out of `fields` is still reported, under `uncheckedPeers`.
  */
-export function planCheck(json: PackageManifest, matrix: ReleaseMatrix, release?: string): CheckReport {
-    const fields: DependencyField[] = ["dependencies", "devDependencies"];
+export function planCheck(
+    json: PackageManifest,
+    matrix: ReleaseMatrix,
+    release?: string,
+    fields: DependencyField[] = ["dependencies", "devDependencies"]
+): CheckReport {
     const unmanaged: CheckReport["unmanaged"] = [];
     for (const field of fields) {
         for (const [name, specifier] of Object.entries(json[field] ?? {})) {
@@ -173,16 +196,28 @@ export function planCheck(json: PackageManifest, matrix: ReleaseMatrix, release?
         }
     }
     const managed = managedDependencies(json, matrix, fields).filter((d) => !isWorkspaceLink(d.specifier));
-    const ranges = managed.filter((d) => !isVersion(d.specifier));
+    // a peer range is a library's compatibility contract, not a pin waiting to happen: only
+    // a field that is meant to hold exact versions may be told to pin exactly
+    const ranges = managed.filter((d) => d.field !== "peerDependencies" && !isVersion(d.specifier));
+    const uncheckedPeers = fields.includes("peerDependencies")
+        ? []
+        : managedDependencies(json, matrix, ["peerDependencies"])
+              .filter((d) => !isWorkspaceLink(d.specifier))
+              .map((d) => ({ name: d.name, specifier: d.specifier }));
     const target = release ?? inferRelease(json, matrix)?.release ?? null;
     const mismatches: CheckReport["mismatches"] = [];
     if (target) {
         const set = matrix.get(target);
         if (!set) throw new Error(`unknown release: ${target}`);
         for (const d of managed) {
-            if (!isVersion(d.specifier)) continue;
-            const expected = versionInSet(set, d.name);
-            if (expected && expected !== d.specifier) {
+            const isPeer = d.field === "peerDependencies";
+            if (!isPeer && !isVersion(d.specifier)) continue; // reported as a range instead
+            const version = versionInSet(set, d.name);
+            if (!version) continue;
+            // a peer keeps the operator its author chose; what must match the release is its
+            // floor, which is exactly what `bump --include-peers` would write
+            const expected = isPeer ? rewritePeerSpecifier(d.specifier, version) : version;
+            if (expected !== d.specifier) {
                 mismatches.push({ field: d.field, name: d.name, actual: d.specifier, expected });
             }
         }
@@ -191,13 +226,21 @@ export function planCheck(json: PackageManifest, matrix: ReleaseMatrix, release?
     // manifest is on a release newer than the running copy, or on versions that never
     // were a release. Either way "no mismatch found" would be a false pass.
     const unrecognised = target === null && managed.some((d) => isVersion(d.specifier));
+    // Something to verify, but no release to verify it against. Reachable only when the
+    // checked fields hold no exact pin at all, which in practice means a library checked
+    // with `peerDependencies` included: its floors alone cannot name the release it is on,
+    // and voting on them would happily "confirm" the stale release they are stuck at.
+    const inconclusive = target === null && !unrecognised && managed.length > 0;
     return {
         release: target,
-        ok: mismatches.length === 0 && ranges.length === 0 && !unrecognised,
+        ok: mismatches.length === 0 && ranges.length === 0 && !unrecognised && !inconclusive,
         unrecognised,
+        inconclusive,
         mismatches,
         ranges,
-        unmanaged
+        unmanaged,
+        uncheckedPeers,
+        managed: managed.length
     };
 }
 
