@@ -134,10 +134,13 @@ export class TrustListClient extends ClientFile implements ITrustList {
             objectId: this.nodeId
         };
         const callMethodResult = await this.session.call(methodToCall);
+        // CloseAndUpdate closes the file whether or not the update applied, so
+        // the handle is gone either way; keeping it would make the next Open
+        // fail with "File has already be opened".
+        this.fileHandle = 0;
         if (callMethodResult.statusCode.isNotGood()) {
             throw new Error(callMethodResult.statusCode.name);
         }
-        this.fileHandle = 0;
         return callMethodResult.outputArguments?.[0].value as boolean;
     }
 

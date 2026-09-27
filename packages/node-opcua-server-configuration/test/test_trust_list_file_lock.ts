@@ -1,6 +1,6 @@
 import path from "node:path";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import "should";
+import should from "should";
 import "mocha";
 import {
     AddressSpace,
@@ -104,8 +104,12 @@ describe("TrustList File Lock", () => {
         newTrustList.specifiedLists = TrustListMasks.TrustedCertificates;
         newTrustList.trustedCertificates = [invalidCert];
 
-        const retValue = await trustList.writeTrustedCertificateList(newTrustList);
-        retValue.should.eql(false);
+        // CloseAndUpdate refuses it (the bytes do not parse as a certificate).
+        const error = await trustList.writeTrustedCertificateList(newTrustList).then(
+            () => null,
+            (err: Error) => err
+        );
+        should(error?.message).eql("BadCertificateInvalid");
 
         // 2. VERIFICATION: immediately try to open it for write again.
         // If the fix is working, this will NOT return BadInvalidState (it will return Good)
