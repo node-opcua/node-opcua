@@ -21,7 +21,7 @@
     },
     "dependencies": {
         "@types/semver": "7.8.0",
-        "chalk": "4.1.2",
+        "chalk": "6.0.1",
         "dequeue": "^1.0.5",
         "node-opcua-address-space-base": "2.186.4",
         "node-opcua-assert": "2.184.0",
@@ -29,7 +29,7 @@
         "node-opcua-binary-stream": "2.186.1",
         "node-opcua-client-dynamic-extension-object": "2.186.4",
         "node-opcua-constants": "2.185.0",
-        "node-opcua-crypto": "6.0.0",
+        "node-opcua-crypto": "6.1.2",
         "node-opcua-data-access": "2.186.4",
         "node-opcua-data-model": "2.186.4",
         "node-opcua-data-value": "2.186.4",

@@ -29,8 +29,8 @@
   "author": "node-opcua team",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "24.13.3",
-    "tsx": "^4.23.13"
+    "@types/node": "26.6.3",
+    "tsx": "^4.23.15"
   },
   "files": [
     "dist",
