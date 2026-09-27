@@ -29,6 +29,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { OPCUAServer, type OPCUAServerEndPoint } from "node-opcua-server";
+import { StatusCodes } from "node-opcua-status-code";
 import { ServerState, TrustListDataType, UserTokenType } from "node-opcua-types";
 import should from "should";
 
@@ -452,6 +453,53 @@ describe("Application setup state: leaving NoConfiguration once configured (Part
             await waitUntil(() => server.engine.getServerState() === ServerState.Running);
             should(server.engine.getServerState()).eql(ServerState.Running);
         } finally {
+            await server.shutdown();
+        }
+    });
+
+    it("ASE-10 a channel the application's own admission hook let in survives a TrustList change", async () => {
+        const { server, serverCm, endpointUrl } = await startConfiguredServer("ASE10");
+        const guestCm = await makeCertificateManager(_folder, "ASE10GuestPKI", true);
+        let open: Awaited<ReturnType<typeof openSession>> | undefined;
+        try {
+            // An application policy composed on top of push management, the
+            // way an anonymous-registration quarantine or a device provisioning
+            // mode is: it admits an untrusted client the store would refuse.
+            for (const endpoint of server.endpoints as OPCUAServerEndPoint[]) {
+                const previous = endpoint.onAdjustCertificateStatus;
+                endpoint.onAdjustCertificateStatus = async (statusCode, certificate) => {
+                    const adjusted = previous ? await previous(statusCode, certificate) : statusCode;
+                    return adjusted.equals(StatusCodes.BadCertificateUntrusted) ? StatusCodes.Good : adjusted;
+                };
+            }
+            open = await openSession(endpointUrl, guestCm);
+            should(await serverCm.isCertificateTrusted(open.certificate)).eql("BadCertificateUntrusted");
+
+            await asAdmin(endpointUrl, writeCaTrustList);
+            await new Promise((r) => setTimeout(r, 1000));
+            should(channelCount(server, open.certificate)).eql(1);
+        } finally {
+            await open?.client.disconnect().catch(() => undefined);
+            await server.shutdown();
+        }
+    });
+
+    it("ASE-11 re-evaluating an open channel in NoConfiguration does not trust its certificate again", async () => {
+        const { server, serverCm, endpointUrl } = await startServerAwaitingConfiguration("ASE11");
+        const guestCm = await makeCertificateManager(_folder, "ASE11GuestPKI", true);
+        let open: Awaited<ReturnType<typeof openSession>> | undefined;
+        try {
+            open = await openSession(endpointUrl, guestCm);
+            should(await serverCm.isCertificateTrusted(open.certificate)).eql("Good");
+            // The CA list replaces the trusted list, removing the guest; the
+            // re-evaluation that follows keeps its channel (setup admits it)
+            // but must not put it back in the trusted list.
+            await asAdmin(endpointUrl, writeCaTrustList);
+            await new Promise((r) => setTimeout(r, 1000));
+            should(channelCount(server, open.certificate)).eql(1);
+            should(await serverCm.isCertificateTrusted(open.certificate)).eql("BadCertificateUntrusted");
+        } finally {
+            await open?.client.disconnect().catch(() => undefined);
             await server.shutdown();
         }
     });
