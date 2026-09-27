@@ -32,7 +32,7 @@
         "node-opcua-status-code": "2.186.1",
         "node-opcua-types": "2.186.4",
         "node-opcua-variant": "2.186.4",
-        "tsx": "^4.23.13"
+        "tsx": "^4.23.15"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

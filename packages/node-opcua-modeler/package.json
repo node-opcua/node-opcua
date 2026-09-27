@@ -18,7 +18,7 @@
     },
     "dependencies": {
         "cli-table3": "0.6.5",
-        "csv-parse": "7.0.2",
+        "csv-parse": "7.0.3",
         "node-opcua-address-space": "2.186.4",
         "node-opcua-assert": "2.184.0",
         "node-opcua-basic-types": "2.186.1",

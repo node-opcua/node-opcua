@@ -34,7 +34,7 @@
     "dependencies": {
         "@inquirer/prompts": "8.7.2",
         "command-line-args": "6.0.2",
-        "env-paths": "2.2.1",
+        "env-paths": "4.0.0",
         "node-opcua": "2.186.4",
         "node-opcua-debug": "2.184.0"
     },

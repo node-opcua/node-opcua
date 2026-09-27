@@ -11,14 +11,14 @@
     },
     "dependencies": {
         "bcryptjs": "3.0.3",
-        "chalk": "4.1.2",
+        "chalk": "6.0.1",
         "node-opcua": "2.186.4",
         "node-opcua-client": "2.186.4",
         "node-opcua-debug": "2.184.0",
         "node-opcua-modeler": "2.186.4",
         "node-opcua-nodeset-di": "2.186.4",
-        "readline": "*",
-        "winston": "*"
+        "readline": "^1.3.0",
+        "winston": "^3.19.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

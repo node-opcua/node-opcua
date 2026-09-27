@@ -16,7 +16,7 @@
     },
     "dependencies": {
         "@types/semver": "7.8.0",
-        "chalk": "4.1.2",
+        "chalk": "6.0.1",
         "node-opcua-address-space": "2.186.4",
         "node-opcua-address-space-for-conformance-testing": "2.186.4",
         "node-opcua-aggregates": "2.186.4",
@@ -28,7 +28,7 @@
         "node-opcua-client-proxy": "2.186.4",
         "node-opcua-common": "2.186.4",
         "node-opcua-constants": "2.185.0",
-        "node-opcua-crypto": "6.0.0",
+        "node-opcua-crypto": "6.1.2",
         "node-opcua-data-access": "2.186.4",
         "node-opcua-data-model": "2.186.4",
         "node-opcua-data-value": "2.186.4",
