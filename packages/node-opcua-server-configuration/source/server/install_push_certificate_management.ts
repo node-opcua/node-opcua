@@ -461,17 +461,22 @@ export async function installPushCertificateManagementOnServer(
 
 const reevaluations = new WeakMap<OPCUAServer, Promise<unknown>>();
 
+/** Certificates being re-evaluated: the relaxation hook admits them without trusting them. */
+const reevaluating = new WeakSet<Certificate>();
+
 /** How long after a TrustList change open channels are re-evaluated (see the "trustListUpdated" listener). */
 const REEVALUATION_DELAY_MS = 250;
 
 /**
  * Close every SecureChannel, and the Sessions on it, whose client
- * certificate the server no longer accepts. In the setup state an untrusted
- * certificate is still admitted, so only a revoked or otherwise invalid one
- * closes the channel then. Returns the number of channels closed.
+ * certificate the server would no longer admit, by the same decision as at
+ * OpenSecureChannel: the certificate store, then the endpoint's
+ * `onAdjustCertificateStatus` hook (the NoConfiguration relaxation, plus
+ * whatever admission policy the application composed with it). In the setup
+ * state an untrusted certificate is therefore still admitted. Returns the
+ * number of channels closed.
  *
- * The check never trusts a certificate on its own: the relaxation hook,
- * which does, is not called.
+ * The check never trusts a certificate on its own.
  */
 export function closeChannelsNoLongerTrusted(server: OPCUAServer): Promise<number> {
     const run = (reevaluations.get(server) ?? Promise.resolve()).then(() => _closeChannelsNoLongerTrusted(server));
@@ -491,11 +496,21 @@ async function _closeChannelsNoLongerTrusted(server: OPCUAServer): Promise<numbe
             if (!certificate) {
                 continue;
             }
-            const statusCode = await cm.checkCertificate(certificate);
-            if (statusCode.isGood()) {
-                continue;
+            // The same decision as when the channel was opened: the store,
+            // then the endpoint's adjustment hook, which the application may
+            // have composed with its own admission policy. Only the
+            // NoConfiguration relaxation's side effect (trusting the
+            // certificate) is suppressed: a re-evaluation never adds trust.
+            let statusCode = await cm.checkCertificate(certificate);
+            if (statusCode.isNotGood()) {
+                reevaluating.add(certificate);
+                try {
+                    statusCode = await endpoint.adjustCertificateStatus(statusCode, certificate);
+                } finally {
+                    reevaluating.delete(certificate);
+                }
             }
-            if (server.engine.getServerState() === ServerState.NoConfiguration && isRelaxableCertificateError(statusCode)) {
+            if (statusCode.isGood()) {
                 continue;
             }
             warningLog(`[TrustList] closing SecureChannel ${channel.channelId}: client certificate is now ${statusCode.name}`);
@@ -713,8 +728,11 @@ function installCertificateRelaxationHook(server: OPCUAServer, recordProvisional
                 "(server is awaiting GDS provisioning)"
             );
 
-        // Auto-trust the leaf certificate; issuer CAs go to issuers/
-        await autoTrustCertificateChain(server, certificate, recordProvisional);
+        // Auto-trust the leaf certificate; issuer CAs go to issuers/ (not
+        // when an open channel is being re-evaluated: that adds no trust).
+        if (!reevaluating.has(certificate)) {
+            await autoTrustCertificateChain(server, certificate, recordProvisional);
+        }
 
         return StatusCodes.Good;
     };
