@@ -16,12 +16,19 @@ import {
     resolvePrivateKeyProviderIfNeeded
 } from "node-opcua-common";
 import { readPrivateKey } from "node-opcua-crypto";
-import { type Certificate, exploreCertificateInfo, split_der } from "node-opcua-crypto/web";
+import {
+    type Certificate,
+    exploreCertificateInfo,
+    makeSHA1Thumbprint,
+    split_der,
+    verifyCertificateSignature
+} from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type ApplicationDescriptionOptions, ServerState } from "node-opcua-types";
 
+import { hasConfirmedTrust, leafThumbprintsIn, recordProvisionalTrust, withdrawProvisionalTrust } from "./application_setup.js";
 import { installPushCertificateManagement } from "./push_certificate_manager_helpers.js";
 import type { ActionQueue, PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl.js";
 
@@ -239,6 +246,42 @@ export interface InstallPushCertificateManagementOnServerOptions {
      * @defaultValue true
      */
     closeChannelsOnApplyChanges?: boolean;
+
+    /**
+     * How the server leaves the application setup state
+     * (`ServerState.NoConfiguration`, OPC 10000-12 §G.2).
+     */
+    applicationSetup?: ApplicationSetupOptions;
+}
+
+export interface ApplicationSetupOptions {
+    /**
+     * Leave the application setup state automatically once the server is
+     * configured. §G.2: "Once an application has been configured it
+     * automatically leaves the application setup state. This step is
+     * necessary to ensure that security is not compromised."
+     *
+     * While the server reports `NoConfiguration`, push certificate
+     * management admits any client and trusts its certificate, so that a
+     * CertificateManager can reach it for the first time (see
+     * `installCertificateRelaxationHook`). With this option:
+     *
+     * - the server moves to `Running` when ApplyChanges has put a
+     *   CA-issued certificate into service and the TrustList holds a
+     *   certificate that was not trusted automatically;
+     * - on leaving `NoConfiguration` (this way or when the application sets
+     *   the state itself), the certificates trusted automatically are
+     *   removed again, except those a TrustList write kept (CloseAndUpdate
+     *   of the trusted list, AddCertificate). Whoever configured the server
+     *   stays trusted through the TrustList it wrote; anyone else who
+     *   connected during the setup does not.
+     *
+     * Without it the application decides when the setup ends, and the
+     * certificates trusted automatically stay trusted.
+     *
+     * @defaultValue false
+     */
+    leaveWhenConfigured?: boolean;
 }
 
 export async function installPushCertificateManagementOnServer(
@@ -246,6 +289,7 @@ export async function installPushCertificateManagementOnServer(
     options?: InstallPushCertificateManagementOnServerOptions
 ): Promise<void> {
     const closeChannelsOnApplyChanges = options?.closeChannelsOnApplyChanges ?? true;
+    const leaveWhenConfigured = options?.applicationSetup?.leaveWhenConfigured ?? false;
     if (!server.engine?.addressSpace) {
         throw new Error(
             "Server must have a valid address space. " +
@@ -309,6 +353,9 @@ export async function installPushCertificateManagementOnServer(
         setImmediate(async () => {
             try {
                 await onApplyChangesCompleted(server, closeChannelsOnApplyChanges);
+                if (leaveWhenConfigured) {
+                    await leaveApplicationSetupIfConfigured(server, cm);
+                }
             } catch (err) {
                 errorLog("onApplyChangesCompleted error:", (err as Error).message);
             }
@@ -323,8 +370,10 @@ export async function installPushCertificateManagementOnServer(
     // write a certificate straight into serverCertificateManager's
     // trusted-certs folder. Only the method path emits "trustListUpdated",
     // so a consumer waiting on it to learn that the server has been
-    // provisioned - to leave NoConfiguration, say - would never hear about
-    // a TrustList populated the other way.
+    // provisioned would never hear about a TrustList populated the other
+    // way. It is not a signal to leave NoConfiguration: the first client
+    // trusted automatically populates the TrustList too. Use
+    // `applicationSetup.leaveWhenConfigured` for that.
     //
     // This deliberately does NOT emit "applyChangesCompleted": that event
     // means "a certificate rotation was applied" and carries channel
@@ -375,7 +424,149 @@ export async function installPushCertificateManagementOnServer(
     //
     // This hook is ONLY installed when push certificate management
     // is active — bare servers are completely unaffected.
-    installCertificateRelaxationHook(server);
+    installCertificateRelaxationHook(server, leaveWhenConfigured);
+
+    // ── Re-evaluate open channels when the TrustList changes ──
+    //
+    // §7.8.2.5: "When the TrustList changes the Server shall re-evaluate the
+    // Certificate associated with any open Sessions and SecureChannels.
+    // Sessions or SecureChannels with an untrusted or revoked Certificate
+    // shall be closed." The event fires inside the method, before its
+    // response is on the wire; the delay gives the Client that changed the
+    // TrustList time to receive it before its own channel may be closed
+    // ("This process may not complete before the Method returns").
+    serverConfigurationPriv.$pushCertificateManager.on("trustListUpdated", () => {
+        setTimeout(() => {
+            closeChannelsNoLongerTrusted(server).catch((err) =>
+                errorLog("[TrustList] cannot re-evaluate open channels:", (err as Error).message)
+            );
+        }, REEVALUATION_DELAY_MS);
+    });
+
+    if (leaveWhenConfigured) {
+        withdrawProvisionalTrustOnLeavingSetup(server, cm);
+        // The TrustList may be written after ApplyChanges: without a
+        // transaction CloseAndUpdate applies on its own, so check then too.
+        serverConfigurationPriv.$pushCertificateManager.on("trustListUpdated", () => {
+            setTimeout(() => {
+                leaveApplicationSetupIfConfigured(server, cm).catch((err) =>
+                    errorLog("[ApplicationSetup] cannot evaluate the setup state:", (err as Error).message)
+                );
+            }, REEVALUATION_DELAY_MS);
+        });
+    }
+}
+
+// ── Re-evaluating open channels (§7.8.2.5) ─────────────────────
+
+const reevaluations = new WeakMap<OPCUAServer, Promise<unknown>>();
+
+/** How long after a TrustList change open channels are re-evaluated (see the "trustListUpdated" listener). */
+const REEVALUATION_DELAY_MS = 250;
+
+/**
+ * Close every SecureChannel, and the Sessions on it, whose client
+ * certificate the server no longer accepts. In the setup state an untrusted
+ * certificate is still admitted, so only a revoked or otherwise invalid one
+ * closes the channel then. Returns the number of channels closed.
+ *
+ * The check never trusts a certificate on its own: the relaxation hook,
+ * which does, is not called.
+ */
+export function closeChannelsNoLongerTrusted(server: OPCUAServer): Promise<number> {
+    const run = (reevaluations.get(server) ?? Promise.resolve()).then(() => _closeChannelsNoLongerTrusted(server));
+    reevaluations.set(
+        server,
+        run.catch(() => undefined)
+    );
+    return run;
+}
+
+async function _closeChannelsNoLongerTrusted(server: OPCUAServer): Promise<number> {
+    const cm = server.serverCertificateManager;
+    let closed = 0;
+    for (const endpoint of server.endpoints as OPCUAServerEndPoint[]) {
+        for (const channel of endpoint.getChannels()) {
+            const certificate = channel.clientCertificate;
+            if (!certificate) {
+                continue;
+            }
+            const statusCode = await cm.checkCertificate(certificate);
+            if (statusCode.isGood()) {
+                continue;
+            }
+            if (server.engine.getServerState() === ServerState.NoConfiguration && isRelaxableCertificateError(statusCode)) {
+                continue;
+            }
+            warningLog(`[TrustList] closing SecureChannel ${channel.channelId}: client certificate is now ${statusCode.name}`);
+            for (const session of server.engine.getSessions()) {
+                if (session.channel === channel) {
+                    server.engine.closeSession(session.authenticationToken, false, "Terminated");
+                }
+            }
+            channel.close();
+            closed++;
+        }
+    }
+    return closed;
+}
+
+// ── Leaving the application setup state (§G.2) ─────────────────
+
+function isSelfSigned(certificate: Certificate): boolean {
+    try {
+        return verifyCertificateSignature(certificate, certificate);
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Move to Running once ApplyChanges has put a CA-issued certificate into
+ * service and the TrustList holds a certificate that was not trusted
+ * automatically. Leaving earlier would lock every client out, the
+ * CertificateManager included.
+ */
+async function leaveApplicationSetupIfConfigured(server: OPCUAServer, cm: OPCUACertificateManager): Promise<void> {
+    if (server.engine.getServerState() !== ServerState.NoConfiguration) {
+        return;
+    }
+    if (isSelfSigned(server.getCertificate())) {
+        doDebug && debugLog("[ApplicationSetup] still self-signed: staying in NoConfiguration");
+        return;
+    }
+    if (!(await hasConfirmedTrust(cm))) {
+        warningLog(
+            "[ApplicationSetup] a CA-issued certificate is in service but no TrustList was written: staying in NoConfiguration"
+        );
+        return;
+    }
+    warningLog("[ApplicationSetup] configured: leaving NoConfiguration");
+    server.engine.setServerState(ServerState.Running);
+}
+
+/** When the server leaves NoConfiguration, remove the certificates trusted automatically during the setup. */
+function withdrawProvisionalTrustOnLeavingSetup(server: OPCUAServer, cm: OPCUACertificateManager): void {
+    const onStateChanged = (oldState: ServerState, newState: ServerState) => {
+        if (newState === ServerState.Shutdown) {
+            server.engine.removeListener("serverStateChanged", onStateChanged);
+            return;
+        }
+        if (oldState !== ServerState.NoConfiguration || newState === ServerState.NoConfiguration) {
+            return;
+        }
+        withdrawProvisionalTrust(cm)
+            .then(async (withdrawn) => {
+                if (withdrawn > 0) {
+                    warningLog(
+                        `[ApplicationSetup] setup ended: ${withdrawn} certificate(s) trusted automatically are no longer trusted`
+                    );
+                }
+                await closeChannelsNoLongerTrusted(server);
+            })
+            .catch((err) => errorLog("[ApplicationSetup] cannot withdraw provisional trust:", (err as Error).message));
+    };
+    server.engine.on("serverStateChanged", onStateChanged);
 }
 
 // ── Certificate relaxation for NoConfiguration state ──────────
@@ -403,7 +594,10 @@ export async function installPushCertificateManagementOnServer(
  * relaxation hook returns the original status code unchanged and
  * normal strict certificate validation applies.  The accepted
  * certificate is auto-trusted (see `autoTrustCertificateChain`)
- * so that subsequent connections succeed under normal validation.
+ * so that subsequent connections succeed under normal validation;
+ * with `applicationSetup.leaveWhenConfigured` that trust is
+ * withdrawn again when the setup ends, unless a TrustList write
+ * kept it.
  *
  * Errors that indicate an active security violation (revoked,
  * expired, invalid signature, wrong usage) are **never** relaxed,
@@ -432,7 +626,7 @@ function isRelaxableCertificateError(statusCode: StatusCode): boolean {
  * connection from unintentionally granting trust to every
  * certificate signed by the same CA.
  */
-async function autoTrustCertificateChain(server: OPCUAServer, certificate: Certificate): Promise<void> {
+async function autoTrustCertificateChain(server: OPCUAServer, certificate: Certificate, recordProvisional: boolean): Promise<void> {
     let chain: Certificate[];
     try {
         chain = split_der(certificate);
@@ -456,8 +650,12 @@ async function autoTrustCertificateChain(server: OPCUAServer, certificate: Certi
         }
 
         if (i === 0) {
-            // Leaf certificate → trust explicitly
+            // Leaf certificate → trust explicitly, and remember that it was
+            // trusted only because the server is in the setup state.
             try {
+                if (recordProvisional && (await cm.isCertificateTrusted(cert)) !== "Good") {
+                    await recordProvisionalTrust(cm, "trusted", makeSHA1Thumbprint(cert).toString("hex"));
+                }
                 await cm.trustCertificate(cert);
             } catch (err) {
                 // ENOENT can happen if another concurrent call already
@@ -470,6 +668,12 @@ async function autoTrustCertificateChain(server: OPCUAServer, certificate: Certi
             // Issuer CA certificate → add to issuers/ (chain-building
             // only, does NOT establish a trust anchor)
             try {
+                if (recordProvisional) {
+                    const thumbprint = makeSHA1Thumbprint(cert).toString("hex");
+                    if (!(await leafThumbprintsIn(cm.issuersCertFolder)).includes(thumbprint)) {
+                        await recordProvisionalTrust(cm, "issuers", thumbprint);
+                    }
+                }
                 await cm.addIssuer(cert);
             } catch (err) {
                 warningLog("[NoConfiguration] Failed to add issuer certificate:", (err as Error).message);
@@ -490,7 +694,7 @@ async function autoTrustCertificateChain(server: OPCUAServer, certificate: Certi
  * validation.  Issuer CAs are placed in `issuers/` for chain
  * building but do not become trust anchors.
  */
-function installCertificateRelaxationHook(server: OPCUAServer): void {
+function installCertificateRelaxationHook(server: OPCUAServer, recordProvisional: boolean): void {
     const adjustCertificateStatus = async (statusCode: StatusCode, certificate: Certificate): Promise<StatusCode> => {
         // Only relax in NoConfiguration state
         if (server.engine.getServerState() !== ServerState.NoConfiguration) {
@@ -510,7 +714,7 @@ function installCertificateRelaxationHook(server: OPCUAServer): void {
             );
 
         // Auto-trust the leaf certificate; issuer CAs go to issuers/
-        await autoTrustCertificateChain(server, certificate);
+        await autoTrustCertificateChain(server, certificate, recordProvisional);
 
         return StatusCodes.Good;
     };

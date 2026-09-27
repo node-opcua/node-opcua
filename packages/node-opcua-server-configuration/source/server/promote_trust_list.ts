@@ -21,7 +21,7 @@ import type {
 } from "node-opcua-address-space";
 import { BinaryStream } from "node-opcua-binary-stream";
 import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { split_der, verifyCertificateChain } from "node-opcua-crypto/web";
+import { exploreCertificate, makeSHA1Thumbprint, split_der, verifyCertificateChain } from "node-opcua-crypto/web";
 import { AccessRestrictionsFlag } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { type AbstractFs, installFileType, OpenFileMode } from "node-opcua-file-transfer";
@@ -29,6 +29,7 @@ import { VerificationStatus } from "node-opcua-pki";
 import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type CallMethodResultOptions, TrustListDataType } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
+import { confirmTrust, isSharedTrustListStore, leafThumbprintsIn } from "./application_setup.js";
 import type { PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl.js";
 import { rolePermissionAdminOnly } from "./roles_and_permissions.js";
 import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools.js";
@@ -274,6 +275,54 @@ async function applyTrustListChanges(cm: OPCUACertificateManager, trustListData:
             trustListData.specifiedLists |= TrustListMasks.IssuerCertificates;
         }
 
+        // Validate all trusted certificates
+        if (
+            (trustListData.specifiedLists & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates &&
+            trustListData.trustedCertificates
+        ) {
+            for (const cert of trustListData.trustedCertificates) {
+                try {
+                    const certs = split_der(cert);
+                    // verifyCertificateChain checks nothing on a one-element chain;
+                    // parsing is what rejects bytes that are not a certificate.
+                    exploreCertificate(certs[0]);
+                    const validationResult = await verifyCertificateChain([certs[0]]);
+                    if (validationResult.status !== "Good") {
+                        warningLog("Invalid certificate in trust list:", validationResult.status, validationResult.reason);
+                        return StatusCodes.BadCertificateInvalid;
+                    }
+                } catch (validationErr) {
+                    errorLog("Certificate validation failed:", validationErr);
+                    return StatusCodes.BadCertificateInvalid;
+                }
+            }
+        }
+
+        // Validate all issuer certificates
+        if (
+            (trustListData.specifiedLists & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates &&
+            trustListData.issuerCertificates
+        ) {
+            for (const cert of trustListData.issuerCertificates) {
+                try {
+                    const certs = split_der(cert);
+                    // verifyCertificateChain checks nothing on a one-element chain;
+                    // parsing is what rejects bytes that are not a certificate.
+                    exploreCertificate(certs[0]);
+                    const validationResult = await verifyCertificateChain([certs[0]]);
+                    if (validationResult.status !== "Good") {
+                        warningLog("Invalid issuer certificate in trust list:", validationResult.status, validationResult.reason);
+                        return StatusCodes.BadCertificateInvalid;
+                    }
+                } catch (validationErr) {
+                    errorLog("Issuer certificate validation failed:", validationErr);
+                    return StatusCodes.BadCertificateInvalid;
+                }
+            }
+        }
+
+        // Nothing below runs unless every uploaded certificate is valid, so an
+        // invalid upload leaves the TrustList (CRLs included) as it was.
         // Process CRLs
         if ((trustListData.specifiedLists & TrustListMasks.IssuerCrls) === TrustListMasks.IssuerCrls) {
             doDebug && debugLog("Processing issuer CRLs");
@@ -297,68 +346,66 @@ async function applyTrustListChanges(cm: OPCUACertificateManager, trustListData:
             }
         }
 
-        // Validate all trusted certificates
-        if (
-            (trustListData.specifiedLists & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates &&
-            trustListData.trustedCertificates
-        ) {
-            for (const cert of trustListData.trustedCertificates) {
-                try {
-                    const certs = split_der(cert);
-                    const validationResult = await verifyCertificateChain([certs[0]]);
-                    if (validationResult.status !== "Good") {
-                        warningLog("Invalid certificate in trust list:", validationResult.status, validationResult.reason);
-                        return StatusCodes.BadCertificateInvalid;
-                    }
-                } catch (validationErr) {
-                    errorLog("Certificate validation failed:", validationErr);
-                    return StatusCodes.BadCertificateInvalid;
-                }
-            }
-        }
-
-        // Validate all issuer certificates
-        if (
-            (trustListData.specifiedLists & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates &&
-            trustListData.issuerCertificates
-        ) {
-            for (const cert of trustListData.issuerCertificates) {
-                try {
-                    const certs = split_der(cert);
-                    const validationResult = await verifyCertificateChain([certs[0]]);
-                    if (validationResult.status !== "Good") {
-                        warningLog("Invalid issuer certificate in trust list:", validationResult.status, validationResult.reason);
-                        return StatusCodes.BadCertificateInvalid;
-                    }
-                } catch (validationErr) {
-                    errorLog("Issuer certificate validation failed:", validationErr);
-                    return StatusCodes.BadCertificateInvalid;
-                }
-            }
-        }
-
-        // Update certificates
-        if (
-            (trustListData.specifiedLists & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates &&
-            trustListData.trustedCertificates
-        ) {
-            for (const cert of trustListData.trustedCertificates) {
+        // Update certificates. A list whose bit is set is replaced by the one
+        // uploaded, not added to (§7.8.2.5: the Server "creates a new TrustList
+        // that includes the existing TrustList plus any updates"; §7.8.2.9: a
+        // list whose bit is not set is not changed). The uploaded certificates
+        // are added before the others are removed: should an add fail, the
+        // list is left larger than asked, never emptier, so nobody who was
+        // trusted is locked out by a half-applied write.
+        if ((trustListData.specifiedLists & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates) {
+            const uploaded = trustListData.trustedCertificates ?? [];
+            for (const cert of uploaded) {
                 await cm.trustCertificate(cert);
             }
+            await confirmTrust(cm, "trusted", uploaded.map(leafThumbprint));
+            await removeCertificatesNotIn(cm, cm.trustedFolder, uploaded, (thumbprint) => cm.removeTrustedCertificate(thumbprint));
         }
-        if (
-            (trustListData.specifiedLists & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates &&
-            trustListData.issuerCertificates
-        ) {
-            for (const cert of trustListData.issuerCertificates) {
+        if ((trustListData.specifiedLists & TrustListMasks.IssuerCertificates) === TrustListMasks.IssuerCertificates) {
+            const uploaded = trustListData.issuerCertificates ?? [];
+            for (const cert of uploaded) {
                 await cm.addIssuer(cert);
             }
+            await confirmTrust(cm, "issuers", uploaded.map(leafThumbprint));
+            await removeCertificatesNotIn(cm, cm.issuersCertFolder, uploaded, (thumbprint) => cm.removeIssuer(thumbprint));
         }
 
         return StatusCodes.Good;
     } catch (err) {
         errorLog("Error in applyTrustListChanges:", err);
         return StatusCodes.BadInternalError;
+    }
+}
+
+function leafThumbprint(certificateOrChain: Buffer): string {
+    return makeSHA1Thumbprint(split_der(certificateOrChain)[0]).toString("hex");
+}
+
+/**
+ * Remove from `folder` every certificate that is not in `uploaded`.
+ *
+ * Skipped, with a warning, when the store backs another CertificateGroup as
+ * well: the certificates of both groups sit in the same folder, and removing
+ * what this group's upload leaves out would remove the other group's too.
+ * Such a store keeps the previous behaviour, adding only.
+ */
+async function removeCertificatesNotIn(
+    cm: OPCUACertificateManager,
+    folder: string,
+    uploaded: Buffer[],
+    remove: (thumbprint: string) => Promise<unknown>
+): Promise<void> {
+    if (isSharedTrustListStore(cm)) {
+        warningLog(
+            `[TrustList] ${cm.rootDir} backs more than one CertificateGroup: the uploaded list is added to it, not replacing it (OPC 10000-12 §7.8.2.5). Give each group its own CertificateManager.`
+        );
+        return;
+    }
+    const kept = new Set(uploaded.map(leafThumbprint));
+    for (const thumbprint of await leafThumbprintsIn(folder)) {
+        if (!kept.has(thumbprint)) {
+            await remove(thumbprint);
+        }
     }
 }
 
@@ -515,6 +562,7 @@ async function _addCertificate(
             return { statusCode: verificationStatusToStatusCode(status) };
         }
 
+        await confirmTrust(cm, "trusted", [leafThumbprint(certificateBuffer)]);
         updateLastUpdateTime(trustList);
         emitTrustListUpdated(trustList);
 
@@ -562,6 +610,7 @@ async function _removeCertificate(
             if (!removed) {
                 return { statusCode: StatusCodes.BadInvalidArgument };
             }
+            await confirmTrust(cm, "trusted", [normalizedThumbprint]);
         } else {
             // Removing an issuer certificate — first check if it's still
             // needed by any trusted certificate
@@ -580,6 +629,7 @@ async function _removeCertificate(
 
             // Also remove CRLs issued by this CA
             await cm.removeRevocationListsForIssuer(issuerCert, "issuers");
+            await confirmTrust(cm, "issuers", [normalizedThumbprint]);
         }
 
         updateLastUpdateTime(trustList);

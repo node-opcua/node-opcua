@@ -27,6 +27,7 @@ import type { CallMethodResultOptions } from "node-opcua-types";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 
 import type { CreateSigningRequestResult, PushCertificateManager } from "../push_certificate_manager.js";
+import { markSharedTrustListStore } from "./application_setup.js";
 import { installCertificateFileWatcher } from "./install_certificate_file_watcher.js";
 import { installAccessRestrictionOnTrustList, promoteTrustList } from "./promote_trust_list.js";
 import {
@@ -320,6 +321,9 @@ function bindCertificateManager(addressSpace: AddressSpace, options: PushCertifi
         "ServerConfiguration"
     ) as UAServerConfiguration;
 
+    if (options.applicationGroup && options.userTokenGroup) {
+        markSharedTrustListStore(options.applicationGroup, options.userTokenGroup);
+    }
     const defaultApplicationGroup = serverConfiguration.certificateGroups.getComponentByName(
         "DefaultApplicationGroup"
     ) as UACertificateGroup | null;
