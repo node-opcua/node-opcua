@@ -3407,7 +3407,7 @@ importers:
         specifier: 7.0.0
         version: 7.0.0
       node-opcua-server-configuration:
-        specifier: 2.186.5
+        specifier: 2.186.6
         version: link:../node-opcua-server-configuration
       node-opcua-utils:
         specifier: 2.186.1
