@@ -23,7 +23,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import { tmpFolderFor } from "../../test_helpers/paths.js";
 
-const port = 5815;
+const port = 5818;
 const chunkSize = 8192;
 const maxChunkCount = 128;
 const maxMessageSize = maxChunkCount * chunkSize;
