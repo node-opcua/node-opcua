@@ -27,6 +27,9 @@ export interface IClientBase {
 
     getTransportSettings(): IBasicTransportSettings;
 
+    /** the largest request body the channel can send in one message, or 0 when there is no channel */
+
+    getMaxRequestBodySize(): number;
     isUnusable(): boolean;
 
     beforeSubscriptionRecreate?: (session: ClientSession) => Promise<Error | undefined>;

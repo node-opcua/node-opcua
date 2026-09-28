@@ -286,6 +286,14 @@ export type IVeryBasicSession = IBasicSessionAsync;
 export interface IBasicSessionAsync2 extends IBasicSessionAsync, IBasicSessionBrowseNextAsync {}
 export interface ITransportSettingProvider {
     getTransportSettings?: () => IBasicTransportSettings;
+    /**
+     * the largest request body the channel can send in one message, or 0 when unknown or
+     * unlimited: the server's maxMessageSize and maxChunkCount with every chunk's headers,
+     * signature and padding already paid for. A client packing many items into one request
+     * budgets against this rather than against maxMessageSize alone, which over-fills a
+     * message by exactly those per-chunk bytes and is refused with BadTcpMessageTooLarge.
+     */
+    getMaxRequestBodySize?: () => number;
 }
 
 export interface IBasicSessionGetArgumentDefinitionCallback {
