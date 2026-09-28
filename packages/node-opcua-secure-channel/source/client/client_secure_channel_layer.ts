@@ -488,6 +488,51 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
         this.channelId = 0;
     }
 
+    #maxRequestBodySize?: { securityMode: MessageSecurityMode; value: number };
+
+    /**
+     * The largest request body this channel can send in one message, or 0 for no limit.
+     *
+     * Budgeting a request on the server's maxMessageSize alone is not enough: every chunk
+     * also spends bytes on its headers, signature and padding, so a server whose
+     * maxChunkCount is maxMessageSize / receiveBufferSize cannot receive a body that large.
+     * A request landing in that gap needs one chunk more than the server allows and is
+     * refused with BadTcpMessageTooLarge. This reports what both limits allow together, so
+     * a client that packs many items into one request can fill the message rather than
+     * guess. It is the client-side mirror of ServerSecureChannelLayer#getMaxResponseBodySize
+     * (FEAT-68).
+     *
+     * Until the channel is secured there are no derived keys to size a secured chunk with,
+     * and the plain maxMessageSize is returned instead. The value is cached per security
+     * mode and recomputed when that changes.
+     */
+    public getMaxRequestBodySize(): number {
+        if (!this.#_transport) {
+            return 0;
+        }
+        if (this.#maxRequestBodySize?.securityMode !== this.securityMode) {
+            const { securityHeader, securityOptions } = this.#_get_security_options("MSG");
+            if (this.securityMode !== MessageSecurityMode.None && !securityOptions) {
+                return this.getTransportSettings().maxMessageSize;
+            }
+            const value = this.#messageChunker.maxBodySize("MSG", {
+                channelId: this.channelId,
+                securityHeader,
+                securityOptions: {
+                    chunkSize: this.#_transport.parameters?.sendBufferSize || 0,
+                    requestId: 1,
+                    signatureLength: 0,
+                    plainBlockSize: 0,
+                    cipherBlockSize: 0,
+                    sequenceHeaderSize: 0,
+                    ...securityOptions
+                }
+            });
+            this.#maxRequestBodySize = { securityMode: this.securityMode, value };
+        }
+        return this.#maxRequestBodySize.value;
+    }
+
     public getTransportSettings(): { maxMessageSize: number } {
         const { maxMessageSize } = this.#_transport ? this.#_transport.getTransportSettings() : { maxMessageSize: 2048 };
         return { maxMessageSize: maxMessageSize || 0 };

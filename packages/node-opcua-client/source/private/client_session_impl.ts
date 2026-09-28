@@ -287,6 +287,14 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         }
         return this._client.getTransportSettings();
     }
+
+    /**
+     * the largest request body this session's channel can send in one message, or 0
+     * when there is no channel. See ClientSecureChannelLayer#getMaxRequestBodySize.
+     */
+    getMaxRequestBodySize(): number {
+        return this._client?.getMaxRequestBodySize() ?? 0;
+    }
     /**
      * the endpoint on which this session is operating
      * @property endpoint

@@ -1683,6 +1683,14 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         return this._secureChannel?.getTransportSettings() || ({} as IBasicTransportSettings);
     }
 
+    /**
+     * the largest request body the secure channel can send in one message, or 0 before
+     * the channel exists. See ClientSecureChannelLayer#getMaxRequestBodySize.
+     */
+    public getMaxRequestBodySize(): number {
+        return this._secureChannel?.getMaxRequestBodySize() ?? 0;
+    }
+
     protected _addSession(session: ClientSessionImpl): void {
         assert(!session._client || session._client === this);
         assert(this._sessions.indexOf(session) === -1, "session already added");
