@@ -37,7 +37,9 @@ process.env.OPCUA_PKI_DISABLE_FILE_WATCHERS = "true";
 
 require("should");
 
-const chalk = require("chalk");
+// .default: chalk 6 is ESM-only, so require() hands back the module namespace
+// object rather than the instance, and every chalk.<style>() would be undefined.
+const chalk = require("chalk").default;
 
 const { Mocha } = require("mocha");
 const commandLineArgs = require("command-line-args");

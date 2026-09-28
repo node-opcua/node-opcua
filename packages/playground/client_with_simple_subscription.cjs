@@ -11,7 +11,9 @@ const {
 } = require("node-opcua");
 
 
-const chalk = require("chalk");
+// .default: chalk 6 is ESM-only, so require() hands back the module namespace
+// object rather than the instance, and every chalk.<style>() would be undefined.
+const chalk = require("chalk").default;
 
 // const endpointUri = "opc.tcp://DESKTOP-S6DI4HV:49320";
 // const endpointUri = "opc.tcp://opcuademo.sterfive.com:26544";

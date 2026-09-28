@@ -35,7 +35,9 @@ process.env.NODEOPCUADEBUG = "CLIENT{TRACE}SERVER{TRACE}";
 const os = require("os");
 const path = require("path");
 const readline = require("readline");
-const chalk = require("chalk");
+// .default: chalk 6 is ESM-only, so require() hands back the module namespace
+// object rather than the instance, and every chalk.<style>() would be undefined.
+const chalk = require("chalk").default;
 const { timestamp, setNextSubscriptionId, OPCUACertificateManager, MessageSecurityMode, SecurityPolicy } = require("node-opcua");
 
 const { OPCUAServer, OPCUAClient, AttributeIds, TimestampsToReturn, ClientTCP_transport } = require("node-opcua");

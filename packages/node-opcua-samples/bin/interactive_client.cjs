@@ -5,7 +5,9 @@ const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
 const readline = require("node:readline");
-const chalk = require("chalk");
+// .default: chalk 6 is ESM-only, so require() hands back the module namespace
+// object rather than the instance, and every chalk.<style>() would be undefined.
+const chalk = require("chalk").default;
 const treeify = require("treeify");
 const { sprintf } = require("sprintf-js");
 

@@ -4,7 +4,9 @@
 const path = require("path");
 const fs = require("fs");
 // simulate kepware server that sometime shutdown session too early
-const chalk = require("chalk");
+// .default: chalk 6 is ESM-only, so require() hands back the module namespace
+// object rather than the instance, and every chalk.<style>() would be undefined.
+const chalk = require("chalk").default;
 const commandLineArgs = require("command-line-args");
 
 const { OPCUAServer, nodesets, StatusCodes, DataType, RepublishResponse, Variant } = require("node-opcua");

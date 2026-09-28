@@ -5,9 +5,13 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const assert = require("assert");
-const chalk = require("chalk");
+// .default: chalk 6 is ESM-only, so require() hands back the module namespace
+// object rather than the instance, and every chalk.<style>() would be undefined.
+const chalk = require("chalk").default;
 const commandLineArgs = require("command-line-args");
-const envPaths = require("env-paths");
+// .default: env-paths is ESM-only, so require() hands back the module namespace
+// object rather than the function itself.
+const envPaths = require("env-paths").default;
 const bcrypt = require("bcryptjs");
 
 const {

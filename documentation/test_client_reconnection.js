@@ -4,7 +4,9 @@
 const path = require("path");
 const fs = require("fs");
 const { hostname } = require("os");
-const chalk = require("chalk");
+// .default: chalk 6 is ESM-only, so require() hands back the module namespace
+// object rather than the instance, and every chalk.<style>() would be undefined.
+const chalk = require("chalk").default;
 const {
     get_mini_nodeset_filename,
     OPCUAServer,
