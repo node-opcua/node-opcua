@@ -34,9 +34,14 @@ export interface AbstractFs {
         callback: NoParamCallback
     ): void;
 
+    // `flag` is OpenMode (string | number) and the shorthand form is BufferEncoding, not
+    // string: node's own fs must satisfy this interface, and @types/node 26 widened readFile's
+    // `flag` from string to OpenMode. Declaring it narrower left no overload of fs.readFile
+    // compatible in either direction, so `new FileTypeData({}, file)` could no longer fall
+    // back to node:fs.
     readFile(
         path: PathLike | number,
-        options: { encoding: BufferEncoding; flag?: string } | string,
+        options: { encoding: BufferEncoding; flag?: OpenMode } | BufferEncoding,
         callback: (err: NodeJS.ErrnoException | null, data: string) => void
     ): void;
     // readFile(path: PathLike | number, options: { encoding?: null; flag?: string; } | undefined | null, callback: (err: NodeJS.ErrnoException | null, data: Buffer) => void): void;

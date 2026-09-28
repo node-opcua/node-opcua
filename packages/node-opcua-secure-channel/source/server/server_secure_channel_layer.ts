@@ -43,6 +43,7 @@ import {
 } from "node-opcua-transport";
 import { get_clock_tick, randomBytes } from "node-opcua-utils";
 import { getThumbprint, type Request, type Response } from "../common.js";
+import { toCryptoKeyObject } from "../key_object.js";
 import { MessageBuilder, type ObjectFactory } from "../message_builder.js";
 import { type ChunkMessageParameters, MessageChunker } from "../message_chunker.js";
 import type { SecurityHeader } from "../secure_message_chunk_manager.js";
@@ -1455,7 +1456,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                         if (!err) {
                             if (keyPem) {
                                 this.#clientCertificate = clientCertificate;
-                                this.#clientPublicKey = createPublicKey(keyPem);
+                                this.#clientPublicKey = toCryptoKeyObject(createPublicKey(keyPem));
                                 this.#clientPublicKeyLength = rsaLengthPublicKey(keyPem);
                             }
                             callback(null, statusCode);

@@ -17,7 +17,7 @@ import {
     TCPErrorMessage
 } from "../dist/source/index.js";
 
-import { TransportPairDirect, TransportPairSocket } from "../dist/test_helpers/index.js";
+import { type ITransportPair, TransportPairDirect, TransportPairSocket } from "../dist/test_helpers/index.js";
 
 import * as packets from "../test-fixtures/index.js";
 
@@ -35,7 +35,11 @@ const port = 5878;
 
 function installTestFor(TransportPair: typeof TransportPairDirect | typeof TransportPairSocket) {
     describe(`testing ServerTCP_transport with ${TransportPair.name}`, function (this: Mocha.Test) {
-        let transportPair: TransportPairDirect | TransportPairSocket;
+        // ITransportPair, not the union of the two concrete pairs: their `client` fields are
+        // HalfComChannel and net.Socket, and since @types/node 26 gave Socket its typed
+        // SocketEventMap overloads the union's `on` has no callable signature. Both classes
+        // implement ITransportPair, whose `client` is the ISocketLike the test actually uses.
+        let transportPair: ITransportPair;
         beforeEach((done) => {
             transportPair = new TransportPair({ port });
             transportPair.initialize(done);

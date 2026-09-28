@@ -459,7 +459,13 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
 
         this._internalState = internalState;
     }
-    public emit<K>(eventName: K, ...others: unknown[]): boolean {
+    // `others` is any[], not unknown[]: since @types/node 26 EventEmitter#emit is one generic
+    // signature whose rest parameter is the conditional type `Args<T, E>`, which is not a
+    // subtype of unknown[], so an unknown[] override is no longer assignable to the base. The
+    // exact signature cannot be restated here either - EventNames/Args are internal to the
+    // "node:events" declaration and not exported.
+    // biome-ignore lint/suspicious/noExplicitAny: must match EventEmitter#emit's rest parameter
+    public emit<K>(eventName: K, ...others: any[]): boolean {
         // c8 ignore next
         if (doDebug) {
             debugLog(

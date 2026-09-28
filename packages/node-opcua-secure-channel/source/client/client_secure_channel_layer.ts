@@ -48,6 +48,7 @@ import {
     type Response,
     type ServiceFaultAnnotatedError
 } from "../common.js";
+import { toCryptoKeyObject } from "../key_object.js";
 import { MessageBuilder } from "../message_builder.js";
 import { type ChunkMessageParameters, MessageChunker } from "../message_chunker.js";
 import { messageHeaderToString } from "../message_header_to_string.js";
@@ -625,7 +626,7 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
                     if (!publicKey) {
                         throw new Error("Internal Error");
                     }
-                    this.#receiverPublicKey = createPublicKey(publicKey);
+                    this.#receiverPublicKey = toCryptoKeyObject(createPublicKey(publicKey));
                     this.create(endpointUrl, wrapperCallback);
                 });
                 return;

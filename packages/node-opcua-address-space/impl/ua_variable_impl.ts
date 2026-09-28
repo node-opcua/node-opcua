@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 import { types } from "node:util";
-import chalk from "chalk";
+import chalk, { Chalk } from "chalk";
 import type {
     BindVariableOptions,
     CloneFilter,
@@ -107,7 +107,7 @@ const doDebug = checkDebugFlag("ua_variable_impl");
 const errorLog = make_errorLog("ua_variable_impl");
 
 // a colourless chalk; see ua_object_impl.ts for why it is not a Proxy over `chalk`
-const plainChalk = new chalk.Instance({ level: 0 });
+const plainChalk = new Chalk({ level: 0 });
 
 export function adjust_accessLevel(accessLevel: string | number | AccessLevelFlag | null | undefined): AccessLevelFlag {
     const flag = makeAccessLevelFlag(accessLevel ?? "CurrentRead | CurrentWrite");
