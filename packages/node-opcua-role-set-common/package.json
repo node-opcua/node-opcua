@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-role-set-common",
     "type": "module",
-    "version": "2.186.4",
+    "version": "2.186.7",
     "description": "pure nodejs OPCUA SDK - role-set common types and identity stores (OPC 10000-18)",
     "scripts": {
         "build": "tsc -b",
@@ -21,17 +21,17 @@
     },
     "dependencies": {
         "bcryptjs": "3.0.3",
-        "node-opcua-basic-types": "2.186.1",
-        "node-opcua-binary-stream": "2.186.1",
+        "node-opcua-basic-types": "2.186.7",
+        "node-opcua-binary-stream": "2.186.7",
         "node-opcua-constants": "2.185.0",
         "node-opcua-crypto": "6.1.2",
-        "node-opcua-nodeid": "2.186.1",
-        "node-opcua-status-code": "2.186.1",
-        "node-opcua-types": "2.186.4",
-        "node-opcua-variant": "2.186.4"
+        "node-opcua-nodeid": "2.186.7",
+        "node-opcua-status-code": "2.186.7",
+        "node-opcua-types": "2.186.7",
+        "node-opcua-variant": "2.186.7"
     },
     "devDependencies": {
-        "node-opcua-leak-detector": "2.184.1",
+        "node-opcua-leak-detector": "2.186.7",
         "node-opcua-test-helpers": "2.184.0"
     },
     "author": "Etienne Rossignon",
