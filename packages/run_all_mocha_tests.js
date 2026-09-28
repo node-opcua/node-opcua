@@ -1,7 +1,9 @@
 #!node
 const fs = require("node:fs");
 const path = require("node:path");
-const chalk = require("chalk");
+// .default: chalk 6 is ESM-only, so require() hands back the module namespace
+// object rather than the instance, and every chalk.<style>() would be undefined.
+const chalk = require("chalk").default;
 const { Mocha } = require("mocha");
 require("mocha-clean");
 

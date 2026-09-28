@@ -3,7 +3,9 @@ const fs = require("fs");
 const path = require("path");
 const util = require("util");
 const treeify = require("treeify");
-const chalk = require("chalk");
+// .default: chalk 6 is ESM-only, so require() hands back the module namespace
+// object rather than the instance, and every chalk.<style>() would be undefined.
+const chalk = require("chalk").default;
 const Table = require("easy-table");
 const {
     ApplicationType,

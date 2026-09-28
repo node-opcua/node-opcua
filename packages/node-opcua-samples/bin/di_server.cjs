@@ -2,7 +2,9 @@
 "use strict";
 const path = require("path");
 const os = require("os");
-const chalk = require("chalk");
+// .default: chalk 6 is ESM-only, so require() hands back the module namespace
+// object rather than the instance, and every chalk.<style>() would be undefined.
+const chalk = require("chalk").default;
 const {
     OPCUAServer,
     Variant,
@@ -44,7 +46,9 @@ function w(str, width) {
     return (str || "").toString().padEnd(width).substring(0, width);
 }
 
-const envPaths = require("env-paths");
+// .default: env-paths is ESM-only, so require() hands back the module namespace
+// object rather than the function itself.
+const envPaths = require("env-paths").default;
 const config = envPaths("NodeOPCUA-DI-Server").config;
 const pkiFolder = path.join(config, "PKI");
 
