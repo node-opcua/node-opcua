@@ -3,6 +3,7 @@ import { createPublicKey, randomBytes } from "node:crypto";
 import { type IKeyOperations, keyOperationsFromPrivateKey, readCertificateChain, readPrivateKey } from "node-opcua-crypto";
 import { getFixture } from "node-opcua-test-fixtures";
 import should from "should";
+import { toCryptoKeyObject } from "../source/key_object.js";
 import {
     asymmetricDecryptWithKeyOps,
     asymmetricDecryptWithKeyOpsSync,
@@ -108,7 +109,7 @@ describe("asymmetricDecryptWithKeyOps", () => {
     for (const securityPolicy of [SecurityPolicy.Basic256, SecurityPolicy.Basic256Sha256, SecurityPolicy.Aes256_Sha256_RsaPss]) {
         it(`round-trips what the factory encrypted, async and sync - ${securityPolicy}`, async () => {
             const cryptoFactory = getCryptoFactory(securityPolicy)!;
-            const encrypted = cryptoFactory.asymmetricEncrypt(plaintext, await publicKeyOfOps());
+            const encrypted = cryptoFactory.asymmetricEncrypt(plaintext, toCryptoKeyObject(await publicKeyOfOps()));
 
             const viaOps = await asymmetricDecryptWithKeyOps(cryptoFactory, encrypted, asAsyncOnly(localOps));
             const viaSyncOps = asymmetricDecryptWithKeyOpsSync(cryptoFactory, encrypted, localOps);

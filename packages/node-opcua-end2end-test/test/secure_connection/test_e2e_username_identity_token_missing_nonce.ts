@@ -8,6 +8,7 @@ import {
     OPCUAServer,
     type Request,
     SecurityPolicy,
+    toCryptoKeyObject,
     UserNameIdentityToken,
     UserTokenType
 } from "node-opcua";
@@ -99,7 +100,10 @@ describe("testing UserNameIdentityToken sent without the serverNonce appended to
                 const passwordBuffer = Buffer.from("p@ssw0rd", "utf-8");
                 const lengthBuffer = Buffer.alloc(4);
                 lengthBuffer.writeUInt32LE(passwordBuffer.length, 0);
-                token.password = cryptoFactory.asymmetricEncrypt(Buffer.concat([lengthBuffer, passwordBuffer]), publicKey);
+                token.password = cryptoFactory.asymmetricEncrypt(
+                    Buffer.concat([lengthBuffer, passwordBuffer]),
+                    toCryptoKeyObject(publicKey)
+                );
                 tampered = true;
             }
             original_performMessageTransaction.call(client, request, callback);

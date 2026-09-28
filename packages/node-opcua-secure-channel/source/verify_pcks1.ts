@@ -1,6 +1,7 @@
 import { createPrivateKey, KeyObject, subtle } from "node:crypto";
 import { type PrivateKey, privateKeyToPEM } from "node-opcua-crypto/web";
 import { make_warningLog } from "node-opcua-debug";
+import { toCryptoKeyObject } from "./key_object.js";
 import { RSAPKCS1V15_Decrypt, RSAPKCS1V15_Encrypt } from "./security_policy.js";
 
 const warningLog = make_warningLog("NODE-OPCUA-W27");
@@ -11,7 +12,7 @@ function myCreatePrivateKey(rawKey: string | Buffer): PrivateKey {
     // process.env.OPENSSL_CONF = "/dev/null";
     const retValue = createPrivateKey(rawKey);
     // process.env.OPENSSL_CONF = backup;
-    return { hidden: retValue };
+    return { hidden: toCryptoKeyObject(retValue) };
 }
 
 export async function testRSAPKCS1V15_EncryptDecrypt() {
@@ -66,7 +67,7 @@ export async function testRSAPKCS1V15_EncryptDecrypt() {
     const buffer = Buffer.from("buffer");
     let decrypted: Buffer | undefined;
     try {
-        const encrypted = RSAPKCS1V15_Encrypt(buffer, KeyObject.from(keyPair.publicKey));
+        const encrypted = RSAPKCS1V15_Encrypt(buffer, toCryptoKeyObject(KeyObject.from(keyPair.publicKey)));
 
         decrypted = RSAPKCS1V15_Decrypt(encrypted, privateKey);
     } catch (_err) {

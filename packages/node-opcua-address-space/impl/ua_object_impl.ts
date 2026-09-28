@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 
-import chalk from "chalk";
+import chalk, { Chalk } from "chalk";
 import {
     type BaseNode,
     type CloneExtraInfo,
@@ -284,11 +284,11 @@ export class UAObjectImpl<T extends UAObjectEvents & ListenerSignature<T> = UAOb
 }
 
 // A colourless chalk for `inspect(node, { colors: false })`. Not a Proxy over `chalk`
-// returning the identity for every property: chalk 4 defines each style (`cyan`, ...)
+// returning the identity for every property: chalk defines each style (`cyan`, ...)
 // on first use as a non-writable, non-configurable own data property, after which a
 // Proxy `get` trap returning anything else violates the Proxy invariant and throws a
 // TypeError. Node's own `warnMaxListenersExceeded` inspects the emitter without
 // colours, so that TypeError surfaced inside `node.on("event", ...)` when an eleventh
 // event MonitoredItem was created on the Server object, and killed the server process
 // (CTT A and C Refresh Err_004).
-const plainChalk = new chalk.Instance({ level: 0 });
+const plainChalk = new Chalk({ level: 0 });

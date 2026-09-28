@@ -722,7 +722,7 @@ export async function promoteTrustList(trustList: UATrustList) {
     // Initialize write lock flag
     trustListEx.$$openedForWrite = false;
 
-    installFileType(trustList, { filename, fileSystem: MemFs as AbstractFs });
+    installFileType(trustList, { filename, fileSystem: MemFs as unknown as AbstractFs });
 
     // we need to change the default open method
     const open = trustList.getChildByName("Open") as UAMethodEx;
@@ -761,7 +761,7 @@ export async function promoteTrustList(trustList: UATrustList) {
         // possible statusCode: Bad_UserAccessDenied	The current user does not have the rights required.
         const certificateManager = trustListEx.$$certificateManager;
         if (certificateManager) {
-            writeTrustList(MemFs as AbstractFs, filename, trustMask, certificateManager)
+            writeTrustList(MemFs as unknown as AbstractFs, filename, trustMask, certificateManager)
                 .then(() => {
                     // Track if opened for write to enforce BadInvalidState on subsequent opens
                     if (openMask === OpenFileMode.WriteEraseExisting) {

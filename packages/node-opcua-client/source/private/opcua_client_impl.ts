@@ -30,7 +30,8 @@ import {
     computeSignatureAsync,
     fromURI,
     getCryptoFactory,
-    SecurityPolicy
+    SecurityPolicy,
+    toCryptoKeyObject
 } from "node-opcua-secure-channel";
 import {
     type ApplicationDescriptionOptions,
@@ -376,7 +377,7 @@ function createUserNameIdentityToken(
     const lenBuf = Buffer.allocUnsafe(4);
     lenBuf.writeUInt32LE(identityToken.password.length + serverNonce.length, 0);
     const block = Buffer.concat([lenBuf, identityToken.password, serverNonce]);
-    identityToken.password = cryptoFactory.asymmetricEncrypt(block, publicKey);
+    identityToken.password = cryptoFactory.asymmetricEncrypt(block, toCryptoKeyObject(publicKey));
 
     return identityToken;
 }

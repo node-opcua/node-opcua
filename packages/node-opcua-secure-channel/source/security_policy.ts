@@ -8,6 +8,7 @@ import {
     createVerify,
     type KeyLike,
     KeyObject,
+    type PublicEncryptKeyObjectInput,
     privateDecrypt as privateDecrypt_native,
     publicEncrypt as publicEncrypt_native
 } from "node:crypto";
@@ -343,8 +344,11 @@ function RSA_OAEP_SHA2_256_Encrypt(buffer: Buffer, publicKey: PublicKey): Buffer
     const padding = _Aes256_Sha256_RsaPss.blockPaddingSize;
     const chunk_size = blockSize - padding;
     const nbBlocks = Math.ceil(buffer.length / chunk_size);
-    const options = {
-        key: publicKey as KeyLike,
+    // `key` is typed KeyObject rather than KeyLike: @types/node 26 replaced publicEncrypt's
+    // single `{ key: KeyLike, padding? }` object form with a set of discriminated inputs, one
+    // per key flavour, so a union no longer selects an overload. `publicKey` is a KeyObject.
+    const options: PublicEncryptKeyObjectInput = {
+        key: publicKey as unknown as KeyObject,
         oaepHash: "sha256",
         padding: constants.RSA_PKCS1_OAEP_PADDING
     };
