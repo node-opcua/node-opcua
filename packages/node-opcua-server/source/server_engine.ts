@@ -41,6 +41,7 @@ import {
 import { DataTypeIds, MethodIds, ObjectIds, VariableIds } from "node-opcua-constants";
 import {
     AttributeIds,
+    addProfileUri,
     coerceLocalizedText,
     coerceQualifiedName,
     type LocalizedTextLike,
@@ -311,6 +312,37 @@ function _get_next_subscriptionId() {
     return next_subscriptionId++;
 }
 
+// https://profiles.opcfoundation.org/profile
+function defaultServerProfileArray(): string[] {
+    const profiles: string[] = [];
+    for (const profileUri of [
+        "http://opcfoundation.org/UA-Profile/Server/Standard", // Standard UA Server Profile",
+        "http://opcfoundation.org/UA-Profile/Server/DataAccess",
+        "http://opcfoundation.org/UA-Profile/Server/ComplexTypes2017",
+        "http://opcfoundation.org/UA-Profile/Server/Events",
+        "http://opcfoundation.org/UA-Profile/Client/HistoricalAccess",
+        "http://opcfoundation.org/UA-Profile/Server/Methods",
+        "http://opcfoundation.org/UA-Profile/Server/StandardEventSubscription",
+        "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary",
+        "http://opcfoundation.org/UA-Profile/Server/FileAccess",
+        "http://opcfoundation.org/UA-Profile/Server/StateMachine"
+
+        // "http://opcfoundation.org/UA-Profile/Transport/wss-uajson",
+        // "http://opcfoundation.org/UA-Profile/Transport/wss-uasc-uabinary"
+        // "http://opcfoundation.org/UA-Profile/Server/DurableSubscription"
+
+        // "http://opcfoundation.org/UA-Profile/Server/ReverseConnect",
+        // "http://opcfoundation.org/UAProfile/Server/NodeManagement",
+
+        //  "Embedded UA Server Profile",
+        // "Micro Embedded Device Server Profile",
+        // "Nano Embedded Device Server Profile"
+    ]) {
+        addProfileUri(profiles, profileUri);
+    }
+    return profiles;
+}
+
 export type StringGetter = () => string;
 export type StringArrayGetter = () => string[];
 export type ApplicationTypeGetter = () => ApplicationType;
@@ -447,30 +479,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             supportedPrivateKeyFormat: ["PEM"]
         };
 
-        // https://profiles.opcfoundation.org/profile
-        options.serverCapabilities.serverProfileArray = options.serverCapabilities.serverProfileArray || [
-            "http://opcfoundation.org/UA-Profile/Server/Standard", // Standard UA Server Profile",
-            "http://opcfoundation.org/UA-Profile/Server/DataAccess",
-            "http://opcfoundation.org/UA-Profile/Server/ComplexTypes2017",
-            "http://opcfoundation.org/UA-Profile/Server/Events",
-            "http://opcfoundation.org/UA-Profile/Client/HistoricalAccess",
-            "http://opcfoundation.org/UA-Profile/Server/Methods",
-            "http://opcfoundation.org/UA-Profile/Server/StandardEventSubscription",
-            "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary",
-            "http://opcfoundation.org/UA-Profile/Server/FileAccess",
-            "http://opcfoundation.org/UA-Profile/Server/StateMachine"
-
-            // "http://opcfoundation.org/UA-Profile/Transport/wss-uajson",
-            // "http://opcfoundation.org/UA-Profile/Transport/wss-uasc-uabinary"
-            // "http://opcfoundation.org/UA-Profile/Server/DurableSubscription"
-
-            // "http://opcfoundation.org/UA-Profile/Server/ReverseConnect",
-            // "http://opcfoundation.org/UAProfile/Server/NodeManagement",
-
-            //  "Embedded UA Server Profile",
-            // "Micro Embedded Device Server Profile",
-            // "Nano Embedded Device Server Profile"
-        ];
+        // The default list goes through addProfileUri so that it is already in the
+        // deduplicated, sorted form that later additions (addServerProfile) maintain.
+        options.serverCapabilities.serverProfileArray =
+            options.serverCapabilities.serverProfileArray || defaultServerProfileArray();
         options.serverCapabilities.localeIdArray = options.serverCapabilities.localeIdArray || ["en-EN", "fr-FR"];
 
         this.serverCapabilities = new ServerCapabilities(options.serverCapabilities);

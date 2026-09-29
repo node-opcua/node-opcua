@@ -23,6 +23,7 @@ import {
     split_der,
     verifyCertificateSignature
 } from "node-opcua-crypto/web";
+import { addProfileUri } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -39,6 +40,13 @@ const warningLog = make_warningLog("ServerConfiguration");
 
 /** Relative path from cert manager root to the leaf certificate PEM. */
 const CERT_PEM_RELATIVE_PATH = "own/certs/certificate.pem";
+
+/**
+ * The Facet a Server supporting the push model of OPC 10000-12 (UpdateCertificate,
+ * CreateSigningRequest, ApplyChanges, CertificateGroups and TrustList) declares in
+ * `ServerCapabilities.ServerProfileArray`.
+ */
+export const GLOBAL_CERTIFICATE_MANAGEMENT_PROFILE_URI = "http://opcfoundation.org/UA-Profile/Server/GlobalCertificateManagement";
 
 export interface OPCUAServerPartial extends ICertificateKeyPairProvider {
     serverInfo?: ApplicationDescriptionOptions;
@@ -331,6 +339,9 @@ export async function installPushCertificateManagementOnServer(
     const serverConfiguration = server.engine.addressSpace.rootFolder.objects.server.getChildByName("ServerConfiguration");
     const serverConfigurationPriv = serverConfiguration as UAServerConfigurationEx;
     assert(serverConfigurationPriv.$pushCertificateManager);
+
+    // Advertising the Facet is part of installing it, so no caller has to remember it.
+    addProfileUri(server.engine.serverCapabilities.serverProfileArray, GLOBAL_CERTIFICATE_MANAGEMENT_PROFILE_URI);
 
     serverConfigurationPriv.$pushCertificateManager.on("CertificateAboutToChange", (actionQueue: ActionQueue) => {
         actionQueue.push(async (): Promise<void> => {

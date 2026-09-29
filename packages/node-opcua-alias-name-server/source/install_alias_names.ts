@@ -12,6 +12,7 @@
 
 import type { IAddressSpace, ISessionContext, UAObject } from "node-opcua-address-space-base";
 import type { IAliasStore, LikeOptions } from "node-opcua-alias-name-common";
+import { addCapabilityIdentifier } from "node-opcua-data-model";
 import type { NodeId } from "node-opcua-nodeid";
 import { AddressSpaceAliasStore } from "./address_space_alias_store.js";
 import { collectAllCategories } from "./alias_hierarchy.js";
@@ -235,28 +236,20 @@ export interface IServerForAliasNames {
  */
 export const ALIAS_SERVER_CAPABILITY_ID = "ALIAS";
 
-/** The placeholder node-opcua uses for "no capabilities declared". */
-const NO_CAPABILITY_PLACEHOLDER = "NA";
-
 /**
  * Add `ALIAS` to a Server's Annex D capability list, in place.
  *
  * Idempotent, case-insensitive, and replaces the `NA` placeholder rather than
- * producing the meaningless `["NA", "ALIAS"]`.
+ * producing the meaningless `["NA", "ALIAS"]`. The list is left deduplicated
+ * and sorted.
+ *
+ * A shorthand for `addCapabilityIdentifier(capabilities, "ALIAS")` from
+ * node-opcua-data-model, which does the same for any Annex D identifier.
  *
  * @returns true when the list was changed.
  */
 export function advertiseAliasCapability(capabilities: string[]): boolean {
-    if (capabilities.some((c) => c.toUpperCase() === ALIAS_SERVER_CAPABILITY_ID)) {
-        return false;
-    }
-    // "NA" means "none"; it cannot coexist with a real capability
-    const placeholderIndex = capabilities.findIndex((c) => c.toUpperCase() === NO_CAPABILITY_PLACEHOLDER);
-    if (placeholderIndex >= 0) {
-        capabilities.splice(placeholderIndex, 1);
-    }
-    capabilities.push(ALIAS_SERVER_CAPABILITY_ID);
-    return true;
+    return addCapabilityIdentifier(capabilities, ALIAS_SERVER_CAPABILITY_ID);
 }
 
 /**

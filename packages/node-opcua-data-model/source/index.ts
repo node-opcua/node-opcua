@@ -36,3 +36,4 @@ export * from "./nodeclass.js";
 export * from "./permission_flag.js";
 export * from "./qualified_name.js";
 export * from "./result_mask.js";
+export * from "./server_capability_lists.js";
