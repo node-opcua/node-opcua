@@ -3,12 +3,10 @@ import os, { hostname } from "node:os";
 import path from "node:path";
 import { types } from "node:util";
 import chalk from "chalk";
-import { randomBytes } from "node-opcua-utils";
-import "should";
-import { makeRoles } from "node-opcua-address-space";
+import { makeRoles, type UAVariable } from "node-opcua-address-space";
 import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { type ClientSession, makeApplicationUrn, OPCUAClient, type UserIdentityInfoUserName } from "node-opcua-client";
-
+import { VariableIds } from "node-opcua-constants";
 import {
     type Certificate,
     certificateMatchesPrivateKey,
@@ -33,7 +31,13 @@ import { nodesets } from "node-opcua-nodesets";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { OPCUAServer } from "node-opcua-server";
 import { UserTokenType } from "node-opcua-types";
-import { ClientPushCertificateManagement, installPushCertificateManagementOnServer } from "../../dist/index.js";
+import { randomBytes } from "node-opcua-utils";
+import should from "should";
+import {
+    ClientPushCertificateManagement,
+    GLOBAL_CERTIFICATE_MANAGEMENT_PROFILE_URI,
+    installPushCertificateManagementOnServer
+} from "../../dist/index.js";
 import {
     _getFakeAuthorityCertificate,
     initializeHelpers,
@@ -132,6 +136,17 @@ describe("Testing server configured with push certificate management", function 
         await server.initialize();
 
         await installPushCertificateManagementOnServer(server);
+
+        // the Facet is advertised by the installer itself, once, in the sorted list
+        const profileArrayNode = server.engine.addressSpace?.findNode(
+            VariableIds.Server_ServerCapabilities_ServerProfileArray
+        ) as UAVariable | null;
+        should.exist(profileArrayNode);
+        const profiles = profileArrayNode?.readValue().value.value as string[];
+        should(profiles.filter((p) => p === GLOBAL_CERTIFICATE_MANAGEMENT_PROFILE_URI)).eql([
+            GLOBAL_CERTIFICATE_MANAGEMENT_PROFILE_URI
+        ]);
+        should(profiles).eql([...profiles].sort());
 
         const privateKey1 = readPrivateKey((server.serverCertificateManager as OPCUACertificateManager).privateKey);
         const privateKey2 = server.getPrivateKey();

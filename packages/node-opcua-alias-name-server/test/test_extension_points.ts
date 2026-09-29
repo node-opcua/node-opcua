@@ -632,7 +632,8 @@ describe("OPC 10000-17: extension points", () => {
             const space = await pristine();
             const capabilities = ["DA", "HD"];
             await installAliasNames(fakeServer(space, capabilities));
-            capabilities.should.eql(["DA", "HD", "ALIAS"]);
+            // the list is kept sorted, so the result does not depend on install order
+            capabilities.should.eql(["ALIAS", "DA", "HD"]);
         });
 
         it("should not add it twice", async () => {

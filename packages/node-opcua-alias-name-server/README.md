@@ -260,14 +260,14 @@ the same decision, so they happen together — leaving it to each caller to reme
 it will sometimes be forgotten, and a Server that omits it is simply never discovered by
 anything looking for alias-capable Servers, with nothing reporting the failure.
 
-It is idempotent, case-insensitive, and replaces node-opcua's `NA` placeholder rather
-than producing the meaningless `["NA", "ALIAS"]`:
+It is idempotent, case-insensitive, replaces node-opcua's `NA` placeholder rather
+than producing the meaningless `["NA", "ALIAS"]`, and leaves the list sorted:
 
 | Before | After |
 |---|---|
 | `[]` | `["ALIAS"]` |
 | `["NA"]` | `["ALIAS"]` |
-| `["DA", "HD"]` | `["DA", "HD", "ALIAS"]` |
+| `["DA", "HD"]` | `["ALIAS", "DA", "HD"]` |
 | `["Alias"]` | `["Alias"]` — already declared |
 
 The normative identifier is `ALIAS`; Part 17's prose writes it `Alias`, and Part 12
@@ -280,6 +280,10 @@ the helper directly:
 import { advertiseAliasCapability } from "node-opcua-alias-name-server";
 advertiseAliasCapability(server.capabilitiesForMDNS);
 ```
+
+It is a shorthand for `addCapabilityIdentifier(capabilities, "ALIAS")` from
+`node-opcua-data-model` (or `addServerCapabilityIdentifier(server, "ALIAS")` from
+`node-opcua-server`), which apply the same rules to any Annex D identifier.
 
 ## `LastChange` (clause 6.3.1)
 

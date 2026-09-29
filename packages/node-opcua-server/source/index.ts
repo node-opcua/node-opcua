@@ -43,6 +43,7 @@ export * from "./register_server_manager.js";
 export * from "./register_server_manager_mdns_only.js";
 export * from "./reverse_connect_manager.js";
 export * from "./server_capabilities.js";
+export * from "./server_capability_tools.js";
 export * from "./server_end_point.js";
 export * from "./server_engine.js";
 export * from "./server_publish_engine.js";
