@@ -590,6 +590,7 @@ function _historyRead(
             statusCode: StatusCodes.BadUserAccessDenied
         });
         callback(null, result);
+        return;
     }
 
     assert(typeof callback === "function");
