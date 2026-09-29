@@ -56,6 +56,25 @@ export interface IVariableHistorian {
         callback: (err: Error | null, dataValue?: DataValue[]) => void
     ): void;
 
+    /**
+     * Find the most recent raw data value with a sourceTimestamp strictly before `date`.
+     *
+     * Used to compute a Bounding Value (OPC 10000-11 6.5.3.2 and 3.1.2) when a HistoryRead
+     * with ReadRawModifiedDetails.returnBounds set finds no raw value exactly at the start
+     * or end of the requested time domain. Returns null when no such value exists.
+     *
+     * Optional: a historian that does not implement it causes the bound to be reported as
+     * Bad_BoundNotSupported instead of being computed.
+     */
+    findBoundBefore?(date: Date): DataValue | null;
+
+    /**
+     * Find the oldest raw data value with a sourceTimestamp strictly after `date`.
+     *
+     * See findBoundBefore.
+     */
+    findBoundAfter?(date: Date): DataValue | null;
+
     /*    extractDataValues(
           historyReadRawModifiedDetails: ReadRawModifiedDetails,
           maxNumberToExtract: number,

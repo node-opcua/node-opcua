@@ -14,7 +14,7 @@ import type {
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { AccessLevelFlag, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
-import type { DataValue } from "node-opcua-data-value";
+import { DataValue } from "node-opcua-data-value";
 import { isMinDate, minDate } from "node-opcua-date-time";
 import { make_warningLog } from "node-opcua-debug";
 import type { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
@@ -27,7 +27,7 @@ import {
     ReadProcessedDetails,
     ReadRawModifiedDetails
 } from "node-opcua-service-history";
-import { type CallbackT, StatusCodes } from "node-opcua-status-code";
+import { type CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import type { AddressSpacePrivate } from "../address_space_private.js";
 import { historizerFactoryHolder } from "../historizer_factory.js";
@@ -86,6 +86,32 @@ function inInTimeRange2(historyReadDetails: ReadRawModifiedDetails, dataValue: D
         !isMinDate(historyReadDetails.startTime) &&
         (dataValue.sourceTimestamp || 0) < historyReadDetails.startTime
     );
+}
+
+function _findNearestBefore(q: Dequeue<DataValue>, timeMs: number): DataValue | null {
+    let result: DataValue | null = null;
+    let c = q.head.next;
+    while (c.data) {
+        const ts = (c.data.sourceTimestamp || minDate).getTime();
+        if (ts >= timeMs) {
+            break;
+        }
+        result = c.data;
+        c = c.next;
+    }
+    return result;
+}
+
+function _findNearestAfter(q: Dequeue<DataValue>, timeMs: number): DataValue | null {
+    let c = q.head.next;
+    while (c.data) {
+        const ts = (c.data.sourceTimestamp || minDate).getTime();
+        if (ts > timeMs) {
+            return c.data;
+        }
+        c = c.next;
+    }
+    return null;
 }
 
 function filter_dequeue(
@@ -200,6 +226,14 @@ export class VariableHistorian implements IVariableHistorian {
             dataValues = dataValues.reverse();
         }
         callback(null, dataValues);
+    }
+
+    public findBoundBefore(date: Date): DataValue | null {
+        return _findNearestBefore(this._timeline, date.getTime());
+    }
+
+    public findBoundAfter(date: Date): DataValue | null {
+        return _findNearestAfter(this._timeline, date.getTime());
     }
 }
 
@@ -352,6 +386,139 @@ function _historyReadRawAsync(
         return callback(new Error("this variable has no HistoricalDataConfiguration"));
     }
     this.varHistorian.extractDataValues(historyReadRawModifiedDetails, maxNumberToExtract, isReversed, reverseDataValue, callback);
+}
+
+/**
+ * Compute a single Bounding Value for the raw-read time domain (OPC 10000-11 6.5.3.2).
+ *
+ * `before` and `after` are the nearest raw values immediately before and after
+ * `boundaryTime` (either may come from outside the requested [startTime, endTime] window).
+ * Per 3.1.2 BoundingValues, when neither is missing the Server "determines" a value
+ * associated with the boundary time itself, built from that neighbouring data; this
+ * function follows the same rule the HistoricalDataConfiguration already uses for the
+ * Interpolative Aggregate (Part 13): a sloped linear interpolation, or a held value when
+ * the node is configured as Stepped or the value is not numeric.
+ *
+ * When one side is missing there is nothing to determine the value from, so the result
+ * is Bad_BoundNotFound with a null value at the boundary time, as required by 6.5.3.2.
+ */
+function _computeBoundingValue(
+    node: UAVariableImpl,
+    before: DataValue | null,
+    after: DataValue | null,
+    boundaryTime: Date
+): DataValue {
+    if (!before || !after || !before.sourceTimestamp || !after.sourceTimestamp) {
+        return new DataValue({
+            sourceTimestamp: boundaryTime,
+            statusCode: StatusCodes.BadBoundNotFound,
+            value: { dataType: DataType.Null }
+        });
+    }
+
+    const stepped = node.$historicalDataConfiguration?.stepped?.readValue()?.value?.value === true;
+    const beforeValue = before.value?.value;
+    const afterValue = after.value?.value;
+    if (stepped || typeof beforeValue !== "number" || typeof afterValue !== "number") {
+        // stepped display, or a value that cannot be placed on a slope: hold the value that
+        // was in effect at the boundary time (the sample immediately preceding it).
+        return new DataValue({
+            sourceTimestamp: boundaryTime,
+            statusCode: StatusCode.makeStatusCode(before.statusCode, "HistorianInterpolated"),
+            value: before.value
+        });
+    }
+
+    const t0 = before.sourceTimestamp.getTime();
+    const t1 = after.sourceTimestamp.getTime();
+    const t = boundaryTime.getTime();
+    const coef1 = (t - t0) / (t1 - t0);
+    const coef2 = (t1 - t) / (t1 - t0);
+    const value = before.value.clone();
+    value.value = coef2 * beforeValue + coef1 * afterValue;
+    return new DataValue({
+        sourceTimestamp: boundaryTime,
+        statusCode: StatusCode.makeStatusCode(before.statusCode, "HistorianInterpolated"),
+        value
+    });
+}
+
+/**
+ * Add the start and end Bounding Values to a raw-read result when returnBounds is set
+ * (OPC 10000-11 6.5.3.2 and 4.6). Only called when both startTime and endTime were
+ * specified: the single-sided requests (only startTime, or only endTime) are read to the
+ * edge of the online archive rather than a bounded window, so there is no second boundary
+ * to compute a bound against, and are left unbounded here.
+ *
+ * `dataValues` is in the order the client will receive it (already reversed when
+ * `reverseDataValue` is set); this function restores chronological order to reason about
+ * "first" and "last", then re-applies the same order on the way out.
+ */
+function _addBoundingValues(
+    node: UAVariableImpl,
+    details: ReadRawModifiedDetails,
+    dataValues: DataValue[],
+    reverseDataValue: boolean
+): DataValue[] {
+    const historian = node.varHistorian;
+    const startTime = details.startTime as Date;
+    const endTime = details.endTime as Date;
+
+    const findBefore = (date: Date): DataValue | null => (historian?.findBoundBefore ? historian.findBoundBefore(date) : null);
+    const findAfter = (date: Date): DataValue | null => (historian?.findBoundAfter ? historian.findBoundAfter(date) : null);
+    const boundNotSupported = (boundaryTime: Date): DataValue =>
+        new DataValue({
+            sourceTimestamp: boundaryTime,
+            statusCode: StatusCodes.BadBoundNotSupported,
+            value: { dataType: DataType.Null }
+        });
+    const supportsBounds = !!(historian?.findBoundBefore && historian.findBoundAfter);
+
+    const ascending = reverseDataValue ? dataValues.slice().reverse() : dataValues.slice();
+
+    if (startTime.getTime() === endTime.getTime()) {
+        // a request for a single instant: the value at that instant, if any, is already
+        // part of dataValues, so there is at most one bound to add.
+        if (ascending.length === 0) {
+            const bound = supportsBounds
+                ? _computeBoundingValue(node, findBefore(startTime), findAfter(startTime), startTime)
+                : boundNotSupported(startTime);
+            ascending.push(bound);
+        }
+        return reverseDataValue ? ascending.reverse() : ascending;
+    }
+
+    const result: DataValue[] = [];
+
+    const hasExactStart = ascending.length > 0 && ascending[0].sourceTimestamp?.getTime() === startTime.getTime();
+    if (!hasExactStart) {
+        const bound = supportsBounds
+            ? _computeBoundingValue(
+                  node,
+                  findBefore(startTime),
+                  ascending.length > 0 ? ascending[0] : findAfter(startTime),
+                  startTime
+              )
+            : boundNotSupported(startTime);
+        result.push(bound);
+    }
+
+    result.push(...ascending);
+
+    const hasExactEnd = ascending.length > 0 && ascending[ascending.length - 1].sourceTimestamp?.getTime() === endTime.getTime();
+    if (!hasExactEnd) {
+        const bound = supportsBounds
+            ? _computeBoundingValue(
+                  node,
+                  ascending.length > 0 ? ascending[ascending.length - 1] : findBefore(endTime),
+                  findAfter(endTime),
+                  endTime
+              )
+            : boundNotSupported(endTime);
+        result.push(bound);
+    }
+
+    return reverseDataValue ? result.reverse() : result;
 }
 
 function _historyReadRaw(
@@ -532,6 +699,22 @@ function _historyReadRaw(
         (err: Error | null, dataValues?: DataValue[]) => {
             if (err || !dataValues) {
                 return callback(err);
+            }
+
+            // Bounding Values (6.4.3.2 / 6.5.3.2): only meaningful when the request has both
+            // ends of a time domain to bound. See _addBoundingValues for why the single-sided
+            // requests (only startTime, or only endTime) are left unbounded.
+            if (
+                historyReadRawModifiedDetails.returnBounds &&
+                !isMinDate(historyReadRawModifiedDetails.startTime) &&
+                !isMinDate(historyReadRawModifiedDetails.endTime)
+            ) {
+                dataValues = _addBoundingValues(
+                    this as UAVariableImpl,
+                    historyReadRawModifiedDetails,
+                    dataValues,
+                    reverseDataValue
+                );
             }
 
             const cnt = session.continuationPointManager.registerHistoryReadRaw(
@@ -847,4 +1030,6 @@ export function AddressSpace_installHistoricalDataNode(
     // update the index of historizing nodes in the addressSpace
     node.addressSpace.historizingNodes = node.addressSpace.historizingNodes || new Set();
     node.addressSpace.historizingNodes.add(node);
+
+    node.addressSpace.onHistorizingNodeAdded?.(node);
 }

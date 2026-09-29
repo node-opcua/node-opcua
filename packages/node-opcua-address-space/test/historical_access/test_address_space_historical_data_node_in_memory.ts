@@ -56,7 +56,9 @@ describe("Testing Historical Data Node", () => {
             endTime: date_add(today, { seconds: 10 }),
             isReadModified: false,
             numValuesPerNode: 1000,
-            returnBounds: true,
+            // this test is about maxOnlineValues trimming, not bounds; returnBounds is exercised
+            // in test_address_space_historical_data_node.ts
+            returnBounds: false,
             startTime: date_add(today, { seconds: -10 })
         });
         const indexRange = null;

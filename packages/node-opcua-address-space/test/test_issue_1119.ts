@@ -110,7 +110,10 @@ describe("historization and status code Bad #1119", function () {
                 isReadModified: false,
                 startTime: new Date(1970, 1, 1),
                 endTime: new Date(),
-                returnBounds: true
+                // this test is about the written StatusCode/value pairs, not bounds; with
+                // returnBounds true, no sample would ever sit exactly on `new Date()` and a
+                // Bad_BoundNotFound entry would be appended to every expected array below
+                returnBounds: false
             }),
             null,
             null,
