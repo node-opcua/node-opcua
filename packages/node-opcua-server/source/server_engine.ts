@@ -320,7 +320,9 @@ function defaultServerProfileArray(): string[] {
         "http://opcfoundation.org/UA-Profile/Server/DataAccess",
         "http://opcfoundation.org/UA-Profile/Server/ComplexTypes2017",
         "http://opcfoundation.org/UA-Profile/Server/Events",
-        "http://opcfoundation.org/UA-Profile/Client/HistoricalAccess",
+        // No history Facet here: a Server only provides history for a Variable with a
+        // historian installed, which nothing sets up by default. A Server that installs
+        // one can advertise it with addServerProfile.
         "http://opcfoundation.org/UA-Profile/Server/Methods",
         "http://opcfoundation.org/UA-Profile/Server/StandardEventSubscription",
         "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary",
