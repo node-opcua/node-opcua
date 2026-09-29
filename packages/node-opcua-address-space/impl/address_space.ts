@@ -1042,12 +1042,13 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
         if (!structureDataType) {
             throw new Error("getExtensionObjectConstructor: cannot find 'Structure' DataType in standard address Space");
         }
-        /* c8 ignore next */
         if (!_dataType.isSubtypeOf(structureDataType)) {
-            // c8 ignore next
             doDebug && debugLog(_dataType.toString());
+            throw new Error(
+                `getExtensionObjectConstructor: ${_dataType.browseName.toString()} (${_dataType.nodeId.toString()}) ` +
+                    "is not a Structure, so it has no extension object constructor"
+            );
         }
-        assert(_dataType.isSubtypeOf(structureDataType));
         if (!_dataType._extensionObjectConstructor) {
             if (!this.$$extraDataTypeManager) {
                 throw new Error(

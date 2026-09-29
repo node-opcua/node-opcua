@@ -1468,6 +1468,15 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         if (dataType.nodeId.namespace === 0 && dataType.nodeId.value === DataType.ExtensionObject) {
             return true;
         }
+        // A variable declared with a dataType that is not a Structure admits any extension
+        // object - BaseDataType is the usual case (AutoID's LastScanData, or any variable that
+        // holds whatever its source produces) - so there is no constructor to compare the value
+        // with. Asking getExtensionObjectConstructor for one used to fail an assert with no
+        // message, which turned a legitimate write from a method into a failed call.
+        const structureDataType = addressSpace.findDataType("Structure");
+        if (structureDataType && !dataType.isSubtypeOf(structureDataType)) {
+            return true;
+        }
         const Constructor = addressSpace.getExtensionObjectConstructor(this.dataType);
 
         if (this.valueRank === -1) {
