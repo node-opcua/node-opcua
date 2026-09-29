@@ -81,6 +81,22 @@ describe("server capability tools", () => {
             should(readServerProfileArray().filter((p) => /Histor/i.test(p))).eql([]);
         });
 
+        it("should advertise the HistoricalRawData Facet once a Variable is historized", () => {
+            const historicalRawData = "http://opcfoundation.org/UA-Profile/Server/HistoricalRawData";
+            should(readServerProfileArray()).not.containEql(historicalRawData);
+
+            const addressSpace = engine.addressSpace;
+            should.exist(addressSpace);
+            const variable = addressSpace!.getOwnNamespace().addVariable({
+                browseName: "HistorizedVariable",
+                componentOf: addressSpace!.rootFolder.objects.server.vendorServerInfo,
+                dataType: "Double"
+            });
+            addressSpace!.installHistoricalDataNode(variable);
+
+            should(readServerProfileArray()).containEql(historicalRawData);
+        });
+
         it("should advertise a Facet through the ServerProfileArray node, once", () => {
             should(addServerProfile({ engine }, globalCertificateManagement)).eql(true);
             should(addServerProfile({ engine }, globalCertificateManagement)).eql(false);
