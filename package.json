@@ -74,7 +74,7 @@
     "legal": "npx legally",
     "legal2": "npx npm-license-crawler",
     "legal3": " npx license-checker --production --summary",
-    "version:lerna": "npx lerna version --force-publish=node-opcua-versions",
+    "version:lerna": "pnpm dlx lerna version --force-publish=node-opcua-versions",
     "makelinks": "npx tsx ../make-links/makelinks.ts",
     "clean": "node tools/clean/clean.js",
     "version": "node tools/generate-release-set.mjs --stage",
