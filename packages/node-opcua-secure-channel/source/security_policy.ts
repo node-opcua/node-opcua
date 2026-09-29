@@ -731,6 +731,12 @@ export function computeSignature(
     });
 }
 
+/**
+ * Which part of a certificate chain a legacy application signature covers
+ * (OPC 10000-4 §6.1.8): the leaf certificate, or the whole chain as given.
+ */
+export type SignedCertificatePart = "leaf" | "chain";
+
 /** {@link CryptoFactory.signParams}, or a clear error for a custom factory that predates it. */
 export function getSignParams(cryptoFactory: CryptoFactory): AsymmetricSignParams {
     if (!cryptoFactory.signParams) {
@@ -760,19 +766,21 @@ export function getDecryptParams(cryptoFactory: CryptoFactory): AsymmetricDecryp
  * choke point every application-level signature goes through — the
  * client's ActivateSession signature, the server's CreateSession signature,
  * and the X509 user-token signature.
+ *
+ * `signedCertificate` picks what is signed when `senderCertificate` is a chain:
+ * its leaf (the default, what OPC 10000-4 §6.1.8 recommends) or the whole
+ * chain as given, the legacy calculation some deployed applications still use.
  */
 export async function computeSignatureAsync(
     senderCertificate: Buffer | null,
     senderNonce: Nonce | null,
     receiverKey: PrivateKey | IKeyOperations | null,
-    securityPolicy: SecurityPolicy
+    securityPolicy: SecurityPolicy,
+    signedCertificate: SignedCertificatePart = "leaf"
 ): Promise<SignatureData | undefined> {
     if (!senderNonce || !senderCertificate || senderCertificate.length === 0 || !receiverKey) {
         return undefined;
     }
-
-    // Verify that senderCertificate is not a chain
-    const chain = split_der(senderCertificate);
 
     const cryptoFactory = getCryptoFactory(securityPolicy);
     if (!cryptoFactory) {
@@ -780,7 +788,8 @@ export async function computeSignatureAsync(
     }
 
     // This parameter is calculated by appending the clientNonce to the clientCertificate
-    const dataToSign = Buffer.concat([chain[0], senderNonce]);
+    const signedBytes = signedCertificate === "chain" ? senderCertificate : split_der(senderCertificate)[0];
+    const dataToSign = Buffer.concat([signedBytes, senderNonce]);
 
     const keyOperations = isKeyOperations(receiverKey) ? receiverKey : keyOperationsFromPrivateKey(receiverKey);
     const signature = await keyOperations.sign(dataToSign, getSignParams(cryptoFactory));
@@ -848,18 +857,37 @@ export function verifySignature(
     if (!senderCertificate) {
         return false;
     }
-    // Verify that senderCertificate is not a chain
-    const chain = split_der(receiverCertificate);
-
     assert(signature.signature instanceof Buffer);
-    // This parameter is calculated by appending the clientNonce to the clientCertificate
-    const dataToVerify = Buffer.concat([chain[0], receiverNonce]);
+    const signatureBytes = signature.signature;
+    const verifyOver = (signedCertificate: Buffer): boolean => {
+        try {
+            return cryptoFactory.asymmetricVerify(
+                Buffer.concat([signedCertificate, receiverNonce]),
+                signatureBytes,
+                senderCertificate
+            );
+        } catch (e) {
+            warningLog(`Error when verifying signature of certificate: ${e}`);
+            return false;
+        }
+    };
+    // Legacy signature (OPC 10000-4 §6.1.8, Table 102): receiverCertificate | receiverNonce.
+    // A signer may have used the whole chain it was given rather than the leaf:
+    // "for backward compatibility the calculation is first done with the leaf
+    // Certificate and then with the chain passed in the parameter".
+    let chain: Buffer[];
     try {
-        return cryptoFactory.asymmetricVerify(dataToVerify, signature.signature, senderCertificate);
-    } catch (e) {
-        warningLog(`Error when verifying signature of certificate: ${e}`);
+        chain = split_der(receiverCertificate);
+    } catch {
+        return false; // empty or malformed receiver certificate
+    }
+    if (chain.length === 0) {
         return false;
     }
+    if (verifyOver(chain[0])) {
+        return true;
+    }
+    return chain.length > 1 && verifyOver(receiverCertificate);
 }
 
 export interface SecureMessageData {

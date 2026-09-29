@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { MessageSecurityMode, OPCUACertificateManager, OPCUAClient, OPCUAServer, SecurityPolicy } from "node-opcua";
+import { AttributeIds, MessageSecurityMode, OPCUACertificateManager, OPCUAClient, OPCUAServer, SecurityPolicy } from "node-opcua";
 import {
     convertPEMtoDER,
     exploreCertificate,
@@ -238,7 +238,7 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
     async function setupServerWithChainedCertificate(
         name: string,
         rootFolder: string,
-        options: { automaticallyAcceptUnknownCertificate?: boolean } = {}
+        options: { automaticallyAcceptUnknownCertificate?: boolean; sendCertificateChainInCreateSession?: boolean } = {}
     ) {
         const serverCertificateManager = new OPCUACertificateManager({
             rootFolder: rootFolder,
@@ -265,16 +265,57 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
             },
             serverCertificateManager,
             securityPolicies: [SecurityPolicy.Basic256Sha256],
-            securityModes: [MessageSecurityMode.SignAndEncrypt]
+            securityModes: [MessageSecurityMode.SignAndEncrypt],
+            sendCertificateChainInCreateSession: options.sendCertificateChainInCreateSession
         });
         await server.initialize();
         return server;
     }
 
-    it("3/ verify that a server with a chained certificate exposes the full chain in CreateSession", async () => {
+    // a client whose own certificate is issued by the CA and trusts it
+    async function setupClientCertificateManager(name: string) {
+        const clientCertificateManager = new OPCUACertificateManager({
+            rootFolder: path.join(tmpFolder, `${name}_pki`),
+            automaticallyAcceptUnknownCertificate: true
+        });
+        await clientCertificateManager.initialize();
+        const caCertificateChain = readCertificateChain(ca.caCertificate);
+        await clientCertificateManager.addIssuer(caCertificateChain[0], false, true);
+        await clientCertificateManager.addRevocationList(await readCertificateRevocationList(ca.revocationList));
+        await createSignedCertInManager(clientCertificateManager, name);
+        return clientCertificateManager;
+    }
+
+    it("3a/ a server with a chained certificate sends only its leaf in CreateSession by default", async () => {
+        const server = await setupServerWithChainedCertificate("server3a", path.join(tmpFolder, "server3a_pki"), {
+            automaticallyAcceptUnknownCertificate: true
+        });
+        await server.start();
+        const serverChain = server.getCertificateChain();
+        should(serverChain.length).be.greaterThanOrEqual(2);
+
+        const client = OPCUAClient.create({
+            applicationUri: "urn:localhost:client3a",
+            clientCertificateManager: await setupClientCertificateManager("client3a"),
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic256Sha256
+        });
+        try {
+            await client.withSessionAsync(server.getEndpointUrl(), async (session) => {
+                const receivedChain = split_der(session.serverCertificate);
+                should(receivedChain.length).eql(1, "CreateSession should carry the leaf certificate only");
+                should(receivedChain[0].toString("hex")).eql(serverChain[0].toString("hex"));
+            });
+        } finally {
+            await server.shutdown();
+        }
+    });
+
+    it("3b/ verify that a server with a chained certificate exposes the full chain in CreateSession when asked to", async () => {
         const serverPki = path.join(tmpFolder, "server3_pki");
         const server = await setupServerWithChainedCertificate("server3", serverPki, {
-            automaticallyAcceptUnknownCertificate: true
+            automaticallyAcceptUnknownCertificate: true,
+            sendCertificateChainInCreateSession: true
         });
         await server.start();
         const endpointUrl = server.getEndpointUrl();
@@ -348,4 +389,46 @@ describe("End-to-End Chained Certificates", function (this: Mocha.Suite) {
             await server.shutdown();
         }
     });
+
+    // OPC 10000-4 §6.1.8: a legacy client signs the server certificate exactly as it
+    // received it in CreateSession, the whole chain when the server sends one. The
+    // server tries the leaf first, then the chain; sending the leaf alone (the
+    // default) keeps such clients on the leaf in the first place.
+    for (const sendCertificateChainInCreateSession of [false, true]) {
+        it(`4/ accepts a legacy client that signs the server certificate as received (sendCertificateChainInCreateSession=${sendCertificateChainInCreateSession})`, async () => {
+            const suffix = sendCertificateChainInCreateSession ? "b" : "a";
+            const server = await setupServerWithChainedCertificate(
+                `server4${suffix}`,
+                path.join(tmpFolder, `server4${suffix}_pki`),
+                {
+                    automaticallyAcceptUnknownCertificate: true,
+                    sendCertificateChainInCreateSession
+                }
+            );
+            await server.start();
+            const serverChainLength = server.getCertificateChain().length;
+            should(serverChainLength).be.greaterThanOrEqual(2);
+
+            const client = OPCUAClient.create({
+                applicationUri: `urn:localhost:client4${suffix}`,
+                clientCertificateManager: await setupClientCertificateManager(`client4${suffix}`),
+                securityMode: MessageSecurityMode.SignAndEncrypt,
+                securityPolicy: SecurityPolicy.Basic256Sha256,
+                signServerCertificateChain: true
+            });
+
+            try {
+                await client.withSessionAsync(server.getEndpointUrl(), async (session) => {
+                    // what the legacy client signed: the chain, or the leaf alone
+                    should(split_der(session.serverCertificate).length).eql(
+                        sendCertificateChainInCreateSession ? serverChainLength : 1
+                    );
+                    const dataValue = await session.read({ nodeId: "i=2258", attributeId: AttributeIds.Value });
+                    should(dataValue.statusCode.isGood()).eql(true);
+                });
+            } finally {
+                await server.shutdown();
+            }
+        });
+    }
 });

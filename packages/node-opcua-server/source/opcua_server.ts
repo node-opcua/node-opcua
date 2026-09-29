@@ -1225,6 +1225,23 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
     isAuditing?: boolean;
 
     /**
+     * What CreateSessionResponse.serverCertificate carries when the server
+     * certificate is CA-issued: `false` sends the leaf certificate only,
+     * `true` sends the whole chain (leaf, then its issuers).
+     *
+     * A client computing the legacy ActivateSession signature (OPC 10000-4
+     * §6.1.8) "may use the entire chain passed in ServerCertificate", and some
+     * deployed clients do, so the leaf alone is the safer default. The
+     * endpoint descriptions and the OpenSecureChannel sender certificate keep
+     * the chain either way, and the server accepts a client signature over
+     * the leaf or over the chain whichever is chosen.
+     *
+     * Also settable at runtime: {@link OPCUAServer.sendCertificateChainInCreateSession}.
+     * @default false
+     */
+    sendCertificateChainInCreateSession?: boolean;
+
+    /**
      * the Roles whose Sessions receive Audit Events.
      *
      * OPC 10000-2 v1.05.06 §4.14: "the ability to subscribe for Audit Events is restricted to appropriate users
@@ -1715,6 +1732,13 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
      */
     public unresolvedPermissionPolicy: UnresolvedPermissionPolicy;
 
+    /**
+     * true: CreateSessionResponse.serverCertificate carries the whole chain;
+     * false: the leaf certificate only. Read at each CreateSession.
+     * @see OPCUAServerOptions.sendCertificateChainInCreateSession
+     */
+    public sendCertificateChainInCreateSession: boolean;
+
     public readonly options: OPCUAServerOptions;
 
     private objectFactory?: Factory;
@@ -1745,6 +1769,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
          * @property maxConnectionsPerEndpoint
          */
         this.maxConnectionsPerEndpoint = options.maxConnectionsPerEndpoint || default_maxConnectionsPerEndpoint;
+
+        this.sendCertificateChainInCreateSession = !!options.sendCertificateChainInCreateSession;
 
         // build Info
         const buildInfo: BuildInfoOptions = {
@@ -2235,9 +2261,23 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
     ): boolean {
         const clientCertificate = channel.clientCertificate;
         const securityPolicy = channel.securityPolicy;
-        const serverCertificate = this.getCertificate();
-        const result = verifySignature(serverCertificate, session.nonce, clientSignature, clientCertificate, securityPolicy);
+        const result = verifySignature(
+            this.#signedServerCertificate(),
+            session.nonce,
+            clientSignature,
+            clientCertificate,
+            securityPolicy
+        );
         return result;
+    }
+
+    /**
+     * The server certificate a client or user token signs with the server nonce,
+     * as the whole chain the endpoints advertise: verifySignature() tries the
+     * leaf first, then this chain (OPC 10000-4 §6.1.8).
+     */
+    #signedServerCertificate(): Buffer {
+        return combine_der(this.getCertificateChain());
     }
 
     protected isValidUserNameIdentityToken(
@@ -2321,11 +2361,10 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             callback(null, StatusCodes.BadNonceInvalid);
             return;
         }
-        const serverCertificate = this.getCertificate();
         assert(userTokenSignature.signature instanceof Buffer, "expecting userTokenSignature to be a Buffer");
 
         // verify proof of possession by checking certificate signature & server nonce correctness
-        if (!verifySignature(serverCertificate, nonce, userTokenSignature, certificate, securityPolicy)) {
+        if (!verifySignature(this.#signedServerCertificate(), nonce, userTokenSignature, certificate, securityPolicy)) {
             callback(null, StatusCodes.BadUserSignatureInvalid);
             return;
         }
@@ -2721,7 +2760,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
 
         session._attach_channel(channel);
 
-        const serverCertificateChain = this.getCertificateChain();
+        const certificateChain = this.getCertificateChain();
+        const serverCertificateChain = this.sendCertificateChainInCreateSession ? certificateChain : certificateChain.slice(0, 1);
 
         const hasEncryption = true;
         // If the securityPolicyUri is None and none of the UserTokenPolicies requires encryption
