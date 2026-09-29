@@ -12,6 +12,7 @@ import {
     bindExtObjArrayNode,
     type DTServerStatus,
     ensureObjectIsSecure,
+    type IAddressSpace,
     type IServerBase,
     type ISessionContext,
     type MethodFunctor,
@@ -343,6 +344,20 @@ function defaultServerProfileArray(): string[] {
         addProfileUri(profiles, profileUri);
     }
     return profiles;
+}
+
+const HISTORICAL_RAW_DATA_PROFILE_URI = "http://opcfoundation.org/UA-Profile/Server/HistoricalRawData";
+
+/**
+ * Advertise the HistoricalRawData Facet as soon as the AddressSpace has a Variable a Client
+ * can run a HistoryRead against. Nothing sets up a historian by default (see
+ * defaultServerProfileArray), so the Facet only appears once a Server actually calls
+ * addressSpace.installHistoricalDataNode on a Variable.
+ */
+function installHistoricalRawDataFacetHook(addressSpace: IAddressSpace, serverProfileArray: string[]): void {
+    addressSpace.onHistorizingNodeAdded = () => {
+        addProfileUri(serverProfileArray, HISTORICAL_RAW_DATA_PROFILE_URI);
+    };
 }
 
 export type StringGetter = () => string;
@@ -932,6 +947,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         doDebug && debugLog("Loading ", nodesetNames, "...");
 
         this.addressSpace = AddressSpace.create();
+        installHistoricalRawDataFacetHook(this.addressSpace, this.serverCapabilities.serverProfileArray);
 
         this.addressSpaceAccessor = new AddressSpaceAccessor(this.addressSpace);
 
