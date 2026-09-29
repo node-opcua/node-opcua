@@ -302,7 +302,10 @@ describe("Method#setPermissions & checkPermission", () => {
             endTime: date_add(today, { seconds: 10 }),
             isReadModified: false,
             numValuesPerNode: 1000,
-            returnBounds: true,
+            // this test is about role-based access control, not bounds; with no value ever
+            // pushed to this node, returnBounds true would turn the expected GoodNoData below
+            // into two Bad_BoundNotFound entries
+            returnBounds: false,
             startTime: date_add(today, { seconds: -10 })
         });
         const indexRange = null;

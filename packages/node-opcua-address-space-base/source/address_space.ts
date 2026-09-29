@@ -43,6 +43,17 @@ export interface IAddressSpace {
     historizingNodes?: Set<UAVariable>;
 
     /**
+     * Called once a Variable has been turned into a HistoricalDataNode by
+     * `installHistoricalDataNode`, after the node has been recorded in `historizingNodes`.
+     *
+     * A Server uses this hook to advertise a history-related Profile or Facet URI (OPC 10000-7)
+     * only once it actually has a historized Variable to back it, since an AddressSpace with no
+     * historian installed has nothing for a HistoryRead conformance test to read. node-opcua-server
+     * sets this hook to add the HistoricalRawData Facet.
+     */
+    onHistorizingNodeAdded?(node: UAVariable): void;
+
+    /**
      * when this flag is set, properties and components are not added as javascript
      * member of the UAObject/UAVariable node
      */

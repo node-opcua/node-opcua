@@ -14,7 +14,7 @@ import {
     ReadRawModifiedDetails
 } from "node-opcua-service-history";
 import type { WriteValueOptions } from "node-opcua-service-write";
-import { StatusCodes } from "node-opcua-status-code";
+import { extraStatusCodeBits, StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import {
@@ -98,7 +98,9 @@ describe("Testing Historical Data Node", () => {
             endTime: date_add(today, { seconds: 10 }),
             isReadModified: false,
             numValuesPerNode: 1000,
-            returnBounds: true,
+            // bounds are exercised in their own describe block below; this test is only about
+            // values being kept in memory, so it is kept clear of Bad_BoundNotFound entries
+            returnBounds: false,
             startTime: date_add(today, { seconds: -10 })
         });
 
@@ -135,7 +137,8 @@ describe("Testing Historical Data Node", () => {
             endTime: date_add(today, { seconds: 20 }),
             isReadModified: false,
             numValuesPerNode: 1000,
-            returnBounds: true,
+            // bounds are exercised in their own describe block below
+            returnBounds: false,
             startTime: date_add(today, { seconds: -10 })
         });
         const indexRange = null;
@@ -269,7 +272,8 @@ describe("Testing Historical Data Node", () => {
             endTime: date_add(today, { seconds: 10 }),
             isReadModified: false,
             numValuesPerNode: 1000,
-            returnBounds: true,
+            // bounds are exercised in their own describe block below
+            returnBounds: false,
             startTime: date_add(today, { seconds: -10 })
         });
         const indexRange = null;
@@ -670,6 +674,85 @@ describe("Testing Historical Data Node", () => {
 
             historyReadResult.statusCode.should.eql(StatusCodes.BadHistoryOperationUnsupported);
             should.not.exist(historyReadResult.continuationPoint, "expecting no continuation points in our case");
+        });
+    });
+
+    describe("HRRB HistoryReadRaw returnBounds", () => {
+        let node: UAVariable;
+        const today = new Date(2011, 0, 1, 0, 0, 0);
+
+        before(() => {
+            node = addressSpace.getOwnNamespace().addVariable({
+                browseName: "MyVarBounds",
+                componentOf: addressSpace.rootFolder.objects.server.vendorServerInfo,
+                dataType: "Double"
+            });
+            addressSpace.installHistoricalDataNode(node, {
+                maxOnlineValues: 100
+            });
+            for (let i = 0; i <= 6; i++) {
+                node.setValueFromSource({ dataType: "Double", value: i }, StatusCodes.Good, date_add(today, { seconds: 60 * i }));
+            }
+        });
+
+        async function readRaw(startTime: Date, endTime: Date, numValuesPerNode = 0): Promise<DataValue[]> {
+            const historyReadDetails = new ReadRawModifiedDetails({
+                endTime,
+                isReadModified: false,
+                numValuesPerNode,
+                returnBounds: true,
+                startTime
+            });
+            const historyReadResult = await node.historyRead(context, historyReadDetails, null, null, {
+                continuationPoint: null
+            });
+            historyReadResult.statusCode.should.eql(StatusCodes.Good);
+            return (historyReadResult.historyData as HistoryData).dataValues!;
+        }
+
+        it("HRRB-1 should interpolate a bounding value when no sample exists exactly at the boundary", async () => {
+            // start (60*0 + 30s) falls between the samples at minute 0 (value 0) and minute 1
+            // (value 1); end (60*3 + 30s) falls between minute 3 (value 3) and minute 4 (value 4)
+            const dataValues = await readRaw(date_add(today, { seconds: 30 }), date_add(today, { seconds: 3 * 60 + 30 }));
+
+            dataValues.length.should.eql(5);
+
+            should(dataValues[0].sourceTimestamp).eql(date_add(today, { seconds: 30 }));
+            dataValues[0].value.value.should.eql(0.5);
+            should(dataValues[0].statusCode.value & extraStatusCodeBits.HistorianInterpolated).not.eql(0);
+
+            dataValues[1].value.value.should.eql(1);
+            dataValues[2].value.value.should.eql(2);
+            dataValues[3].value.value.should.eql(3);
+
+            should(dataValues[4].sourceTimestamp).eql(date_add(today, { seconds: 3 * 60 + 30 }));
+            dataValues[4].value.value.should.eql(3.5);
+            should(dataValues[4].statusCode.value & extraStatusCodeBits.HistorianInterpolated).not.eql(0);
+        });
+
+        it("HRRB-2 should not add a bounding value when a sample exists exactly at each boundary", async () => {
+            const dataValues = await readRaw(date_add(today, { seconds: 0 }), date_add(today, { seconds: 3 * 60 }));
+
+            dataValues.length.should.eql(4);
+            dataValues[0].value.value.should.eql(0);
+            dataValues[3].value.value.should.eql(3);
+            // the boundary samples are the actual raw values: no Interpolated bit
+            should(dataValues[0].statusCode.value & extraStatusCodeBits.HistorianInterpolated).eql(0);
+            should(dataValues[3].statusCode.value & extraStatusCodeBits.HistorianInterpolated).eql(0);
+        });
+
+        it("HRRB-3 should return Bad_BoundNotFound when the requested range reaches beyond the archive", async () => {
+            const dataValues = await readRaw(date_add(today, { seconds: -60 }), date_add(today, { seconds: 6 * 60 + 60 }));
+
+            // 7 raw samples (minute 0 to 6) plus a not-found bound on each side
+            dataValues.length.should.eql(9);
+            dataValues[0].statusCode.should.eql(StatusCodes.BadBoundNotFound);
+            should(dataValues[0].sourceTimestamp).eql(date_add(today, { seconds: -60 }));
+            should(dataValues[0].value.dataType).eql(DataType.Null);
+
+            dataValues[8].statusCode.should.eql(StatusCodes.BadBoundNotFound);
+            should(dataValues[8].sourceTimestamp).eql(date_add(today, { seconds: 6 * 60 + 60 }));
+            should(dataValues[8].value.dataType).eql(DataType.Null);
         });
     });
 });
