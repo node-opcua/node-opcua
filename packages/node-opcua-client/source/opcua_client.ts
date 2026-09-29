@@ -47,6 +47,18 @@ export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
     endpointMustExist?: boolean;
 
     /**
+     * Compute the ActivateSession client signature over the server certificate
+     * exactly as received in CreateSessionResponse (the whole chain, when the
+     * server sends one) instead of over its leaf certificate.
+     *
+     * This is the legacy calculation of OPC 10000-4 §6.1.8 that some deployed
+     * clients still use; a conformant server accepts both. Leave it off in
+     * production: it exists to test servers against such clients.
+     * @default false
+     */
+    signServerCertificateChain?: boolean;
+
+    /**
      * optional parameter to specify strategy used to extract DataTypeDefinition from server
      * default value : "Auto" : the client will attempt to extract DataTypeDefinition using the most efficient strategy
      */
@@ -91,6 +103,12 @@ export type WithSubscriptionFuncP<T> = (session: ClientSession, subscription: Cl
  * ```
  */
 export interface OPCUAClient<Events extends OPCUAClientBaseEvents = OPCUAClientBaseEvents> extends OPCUAClientBase<Events> {
+    /**
+     * Legacy signer switch, read at each ActivateSession.
+     * @see OPCUAClientOptions.signServerCertificateChain
+     */
+    signServerCertificateChain: boolean;
+
     /**
      * Connect the client to the specified OPC UA server endpoint.
      *

@@ -18,6 +18,7 @@ import {
     makePrivateKeyFromPem,
     type Nonce,
     type PrivateKey,
+    split_der,
     toPem
 } from "node-opcua-crypto/web";
 import { LocalizedText } from "node-opcua-data-model";
@@ -90,6 +91,22 @@ function warnOnceAboutX509PemPrivateKey() {
             " — keyOperationsFromPrivateKey(readPrivateKey(file)) from node-opcua-crypto is a one-line migration," +
             " and an HSM/smartcard-held user key becomes possible."
     );
+}
+
+/**
+ * true when both DER blobs start with the same certificate: a server may send
+ * its leaf alone in CreateSession and the whole chain in its endpoints. Bytes
+ * that do not parse (they come from the server) compare as different.
+ */
+function sameLeafCertificate(a: Buffer | null | undefined, b: Buffer): boolean {
+    if (!a || a.length === 0) {
+        return false;
+    }
+    try {
+        return split_der(a)[0].equals(split_der(b)[0]);
+    } catch {
+        return false;
+    }
 }
 
 function validateServerNonce(serverNonce: Nonce | null): boolean {
@@ -421,6 +438,13 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
 
     public dataTypeExtractStrategy: DataTypeExtractStrategy;
 
+    /**
+     * true: sign the server certificate as received (legacy, the whole chain);
+     * false: sign its leaf. Read at each ActivateSession.
+     * @see OPCUAClientOptions.signServerCertificateChain
+     */
+    public signServerCertificateChain: boolean;
+
     constructor(options?: OPCUAClientOptions) {
         options = options || {};
         super(options);
@@ -443,6 +467,8 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
         this.endpointMustExist = isNullOrUndefined(options.endpointMustExist) ? true : !!options.endpointMustExist;
 
         this.requestedSessionTimeout = options.requestedSessionTimeout || 60000; // 1 minute
+
+        this.signServerCertificateChain = !!options.signServerCertificateChain;
 
         this.localeIds = options.localeIds || [];
 
@@ -1122,7 +1148,7 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
             return;
         }
         const currentDer = Array.isArray(current) ? combine_der(current) : current;
-        if (session.serverCertificate?.equals(currentDer)) {
+        if (sameLeafCertificate(session.serverCertificate, currentDer)) {
             return;
         }
         doDebug &&
@@ -1268,7 +1294,8 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
             serverCertificate,
             serverNonce || Buffer.alloc(0),
             this.getKeyOperations(),
-            channel.securityPolicy
+            channel.securityPolicy,
+            this.signServerCertificateChain ? "chain" : "leaf"
         );
     }
     /**
