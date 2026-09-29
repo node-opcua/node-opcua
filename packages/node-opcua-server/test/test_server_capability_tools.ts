@@ -69,6 +69,18 @@ describe("server capability tools", () => {
             should(profiles).eql([...new Set(profiles)].sort());
         });
 
+        it("should not claim a Client-side Facet in the default ServerProfileArray", () => {
+            // a Server's ServerProfileArray describes the Server; a "/UA-Profile/Client/"
+            // URI there is a false claim
+            should(readServerProfileArray().filter((p) => p.includes("/UA-Profile/Client/"))).eql([]);
+        });
+
+        it("should not claim history support by default", () => {
+            // history is only served for a Variable with a historian installed, which a
+            // default Server does not have
+            should(readServerProfileArray().filter((p) => /Histor/i.test(p))).eql([]);
+        });
+
         it("should advertise a Facet through the ServerProfileArray node, once", () => {
             should(addServerProfile({ engine }, globalCertificateManagement)).eql(true);
             should(addServerProfile({ engine }, globalCertificateManagement)).eql(false);
