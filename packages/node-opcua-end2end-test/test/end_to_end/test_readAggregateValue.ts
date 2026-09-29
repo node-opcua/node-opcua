@@ -276,6 +276,9 @@ describe("test readAggregateValue", () => {
         historyReadResult.statusCode.should.eql(StatusCodes.Good);
         should(historyReadResult.historyData).be.instanceOf(HistoryData);
         const historyData = historyReadResult.historyData! as HistoryData;
-        should(historyData.dataValues?.length).eql(10);
+        // readHistoryValue defaults returnBounds to true; History1's last raw sample is at
+        // 12:01:30, before the requested endTime of 12:01:40, so the response carries the
+        // 10 raw samples plus a Bad_BoundNotFound end bound (OPC 10000-11 6.5.3.2)
+        should(historyData.dataValues?.length).eql(11);
     });
 });
