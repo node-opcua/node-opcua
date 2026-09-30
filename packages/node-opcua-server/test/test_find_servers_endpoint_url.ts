@@ -46,6 +46,12 @@ describe("FindServers - DiscoveryUrls must be reachable through the URL the clie
         should(response.servers![0].discoveryUrls).eql(["opc.tcp://gds-server:48400"]);
     });
 
+    it("should return only the URL of the host name the client used on a multi-homed server", async () => {
+        const discoveryUrls = [containerHostUrl, "opc.tcp://gds-server:48400"];
+        const response = await callFindServers("opc.tcp://gds-server:48400", discoveryUrls);
+        should(response.servers![0].discoveryUrls).eql(["opc.tcp://gds-server:48400"]);
+    });
+
     it("should keep the path of the DiscoveryUrl", async () => {
         const response = await callFindServers("opc.tcp://gds-server:48400", ["opc.tcp://f2754b6e40d3:48400/UA/Server"]);
         should(response.servers![0].discoveryUrls).eql(["opc.tcp://gds-server:48400/UA/Server"]);
