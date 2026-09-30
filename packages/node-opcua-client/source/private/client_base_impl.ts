@@ -61,7 +61,8 @@ import { type ErrorCallback, type StatusCode, StatusCodes } from "node-opcua-sta
 import {
     type IAcceptedReverseConnection,
     type IClientTransportFactory,
-    makeReverseClientTransportFactory
+    makeReverseClientTransportFactory,
+    TCPErrorMessageReceivedError
 } from "node-opcua-transport";
 import { checkFileExistsAndIsNotEmpty, matchUri } from "node-opcua-utils";
 import {
@@ -696,7 +697,9 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                         // retry, which re-arms the reverse transport and waits for the server to re-dial.
                         !this._isReverseConnect &&
                         (err?.message.match("BadCertificateInvalid") ||
-                            err?.message.match(/socket has been disconnected by third party/))
+                            err?.message.match(/socket has been disconnected by third party/) ||
+                            // a server that cannot decrypt our OpenSecureChannel says so with an ERR
+                            err instanceof TCPErrorMessageReceivedError)
                     ) {
                         // it is possible also that hte server has shutdown innapropriately the connection
                         warningLog(
@@ -1253,6 +1256,14 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                         ) as ServiceFaultAnnotatedError & { statusCode: StatusCode };
                         rejected.statusCode = statusCode;
                         rejected.response = fault;
+                        err = rejected;
+                    } else if (err instanceof TCPErrorMessageReceivedError) {
+                        // the server answered with an Error Message (Part 6 7.1.5): keep its StatusCode
+                        const rejected = new Error(
+                            `The connection may have been rejected by server,\n Err = (${err.message})`
+                        ) as Error & { statusCode: StatusCode; reason: string | null };
+                        rejected.statusCode = err.statusCode;
+                        rejected.reason = err.reason;
                         err = rejected;
                     } else {
                         err = new Error(`The connection may have been rejected by server,\n Err = (${err.message})`);
