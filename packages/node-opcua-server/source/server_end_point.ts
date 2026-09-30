@@ -281,16 +281,18 @@ export interface AddStandardEndpointDescriptionsParam {
 }
 
 /**
- * Parse an `opc.tcp://hostname:port` URL and extract hostname and port.
+ * Parse an `opc.tcp://hostname:port/path` URL and extract hostname, port and resource path.
+ * A path made of a single `/` is treated as no path.
  * @internal
  */
-export function parseOpcTcpUrl(url: string): { hostname: string; port: number } {
+export function parseOpcTcpUrl(url: string): { hostname: string; port: number; resourcePath: string } {
     // URL class doesn't understand opc.tcp://, so swap to http://
     const httpUrl = url.replace(/^opc\.tcp:\/\//i, "http://");
     const parsed = new URL(httpUrl);
     return {
         hostname: parsed.hostname,
-        port: parsed.port ? Number.parseInt(parsed.port, 10) : 4840
+        port: parsed.port ? Number.parseInt(parsed.port, 10) : 4840,
+        resourcePath: parsed.pathname === "/" ? "" : parsed.pathname
     };
 }
 
@@ -727,10 +729,17 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         const mainUserTokenTypes = options.userTokenTypes || defaultUserTokenTypes;
 
         for (const config of advertisedList) {
-            const { hostname: advHostname, port: advPort } = parseOpcTcpUrl(config.url);
-            // Skip if this hostname+port combo was already covered
-            // by the regular hostname loop (same hostname, same port)
-            if (hostnames.some((h) => h.toLowerCase() === advHostname.toLowerCase()) && advPort === this.port) {
+            const { hostname: advHostname, port: advPort, resourcePath: advPath } = parseOpcTcpUrl(config.url);
+            // the advertised URL's own path wins over the server-wide resourcePath
+            const mainResourcePath = (options.resourcePath || "").replace(/\\/g, "/");
+            const advResourcePath = advPath || mainResourcePath;
+            // Skip if this hostname+port+path combo was already covered
+            // by the regular hostname loop
+            if (
+                hostnames.some((h) => h.toLowerCase() === advHostname.toLowerCase()) &&
+                advPort === this.port &&
+                advResourcePath === mainResourcePath
+            ) {
                 continue;
             }
 
@@ -752,7 +761,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 userTokenTypes: entryUserTokenTypes,
                 allowUnsecurePassword: options.allowUnsecurePassword,
                 alternateHostname: options.alternateHostname,
-                resourcePath: options.resourcePath
+                resourcePath: advResourcePath
             };
 
             if (entrySecurityModes.indexOf(MessageSecurityMode.None) >= 0) {
