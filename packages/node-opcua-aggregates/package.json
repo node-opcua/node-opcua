@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-aggregates",
     "type": "module",
-    "version": "2.186.12",
+    "version": "2.186.13",
     "description": "pure nodejs OPCUA SDK - module aggregates",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -24,7 +24,7 @@
         "node-opcua-data-value": "2.186.10",
         "node-opcua-nodeid": "2.186.7",
         "node-opcua-numeric-range": "2.186.7",
-        "node-opcua-server": "2.186.12",
+        "node-opcua-server": "2.186.13",
         "node-opcua-service-history": "2.186.10",
         "node-opcua-status-code": "2.186.7",
         "node-opcua-types": "2.186.10",

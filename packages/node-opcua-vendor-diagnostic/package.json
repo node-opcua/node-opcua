@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-vendor-diagnostic",
     "type": "module",
-    "version": "2.186.12",
+    "version": "2.186.13",
     "description": "pure nodejs OPCUA SDK - module vendor-diagnostic",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -19,7 +19,7 @@
         "node-opcua-assert": "2.186.7",
         "node-opcua-constants": "2.185.0",
         "node-opcua-debug": "2.186.7",
-        "node-opcua-server": "2.186.12",
+        "node-opcua-server": "2.186.13",
         "node-opcua-status-code": "2.186.7",
         "node-opcua-variant": "2.186.10"
     },
