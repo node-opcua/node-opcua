@@ -9,6 +9,10 @@ export interface IPushCertificateManagerServer {
     userTokenGroup?: CertificateManager;
     httpsGroup?: CertificateManager;
     applicationUri: string;
+    /** DNS host names to request in a CreateSigningRequest's SAN, matching the server's own self-signed certificate. */
+    dns?: string[];
+    /** IP addresses to request in a CreateSigningRequest's SAN, matching the server's own self-signed certificate. */
+    ip?: string[];
 
     getCertificateManager(groupName: string): CertificateManager | null;
     getCertificateTypes(groupName: string): NodeId[] | undefined;
@@ -36,6 +40,12 @@ export class PushCertificateManagerInternalContext {
     }
     get applicationUri() {
         return this.server.applicationUri;
+    }
+    get dns() {
+        return this.server.dns;
+    }
+    get ip() {
+        return this.server.ip;
     }
 
     getCertificateManager(groupName: string) {

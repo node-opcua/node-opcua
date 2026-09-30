@@ -355,9 +355,14 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
      * (e.g. `OPCUAServer`) override this to include hostnames from
      * `alternateHostname` and `advertisedEndpoints`.
      *
+     * Public so packages outside `node-opcua-server` (e.g.
+     * `node-opcua-server-configuration`'s CreateSigningRequest handler) can
+     * reuse the same configured-hostnames list for a CSR's SAN, not only
+     * for the initial self-signed certificate.
+     *
      * @internal
      */
-    protected getConfiguredHostnames(): string[] {
+    public getConfiguredHostnames(): string[] {
         return [];
     }
 
@@ -375,9 +380,11 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
      * included in the certificate at creation time but are NOT
      * checked later — see `checkCertificateSAN()` for rationale.
      *
+     * Public for the same reason as {@link getConfiguredHostnames}.
+     *
      * @internal
      */
-    protected getConfiguredIPs(): string[] {
+    public getConfiguredIPs(): string[] {
         return [];
     }
 
@@ -1039,6 +1046,14 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         assert(request.schema.name === "GetEndpointsRequest");
 
         this._warnIfEndpointHostNotInCertificate(request.endpointUrl);
+
+        // Every EndpointDescription.server below is this exact object, by
+        // reference (see createEndpoint(): `serverInfo: this.serverInfo`),
+        // so refreshing discoveryUrls here reaches all of them. Without
+        // this, GetEndpoints' embedded ApplicationDescription always
+        // reports an empty DiscoveryUrls array - getServers() (FindServers)
+        // already does the same refresh, GetEndpoints never did.
+        this.serverInfo.discoveryUrls = this.getDiscoveryUrls();
 
         const response = new GetEndpointsResponse({});
 

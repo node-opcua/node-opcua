@@ -132,7 +132,13 @@ export async function executeCreateSigningRequest(
     try {
         const options = {
             applicationUri: serverImpl.applicationUri,
-            subject: subjectName
+            subject: subjectName,
+            // Without these, the CSR only ever carries the ApplicationUri in
+            // its SAN. Some GDS/CA implementations then refuse a connection
+            // reaching the server by hostname with BadCertificateHostNameInvalid,
+            // since the issued certificate lists no DNS/IP to match against.
+            dns: serverImpl.dns,
+            ip: serverImpl.ip
         };
 
         const activeCertificateManager = serverImpl.tmpCertificateManager || certificateManager;

@@ -5,7 +5,7 @@ import path from "node:path";
 import "should";
 
 import { CertificateManager } from "node-opcua-certificate-manager";
-import { convertPEMtoDER, exploreCertificate, makeSHA1Thumbprint } from "node-opcua-crypto";
+import { convertPEMtoDER, exploreCertificate, exploreCertificateSigningRequest, makeSHA1Thumbprint } from "node-opcua-crypto";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
@@ -110,6 +110,38 @@ describe("Testing Server Side PushCertificateManager", () => {
         );
         result.statusCode.should.eql(StatusCodes.Good);
         should(result.certificateSigningRequest).be.instanceOf(Buffer);
+    });
+
+    it("should include configured DNS host names and IP addresses in the CSR's SAN when provided", async () => {
+        // Given a PushCertificateManagerServerImpl configured with dns/ip
+        // (the values a server derives from alternateHostname/advertisedEndpoints
+        // plus its own fqdn/hostname, matching its self-signed certificate)
+        const dnsGroup = new CertificateManager({
+            location: path.join(_folder, "dns-san-application")
+        });
+        await dnsGroup.initialize();
+        const dnsPushManager = new PushCertificateManagerServerImpl({
+            applicationGroup: dnsGroup,
+            applicationUri: "urn:test:dns-san",
+            dns: ["RAMSES", "ramses.european.iop.virtual.opcfoundation.org"],
+            ip: ["10.20.30.40"]
+        });
+        await dnsPushManager.initialize();
+
+        // When I call createSigningRequest
+        const result = await dnsPushManager.createSigningRequest("DefaultApplicationGroup", "", "/O=NodeOPCUA/CN=Demo-Device");
+        result.statusCode.should.eql(StatusCodes.Good);
+        should(result.certificateSigningRequest).be.instanceOf(Buffer);
+
+        // Then the CSR's SAN carries the configured DNS names and IP, not
+        // only the ApplicationUri (this is what a hostname-verifying GDS/CA
+        // needs to issue a certificate that later passes BadCertificateHostNameInvalid checks)
+        const info = exploreCertificateSigningRequest(result.certificateSigningRequest as Buffer);
+        const san = info.extensionRequest.subjectAltName;
+        san.dNSName.should.containDeep(["RAMSES", "ramses.european.iop.virtual.opcfoundation.org"]);
+        // iPAddress SAN entries are the raw octets, hex-encoded (10.20.30.40 -> 0a141e28)
+        san.iPAddress.should.containDeep([Buffer.from([10, 20, 30, 40]).toString("hex")]);
+        san.uniformResourceIdentifier.should.containDeep(["urn:test:dns-san"]);
     });
 
     it("should provide rejected list", async () => {

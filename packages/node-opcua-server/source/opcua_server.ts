@@ -1636,7 +1636,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
      *
      * @internal
      */
-    protected override getConfiguredHostnames(): string[] {
+    public override getConfiguredHostnames(): string[] {
         return this._collectAlternateValues().hostnames;
     }
 
@@ -1649,7 +1649,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
      *
      * @internal
      */
-    protected override getConfiguredIPs(): string[] {
+    public override getConfiguredIPs(): string[] {
         return this._collectAlternateValues().ips;
     }
 
