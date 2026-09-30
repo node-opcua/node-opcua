@@ -76,7 +76,7 @@ import {
     perform_operation_on_subscription_async,
     perform_operation_on_subscription_with_parameters
 } from "../../test_helpers/perform_operation_on_client_session.js";
-import { stepLog, tracelog, wait } from "../../test_helpers/utils.js";
+import { stepLog, tracelog, wait, waitUntilCondition } from "../../test_helpers/utils.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -2872,14 +2872,24 @@ export function t(test: { endpointUrl: string; server: OPCUAServer }) {
                     const waitingTime = subscription.publishingInterval * (subscription.maxKeepAliveCount - 3) - 100;
 
                     let nb_keep_alive_received = 0;
+                    const keepAliveTimes: number[] = [];
                     subscription.on("keepalive", () => {
                         nb_keep_alive_received += 1;
+                        keepAliveTimes.push(Date.now());
                     });
 
                     nb_keep_alive_received.should.eql(0);
 
-                    await wait(subscription.publishingInterval * (subscription.maxKeepAliveCount + 2));
+                    // a keep-alive ends the first publishing cycle, the next one comes maxKeepAliveCount
+                    // cycles later. Wait for it rather than for a fixed 12 cycles: publishing timers run
+                    // late on a busy or Windows machine (100 ms ticks measured at 110-117 ms), which
+                    // pushed the second keep-alive past that deadline. The steps below count from it.
+                    await waitUntilCondition(() => nb_keep_alive_received >= 2, 5000, "second keep-alive");
                     nb_keep_alive_received.should.eql(2);
+                    // not before maxKeepAliveCount cycles (less some slack for when the first one was received)
+                    should(keepAliveTimes[1] - keepAliveTimes[0]).be.aboveOrEqual(
+                        (subscription.maxKeepAliveCount - 2) * subscription.publishingInterval
+                    );
 
                     await wait(waitingTime);
                     // -- step 1
