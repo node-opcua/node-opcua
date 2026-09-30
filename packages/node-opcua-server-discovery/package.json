@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-server-discovery",
     "type": "module",
-    "version": "2.186.11",
+    "version": "2.186.12",
     "description": "pure nodejs OPCUA SDK - module server-discovery",
     "scripts": {
         "build": "tsc -b",
@@ -24,8 +24,8 @@
         "node-opcua-crypto": "6.1.2",
         "node-opcua-debug": "2.186.7",
         "node-opcua-object-registry": "2.186.7",
-        "node-opcua-secure-channel": "2.186.10",
-        "node-opcua-server": "2.186.11",
+        "node-opcua-secure-channel": "2.186.12",
+        "node-opcua-server": "2.186.12",
         "node-opcua-service-discovery": "2.186.10",
         "node-opcua-service-endpoints": "2.186.10",
         "node-opcua-status-code": "2.186.7",

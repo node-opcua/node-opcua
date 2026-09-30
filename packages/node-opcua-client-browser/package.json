@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-client-browser",
     "type": "module",
-    "version": "2.186.10",
+    "version": "2.186.12",
     "description": "OPC UA SDK - browser WebSocket client (opc.ws / opc.wss)",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -31,12 +31,12 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.186.7",
-        "node-opcua-client": "2.186.10",
+        "node-opcua-client": "2.186.12",
         "node-opcua-common": "2.186.10",
         "node-opcua-crypto": "6.1.2",
         "node-opcua-debug": "2.186.7",
         "node-opcua-status-code": "2.186.7",
-        "node-opcua-transport": "2.186.10"
+        "node-opcua-transport": "2.186.12"
     },
     "devDependencies": {
         "@playwright/test": "^1.63.0",
