@@ -813,3 +813,87 @@ describe("US-AE-12: string shorthand inherits main settings", () => {
         }
     });
 });
+
+describe("advertisedEndpoints: resource path of an advertised URL", () => {
+    it("parseOpcTcpUrl should extract the resource path", () => {
+        should(parseOpcTcpUrl("opc.tcp://h:4840/plant/edge").resourcePath).eql("/plant/edge");
+        should(parseOpcTcpUrl("opc.tcp://h:4840").resourcePath).eql("");
+        should(parseOpcTcpUrl("opc.tcp://h:4840/").resourcePath).eql("");
+        const v6 = parseOpcTcpUrl("opc.tcp://[fd00::1]:4840/x");
+        should(v6.hostname).eql("[fd00::1]");
+        should(v6.port).eql(4840);
+        should(v6.resourcePath).eql("/x");
+    });
+
+    async function advertisedUrls(port: number, advertisedEndpoints: string[], extra: { hostname?: string } = {}, probe = "") {
+        const serverCertificateManager = await createServerCertificateManager(port);
+        const server = new OPCUAServer({
+            port,
+            ...extra,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None],
+            advertisedEndpoints
+        });
+        try {
+            await server.initialize();
+            return {
+                all: server.findMatchingEndpoints(null).map((e) => e.endpointUrl || ""),
+                matching: probe ? server.findMatchingEndpoints(probe).map((e) => e.endpointUrl || "") : []
+            };
+        } finally {
+            await server.shutdown();
+            server.dispose();
+        }
+    }
+
+    it("should keep the path of an advertised URL", async () => {
+        const url = "opc.tcp://localhost:48999/plant/edge";
+        const { all, matching } = await advertisedUrls(12066, [url], {}, url);
+        should(all).containEql(url);
+        should(matching.length).be.greaterThan(0);
+        should(matching.every((u) => u === url)).eql(true);
+    });
+
+    it("should not dedupe an advertised URL that differs from the main endpoint only by its path", async () => {
+        const { all } = await advertisedUrls(12067, ["opc.tcp://myhost:12067/other"], { hostname: "myhost" });
+        should(all).containEql("opc.tcp://myhost:12067");
+        should(all).containEql("opc.tcp://myhost:12067/other");
+    });
+
+    it("should treat a trailing slash alone as no path", async () => {
+        const { all } = await advertisedUrls(12068, ["opc.tcp://myhost:12068/", "opc.tcp://proxy:443/"], { hostname: "myhost" });
+        should(all.filter((u) => u.startsWith("opc.tcp://myhost")).length).eql(1);
+        should(all).containEql("opc.tcp://proxy:443");
+        should(all.some((u) => u.endsWith("/"))).eql(false);
+    });
+
+    it("should list an IPv6 advertised URL with its path and put the IP in the SAN iPAddress", async () => {
+        const fs = await import("node:fs");
+        const { exploreCertificate } = await import("node-opcua-crypto/web");
+        const port = 12069;
+        const serverCertificateManager = await createServerCertificateManager(port);
+        const server = new OPCUAServer({
+            port,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None],
+            advertisedEndpoints: ["opc.tcp://[fd00::1]:4840/x"]
+        });
+        if (fs.existsSync(server.certificateFile)) {
+            fs.unlinkSync(server.certificateFile);
+        }
+        try {
+            await server.initialize();
+            const all = server.findMatchingEndpoints(null).map((e) => e.endpointUrl);
+            should(all).containEql("opc.tcp://[fd00::1]:4840/x");
+            const san = exploreCertificate(server.getCertificate()).tbsCertificate.extensions?.subjectAltName;
+            const sanDns = san?.dNSName || [];
+            should(sanDns.some((d: string) => d.includes("fd00"))).eql(false);
+            should((san?.iPAddress || []).length).be.greaterThan(0);
+        } finally {
+            await server.shutdown();
+            server.dispose();
+        }
+    });
+});

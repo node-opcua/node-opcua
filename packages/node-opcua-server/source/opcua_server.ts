@@ -1678,7 +1678,9 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         // advertisedEndpoints — normalize to AdvertisedEndpointConfig[]
         const advList = normalizeAdvertisedEndpoints(this.options.advertisedEndpoints);
         for (const config of advList) {
-            const { hostname } = parseOpcTcpUrl(config.url);
+            const { hostname: rawHostname } = parseOpcTcpUrl(config.url);
+            // URL keeps the brackets around an IPv6 literal
+            const hostname = rawHostname.startsWith("[") && rawHostname.endsWith("]") ? rawHostname.slice(1, -1) : rawHostname;
             if (isIPAddress(hostname)) {
                 ips.push(hostname);
             } else {
