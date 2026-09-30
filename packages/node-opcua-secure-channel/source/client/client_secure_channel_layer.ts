@@ -37,6 +37,7 @@ import {
     doTraceChunk,
     type IClientTransport,
     type IClientTransportFactory,
+    TCPErrorMessageReceivedError,
     type TransportSettingsOptions
 } from "node-opcua-transport";
 import { get_clock_tick, randomBytes, timestamp } from "node-opcua-utils";
@@ -420,6 +421,8 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
     #_requests: { [key: string]: RequestData };
 
     #__in_normal_close_operation: boolean;
+    /** the Error Message (ERR) the server sent before closing the connection, if any */
+    #_errorMessageReceived: TCPErrorMessageReceivedError | null = null;
     #_timeout_request_count: number;
     #_securityTokenTimeoutId: NodeJS.Timeout | null;
     readonly #transportTimeout: number;
@@ -1011,6 +1014,10 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
                 process_request_callback(requestData, null, serviceFault);
             })
             .on("error", (err: Error, statusCode: StatusCode, requestId: number | null) => {
+                if (err instanceof TCPErrorMessageReceivedError) {
+                    this.#_on_error_message_received(err);
+                    return;
+                }
                 // c8 ignore next
                 if (!requestId) {
                     return;
@@ -1042,6 +1049,19 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
                 return;
             });
     }
+    /**
+     * OPC 10000-6 §7.1.5: when the Client receives an Error Message it reports the error to the
+     * application and closes the TransportConnection gracefully. The server closes its side too:
+     * whichever close comes first, the pending requests and the "close" event get this error
+     * rather than a bare socket disconnection.
+     */
+    #_on_error_message_received(err: TCPErrorMessageReceivedError): void {
+        this.#_errorMessageReceived = err;
+        this.#_transport?.disconnect(() => {
+            /* */
+        });
+    }
+
     #_closeWithError(err: Error, statusCode: StatusCode): void {
         if (this.#_transport) {
             this.#_transport.prematureTerminate(err, statusCode);
@@ -1232,6 +1252,9 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
 
     #_on_transport_closed(err?: Error | null) {
         doDebug && debugLog(" =>ClientSecureChannelLayer#_on_transport_closed  err=", err ? err.message : "null");
+        if (this.#_errorMessageReceived) {
+            err = this.#_errorMessageReceived;
+        }
         if (this.#__in_normal_close_operation) {
             err = undefined;
         }
@@ -1445,6 +1468,7 @@ export class ClientSecureChannelLayer extends EventEmitter<ClientSecureChannelLa
         assert(this.#_pending_transport === transport);
         this.#_pending_transport = undefined;
         this.#_transport = transport;
+        this.#_errorMessageReceived = null;
 
         // Reconcile the endpoint URL with the transport's. For a normal (client-initiated)
         // transport this equals the URL passed to create(); for a reverse-connect transport it is

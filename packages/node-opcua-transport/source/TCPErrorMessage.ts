@@ -56,3 +56,19 @@ export class TCPErrorMessage extends BaseUAObject {
         this.reason = decodeString(stream);
     }
 }
+
+/**
+ * the error an Error Message (ERR) received from the peer is reported with.
+ * A Client that receives an Error Message reports it to the application
+ * (OPC 10000-6 §7.1.5): the StatusCode and Reason stay available here.
+ */
+export class TCPErrorMessageReceivedError extends Error {
+    public readonly statusCode: StatusCode;
+    public readonly reason: UAString;
+    constructor(statusCode: StatusCode, reason: UAString) {
+        super(`ERR received ${statusCode.toString()} : ${reason || "no reason given"}`);
+        this.name = "TCPErrorMessageReceivedError";
+        this.statusCode = statusCode;
+        this.reason = reason;
+    }
+}

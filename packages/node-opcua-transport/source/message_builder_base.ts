@@ -13,6 +13,7 @@ import { type MessageHeader, PacketAssembler, type PacketInfo } from "node-opcua
 import type { StatusCode } from "node-opcua-status-code";
 import { get_clock_tick } from "node-opcua-utils";
 import { StatusCodes2 } from "./status_codes.js";
+import { TCPErrorMessageReceivedError } from "./TCPErrorMessage.js";
 
 const doPerfMonitoring = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("PERF") >= 0;
 
@@ -360,8 +361,12 @@ export class MessageBuilderBase extends EventEmitter {
                 const binaryStream = new BinaryStream(chunk);
                 binaryStream.length = 8;
                 const errorCode = decodeStatusCode(binaryStream);
-                const message = decodeString(binaryStream);
-                this._report_error(errorCode, message || "Error message not specified");
+                const reason = decodeString(binaryStream);
+                // an Error Message concerns the whole connection, not one request: report it
+                // without a requestId (the last sequence header belongs to an earlier message)
+                this.#_hasReceivedError = true;
+                errorLog("Error  ", this.id, "ERR received", errorCode.toString(), reason);
+                this.emit("error", new TCPErrorMessageReceivedError(errorCode, reason), errorCode, null);
                 return true;
             } else {
                 const appended = this.#_append(chunk);
