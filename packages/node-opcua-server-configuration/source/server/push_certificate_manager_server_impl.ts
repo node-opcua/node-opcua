@@ -50,6 +50,20 @@ export interface PushCertificateManagerServerOptions {
 
     applicationUri: string;
 
+    /**
+     * DNS host names and IP addresses to request in a CreateSigningRequest's
+     * SAN. Without these, a CSR only ever carries the ApplicationUri: some
+     * GDS/CA implementations then refuse the connection with
+     * BadCertificateHostNameInvalid once a client reaches the server by a
+     * hostname the certificate doesn't list. Pass the same values used for
+     * the server's own self-signed certificate (see
+     * `OPCUAServer.getConfiguredHostnames()`/`getConfiguredIPs()`, plus the
+     * machine's fqdn/hostname/auto-detected IPs) to keep a renewed
+     * certificate at parity with a fresh self-signed one.
+     */
+    dns?: string[];
+    ip?: string[];
+
     // Optional: Allowed certificate types for each group
     // These should be read from the CertificateTypes Property of the CertificateGroup objects in the AddressSpace
     // If not provided, defaults to all known OPC UA certificate types (backward compatibility)
@@ -64,6 +78,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     public applicationGroup?: CertificateManager;
     public userTokenGroup?: CertificateManager;
     public httpsGroup?: CertificateManager;
+    public dns?: string[];
+    public ip?: string[];
 
     // Use a true private reference (could be upgraded to #context in recent ES)
     private readonly _context: PushCertificateManagerInternalContext;
@@ -91,6 +107,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         this.applicationUri = options ? options.applicationUri : "";
 
         if (options) {
+            this.dns = options.dns;
+            this.ip = options.ip;
             this.applicationGroup = options.applicationGroup;
             this.userTokenGroup = options.userTokenGroup;
             this.httpsGroup = options.httpsGroup;

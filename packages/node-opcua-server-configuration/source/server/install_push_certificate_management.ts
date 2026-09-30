@@ -25,6 +25,7 @@ import {
 } from "node-opcua-crypto/web";
 import { addProfileUri } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { getFullyQualifiedDomainName, getHostname, getIpAddresses } from "node-opcua-hostname";
 import type { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type ApplicationDescriptionOptions, ServerState } from "node-opcua-types";
@@ -58,6 +59,26 @@ export interface OPCUAServerPartial extends ICertificateKeyPairProvider {
     setProvider(provider: ICertificateKeyPairProvider): void;
     invalidateCachedCertificates(): void;
     getCertificateChainProvider(): ICertificateChainProvider;
+}
+
+/**
+ * The DNS host names and IP addresses a CreateSigningRequest asks a GDS to
+ * put in a renewed certificate's SAN, matching exactly what the server's own
+ * self-signed certificate already carries (`BaseServer.createDefaultCertificate`):
+ * the machine's fqdn/hostname plus whatever `alternateHostname`/
+ * `advertisedEndpoints` configured, and auto-detected plus configured IPs.
+ *
+ * Without this, a CSR only ever requests the ApplicationUri: some GDS/CA
+ * implementations then issue a certificate a hostname-verifying client
+ * refuses with BadCertificateHostNameInvalid, because the certificate lists
+ * no DNS/IP to match the connection address against.
+ */
+function collectCertificateSanValues(server: OPCUAServer): { dns: string[]; ip: string[] } {
+    const fqdn = getFullyQualifiedDomainName();
+    const hostname = getHostname();
+    const dns = [...new Set([fqdn, hostname, ...server.getConfiguredHostnames()])].sort();
+    const ip = [...new Set([...getIpAddresses(), ...server.getConfiguredIPs()])].sort();
+    return { dns, ip };
 }
 
 async function onCertificateAboutToChange(server: OPCUAServer) {
@@ -329,11 +350,14 @@ export async function installPushCertificateManagementOnServer(
         endpoint.setCertificateProvider(provider);
     }
 
+    const { dns, ip } = collectCertificateSanValues(server);
     await installPushCertificateManagement(server.engine.addressSpace, {
         applicationGroup: cm,
         userTokenGroup: server.userCertificateManager,
 
-        applicationUri: server.serverInfo.applicationUri || "InvalidURI"
+        applicationUri: server.serverInfo.applicationUri || "InvalidURI",
+        dns,
+        ip
     });
 
     const serverConfiguration = server.engine.addressSpace.rootFolder.objects.server.getChildByName("ServerConfiguration");

@@ -1,3 +1,4 @@
+import { OPCUAClient } from "node-opcua-client";
 import { getFullyQualifiedDomainName, getIpAddresses, ipv4ToHex } from "node-opcua-hostname";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
@@ -13,6 +14,7 @@ const testPort2 = 12062;
 const testPort3 = 12063;
 const testPort4 = 12064;
 const testPort5 = 12065;
+const testPort6 = 12066;
 
 describe("parseOpcTcpUrl", () => {
     it("should parse a standard opc.tcp URL", () => {
@@ -275,6 +277,44 @@ describe("US-AE-03/04: Endpoint resolution with advertisedEndpoints (used by Get
             // Note: _on_GetEndpointsRequest falls back to all endpoints when filtered is empty
             // (see base_server.ts: if filtered.length > 0 then use filtered)
         } finally {
+            await server.shutdown();
+            server.dispose();
+        }
+    });
+});
+
+describe("US-AE-19: GetEndpoints reports DiscoveryUrls in its embedded ApplicationDescription", () => {
+    // _on_GetEndpointsRequest used to leave serverInfo.discoveryUrls at its
+    // default empty array: getServers() (FindServers) already refreshed it
+    // via getDiscoveryUrls(), but GetEndpoints never did, so a live server's
+    // GetEndpoints response always reported no DiscoveryUrls at all -
+    // even with advertisedEndpoints configured - which a GDS/client
+    // comparing "registered" vs "live" discovery data can flag as a mismatch.
+    it("should include the main and advertised endpoint URLs in server.discoveryUrls", async () => {
+        const serverCertificateManager = await createServerCertificateManager(testPort6);
+
+        const server = new OPCUAServer({
+            port: testPort6,
+            serverCertificateManager,
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [SecurityPolicy.None],
+            advertisedEndpoints: ["opc.tcp://myhost.example.org:12066"]
+        });
+
+        const client = OPCUAClient.create({ endpointMustExist: false });
+        try {
+            await server.initialize();
+            await server.start();
+
+            await client.connect(server.getEndpointUrl());
+            const endpoints = await client.getEndpoints();
+
+            endpoints.length.should.be.greaterThan(0);
+            for (const ep of endpoints) {
+                should(ep.server.discoveryUrls).containEql(`opc.tcp://myhost.example.org:${testPort6}`);
+            }
+        } finally {
+            await client.disconnect();
             await server.shutdown();
             server.dispose();
         }
