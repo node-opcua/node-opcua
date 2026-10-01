@@ -100,6 +100,7 @@ import {
     UnregisterNodesRequest,
     UnregisterNodesResponse
 } from "node-opcua-service-register-node";
+import type { OpenSecureChannelRequest } from "node-opcua-service-secure-channel";
 import {
     ActivateSessionRequest,
     ActivateSessionResponse,
@@ -1392,6 +1393,17 @@ export interface OPCUAServerEvents {
      * e.g. invalid certificate or malformed message
      */
     openSecureChannelFailure: [socketData: ISocketData, channelData: IChannelData, endpoint: OPCUAServerEndPoint];
+    /**
+     * event raised when a client sends an OpenSecureChannelRequest (Issue or Renew),
+     * before the server processes it. The request is decoded: SecurityMode, RequestType,
+     * RequestedLifetime and ClientNonce.
+     */
+    openSecureChannelRequest: [request: OpenSecureChannelRequest, channel: ServerSecureChannelLayer];
+    /**
+     * event raised when the server answers an OpenSecureChannelRequest: the
+     * OpenSecureChannelResponse, or the ServiceFault that refuses the channel.
+     */
+    openSecureChannelResponse: [response: Response, channel: ServerSecureChannelLayer];
 }
 
 /**

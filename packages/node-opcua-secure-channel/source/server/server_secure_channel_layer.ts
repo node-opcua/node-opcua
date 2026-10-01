@@ -824,6 +824,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
         if (this.#onResponse) {
             this.#onResponse(msgType, response, message);
         }
+        // the answer to an OpenSecureChannelRequest: the response, or the
+        // ServiceFault refusing it (secured as OPN, or in clear as ERR)
+        if (msgType === "OPN" || msgType === "ERR") {
+            this.emit("openSecureChannelResponse", response);
+        }
 
         this.#transactionsCount += 1;
 
@@ -1214,6 +1219,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             description = "Expecting OpenSecureChannelRequest";
             return this.#_on_OpenSecureChannelRequestError(StatusCodes.BadCommunicationError, description, message);
         }
+        this.emit("openSecureChannelRequest", request);
 
         // check that the request is a OpenSecureChannelRequest
 
@@ -1780,6 +1786,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             this.close();
         } else if (msgType === "OPN" && request.schema.name === "OpenSecureChannelRequest") {
             // intercept client request to renew security Token
+            this.emit("openSecureChannelRequest", request);
             this.#_handle_OpenSecureChannelRequest(message);
         } else {
             if (request.schema.name === "CloseSecureChannelRequest") {

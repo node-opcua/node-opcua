@@ -36,7 +36,7 @@ import {
 import type { Message, Request, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
 import { FindServersRequest, FindServersResponse } from "node-opcua-service-discovery";
 import { ApplicationDescription, ApplicationType, GetEndpointsResponse } from "node-opcua-service-endpoints";
-import { ServiceFault } from "node-opcua-service-secure-channel";
+import { type OpenSecureChannelRequest, ServiceFault } from "node-opcua-service-secure-channel";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { parseEndpointUrl } from "node-opcua-transport";
 import { type ApplicationDescriptionOptions, EndpointDescription, type GetEndpointsRequest } from "node-opcua-types";
@@ -252,6 +252,8 @@ export interface OPCUABaseServerEvents {
     closeChannel: [channel: ServerSecureChannelLayer, endpoint: OPCUAServerEndPoint];
     connectionRefused: [socketData: ISocketData, endpoint: OPCUAServerEndPoint];
     openSecureChannelFailure: [socketData: ISocketData, channelData: IChannelData, endpoint: OPCUAServerEndPoint];
+    openSecureChannelRequest: [request: OpenSecureChannelRequest, channel: ServerSecureChannelLayer];
+    openSecureChannelResponse: [response: Response, channel: ServerSecureChannelLayer];
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: must propagate EventEmitter generic
@@ -764,6 +766,15 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         // the constraint declares, so the base instantiation is the right view of `this`.
         const server = this as unknown as OPCUABaseServer<OPCUABaseServerEvents>;
         const _on_new_channel = function (this: OPCUAServerEndPoint, channel: ServerSecureChannelLayer) {
+            // the OpenSecureChannel exchange is handled inside the channel and never
+            // reaches "request"/"response": forward it for diagnostics. newChannel
+            // fires after HEL/ACK, before the first OpenSecureChannelRequest.
+            channel.on("openSecureChannelRequest", (request: OpenSecureChannelRequest) => {
+                server.emit("openSecureChannelRequest", request, channel);
+            });
+            channel.on("openSecureChannelResponse", (response: Response) => {
+                server.emit("openSecureChannelResponse", response, channel);
+            });
             server.emit("newChannel", channel, this);
         };
 
