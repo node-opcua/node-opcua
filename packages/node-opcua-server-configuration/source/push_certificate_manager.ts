@@ -145,6 +145,8 @@ export interface PushCertificateManager {
 
     /**
      * GetRejectedList Method returns the list of Certificates that have been rejected by the Server.
+     * It is a shortcut for the GetRejectedList Method on the DefaultApplicationGroup CertificateGroup
+     * (OPC 10000-12 §7.10.12): Certificates rejected by the other CertificateGroups are not returned.
      * No rules are defined for how the Server updates this list or how long a Certificate is kept in
      * the list. It is recommended that every valid but untrusted Certificate be added to the rejected
      * list as long as storage is available. Servers should omit older entries from the list returned if

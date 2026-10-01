@@ -848,22 +848,39 @@ describe("ServerConfiguration", () => {
                 sc.should.eql(StatusCodes.BadInvalidArgument);
             });
 
-            it("should return BadInvalidState when trust list is already opened", async () => {
+            it("should return BadNotWritable when trust list is opened for read", async () => {
                 const trustList = await getDefaultTrustList();
 
                 // Add a certificate first
                 const certificates = [selfSignedCert];
                 await trustList.addCertificate(certificates[0], true);
 
-                // Open the trust list
+                // Open the trust list (OpenWithMasks opens for read)
                 await trustList.openWithMasks(TrustListMasks.All);
 
-                // Try to remove certificate while trust list is open
+                // OPC 10000-12 §7.8.2.7: "Bad_NotWritable: The TrustList Object is open for read only"
+                const thumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
+                const sc = await trustList.removeCertificate(thumbprint, true);
+                sc.should.eql(StatusCodes.BadNotWritable);
+
+                // Close the trust list
+                await trustList.close();
+            });
+
+            it("should return BadInvalidState when trust list is opened for write", async () => {
+                const trustList = await getDefaultTrustList();
+
+                const certificates = [selfSignedCert];
+                await trustList.addCertificate(certificates[0], true);
+
+                await trustList.open(OpenFileMode.WriteEraseExisting);
+
+                // §7.8.2.7: "Bad_InvalidState: The Open Method was called with write
+                // access and the CloseAndUpdate Method has not been called"
                 const thumbprint = makeSHA1Thumbprint(certificates[0]).toString("hex");
                 const sc = await trustList.removeCertificate(thumbprint, true);
                 sc.should.eql(StatusCodes.BadInvalidState);
 
-                // Close the trust list
                 await trustList.close();
             });
 
@@ -1110,6 +1127,93 @@ describe("ServerConfiguration", () => {
                 result = await trustList.readTrustedCertificateList();
                 should(result.issuerCertificates?.length).be.greaterThan(0);
             });
+
+            it("should refuse a needed issuer without removing it first", async () => {
+                const trustList = await getDefaultTrustList();
+                const [leaf, ca] = caCertChain;
+                await trustList.writeTrustedCertificateList(
+                    makeTrustListData(TrustListMasks.TrustedCertificates | TrustListMasks.IssuerCertificates, {
+                        trustedCertificates: [leaf],
+                        issuerCertificates: [ca]
+                    })
+                );
+
+                // The store must not be touched: a remove-then-restore leaves a
+                // window in which the trusted certificate has no issuer.
+                const cm = applicationGroup as CertificateManager;
+                const removeIssuer = cm.removeIssuer.bind(cm);
+                let removeIssuerCalls = 0;
+                cm.removeIssuer = async (thumbprint: string) => {
+                    removeIssuerCalls++;
+                    return removeIssuer(thumbprint);
+                };
+
+                const sc = await trustList.removeCertificate(makeSHA1Thumbprint(ca).toString("hex"), false);
+                sc.should.eql(StatusCodes.BadCertificateChainIncomplete);
+                should(removeIssuerCalls).eql(0);
+            });
+
+            it("should refuse to remove an issuer that another certificate of the Issuer list needs", async () => {
+                const trustList = await getDefaultTrustList();
+                const [leaf, ca] = caCertChain;
+                // OPC 10000-12 §7.8.2.7: "needed to validate another Certificate in the
+                // TrustList", the Issuer list included (an intermediate CA keeps its root)
+                await trustList.writeTrustedCertificateList(
+                    makeTrustListData(TrustListMasks.IssuerCertificates, { issuerCertificates: [leaf, ca] })
+                );
+
+                const sc = await trustList.removeCertificate(makeSHA1Thumbprint(ca).toString("hex"), false);
+                sc.should.eql(StatusCodes.BadCertificateChainIncomplete);
+
+                const result = await trustList.readTrustedCertificateList();
+                should(result.issuerCertificates?.length).eql(2);
+            });
+
+            it("should refuse to remove a trusted CA that a trusted certificate needs", async () => {
+                const trustList = await getDefaultTrustList();
+                const [leaf, ca] = caCertChain;
+                await trustList.writeTrustedCertificateList(
+                    makeTrustListData(TrustListMasks.TrustedCertificates, { trustedCertificates: [leaf, ca] })
+                );
+
+                const sc = await trustList.removeCertificate(makeSHA1Thumbprint(ca).toString("hex"), true);
+                sc.should.eql(StatusCodes.BadCertificateChainIncomplete);
+
+                const result = await trustList.readTrustedCertificateList();
+                should(result.trustedCertificates?.length).eql(2);
+            });
+
+            it("should remove a trusted CA and its CRLs when the Issuer list still holds the CA", async () => {
+                const trustList = await getDefaultTrustList();
+                const [leaf, ca] = caCertChain;
+                const { crl } = await _getFakeAuthorityCertificate(await initializeHelpers("CRL", 0));
+                await trustList.writeTrustedCertificateList(
+                    makeTrustListData(
+                        TrustListMasks.TrustedCertificates |
+                            TrustListMasks.IssuerCertificates |
+                            TrustListMasks.TrustedCrls |
+                            TrustListMasks.IssuerCrls,
+                        {
+                            trustedCertificates: [leaf, ca],
+                            issuerCertificates: [ca],
+                            trustedCrls: [crl],
+                            issuerCrls: [crl]
+                        }
+                    )
+                );
+
+                // The copy in the Issuer list still validates the leaf
+                const sc = await trustList.removeCertificate(makeSHA1Thumbprint(ca).toString("hex"), true);
+                sc.should.eql(StatusCodes.Good);
+
+                // §7.8.2.7: "If the Certificate is a CA Certificate that has CRLs then
+                // all CRLs for that CA are removed as well", from the list it left
+                const result = await trustList.readTrustedCertificateList();
+                should(result.trustedCertificates?.length).eql(1);
+                should(result.trustedCrls?.length).eql(0);
+                should(result.issuerCertificates?.length).eql(1);
+                should(result.issuerCrls?.length).eql(1);
+            });
         });
 
         describe("Open and OpenWithMasks - OPC UA Spec Compliance", () => {
@@ -1271,8 +1375,8 @@ describe("ServerConfiguration", () => {
                 const certificates = [selfSignedCert];
                 const sc = await trustList.addCertificate(certificates[0], true);
 
-                // Should return BadInvalidState per OPC UA spec
-                sc.should.eql(StatusCodes.BadInvalidState);
+                // OPC 10000-12 §7.8.2.6: "Bad_NotWritable: The TrustList Object is open for read only"
+                sc.should.eql(StatusCodes.BadNotWritable);
 
                 // Close the file
                 await trustList.close();

@@ -144,9 +144,9 @@ describe("Testing Server Side PushCertificateManager", () => {
         san.uniformResourceIdentifier.should.containDeep(["urn:test:dns-san"]);
     });
 
-    it("should provide rejected list", async () => {
-        // Given 2 rejected certificates , in two different groups
-        // at 2 different time
+    it("should provide the rejected list of the DefaultApplicationGroup only (OPC 10000-12 §7.10.12)", async () => {
+        // Given a certificate rejected by the application group
+        // and another one rejected by the user token group
         await pushManager.applicationGroup?.rejectCertificate(cert1);
         await new Promise((resolve) => setTimeout(resolve, 150));
         await pushManager.userTokenGroup?.rejectCertificate(cert2);
@@ -154,24 +154,13 @@ describe("Testing Server Side PushCertificateManager", () => {
         // When I call getRejectedList
         const result = await pushManager.getRejectedList();
 
-        // Then I should retrieve those 2 certificates
+        // Then I should retrieve the application group's certificate only:
+        // ServerConfiguration.GetRejectedList is a shortcut for the
+        // DefaultApplicationGroup's GetRejectedList
         result.statusCode.should.eql(StatusCodes.Good);
         should(result.certificates).be.instanceOf(Array);
-        should(result.certificates?.length).eql(2);
-
-        const firstCertificate = result.certificates?.[0];
-        const secondCertificate = result.certificates?.[1];
-        if (!firstCertificate || !secondCertificate) {
-            throw new Error("firstCertificate or secondCertificate is undefined");
-        }
-        // And their thumbprint should match the expected one
-        const thumbprint1 = makeSHA1Thumbprint(firstCertificate).toString("hex");
-        const thumbprint2 = makeSHA1Thumbprint(secondCertificate).toString("hex");
-        const thumbprints = [thumbprint1, thumbprint2].sort();
-        const certs = [makeSHA1Thumbprint(cert1).toString("hex"), makeSHA1Thumbprint(cert2).toString("hex")].sort();
-        // And the most recent certificate should come first
-        thumbprints[0].should.eql(certs[0]);
-        thumbprints[1].should.eql(certs[1]);
+        const thumbprints = (result.certificates ?? []).map((c) => makeSHA1Thumbprint(c).toString("hex"));
+        should(thumbprints).eql([makeSHA1Thumbprint(cert1).toString("hex")]);
     });
 
     it("updateCertificate should return BadSecurityChecksFailed if certificate doesn't match private key ", async () => {
@@ -1027,8 +1016,8 @@ describe("Testing Server Side PushCertificateManager", () => {
         actionExecuted.should.eql(true);
     });
 
-    it("getRejectedList should handle multiple groups correctly", async () => {
-        // Given certificates rejected in different groups
+    it("getRejectedList should leave out the certificates rejected by the other groups", async () => {
+        // Given a certificate rejected by the user token group
         const tmpCertManager = new CertificateManager({ location: path.join(_folder, "tmp2") });
         await tmpCertManager.initialize();
 
@@ -1040,9 +1029,10 @@ describe("Testing Server Side PushCertificateManager", () => {
         // When I call getRejectedList
         const result = await pushManager.getRejectedList();
 
-        // Then I should get certificates from both groups
+        // Then it is not in the list
         result.statusCode.should.eql(StatusCodes.Good);
-        should(result.certificates?.length).be.greaterThan(0);
+        const thumbprints = (result.certificates ?? []).map((c) => makeSHA1Thumbprint(c).toString("hex"));
+        should(thumbprints).not.containEql(makeSHA1Thumbprint(cert3).toString("hex"));
     });
 
     it("updateCertificate should handle multiple calls before applyChanges", async () => {
