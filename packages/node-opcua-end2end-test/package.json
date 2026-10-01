@@ -35,7 +35,7 @@
         "node-opcua-nodeset-auto-id": "2.186.10",
         "node-opcua-nodeset-ijt-base": "2.186.10",
         "node-opcua-nodeset-machinery-result": "2.186.10",
-        "node-opcua-pki": "7.0.2",
+        "node-opcua-pki": "7.0.3",
         "node-opcua-server": "2.186.14",
         "node-opcua-server-discovery": "2.186.14",
         "node-opcua-service-browse": "2.186.10",
