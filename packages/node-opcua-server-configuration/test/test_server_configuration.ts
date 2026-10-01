@@ -17,7 +17,7 @@ import {
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { CertificateManager } from "node-opcua-certificate-manager";
-import { type Certificate, combine_der, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
+import { type Certificate, combine_der, makeSHA1Thumbprint, readCertificateChain, split_der } from "node-opcua-crypto";
 import { NodeClass } from "node-opcua-data-model";
 import { OpenFileMode } from "node-opcua-file-transfer";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
@@ -1181,6 +1181,42 @@ describe("ServerConfiguration", () => {
 
                 const result = await trustList.readTrustedCertificateList();
                 should(result.trustedCertificates?.length).eql(2);
+            });
+
+            it("should remove a self-signed certificate renewed with the same key, next to the one it replaced", async () => {
+                // Two self-signed certificates sharing one key verify each other's
+                // signature, but each validates itself: neither needs the other.
+                const certificateManager = new CertificateManager({
+                    keySize: 2048,
+                    location: path.join(await initializeHelpers("SAME_KEY", 0), "pki")
+                });
+                await certificateManager.initialize();
+                const produce = async (name: string) => {
+                    const outputFile = path.join(certificateManager.rootDir, `own/certs/${name}.pem`);
+                    await certificateManager.createSelfSignedCertificate({
+                        applicationUri: "applicationUri",
+                        subject: `CN=${name}`,
+                        dns: ["localhost"],
+                        startDate: new Date(),
+                        validity: 365,
+                        outputFile
+                    });
+                    return readCertificateChain(outputFile)[0];
+                };
+                const previous = await produce("previous");
+                const renewed = await produce("renewed");
+                await certificateManager.dispose();
+
+                const trustList = await getDefaultTrustList();
+                await trustList.writeTrustedCertificateList(
+                    makeTrustListData(TrustListMasks.TrustedCertificates, { trustedCertificates: [previous, renewed] })
+                );
+
+                const sc = await trustList.removeCertificate(makeSHA1Thumbprint(renewed).toString("hex"), true);
+                sc.should.eql(StatusCodes.Good);
+
+                const result = await trustList.readTrustedCertificateList();
+                should(result.trustedCertificates?.length).eql(1);
             });
 
             it("should remove a trusted CA and its CRLs when the Issuer list still holds the CA", async () => {
