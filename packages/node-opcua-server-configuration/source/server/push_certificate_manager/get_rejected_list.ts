@@ -38,12 +38,17 @@ async function extractRejectedList(group: CertificateManager | undefined, certif
     }
 }
 
+/**
+ * ServerConfiguration.GetRejectedList "is a shortcut for the GetRejectedList
+ * Method on the DefaultApplicationGroup CertificateGroup" (OPC 10000-12
+ * §7.10.12), so only that group's rejected Certificates are returned. A
+ * rejected user token or HTTPS Certificate is not one a Client can move into
+ * the DefaultApplicationGroup TrustList.
+ */
 export async function executeGetRejectedList(serverImpl: PushCertificateManagerInternalContext): Promise<GetRejectedListResult> {
     const list: FileData[] = [];
 
     await extractRejectedList(serverImpl.applicationGroup, list);
-    await extractRejectedList(serverImpl.userTokenGroup, list);
-    await extractRejectedList(serverImpl.httpsGroup, list);
 
     // sort list from newer file to older file
     list.sort((a: FileData, b: FileData) => b.stat.mtime.getTime() - a.stat.mtime.getTime());

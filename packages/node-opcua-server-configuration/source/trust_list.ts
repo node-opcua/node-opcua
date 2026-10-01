@@ -41,21 +41,19 @@ export interface ITrustList {
      *
      * If an invalid Certificate is found the Server shall return an error and shall not update the Trust List.
      *
-     * If the Certificate is issued by a CA then the Client shall provide the entire chain in the
-     * certificate argument (see Part 6).
+     * The Method returns a validation error if the Certificate is issued by a CA and the
+     * Certificate for the issuer is not in the Trust List. Issuer Certificates cannot be added
+     * with this Method: they are written, with their CRLs, through Open/Write/CloseAndUpdate.
      *
-     * After validating the Certificate, the Server shall add the CA Certificates to the Issuers list in the Trust List.
-     *
-     * The leaf Certificate is added to the list specified by the isTrustedCertificate argument.
-     *
-     * This method cannot be called if the file object is open
-     * @param  certificate - The DER encoded Certificate to add as a ByteStrng
-     * @param  isTrustedCerticopy ficate - If TRUE the Certificate is added to the Trusted Certificates List. If FALSE the Certificate is added to the Issuer Certificates List.
+     * This method cannot be called if the file object is open (OPC 10000-12 §7.8.2.6).
+     * @param  certificate - The DER encoded Certificate to add as a ByteString
+     * @param  isTrustedCertificate - If TRUE the Certificate is added to the Trusted Certificates List. If FALSE BadCertificateInvalid is returned.
      *
      * **Result Code**
      * - BadUserAccessDenied:     The current user does not have the rights required.
      * - BadCertificateInvalid:   The certificate to add is invalid.
-     * - BadInvalidState:         The object is opened.
+     * - BadInvalidState:         The object is open for write and CloseAndUpdate has not been called.
+     * - BadNotWritable:          The object is open for read only.
      *
      */
     addCertificate(certificate: Buffer, isTrustedCertificate: boolean): Promise<StatusCode>;
@@ -67,16 +65,18 @@ export interface ITrustList {
      *
      * If the Certificate is a CA Certificate with associated CRLs then all CRLs are removed as well.
      *
-     * This method cannot be called if the file object is open.
+     * This method cannot be called if the file object is open (OPC 10000-12 §7.8.2.7).
      *
      * @param thumbprint - The SHA1 hash of the Certificate to remove
      * @param  isTrustedCertificate - If TRUE the Certificate is removed from the Trusted Certificates List.
      *                                If FALSE the Certificate is removed from the Issuer Certificates List.
      *
      * **Result Code**
-     * -BadUserAccessDenied:   The current user does not have the rights required.
-     * -BadInvalidArgument:    The certificate to remove was not found.
-     * -BadInvalidState:       The object is opened.
+     * -BadUserAccessDenied:            The current user does not have the rights required.
+     * -BadInvalidArgument:             The certificate to remove was not found.
+     * -BadCertificateChainIncomplete:  The Certificate is needed to validate another Certificate in the Trust List.
+     * -BadInvalidState:                The object is open for write and CloseAndUpdate has not been called.
+     * -BadNotWritable:                 The object is open for read only.
      *
      *
      */

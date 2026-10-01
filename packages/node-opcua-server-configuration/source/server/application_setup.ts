@@ -101,19 +101,24 @@ export async function confirmTrust(cm: CertificateManager, list: ProvisionalList
  * parsed is skipped with a warning rather than failing the caller.
  */
 export async function leafThumbprintsIn(folder: string): Promise<string[]> {
+    return (await leafCertificatesIn(folder)).map((entry) => entry.thumbprint);
+}
+
+/** The leaf certificate of each certificate file in a PKI folder, with its thumbprint, skipping what does not parse. */
+export async function leafCertificatesIn(folder: string): Promise<{ thumbprint: string; certificate: Buffer }[]> {
     if (!fs.existsSync(folder)) return [];
-    const thumbprints: string[] = [];
+    const entries: { thumbprint: string; certificate: Buffer }[] = [];
     for (const file of await fs.promises.readdir(folder)) {
         const ext = path.extname(file);
         if (ext !== ".der" && ext !== ".pem") continue;
         try {
             const chain = await readCertificateChainAsync(path.join(folder, file));
-            if (chain.length > 0) thumbprints.push(makeSHA1Thumbprint(chain[0]).toString("hex"));
+            if (chain.length > 0) entries.push({ thumbprint: makeSHA1Thumbprint(chain[0]).toString("hex"), certificate: chain[0] });
         } catch (err) {
             warningLog(`[TrustList] skipping ${path.join(folder, file)}: not a certificate`, (err as Error).message);
         }
     }
-    return thumbprints;
+    return entries;
 }
 
 /** Whether the trusted list holds at least one certificate that was not trusted provisionally. */

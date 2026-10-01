@@ -21,7 +21,13 @@ import type {
 } from "node-opcua-address-space";
 import { BinaryStream } from "node-opcua-binary-stream";
 import type { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { exploreCertificate, makeSHA1Thumbprint, split_der, verifyCertificateChain } from "node-opcua-crypto/web";
+import {
+    exploreCertificate,
+    makeSHA1Thumbprint,
+    split_der,
+    verifyCertificateChain,
+    verifyCertificateSignature
+} from "node-opcua-crypto/web";
 import { AccessRestrictionsFlag } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { type AbstractFs, installFileType, OpenFileMode } from "node-opcua-file-transfer";
@@ -29,7 +35,7 @@ import { VerificationStatus } from "node-opcua-pki";
 import { type CallbackT, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type CallMethodResultOptions, TrustListDataType } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
-import { confirmTrust, isSharedTrustListStore, leafThumbprintsIn } from "./application_setup.js";
+import { confirmTrust, isSharedTrustListStore, leafCertificatesIn, leafThumbprintsIn } from "./application_setup.js";
 import type { PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl.js";
 import { rolePermissionAdminOnly } from "./roles_and_permissions.js";
 import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools.js";
@@ -79,6 +85,57 @@ function trustListIsAlreadyOpened(trustList: UATrustList): boolean {
     }
     const openCount = dataValue.value.value as number;
     return openCount > 0;
+}
+
+/**
+ * AddCertificate and RemoveCertificate "cannot be called if the containing
+ * TrustList Object is open" (OPC 10000-12 §7.8.2.6, §7.8.2.7). Their result
+ * tables tell the two cases apart: open with write access is Bad_InvalidState,
+ * open for read only is Bad_NotWritable.
+ */
+function statusWhenOpen(trustList: UATrustListEx): StatusCode | undefined {
+    if (trustList.$$openedForWrite) {
+        return StatusCodes.BadInvalidState;
+    }
+    if (trustListIsAlreadyOpened(trustList)) {
+        return StatusCodes.BadNotWritable;
+    }
+    return undefined;
+}
+
+type TrustListStore = "trusted" | "issuers";
+
+/**
+ * Whether removing `thumbprint` from `store` would leave another Certificate
+ * of the TrustList without an issuer able to validate it (§7.8.2.7:
+ * Bad_CertificateChainIncomplete). Both lists count, so an intermediate CA in
+ * the Issuer list keeps its root. A copy of the same CA kept in the other
+ * list, or another CA with the same key, still validates the child.
+ */
+async function isNeededToValidateAnother(
+    cm: OPCUACertificateManager,
+    store: TrustListStore,
+    thumbprint: string,
+    certificate: Buffer
+): Promise<boolean> {
+    const entries = [
+        ...(await leafCertificatesIn(cm.trustedFolder)).map((e) => ({ ...e, store: "trusted" })),
+        ...(await leafCertificatesIn(cm.issuersCertFolder)).map((e) => ({ ...e, store: "issuers" }))
+    ];
+    const remaining = entries.filter((e) => !(e.store === store && e.thumbprint === thumbprint));
+    const signedBy = (child: Buffer, issuer: Buffer) => {
+        try {
+            return verifyCertificateSignature(child, issuer);
+        } catch {
+            return false;
+        }
+    };
+    return remaining.some(
+        (child) =>
+            child.thumbprint !== thumbprint &&
+            signedBy(child.certificate, certificate) &&
+            !remaining.some((other) => other.thumbprint !== child.thumbprint && signedBy(child.certificate, other.certificate))
+    );
 }
 
 /**
@@ -536,8 +593,9 @@ async function _addCertificate(
     if (!cm) {
         return { statusCode: StatusCodes.BadInternalError };
     }
-    if (trustListIsAlreadyOpened(trustList) || trustList.$$openedForWrite) {
-        return { statusCode: StatusCodes.BadInvalidState };
+    const openStatus = statusWhenOpen(trustList);
+    if (openStatus) {
+        return { statusCode: openStatus };
     }
 
     const certificateBuffer: Buffer = inputArguments[0].value as Buffer;
@@ -593,8 +651,9 @@ async function _removeCertificate(
         return { statusCode: StatusCodes.BadInternalError };
     }
 
-    if (trustListIsAlreadyOpened(trustList) || trustList.$$openedForWrite) {
-        return { statusCode: StatusCodes.BadInvalidState };
+    const openStatus = statusWhenOpen(trustList);
+    if (openStatus) {
+        return { statusCode: openStatus };
     }
 
     const thumbprint: string = inputArguments[0].value as string;
@@ -604,33 +663,28 @@ async function _removeCertificate(
         // Normalize thumbprint - remove "NodeOPCUA[" prefix if present
         const normalizedThumbprint = thumbprint.replace(/^NodeOPCUA\[|\]$/g, "").toLowerCase();
 
-        if (isTrustedCertificate) {
-            // Remove from trusted store
-            const removed = await cm.removeTrustedCertificate(normalizedThumbprint);
-            if (!removed) {
-                return { statusCode: StatusCodes.BadInvalidArgument };
-            }
-            await confirmTrust(cm, "trusted", [normalizedThumbprint]);
-        } else {
-            // Removing an issuer certificate — first check if it's still
-            // needed by any trusted certificate
-            const issuerCert = await cm.removeIssuer(normalizedThumbprint);
-            if (!issuerCert) {
-                return { statusCode: StatusCodes.BadInvalidArgument };
-            }
-
-            // Check dependency: is any trusted cert signed by this issuer?
-            if (await cm.isIssuerInUseByTrustedCertificate(issuerCert)) {
-                // Re-add the issuer since we can't remove it
-                await cm.addIssuer(issuerCert);
-                warningLog("Certificate is needed for chain validation");
-                return { statusCode: StatusCodes.BadCertificateChainIncomplete };
-            }
-
-            // Also remove CRLs issued by this CA
-            await cm.removeRevocationListsForIssuer(issuerCert, "issuers");
-            await confirmTrust(cm, "issuers", [normalizedThumbprint]);
+        // §7.8.2.7, the same rules for both lists: Bad_InvalidArgument when
+        // the thumbprint is not in the list, Bad_CertificateChainIncomplete
+        // when another Certificate still needs it, checked before anything is
+        // removed, and a CA's CRLs leave with it.
+        const store: TrustListStore = isTrustedCertificate ? "trusted" : "issuers";
+        const folder = isTrustedCertificate ? cm.trustedFolder : cm.issuersCertFolder;
+        const certificate = (await leafCertificatesIn(folder)).find((e) => e.thumbprint === normalizedThumbprint)?.certificate;
+        if (!certificate) {
+            return { statusCode: StatusCodes.BadInvalidArgument };
         }
+        if (await isNeededToValidateAnother(cm, store, normalizedThumbprint, certificate)) {
+            warningLog("Certificate is needed for chain validation");
+            return { statusCode: StatusCodes.BadCertificateChainIncomplete };
+        }
+        const removed = isTrustedCertificate
+            ? await cm.removeTrustedCertificate(normalizedThumbprint)
+            : await cm.removeIssuer(normalizedThumbprint);
+        if (!removed) {
+            return { statusCode: StatusCodes.BadInvalidArgument };
+        }
+        await cm.removeRevocationListsForIssuer(certificate, store);
+        await confirmTrust(cm, store, [normalizedThumbprint]);
 
         updateLastUpdateTime(trustList);
         emitTrustListUpdated(trustList);
