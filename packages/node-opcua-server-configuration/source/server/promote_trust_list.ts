@@ -110,7 +110,10 @@ type TrustListStore = "trusted" | "issuers";
  * of the TrustList without an issuer able to validate it (§7.8.2.7:
  * Bad_CertificateChainIncomplete). Both lists count, so an intermediate CA in
  * the Issuer list keeps its root. A copy of the same CA kept in the other
- * list, or another CA with the same key, still validates the child.
+ * list, or another CA with the same key, still validates the child. So does
+ * the child itself when it is self-signed: two self-signed Certificates
+ * sharing one key (a renewed Certificate next to the one it replaces) verify
+ * each other's signature, yet neither needs the other.
  */
 async function isNeededToValidateAnother(
     cm: OPCUACertificateManager,
@@ -134,7 +137,7 @@ async function isNeededToValidateAnother(
         (child) =>
             child.thumbprint !== thumbprint &&
             signedBy(child.certificate, certificate) &&
-            !remaining.some((other) => other.thumbprint !== child.thumbprint && signedBy(child.certificate, other.certificate))
+            !remaining.some((other) => signedBy(child.certificate, other.certificate))
     );
 }
 
