@@ -88,7 +88,9 @@ const regBrowseName = new RegExp(`(${regNamespaceIndex.source}:)?(${regName.sour
 
 const regReferenceType = new RegExp(`/|\\.|(<(#)?(!)?(${regBrowseName.source})>)`);
 
-const regRelativePath = new RegExp(`(${regReferenceType.source})(${regBrowseName.source})?`);
+// anchored: each element must start where the previous one ended, otherwise an unescaped
+// reserved character would be skipped silently and the remainder parsed out of alignment
+const regRelativePath = new RegExp(`^(${regReferenceType.source})(${regBrowseName.source})?`);
 
 // biome-ignore lint/suspicious/noShadowRestrictedNames: public API of this package, renaming would be a breaking change
 export function unescape(str: string): string {
@@ -154,7 +156,10 @@ export function makeRelativePath(str: string, addressSpace?: AddressSpaceLike): 
     while (str.length > 0) {
         const matches = str.match(regRelativePath);
         if (!matches) {
-            throw new Error(`Malformed relative path  :'${str}' in ${originalStr}`);
+            throw new Error(
+                `Malformed relative path  :'${str}' in ${originalStr}` +
+                    ` (reserved characters / . < > : # ! & inside a browse name must be escaped with '&', e.g. '&:')`
+            );
         }
 
         let referenceTypeId: NodeId;

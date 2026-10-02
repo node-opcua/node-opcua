@@ -474,6 +474,21 @@ describe("makeRelativePath", () => {
         );
     });
 
+    it("MRP-25 should construct RelativePath for a browse name containing '::@' (WinCC style)", () => {
+        const relativePath = makeRelativePath("/1:HMI_RT_1&:&:@RedundancyRecoveryState_2.1:State", undefined);
+        relativePath.elements.length.should.eql(2);
+        relativePath.elements[0].targetName.should.eql(
+            new QualifiedName({ namespaceIndex: 1, name: "HMI_RT_1::@RedundancyRecoveryState_2" })
+        );
+        relativePath.elements[1].targetName.should.eql(new QualifiedName({ namespaceIndex: 1, name: "State" }));
+    });
+
+    ["/1:A:B.C", "/1:HMI_RT_1::@RedundancyRecoveryState_2.State.C", "garbage/1:A", "/1:A&"].forEach((path, index) => {
+        it(`MRP-${index + 30} should throw, rather than build a wrong path, on malformed "${path}"`, () => {
+            (() => makeRelativePath(path, undefined)).should.throw(/Malformed relative path/);
+        });
+    });
+
     // <reserved-char >::= '/' | '.' | '<' | '>' | ':' | '#' | '!' | '&'
     const reservedChars = "/.<>:#!&";
     reservedChars.split("").forEach((char, index) => {
