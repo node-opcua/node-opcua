@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-service-translate-browse-path",
     "type": "module",
-    "version": "2.186.10",
+    "version": "2.186.16",
     "description": "pure nodejs OPCUA SDK - module service-translate-browse-path",
     "scripts": {
         "test": "mocha",

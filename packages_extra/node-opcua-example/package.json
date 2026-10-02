@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-example",
-    "version": "2.186.15",
+    "version": "2.186.16",
     "description": "pure nodejs OPCUA SDK - module -status-code",
     "private": true,
     "main": "./dist/index.js",
@@ -10,7 +10,7 @@
         "test": "echo no"
     },
     "dependencies": {
-        "node-opcua": "2.186.15"
+        "node-opcua": "2.186.16"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
