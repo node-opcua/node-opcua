@@ -1,0 +1,42 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Weekly sweep so a query-pack update can surface a finding even without
+    # a code change to trigger it.
+    - cron: '17 3 * * 1'
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      # Source-only analysis (no build step): CodeQL's JS/TS extractor reads
+      # the TypeScript sources directly, so this runs without pnpm install or
+      # tsc, unlike every job in workflow.yml.
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          # security-extended adds taint-tracked queries beyond the default
+          # pack: prototype pollution, command/path/regex injection, unsafe
+          # deserialization, ReDoS. security-and-quality layers in maintain-
+          # ability queries on top of that.
+          queries: security-extended,security-and-quality
+
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: '/language:javascript-typescript'
