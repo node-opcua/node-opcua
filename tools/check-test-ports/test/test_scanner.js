@@ -367,3 +367,81 @@ test("the strict gate refuses doubt, not only failure", () => {
 });
 
 test.after(() => fs.rmSync(root, { recursive: true, force: true }));
+
+// --- numeric separators and configurable roots ---------------------------------------
+//
+// Added when the scanner was lifted out of this repo. A consumer formatting numbers with
+// `30_795` (biome and prettier both leave them alone) was invisible to the old patterns,
+// so two files sharing 30_795 reported no collision at all.
+
+/** a throwaway tree holding the given files, relative to its root */
+function tempTree(files) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "check-test-ports-opts-"));
+    for (const [rel, content] of Object.entries(files)) {
+        const full = path.join(dir, rel);
+        fs.mkdirSync(path.dirname(full), { recursive: true });
+        fs.writeFileSync(full, content);
+    }
+    return dir;
+}
+
+test("a port written with numeric separators is a port, and collides like one", () => {
+    const dir = tempTree({
+        "packages/a/tests/one.test.ts": "const GDS_PORT = 30_795;\nconst port2: number = 30_796;\n",
+        "packages/b/tests/two.test.ts": "const port = 30795;\n"
+    });
+    const r = analyze(dir);
+    assert.ok(r.ports.has(30795), "30_795 read as 30795");
+    assert.ok(r.ports.has(30796), "a typed declaration with a separator");
+    assert.deepEqual(r.collisions.map(([p]) => p), [30795]);
+    assert.equal(exitCode(r), 1);
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("separators are read in inline literals and listen() calls too", () => {
+    const dir = tempTree({
+        "packages/a/tests/inline.test.ts": "start({ port: 31_001 });\nserver.listen(31_002);\n"
+    });
+    const r = analyze(dir);
+    assert.deepEqual([...r.ports.keys()].sort(), [31001, 31002]);
+    assert.equal(r.inline.length, 2);
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("a literal offset written with a separator still resolves", () => {
+    const dir = tempTree({ "packages/a/tests/derived.test.ts": "const port = 32_000;\nstart({ port: port + 1_0 });\n" });
+    const r = analyze(dir);
+    assert.ok(r.ports.has(32010), "port + 1_0 binds 32010");
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("packageRoots and testDirs decide what is scanned", () => {
+    const dir = tempTree({
+        "libs/a/spec/one.ts": "const port = 6100;\n",
+        "libs/b/spec/two.ts": "const port = 6100;\n",
+        "packages/c/test/three.ts": "const port = 6200;\n"
+    });
+    const defaults = analyze(dir);
+    assert.deepEqual([...defaults.ports.keys()], [6200], "the defaults look at packages/*/test only");
+    const custom = analyze(dir, { packageRoots: ["libs"], testDirs: ["spec"] });
+    assert.deepEqual([...custom.ports.keys()], [6100]);
+    assert.equal(custom.collisions.length, 1);
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("the command line takes --root, --package-roots and --test-dirs, and the package.json key", async () => {
+    const { execFileSync, spawnSync } = await import("node:child_process");
+    const cli = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "../src/index.js");
+    const dir = tempTree({
+        "libs/a/spec/one.ts": "const port = 6100;\n",
+        "libs/b/spec/two.ts": "const port = 6100;\n"
+    });
+    const viaFlags = spawnSync(process.execPath, [cli, "--root", dir, "--package-roots", "libs", "--test-dirs", "spec"], { encoding: "utf8" });
+    assert.equal(viaFlags.status, 1, "a collision exits 1");
+    fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({ checkTestPorts: { packageRoots: ["libs"], testDirs: ["spec"] } }));
+    const viaConfig = spawnSync(process.execPath, [cli, "--root", dir], { encoding: "utf8" });
+    assert.equal(viaConfig.status, 1, "the package.json key configures the same scan");
+    const blind = execFileSync(process.execPath, [cli, "--root", dir, "--package-roots", "packages"], { encoding: "utf8" });
+    assert.match(blind, /no collisions/, "a flag overrides the key");
+    fs.rmSync(dir, { recursive: true, force: true });
+});
