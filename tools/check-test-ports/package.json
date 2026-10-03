@@ -1,12 +1,27 @@
 {
     "name": "@sterfive/check-test-ports",
-    "version": "1.0.0",
-    "private": true,
+    "version": "1.1.1",
     "description": "find fixed test ports, report collisions, suggest the next free one",
+    "license": "MIT",
     "bin": {
         "check-test-ports": "src/index.js"
     },
     "type": "module",
+    "main": "src/scanner.js",
+    "exports": {
+        ".": "./src/scanner.js",
+        "./package.json": "./package.json"
+    },
+    "files": [
+        "src",
+        "README.md"
+    ],
+    "engines": {
+        "node": ">=22.13.0"
+    },
+    "publishConfig": {
+        "access": "restricted"
+    },
     "scripts": {
         "check": "node src/index.js",
         "suggest": "node src/index.js --suggest",

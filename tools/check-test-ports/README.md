@@ -9,6 +9,39 @@ node tools/check-test-ports.mjs --list
 node tools/check-test-ports.mjs --ai     # a prompt telling a coding agent exactly what to fix
 ```
 
+## Using it from another repository
+
+It has no dependencies and scans the filesystem, so a consumer needs no build:
+
+```bash
+pnpm add -D @sterfive/check-test-ports        # from the registry that hosts it
+pnpm exec check-test-ports --summary          # run from the workspace root
+```
+
+By default it scans `packages/*/test`, `tests`, `test_long`, `test_helpers`, `test-helpers`,
+`test_fixtures` and `test-fixtures`, plus the same under `packages_extra`. To look elsewhere, either
+pass flags or add a key to the workspace root `package.json` (flags win):
+
+```json
+"checkTestPorts": { "packageRoots": ["packages"], "testDirs": ["test", "tests"] }
+```
+
+```bash
+check-test-ports --root ../other --package-roots libs --test-dirs spec
+```
+
+Numeric separators are read: `30_795` is port 30795.
+
+Publishing is manual and separate from the node-opcua release (lerna covers `packages/*` only).
+Bump `version` here, then publish with the registry given on the command line:
+
+```bash
+pnpm publish --registry <url-of-your-private-registry> --no-git-checks
+```
+
+`access: restricted` is set in `publishConfig`, so a publish that forgets `--registry` asks npmjs
+for a private package rather than publishing it openly.
+
 ## The convention
 
 ```js

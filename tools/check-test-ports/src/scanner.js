@@ -23,15 +23,33 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { TEST_DIRS } from "../../shared/test_dirs.mjs";
 
-export const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+/** where a scan starts unless told otherwise: the directory the command runs in */
+export const repoRoot = process.cwd();
 
-/** roots scanned for workspace packages */
+/** default roots scanned for workspace packages */
 export const PACKAGE_ROOTS = ["packages", "packages_extra"];
-/** per-package directories holding tests and their fixtures */
-export { TEST_DIRS };
+/**
+ * default per-package directories holding tests and their fixtures.
+ *
+ * Both spellings of the fixtures directory are in use on disk and neither is going away,
+ * so the list carries both. A new spelling here is cheap to add; a gate silently not
+ * looking is not. tools/shared/test_dirs.mjs re-exports this, so the sibling gates in
+ * this repo keep a single definition.
+ */
+export const TEST_DIRS = ["test", "tests", "test_long", "test_helpers", "test-helpers", "test_fixtures", "test-fixtures"];
+
+/**
+ * What a scan covers. Every field is optional.
+ *
+ * @typedef {object} ScanOptions
+ * @property {string[]} [packageRoots] directories holding one package per subdirectory
+ * @property {string[]} [testDirs]     per-package directories that hold tests
+ */
+
+/** a port as written in source: digits, optionally with numeric separators (30_795) */
+const toNumber = (text) => Number(String(text).replace(/_/g, ""));
+
 const EXTENSIONS = new Set([".ts", ".js", ".mts", ".cts", ".mjs", ".cjs"]);
 
 /** Linux's default ip_local_port_range. A fixed port at or above this can be stolen. */
@@ -126,12 +144,12 @@ const PORT_IDENTIFIER = "(?:port[A-Za-z0-9_]*|[A-Za-z0-9_]*Port)";
  * binding nothing - the worst kind of miss, because it looks like a clean result.
  */
 const DECLARATION = new RegExp(
-    `\\b(?:const|let|var)\\s+(${PORT_IDENTIFIER})\\s*(?::\\s*[A-Za-z0-9_.<>[\\]|\\s]+?)?\\s*=\\s*(\\d{1,5})\\b`,
+    `\\b(?:const|let|var)\\s+(${PORT_IDENTIFIER})\\s*(?::\\s*[A-Za-z0-9_.<>[\\]|\\s]+?)?\\s*=\\s*(\\d[\\d_]{0,6})\\b`,
     "gi"
 );
 
 /** a port literal written anywhere else - what the convention forbids */
-const INLINE = [new RegExp(`\\b${PORT_IDENTIFIER}\\s*:\\s*(\\d{1,5})\\b`, "gi"), /\.listen\(\s*(\d{1,5})\b/g];
+const INLINE = [new RegExp(`\\b${PORT_IDENTIFIER}\\s*:\\s*(\\d[\\d_]{0,6})\\b`, "gi"), /\.listen\(\s*(\d[\d_]{0,6})\b/g];
 
 /**
  * A port derived from another one: `port + 1`, `basePort + i`, `port++`.
@@ -176,15 +194,15 @@ function walk(dir, out) {
     return out;
 }
 
-export function testFiles(root = repoRoot) {
+export function testFiles(root = repoRoot, { packageRoots = PACKAGE_ROOTS, testDirs = TEST_DIRS } = {}) {
     const files = [];
-    for (const packageRoot of PACKAGE_ROOTS) {
+    for (const packageRoot of packageRoots) {
         const abs = path.join(root, packageRoot);
         if (!fs.existsSync(abs)) {
             continue;
         }
         for (const name of fs.readdirSync(abs)) {
-            for (const sub of TEST_DIRS) {
+            for (const sub of testDirs) {
                 walk(path.join(abs, name, sub), files);
             }
         }
@@ -195,7 +213,7 @@ export function testFiles(root = repoRoot) {
 /**
  * @returns {{ports: Map<number, Map<string, number[]>>, dynamic: object[], inline: object[]}}
  */
-export function scan(root = repoRoot) {
+export function scan(root = repoRoot, options = {}) {
     const ports = new Map();
     const dynamic = [];
     const inline = [];
@@ -209,7 +227,7 @@ export function scan(root = repoRoot) {
         byFile.set(rel, [...(byFile.get(rel) || []), line]);
     };
 
-    for (const file of testFiles(root)) {
+    for (const file of testFiles(root, options)) {
         const rel = path.relative(root, file).split(path.sep).join("/");
         const lines = fs.readFileSync(file, "utf8").split("\n");
         // Names declared as a port constant in this file, so a derived value can be told
@@ -231,7 +249,7 @@ export function scan(root = repoRoot) {
 
             DECLARATION.lastIndex = 0;
             while ((m = DECLARATION.exec(text)) !== null) {
-                const port = Number(m[2]);
+                const port = toNumber(m[2]);
                 if (port === 0) {
                     // `let matchingListenPort = 0` is a counter being initialised, not a
                     // port being bound - the name ends in "Port" but nothing listens on
@@ -256,7 +274,7 @@ export function scan(root = repoRoot) {
             for (const re of INLINE) {
                 re.lastIndex = 0;
                 while ((m = re.exec(text)) !== null) {
-                    const port = Number(m[1]);
+                    const port = toNumber(m[1]);
                     if (port === 0) {
                         if (!dynamicOk) {
                             dynamic.push({ rel, line, text: text.trim() });
@@ -281,7 +299,7 @@ export function scan(root = repoRoot) {
                 continue; // a counter that merely ends in "Port"
             }
             const base = declaredHere.get(c.name);
-            const offset = Number(c.operand);
+            const offset = toNumber(c.operand);
             if ((c.op === "+" || c.op === "-") && Number.isFinite(offset)) {
                 c.resolved = c.op === "+" ? base + offset : base - offset;
                 record(c.resolved, rel, c.line);
@@ -335,8 +353,8 @@ export function suggest(ports, count = 1) {
     return out.slice(0, count).sort((a, b) => a - b);
 }
 
-export function analyze(root = repoRoot) {
-    const { ports, dynamic, inline, computed } = scan(root);
+export function analyze(root = repoRoot, options = {}) {
+    const { ports, dynamic, inline, computed } = scan(root, options);
     return {
         ports,
         dynamic,
