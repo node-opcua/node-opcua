@@ -15,5 +15,9 @@
  * A new spelling here is cheap to add. A gate silently not looking is not.
  */
 
-/** every directory name a package's tests may live in */
-export const TEST_DIRS = ["test", "tests", "test_long", "test_helpers", "test-helpers", "test_fixtures", "test-fixtures"];
+/**
+ * every directory name a package's tests may live in. The list itself lives with the
+ * scanner that publishes it, so the one package that leaves this repo carries no
+ * import of a path outside itself.
+ */
+export { TEST_DIRS } from "../check-test-ports/src/scanner.js";
