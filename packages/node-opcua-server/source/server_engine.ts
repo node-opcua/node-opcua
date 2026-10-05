@@ -2076,12 +2076,12 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
          */
         callback: (err: Error | null, dataValues?: DataValue[]) => void
     ): void {
-        const referenceTime = getCurrentClock();
-        maxAge && referenceTime.timestamp.setTime(referenceTime.timestamp.getTime() - maxAge);
-
         assert(typeof callback === "function");
 
-        const nodeMap: Record<string, UAVariable> = {};
+        // this runs on every Read, and most Reads touch no Variable with a refresh func: the
+        // candidates are collected by identity (findNode returns one node per NodeId), without
+        // building a NodeId string per node, and the reference clock is only taken when needed.
+        const uaVariables = new Set<UAVariable>();
         for (const nodeToRefresh of nodesToRefresh) {
             // only consider node  for which the caller wants to read the Value attribute
             // assuming that Value is requested if attributeId is missing,
@@ -2097,19 +2097,17 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             if (typeof (uaNode as unknown as Record<string, unknown>).refreshFunc !== "function") {
                 continue;
             }
-            const key = uaNode.nodeId.toString();
-            if (nodeMap[key]) {
-                continue;
-            }
-            nodeMap[key] = uaNode as UAVariable;
+            uaVariables.add(uaNode as UAVariable);
         }
 
-        const uaVariableArray = Object.values(nodeMap);
-        if (uaVariableArray.length === 0) {
+        if (uaVariables.size === 0) {
             // nothing to do
             callback(null, []);
             return;
         }
+        const uaVariableArray = [...uaVariables];
+        const referenceTime = getCurrentClock();
+        maxAge && referenceTime.timestamp.setTime(referenceTime.timestamp.getTime() - maxAge);
         // perform all asyncRefresh in parallel
         const promises = uaVariableArray.map((uaVariable) => {
             return new Promise<DataValue>((resolve, reject) => {
