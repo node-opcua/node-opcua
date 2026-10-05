@@ -46,10 +46,12 @@ describe("ServerSession - service counters of the session diagnostics", () => {
         const variable = sessionDiagnostics();
         const getComponentByName = variable.getComponentByName;
         let lookups = 0;
-        variable.getComponentByName = function (this: UAVariable, ...args: Parameters<UAVariable["getComponentByName"]>) {
+        // getComponentByName is overloaded: the arguments are passed on as they come
+        const counting = function (this: UAVariable, ...args: unknown[]) {
             lookups += 1;
-            return getComponentByName.apply(this, args);
+            return Reflect.apply(getComponentByName, this, args);
         };
+        variable.getComponentByName = counting as UAVariable["getComponentByName"];
         return () => lookups;
     }
 
