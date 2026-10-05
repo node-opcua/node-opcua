@@ -507,17 +507,39 @@ describe("ChunkManager chunk buffer sizing without encryption", () => {
         return chunks;
     }
 
-    it("a small message does not hold a chunkSize buffer", () => {
+    /**
+     * the sizes asked of Buffer.allocUnsafe while `action` runs. The ArrayBuffer behind a chunk
+     * says nothing: a small buffer is carved out of Node's pool, whose size depends on the runtime.
+     */
+    function allocatedSizes(action: () => void): number[] {
+        const sizes: number[] = [];
+        const allocUnsafe = Buffer.allocUnsafe;
+        Buffer.allocUnsafe = (size: number) => {
+            sizes.push(size);
+            return allocUnsafe(size);
+        };
+        try {
+            action();
+        } finally {
+            Buffer.allocUnsafe = allocUnsafe;
+        }
+        return sizes;
+    }
+
+    it("a small message does not allocate a chunkSize buffer", () => {
         const chunkManager = signedManager(65536);
         const chunks = collect(chunkManager);
         const body = patterned(5000);
 
-        chunkManager.write(body, body.length);
-        chunkManager.end();
+        const sizes = allocatedSizes(() => {
+            chunkManager.write(body, body.length);
+            chunkManager.end();
+        });
 
         should(chunks.length).eql(1);
         should(chunks[0].length).eql(8 + 8 + 5000 + 4);
-        should(chunks[0].buffer.byteLength).be.below(65536 / 2);
+        // the chunk, sized to the message, and nothing larger (the signature is allocated too)
+        should(Math.max(...sizes)).eql(8 + 8 + 5000 + 4);
         should(chunks[0].subarray(16, 16 + 5000).equals(body)).eql(true);
         should(chunks[0].subarray(16 + 5000).toString("hex")).eql("cccccccc");
     });
