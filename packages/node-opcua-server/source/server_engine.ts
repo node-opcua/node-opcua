@@ -2108,25 +2108,51 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         const uaVariableArray = [...uaVariables];
         const referenceTime = getCurrentClock();
         maxAge && referenceTime.timestamp.setTime(referenceTime.timestamp.getTime() - maxAge);
-        // perform all asyncRefresh in parallel
-        const promises = uaVariableArray.map((uaVariable) => {
-            return new Promise<DataValue>((resolve, reject) => {
-                try {
-                    uaVariable.asyncRefresh(referenceTime, (err, dataValue) => {
-                        if (err) return reject(err);
-                        if (!dataValue) return reject(new Error("asyncRefresh completed without error but returned no dataValue"));
-                        resolve(dataValue);
-                    });
-                } catch (err) {
-                    const _err = err as Error;
-                    errorLog("asyncRefresh internal error", _err.message);
-                    reject(_err);
+        // perform all asyncRefresh in parallel. A Variable bound with a synchronous getter is
+        // refreshed before asyncRefresh returns: when they all are, which is the common case,
+        // the callback is called before refreshValues returns, without a promise per Variable.
+        const dataValues = new Array<DataValue>(uaVariableArray.length);
+        let pending = uaVariableArray.length;
+        let failure: Error | null = null;
+        let starting = true;
+        let finished = false;
+        const finishIfDone = () => {
+            // as Promise.all would: the first failure is reported without waiting for the rest
+            if (finished || starting || (pending > 0 && !failure)) {
+                return;
+            }
+            finished = true;
+            failure ? callback(failure) : callback(null, dataValues);
+        };
+        uaVariableArray.forEach((uaVariable, index) => {
+            let refreshed = false;
+            const onRefreshed = (err: Error | null, dataValue?: DataValue) => {
+                if (refreshed) {
+                    return;
                 }
-            });
+                refreshed = true;
+                pending -= 1;
+                if (err) {
+                    failure = failure || err;
+                } else if (!dataValue) {
+                    failure = failure || new Error("asyncRefresh completed without error but returned no dataValue");
+                } else {
+                    dataValues[index] = dataValue; // check-proto-pollution: ok - index of the forEach
+                }
+                finishIfDone();
+            };
+            try {
+                uaVariable.asyncRefresh(referenceTime, onRefreshed);
+            } catch (err) {
+                const _err = err as Error;
+                errorLog("asyncRefresh internal error", _err.message);
+                onRefreshed(_err);
+            }
         });
-        Promise.all(promises)
-            .then((dataValues) => callback(null, dataValues))
-            .catch((err) => callback(err));
+        // the refreshes that completed while being started are reported from here, so that
+        // an exception thrown by the callback reaches our caller, not a Variable
+        starting = false;
+        finishIfDone();
     }
 
     private _exposeSubscriptionDiagnostics(subscription: Subscription): void {
