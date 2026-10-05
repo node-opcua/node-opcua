@@ -2131,7 +2131,16 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 continue;
             }
             // ... and that have been declared as asynchronously updating
-            if (typeof (uaNode as unknown as Record<string, unknown>).refreshFunc !== "function") {
+            const { refreshFunc, _refreshFuncWrapsGetter } = uaNode as unknown as {
+                refreshFunc?: unknown;
+                _refreshFuncWrapsGetter?: boolean;
+            };
+            if (typeof refreshFunc !== "function") {
+                continue;
+            }
+            // ... which a Variable bound with a plain `get` is not: its refresh function only
+            // calls the getter, and reading the Variable does that anyway
+            if (_refreshFuncWrapsGetter) {
                 continue;
             }
             uaVariables.add(uaNode as UAVariable);

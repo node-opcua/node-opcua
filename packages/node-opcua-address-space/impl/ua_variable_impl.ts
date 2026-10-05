@@ -256,6 +256,12 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     public _get_func?: GetFunc | null;
     public _set_func?: ((value: Variant, callback: (err: Error | null, statusCode?: StatusCode) => void) => void) | null;
     public refreshFunc?: (callback: CallbackT<DataValue>) => void;
+    /**
+     * true when refreshFunc only wraps the synchronous getter of a Variable bound with a plain
+     * `get`. readValue evaluates that getter itself: refreshing such a Variable before reading
+     * it, as the Read service does for the others, evaluates the getter twice for nothing.
+     */
+    public _refreshFuncWrapsGetter?: boolean;
     public __waiting_callbacks?: CallbackT<DataValue>[];
 
     get typeDefinitionObj(): UAVariableType {
@@ -1284,6 +1290,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             this._get_func = null;
             this._set_func = null;
             this.refreshFunc = undefined;
+            this._refreshFuncWrapsGetter = false;
             this._historyRead = UAVariableImpl.prototype._historyRead;
         }
 
@@ -2413,6 +2420,7 @@ function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOpt
         get: undefined,
         timestamped_get: timestamped_get_func_from__Variable_bind_with_simple_get
     });
+    this._refreshFuncWrapsGetter = true;
 }
 
 type SimpleSetOptions = { set?: SetFunc; timestamped_set: undefined };

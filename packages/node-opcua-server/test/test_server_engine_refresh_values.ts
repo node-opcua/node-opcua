@@ -1,5 +1,6 @@
+import type { UAVariable } from "node-opcua-address-space";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers.js";
-import type { DataValue } from "node-opcua-data-value";
+import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { ReadValueId } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
@@ -8,6 +9,7 @@ import { ServerEngine } from "../source/index.js";
 
 describe("ServerEngine - refreshValues", () => {
     let engine: ServerEngine;
+    let plainGetterCalls = 0;
     before((done) => {
         engine = new ServerEngine();
         engine.initialize({ nodeset_filename: get_mini_nodeset_filename() }, () => {
@@ -24,8 +26,18 @@ describe("ServerEngine - refreshValues", () => {
                     value
                 });
 
-            addVariable("SyncGetter1", { get: () => new Variant({ dataType: DataType.Double, value: 1 }) });
-            addVariable("SyncGetter2", { get: () => new Variant({ dataType: DataType.Double, value: 2 }) });
+            const timestamped = (value: number) => {
+                const dataValue = new DataValue({ value: { dataType: DataType.Double, value }, sourceTimestamp: new Date() });
+                return { timestamped_get: () => dataValue };
+            };
+            addVariable("SyncGetter1", timestamped(1));
+            addVariable("SyncGetter2", timestamped(2));
+            addVariable("PlainGetter", {
+                get: () => {
+                    plainGetterCalls += 1;
+                    return new Variant({ dataType: DataType.Double, value: 4 });
+                }
+            });
             addVariable("AsyncRefresh", {
                 refreshFunc: (callback: (err: Error | null, dataValue?: DataValue) => void) => {
                     setImmediate(() => callback(null, { value: { dataType: DataType.Double, value: 3 } } as unknown as DataValue));
@@ -52,6 +64,21 @@ describe("ServerEngine - refreshValues", () => {
             values = dataValues;
         });
         should(values?.map((dataValue) => dataValue.value.value)).eql([1, 2]);
+    });
+
+    // reading the Variable calls the getter: calling it here first would be once too many
+    it("leaves alone a Variable bound with a plain getter", () => {
+        plainGetterCalls = 0;
+        let values: DataValue[] | undefined;
+        engine.refreshValues(nodesToRefresh("PlainGetter", "SyncGetter1"), 0, (_err, dataValues) => {
+            values = dataValues;
+        });
+        should(values?.map((dataValue) => dataValue.value.value)).eql([1]);
+        should(plainGetterCalls).eql(0);
+
+        const variable = engine.addressSpace?.findNode("ns=1;s=PlainGetter") as UAVariable;
+        should(variable.readValue().value.value).eql(4);
+        should(plainGetterCalls).eql(1);
     });
 
     it("waits for the Variables that are refreshed asynchronously", async () => {
