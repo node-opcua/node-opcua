@@ -33,7 +33,7 @@
         "node-opcua-assert": "2.186.7",
         "node-opcua-client": "2.186.16",
         "node-opcua-common": "2.186.15",
-        "node-opcua-crypto": "6.1.3",
+        "node-opcua-crypto": "6.1.4",
         "node-opcua-debug": "2.186.7",
         "node-opcua-status-code": "2.186.7",
         "node-opcua-transport": "2.186.12"
