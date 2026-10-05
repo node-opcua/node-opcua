@@ -93,11 +93,11 @@ interface TrackedServiceCounter {
     staleTotalCount: boolean;
     staleErrorCount: boolean;
 }
-/** the object behind the proxies, which are nested: one per Variable exposing the counter */
-function unproxied(counter: ServiceCounter): ServiceCounter {
-    let raw = counter;
+/** the object behind the proxies, which are nested: one per Variable exposing the object */
+function unproxied<T extends object>(proxied: T): T {
+    let raw = proxied;
     for (;;) {
-        const target = (raw as { $proxyTarget?: ServiceCounter }).$proxyTarget;
+        const target = (raw as { $proxyTarget?: T }).$proxyTarget;
         if (!target) {
             return raw;
         }
@@ -193,6 +193,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     private _registeredNodesInv: Record<string, BaseNode>;
     private _cumulatedSubscriptionCount: number;
     private _sessionDiagnostics?: SessionDiagnosticsDataTypeEx;
+    /** the object behind this._sessionDiagnostics, and the proxy it was taken from */
+    private _rawSessionDiagnostics?: SessionDiagnosticsDataTypeEx;
+    private _rawSessionDiagnosticsOf?: SessionDiagnosticsDataTypeEx;
     private _sessionSecurityDiagnostics?: SessionSecurityDiagnosticsDataTypeEx;
     /** the service counters of the session diagnostics, by field name (null: no such counter) */
     private _serviceCounters = new Map<string, TrackedServiceCounter | null>();
@@ -382,12 +385,26 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         return this.publishEngine ? this.publishEngine.pendingPublishRequestCount : 0;
     }
 
+    /**
+     * the session diagnostics themselves, for reading: every request of the session looks at
+     * them (see onClientSeen), and a read through the proxy in front of them is a function call.
+     * A change still has to go through this._sessionDiagnostics, the proxy.
+     */
+    private _readableSessionDiagnostics(): SessionDiagnosticsDataTypeEx | undefined {
+        if (this._rawSessionDiagnosticsOf !== this._sessionDiagnostics) {
+            this._rawSessionDiagnosticsOf = this._sessionDiagnostics;
+            this._rawSessionDiagnostics = this._sessionDiagnostics && unproxied(this._sessionDiagnostics);
+        }
+        return this._rawSessionDiagnostics;
+    }
+
     public updateClientLastContactTime(): void {
-        if (this._sessionDiagnostics?.clientLastContactTime) {
-            const currentTime = new Date();
+        const lastContactTime = this._readableSessionDiagnostics()?.clientLastContactTime;
+        if (lastContactTime && this._sessionDiagnostics) {
+            const currentTime = Date.now();
             // do not record all ticks as this may be overwhelming,
-            if (currentTime.getTime() - 250 >= this._sessionDiagnostics.clientLastContactTime.getTime()) {
-                this._sessionDiagnostics.clientLastContactTime = currentTime;
+            if (currentTime - 250 >= lastContactTime.getTime()) {
+                this._sessionDiagnostics.clientLastContactTime = new Date(currentTime);
             }
         }
     }
@@ -400,23 +417,27 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public onClientSeen(): void {
         this.updateClientLastContactTime();
 
-        if (this._sessionDiagnostics) {
+        const current = this._readableSessionDiagnostics();
+        if (current && this._sessionDiagnostics) {
             // see https://opcfoundation-onlineapplications.org/mantis/view.php?id=4111
-            assert(Object.hasOwn(this._sessionDiagnostics, "currentMonitoredItemsCount"));
-            assert(Object.hasOwn(this._sessionDiagnostics, "currentSubscriptionsCount"));
-            assert(Object.hasOwn(this._sessionDiagnostics, "currentPublishRequestsInQueue"));
+            assert(Object.hasOwn(current, "currentMonitoredItemsCount"));
+            assert(Object.hasOwn(current, "currentSubscriptionsCount"));
+            assert(Object.hasOwn(current, "currentPublishRequestsInQueue"));
 
             // note : https://opcfoundation-onlineapplications.org/mantis/view.php?id=4111
             // sessionDiagnostics extension object uses a different spelling
             // here with an S !!!!
-            if (this._sessionDiagnostics.currentMonitoredItemsCount !== this.currentMonitoredItemCount) {
-                this._sessionDiagnostics.currentMonitoredItemsCount = this.currentMonitoredItemCount;
+            const monitoredItemCount = this.currentMonitoredItemCount;
+            if (current.currentMonitoredItemsCount !== monitoredItemCount) {
+                this._sessionDiagnostics.currentMonitoredItemsCount = monitoredItemCount;
             }
-            if (this._sessionDiagnostics.currentSubscriptionsCount !== this.currentSubscriptionCount) {
-                this._sessionDiagnostics.currentSubscriptionsCount = this.currentSubscriptionCount;
+            const subscriptionCount = this.currentSubscriptionCount;
+            if (current.currentSubscriptionsCount !== subscriptionCount) {
+                this._sessionDiagnostics.currentSubscriptionsCount = subscriptionCount;
             }
-            if (this._sessionDiagnostics.currentPublishRequestsInQueue !== this.currentPublishRequestInQueue) {
-                this._sessionDiagnostics.currentPublishRequestsInQueue = this.currentPublishRequestInQueue;
+            const publishRequestInQueue = this.currentPublishRequestInQueue;
+            if (current.currentPublishRequestsInQueue !== publishRequestInQueue) {
+                this._sessionDiagnostics.currentPublishRequestsInQueue = publishRequestInQueue;
             }
         }
     }
