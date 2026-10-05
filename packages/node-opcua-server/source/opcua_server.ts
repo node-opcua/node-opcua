@@ -3663,10 +3663,9 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                         assert(results[0].schema.name === "DataValue");
                         assert(results.length === request.nodesToRead?.length);
 
-                        const response = new ReadResponse({
-                            diagnosticInfos: undefined,
-                            results: undefined
-                        });
+                        // null: the response is built with its defaults set directly, rather
+                        // than through the schema, field by field, header included
+                        const response = new ReadResponse(null);
                         // set it here for performance
                         response.results = results;
                         assert(response.diagnosticInfos?.length === 0);
