@@ -53,6 +53,18 @@ const theWatchDog = new WatchDog();
 
 const registeredNodeNameSpace = 9999;
 
+// "Read" => "readCount", the field of SessionDiagnosticsDataType that counts the service.
+// There is one per service and it is needed on every response: build each name once.
+const serviceCounterNames = new Map<string, string>();
+function serviceCounterName(counterName: string): string {
+    let propName = serviceCounterNames.get(counterName);
+    if (propName === undefined) {
+        propName = lowerFirstLetter(`${counterName}Count`);
+        serviceCounterNames.set(counterName, propName);
+    }
+    return propName;
+}
+
 function on_channel_abort(this: ServerSession) {
     /* c8 ignore next */
     doDebug && debugLog("ON CHANNEL ABORT ON  SESSION!!!");
@@ -68,6 +80,24 @@ interface SessionDiagnosticsDataTypeEx extends SessionDiagnosticsDataType {
 interface SessionSecurityDiagnosticsDataTypeEx extends SessionSecurityDiagnosticsDataType {
     $session: ServerSession | null;
 }
+
+type ServiceCounterField = "totalCount" | "errorCount";
+interface ServiceCounter {
+    totalCount: number;
+    errorCount: number;
+}
+/** a service counter of the session diagnostics: the object itself, and the proxy in front of it */
+interface TrackedServiceCounter {
+    raw: ServiceCounter;
+    proxied: ServiceCounter;
+    staleTotalCount: boolean;
+    staleErrorCount: boolean;
+}
+/**
+ * how long, in milliseconds, the Variables exposing the service counters may go without being
+ * refreshed while the counters keep moving: the bound clientLastContactTime already lives with
+ */
+const serviceCounterRefreshInterval = 250;
 
 export type SessionStatus = "new" | "active" | "screwed" | "disposed" | "closed";
 /**
@@ -153,6 +183,11 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     private _cumulatedSubscriptionCount: number;
     private _sessionDiagnostics?: SessionDiagnosticsDataTypeEx;
     private _sessionSecurityDiagnostics?: SessionSecurityDiagnosticsDataTypeEx;
+    /** the service counters of the session diagnostics, by field name (null: no such counter) */
+    private _serviceCounters = new Map<string, TrackedServiceCounter | null>();
+    /** the service counters that moved since the Variables exposing them were last refreshed */
+    private _staleServiceCounters = new Set<TrackedServiceCounter>();
+    private _serviceCountersRefreshTime = 0;
 
     private channel_abort_event_handler?: () => void;
 
@@ -267,6 +302,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         }
 
         this._sessionDiagnostics = undefined;
+        this._forgetServiceCounters();
 
         this._registeredNodesCounter = 0;
         this._registeredNodes = {};
@@ -374,21 +410,79 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         }
     }
 
+    /**
+     * increment a service counter of the session diagnostics.
+     *
+     * The counter is incremented on the object itself, not through the proxy in front of it:
+     * a write through the proxy looks up the Variable exposing the field and refreshes its
+     * timestamps, and two counters move on every request. The Variables take their value from
+     * this very object whenever they are read or sampled, so the count they report is exact at
+     * once. What is bounded instead is how often they are told about it: at once for a session
+     * that is not busy, and every serviceCounterRefreshInterval for one that is.
+     *
+     * @returns false if the session diagnostics have no such counter
+     */
+    private _incrementServiceCounter(propName: string, field: ServiceCounterField): boolean {
+        let counter = this._serviceCounters.get(propName);
+        if (counter === undefined) {
+            const proxied = (this._sessionDiagnostics as unknown as Record<string, ServiceCounter | undefined>)[propName];
+            const raw = (proxied as unknown as { $proxyTarget?: ServiceCounter } | undefined)?.$proxyTarget ?? proxied;
+            counter = proxied && raw ? { raw, proxied, staleTotalCount: false, staleErrorCount: false } : null;
+            this._serviceCounters.set(propName, counter);
+        }
+        if (!counter) {
+            return false;
+        }
+        if (field === "totalCount") {
+            counter.raw.totalCount += 1;
+            counter.staleTotalCount = true;
+        } else {
+            counter.raw.errorCount += 1;
+            counter.staleErrorCount = true;
+        }
+        this._staleServiceCounters.add(counter);
+
+        const now = Date.now();
+        if (now - this._serviceCountersRefreshTime >= serviceCounterRefreshInterval) {
+            this._serviceCountersRefreshTime = now;
+            this._refreshServiceCounterVariables();
+        }
+        return true;
+    }
+
+    /** tell the Variables exposing the service counters that the counters have moved */
+    private _refreshServiceCounterVariables(): void {
+        for (const counter of this._staleServiceCounters) {
+            // assigning through the proxy is what refreshes the Variable exposing the field
+            if (counter.staleTotalCount) {
+                counter.staleTotalCount = false;
+                counter.proxied.totalCount = counter.raw.totalCount;
+            }
+            if (counter.staleErrorCount) {
+                counter.staleErrorCount = false;
+                counter.proxied.errorCount = counter.raw.errorCount;
+            }
+        }
+        this._staleServiceCounters.clear();
+    }
+
+    private _forgetServiceCounters(): void {
+        this._serviceCounters.clear();
+        this._staleServiceCounters.clear();
+    }
+
     public incrementTotalRequestCount(): void {
-        if (this._sessionDiagnostics?.totalRequestCount) {
-            this._sessionDiagnostics.totalRequestCount.totalCount += 1;
+        if (this._sessionDiagnostics) {
+            this._incrementServiceCounter("totalRequestCount", "totalCount");
         }
     }
 
     public incrementRequestTotalCounter(counterName: string): void {
         if (this._sessionDiagnostics) {
-            const propName = lowerFirstLetter(`${counterName}Count`);
+            const propName = serviceCounterName(counterName);
             // c8 ignore next
-            if (!Object.hasOwn(this._sessionDiagnostics, propName)) {
+            if (!this._incrementServiceCounter(propName, "totalCount")) {
                 errorLog("incrementRequestTotalCounter: cannot find", propName);
-                // xx return;
-            } else {
-                (this._sessionDiagnostics as unknown as Record<string, { totalCount: number }>)[propName].totalCount += 1;
             }
         }
     }
@@ -396,13 +490,10 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public incrementRequestErrorCounter(counterName: string): void {
         this.parent?.incrementRejectedRequestsCount();
         if (this._sessionDiagnostics) {
-            const propName = lowerFirstLetter(`${counterName}Count`);
+            const propName = serviceCounterName(counterName);
             // c8 ignore next
-            if (!Object.hasOwn(this._sessionDiagnostics, propName)) {
+            if (!this._incrementServiceCounter(propName, "errorCount")) {
                 errorLog("incrementRequestErrorCounter: cannot find", propName);
-                // xx  return;
-            } else {
-                (this._sessionDiagnostics as unknown as Record<string, { errorCount: number }>)[propName].errorCount += 1;
             }
         }
     }
@@ -1017,6 +1108,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
             }
 
             this._sessionDiagnostics = undefined;
+            this._forgetServiceCounters();
             this.sessionDiagnostics = undefined;
         }
 
