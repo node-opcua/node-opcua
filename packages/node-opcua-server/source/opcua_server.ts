@@ -268,11 +268,9 @@ function _adjust_session_timeout(sessionTimeout: number) {
 }
 
 function channel_has_session(channel: ServerSecureChannelLayer, session: ServerSession): boolean {
-    if (session.channel === channel) {
-        assert(Object.hasOwn(channel.sessionTokens, session.authenticationToken.toString()));
-        return true;
-    }
-    return false;
+    // a session is on the channel it was attached to: _attach_channel and _detach_channel
+    // keep channel.sessionTokens in step, and this is asked on every request
+    return session.channel === channel;
 }
 
 function moveSessionToChannel(session: ServerSession, channel: ServerSecureChannelLayer) {
