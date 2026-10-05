@@ -219,12 +219,25 @@ function getPermissionForRole(
 function isDefaultContext(context: SessionContext) {
     return context === SessionContext.defaultContext;
 }
+const serverNamespacesNodeId = resolveNodeId(ObjectIds.Server_Namespaces);
+/**
+ * the Namespaces Object of the Server (RootFolder/Objects/Server/Namespaces), which holds the
+ * NamespaceMetadata of every namespace.
+ *
+ * It is consulted for each permission and each access-restriction check, that is several times
+ * per node read, so it is found by its NodeId: `rootFolder.objects.server.namespaces` resolves
+ * three children by name every time it is evaluated.
+ */
+function getServerNamespaces(namespace: NamespacePrivate): BaseNode | null {
+    return namespace.addressSpace.findNode(serverNamespacesNodeId);
+}
+
 function getAccessRestrictionsOnNamespace(namespace: NamespacePrivate, context: SessionContext): AccessRestrictionsFlag {
     // ignore permission when default context is provided (to avoid recursion)
     if (isDefaultContext(context)) {
         return AccessRestrictionsFlag.None;
     }
-    const namespaces = namespace.addressSpace.rootFolder?.objects?.server?.namespaces;
+    const namespaces = getServerNamespaces(namespace);
     if (!namespaces) {
         return AccessRestrictionsFlag.None;
     }
@@ -251,7 +264,7 @@ function getDefaultUserRolePermissionsOnNamespace(
         return null;
     }
 
-    const namespaces = namespace.addressSpace.rootFolder?.objects?.server?.namespaces;
+    const namespaces = getServerNamespaces(namespace);
     const uaNamespaceObject = namespaces?.getChildByName(namespace.namespaceUri);
     if (uaNamespaceObject) {
         // DefaultUserRolePermissions is the user-specific policy and wins when it carries a value.
