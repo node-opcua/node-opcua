@@ -437,7 +437,14 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         if (!this.checkPermissionPrivate(context, PermissionType.Read)) {
             return makeNowDataValue({ statusCode: StatusCodes.BadUserAccessDenied });
         }
-        if (!this.isUserReadable(context)) {
+        // isUserReadable() would evaluate isReadable() and the Read permission a second time, and the
+        // permission lookup walks the namespace metadata. Both just passed above, so only the access
+        // level is left, unless a node replaced isUserReadable (see makeNotReadableIfEnabledFlagIsFalse).
+        const userReadable =
+            this.isUserReadable === UAVariableImpl.prototype.isUserReadable
+                ? this.checkAccessLevelPrivate(context, AccessLevelFlag.CurrentRead)
+                : this.isUserReadable(context);
+        if (!userReadable) {
             return makeNowDataValue({ statusCode: StatusCodes.BadNotReadable });
         }
         if (!isValidDataEncoding(dataEncoding)) {

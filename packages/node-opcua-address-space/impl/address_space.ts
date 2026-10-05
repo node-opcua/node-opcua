@@ -83,6 +83,9 @@ import Dequeue from "dequeue";
 
 const regexNumberColumnString = /^([0-9]+):(.*)/;
 const enumerationTypeNodeId = coerceNodeId(DataTypeIds.Enumeration);
+// "RootFolder" is a name of namespace 0, never a "<index>:<alias>" string, so it resolves the same
+// way in every address space. rootFolder is read on every permission check, i.e. on every Read.
+const rootFolderNodeId = resolveNodeId("RootFolder");
 /**
  * Extracts the namespace and browse name as a string from the given input.
  *
@@ -160,7 +163,7 @@ function isNodeIdString(str: unknown): boolean {
  */
 export class AddressSpaceImpl implements AddressSpacePrivate {
     public get rootFolder(): UARootFolder {
-        const rootFolder = this.findNode(this.resolveNodeId("RootFolder"));
+        const rootFolder = this.findNode(rootFolderNodeId);
         if (!rootFolder) {
             // throw new Error("AddressSpace doesn't contain rootFolder object");
             return null as unknown as UARootFolder;
