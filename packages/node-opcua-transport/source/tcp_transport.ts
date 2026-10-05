@@ -32,6 +32,9 @@ export interface ISocketLike extends EventEmitter {
     setKeepAlive(enable?: boolean, initialDelay?: number): this;
     setNoDelay(noDelay?: boolean): this;
     setTimeout(timeout: number, callback?: () => void): this;
+    /** optional: a socket that can hold its writes lets the transport send a tick's worth of chunks at once */
+    cork?(): void;
+    uncork?(): void;
 
     destroy(err?: Error): void;
     destroyed: boolean;
@@ -161,6 +164,8 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
     #packetAssembler?: PacketAssembler;
     #_timeout: number;
     #_isDisconnecting = false;
+    /** the socket whose writes are being held until the end of the current tick, if any */
+    #corkedSocket: ISocketLike | null = null;
     protected _theCloseError: Error | null = null;
 
     constructor() {
@@ -253,6 +258,7 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
     public dispose(): void {
         this._cleanup_timers();
         assert(!this.#_timerId);
+        this.#flushCorkedSocket();
         if (this._socket) {
             const gracefully = false;
             if (gracefully) {
@@ -311,6 +317,7 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
             });
         });
 
+        this.#flushCorkedSocket();
         this._socket?.destroy(new Error("ClientTCP_transport disconnected"));
         this._socket = null;
     }
@@ -323,9 +330,50 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
         if (this._socket !== null) {
             this.bytesWritten += messageChunk.length;
             this.chunkWrittenCount++;
+            this.#corkUntilEndOfTick(this._socket);
             this._socket.write(messageChunk, callback);
         } else {
             callback?.();
+        }
+    }
+
+    /**
+     * hold the chunks written during the current tick and hand them to the socket in one go.
+     *
+     * A peer that pipelines its requests gets them delivered in a single "data" event, and the
+     * responses are then produced one after the other within the same tick. Written one by one,
+     * each response costs a system call, and that call is the largest single item of a Read
+     * transaction. Corked, they leave together in one writev, at the end of the very same tick:
+     * nothing is delayed to a later turn of the event loop.
+     *
+     * process.nextTick runs once the promise continuations in flight have drained when it is
+     * scheduled from one of them, which is where a server writes its responses. Scheduled from
+     * synchronous code it runs before them: chunks written by later continuations are then held
+     * again and leave in a second write, which is no worse than not holding them.
+     */
+    #corkUntilEndOfTick(socket: ISocketLike): void {
+        if (this.#corkedSocket === socket || !socket.cork || !socket.uncork) {
+            return;
+        }
+        this.#flushCorkedSocket();
+        this.#corkedSocket = socket;
+        socket.cork();
+        process.nextTick(() => {
+            if (this.#corkedSocket === socket) {
+                this.#flushCorkedSocket();
+            }
+        });
+    }
+
+    /**
+     * send what is being held, now. To be called before the socket is ended or destroyed:
+     * destroying a socket discards the chunks it still holds.
+     */
+    #flushCorkedSocket(): void {
+        const socket = this.#corkedSocket;
+        if (socket) {
+            this.#corkedSocket = null;
+            socket.uncork?.();
         }
     }
 
@@ -421,6 +469,7 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
             // we consider this as an error
             const _s = this._socket;
             this._socket = null;
+            this.#flushCorkedSocket();
             _s.destroy(err);
             this.dispose();
         }
@@ -429,6 +478,7 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
         const socket = this._socket;
         if (!socket) return;
         socket.emit("error", new Error("ECONNRESET"));
+        this.#flushCorkedSocket();
         socket.destroy(new Error("ECONNRESET"));
     }
 
