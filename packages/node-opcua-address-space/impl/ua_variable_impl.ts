@@ -149,6 +149,10 @@ function is_StatusCode(v: unknown): boolean {
     );
 }
 
+function isThenable<T>(v: T | PromiseLike<T>): v is PromiseLike<T> {
+    return typeof (v as PromiseLike<T> | null | undefined)?.then === "function";
+}
+
 function is_Variant_or_StatusCode(v: unknown): boolean {
     if (is_Variant(v)) {
         // /@@assert(v.isValid());
@@ -2314,12 +2318,26 @@ function _Variable_bind_with_timestamped_get(
     assert(!this._timestamped_get_func);
 
     const async_refresh_func = (callback: (err: Error | null, dataValue?: DataValue) => void) => {
-        Promise.resolve((this._timestamped_get_func as VariableDataValueGetterSync).call(this))
-            .then((dataValue) => callback(null, dataValue))
-            .catch((err) => {
-                errorLog("asyncRefresh error: Variable is  ", this.nodeId.toString(), this.browseName.toString());
-                callback(err as Error);
-            });
+        const reportError = (err: unknown) => {
+            errorLog("asyncRefresh error: Variable is  ", this.nodeId.toString(), this.browseName.toString());
+            callback(err as Error);
+        };
+        // a getter that throws is reported by asyncRefresh, which calls this function
+        const dataValueOrPromise = (this._timestamped_get_func as () => DataValue | Promise<DataValue>).call(this);
+        if (isThenable(dataValueOrPromise)) {
+            Promise.resolve(dataValueOrPromise)
+                .then((dataValue) => callback(null, dataValue))
+                .catch(reportError);
+            return;
+        }
+        // the getter is synchronous (it always is for a Variable bound with a plain `get`):
+        // answer at once. A promise here costs every Read of the Variable an allocation and
+        // a turn of the microtask queue, for a value that is already known.
+        try {
+            callback(null, dataValueOrPromise);
+        } catch (err) {
+            reportError(err);
+        }
     };
     const pThis = this as UAVariable;
     if (options.timestamped_get.length === 0) {
