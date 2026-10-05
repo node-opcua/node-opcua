@@ -360,6 +360,22 @@ function installHistoricalRawDataFacetHook(addressSpace: IAddressSpace, serverPr
     };
 }
 
+/**
+ * the key of a session in ServerEngine#_sessionsByToken: the bytes of its authentication token,
+ * one character per byte, or null for a NodeId that cannot be the token of a session.
+ */
+function sessionTokenKey(authenticationToken: NodeId): string | null {
+    const value = authenticationToken.value;
+    if (
+        authenticationToken.identifierType !== NodeIdType.BYTESTRING ||
+        authenticationToken.namespace !== 0 ||
+        !(value instanceof Buffer)
+    ) {
+        return null;
+    }
+    return value.toString("latin1");
+}
+
 export type StringGetter = () => string;
 export type StringArrayGetter = () => string[];
 export type ApplicationTypeGetter = () => ApplicationType;
@@ -449,6 +465,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
     private _sessions: { [key: string]: ServerSession };
     private _closedSessions: { [key: string]: ServerSession };
+    /** the sessions of _sessions, by the bytes of their authentication token: see getSession */
+    private _sessionsByToken = new Map<string, ServerSession>();
     private _orphanPublishEngine?: ServerSidePublishEngineForOrphanSubscription;
     private _shutdownTasks: ServerEngineShutdownTask[];
     private _applicationUri: string;
@@ -576,6 +594,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         assert(Object.keys(this._sessions).length === 0, "ServerEngine#_sessions not empty");
         this._sessions = {};
+        this._sessionsByToken.clear();
 
         // todo fix me
         this._closedSessions = {};
@@ -1774,6 +1793,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         const key = session.authenticationToken.toString();
 
         this._sessions[key] = session;
+        const tokenKey = sessionTokenKey(session.authenticationToken);
+        if (tokenKey !== null) {
+            this._sessionsByToken.set(tokenKey, session);
+        }
 
         // see spec OPC Unified Architecture,  Part 2 page 26 Release 1.02
         // TODO : When a Session is created, the Server adds an entry for the Client
@@ -1890,6 +1913,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         // remove sessionDiagnostics from server.ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsSummary
         delete this._sessions[authenticationToken.toString()];
+        const tokenKey = sessionTokenKey(authenticationToken);
+        if (tokenKey !== null) {
+            this._sessionsByToken.delete(tokenKey);
+        }
         session.dispose();
     }
 
@@ -2031,6 +2058,16 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             (authenticationToken.identifierType && authenticationToken.identifierType !== NodeIdType.BYTESTRING)
         ) {
             return null; // wrong type !
+        }
+        // every request of a session comes through here: the session is found from the bytes
+        // of the token, without formatting the NodeId as a string. A token that is not found
+        // this way takes the long road below.
+        const tokenKey = sessionTokenKey(authenticationToken);
+        if (tokenKey !== null) {
+            const activeSession = this._sessionsByToken.get(tokenKey);
+            if (activeSession) {
+                return activeSession;
+            }
         }
         const key = authenticationToken.toString();
         let session = this._sessions[key];
