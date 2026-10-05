@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-file-transfer",
     "type": "module",
-    "version": "2.186.16",
+    "version": "2.186.17",
     "description": "pure nodejs OPCUA SDK - module file-transfer",
     "scripts": {
         "build": "tsc -b",
@@ -20,8 +20,8 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-address-space": "2.186.16",
-        "node-opcua-address-space-base": "2.186.15",
+        "node-opcua-address-space": "2.186.17",
+        "node-opcua-address-space-base": "2.186.17",
         "node-opcua-assert": "2.186.7",
         "node-opcua-basic-types": "2.186.7",
         "node-opcua-binary-stream": "2.186.7",
@@ -30,7 +30,7 @@
         "node-opcua-data-value": "2.186.10",
         "node-opcua-debug": "2.186.7",
         "node-opcua-nodeid": "2.186.7",
-        "node-opcua-pseudo-session": "2.186.16",
+        "node-opcua-pseudo-session": "2.186.17",
         "node-opcua-service-call": "2.186.10",
         "node-opcua-service-read": "2.186.10",
         "node-opcua-service-translate-browse-path": "2.186.16",
@@ -39,8 +39,8 @@
     },
     "devDependencies": {
         "memfs": "^4.80.0",
-        "node-opcua": "2.186.16",
-        "node-opcua-client": "2.186.16",
+        "node-opcua": "2.186.17",
+        "node-opcua-client": "2.186.17",
         "node-opcua-leak-detector": "2.186.7",
         "node-opcua-nodesets": "2.185.0",
         "node-opcua-test-helpers": "2.184.0",
