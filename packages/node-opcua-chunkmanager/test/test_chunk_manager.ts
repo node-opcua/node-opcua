@@ -477,3 +477,83 @@ describe("Chunk Manager Padding (chunk size 32 bytes, plainBlockSize 6 bytes ,ci
         perform_test(chunkManager, 30, expected, done);
     });
 });
+
+describe("ChunkManager chunk buffer sizing without encryption", () => {
+    function patterned(length: number, seed = 0): Buffer {
+        const buffer = Buffer.alloc(length);
+        for (let i = 0; i < length; i++) {
+            buffer[i] = (i + seed) % 251;
+        }
+        return buffer;
+    }
+
+    function signedManager(chunkSize: number): ChunkManager {
+        return new ChunkManager(Mode.Sign, {
+            chunkSize,
+            headerSize: 8,
+            sequenceHeaderSize: 8,
+            signatureLength: 4,
+            cipherBlockSize: 0,
+            plainBlockSize: 0,
+            signBufferFunc: computeFakeSignature,
+            writeHeaderFunc: writeFakeHeader,
+            writeSequenceHeaderFunc: writeFakeSequenceHeader
+        });
+    }
+
+    function collect(chunkManager: ChunkManager): Buffer[] {
+        const chunks: Buffer[] = [];
+        chunkManager.on("chunk", (chunk: Buffer) => chunks.push(chunk));
+        return chunks;
+    }
+
+    it("a small message does not hold a chunkSize buffer", () => {
+        const chunkManager = signedManager(65536);
+        const chunks = collect(chunkManager);
+        const body = patterned(5000);
+
+        chunkManager.write(body, body.length);
+        chunkManager.end();
+
+        should(chunks.length).eql(1);
+        should(chunks[0].length).eql(8 + 8 + 5000 + 4);
+        should(chunks[0].buffer.byteLength).be.below(65536 / 2);
+        should(chunks[0].subarray(16, 16 + 5000).equals(body)).eql(true);
+        should(chunks[0].subarray(16 + 5000).toString("hex")).eql("cccccccc");
+    });
+
+    it("grows the chunk when a message is written in several pieces", () => {
+        const chunkManager = signedManager(65536);
+        const chunks = collect(chunkManager);
+        const pieces = [patterned(100, 1), patterned(5000, 2), patterned(20000, 3)];
+
+        for (const piece of pieces) {
+            chunkManager.write(piece, piece.length);
+        }
+        chunkManager.end();
+
+        should(chunks.length).eql(1);
+        should(chunks[0].length).eql(8 + 8 + 25100 + 4);
+        should(chunks[0].subarray(16, 16 + 25100).equals(Buffer.concat(pieces))).eql(true);
+        should(chunks[0].subarray(0, 8).toString("hex")).eql("aaaaaaaaaaaaaaaa");
+        should(chunks[0].subarray(8, 16).toString("hex")).eql("bbbbbbbbbbbbbbbb");
+    });
+
+    it("still splits a message that does not fit in one chunk", () => {
+        const chunkManager = signedManager(8192);
+        const chunks = collect(chunkManager);
+        const body = patterned(20000);
+
+        chunkManager.write(body, 100);
+        chunkManager.write(body.subarray(100), body.length - 100);
+        chunkManager.end();
+
+        const maxBody = 8192 - 8 - 8 - 4;
+        should(chunks.length).eql(Math.ceil(20000 / maxBody));
+        const reassembled = Buffer.concat(chunks.map((chunk) => chunk.subarray(16, chunk.length - 4)));
+        should(reassembled.equals(body)).eql(true);
+        for (const chunk of chunks) {
+            should(chunk.length).be.belowOrEqual(8192);
+        }
+    });
+});

@@ -225,8 +225,8 @@ export class ChunkManager extends EventEmitter {
 
             const nbToWrite = Math.min(length - inputCursor, spaceLeft);
 
-            this.#chunk = this.#chunk || Buffer.allocUnsafe(this.chunkSize);
-            const chunk = this.#chunk;
+            this.#ensureChunkCapacity(this.#cursor + nbToWrite);
+            const chunk = this.#chunk as Buffer;
 
             if (buffer) {
                 buffer.copy(chunk, this.#cursor + this.#dataOffset, inputCursor, inputCursor + nbToWrite);
@@ -239,6 +239,31 @@ export class ChunkManager extends EventEmitter {
                 this.#_post_process_current_chunk();
             }
             l -= nbToWrite;
+        }
+    }
+
+    /**
+     * make sure the current chunk can hold `bodyBytes` of body.
+     *
+     * Padding and encryption can grow a chunk up to `chunkSize`, so with encryption the chunk is
+     * always allocated at full size. Without it, the finished chunk is exactly
+     * header + sequence header + body + signature: a small message (a Read response is a few hundred
+     * bytes) must not allocate a whole `chunkSize` buffer, which is 64 KB with the usual transport
+     * settings and is then kept alive by the socket until the write completes.
+     */
+    #ensureChunkCapacity(bodyBytes: number) {
+        if (this.plainBlockSize > 0) {
+            this.#chunk = this.#chunk || Buffer.allocUnsafe(this.chunkSize);
+            return;
+        }
+        // bodyBytes <= maxBodySize, so `needed` never exceeds chunkSize
+        const needed = this.#dataOffset + bodyBytes + this.signatureLength;
+        if (!this.#chunk) {
+            this.#chunk = Buffer.allocUnsafe(needed);
+        } else if (this.#chunk.length < needed) {
+            const grown = Buffer.allocUnsafe(Math.min(this.chunkSize, Math.max(needed, this.#chunk.length * 2)));
+            this.#chunk.copy(grown, 0, 0, this.#dataOffset + this.#cursor);
+            this.#chunk = grown;
         }
     }
 
