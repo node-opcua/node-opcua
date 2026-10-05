@@ -93,6 +93,17 @@ interface TrackedServiceCounter {
     staleTotalCount: boolean;
     staleErrorCount: boolean;
 }
+/** the object behind the proxies, which are nested: one per Variable exposing the counter */
+function unproxied(counter: ServiceCounter): ServiceCounter {
+    let raw = counter;
+    for (;;) {
+        const target = (raw as { $proxyTarget?: ServiceCounter }).$proxyTarget;
+        if (!target) {
+            return raw;
+        }
+        raw = target;
+    }
+}
 /**
  * how long, in milliseconds, the Variables exposing the service counters may go without being
  * refreshed while the counters keep moving: the bound clientLastContactTime already lives with
@@ -426,8 +437,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         let counter = this._serviceCounters.get(propName);
         if (counter === undefined) {
             const proxied = (this._sessionDiagnostics as unknown as Record<string, ServiceCounter | undefined>)[propName];
-            const raw = (proxied as unknown as { $proxyTarget?: ServiceCounter } | undefined)?.$proxyTarget ?? proxied;
-            counter = proxied && raw ? { raw, proxied, staleTotalCount: false, staleErrorCount: false } : null;
+            counter = proxied ? { raw: unproxied(proxied), proxied, staleTotalCount: false, staleErrorCount: false } : null;
             this._serviceCounters.set(propName, counter);
         }
         if (!counter) {
