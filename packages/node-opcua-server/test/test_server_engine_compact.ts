@@ -1,8 +1,10 @@
-import { type CompactAddressSpace, SessionContext } from "node-opcua-address-space";
+import { type CompactAddressSpace, ContinuationPointManager, SessionContext } from "node-opcua-address-space";
+import { makeMockSessionContext } from "node-opcua-address-space/testHelpers.js";
 import { AttributeIds, BrowseDirection, NodeClass, ResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
+import { HistoryReadRequest, ReadRawModifiedDetails } from "node-opcua-service-history";
 import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { WriteValue } from "node-opcua-service-write";
@@ -12,7 +14,7 @@ import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { ServerEngine } from "../dist/server_engine.js";
 
-describe("ServerEngine with a compact address space: Read, Write, Browse, Translate and Call on compact namespaces", function () {
+describe("ServerEngine with a compact address space: Read, Write, Browse, Translate, Call and HistoryRead on compact namespaces", function () {
     this.timeout(60000);
     let engine: ServerEngine;
     let compact: CompactAddressSpace;
@@ -88,6 +90,56 @@ describe("ServerEngine with a compact address space: Read, Write, Browse, Transl
         should(values[2].value.value).eql(1, "the getter is read");
         should(values[3].statusCode).eql(StatusCodes.BadNodeIdUnknown);
         should(values[4].value.value.name).eql("ServerStatus", "the node objects still answer their namespaces");
+    });
+
+    it("records the values of a historized Variable and answers HistoryRead", async () => {
+        const level = compact.addVariable({
+            nodeId: `ns=${ns};s=Level`,
+            browseName: "Level",
+            organizedBy: compact.findNode("ns=0;i=85") as never,
+            dataType: "Double",
+            value: { dataType: DataType.Double, value: 0 }
+        });
+        compact.installHistoricalDataNode(level);
+        should(level.historizing).eql(true);
+        const start = new Date(Date.now() - 1000);
+        for (const value of [1, 2, 3]) {
+            await engine.write(context, [
+                new WriteValue({
+                    nodeId: level.nodeId,
+                    attributeId: AttributeIds.Value,
+                    value: new DataValue({ value: new Variant({ dataType: DataType.Double, value }), sourceTimestamp: new Date() })
+                })
+            ]);
+            await new Promise((resolve) => setTimeout(resolve, 2));
+        }
+        // HistoryRead keeps its continuation points in the session
+        const historyContext = makeMockSessionContext({ continuationPointManager: new ContinuationPointManager() });
+        const [result] = await engine.historyRead(
+            historyContext,
+            new HistoryReadRequest({
+                historyReadDetails: new ReadRawModifiedDetails({
+                    startTime: start,
+                    endTime: new Date(Date.now() + 1000),
+                    numValuesPerNode: 0
+                }),
+                nodesToRead: [{ nodeId: level.nodeId }],
+                timestampsToReturn: TimestampsToReturn.Both
+            })
+        );
+        should(result.statusCode).eql(StatusCodes.Good);
+        const values = ((result.historyData as unknown as { dataValues: DataValue[] }).dataValues ?? []).map((d) => d.value.value);
+        should(values).eql([1, 2, 3]);
+        // a Variable without history
+        const [none] = await engine.historyRead(
+            historyContext,
+            new HistoryReadRequest({
+                historyReadDetails: new ReadRawModifiedDetails({ startTime: start, endTime: new Date(), numValuesPerNode: 0 }),
+                nodesToRead: [{ nodeId: `ns=${ns};s=Speed` }],
+                timestampsToReturn: TimestampsToReturn.Both
+            })
+        );
+        should(none.statusCode).eql(StatusCodes.BadNotReadable);
     });
 
     it("calls a Method of the compact namespace through the Call service", async () => {

@@ -116,6 +116,25 @@ export class StorePermissions {
         return StatusCodes.Good.value;
     }
 
+    /** the status a HistoryRead of node `index` gets from `context`: Good, or what denies it */
+    public historyReadStatus(context: ISessionContext | null | undefined, index: number): number {
+        const nodes = this.#space.store.nodes;
+        const session = context?.session;
+        if (session && this.isAccessRestricted(context, index)) {
+            return StatusCodes.BadSecurityModeInsufficient.value;
+        }
+        if ((nodes.accessLevel(index) & AccessLevelFlag.HistoryRead) === 0) {
+            return StatusCodes.BadNotReadable.value;
+        }
+        if (session && (this.permissions(context, index) & PermissionFlag.ReadHistory) === 0) {
+            return StatusCodes.BadUserAccessDenied.value;
+        }
+        if ((nodes.userAccessLevel(index) & AccessLevelFlag.HistoryRead) === 0) {
+            return StatusCodes.BadUserAccessDenied.value;
+        }
+        return StatusCodes.Good.value;
+    }
+
     /** the status a Write of the Value of node `index` gets from `context`: Good, or what denies it */
     public writeValueStatus(context: ISessionContext | null | undefined, index: number): number {
         const nodes = this.#space.store.nodes;

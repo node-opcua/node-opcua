@@ -64,7 +64,10 @@ import { UAAcknowledgeableConditionImplBase, UAConditionImplBase } from "./alarm
 import { BaseNodeImpl, defineSharedChildAccessors } from "./base_node_impl.js";
 import { EventData } from "./event_data.js";
 import { getEventLayout } from "./event_layout.js";
-import { AddressSpace_installHistoricalDataNode } from "./historical_access/address_space_historical_data_node.js";
+import {
+    AddressSpace_installHistoricalDataNode,
+    createDetachedHistorian
+} from "./historical_access/address_space_historical_data_node.js";
 import { historizerFactoryHolder } from "./historizer_factory.js";
 import { isNonEmptyQualifiedName, NamespaceImpl } from "./namespace_impl.js";
 import type { NamespacePrivate } from "./namespace_private.js";
@@ -191,7 +194,10 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
     }
 
     public static createCompact(options?: StoreAddressSpaceOptions): StoreAddressSpace {
-        return new StoreAddressSpace(options);
+        const space = new StoreAddressSpace(options);
+        // installHistoricalDataNode without a historian of its own: the values in memory, as for a node object
+        space.historianFactory = (variable, historianOptions) => createDetachedHistorian(variable, historianOptions);
+        return space;
     }
 
     private static registry = new ObjectRegistry();

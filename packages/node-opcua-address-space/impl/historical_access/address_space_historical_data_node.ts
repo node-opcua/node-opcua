@@ -13,10 +13,11 @@ import type {
     UAVariable
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
-import { AccessLevelFlag, NodeClass, type QualifiedNameLike } from "node-opcua-data-model";
+import { AccessLevelFlag, NodeClass, type QualifiedName, type QualifiedNameLike } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { isMinDate, minDate } from "node-opcua-date-time";
 import { make_warningLog } from "node-opcua-debug";
+import type { NodeId } from "node-opcua-nodeid";
 import type { UAHistoricalDataConfiguration } from "node-opcua-nodeset-ua";
 import type { NumericRange } from "node-opcua-numeric-range";
 import {
@@ -1032,4 +1033,66 @@ export function AddressSpace_installHistoricalDataNode(
     node.addressSpace.historizingNodes.add(node);
 
     node.addressSpace.onHistorizingNodeAdded?.(node);
+}
+
+// ---------------------------------------------------------------- Variables that are not node objects
+
+/**
+ * what HistoryRead needs of a Variable that is not a node object (a node of the compact address
+ * space): the historian that holds its values, and the session's right to read them
+ */
+export interface IHistoryReadTarget {
+    nodeId: NodeId;
+    browseName: QualifiedName;
+    varHistorian: IVariableHistorian;
+    canUserReadHistory(context: ISessionContext): boolean;
+}
+
+/**
+ * HistoryRead on such a Variable, with the logic of the node objects (raw and modified values,
+ * values at a time, continuation points). Processed values (aggregates) answer
+ * BadHistoryOperationUnsupported: they are computed on the node objects.
+ */
+export function historyReadThrough(
+    target: IHistoryReadTarget,
+    context: ISessionContext,
+    historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
+    indexRange: NumericRange | null,
+    dataEncoding: QualifiedNameLike | null,
+    continuationData: ContinuationData
+): Promise<HistoryReadResult> {
+    // the members the functions of the node objects read through `this`
+    const node = {
+        nodeId: target.nodeId,
+        browseName: target.browseName,
+        varHistorian: target.varHistorian,
+        historizing: true,
+        canUserReadHistory: (c: ISessionContext) => target.canUserReadHistory(c),
+        addressSpace: undefined,
+        $historicalDataConfiguration: undefined,
+        _historyReadRaw,
+        _historyReadRawAsync,
+        _historyReadModify,
+        _historyReadRawModify
+    } as unknown as UAVariableImpl;
+    return new Promise<HistoryReadResult>((resolve, reject) => {
+        _historyRead.call(node, context, historyReadDetails, indexRange, dataEncoding, continuationData, (err, result) => {
+            if (err || !result) reject(err ?? new Error("historyReadThrough: no result"));
+            else resolve(result);
+        });
+    });
+}
+
+/** the historian a Variable that is not a node object gets by default: its last values in memory */
+export function createDetachedHistorian(
+    variable: { nodeId: NodeId; browseName: QualifiedName },
+    options: IVariableHistorianOptions = {}
+): IVariableHistorian {
+    // the archive dates of a node object's HistoricalDataConfiguration: such a Variable has none
+    const node = {
+        nodeId: variable.nodeId,
+        browseName: variable.browseName,
+        _update_startOfOnlineArchive: () => undefined
+    } as unknown as UAVariable;
+    return new VariableHistorian(node, options);
 }

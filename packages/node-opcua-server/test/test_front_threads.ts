@@ -253,6 +253,55 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
         await write(sessions[1], `ns=${ns};s=Speed`, new Variant({ dataType: DataType.Double, value: 1.5 }));
     });
 
+    it("reads the history of a compact Variable through a front, with continuation points", async () => {
+        const space = engine.addressSpace;
+        const plant = space.findNode(`ns=${ns};s=Speed`)?.parent;
+        const flow = space.addVariable({
+            nodeId: `ns=${ns};s=Flow`,
+            browseName: "Flow",
+            organizedBy: plant ?? undefined,
+            dataType: "Double",
+            value: { dataType: DataType.Double, value: 0 }
+        });
+        space.installHistoricalDataNode(flow);
+        const start = new Date(Date.now() - 1000);
+        for (let k = 1; k <= 5; k++) {
+            flow.setValueFromSource({ dataType: DataType.Double, value: k }, StatusCodes.Good, new Date(Date.now() + k));
+        }
+        await pause(50);
+        const end = new Date(Date.now() + 10000);
+        const before = engine.requests.historyExtract;
+        // two values at a time: the continuation point lives in the front's session
+        const seen: number[] = [];
+        let first = await sessions[0].readHistoryValue(flow.nodeId, start, end, { numValuesPerNode: 2, returnBounds: false });
+        should(first.statusCode.isGood()).eql(true);
+        for (;;) {
+            for (const d of (first.historyData as { dataValues?: DataValue[] }).dataValues ?? [])
+                seen.push(d.value.value as number);
+            if (!first.continuationPoint || first.continuationPoint.length === 0) break;
+            first = await sessions[0].readHistoryValue(
+                { nodeId: flow.nodeId, continuationPoint: first.continuationPoint },
+                start,
+                end,
+                {
+                    numValuesPerNode: 2,
+                    returnBounds: false
+                }
+            );
+        }
+        // the values written once the Variable was historized, in two-value pages
+        should(seen).eql([1, 2, 3, 4, 5]);
+        should(engine.requests.historyExtract).be.above(before);
+        // with the bounds: none before the first value (BoundNoData), the last value held after it
+        const bounded = await sessions[0].readHistoryValue(flow.nodeId, start, end, { returnBounds: true });
+        const page = (bounded.historyData as unknown as { dataValues?: DataValue[] }).dataValues ?? [];
+        should(page.map((d) => d.statusCode.name)).not.containEql("BadBoundNotSupported");
+        should(page.length).eql(7);
+        should(page.slice(1, 6).map((d) => d.value.value)).eql([1, 2, 3, 4, 5]);
+        const none = await sessions[1].readHistoryValue(`ns=${ns};s=Speed`, start, end);
+        should(none.statusCode).eql(StatusCodes.BadNotReadable);
+    });
+
     it("writes through the engine and every connection sees it", async () => {
         const statuses = await sessions[1].write([
             {

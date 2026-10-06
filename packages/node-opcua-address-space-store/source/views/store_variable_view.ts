@@ -245,6 +245,11 @@ export class StoreVariableView extends StoreNodeView {
         if (this.hasListeners()) {
             this.emit("value_changed", this.#dataValueFromColumns().clone());
         }
+        // a historized Variable: the value goes to its historian, as on the node objects
+        const historian = this.space.historians.get(this.index);
+        if (historian) {
+            historian.push(this.#dataValueFromColumns().clone()).catch(() => undefined);
+        }
     }
 
     /** the value through a callback, as the node objects offer it to the samplers; nothing here waits */

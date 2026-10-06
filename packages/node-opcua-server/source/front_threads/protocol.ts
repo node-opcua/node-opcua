@@ -236,6 +236,15 @@ export interface DescribeReply {
     attributes: Uint8Array;
 }
 
+export interface HistoryCheckReply {
+    /** a StatusCode value: Good when the session may read the history */
+    status: number;
+    /** false when the historian computes no bounds */
+    boundsSupported: boolean;
+    /** for each time asked: the value before it, then the value after it, as DataValues (an empty DataValue for none) */
+    bounds: Uint8Array | null;
+}
+
 export interface ValueReply {
     value: Uint8Array;
     /** the version word of the value when it was read; -1 when the node is gone */
@@ -271,7 +280,14 @@ export type FrontRequest =
     | { kind: "describe"; context: ContextDescriptor; items: { nodeId: string; attributeId: number }[] }
     | { kind: "value"; context: ContextDescriptor; index: number; generation: number }
     /** a Method call: the CallMethodRequest as its binary encoding; answered with the CallMethodResult's */
-    | { kind: "call"; context: ContextDescriptor; request: Uint8Array };
+    | { kind: "call"; context: ContextDescriptor; request: Uint8Array }
+    /**
+     * may this session read the history of the node (a HistoryCheckReply): and, at each of these
+     * times (milliseconds since the epoch), the values just before and just after, for the bounds
+     */
+    | { kind: "historyCheck"; context: ContextDescriptor; nodeId: string; boundTimes: number[] }
+    /** values from the historian of the node: ReadRawModifiedDetails as its binary encoding; answered with DataValues, or null */
+    | { kind: "historyExtract"; nodeId: string; details: Uint8Array; max: number; isReversed: boolean; reverse: boolean };
 
 /** start (1) or stop (0) watching a node: index and generation, three numbers per operation, in order */
 export const WATCH = 1;
