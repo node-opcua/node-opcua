@@ -187,6 +187,8 @@ export const UNWATCH = 0;
 export type FrontToEngine =
     | { kind: "requests"; ids: number[]; requests: FrontRequest[] }
     | { kind: "watches"; operations: number[] }
+    /** the last "changes" message was delivered: the engine may send the next one */
+    | { kind: "changesDone" }
     | { kind: "ready"; endpointUrl: string }
     | { kind: "failed"; message: string }
     | { kind: "stopped" };

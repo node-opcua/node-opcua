@@ -61,9 +61,12 @@ async function main(): Promise<void> {
             case "anchors":
                 backend.setAnchors(message.anchors);
                 break;
-            case "changes":
+            case "changes": {
                 backend.receiveChanges(message.indexes, message.versions, message.values);
+                const done: FrontToEngine = { kind: "changesDone" };
+                port.postMessage(done);
                 break;
+            }
             case "disposed":
                 backend.receiveDisposed(message.indexes);
                 break;
