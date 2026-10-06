@@ -49,7 +49,11 @@ export class StoreReferenceView {
 export class StoreNodeView extends EventEmitter {
     public readonly space: StoreAddressSpace;
     public readonly index: number;
-    /** the view cache's mark: 1 when used since the hand last passed, 0 when not */
+    /**
+     * the view cache's mark: 1 when used since the hand last passed, 0 when not, -1 when the
+     * ring let it go while it had listeners (a monitored item holds it): it then stays the
+     * view of its node until the last listener leaves
+     */
     public lastUse = 0;
     #nodeId: NodeId | undefined;
     #browseName: QualifiedName | undefined;
@@ -110,6 +114,30 @@ export class StoreNodeView extends EventEmitter {
     }
     public isDisposed(): boolean {
         return this.space.store.nodes.isDeleted(this.index);
+    }
+
+    /** true when something listens to this view: a monitored item, the application */
+    public hasListeners(): boolean {
+        return (this as unknown as { _eventsCount: number })._eventsCount > 0;
+    }
+
+    public override removeListener(event: string | symbol, listener: (...args: unknown[]) => void): this {
+        super.removeListener(event, listener);
+        this.#afterListenerRemoved();
+        return this;
+    }
+    public override off(event: string | symbol, listener: (...args: unknown[]) => void): this {
+        return this.removeListener(event, listener);
+    }
+    public override removeAllListeners(event?: string | symbol): this {
+        super.removeAllListeners(event);
+        this.#afterListenerRemoved();
+        return this;
+    }
+    #afterListenerRemoved(): void {
+        if (this.lastUse === -1 && !this.hasListeners()) {
+            this.space.forgetView(this);
+        }
     }
 
     // ---- references

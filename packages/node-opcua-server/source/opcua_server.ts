@@ -1,13 +1,12 @@
 /**
  * @module node-opcua-server
  */
+
 import fs from "node:fs";
 import path from "node:path";
 import { callbackify, types } from "node:util";
-
 import chalk from "chalk";
 import {
-    type AddressSpace,
     type EventTypeLike,
     ensureDatatypeExtracted,
     type IRolePolicyOverride,
@@ -164,13 +163,13 @@ import {
 import { isNullOrUndefined, matchUri, randomBytes } from "node-opcua-utils";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
 import { withCallback } from "thenify-ex";
-
 import { OPCUABaseServer, type OPCUABaseServerOptions } from "./base_server.js";
 import { extractPasswordFromDecryptedBlob } from "./extract_password_from_blob.js";
 import { Factory } from "./factory.js";
 import type { IChannelData } from "./i_channel_data.js";
 import type { IRegisterServerManager } from "./i_register_server_manager.js";
 import type { ISocketData } from "./i_socket_data.js";
+import type { INodeFinder } from "./monitorable_node.js";
 import { MonitoredItem } from "./monitored_item.js";
 import { ensurePublishSubscribeIsBrowsable } from "./publish_subscribe_structure.js";
 import { RegisterServerManager } from "./register_server_manager.js";
@@ -587,10 +586,10 @@ function monitoredItem_read_and_record_value_async(
     });
 }
 
-function build_scanning_node_function(addressSpace: AddressSpace, itemToMonitor: ReadValueId): SamplingFunc {
+function build_scanning_node_function(nodeFinder: INodeFinder, itemToMonitor: ReadValueId): SamplingFunc {
     assert(itemToMonitor instanceof ReadValueId);
 
-    const node = addressSpace.findNode(itemToMonitor.nodeId) as UAVariable;
+    const node = nodeFinder.findNode(itemToMonitor.nodeId) as unknown as UAVariable;
 
     /* c8 ignore next */
     if (!node) {
@@ -651,11 +650,16 @@ function build_scanning_node_function(addressSpace: AddressSpace, itemToMonitor:
     }
 }
 
-function prepareMonitoredItem(_context: ISessionContext, addressSpace: AddressSpace, monitoredItem: MonitoredItem) {
+/**
+ * the sampling function of a monitored item: a read of its node, found on the node objects or
+ * on the compact address space
+ * @internal exported for the engine tests
+ */
+export function prepareMonitoredItem(_context: ISessionContext, nodeFinder: INodeFinder, monitoredItem: MonitoredItem): void {
     // MonitoredItem.itemToMonitor is always constructed as a real ReadValueId instance (see defaultItemToMonitor
     // in monitored_item.ts), even though its declared type is the looser ReadValueIdOptions
     const itemToMonitor = monitoredItem.itemToMonitor as ReadValueId;
-    const readNodeFunc = build_scanning_node_function(addressSpace, itemToMonitor);
+    const readNodeFunc = build_scanning_node_function(nodeFinder, itemToMonitor);
     monitoredItem.samplingFunc = readNodeFunc;
 }
 
@@ -3842,7 +3846,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 const subscription = session.createSubscription(request);
 
                 subscription.on("monitoredItem", (monitoredItem: MonitoredItem) => {
-                    prepareMonitoredItem(context, addressSpace, monitoredItem);
+                    prepareMonitoredItem(context, engine.nodeFinder, monitoredItem);
                 });
 
                 const response = new CreateSubscriptionResponse({
@@ -3948,7 +3952,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 if (options.onCreateMonitoredItem) {
                     const resultsPromise = request.itemsToCreate.map(async (monitoredItemCreateRequest) => {
                         const { monitoredItem, createResult } = subscription.preCreateMonitoredItem(
-                            addressSpace,
+                            engine.nodeFinder,
                             timestampsToReturn,
                             monitoredItemCreateRequest
                         );
@@ -3964,7 +3968,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 } else {
                     results = request.itemsToCreate.map((monitoredItemCreateRequest) => {
                         const { monitoredItem, createResult } = subscription.preCreateMonitoredItem(
-                            addressSpace,
+                            engine.nodeFinder,
                             timestampsToReturn,
                             monitoredItemCreateRequest
                         );

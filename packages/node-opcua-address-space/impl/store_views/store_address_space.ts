@@ -39,6 +39,10 @@ export interface StoreAddressSpaceOptions {
  * view used, and an insertion takes the first slot past the hand whose view was not used since
  * the hand last passed it, clearing the marks it walks over. Constant work per insertion, no
  * ordering kept, and a view the application holds keeps working after it left the ring.
+ *
+ * A view with listeners (a monitored item) gives up its ring slot but stays the view of its
+ * node, so that every writer of the node reaches the listeners; it is forgotten when the last
+ * listener leaves (see StoreNodeView#removeListener).
  */
 class ViewCache {
     readonly #views = new Map<number, StoreNodeView>();
@@ -64,7 +68,11 @@ class ViewCache {
                 break;
             }
             if (occupant.lastUse === 0 || occupant.isDisposed()) {
-                this.#views.delete(occupant.index);
+                if (occupant.hasListeners() && !occupant.isDisposed()) {
+                    occupant.lastUse = -1; // out of the ring, still the node's view
+                } else {
+                    this.#views.delete(occupant.index);
+                }
                 break;
             }
             occupant.lastUse = 0;
@@ -78,6 +86,12 @@ class ViewCache {
     delete(index: number): void {
         // the ring slot is left to the hand: a disposed view is taken at the first pass
         this.#views.delete(index);
+    }
+    /** the view, if it is the one the cache holds for its node */
+    forget(view: StoreNodeView): void {
+        if (this.#views.get(view.index) === view) {
+            this.#views.delete(view.index);
+        }
     }
     get size(): number {
         return this.#views.size;
@@ -181,6 +195,11 @@ export class StoreAddressSpace {
         return this.#views.size;
     }
 
+    /** a view that left the ring and lost its last listener: no longer the node's view */
+    public forgetView(view: StoreNodeView): void {
+        this.#views.forget(view);
+    }
+
     #makeView(index: number): StoreNodeView {
         switch (this.store.nodes.nodeClass(index)) {
             case NodeClass.Variable:
@@ -226,9 +245,12 @@ export class StoreAddressSpace {
      */
     public deleteNode(node: StoreNodeView | NodeId | string | number): void {
         const index = typeof node === "number" ? node : this.#builder.indexOf(node);
+        const view = this.#views.get(index);
         this.store.deleteNode(index);
         this.bindings.delete(index);
         this.#views.delete(index);
         this.permissions.invalidate();
+        // what a monitored item on the node listens to, as on the node objects
+        view?.emit("dispose");
     }
 }

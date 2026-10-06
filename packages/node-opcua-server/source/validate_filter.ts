@@ -35,6 +35,11 @@ function isNumberDataType(node: UAVariable): boolean {
                 return false;
         }
     }
+    if (!node.addressSpace) {
+        // a node of the compact address space answers for itself
+        const compact = node as unknown as { isNumberDataType?: () => boolean };
+        return typeof compact.isNumberDataType === "function" ? compact.isNumberDataType() : false;
+    }
     const dataType = node.addressSpace.findDataType(node.dataType);
     const dataTypeNumber = node.addressSpace.findDataType("Number");
     if (!dataType || !dataTypeNumber) {
