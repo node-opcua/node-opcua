@@ -7,14 +7,16 @@
  */
 export { AttributeReader, type AttributeValue, ReadStatus } from "./attribute_reader.js";
 export { type BrowsedReference, type BrowseOptions, Browser, type RelativePathElement } from "./browser.js";
-export { CompactStore, type CompactStoreOptions, packedKey } from "./compact_store.js";
+export { type Column, ColumnSpace, type ColumnType } from "./columns.js";
+export { CompactStore, type CompactStoreOptions, packedKey, type SharedStoreDescriptor } from "./compact_store.js";
 export { DataTypeResolver, ResolvedType } from "./data_type_resolver.js";
 export { NO_NODE, NodeIdIndex } from "./node_id_index.js";
-export { NO_STRING, type NodeRecord, NodeStore, type RolePermissionEntry } from "./node_store.js";
+export { NO_STRING, type NodeRecord, NodeStore, type RolePermissionEntry, type SharedNodeBuffers } from "./node_store.js";
 export { ReferenceTable } from "./reference_table.js";
 export { ReferenceTypeHierarchy } from "./reference_type_hierarchy.js";
+export { SharedReadStatus, SharedStoreReader, type SharedValue } from "./shared_reader.js";
 export { StringArena } from "./string_arena.js";
-export { type StoredValue, ValueKind, ValueStore } from "./value_store.js";
+export { type SharedValueBuffers, type StoredValue, ValueKind, ValueStore } from "./value_store.js";
 export { StoreAddressSpace, type StoreAddressSpaceOptions } from "./views/store_address_space.js";
 export { attributeDataValue, deniedDataValue, valueDataValue } from "./views/store_data_value.js";
 export type { StoreAddNodeOptions, StoreAddObjectOptions, StoreAddVariableOptions } from "./views/store_node_builder.js";

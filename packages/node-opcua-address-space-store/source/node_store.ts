@@ -7,8 +7,9 @@
  */
 import type { NodeClass } from "node-opcua-data-model";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
-import { NO_NODE, NodeIdIndex } from "./node_id_index.js";
-import { StringArena } from "./string_arena.js";
+import { bufferOf, type Column, ColumnSpace, type ColumnType } from "./columns.js";
+import { NO_NODE, NodeIdIndex, type SharedIndexBuffers } from "./node_id_index.js";
+import { type SharedArenaBuffers, StringArena } from "./string_arena.js";
 
 export { NO_NODE };
 
@@ -58,15 +59,6 @@ export interface RolePermissionEntry {
 /** the accessRestrictions column value for a node that declares none */
 const INHERITED_ACCESS_RESTRICTIONS = 0xff;
 
-type Column = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array;
-
-/** `col` resized to `n` entries, grown or trimmed; `Type` is its own constructor */
-function resized<T extends Column>(col: T, n: number, Type: new (n: number) => T): T {
-    const next = new Type(n);
-    next.set((col.length > n ? col.subarray(0, n) : col) as unknown as ArrayLike<number>);
-    return next;
-}
-
 export class NodeStore {
     public readonly strings: StringArena;
     public readonly byNodeId: NodeIdIndex;
@@ -101,31 +93,47 @@ export class NodeStore {
     // the few nodes that declare RolePermissions (557 of the 5,476 nodes of the standard nodeset)
     readonly #rolePermissions = new Map<number, readonly RolePermissionEntry[]>();
 
-    constructor(expectedNodes = 1024) {
-        this.strings = new StringArena(Math.max(64, expectedNodes >> 2));
-        this.byNodeId = new NodeIdIndex(this.strings, expectedNodes);
+    readonly #space: ColumnSpace;
+
+    constructor(expectedNodes = 1024, space = new ColumnSpace()) {
+        this.#space = space;
+        this.strings = new StringArena(Math.max(64, expectedNodes >> 2), undefined, space);
+        this.byNodeId = new NodeIdIndex(this.strings, expectedNodes, space);
         const n = Math.max(16, expectedNodes);
         this.#capacity = n;
-        this.#namespace = new Uint16Array(n);
-        this.#identifierType = new Uint8Array(n);
-        this.#identifier = new Uint32Array(n);
-        this.#nodeClass = new Uint8Array(n);
-        this.#browseName = new Int32Array(n);
-        this.#browseNameNamespace = new Uint16Array(n);
-        this.#displayName = new Int32Array(n);
-        this.#description = new Int32Array(n);
-        this.#typeDefinition = new Int32Array(n);
-        this.#dataType = new Int32Array(n);
-        this.#parent = new Int32Array(n);
-        this.#valueRank = new Int8Array(n);
-        this.#accessLevel = new Uint8Array(n);
-        this.#userAccessLevel = new Uint8Array(n);
-        this.#eventNotifier = new Uint8Array(n);
-        this.#minimumSamplingInterval = new Float32Array(n);
-        this.#flags = new Uint8Array(n);
-        this.#inverseName = new Int32Array(n);
-        this.#accessRestrictions = new Uint8Array(n).fill(INHERITED_ACCESS_RESTRICTIONS);
-        this.#generation = new Uint16Array(n);
+        const a = <T extends Column>(Type: ColumnType<T>) => space.allocate(Type, n);
+        this.#namespace = a(Uint16Array);
+        this.#identifierType = a(Uint8Array);
+        this.#identifier = a(Uint32Array);
+        this.#nodeClass = a(Uint8Array);
+        this.#browseName = a(Int32Array);
+        this.#browseNameNamespace = a(Uint16Array);
+        this.#displayName = a(Int32Array);
+        this.#description = a(Int32Array);
+        this.#typeDefinition = a(Int32Array);
+        this.#dataType = a(Int32Array);
+        this.#parent = a(Int32Array);
+        this.#valueRank = a(Int8Array);
+        this.#accessLevel = a(Uint8Array);
+        this.#userAccessLevel = a(Uint8Array);
+        this.#eventNotifier = a(Uint8Array);
+        this.#minimumSamplingInterval = a(Float32Array);
+        this.#flags = a(Uint8Array);
+        this.#inverseName = a(Int32Array);
+        this.#accessRestrictions = a(Uint8Array).fill(INHERITED_ACCESS_RESTRICTIONS);
+        this.#generation = a(Uint16Array);
+    }
+
+    /** the columns a reader in another thread needs to read a Value (see SharedStoreReader) */
+    public exportShared(): SharedNodeBuffers {
+        return {
+            nodeClass: bufferOf(this.#nodeClass),
+            accessLevel: bufferOf(this.#accessLevel),
+            userAccessLevel: bufferOf(this.#userAccessLevel),
+            flags: bufferOf(this.#flags),
+            index: this.byNodeId.exportShared(),
+            strings: this.strings.exportShared()
+        };
     }
 
     /** indexes handed out so far, deleted ones included */
@@ -347,6 +355,7 @@ export class NodeStore {
     }
 
     #resize(n: number): void {
+        const resized = <T extends Column>(col: T, length: number, Type: ColumnType<T>) => this.#space.resized(col, length, Type);
         this.#namespace = resized(this.#namespace, n, Uint16Array);
         this.#identifierType = resized(this.#identifierType, n, Uint8Array);
         this.#identifier = resized(this.#identifier, n, Uint32Array);
@@ -372,4 +381,14 @@ export class NodeStore {
         }
         this.#accessRestrictions = restrictions;
     }
+}
+
+/** what a reader in another thread needs of the nodes */
+export interface SharedNodeBuffers {
+    nodeClass: SharedArrayBuffer;
+    accessLevel: SharedArrayBuffer;
+    userAccessLevel: SharedArrayBuffer;
+    flags: SharedArrayBuffer;
+    index: SharedIndexBuffers;
+    strings: SharedArenaBuffers;
 }
