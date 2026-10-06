@@ -18,6 +18,7 @@
         {
             "path": "../node-opcua-address-space"
         },
+        { "path": "../node-opcua-address-space-store" },
         {
             "path": "../node-opcua-address-space-base"
         },
