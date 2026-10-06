@@ -128,6 +128,21 @@ describe("store runtime changes: nodes and references added and removed through 
         should(machine?.getComponentByName("Speed2")).equal(again);
     });
 
+    it("folds the rows added since the load into the table on compact()", () => {
+        const machine = space.findNode("ns=1;i=1001");
+        const before = space.store.references.rowCount;
+        should(space.store.references.overflowSize).be.above(0, "rows added at runtime wait in the overflow");
+        space.compact();
+        should(space.store.references.overflowSize).eql(0);
+        should(space.store.references.rowCount).be.belowOrEqual(before, "dead rows dropped");
+        should(machine?.getComponentByName("Temperature")?.nodeId.toString()).eql("ns=1;s=Temperature");
+        should(machine?.getComponentByName("Speed2")?.nodeId.toString()).eql("ns=1;i=1002");
+        should(space.findNode("ns=1;i=1000")?.getChildByName("Machine")).equal(machine);
+        // and the table takes rows again after that
+        const next = space.addObject({ browseName: "AfterCompact", organizedBy: machine as never });
+        should(machine?.getChildByName("AfterCompact")).equal(next);
+    });
+
     it("keeps the loaded nodes browsable and the added ones reachable by path", () => {
         const objects = space.findNode("ns=0;i=85");
         should(objects?.getChildByName("Server", 0)?.nodeId.toString()).eql("ns=0;i=2253");

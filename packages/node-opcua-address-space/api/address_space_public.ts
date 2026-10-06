@@ -4,6 +4,7 @@
 import type { IAddressSpace } from "node-opcua-address-space-base";
 import { AddressSpaceImpl } from "../impl/address_space.js";
 import type { StoreAddressSpace, StoreAddressSpaceOptions } from "../impl/store_views/store_address_space.js";
+import { StoreServices } from "../impl/store_views/store_services.js";
 import type { IHistorizerFactory } from "./address_space_ts.js";
 import type { Namespace } from "./namespace.js";
 import type { UARootFolder } from "./ua_root_folder.js";
@@ -11,6 +12,9 @@ import type { UARootFolder } from "./ua_root_folder.js";
 /** the published names of the compact address space and its options */
 export type CompactAddressSpace = StoreAddressSpace;
 export type CompactAddressSpaceOptions = StoreAddressSpaceOptions;
+/** the Read, Write, Browse and TranslateBrowsePaths services on a compact address space */
+export const CompactAddressSpaceServices = StoreServices;
+export type CompactAddressSpaceServices = StoreServices;
 
 /**
  * The address space: the set of nodes a server exposes, and the namespaces they live in.

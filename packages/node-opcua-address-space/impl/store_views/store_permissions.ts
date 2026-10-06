@@ -114,6 +114,33 @@ export class StorePermissions {
         return StatusCodes.Good.value;
     }
 
+    /** the status a Write of the Value of node `index` gets from `context`: Good, or what denies it */
+    public writeValueStatus(context: ISessionContext | null | undefined, index: number): number {
+        const nodes = this.#space.store.nodes;
+        const session = context?.session;
+        if (session && this.isAccessRestricted(context, index)) {
+            return StatusCodes.BadSecurityModeInsufficient.value;
+        }
+        if ((nodes.accessLevel(index) & AccessLevelFlag.CurrentWrite) === 0) {
+            return StatusCodes.BadNotWritable.value;
+        }
+        if (session && (this.permissions(context, index) & PermissionFlag.Write) === 0) {
+            return StatusCodes.BadUserAccessDenied.value;
+        }
+        if ((nodes.userAccessLevel(index) & AccessLevelFlag.CurrentWrite) === 0) {
+            return StatusCodes.BadNotWritable.value;
+        }
+        return StatusCodes.Good.value;
+    }
+
+    /** true when the context may see the node in a Browse: the Browse permission; every in-process caller */
+    public canBrowse(context: ISessionContext | null | undefined, index: number): boolean {
+        if (!context?.session) {
+            return true;
+        }
+        return (this.permissions(context, index) & PermissionFlag.Browse) !== 0;
+    }
+
     /** true when the channel the context came over does not meet the node's access restrictions */
     public isAccessRestricted(context: ISessionContext | null | undefined, index: number): boolean {
         const session = context?.session;

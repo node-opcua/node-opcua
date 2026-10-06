@@ -1332,6 +1332,15 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      * @default false
      */
     skipOwnNamespace?: boolean;
+
+    /**
+     * a compact address space next to the node objects: the namespaces registered with
+     * server.engine.registerCompactNamespace() live there, in typed columns, and the Read,
+     * Write, Browse and TranslateBrowsePaths services answer them from there. It is loaded
+     * with the same nodesets as the node objects, so that a compact node can hang under the
+     * Objects folder. Subscriptions do not reach those nodes yet.
+     */
+    compactAddressSpace?: boolean;
     transportSettings?: IServerTransportSettings;
 }
 

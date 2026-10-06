@@ -137,6 +137,18 @@ export class StoreAddressSpace {
         return this.namespaceIndexOf(uri);
     }
 
+    /**
+     * after a burst of additions: the reference rows re-indexed and the growth slack dropped,
+     * as after a load. The rows added since the last index wait in per-node lists, which is
+     * what a model built node by node mostly costs; this folds them into the table.
+     */
+    public compact(): void {
+        this.store.finish();
+        this.browser.refresh();
+        this.dataTypes.invalidate();
+        this.permissions.invalidate();
+    }
+
     public namespaceIndexOf(uri: string): number {
         let index = this.namespaceUris.indexOf(uri);
         if (index === -1) {

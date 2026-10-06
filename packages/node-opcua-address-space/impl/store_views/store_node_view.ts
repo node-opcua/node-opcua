@@ -7,14 +7,13 @@
  */
 import { EventEmitter } from "node:events";
 import type { ISessionContext } from "node-opcua-address-space-base";
-import { type BrowsedReference, NO_NODE, ReadStatus } from "node-opcua-address-space-store";
+import { type BrowsedReference, NO_NODE } from "node-opcua-address-space-store";
 import { AttributeIds, LocalizedText, type NodeClass, QualifiedName } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
-import { getCurrentClock } from "node-opcua-date-time";
+import type { DataValue } from "node-opcua-data-value";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
-import { coerceStatusCode, StatusCodes } from "node-opcua-status-code";
-import { Variant, type VariantOptions } from "node-opcua-variant";
+import type { Variant } from "node-opcua-variant";
 import type { StoreAddressSpace } from "./store_address_space.js";
+import { attributeDataValue } from "./store_data_value.js";
 
 const HIERARCHICAL_REFERENCES = new NodeId(NodeIdType.NUMERIC, 33, 0);
 const AGGREGATES = new NodeId(NodeIdType.NUMERIC, 44, 0);
@@ -164,19 +163,7 @@ export class StoreNodeView extends EventEmitter {
 
     // ---- read
     public readAttribute(_context: ISessionContext | null, attributeId: AttributeIds): DataValue {
-        const read = this.space.reader.read(this.index, attributeId);
-        if (read.statusCode !== ReadStatus.Good) {
-            return new DataValue({ statusCode: coerceStatusCode(read.statusCode) });
-        }
-        const now = getCurrentClock();
-        return new DataValue({
-            value: new Variant({ dataType: read.dataType, arrayType: read.arrayType, value: read.value } as VariantOptions),
-            statusCode: StatusCodes.Good,
-            sourceTimestamp: read.sourceTimestamp ? new Date(read.sourceTimestamp) : now.timestamp,
-            sourcePicoseconds: read.sourcePicoseconds,
-            serverTimestamp: now.timestamp,
-            serverPicoseconds: now.picoseconds
-        });
+        return attributeDataValue(this.space.reader, this.index, attributeId);
     }
 
     public toString(): string {

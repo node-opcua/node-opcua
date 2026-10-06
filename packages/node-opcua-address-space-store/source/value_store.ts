@@ -166,6 +166,14 @@ export class ValueStore {
     }
 
     /** only the timestamps move (a value re-read from its source that did not change) */
+    /** the server timestamp alone: the value was re-verified, not re-obtained */
+    public setServerTimestamp(i: number, serverTimestamp: number, serverPicoseconds = 0): void {
+        this.#begin(i);
+        this.#serverTimestamp[i] = serverTimestamp; // check-proto-pollution: ok - typed array, node index
+        this.#serverPicoseconds[i] = serverPicoseconds; // check-proto-pollution: ok - typed array, node index
+        this.#end(i);
+    }
+
     public touch(i: number, sourceTimestamp: number, serverTimestamp: number, sourcePicoseconds = 0, serverPicoseconds = 0): void {
         this.#begin(i);
         this.#sourceTimestamp[i] = sourceTimestamp;

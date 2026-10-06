@@ -7,12 +7,13 @@
 import type { ISessionContext } from "node-opcua-address-space-base";
 import { NO_NODE, ValueKind } from "node-opcua-address-space-store";
 import { AttributeIds } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
+import type { DataValue } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 import { NodeId } from "node-opcua-nodeid";
-import { coerceStatusCode, StatusCodes } from "node-opcua-status-code";
+import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType, type VariantLike } from "node-opcua-variant";
 import type { StoreAddressSpace } from "./store_address_space.js";
+import { deniedDataValue, valueDataValue } from "./store_data_value.js";
 import { StoreNodeView, type VariableBinding } from "./store_node_view.js";
 
 export class StoreVariableView extends StoreNodeView {
@@ -67,15 +68,7 @@ export class StoreVariableView extends StoreNodeView {
     public readValue(context?: ISessionContext | null): DataValue {
         const status = this.space.permissions.readValueStatus(context, this.index);
         if (status !== 0) {
-            const now = getCurrentClock();
-            // field by field: a null-constructed DataValue skips the options walk
-            const denied = new DataValue(null);
-            denied.statusCode = coerceStatusCode(status);
-            denied.sourceTimestamp = now.timestamp;
-            denied.sourcePicoseconds = now.picoseconds;
-            denied.serverTimestamp = now.timestamp;
-            denied.serverPicoseconds = now.picoseconds;
-            return denied;
+            return deniedDataValue(status);
         }
         const binding = this.space.bindings.get(this.index);
         if (binding?.get) {
@@ -108,8 +101,17 @@ export class StoreVariableView extends StoreNodeView {
         this.#storeVariant(v, statusCode.value, source, now.timestamp.getTime());
     }
 
-    /** a Write from a client: through the setter when one is bound, else into the columns */
-    public writeValue(dataValue: DataValue): number {
+    /**
+     * a Write from a client: the gates first when a context is given (the same as the node
+     * objects apply), the DataType, then the setter when one is bound, else the columns
+     */
+    public writeValue(dataValue: DataValue, context?: ISessionContext | null): number {
+        if (context) {
+            const status = this.space.permissions.writeValueStatus(context, this.index);
+            if (status !== 0) {
+                return status;
+            }
+        }
         if (!this.#accepts(dataValue.value, false)) {
             return StatusCodes.BadTypeMismatch.value;
         }
@@ -186,41 +188,7 @@ export class StoreVariableView extends StoreNodeView {
     }
 
     #buildDataValue(): DataValue {
-        const values = this.space.store.values;
-        const i = this.index;
-        const kind = values.kind(i);
-        if (kind === ValueKind.None) {
-            const status = values.statusCode(i);
-            return new DataValue({
-                statusCode: status === 0 ? StatusCodes.BadWaitingForInitialData : coerceStatusCode(status)
-            });
-        }
-        const stored = values.get(i);
-        let variant: Variant;
-        if (kind === ValueKind.Object) {
-            const o = stored.value as {
-                dataType: DataType;
-                arrayType?: VariantArrayType;
-                dimensions?: number[] | null;
-                value: unknown;
-            };
-            variant = new Variant({
-                dataType: o.dataType,
-                arrayType: o.arrayType ?? VariantArrayType.Scalar,
-                dimensions: o.dimensions ?? undefined,
-                value: o.value
-            });
-        } else {
-            variant = new Variant({ dataType: stored.dataType, arrayType: VariantArrayType.Scalar, value: stored.value });
-        }
-        return new DataValue({
-            value: variant,
-            statusCode: coerceStatusCode(stored.statusCode),
-            sourceTimestamp: new Date(stored.sourceTimestamp),
-            sourcePicoseconds: stored.sourcePicoseconds,
-            serverTimestamp: new Date(stored.serverTimestamp),
-            serverPicoseconds: stored.serverPicoseconds
-        });
+        return valueDataValue(this.space.store.values, this.index);
     }
 }
 export { DataType };
