@@ -345,6 +345,7 @@ export class FrontThreadEngine {
         let dataType: string | null = null;
         let isNumber = false;
         let euRange: [number, number] | null = null;
+        let euRangeNode: NodeDescription["euRangeNode"] = null;
         if (nodeClass === NodeClass.Variable) {
             const variable = view as StoreVariableView;
             dataType = variable.dataType.toString();
@@ -357,6 +358,11 @@ export class FrontThreadEngine {
                 } | null;
                 if (range && typeof range.low === "number" && typeof range.high === "number") {
                     euRange = [range.low, range.high];
+                    euRangeNode = {
+                        nodeId: property.nodeId.toString(),
+                        index: property.index,
+                        generation: nodes.generation(property.index)
+                    };
                 }
             }
         }
@@ -368,7 +374,8 @@ export class FrontThreadEngine {
             name: view.browseName.name ?? "",
             dataType,
             isNumber,
-            euRange
+            euRange,
+            euRangeNode
         };
     }
 

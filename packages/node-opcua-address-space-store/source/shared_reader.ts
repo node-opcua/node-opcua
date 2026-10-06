@@ -185,10 +185,18 @@ export class SharedStoreReader {
      * session: a readable Variable holding a scalar, under no permission rule (see isOpen)
      */
     public canServe(i: number): boolean {
+        if (!this.isReadableByAll(i)) return false;
+        const kind = this.#valueKind[i];
+        return kind === ValueKind.Number || kind === ValueKind.Boolean;
+    }
+
+    /**
+     * true when every session may read the Value of node `i`, whatever it holds: a readable
+     * Variable under no permission rule (see isOpen)
+     */
+    public isReadableByAll(i: number): boolean {
         if (i === NO_NODE || this.#nodeClass[i] !== NodeClass.Variable) return false;
         if ((this.#accessLevel[i] & CURRENT_READ) === 0 || (this.#userAccessLevel[i] & CURRENT_READ) === 0) return false;
-        const kind = this.#valueKind[i];
-        if (kind !== ValueKind.Number && kind !== ValueKind.Boolean) return false;
         return this.isOpen(i);
     }
 

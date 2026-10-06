@@ -7,15 +7,20 @@ import {
     type ReadValueIdOptions,
     TimestampsToReturn
 } from "node-opcua-client";
-import { AttributeIds, BrowseDirection, NodeClass, ResultMask } from "node-opcua-data-model";
+import { AttributeIds, BrowseDirection, NodeClass, QualifiedName, ResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
+import { resolveNodeId } from "node-opcua-nodeid";
+import { DataChangeFilter, DataChangeTrigger, DeadbandType } from "node-opcua-service-subscription";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataType, Variant } from "node-opcua-variant";
+import { PermissionType, Range } from "node-opcua-types";
+import { DataType, Variant, type VariantLike } from "node-opcua-variant";
 import should from "should";
 import { FrontThreadEngine } from "../dist/index.js";
 
 const port = 5826;
+// the engine started with the default number of fronts
+const defaultFrontsPort = 5828;
 
 async function until(predicate: () => boolean, what: string, timeout = 5000): Promise<void> {
     const end = Date.now() + timeout;
@@ -40,6 +45,13 @@ async function monitor(
     });
     return { item: monitored, values };
 }
+
+/** a value set by the application, in the engine */
+function setFromSource(engine: FrontThreadEngine, nodeId: string, value: VariantLike): void {
+    (engine.addressSpace.findNode(nodeId) as unknown as { setValueFromSource(value: VariantLike): void }).setValueFromSource(value);
+}
+
+const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function write(session: ClientSession, nodeId: string, value: Variant): Promise<void> {
     const status = await session.write({ nodeId, attributeId: AttributeIds.Value, value: new DataValue({ value }) });
@@ -305,6 +317,90 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             ).be.rejectedWith(/BadNodeIdUnknown/);
         });
 
+        it("does not hand a session the values of a node its roles may not read", async () => {
+            const space = engine.addressSpace;
+            const plant = space.findNode(`ns=${ns};s=Speed`)?.parent as never;
+            const secret = `ns=${ns};s=Secret`;
+            space.addVariable({
+                nodeId: secret,
+                browseName: "Secret",
+                componentOf: plant,
+                dataType: "Double",
+                value: { dataType: DataType.Double, value: 1 },
+                // read by Operators only: not by the anonymous sessions of this test
+                rolePermissions: [
+                    { roleId: resolveNodeId("ns=0;i=15680"), permissions: PermissionType.Browse | PermissionType.Read }
+                ]
+            });
+            await pause(50);
+            const { item, values } = await monitor(
+                subscriptions[0],
+                { nodeId: secret, attributeId: AttributeIds.Value },
+                { samplingInterval: 0, queueSize: 10, discardOldest: true }
+            );
+            await until(() => values.length >= 1, "the initial answer");
+            should(values[0].statusCode).eql(StatusCodes.BadUserAccessDenied);
+            for (let k = 2; k <= 5; k++) {
+                setFromSource(engine, secret, { dataType: DataType.Double, value: k });
+                await pause(30);
+            }
+            await pause(300);
+            should(values.filter((v) => v.statusCode.isGood()).map((v) => v.value.value)).eql(
+                [],
+                "no value pushed to a denied session"
+            );
+            await item.terminate();
+        });
+
+        it("applies a new EURange to a percent deadband", async () => {
+            const space = engine.addressSpace;
+            const plant = space.findNode(`ns=${ns};s=Speed`)?.parent as never;
+            const level = `ns=${ns};s=Level`;
+            space.addVariable({
+                nodeId: level,
+                browseName: "Level",
+                componentOf: plant,
+                dataType: "Double",
+                value: { dataType: DataType.Double, value: 0 }
+            });
+            space.addVariable({
+                nodeId: `ns=${ns};s=Level.EURange`,
+                browseName: new QualifiedName({ namespaceIndex: 0, name: "EURange" }),
+                propertyOf: level,
+                dataType: "ns=0;i=884",
+                value: { dataType: DataType.ExtensionObject, value: new Range({ low: 0, high: 100 }) }
+            });
+            await pause(50);
+            const { item, values } = await monitor(
+                subscriptions[1],
+                { nodeId: level, attributeId: AttributeIds.Value },
+                {
+                    samplingInterval: 0,
+                    queueSize: 10,
+                    discardOldest: true,
+                    filter: new DataChangeFilter({
+                        trigger: DataChangeTrigger.StatusValue,
+                        deadbandType: DeadbandType.Percent,
+                        deadbandValue: 10
+                    })
+                }
+            );
+            await until(() => values.length >= 1, "the initial value");
+            const seen = () => values.map((v) => v.value.value as number);
+            await write(sessions[2], level, new Variant({ dataType: DataType.Double, value: 5 }));
+            await write(sessions[2], level, new Variant({ dataType: DataType.Double, value: 20 }));
+            await until(() => seen().includes(20), "a change beyond 10% of 0..100");
+            should(seen()).not.containEql(5);
+            setFromSource(engine, `ns=${ns};s=Level.EURange`, {
+                dataType: DataType.ExtensionObject,
+                value: new Range({ low: 0, high: 10 })
+            });
+            await pause(100);
+            await write(sessions[2], level, new Variant({ dataType: DataType.Double, value: 23 }));
+            await until(() => seen().includes(23), "a change beyond 10% of the new range 0..10");
+            await item.terminate();
+        });
+
         it("tells the items of a deleted node", async () => {
             const space = engine.addressSpace;
             const plant = space.findNode(`ns=${ns};s=Speed`)?.parent as never;
@@ -344,7 +440,7 @@ describe("FrontThreadEngine: the number of fronts", function () {
         try {
             await engine.start({
                 serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
-                serverModuleData: { port: 5828 }
+                serverModuleData: { port: defaultFrontsPort }
             });
             should(engine.frontCount).eql(1);
             should(engine.endpointUrls.length).eql(1);
