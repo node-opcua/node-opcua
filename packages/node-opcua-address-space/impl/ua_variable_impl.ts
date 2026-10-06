@@ -2476,8 +2476,18 @@ function _Variable_bind_with_timestamped_set(
         "timestamped_set must have 2 parameters  timestamped_set: function(dataValue,callback){} or one paramater  timestamped_set: function(dataValue): Promise<StatusCode>{}"
     );
     assert(!options.set, "should not specify set when timestamped_set_func exists ");
-    this._timestamped_set_func = convertToCallbackFunction1<StatusCode, DataValue, UAVariable>(options.timestamped_set);
+    // the callback form of a setter is a stateless wrapper around it (it takes the variable as
+    // `this`): one per setter function, not one per variable. Every writable variable without a
+    // setter of its own binds the same default, and a closure per variable was 110 bytes each
+    let setter = callbackSetters.get(options.timestamped_set);
+    if (!setter) {
+        setter = convertToCallbackFunction1<StatusCode, DataValue, UAVariable>(options.timestamped_set);
+        callbackSetters.set(options.timestamped_set, setter);
+    }
+    this._timestamped_set_func = setter;
 }
+/** the callback form of each setter function met so far, see _Variable_bind_with_timestamped_set */
+const callbackSetters = new WeakMap<TimestampSetFunc, VariableDataValueSetterWithCallback>();
 
 interface SetterOptions {
     set?: SetFunc;
