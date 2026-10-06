@@ -481,10 +481,22 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
             });
 
             const received: string[] = [];
+            let errStatusCode: string | undefined;
             transportPair.client.on("data", (data) => {
                 received.push(...readMessageTypes(data));
+                // the ERR must come from the packet assembler's own error listener
+                // (BadTcpMessageTooLarge), not from the catch-all around feed() in
+                // _on_socket_data (BadTcpInternalError), which would mean feed() threw again.
+                for (let offset = 0; offset + 8 <= data.length; offset += data.readUInt32LE(offset + 4)) {
+                    if (data.subarray(offset, offset + 3).toString("ascii") === "ERR") {
+                        const stream = new BinaryStream(data.subarray(offset));
+                        const response = decodeMessage(stream, TCPErrorMessage) as TCPErrorMessage;
+                        errStatusCode = response.statusCode.name;
+                    }
+                }
                 if (received.includes("ERR")) {
                     received.should.eql(["ACK", "ERR"]);
+                    should(errStatusCode).eql("BadTcpMessageTooLarge");
                     done();
                 }
             });
