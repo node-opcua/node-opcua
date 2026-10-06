@@ -122,8 +122,11 @@ describe("child accessors", function (this: Mocha.Suite) {
             last = namespace.addVariable({ browseName: `unique_${i}`, componentOf: folder, dataType: "Double" });
         }
         should(prototypeSize()).eql(before);
-        should(Object.hasOwn(folder, "unique_1999")).eql(true);
-        should(dotted(folder).unique_1999).equal(last);
+        // the first thousand get an own accessor; past that the parent stops installing them
+        // (see maxOwnChildAccessorsPerParent), and the children are reached by name
+        should(Object.hasOwn(folder, "unique_999")).eql(true);
+        should(dotted(folder).unique_999).equal(folder.getComponentByName("unique_999"));
+        should(Object.hasOwn(folder, "unique_1999")).eql(false);
         should(folder.getComponentByName("unique_1999")).equal(last);
     });
 
