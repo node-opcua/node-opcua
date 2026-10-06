@@ -230,17 +230,17 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
 
     /** see BaseNode.releaseStatus; only set when the nodeset declared one, so that it costs
      * nothing on the overwhelming majority of nodes, which are Released */
-    public releaseStatus?: "Draft" | "Deprecated";
+    declare public releaseStatus?: "Draft" | "Deprecated";
     /** see BaseNode.nodesetDocumentation; only set when the nodeset declared one */
-    public nodesetDocumentation?: string;
+    declare public nodesetDocumentation?: string;
     /** see BaseNode.nodesetCategory; only set when the nodeset declared at least one */
-    public nodesetCategory?: string[];
+    declare public nodesetCategory?: string[];
     /** see BaseNode.designToolOnly; only set when the nodeset declared it */
-    public designToolOnly?: boolean;
+    declare public designToolOnly?: boolean;
     /** see BaseNode.declaredAccessRestrictions */
-    public declaredAccessRestrictions?: string;
-    private _accessRestrictions?: AccessRestrictionsFlag;
-    private _rolePermissions?: RolePermissionType[];
+    declare public declaredAccessRestrictions?: string;
+    declare private _accessRestrictions?: AccessRestrictionsFlag;
+    declare private _rolePermissions?: RolePermissionType[];
 
     // public onFirstBrowseAction?: (this: BaseNode<T>) => Promise<void>;
 
@@ -397,7 +397,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
     public readonly nodeId: NodeId;
     public readonly browseName: QualifiedName;
 
-    protected _postInstantiateFunc?: (instance: BaseNode, instanceType: BaseNode, options?: unknown) => void;
+    declare protected _postInstantiateFunc?: (instance: BaseNode, instanceType: BaseNode, options?: unknown) => void;
 
     /**
      * @internal
