@@ -59,8 +59,6 @@ const PRIVATE = Symbol("BaseNodePrivate");
 type WithPrivate = { [PRIVATE]?: BaseNodeCache };
 
 interface BaseNodeCacheInner {
-    typeDefinition?: NodeId;
-    typeDefinitionObj?: UAVariableType | UAObjectType | null;
     _children?: BaseNode[];
     _versionNode?: UAVariableT<string, DataType.String> | null;
 
@@ -198,6 +196,10 @@ export function BaseNode_clearCache(node: BaseNode): void {
     if (_private?._cache) {
         _private._cache = undefined;
     }
+    // the type definition is remembered on the node itself (see BaseNodeImpl#typeDefinition)
+    const typed = node as unknown as { _typeDefinition?: unknown; _typeDefinitionObj?: unknown };
+    typed._typeDefinition = undefined;
+    typed._typeDefinitionObj = undefined;
     wipeMemorizedStuff(node);
 }
 const hasTypeDefinition_ReferenceTypeNodeId = resolveNodeId("HasTypeDefinition");
