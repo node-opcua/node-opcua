@@ -256,6 +256,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
      */
     declare public _refreshFuncWrapsGetter?: boolean;
     declare public __waiting_callbacks?: CallbackT<DataValue>[];
+    declare private __satisfy_waiting_callbacks?: (err: Error | null, dataValue?: DataValue) => void;
 
     get typeDefinitionObj(): UAVariableType {
         /* c8 ignore next */
@@ -1330,19 +1331,10 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             return;
         }
 
-        const readImmediate = (innerCallback: (err: Error | null, dataValue: DataValue) => void) => {
-            assert(this.$dataValue instanceof DataValue);
-            const dataValue = this.readValue(context);
-            innerCallback(null, dataValue);
-        };
-
-        let func: (innerCallback: (err: Error | null, dataValue: DataValue) => void) => void;
-
-        // stamped like the same gates of readValue(): the requested timestamps are expected
-        // on a Bad result too (FEAT-34)
-        const answerStatusOnly = (statusCode: StatusCode) => (innerCallback: (err: Error | null, dataValue: DataValue) => void) =>
-            innerCallback(null, makeNowDataValue({ statusCode }));
-
+        // runs once per sample of every monitored item, so nothing here allocates a closure or
+        // binds a function: the denial (if any) is a StatusCode, and the callback that releases
+        // the waiting readers is made once per variable
+        let denied: StatusCode | null = null;
         if (context.isAccessRestricted(this)) {
             // same gate as readValue(): a variable bound with a simple get()
             // also gets a refreshFunc, sending every read down the asyncRefresh
@@ -1350,11 +1342,11 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             // through readValue(). Without this check here, a node hardened
             // with AccessRestrictions(EncryptionRequired) answered its value
             // over an unencrypted channel.
-            func = answerStatusOnly(StatusCodes.BadSecurityModeInsufficient);
+            denied = StatusCodes.BadSecurityModeInsufficient;
         } else if (!this.isReadable(context)) {
-            func = answerStatusOnly(StatusCodes.BadNotReadable);
+            denied = StatusCodes.BadNotReadable;
         } else if (!this.checkPermissionPrivate(context, PermissionType.Read)) {
-            func = answerStatusOnly(StatusCodes.BadUserAccessDenied);
+            denied = StatusCodes.BadUserAccessDenied;
         } else if (
             // as in readValue(): the Read permission has just passed, only the access level is
             // left, unless a node replaced isUserReadable (see makeNotReadableIfEnabledFlagIsFalse)
@@ -1362,24 +1354,36 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                 ? !this.checkAccessLevelPrivate(context, AccessLevelFlag.CurrentRead)
                 : !this.isUserReadable(context)
         ) {
-            func = answerStatusOnly(StatusCodes.BadNotReadable);
-        } else {
-            const clock = getCurrentClock();
-            func = typeof this.refreshFunc === "function" ? this.asyncRefresh.bind(this, clock) : readImmediate;
+            denied = StatusCodes.BadNotReadable;
         }
 
-        const satisfy_callbacks = (err: Error | null, dataValue?: DataValue) => {
+        this.__satisfy_waiting_callbacks ??= (err: Error | null, dataValue?: DataValue) => {
             // now call all pending callbacks
             const callbacks = this.__waiting_callbacks || [];
             this.__waiting_callbacks = [];
-            const _n = callbacks.length;
             for (const callback1 of callbacks) {
                 callback1.call(this, err, dataValue);
             }
         };
+        const satisfy_callbacks = this.__satisfy_waiting_callbacks;
 
         try {
-            func.call(this, satisfy_callbacks);
+            if (denied) {
+                // stamped like the same gates of readValue(): the requested timestamps are expected
+                // on a Bad result too (FEAT-34)
+                satisfy_callbacks(null, makeNowDataValue({ statusCode: denied }));
+            } else if (typeof this.refreshFunc === "function") {
+                const clock = getCurrentClock();
+                if (this.asyncRefresh === wrappedAsyncRefresh) {
+                    // the thenified wrapper adds nothing when a callback is given
+                    asyncRefreshImpl.call(this, clock, satisfy_callbacks);
+                } else {
+                    this.asyncRefresh(clock, satisfy_callbacks);
+                }
+            } else {
+                assert(this.$dataValue instanceof DataValue);
+                satisfy_callbacks(null, this.readValue(context));
+            }
         } catch (err) {
             // c8 ignore next
             if (doDebug) {
@@ -1952,9 +1956,19 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
      */
     public _inner_replace_dataValue(dataValue: DataValue, indexRange?: NumericRange | null) {
         assert(this.$dataValue.value instanceof Variant);
-        const old_dataValue = this.$dataValue.clone();
 
-        if (this.$$extensionObjectArray && dataValue.value.arrayType !== VariantArrayType.Scalar) {
+        const replacesArrayInPlace = !!this.$$extensionObjectArray && dataValue.value.arrayType !== VariantArrayType.Scalar;
+        const replacesExtensionObjectInPlace =
+            this._basicDataType === DataType.ExtensionObject &&
+            this.valueRank === -1 &&
+            !!this.$set_ExtensionObject &&
+            dataValue.value.arrayType === VariantArrayType.Scalar;
+        // the previous value is needed intact for the comparison below. Only the two branches that
+        // write into $dataValue in place need a copy of it: the common case swaps in the new object
+        // and leaves the old one untouched
+        const old_dataValue = replacesArrayInPlace || replacesExtensionObjectInPlace ? this.$dataValue.clone() : this.$dataValue;
+
+        if (replacesArrayInPlace) {
             // we have a bounded array or matrix
             assert(Array.isArray(dataValue.value.value));
             if (this.$$extensionObjectArray !== this.$dataValue.value.value) {
@@ -1968,12 +1982,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             this.$dataValue.serverPicoseconds = dataValue.serverPicoseconds;
             this.$dataValue.sourceTimestamp = dataValue.sourceTimestamp;
             this.$dataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
-        } else if (
-            this._basicDataType === DataType.ExtensionObject &&
-            this.valueRank === -1 &&
-            this.$set_ExtensionObject &&
-            dataValue.value.arrayType === VariantArrayType.Scalar
-        ) {
+        } else if (replacesExtensionObjectInPlace && this.$set_ExtensionObject) {
             // the entire extension object is changed.
             this.$dataValue.statusCode = this.$dataValue.statusCode || StatusCodes.Good;
             const preciseClock = coerceClock(this.$dataValue.sourceTimestamp, this.$dataValue.sourcePicoseconds);
@@ -2013,7 +2022,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                     this.touchValue(preciseClock);
                     propagateTouchValueDownward(this, preciseClock, cache);
                 }
-            } else {
+            } else if ((this as UAVariable).listenerCount("value_changed") > 0) {
                 (this as UAVariable).emit("value_changed", this.$dataValue.clone(), indexRange);
             }
         }
@@ -2121,7 +2130,12 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
 import type { IStructuredTypeSchema } from "node-opcua-factory";
 import { withCallback } from "thenify-ex";
 
-UAVariableImpl.prototype.asyncRefresh = withCallback(UAVariableImpl.prototype.asyncRefresh);
+// readValueAsync calls the unwrapped asyncRefresh directly: binding the thenified wrapper on
+// every sample cost more than the refresh itself
+const asyncRefreshImpl: (this: UAVariableImpl, oldestDate: PreciseClock, callback: CallbackT<DataValue>) => void =
+    UAVariableImpl.prototype.asyncRefresh;
+UAVariableImpl.prototype.asyncRefresh = withCallback(asyncRefreshImpl);
+const wrappedAsyncRefresh = UAVariableImpl.prototype.asyncRefresh;
 UAVariableImpl.prototype.writeValue = withCallback(UAVariableImpl.prototype.writeValue);
 UAVariableImpl.prototype.writeAttribute = withCallback(UAVariableImpl.prototype.writeAttribute);
 UAVariableImpl.prototype.historyRead = withCallback(UAVariableImpl.prototype.historyRead);
