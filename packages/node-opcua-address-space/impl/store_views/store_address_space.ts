@@ -12,6 +12,12 @@ import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import type { NodeSetPermissionsPolicy } from "../../api/interfaces/nodeset_loader_options.js";
 import type { NodesetRecord } from "../../api/loader/nodeset_record.js";
 import { StoreRecordApplier, type StoreRecordApplierOptions } from "../../api/loader/store_record_applier.js";
+import {
+    type StoreAddNodeOptions,
+    type StoreAddObjectOptions,
+    type StoreAddVariableOptions,
+    StoreNodeBuilder
+} from "./store_node_builder.js";
 import { StoreNodeView, type VariableBinding } from "./store_node_view.js";
 import { StoreObjectView } from "./store_object_view.js";
 import { StorePermissions, type UnresolvedPermissionPolicy } from "./store_permissions.js";
@@ -54,12 +60,24 @@ class ViewCache {
             this.#evict();
         }
     }
-    /** drop the least recently stamped quarter; a view the application holds keeps working */
+    /**
+     * drop the older quarter of the stamp range, which is the least recently used quarter or
+     * so without a sort; when the stamps bunch up and that frees too little, sort once. A view
+     * the application holds keeps working either way.
+     */
     #evict(): void {
-        const stamps: number[] = [];
-        for (const v of this.#views.values()) stamps.push(v.lastUse);
-        stamps.sort((a, b) => a - b);
-        const cutoff = stamps[Math.floor(stamps.length / 4)];
+        let oldest = this.#tick;
+        for (const v of this.#views.values()) if (v.lastUse < oldest) oldest = v.lastUse;
+        let cutoff = oldest + (this.#tick - oldest) / 4;
+        const target = this.#views.size - this.#capacity * 0.75;
+        let freed = 0;
+        for (const v of this.#views.values()) if (v.lastUse <= cutoff) freed++;
+        if (freed < target) {
+            const stamps: number[] = [];
+            for (const v of this.#views.values()) stamps.push(v.lastUse);
+            stamps.sort((a, b) => a - b);
+            cutoff = stamps[Math.floor(stamps.length / 4)];
+        }
         for (const [index, v] of this.#views) {
             if (v.lastUse <= cutoff) this.#views.delete(index);
         }
@@ -82,6 +100,7 @@ export class StoreAddressSpace {
     /** what a session may read: the access restrictions and role permissions of the nodes */
     public readonly permissions: StorePermissions;
     readonly #views: ViewCache;
+    readonly #builder: StoreNodeBuilder;
     readonly #applierOptions: StoreRecordApplierOptions;
     #applier: StoreRecordApplier | null = null;
 
@@ -91,6 +110,7 @@ export class StoreAddressSpace {
         this.reader = new AttributeReader(this.store);
         this.permissions = new StorePermissions(this, options.unresolvedPermissionPolicy);
         this.#views = new ViewCache(options.viewCacheSize ?? 10000);
+        this.#builder = new StoreNodeBuilder(this);
         this.#applierOptions = { permissions: options.permissions, accessRestrictions: options.accessRestrictions };
     }
 
@@ -112,6 +132,11 @@ export class StoreAddressSpace {
         this.browser.refresh();
         this.permissions.invalidate();
         return result;
+    }
+
+    /** a namespace of the application: the index new nodes default to */
+    public registerNamespace(uri: string): number {
+        return this.namespaceIndexOf(uri);
     }
 
     public namespaceIndexOf(uri: string): number {
@@ -157,9 +182,41 @@ export class StoreAddressSpace {
         }
     }
 
-    /** forget a node: gone for clients at once, its row reclaimed at the next compaction */
-    public deleteNode(index: number): void {
-        this.store.nodes.delete(index);
+    // ---- changes while running: the records go into the columns, the view comes back
+    public addVariable(options: StoreAddVariableOptions): StoreVariableView {
+        return this.#builder.addVariable(options);
+    }
+    public addObject(options: StoreAddObjectOptions): StoreNodeView {
+        return this.#builder.addObject(options);
+    }
+    public addFolder(parent: StoreNodeView | NodeId | string, options: StoreAddNodeOptions | string): StoreNodeView {
+        return this.#builder.addFolder(parent, options);
+    }
+    /** both ends written; false when the reference is there already */
+    public addReference(
+        source: StoreNodeView | NodeId | string,
+        referenceType: NodeId | string,
+        target: StoreNodeView | NodeId | string,
+        forward = true
+    ): boolean {
+        return this.#builder.addReference(source, referenceType, target, forward);
+    }
+    public removeReference(
+        source: StoreNodeView | NodeId | string,
+        referenceType: NodeId | string,
+        target: StoreNodeView | NodeId | string,
+        forward = true
+    ): boolean {
+        return this.#builder.removeReference(source, referenceType, target, forward);
+    }
+
+    /**
+     * forget a node: gone for clients at once, with its references from both ends; its row is
+     * reclaimed at the next compaction. A view the application still holds answers isDisposed()
+     */
+    public deleteNode(node: StoreNodeView | NodeId | string | number): void {
+        const index = typeof node === "number" ? node : this.#builder.indexOf(node);
+        this.store.deleteNode(index);
         this.bindings.delete(index);
         this.#views.delete(index);
         this.permissions.invalidate();

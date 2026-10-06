@@ -84,7 +84,7 @@ export class StorePermissions {
 
     /** forget the metadata nodes found so far: after nodes were added or removed */
     public invalidate(): void {
-        this.#metadata.clear();
+        if (this.#metadata.size !== 0) this.#metadata.clear();
     }
 
     /**

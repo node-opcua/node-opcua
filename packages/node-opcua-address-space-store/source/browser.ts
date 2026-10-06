@@ -84,14 +84,10 @@ export class Browser {
         }
         const refs = store.references;
         const accept = this.hierarchy.acceptor(store.referenceTypeOrdinal(referenceType), includeSubtypes);
-        for (const row of refs.rowsOf(node)) {
+        for (const row of refs.rowsNamed(node, nameId)) {
             if (refs.isForward(row) !== forward || !accept(refs.typeOrdinal(row))) continue;
             const target = refs.target(row);
-            if (
-                store.nodes.browseNameId(target) === nameId &&
-                store.nodes.browseNameNamespace(target) === ns &&
-                !store.nodes.isDeleted(target)
-            ) {
+            if (store.nodes.browseNameNamespace(target) === ns && !store.nodes.isDeleted(target)) {
                 return target;
             }
         }
@@ -138,14 +134,10 @@ export class Browser {
         const refs = store.references;
         const accept = this.hierarchy.acceptor(store.referenceTypeOrdinal(referenceType), includeSubtypes);
         const out: number[] = [];
-        for (const row of refs.rowsOf(node)) {
+        for (const row of refs.rowsNamed(node, nameId)) {
             if (refs.isForward(row) !== forward || !accept(refs.typeOrdinal(row))) continue;
             const target = refs.target(row);
-            if (
-                store.nodes.browseNameId(target) === nameId &&
-                store.nodes.browseNameNamespace(target) === ns &&
-                !store.nodes.isDeleted(target)
-            ) {
+            if (store.nodes.browseNameNamespace(target) === ns && !store.nodes.isDeleted(target)) {
                 out.push(target);
             }
         }
