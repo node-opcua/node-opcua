@@ -371,6 +371,11 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
         return !this.#reader.isCurrent() || this.#sameNode(node);
     }
 
+    public isReadableByAll(node: FrontMonitoredNode): boolean {
+        const reader = this.#reader;
+        return reader.isCurrent() && this.#sameNode(node) && reader.isReadableByAll(node.index);
+    }
+
     public valueInPlace(node: FrontMonitoredNode): { dataValue: DataValue; version: number } | null {
         const reader = this.#reader;
         const v = this.#value;

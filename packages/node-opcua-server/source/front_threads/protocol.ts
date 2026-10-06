@@ -136,8 +136,10 @@ export interface NodeDescription {
     /** the DataType of a Variable, as a NodeId string */
     dataType: string | null;
     isNumber: boolean;
-    /** the low and high of its EURange property, for a percent deadband */
+    /** the low and high of its EURange property, for a percent deadband, when described */
     euRange: [number, number] | null;
+    /** the EURange property itself, which a front watches while a percent deadband uses it */
+    euRangeNode: { nodeId: string; index: number; generation: number } | null;
 }
 
 export interface DescribeReply {
