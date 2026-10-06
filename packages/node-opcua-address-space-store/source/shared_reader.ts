@@ -48,6 +48,8 @@ export interface SharedValue {
     sourcePicoseconds: number;
     serverTimestamp: number;
     serverPicoseconds: number;
+    /** the version word the value was read under: what orders it against the changes the owner reports */
+    version: number;
 }
 
 export class SharedStoreReader {
@@ -61,6 +63,8 @@ export class SharedStoreReader {
     readonly #namespace: Uint16Array;
     readonly #accessRestrictions: Uint8Array;
     readonly #namespacePolicy: Uint8Array;
+    readonly #minimumSamplingInterval: Float32Array;
+    readonly #generation: Uint16Array;
     // the NodeId index
     readonly #ns: Uint16Array;
     readonly #kind: Uint8Array;
@@ -95,6 +99,8 @@ export class SharedStoreReader {
         this.#namespace = new Uint16Array(n.namespace);
         this.#accessRestrictions = new Uint8Array(n.accessRestrictions);
         this.#namespacePolicy = new Uint8Array(descriptor.namespacePolicy);
+        this.#minimumSamplingInterval = new Float32Array(n.minimumSamplingInterval);
+        this.#generation = new Uint16Array(n.generation);
         this.#ns = new Uint16Array(n.index.ns);
         this.#kind = new Uint8Array(n.index.kind);
         this.#word = new Uint32Array(n.index.word);
@@ -137,6 +143,25 @@ export class SharedStoreReader {
             default:
                 return NO_NODE;
         }
+    }
+
+    /** the NodeClass of node `i`, as a number; 0 (Unspecified) for NO_NODE */
+    public nodeClass(i: number): number {
+        return i === NO_NODE ? 0 : this.#nodeClass[i];
+    }
+
+    /** true when node `i` was deleted (and its index not given to another node yet) */
+    public isDeleted(i: number): boolean {
+        return i === NO_NODE || (this.#flags[i] & DELETED) !== 0;
+    }
+
+    /** the generation of index `i`: moves when the node is deleted, so a node held by index can be told from the next one */
+    public generation(i: number): number {
+        return this.#generation[i];
+    }
+
+    public minimumSamplingInterval(i: number): number {
+        return this.#minimumSamplingInterval[i];
     }
 
     /**
@@ -195,6 +220,7 @@ export class SharedStoreReader {
             out.serverTimestamp = this.#serverTimestamp[i];
             out.serverPicoseconds = this.#serverPicoseconds[i];
             if (Atomics.load(version, i) === before) {
+                out.version = before;
                 return SharedReadStatus.Good;
             }
         }

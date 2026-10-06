@@ -138,6 +138,8 @@ export class NodeStore {
             accessLevel: bufferOf(this.#accessLevel),
             userAccessLevel: bufferOf(this.#userAccessLevel),
             flags: bufferOf(this.#flags),
+            minimumSamplingInterval: bufferOf(this.#minimumSamplingInterval),
+            generation: bufferOf(this.#generation),
             index: this.byNodeId.exportShared(),
             strings: this.strings.exportShared()
         };
@@ -412,6 +414,9 @@ export interface SharedNodeBuffers {
     accessLevel: SharedArrayBuffer;
     userAccessLevel: SharedArrayBuffer;
     flags: SharedArrayBuffer;
+    minimumSamplingInterval: SharedArrayBuffer;
+    /** moves each time a node index is deleted: what tells a node from the next one at its index */
+    generation: SharedArrayBuffer;
     index: SharedIndexBuffers;
     strings: SharedArenaBuffers;
 }

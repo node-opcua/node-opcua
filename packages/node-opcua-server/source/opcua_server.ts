@@ -3924,7 +3924,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             message,
             channel,
             async (
-                _session: ServerSession,
+                session: ServerSession,
                 subscription: Subscription,
                 sendResponse: (response: Response) => void,
                 sendError: (statusCode: StatusCode) => void
@@ -3941,6 +3941,12 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                     if (request.itemsToCreate.length > this.engine.serverCapabilities.operationLimits.maxMonitoredItemsPerCall) {
                         return sendError(StatusCodes.BadTooManyOperations);
                     }
+                }
+
+                // the nodes of a front thread's compact namespaces are described by its engine first
+                const preparing = engine.prepareMonitoredItems(session.sessionContext, request.itemsToCreate);
+                if (preparing) {
+                    await preparing;
                 }
 
                 const options = this.options as OPCUAServerOptions;

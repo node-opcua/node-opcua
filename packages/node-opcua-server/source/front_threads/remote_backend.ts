@@ -4,7 +4,8 @@
  * The compact namespaces as a front thread serves them: a Read of a value no permission rule
  * applies to is answered in place from the engine's shared columns; everything else (other
  * attributes, getters, values kept as objects, nodes under access restrictions or role
- * permissions, Writes, Browse, Translate) is asked to the engine, one message per request.
+ * permissions, Writes, Browse, Translate) is asked to the engine, the requests of a turn of the
+ * event loop in one message. Monitored items get a FrontMonitoredNode (see front_node.ts).
  */
 import type { MessagePort } from "node:worker_threads";
 import type { ISessionContext } from "node-opcua-address-space";
@@ -18,7 +19,7 @@ import {
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
-import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
@@ -32,7 +33,9 @@ import {
 } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import type { ICompactBackend } from "../compact_backend.js";
+import { FrontMonitoredNode, type FrontNodeHost } from "./front_node.js";
 import {
+    type DescribeReply,
     decodeDataValues,
     decodeStructure,
     describeContext,
@@ -40,10 +43,19 @@ import {
     encodeStructure,
     type FrontRequest,
     type FrontToEngine,
-    type ReadItem
+    type NodeDescription,
+    type ReadItem,
+    UNWATCH,
+    type ValueReply,
+    WATCH
 } from "./protocol.js";
 
 const MAX_AGE_CACHED = 0x7fffffff;
+// descriptions kept per generation of this cache: two generations, so that what a request just
+// described survives until its items are created
+const DESCRIPTIONS_PER_GENERATION = 50000;
+// attributes other than the Value kept per session for the items being created
+const ATTRIBUTES_PER_SESSION = 10000;
 
 /**
  * request and reply over the port to the engine. The requests made in one turn of the event
@@ -71,6 +83,11 @@ export class EngineChannel {
         });
     }
 
+    /** a message that expects no reply */
+    public send(message: FrontToEngine): void {
+        this.#port.postMessage(message);
+    }
+
     #flush(): void {
         const message: FrontToEngine = { kind: "requests", ids: this.#ids, requests: this.#requests };
         this.#ids = [];
@@ -90,7 +107,7 @@ export class EngineChannel {
     }
 }
 
-export class RemoteCompactBackend implements ICompactBackend {
+export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
     public readonly namespaces: ReadonlySet<number>;
     #reader: SharedStoreReader;
     #anchors: Set<string>;
@@ -105,8 +122,17 @@ export class RemoteCompactBackend implements ICompactBackend {
         sourceTimestamp: 0,
         sourcePicoseconds: 0,
         serverTimestamp: 0,
-        serverPicoseconds: 0
+        serverPicoseconds: 0,
+        version: 0
     };
+    // what the engine described of the nodes monitored items were created on, by NodeId string
+    #descriptions = new Map<string, NodeDescription>();
+    #olderDescriptions = new Map<string, NodeDescription>();
+    // the attributes other than the Value read for a session when its items were created
+    readonly #attributes = new WeakMap<object, Map<string, DataValue>>();
+    // the nodes whose monitored items listen to their changes, by node index
+    readonly #watchers = new Map<number, Set<FrontMonitoredNode>>();
+    #watchOperations: number[] = [];
 
     constructor(
         descriptor: SharedStoreDescriptor,
@@ -199,6 +225,10 @@ export class RemoteCompactBackend implements ICompactBackend {
             // from elsewhere, or a value that changed kind between the two, lands here
             return new DataValue({ statusCode: StatusCodes.BadResourceUnavailable });
         }
+        return this.#dataValueOf(v, context, maxAge, timestampsToReturn ?? TimestampsToReturn.Source);
+    }
+
+    #dataValueOf(v: SharedValue, context: ISessionContext | null, maxAge: number, ts: TimestampsToReturn): DataValue {
         const variant = new Variant(null);
         variant.dataType = v.dataType as DataType;
         variant.arrayType = VariantArrayType.Scalar;
@@ -206,7 +236,6 @@ export class RemoteCompactBackend implements ICompactBackend {
         const dataValue = new DataValue(null);
         dataValue.value = variant;
         dataValue.statusCode = v.statusCode === 0 ? StatusCodes.Good : coerceStatusCode(v.statusCode);
-        const ts = timestampsToReturn ?? TimestampsToReturn.Source;
         if (ts === TimestampsToReturn.Source || ts === TimestampsToReturn.Both) {
             dataValue.sourceTimestamp = new Date(v.sourceTimestamp);
             dataValue.sourcePicoseconds = v.sourcePicoseconds;
@@ -261,6 +290,172 @@ export class RemoteCompactBackend implements ICompactBackend {
     public async translate(browsePath: BrowsePath): Promise<BrowsePathResult | null> {
         const bytes = await this.#channel.call<Uint8Array | null>({ kind: "translate", browsePath: encodeStructure(browsePath) });
         return bytes ? decodeStructure(bytes, new BrowsePathResult()) : null;
+    }
+
+    // ---- monitored items
+
+    /**
+     * before the items of a CreateMonitoredItems are created, which is synchronous: the nodes
+     * not described yet, and the attributes other than the Value as this session reads them
+     */
+    public prefetchNodes(context: ISessionContext, itemsToMonitor: ReadValueIdOptions[]): Promise<void> | undefined {
+        let asked: { nodeId: string; attributeId: number }[] | null = null;
+        for (const item of itemsToMonitor) {
+            const nodeId = resolveNodeId(item.nodeId ?? "");
+            if (!this.namespaces.has(nodeId.namespace)) continue;
+            const key = nodeId.toString();
+            const attributeId = item.attributeId ?? AttributeIds.Value;
+            if (attributeId === AttributeIds.Value && this.#description(key, nodeId) !== null) continue;
+            if (asked === null) asked = [];
+            asked.push({ nodeId: key, attributeId });
+        }
+        if (asked === null) {
+            return undefined;
+        }
+        const items = asked;
+        return this.#channel.call<DescribeReply>({ kind: "describe", context: describeContext(context), items }).then((reply) => {
+            const attributes = decodeDataValues(reply.attributes);
+            let mine = this.#attributes.get(context);
+            if (mine === undefined || mine.size > ATTRIBUTES_PER_SESSION) {
+                mine = new Map();
+                this.#attributes.set(context, mine);
+            }
+            for (let k = 0; k < items.length; k++) {
+                const description = reply.nodes[k];
+                if (description === null) continue;
+                this.#remember(items[k].nodeId, description);
+                if (items[k].attributeId !== AttributeIds.Value) {
+                    mine.set(`${items[k].attributeId}|${items[k].nodeId}`, attributes[k]);
+                }
+            }
+        });
+    }
+
+    /** the node a monitored item watches: null unless prefetchNodes described it and it still exists */
+    public findNode(nodeIdLike: NodeIdLike): FrontMonitoredNode | null {
+        const nodeId = resolveNodeId(nodeIdLike);
+        const description = this.#description(nodeId.toString(), nodeId);
+        return description ? new FrontMonitoredNode(this, nodeId, description) : null;
+    }
+
+    #remember(key: string, description: NodeDescription): void {
+        if (this.#descriptions.size >= DESCRIPTIONS_PER_GENERATION) {
+            this.#olderDescriptions = this.#descriptions;
+            this.#descriptions = new Map();
+        }
+        this.#descriptions.set(key, description);
+    }
+
+    /** a description still true of the node: same index, same generation, not deleted */
+    #description(key: string, nodeId: NodeId): NodeDescription | null {
+        let description = this.#descriptions.get(key);
+        if (description === undefined) {
+            description = this.#olderDescriptions.get(key);
+            if (description === undefined) return null;
+            this.#remember(key, description);
+        }
+        const reader = this.#reader;
+        if (!reader.isCurrent() || reader.find(nodeId) !== description.index || !this.#sameNode(description)) {
+            return null;
+        }
+        return description;
+    }
+
+    #sameNode(node: { index: number; generation: number }): boolean {
+        const reader = this.#reader;
+        return !reader.isDeleted(node.index) && reader.generation(node.index) === node.generation;
+    }
+
+    public isAlive(node: FrontMonitoredNode): boolean {
+        // with stale buffers, nothing can be told here: the engine answers the read
+        return !this.#reader.isCurrent() || this.#sameNode(node);
+    }
+
+    public valueInPlace(node: FrontMonitoredNode): { dataValue: DataValue; version: number } | null {
+        const reader = this.#reader;
+        const v = this.#value;
+        if (
+            !reader.isCurrent() ||
+            !this.#sameNode(node) ||
+            !reader.canServe(node.index) ||
+            reader.readValue(node.index, v) !== SharedReadStatus.Good
+        ) {
+            return null;
+        }
+        return { dataValue: this.#dataValueOf(v, null, MAX_AGE_CACHED, TimestampsToReturn.Both), version: v.version };
+    }
+
+    public async fetchValue(
+        context: ISessionContext | null,
+        node: FrontMonitoredNode
+    ): Promise<{ dataValue: DataValue; version: number }> {
+        const reply = await this.#channel.call<ValueReply>({
+            kind: "value",
+            context: describeContext(context),
+            index: node.index,
+            generation: node.generation
+        });
+        return { dataValue: decodeDataValues(reply.value)[0], version: reply.version };
+    }
+
+    public minimumSamplingInterval(node: FrontMonitoredNode): number {
+        return this.#reader.minimumSamplingInterval(node.index);
+    }
+
+    public attributeFor(
+        context: ISessionContext | null,
+        node: FrontMonitoredNode,
+        attributeId: AttributeIds
+    ): DataValue | undefined {
+        return context ? this.#attributes.get(context)?.get(`${attributeId}|${node.nodeId.toString()}`) : undefined;
+    }
+
+    public watch(node: FrontMonitoredNode): void {
+        let watchers = this.#watchers.get(node.index);
+        if (watchers === undefined) {
+            watchers = new Set();
+            this.#watchers.set(node.index, watchers);
+            this.#operation(WATCH, node);
+        }
+        watchers.add(node);
+    }
+
+    public unwatch(node: FrontMonitoredNode): void {
+        const watchers = this.#watchers.get(node.index);
+        if (watchers === undefined || !watchers.delete(node) || watchers.size > 0) return;
+        this.#watchers.delete(node.index);
+        this.#operation(UNWATCH, node);
+    }
+
+    #operation(operation: number, node: FrontMonitoredNode): void {
+        if (this.#watchOperations.length === 0) {
+            setImmediate(() => {
+                const operations = this.#watchOperations;
+                this.#watchOperations = [];
+                this.#channel.send({ kind: "watches", operations });
+            });
+        }
+        this.#watchOperations.push(operation, node.index, node.generation);
+    }
+
+    /** values the engine pushed for the watched nodes, in the order they were written */
+    public receiveChanges(indexes: number[], versions: number[], values: Uint8Array): void {
+        const dataValues = decodeDataValues(values);
+        for (let k = 0; k < indexes.length; k++) {
+            const watchers = this.#watchers.get(indexes[k]);
+            if (watchers === undefined) continue;
+            for (const node of watchers) node.deliver(dataValues[k], versions[k]);
+        }
+    }
+
+    /** watched nodes the engine deleted */
+    public receiveDisposed(indexes: number[]): void {
+        for (const index of indexes) {
+            const watchers = this.#watchers.get(index);
+            if (watchers === undefined) continue;
+            this.#watchers.delete(index);
+            for (const node of [...watchers]) node.dispose();
+        }
     }
 }
 

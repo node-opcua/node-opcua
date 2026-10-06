@@ -1,4 +1,12 @@
-import { type ClientSession, OPCUAClient } from "node-opcua-client";
+import {
+    ClientMonitoredItem,
+    type ClientSession,
+    type ClientSubscription,
+    type MonitoringParametersOptions,
+    OPCUAClient,
+    type ReadValueIdOptions,
+    TimestampsToReturn
+} from "node-opcua-client";
 import { AttributeIds, BrowseDirection, NodeClass, ResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
@@ -8,6 +16,35 @@ import should from "should";
 import { FrontThreadEngine } from "../dist/index.js";
 
 const port = 5826;
+
+async function until(predicate: () => boolean, what: string, timeout = 5000): Promise<void> {
+    const end = Date.now() + timeout;
+    while (!predicate()) {
+        if (Date.now() > end) throw new Error(`timed out waiting for ${what}`);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+}
+
+/** the values an item reports, in order */
+async function monitor(
+    subscription: ClientSubscription,
+    item: ReadValueIdOptions,
+    parameters: MonitoringParametersOptions
+): Promise<{ item: ClientMonitoredItem; values: DataValue[] }> {
+    const values: DataValue[] = [];
+    const monitored = ClientMonitoredItem.create(subscription, item, parameters, TimestampsToReturn.Both);
+    monitored.on("changed", (dataValue: DataValue) => values.push(dataValue));
+    await new Promise<void>((resolve, reject) => {
+        monitored.once("initialized", () => resolve());
+        monitored.once("err", (message: string) => reject(new Error(message)));
+    });
+    return { item: monitored, values };
+}
+
+async function write(session: ClientSession, nodeId: string, value: Variant): Promise<void> {
+    const status = await session.write({ nodeId, attributeId: AttributeIds.Value, value: new DataValue({ value }) });
+    should(status).eql(StatusCodes.Good);
+}
 
 describe("FrontThreadEngine: an engine thread and front threads on one port", function () {
     this.timeout(120000);
@@ -173,5 +210,128 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             should(values[0].value.value).eql(19999);
             should(values[1].value.value).eql(42);
         }
+    });
+
+    describe("monitored items on the compact namespace", () => {
+        const subscriptions: ClientSubscription[] = [];
+        before(async () => {
+            for (const session of sessions) {
+                subscriptions.push(
+                    await session.createSubscription2({
+                        requestedPublishingInterval: 20,
+                        requestedMaxKeepAliveCount: 10,
+                        requestedLifetimeCount: 100,
+                        publishingEnabled: true
+                    })
+                );
+            }
+        });
+        after(async () => {
+            for (const subscription of subscriptions) await subscription.terminate();
+        });
+
+        it("samples a value in place and reports what another connection writes", async () => {
+            const describes = engine.requests.describe;
+            const reads = engine.requests.value;
+            const { item, values } = await monitor(
+                subscriptions[0],
+                { nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value },
+                { samplingInterval: 20, queueSize: 10, discardOldest: true }
+            );
+            await until(() => values.length >= 1, "the initial value");
+            should(values[0].value.value).eql(42);
+            await write(sessions[1], `ns=${ns};s=Speed`, new Variant({ dataType: DataType.Double, value: 7 }));
+            await until(() => values.some((v) => v.value.value === 7), "the written value");
+            should(engine.requests.describe).eql(describes + 1, "the node described once, when the item is created");
+            should(engine.requests.value).eql(reads, "sampled in place: no value asked to the engine");
+            await item.terminate();
+            await write(sessions[1], `ns=${ns};s=Speed`, new Variant({ dataType: DataType.Double, value: 42 }));
+        });
+
+        it("reports every value written to a node, in order, when the item listens to changes", async () => {
+            const { item, values } = await monitor(
+                subscriptions[0],
+                { nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value },
+                { samplingInterval: 0, queueSize: 100, discardOldest: true }
+            );
+            await until(() => values.length >= 1, "the initial value");
+            for (let k = 1; k <= 20; k++) {
+                await write(sessions[1 + (k % 3)], `ns=${ns};s=Speed`, new Variant({ dataType: DataType.Double, value: k }));
+            }
+            await until(() => values.some((v) => v.value.value === 20), "the last value");
+            const seen = values.slice(1).map((v) => v.value.value as number);
+            should(seen).eql(
+                [...seen].sort((a, b) => a - b),
+                "never back to an older value"
+            );
+            should(seen).eql(
+                Array.from({ length: 20 }, (_, k) => k + 1),
+                "one notification per write"
+            );
+            await item.terminate();
+        });
+
+        it("reports the changes of a value the front cannot read in place", async () => {
+            const { item, values } = await monitor(
+                subscriptions[1],
+                { nodeId: `ns=${ns};s=Name`, attributeId: AttributeIds.Value },
+                { samplingInterval: 0, queueSize: 10, discardOldest: true }
+            );
+            await until(() => values.length >= 1, "the initial value");
+            should(values[0].value.value).eql("pump");
+            await write(sessions[2], `ns=${ns};s=Name`, new Variant({ dataType: DataType.String, value: "valve" }));
+            await until(() => values.some((v) => v.value.value === "valve"), "the written string");
+            await item.terminate();
+        });
+
+        it("monitors an attribute other than the Value", async () => {
+            const { item, values } = await monitor(
+                subscriptions[2],
+                { nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.BrowseName },
+                { samplingInterval: 100, queueSize: 1, discardOldest: true }
+            );
+            await until(() => values.length >= 1, "the attribute");
+            should(values[0].value.value.name).eql("Speed");
+            await item.terminate();
+        });
+
+        it("refuses an item on a node that does not exist", async () => {
+            await should(
+                monitor(
+                    subscriptions[3],
+                    { nodeId: `ns=${ns};s=Nope`, attributeId: AttributeIds.Value },
+                    { samplingInterval: 100, queueSize: 1, discardOldest: true }
+                )
+            ).be.rejectedWith(/BadNodeIdUnknown/);
+        });
+
+        it("tells the items of a deleted node", async () => {
+            const space = engine.addressSpace;
+            const plant = space.findNode(`ns=${ns};s=Speed`)?.parent as never;
+            space.addVariable({
+                nodeId: `ns=${ns};s=Doomed`,
+                browseName: "Doomed",
+                componentOf: plant,
+                dataType: "Double",
+                value: { dataType: DataType.Double, value: 3 }
+            });
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            const changes = await monitor(
+                subscriptions[0],
+                { nodeId: `ns=${ns};s=Doomed`, attributeId: AttributeIds.Value },
+                { samplingInterval: 0, queueSize: 10, discardOldest: true }
+            );
+            const sampled = await monitor(
+                subscriptions[1],
+                { nodeId: `ns=${ns};s=Doomed`, attributeId: AttributeIds.Value },
+                { samplingInterval: 20, queueSize: 10, discardOldest: true }
+            );
+            await until(() => changes.values.length >= 1 && sampled.values.length >= 1, "the initial values");
+            space.deleteNode(`ns=${ns};s=Doomed`);
+            await until(() => changes.values.some((v) => !v.statusCode.isGood()), "the item listening to changes told");
+            await until(() => sampled.values.some((v) => !v.statusCode.isGood()), "the sampled item told");
+            await changes.item.terminate();
+            await sampled.item.terminate();
+        });
     });
 });
