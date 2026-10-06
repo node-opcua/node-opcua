@@ -35,7 +35,8 @@ const port11 = 5710;
 const port12 = 5711;
 const port13 = 5804;
 const port14 = 5805;
-const ports = [port1, port2, port3, port4, port5, port6, port7, port8, port9, port10, port11, port12, port13, port14];
+const port15 = 5806;
+const ports = [port1, port2, port3, port4, port5, port6, port7, port8, port9, port10, port11, port12, port13, port14, port15];
 let portIndex = 0;
 
 import { BinaryStream } from "../../node-opcua/dist/index.js";
@@ -665,6 +666,28 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
                 synchronousThrow = e as Error;
                 done(new Error(`connect() retry threw synchronously: ${synchronousThrow.message}`));
             }
+        });
+    });
+
+    it("TCS-13 should close the connection when the bytes following ACK in the same packet announce an oversized chunk", (done) => {
+        const spyOnServerWrite = sinon.spy((socket, _data) => {
+            // a chunk header announcing far more than the receive buffer just negotiated
+            const oversizedChunkHeader = Buffer.alloc(8);
+            oversizedChunkHeader.write("MSGF", 0, "ascii");
+            oversizedChunkHeader.writeUInt32LE(0x7fffffff, 4);
+            socket.write(Buffer.concat([packTcpMessage("ACK", fakeAcknowledgeMessage), oversizedChunkHeader]));
+        });
+        fakeServer.pushResponse(spyOnServerWrite);
+
+        clientTransport.on("chunk", (_messageChunk) => {
+            done(new Error("Not expecting a message"));
+        });
+        clientTransport.on("close", () => {
+            spyOnConnect.callCount.should.eql(1);
+            done();
+        });
+        clientTransport.connect(endpointUrl, (err) => {
+            should.not.exist(err);
         });
     });
 });

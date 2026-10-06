@@ -242,8 +242,13 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
             }
         }
 
-        // reinstall packetAssembler with correct limits
-        this.#_install_packetAssembler();
+        // the limits are negotiated from a chunk handler (HEL or ACK), while the assembler may
+        // still hold the bytes that follow in the same socket read: adjust it in place.
+        if (this.#packetAssembler) {
+            this.#packetAssembler.setMaxChunkSize(this.receiveBufferSize);
+        } else {
+            this.#_install_packetAssembler();
+        }
     }
 
     public get timeout(): number {
@@ -378,21 +383,23 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
     }
 
     #_install_packetAssembler() {
-        if (this.#packetAssembler) {
-            this.#packetAssembler.removeAllListeners();
-            this.#packetAssembler = undefined;
-        }
-
-        // install packet assembler ...
-        this.#packetAssembler = new PacketAssembler({
+        // note: the previous assembler (if any) may still be inside feed(), when the socket is
+        //       replaced from one of its own handlers. Its listeners are left in place, and
+        //       ignore whatever it emits once it is no longer the current one.
+        const packetAssembler = new PacketAssembler({
             readChunkFunc: readRawMessageHeader,
             minimumSizeInBytes: TCP_transport.headerSize,
             maxChunkSize: this.receiveBufferSize //Math.max(this.receiveBufferSize, this.sendBufferSize)
         });
+        this.#packetAssembler = packetAssembler;
 
-        this.#packetAssembler.on("chunk", (chunk: Buffer) => this._on_message_chunk_received(chunk));
+        packetAssembler.on("chunk", (chunk: Buffer) => {
+            if (this.#packetAssembler !== packetAssembler) return;
+            this._on_message_chunk_received(chunk);
+        });
 
-        this.#packetAssembler.on("error", (err, code) => {
+        packetAssembler.on("error", (err, code) => {
+            if (this.#packetAssembler !== packetAssembler) return;
             let statusCode = StatusCodes2.BadTcpMessageTooLarge;
             switch (code) {
                 case PacketAssemblerErrorCode.ChunkSizeExceeded:

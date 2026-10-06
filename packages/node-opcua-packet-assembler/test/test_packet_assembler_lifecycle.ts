@@ -1,5 +1,5 @@
 import should from "should";
-import { PacketAssembler, type PacketInfo } from "../dist/index.js";
+import { PacketAssembler, PacketAssemblerErrorCode, type PacketInfo } from "../dist/index.js";
 
 function readChunkHeader(data: Buffer): PacketInfo {
     const length = data.readUInt32LE(4);
@@ -68,5 +68,33 @@ describe("PacketAssembler Lifecycle", () => {
 
         assembler.feed(part1);
         assembler.feed(part2);
+    });
+
+    it("should apply a limit changed from a chunk handler to the rest of the same input buffer", () => {
+        const assembler = new PacketAssembler({
+            readChunkFunc: readChunkHeader,
+            minimumSizeInBytes: 8,
+            maxChunkSize: 1024
+        });
+
+        // two packets in a single buffer: 16 bytes, then 64 bytes
+        const data = Buffer.alloc(16 + 64);
+        data.writeUInt32LE(16, 4);
+        data.writeUInt32LE(64, 16 + 4);
+
+        const chunkLengths: number[] = [];
+        const errorCodes: PacketAssemblerErrorCode[] = [];
+        assembler.on("chunk", (chunk) => {
+            chunkLengths.push(chunk.length);
+            assembler.setMaxChunkSize(32);
+        });
+        assembler.on("error", (_err, code) => {
+            errorCodes.push(code);
+        });
+
+        assembler.feed(data);
+
+        should(chunkLengths).eql([16]);
+        should(errorCodes).eql([PacketAssemblerErrorCode.ChunkSizeExceeded]);
     });
 });
