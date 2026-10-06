@@ -449,6 +449,16 @@ export function makeRoles(roleIds: RoleIdLike[] | string | WellKnownRoles, addre
     return roleIds.map((role) => resolveRole(role, addressSpace));
 }
 
+/** what {@link SessionContext.withPermissionCache} remembers while its action runs */
+interface PermissionCache {
+    roles?: NodeId[];
+    evaluationRoles?: NodeId[];
+    /** keyed by the RolePermissions that apply, which most nodes share with their namespace */
+    permissions: Map<RolePermissionType[] | null, PermissionFlag>;
+    defaultRolePermissions: Map<NamespacePrivate, RolePermissionType[] | null>;
+    defaultAccessRestrictions: Map<NamespacePrivate, AccessRestrictionsFlag>;
+}
+
 export class SessionContext implements ISessionContext {
     public static defaultContext = new SessionContext({});
 
@@ -458,6 +468,8 @@ export class SessionContext implements ISessionContext {
     public readonly session?: ISessionBase;
     public readonly server?: IServerBase;
     public readonly requestHeader?: RequestHeader;
+
+    #permissionCache: PermissionCache | null = null;
 
     constructor(options?: SessionContextOptions) {
         options = options || {};
@@ -490,6 +502,26 @@ export class SessionContext implements ISessionContext {
      */
     public getAuditEntryId(): string | undefined {
         return this.requestHeader?.auditEntryId || undefined;
+    }
+
+    /**
+     * see {@link ISessionContext.withPermissionCache}.
+     *
+     * A Session's sessionContext is shared by every request in flight on it, so the cache only
+     * lives while `action` runs, and `action` must not wait on anything: a request served in
+     * one synchronous run cannot be interleaved with another one. Nested calls share the
+     * outermost cache.
+     */
+    public withPermissionCache<T>(action: () => T): T {
+        if (this.#permissionCache) {
+            return action();
+        }
+        this.#permissionCache = { permissions: new Map(), defaultRolePermissions: new Map(), defaultAccessRestrictions: new Map() };
+        try {
+            return action();
+        } finally {
+            this.#permissionCache = null;
+        }
     }
 
     /**
@@ -570,6 +602,15 @@ export class SessionContext implements ISessionContext {
      *
      */
     public getCurrentUserRoles(): NodeId[] {
+        const cache = this.#permissionCache;
+        if (!cache) {
+            return this.#resolveCurrentUserRoles();
+        }
+        cache.roles ??= this.#resolveCurrentUserRoles();
+        return cache.roles;
+    }
+
+    #resolveCurrentUserRoles(): NodeId[] {
         if (!this.session) {
             // no Session: an in-process caller. getPermissions grants it everything —
             // an empty list here does NOT mean "no rights", see unresolvedPermissions.
@@ -640,7 +681,15 @@ export class SessionContext implements ISessionContext {
     public getApplicableRolePermissions(node: BaseNode): RolePermissionType[] | null {
         if (!node.rolePermissions) {
             const namespace = node.namespace as NamespacePrivate;
-            const defaultUserRolePermissions = getDefaultUserRolePermissionsOnNamespace(namespace, this);
+            const cache = this.#permissionCache;
+            if (!cache) {
+                return getDefaultUserRolePermissionsOnNamespace(namespace, this);
+            }
+            let defaultUserRolePermissions = cache.defaultRolePermissions.get(namespace);
+            if (defaultUserRolePermissions === undefined) {
+                defaultUserRolePermissions = getDefaultUserRolePermissionsOnNamespace(namespace, this);
+                cache.defaultRolePermissions.set(namespace, defaultUserRolePermissions);
+            }
             return defaultUserRolePermissions;
         }
         return node.rolePermissions;
@@ -696,7 +745,11 @@ export class SessionContext implements ISessionContext {
     public getPermissions(node: BaseNode): PermissionFlag {
         const applicableRolePermissions = this.getApplicableRolePermissions(node);
 
-        const roles = this.getCurrentUserRoles();
+        const cache = this.#permissionCache;
+        if (cache) {
+            cache.roles ??= this.getCurrentUserRoles();
+        }
+        const roles = cache?.roles ?? this.getCurrentUserRoles();
         if (roles.length === 0) {
             // Two very different situations land here:
             //  - no Session at all: an in-process caller, always trusted (see isInProcessCaller)
@@ -706,17 +759,39 @@ export class SessionContext implements ISessionContext {
             //    can set unresolvedPermissionPolicy: "deny" to fail closed instead.
             return this.unresolvedPermissions;
         }
+        if (!cache) {
+            return this.#evaluatePermissions(applicableRolePermissions, this.getRolesForPermissionEvaluation(roles));
+        }
+        let permissions = cache.permissions.get(applicableRolePermissions);
+        if (permissions === undefined) {
+            cache.evaluationRoles ??= this.getRolesForPermissionEvaluation(roles);
+            permissions = this.#evaluatePermissions(applicableRolePermissions, cache.evaluationRoles);
+            cache.permissions.set(applicableRolePermissions, permissions);
+        }
+        return permissions;
+    }
+
+    #evaluatePermissions(applicableRolePermissions: RolePermissionType[] | null, roles: NodeId[]): PermissionFlag {
         const unresolved = this.unresolvedPermissions;
         let orFlags: PermissionFlag = 0;
-        for (const role of this.getRolesForPermissionEvaluation(roles)) {
+        for (const role of roles) {
             orFlags = orFlags | getPermissionForRole(applicableRolePermissions, role, unresolved);
         }
         return orFlags;
     }
+
     public getAccessRestrictions(node: BaseNode): AccessRestrictionsFlag {
         if (node.accessRestrictions === undefined) {
             const namespace = node.namespace as NamespacePrivate;
-            const accessRestrictions = getAccessRestrictionsOnNamespace(namespace, this);
+            const cache = this.#permissionCache;
+            if (!cache) {
+                return getAccessRestrictionsOnNamespace(namespace, this);
+            }
+            let accessRestrictions = cache.defaultAccessRestrictions.get(namespace);
+            if (accessRestrictions === undefined) {
+                accessRestrictions = getAccessRestrictionsOnNamespace(namespace, this);
+                cache.defaultAccessRestrictions.set(namespace, accessRestrictions);
+            }
             return accessRestrictions;
         }
         return node.accessRestrictions;

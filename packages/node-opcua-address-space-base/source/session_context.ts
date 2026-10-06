@@ -193,6 +193,14 @@ export interface ISessionContext {
     getAuditEntryId(): string | undefined;
 
     /**
+     * Runs `action` with the user's Roles and the namespace defaults of permissions and access
+     * restrictions resolved once, rather than once per node: a Read of a thousand nodes asks
+     * the same questions a thousand times. What is resolved is forgotten when `action` returns,
+     * so a change of Roles or of NamespaceMetadata applies from the next request on.
+     */
+    withPermissionCache?<T>(action: () => T): T;
+
+    /**
      * Returns a JSON representation of the context
      */
     toJSON(): Record<string, string | null>;
