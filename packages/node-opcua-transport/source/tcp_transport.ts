@@ -285,13 +285,11 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
      * @param messageChunk
      */
     public write(messageChunk: Buffer, callback?: (err?: Error | null) => undefined | undefined): void {
-        const header = readRawMessageHeader(messageChunk);
-        assert(header.length === messageChunk.length);
-        const c = header.messageHeader.isFinal;
-        assert(c === "F" || c === "C" || c === "A");
-        this._write_chunk(messageChunk, (err) => {
-            callback?.(err);
-        });
+        // the chunk comes from our own chunk manager: the length field (offset 4) and the
+        // isFinal byte (offset 3, one of "F", "C", "A") are checked without decoding the header
+        assert(messageChunk.readUInt32LE(4) === messageChunk.length);
+        assert(messageChunk[3] === 0x46 || messageChunk[3] === 0x43 || messageChunk[3] === 0x41);
+        this._write_chunk(messageChunk, callback);
     }
 
     public isDisconnecting(): boolean {
