@@ -45,11 +45,17 @@ import {
 
 const MAX_AGE_CACHED = 0x7fffffff;
 
-/** request and reply over the port to the engine */
+/**
+ * request and reply over the port to the engine. The requests made in one turn of the event
+ * loop (the requests decoded from one socket read, typically) leave as one message, and come
+ * back as one: a message wakes the other thread, and waking it is most of what a crossing costs.
+ */
 export class EngineChannel {
     readonly #port: MessagePort;
     readonly #pending = new Map<number, (payload: unknown) => void>();
     #id = 0;
+    #ids: number[] = [];
+    #requests: FrontRequest[] = [];
 
     constructor(port: MessagePort) {
         this.#port = port;
@@ -59,17 +65,27 @@ export class EngineChannel {
         const id = ++this.#id;
         return new Promise<T>((resolve) => {
             this.#pending.set(id, resolve as (payload: unknown) => void);
-            const message: FrontToEngine = { kind: "request", id, request };
-            this.#port.postMessage(message);
+            if (this.#ids.length === 0) setImmediate(() => this.#flush());
+            this.#ids.push(id);
+            this.#requests.push(request);
         });
     }
 
-    /** a reply from the engine; false when the message is not one */
+    #flush(): void {
+        const message: FrontToEngine = { kind: "requests", ids: this.#ids, requests: this.#requests };
+        this.#ids = [];
+        this.#requests = [];
+        this.#port.postMessage(message);
+    }
+
+    /** the replies from the engine; false when the message is not one */
     public receive(message: EngineToFront): boolean {
-        if (message.kind !== "reply") return false;
-        const resolve = this.#pending.get(message.id);
-        this.#pending.delete(message.id);
-        resolve?.(message.payload);
+        if (message.kind !== "replies") return false;
+        for (let k = 0; k < message.ids.length; k++) {
+            const resolve = this.#pending.get(message.ids[k]);
+            this.#pending.delete(message.ids[k]);
+            resolve?.(message.payloads[k]);
+        }
         return true;
     }
 }
