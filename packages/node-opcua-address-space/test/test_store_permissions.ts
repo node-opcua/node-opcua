@@ -218,6 +218,23 @@ describe("store permissions: access restrictions and role permissions on the sto
         );
         should(inherits.readValue(session(MessageSecurityMode.None, [operator])).statusCode).eql(StatusCodes.Good);
         should(space.permissions.namespaceDefaults(0).rolePermissions).eql(null, "the UA namespace declares no metadata object");
+        // the metadata value wins over what the application set; the application's setting is the fallback
+        space.permissions.setNamespaceDefaults(1, {
+            accessRestrictions: AccessRestrictionsFlag.SigningRequired,
+            rolePermissions: [{ roleId: securityAdmin, permissions: PermissionFlag.Browse | PermissionFlag.Read }]
+        });
+        should(inherits.readValue(session(MessageSecurityMode.Sign, [operator])).statusCode).eql(
+            StatusCodes.Good,
+            "operator from the metadata"
+        );
+        should(inherits.readValue(session(MessageSecurityMode.Sign, [securityAdmin])).statusCode).eql(
+            StatusCodes.BadUserAccessDenied
+        );
+        should(inherits.readValue(session(MessageSecurityMode.None, [operator])).statusCode).eql(
+            StatusCodes.BadSecurityModeInsufficient,
+            "DefaultAccessRestrictions has no value: the application's setting applies"
+        );
+        space.permissions.setNamespaceDefaults(1, null);
     });
 
     it("denies a value its access level does not expose, whoever asks", () => {
