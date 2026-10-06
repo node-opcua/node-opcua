@@ -48,7 +48,7 @@ describe("node_sampler", () => {
             const item = {
                 monitoredItemId,
                 samplingInterval,
-                monitoringMode: MonitoringMode.Reporting,
+                monitoringMode: MonitoringMode.Reporting as MonitoringMode,
                 _samplingId: undefined as string | undefined,
                 samples: 0,
                 _on_sampling_timer() {
@@ -57,6 +57,22 @@ describe("node_sampler", () => {
             };
             return item;
         }
+
+        it("samples every item of the interval in one pass, and skips a disabled one", () => {
+            const item1 = fakeMonitoredItem(11, 10);
+            const item2 = fakeMonitoredItem(12, 10);
+            item2.monitoringMode = MonitoringMode.Disabled;
+            item1._samplingId = appendToTimer(item1 as unknown as MonitoredItem);
+            item2._samplingId = appendToTimer(item2 as unknown as MonitoredItem);
+
+            clock.tick(105);
+            should(item1.samples).eql(10);
+            should(item2.samples).eql(0);
+
+            removeFromTimer(item1 as unknown as MonitoredItem);
+            removeFromTimer(item2 as unknown as MonitoredItem);
+            should(clock.countTimers()).eql(0);
+        });
 
         it("samples every interval until the last item is removed", () => {
             const item = fakeMonitoredItem(1, 10);

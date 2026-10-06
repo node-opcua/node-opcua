@@ -1831,3 +1831,35 @@ describe("MonitoredItem with DataChangeFilter", () => {
         q(monitoredItem).should.eql([10, 10]);
     });
 });
+
+describe("MonitoredItem recording a SemanticChanged sample", () => {
+    class FakeNodeWithSemantics extends FakeNode {
+        public semantic_version = 1;
+    }
+
+    it("sets the bit on the queued notification without writing into the recorded DataValue", () => {
+        const node = new FakeNodeWithSemantics();
+        const monitoredItem = createMonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 10,
+            monitoredItemId: 60
+        });
+        monitoredItem.$subscription = fakeSubscription;
+        monitoredItem.setNode(node);
+
+        node.semantic_version = 2;
+        // without an index range recordValue no longer copies the sample up front: the DataValue
+        // it is handed is the variable's own, which must not receive the bit
+        const dataValue = new DataValue({ statusCode: StatusCodes.Good, value: { dataType: DataType.Double, value: 1 } });
+        monitoredItem.recordValue(dataValue);
+
+        should(dataValue.statusCode).eql(StatusCodes.Good);
+        should(monitoredItem.queue.length).eql(1);
+        should(monitoredItem.queue[0].value.statusCode.hasSemanticChangedBit).eql(true);
+
+        monitoredItem.terminate();
+        monitoredItem.dispose();
+    });
+});

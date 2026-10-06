@@ -758,7 +758,13 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         }
 
         // extract the range that we are interested with
-        dataValue = extractRange(dataValue, this.itemToMonitor.indexRange);
+        // without an index range there is nothing to extract: _enqueue_value keeps its own copy,
+        // so the only branch that writes into dataValue (the SemanticChanged bit) copies it first
+        const indexRangeToExtract = this.itemToMonitor.indexRange;
+        const hasIndexRange = !!indexRangeToExtract && !indexRangeToExtract.isEmpty();
+        if (hasIndexRange) {
+            dataValue = extractRange(dataValue, indexRangeToExtract);
+        }
 
         // c8 ignore next
         if (doDebug2) {
@@ -781,6 +787,9 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         if (hasSemanticChanged) {
             // c8 ignore next
             doDebug && debugLog("_enqueue_value => because hasSemanticChanged");
+            if (!hasIndexRange) {
+                dataValue = dataValue.clone();
+            }
             setSemanticChangeBit(dataValue);
             this._semantic_version = (this.node as UAVariable).semantic_version;
             this._enqueue_value(dataValue);
@@ -789,7 +798,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             return true;
         }
 
-        const useIndexRange = this.itemToMonitor.indexRange && !this.itemToMonitor.indexRange.isEmpty();
+        const useIndexRange = hasIndexRange;
 
         if (!skipChangeTest) {
             const hasChanged = !sameDataValue(dataValue, this.oldDataValue);
