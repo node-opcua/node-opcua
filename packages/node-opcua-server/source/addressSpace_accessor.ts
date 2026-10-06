@@ -12,7 +12,7 @@ import { AttributeIds } from "node-opcua-basic-types";
 import { apply_timestamps_no_copy, coerceTimestampsToReturn, DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock, isMinDate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { coerceNodeId, type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     AggregateConfiguration,
@@ -133,15 +133,23 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
          *    Negative values are invalid for maxAge.
          */
 
+        return this.readSync(context, readRequest);
+    }
+
+    /**
+     * read, without a promise: nothing in a Read is asynchronous once the Variables that need
+     * it have been refreshed (see ServerEngine#refreshValues), and the Read service is the
+     * busiest one a server answers.
+     */
+    public readSync(context: ISessionContext, readRequest: ReadRequestOptions): DataValue[] {
         readRequest.maxAge = readRequest.maxAge || 0;
         const timestampsToReturn = readRequest.timestampsToReturn;
         const nodesToRead = readRequest.nodesToRead || [];
 
         context.currentTime = getCurrentClock();
-        const dataValues: DataValue[] = [];
-        for (const readValueId of nodesToRead) {
-            const dataValue = await this.readNode(context, readValueId, readRequest.maxAge, timestampsToReturn);
-            dataValues.push(dataValue);
+        const dataValues: DataValue[] = new Array(nodesToRead.length);
+        for (let i = 0; i < nodesToRead.length; i++) {
+            dataValues[i] = this.readNodeSync(context, nodesToRead[i], readRequest.maxAge, timestampsToReturn);
         }
         return dataValues;
     }
@@ -257,7 +265,15 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
         maxAge: number,
         timestampsToReturn?: TimestampsToReturn
     ): Promise<DataValue> {
-        assert(context instanceof SessionContext);
+        return this.readNodeSync(context, nodeToRead, maxAge, timestampsToReturn);
+    }
+
+    public readNodeSync(
+        context: ISessionContext,
+        nodeToRead: ReadValueIdOptions,
+        maxAge: number,
+        timestampsToReturn?: TimestampsToReturn
+    ): DataValue {
         if (!nodeToRead.nodeId) {
             throw new Error("readNode: expecting a nodeId in nodeToRead");
         }
@@ -275,7 +291,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
 
         timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
 
-        const obj = this.__findNode(coerceNodeId(nodeId));
+        const obj = this.__findNode(nodeId);
 
         let dataValue: DataValue;
         if (!obj) {

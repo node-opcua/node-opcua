@@ -15,6 +15,8 @@ import type {
 export interface IAddressSpaceAccessor {
     browse(context: ISessionContext, nodesToBrowse: BrowseDescriptionOptions[]): Promise<BrowseResult[]>;
     read(context: ISessionContext, readRequest: ReadRequestOptions): Promise<DataValue[]>;
+    /** the same, without a promise: a Read has nothing to wait for once its Variables are refreshed */
+    readSync(context: ISessionContext, readRequest: ReadRequestOptions): DataValue[];
     write(context: ISessionContext, nodesToWrite: WriteValue[]): Promise<StatusCode[]>;
     call(context: ISessionContext, methodsToCall: CallMethodRequest[]): Promise<CallMethodResultOptions[]>;
     historyRead(context: ISessionContext, historyReadRequest: HistoryReadRequest): Promise<HistoryReadResult[]>;
