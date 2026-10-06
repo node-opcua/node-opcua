@@ -5,12 +5,22 @@
  * the methods it calls, answered from the columns. Holds the index, never a row position, so
  * it stays valid when the reference table is re-indexed.
  */
+
 import { EventEmitter } from "node:events";
 import type { ISessionContext } from "node-opcua-address-space-base";
 import { type BrowsedReference, NO_NODE } from "node-opcua-address-space-store";
-import { AttributeIds, LocalizedText, type NodeClass, QualifiedName } from "node-opcua-data-model";
-import type { DataValue } from "node-opcua-data-value";
+import {
+    AttributeIds,
+    isDataEncoding,
+    LocalizedText,
+    type NodeClass,
+    QualifiedName,
+    type QualifiedNameLike
+} from "node-opcua-data-model";
+import { DataValue } from "node-opcua-data-value";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
+import type { NumericRange } from "node-opcua-numeric-range";
+import { StatusCodes } from "node-opcua-status-code";
 import type { Variant } from "node-opcua-variant";
 import type { StoreAddressSpace } from "./store_address_space.js";
 import { attributeDataValue } from "./store_data_value.js";
@@ -190,7 +200,19 @@ export class StoreNodeView extends EventEmitter {
     }
 
     // ---- read
-    public readAttribute(_context: ISessionContext | null, attributeId: AttributeIds): DataValue {
+    public readAttribute(
+        _context: ISessionContext | null,
+        attributeId: AttributeIds,
+        indexRange?: NumericRange | null,
+        dataEncoding?: QualifiedNameLike | null
+    ): DataValue {
+        // the Value alone takes a range or an encoding (the Variable view answers it)
+        if (indexRange?.isDefined()) {
+            return new DataValue({ statusCode: StatusCodes.BadIndexRangeNoData });
+        }
+        if (isDataEncoding(dataEncoding)) {
+            return new DataValue({ statusCode: StatusCodes.BadDataEncodingInvalid });
+        }
         return attributeDataValue(this.space.reader, this.index, attributeId);
     }
 
