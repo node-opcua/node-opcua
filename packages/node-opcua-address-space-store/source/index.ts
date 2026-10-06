@@ -9,3 +9,4 @@ export { NO_NODE, NodeIdIndex } from "./node_id_index.js";
 export { NO_STRING, type NodeRecord, NodeStore } from "./node_store.js";
 export { ReferenceTable } from "./reference_table.js";
 export { StringArena } from "./string_arena.js";
+export { type StoredValue, ValueKind, ValueStore } from "./value_store.js";
