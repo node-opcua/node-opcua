@@ -121,7 +121,7 @@ export class NodeStore {
         this.#description[i] = record.description ? this.strings.intern(record.description) : NO_STRING;
         this.#typeDefinition[i] = record.typeDefinition ?? NO_NODE;
         this.#dataType[i] = record.dataType ?? NO_NODE;
-        this.#parent[i] = record.parent ?? NO_NODE;
+        this.#parent[i] = record.parent ?? NO_NODE; // check-proto-pollution: ok - typed array, node index
         this.#valueRank[i] = record.valueRank ?? -1;
         this.#accessLevel[i] = record.accessLevel ?? 0;
         this.#userAccessLevel[i] = record.userAccessLevel ?? this.#accessLevel[i];
@@ -201,7 +201,7 @@ export class NodeStore {
         return this.#parent[i];
     }
     public setParent(i: number, node: number): void {
-        this.#parent[i] = node;
+        this.#parent[i] = node; // check-proto-pollution: ok - typed array, node index
     }
     public valueRank(i: number): number {
         return this.#valueRank[i];
