@@ -50,7 +50,7 @@ export class StoreReferenceView {
 export class StoreNodeView extends EventEmitter {
     public readonly space: StoreAddressSpace;
     public readonly index: number;
-    /** stamped by the view cache on each lookup */
+    /** the view cache's mark: 1 when used since the hand last passed, 0 when not */
     public lastUse = 0;
     #nodeId: NodeId | undefined;
     #browseName: QualifiedName | undefined;

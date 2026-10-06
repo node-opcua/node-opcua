@@ -35,54 +35,48 @@ export interface StoreAddressSpaceOptions {
 }
 
 /**
- * a bounded cache of views: a Map keeps insertion order, so the first entry is the least
- * recently used once a hit re-inserts its entry
+ * a bounded cache of views, replaced the CLOCK way: the views sit in a ring, a hit marks the
+ * view used, and an insertion takes the first slot past the hand whose view was not used since
+ * the hand last passed it, clearing the marks it walks over. Constant work per insertion, no
+ * ordering kept, and a view the application holds keeps working after it left the ring.
  */
 class ViewCache {
     readonly #views = new Map<number, StoreNodeView>();
-    readonly #capacity: number;
-    #tick = 0;
+    readonly #ring: (StoreNodeView | undefined)[];
+    #hand = 0;
     constructor(capacity: number) {
-        this.#capacity = Math.max(16, capacity);
+        this.#ring = new Array(Math.max(16, capacity)).fill(undefined);
     }
     get(index: number): StoreNodeView | undefined {
         const view = this.#views.get(index);
         if (view !== undefined) {
-            // a hit only stamps the view: no reordering of the map on the hot path
-            view.lastUse = ++this.#tick;
+            view.lastUse = 1;
         }
         return view;
     }
     set(index: number, view: StoreNodeView): void {
-        view.lastUse = ++this.#tick;
+        const ring = this.#ring;
+        const n = ring.length;
+        let hand = this.#hand;
+        for (;;) {
+            const occupant = ring[hand];
+            if (occupant === undefined) {
+                break;
+            }
+            if (occupant.lastUse === 0 || occupant.isDisposed()) {
+                this.#views.delete(occupant.index);
+                break;
+            }
+            occupant.lastUse = 0;
+            hand = hand + 1 === n ? 0 : hand + 1;
+        }
+        view.lastUse = 1;
+        ring[hand] = view; // check-proto-pollution: ok - numeric ring position
+        this.#hand = hand + 1 === n ? 0 : hand + 1;
         this.#views.set(index, view);
-        if (this.#views.size > this.#capacity) {
-            this.#evict();
-        }
-    }
-    /**
-     * drop the older quarter of the stamp range, which is the least recently used quarter or
-     * so without a sort; when the stamps bunch up and that frees too little, sort once. A view
-     * the application holds keeps working either way.
-     */
-    #evict(): void {
-        let oldest = this.#tick;
-        for (const v of this.#views.values()) if (v.lastUse < oldest) oldest = v.lastUse;
-        let cutoff = oldest + (this.#tick - oldest) / 4;
-        const target = this.#views.size - this.#capacity * 0.75;
-        let freed = 0;
-        for (const v of this.#views.values()) if (v.lastUse <= cutoff) freed++;
-        if (freed < target) {
-            const stamps: number[] = [];
-            for (const v of this.#views.values()) stamps.push(v.lastUse);
-            stamps.sort((a, b) => a - b);
-            cutoff = stamps[Math.floor(stamps.length / 4)];
-        }
-        for (const [index, v] of this.#views) {
-            if (v.lastUse <= cutoff) this.#views.delete(index);
-        }
     }
     delete(index: number): void {
+        // the ring slot is left to the hand: a disposed view is taken at the first pass
         this.#views.delete(index);
     }
     get size(): number {
