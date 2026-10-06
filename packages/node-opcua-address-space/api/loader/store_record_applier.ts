@@ -9,7 +9,13 @@ import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { DataType, VariantArrayType, type VariantOptions } from "node-opcua-variant";
 import type { NodeSetPermissionsPolicy } from "../interfaces/nodeset_loader_options.js";
-import type { NodesetHeaderRecord, NodesetNodeRecord, NodesetRecord, NodesetRecordConsumer } from "./nodeset_record.js";
+import {
+    type NodesetHeaderRecord,
+    type NodesetNodeRecord,
+    type NodesetRecord,
+    type NodesetRecordConsumer,
+    XmlExtensionObjectFragment
+} from "./nodeset_record.js";
 
 const UA_NAMESPACE_URI = "http://opcfoundation.org/UA/";
 
@@ -33,6 +39,7 @@ export class StoreRecordApplier implements NodesetRecordConsumer {
     #headerSeen = false;
     #nodeCount = 0;
     #pendingValues = 0;
+    #deferredValues = 0;
     // a type definition or data type declared before its node exists: set at finish()
     #deferredTypeDefinitions: [number, NodeId][] = [];
     #deferredDataTypes: [number, NodeId][] = [];
@@ -141,6 +148,9 @@ export class StoreRecordApplier implements NodesetRecordConsumer {
             historizing: record.historizing,
             eventNotifier: record.eventNotifier,
             isAbstract: record.isAbstract,
+            symmetric: record.symmetric,
+            inverseName: record.inverseName ?? null,
+            containsNoLoops: record.containsNoLoops,
             accessRestrictions: this.#keepAccessRestrictions ? parseAccessRestrictions(record.accessRestrictions) : undefined,
             rolePermissions: this.#keepPermissions ? this.#rolePermissions(record) : undefined
         });
@@ -182,6 +192,13 @@ export class StoreRecordApplier implements NodesetRecordConsumer {
     }
 
     #applyValue(i: number, value: VariantOptions): void {
+        if (holdsXmlFragment(value.value)) {
+            // an extension object the loader left as its XML: the node objects decode it once every
+            // document is in; the store has no decoder yet, so the Variable waits for a value rather
+            // than serve something a client cannot decode
+            this.#deferredValues++;
+            return;
+        }
         const now = this.#loadTime;
         const dataType =
             (typeof value.dataType === "string" ? DataType[value.dataType as keyof typeof DataType] : value.dataType) ??
@@ -196,10 +213,21 @@ export class StoreRecordApplier implements NodesetRecordConsumer {
         }
     }
 
-    /** values kept as objects (strings, arrays, extension objects, deferred XML fragments) */
+    /** values kept as objects (strings, arrays, structures) */
     public get objectValueCount(): number {
         return this.#pendingValues;
     }
+
+    /** extension object values the document gave as XML, left unset (BadWaitingForInitialData) */
+    public get deferredValueCount(): number {
+        return this.#deferredValues;
+    }
+}
+
+/** true when a value is, or holds, an extension object still in its XML form */
+function holdsXmlFragment(value: unknown): boolean {
+    if (value instanceof XmlExtensionObjectFragment) return true;
+    return Array.isArray(value) && value.some((element) => element instanceof XmlExtensionObjectFragment);
 }
 
 function parseAccessLevel(text: string | undefined, absent: number): number {

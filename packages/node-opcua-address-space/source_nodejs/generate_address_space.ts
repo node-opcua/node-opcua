@@ -9,11 +9,13 @@ import {
     compactRecordConsumer,
     generateAddressSpaceRaw,
     type NamedNodesetSource,
+    NODESET2_XML_FORMAT,
     type NodeSetLoaderOptions,
     type NodesetSource,
     type NodesetToImageOptions,
     nodesetImageProblem,
     nodesetToImage as nodesetToImageRaw,
+    openNodesetSource,
     readNodesetImageInfo,
     type StoreRecordApplierOptions,
     setImageDeflater,
@@ -238,15 +240,20 @@ export async function nodesetFileToImage(source: NodesetSource | string, options
  */
 export async function generateCompactAddressSpace(
     addressSpace: CompactAddressSpace,
-    xmlFiles: string | string[],
+    documents: string | NodesetSource | Array<string | NodesetSource>,
     options: StoreRecordApplierOptions = {}
 ): Promise<void> {
-    const files = Array.isArray(xmlFiles) ? xmlFiles : [xmlFiles];
+    const list = Array.isArray(documents) ? documents : [documents];
     const consumer = compactRecordConsumer(addressSpace, options);
-    for (const xmlFile of files) {
-        checkNodeSet2XmlFileExists(xmlFile);
-        const chunks = fs.createReadStream(xmlFile, { encoding: "utf8", highWaterMark: FILE_CHUNK_SIZE });
-        for await (const record of xmlNodesetRecords(chunks)) {
+    for (const [index, document] of list.entries()) {
+        const source = typeof document === "string" ? nodesetSourceFromFile(document) : document;
+        const reader = openNodesetSource(source, index);
+        if ((await reader.probe()) !== NODESET2_XML_FORMAT) {
+            throw new Error(
+                `generateCompactAddressSpace: ${reader.name} is not a NodeSet2 XML document (images are not loaded into a compact space yet)`
+            );
+        }
+        for await (const record of xmlNodesetRecords(textChunks(reader.chunks()))) {
             consumer.apply(record);
         }
     }
@@ -254,4 +261,14 @@ export async function generateCompactAddressSpace(
     if (unresolved > 0) {
         debugLog(`generateCompactAddressSpace: ${unresolved} references point at nodes no document declares`);
     }
+}
+
+/** the chunks of a source as text, whatever the stream yields */
+async function* textChunks(chunks: AsyncIterable<string | Uint8Array>): AsyncGenerator<string> {
+    const decoder = new TextDecoder();
+    for await (const chunk of chunks) {
+        yield typeof chunk === "string" ? chunk : decoder.decode(chunk, { stream: true });
+    }
+    const tail = decoder.decode();
+    if (tail) yield tail;
 }

@@ -52,7 +52,8 @@ class ViewCache {
     }
     get(index: number): StoreNodeView | undefined {
         const view = this.#views.get(index);
-        if (view !== undefined) {
+        if (view !== undefined && view.lastUse !== -1) {
+            // a view out of the ring (listeners) keeps its mark: it is forgotten by its last listener
             view.lastUse = 1;
         }
         return view;
@@ -226,16 +227,22 @@ export class StoreAddressSpace {
     }
 
     /**
-     * forget a node: gone for clients at once, with its references from both ends; its row is
-     * reclaimed at the next compaction. A view the application still holds answers isDisposed()
+     * forget a node: gone for clients at once, with its references from both ends; its index
+     * goes to the next node added. A view the application still holds answers isDisposed()
      */
     public deleteNode(node: StoreNodeView | NodeId | string | number): void {
         const index = typeof node === "number" ? node : this.#builder.indexOf(node);
         const view = this.#views.get(index);
+        const nodeClass = this.store.nodes.nodeClass(index);
         this.store.deleteNode(index);
         this.bindings.delete(index);
         this.#views.delete(index);
         this.permissions.invalidate();
+        if (nodeClass === NodeClass.ReferenceType) {
+            this.browser.refresh();
+        } else if (nodeClass === NodeClass.DataType) {
+            this.dataTypes.invalidate();
+        }
         // what a monitored item on the node listens to, as on the node objects
         view?.emit("dispose");
     }

@@ -35,6 +35,11 @@ export interface NodeRecord {
     historizing?: boolean;
     eventNotifier?: number;
     isAbstract?: boolean;
+    /** reference types */
+    symmetric?: boolean;
+    inverseName?: string | null;
+    /** views */
+    containsNoLoops?: boolean;
     /** the AccessRestrictions flags the node declares; undefined inherits the namespace default */
     accessRestrictions?: number;
     /**
@@ -86,8 +91,13 @@ export class NodeStore {
     #userAccessLevel: Uint8Array;
     #eventNotifier: Uint8Array;
     #minimumSamplingInterval: Float32Array;
-    #flags: Uint8Array; // bit 0 historizing, bit 1 isAbstract, bit 2 deleted
+    #flags: Uint8Array; // bit 0 historizing, bit 1 isAbstract, bit 2 deleted, bit 3 symmetric, bit 4 containsNoLoops
+    #inverseName: Int32Array; // arena id or NO_STRING (reference types)
     #accessRestrictions: Uint8Array; // flags, or INHERITED_ACCESS_RESTRICTIONS
+    // how many nodes have occupied each index: a view remembers the one it was built for
+    #generation: Uint16Array;
+    // the indexes of deleted nodes, taken again by the next additions
+    #free: number[] = [];
     // the few nodes that declare RolePermissions (557 of the 5,476 nodes of the standard nodeset)
     readonly #rolePermissions = new Map<number, readonly RolePermissionEntry[]>();
 
@@ -113,7 +123,9 @@ export class NodeStore {
         this.#eventNotifier = new Uint8Array(n);
         this.#minimumSamplingInterval = new Float32Array(n);
         this.#flags = new Uint8Array(n);
+        this.#inverseName = new Int32Array(n);
         this.#accessRestrictions = new Uint8Array(n).fill(INHERITED_ACCESS_RESTRICTIONS);
+        this.#generation = new Uint16Array(n);
     }
 
     /** indexes handed out so far, deleted ones included */
@@ -121,14 +133,25 @@ export class NodeStore {
         return this.#count;
     }
 
+    /** how many deleted indexes wait to be taken again */
+    public get freeCount(): number {
+        return this.#free.length;
+    }
+
     public add(record: NodeRecord): number {
         if (this.byNodeId.get(record.nodeId) !== NO_NODE) {
             throw new Error(`NodeStore: node ${record.nodeId.toString()} exists already`);
         }
-        if (this.#count === this.#capacity) {
-            this.#grow(this.#count + 1);
+        let i: number;
+        if (this.#free.length > 0) {
+            // the index of a deleted node, every column of it written below
+            i = this.#free.pop() as number;
+        } else {
+            if (this.#count === this.#capacity) {
+                this.#grow(this.#count + 1);
+            }
+            i = this.#count++;
         }
-        const i = this.#count++;
         const nodeId = record.nodeId;
         this.#namespace[i] = nodeId.namespace;
         this.#identifierType[i] = nodeId.identifierType;
@@ -147,23 +170,41 @@ export class NodeStore {
         this.#userAccessLevel[i] = record.userAccessLevel ?? this.#accessLevel[i];
         this.#eventNotifier[i] = record.eventNotifier ?? 0;
         this.#minimumSamplingInterval[i] = record.minimumSamplingInterval ?? 0;
-        this.#flags[i] = (record.historizing ? 1 : 0) | (record.isAbstract ? 2 : 0);
+        this.#flags[i] =
+            (record.historizing ? 1 : 0) |
+            (record.isAbstract ? 2 : 0) |
+            (record.symmetric ? 8 : 0) |
+            (record.containsNoLoops ? 16 : 0);
+        this.#inverseName[i] = record.inverseName ? this.strings.intern(record.inverseName) : NO_STRING; // check-proto-pollution: ok - typed array, node index
         this.#accessRestrictions[i] = record.accessRestrictions ?? INHERITED_ACCESS_RESTRICTIONS; // check-proto-pollution: ok - typed array, node index
         if (record.rolePermissions) {
             this.#rolePermissions.set(i, record.rolePermissions);
+        } else {
+            this.#rolePermissions.delete(i);
         }
         return i;
     }
 
-    /** the node is forgotten by NodeId at once; its index is a tombstone until a compaction */
+    /**
+     * the node is forgotten by NodeId at once, and its index is given to the next node added:
+     * a view built for the old node tells the two apart by generation (see isDeleted)
+     */
     public delete(i: number): void {
+        if ((this.#flags[i] & 4) !== 0) return;
         this.byNodeId.delete(this.nodeId(i));
         this.#flags[i] |= 4;
+        this.#generation[i] += 1; // check-proto-pollution: ok - typed array, node index
         this.#rolePermissions.delete(i);
+        this.#free.push(i);
     }
 
     public isDeleted(i: number): boolean {
         return (this.#flags[i] & 4) !== 0;
+    }
+
+    /** the generation of the node at index `i`: moves each time the index is deleted */
+    public generation(i: number): number {
+        return this.#generation[i];
     }
 
     public find(nodeId: NodeId): number {
@@ -249,6 +290,16 @@ export class NodeStore {
     public isAbstract(i: number): boolean {
         return (this.#flags[i] & 2) !== 0;
     }
+    public symmetric(i: number): boolean {
+        return (this.#flags[i] & 8) !== 0;
+    }
+    public containsNoLoops(i: number): boolean {
+        return (this.#flags[i] & 16) !== 0;
+    }
+    public inverseName(i: number): string | null {
+        const id = this.#inverseName[i];
+        return id === NO_STRING ? null : this.strings.get(id);
+    }
     /** the AccessRestrictions the node declares, undefined when it inherits its namespace's */
     public accessRestrictions(i: number): number | undefined {
         const flags = this.#accessRestrictions[i];
@@ -313,6 +364,8 @@ export class NodeStore {
         this.#eventNotifier = resized(this.#eventNotifier, n, Uint8Array);
         this.#minimumSamplingInterval = resized(this.#minimumSamplingInterval, n, Float32Array);
         this.#flags = resized(this.#flags, n, Uint8Array);
+        this.#inverseName = resized(this.#inverseName, n, Int32Array);
+        this.#generation = resized(this.#generation, n, Uint16Array);
         const restrictions = resized(this.#accessRestrictions, n, Uint8Array);
         if (n > this.#accessRestrictions.length) {
             restrictions.fill(INHERITED_ACCESS_RESTRICTIONS, this.#accessRestrictions.length);

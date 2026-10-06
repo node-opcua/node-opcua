@@ -19,7 +19,7 @@ import {
 import { DataValue } from "node-opcua-data-value";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
-import { StatusCodes } from "node-opcua-status-code";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { Variant } from "node-opcua-variant";
 import type { BrowsedReference } from "../browser.js";
 import { NO_NODE } from "../node_id_index.js";
@@ -35,8 +35,8 @@ const HAS_TYPE_DEFINITION = new NodeId(NodeIdType.NUMERIC, 40, 0);
 /** what binds a Variable to the application: see StoreVariableView#bindVariable */
 export interface VariableBinding {
     get?: () => Variant;
-    /** returns the status of the write, Good when it returns nothing */
-    set?: (value: Variant) => number | undefined;
+    /** returns the status of the write, as a StatusCode or its number; Good when it returns nothing */
+    set?: (value: Variant) => StatusCode | number | undefined | undefined;
     timestampedGet?: () => DataValue | Promise<DataValue>;
     refreshFunc?: (callback: (err: Error | null, dataValue?: DataValue) => void) => void;
 }
@@ -66,6 +66,8 @@ export class StoreNodeView extends EventEmitter {
      * view of its node until the last listener leaves
      */
     public lastUse = 0;
+    /** the generation of the node this view was built for: moved on, the view is of a deleted node */
+    readonly #generation: number;
     #nodeId: NodeId | undefined;
     #browseName: QualifiedName | undefined;
 
@@ -75,6 +77,7 @@ export class StoreNodeView extends EventEmitter {
         (this as unknown as { _events?: unknown })._events = undefined;
         this.space = space;
         this.index = index;
+        this.#generation = space.store.nodes.generation(index);
     }
 
     // ---- attributes, straight from the columns
@@ -124,7 +127,8 @@ export class StoreNodeView extends EventEmitter {
         return parents.length > 0 ? this.space.viewOf(parents[0].target) : null;
     }
     public isDisposed(): boolean {
-        return this.space.store.nodes.isDeleted(this.index);
+        const nodes = this.space.store.nodes;
+        return nodes.isDeleted(this.index) || nodes.generation(this.index) !== this.#generation;
     }
 
     /** true when something listens to this view: a monitored item, the application */

@@ -236,7 +236,7 @@ export type {
     NodesetSource,
     NodesetSourceKind
 } from "./loader/nodeset_source.js";
-export { sha256Hex } from "./loader/nodeset_source.js";
+export { openNodesetSource, sha256Hex } from "./loader/nodeset_source.js";
 export * from "./loader/nodeset_source_helpers.js";
 export { type NodesetToImageOptions, nodesetToImage } from "./loader/nodeset_to_image.js";
 export { headerComplete, parseDependencies, sliceHeader } from "./loader/nodeset_xml_header.js";
