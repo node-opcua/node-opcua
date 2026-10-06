@@ -10,5 +10,5 @@ export default async function frontServerOptions(data, { front }) {
     fs.mkdirSync(rootFolder, { recursive: true });
     const serverCertificateManager = new OPCUACertificateManager({ automaticallyAcceptUnknownCertificate: true, rootFolder });
     await serverCertificateManager.initialize();
-    return { port: data.port, serverCertificateManager, allowAnonymous: true };
+    return { port: data.port, serverCertificateManager, allowAnonymous: true, serverCapabilities: { minSupportedSampleRate: 0 } };
 }

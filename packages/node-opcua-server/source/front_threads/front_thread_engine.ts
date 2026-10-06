@@ -22,8 +22,9 @@
  * Monitored items on the compact namespaces are sampled in place by the fronts; the items that
  * report changes as they happen make their front watch the node, and the engine pushes the
  * values written to it, the writes of a turn of the event loop in one message per front. One
- * such message is in flight per front at a time: while a front is busy with it, a newer value of
- * a node replaces the one waiting, so that a front that falls behind gets the latest values
+ * such message is in flight per front at a time; the values written meanwhile wait for the next
+ * one, every one of them, up to MAX_WAITING_CHANGES. Past that, a front has fallen behind: a
+ * newer value of a node replaces its last waiting one, so that the front gets the latest values
  * instead of a growing backlog.
  *
  * Experimental: history and methods are not served by the fronts yet; each front keeps its own
@@ -57,6 +58,9 @@ import {
 } from "./protocol.js";
 
 const warningLog = make_warningLog("front_thread_engine");
+
+/** the changes waiting for a busy front beyond which only the latest value of each node is kept */
+const MAX_WAITING_CHANGES = 1000;
 
 export interface FrontThreadEngineOptions {
     /** the nodesets of the engine and of every front, in this order; the standard nodeset by default */
@@ -102,7 +106,7 @@ interface Outgoing {
     disposed: number[];
     /** a "changes" message the front has not finished with */
     inFlight: boolean;
-    /** while one is in flight: where each node's waiting value is, to replace it with a newer one */
+    /** while one is in flight: where each node's last waiting value is, to replace it once too many wait */
     waiting: Map<number, number>;
 }
 
@@ -458,8 +462,8 @@ export class FrontThreadEngine {
         const version = this.addressSpace.store.values.version(index);
         if (outgoing.inFlight) {
             const at = outgoing.waiting.get(index);
-            if (at !== undefined) {
-                // the front is behind: the newer value replaces the one waiting
+            if (at !== undefined && outgoing.indexes.length >= MAX_WAITING_CHANGES) {
+                // the front has fallen behind: the newer value replaces the last one waiting
                 outgoing.versions[at] = version; // check-proto-pollution: ok - numeric array position
                 outgoing.values[at] = dataValue; // check-proto-pollution: ok - numeric array position
                 return;
