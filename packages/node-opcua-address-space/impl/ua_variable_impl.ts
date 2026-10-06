@@ -1314,12 +1314,22 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     public readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>): void;
     public readValueAsync(context: ISessionContext | null): Promise<DataValue>;
     public readValueAsync(context: ISessionContext | null, callback?: CallbackT<DataValue>): Promise<DataValue> | undefined {
-        assert(typeof callback === "function");
+        // written out rather than wrapped with thenify-ex: every sample of a monitored item comes
+        // through here with a callback, and the generic wrapper forwarded it with apply(arguments)
+        if (callback) {
+            this._readValueAsync(context, callback);
+            return undefined;
+        }
+        return new Promise<DataValue>((resolve, reject) => {
+            this._readValueAsync(context, (err, dataValue) => (err ? reject(err) : resolve(dataValue as DataValue)));
+        });
+    }
 
+    private _readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>): void {
         context = context || SessionContext.defaultContext;
 
         this.__waiting_callbacks = this.__waiting_callbacks || [];
-        this.__waiting_callbacks.push(callback as CallbackT<DataValue>);
+        this.__waiting_callbacks.push(callback);
 
         const _readValueAsync_in_progress = this.__waiting_callbacks.length >= 2;
         if (_readValueAsync_in_progress) {
@@ -1394,7 +1404,6 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             }
             satisfy_callbacks(err as Error);
         }
-        return undefined;
     }
 
     public getWriteMask(): number {
@@ -2139,7 +2148,6 @@ const wrappedAsyncRefresh = UAVariableImpl.prototype.asyncRefresh;
 UAVariableImpl.prototype.writeValue = withCallback(UAVariableImpl.prototype.writeValue);
 UAVariableImpl.prototype.writeAttribute = withCallback(UAVariableImpl.prototype.writeAttribute);
 UAVariableImpl.prototype.historyRead = withCallback(UAVariableImpl.prototype.historyRead);
-UAVariableImpl.prototype.readValueAsync = withCallback(UAVariableImpl.prototype.readValueAsync);
 
 export interface UAVariableImplExtArray {
     $$variableType?: UAVariableType;
@@ -2585,9 +2593,9 @@ export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl impl
         context: ISessionContext | null,
         callback?: CallbackT<DataValueT<T, DT>>
     ): Promise<DataValueT<T, DT>> | undefined {
-        // forward the arguments we were actually given. The base method is thenified, and
-        // thenify decides between promise and callback form by argument count, so passing an
-        // explicit undefined callback makes it hand that undefined straight through.
+        // forward the arguments we were actually given: the base method picks the promise or the
+        // callback form from the callback it receives (writeValue below, still thenified, picks
+        // it from the argument count, where an explicit undefined callback would be passed on)
         if (callback === undefined) {
             return super.readValueAsync(context) as Promise<DataValueT<T, DT>>;
         }
