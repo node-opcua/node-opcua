@@ -81,7 +81,7 @@ export class ReferenceTypeHierarchy {
         const done = new Uint8Array(n);
         const visit = (o: number, depth: number): void => {
             if (done[o] === 1 || depth > n) return;
-            done[o] = 1;
+            done[o] = 1; // check-proto-pollution: ok - typed array, numeric ordinal
             for (const c of children[o]) {
                 visit(c, depth + 1);
                 const mine = sets[o];

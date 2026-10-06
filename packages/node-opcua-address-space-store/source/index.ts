@@ -5,6 +5,7 @@
  * addressed by integer indexes. Nothing here is a node object; the address space builds those
  * on demand on top of the store.
  */
+export { AttributeReader, type AttributeValue, ReadStatus } from "./attribute_reader.js";
 export { type BrowsedReference, type BrowseOptions, Browser, type RelativePathElement } from "./browser.js";
 export { CompactStore, type CompactStoreOptions, packedKey } from "./compact_store.js";
 export { NO_NODE, NodeIdIndex } from "./node_id_index.js";
