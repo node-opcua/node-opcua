@@ -72,4 +72,29 @@ describe("NodeIdIndex", () => {
         should(index.get(str(1, "s12345"))).eql(12345);
         should(index.get(numeric(1, (2 * 2654435761) >>> 0))).eql(NO_NODE);
     });
+
+    it("remembers the string identifiers looked up lately, and forgets what moved", () => {
+        const index = new NodeIdIndex(new StringArena(), 8);
+        index.set(str(1, "Pump"), 1);
+        index.set(str(2, "Pump"), 2);
+        // the same string in two namespaces: the memory answers by namespace, not by text
+        should(index.get(str(1, "Pump"))).eql(1);
+        should(index.get(str(2, "Pump"))).eql(2);
+        should(index.get(str(1, "Pump"))).eql(1);
+        should(index.get(str(3, "Pump"))).eql(NO_NODE);
+        // a deleted identifier is gone from the memory too; set again, found again
+        index.delete(str(1, "Pump"));
+        should(index.get(str(1, "Pump"))).eql(NO_NODE);
+        index.set(str(1, "Pump"), 3);
+        should(index.get(str(1, "Pump"))).eql(3);
+        // a growth moves every slot: what was remembered is still answered right
+        for (let i = 0; i < 1000; i++) index.set(numeric(1, i), 100 + i);
+        should(index.get(str(1, "Pump"))).eql(3);
+        should(index.get(str(2, "Pump"))).eql(2);
+        // many more distinct strings than the memory holds: still every one is answered
+        for (let i = 0; i < 40000; i++) index.set(str(1, `x${i}`), i);
+        for (let i = 0; i < 40000; i += 7) should(index.get(str(1, `x${i}`))).eql(i);
+        for (let i = 0; i < 40000; i += 7) should(index.get(str(1, `x${i}`))).eql(i);
+        should(index.get(str(1, "Pump"))).eql(3);
+    });
 });

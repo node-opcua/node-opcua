@@ -7,6 +7,14 @@
  * a Map keyed by the formatted NodeId costs the string plus about 70 bytes per entry. A numeric
  * identifier is keyed by its value; a string, GUID or opaque identifier by the id of its bytes
  * in the arena, so that the key is a fixed 32-bit word whatever the identifier is.
+ *
+ * A string identifier costs two passes over its characters (the arena hashes it, then compares
+ * it), which is more than the engine spends hashing a string in native code: the last few
+ * thousand string identifiers looked up are therefore also kept in a small Map, answered from
+ * there when they come again (a client reads the same nodes over and over). Once that Map is
+ * full it stays as it is for a while rather than being emptied at every miss, so that a scan
+ * over the whole model does not pay an insertion per lookup; it is emptied after a run of
+ * misses several times its size, and whenever the table moves.
  */
 import { type NodeId, NodeIdType } from "node-opcua-nodeid";
 import type { StringArena } from "./string_arena.js";
@@ -14,6 +22,10 @@ import type { StringArena } from "./string_arena.js";
 export const NO_NODE = -1;
 const FREE = 0; // in the kind column: never used
 const TOMBSTONE = 0xff; // deleted, probes continue past it
+/** string identifiers remembered at most */
+const HOT_STRINGS = 16384;
+/** misses, once full, before the memory is emptied and starts again */
+const HOT_RESET_MISSES = HOT_STRINGS * 4;
 
 export class NodeIdIndex {
     #ns: Uint16Array;
@@ -24,6 +36,9 @@ export class NodeIdIndex {
     #size = 0; // live entries
     #occupied = 0; // live plus tombstones
     readonly #arena: StringArena;
+    // string identifier -> slot, for the ones looked up lately; the slot tells the namespace
+    readonly #hot = new Map<string, number>();
+    #hotMisses = 0;
 
     constructor(arena: StringArena, expectedNodes = 1024) {
         this.#arena = arena;
@@ -104,12 +119,37 @@ export class NodeIdIndex {
     }
 
     public get(nodeId: NodeId): number {
+        if (nodeId.identifierType === NodeIdType.STRING) {
+            return this.#getString(nodeId.value as string, nodeId.namespace);
+        }
         const word = this.#wordOf(nodeId, false);
         if (word === -1) {
             return NO_NODE;
         }
         const slot = this.#find(nodeId.namespace, nodeId.identifierType, word);
         return slot === -1 ? NO_NODE : this.#value[slot];
+    }
+
+    #getString(s: string, ns: number): number {
+        const hot = this.#hot.get(s);
+        if (hot !== undefined && this.#ns[hot] === ns && this.#kind[hot] === NodeIdType.STRING) {
+            return this.#value[hot];
+        }
+        const word = this.#arena.find(s);
+        if (word === -1) {
+            return NO_NODE;
+        }
+        const slot = this.#find(ns, NodeIdType.STRING, word);
+        if (slot === -1) {
+            return NO_NODE;
+        }
+        if (this.#hot.size < HOT_STRINGS) {
+            this.#hot.set(s, slot);
+        } else if (++this.#hotMisses >= HOT_RESET_MISSES) {
+            this.#hot.clear();
+            this.#hotMisses = 0;
+        }
+        return this.#value[slot];
     }
 
     public delete(nodeId: NodeId): boolean {
@@ -123,6 +163,9 @@ export class NodeIdIndex {
         }
         this.#kind[slot] = TOMBSTONE;
         this.#size--;
+        if (nodeId.identifierType === NodeIdType.STRING) {
+            this.#hot.delete(nodeId.value as string);
+        }
         return true;
     }
 
@@ -153,6 +196,8 @@ export class NodeIdIndex {
         this.#mask = n - 1;
         this.#size = 0;
         this.#occupied = 0;
+        this.#hot.clear();
+        this.#hotMisses = 0;
         for (let i = 0; i < kind.length; i++) {
             if (kind[i] === FREE || kind[i] === TOMBSTONE) continue;
             let slot = this.#hash(ns[i], kind[i], word[i]);
