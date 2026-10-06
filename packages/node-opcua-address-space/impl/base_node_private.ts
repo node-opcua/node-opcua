@@ -40,7 +40,8 @@ import { ReferenceDescription, type ReferenceDescriptionOptions } from "node-opc
 import type { AddressSpacePrivate } from "./address_space_private.js";
 import { BaseNodeImpl, getReferenceType } from "./base_node_impl.js";
 import { UANamespace_process_modelling_rule } from "./namespace_private.js";
-import { ReferenceImpl, type ReferenceKey } from "./reference_impl.js";
+import { ReferenceImpl } from "./reference_impl.js";
+import { ReferenceIndex } from "./reference_index.js";
 import { referenceTypeVersion, typeHierarchyVersion } from "./reference_type_version.js";
 import { wipeMemorizedStuff } from "./tool_isSubtypeOf.js";
 
@@ -118,8 +119,8 @@ interface BaseNodeCache {
      * the references other nodes hold to this one; `EMPTY_REFERENCE_INDEX` until the first one
      * arrives, since a nodeset declares most references from both ends and most nodes never get one
      */
-    _back_referenceIdx: Map<ReferenceKey, UAReference>;
-    _referenceIdx: Map<ReferenceKey, UAReference>;
+    _back_referenceIdx: ReferenceIndex;
+    _referenceIdx: ReferenceIndex;
     /** the property name this node is exposed as on its parents (see child_accessors.ts) */
     _accessorName?: string;
 }
@@ -128,13 +129,13 @@ interface BaseNodeCache {
  * shared by every node without back references; read like any map, never written to: the first
  * back reference replaces it with a map of the node's own (BaseNode_add_backward_reference)
  */
-const EMPTY_REFERENCE_INDEX: Map<ReferenceKey, UAReference> = new Map();
+const EMPTY_REFERENCE_INDEX: ReferenceIndex = new ReferenceIndex();
 
 export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {
     const _private: BaseNodeCache = {
         __address_space: null,
 
-        _referenceIdx: new Map(),
+        _referenceIdx: new ReferenceIndex(),
         _back_referenceIdx: EMPTY_REFERENCE_INDEX,
 
         _browseFilter: undefined,
@@ -157,7 +158,7 @@ export function BaseNode_removePrivate(self: BaseNode): void {
     _private._cache = undefined;
     _private.__address_space = null;
     _private._back_referenceIdx = EMPTY_REFERENCE_INDEX;
-    _private._referenceIdx = new Map();
+    _private._referenceIdx = new ReferenceIndex();
     _private._childByNameMap = undefined;
     _private._description = undefined;
     _private._descriptionRaw = undefined;
@@ -1367,8 +1368,9 @@ export function BaseNode_remove_backward_reference(this: BaseNodeImpl, reference
     if (_private._back_referenceIdx.has(h)) {
         // note : h may not exist in _back_referenceIdx since we are not indexing
         //        _back_referenceIdx to UAObjectType and UAVariableType for performance reasons
-        (<ReferenceImpl>_private._back_referenceIdx.get(h)).dispose();
+        const backward = <ReferenceImpl>_private._back_referenceIdx.get(h);
         _private._back_referenceIdx.delete(h);
+        backward.dispose();
         // the memoized reference scans of this node listed the reference just removed
         BaseNode_clearCache(this);
         noteReferenceTypeChange(this, reference);
@@ -1421,7 +1423,7 @@ export function BaseNode_add_backward_reference(this: BaseNodeImpl, reference: U
     }
     //  assert(reference._referenceType instanceof ReferenceType);
     if (_private._back_referenceIdx === EMPTY_REFERENCE_INDEX) {
-        _private._back_referenceIdx = new Map();
+        _private._back_referenceIdx = new ReferenceIndex();
     }
     _private._back_referenceIdx.set(h, reference);
     noteReferenceTypeChange(this, reference);
