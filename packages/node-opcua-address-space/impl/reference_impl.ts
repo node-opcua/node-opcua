@@ -157,7 +157,8 @@ export class ReferenceImpl implements UAReference {
 
     // cache
     private __hash?: string;
-    private __key?: ReferenceKey;
+    /** the key this reference is indexed under, computed once by key(); read by ReferenceIndex */
+    public _key?: ReferenceKey;
 
     constructor(options: AddReferenceOpts | UAReference) {
         assert(options.referenceType instanceof NodeId);
@@ -209,10 +210,10 @@ export class ReferenceImpl implements UAReference {
      * the key this reference is indexed under in the node holding it, computed once
      */
     key(ordinals: ReferenceTypeOrdinals): ReferenceKey {
-        if (this.__key === undefined) {
-            this.__key = referenceKey(this.isForward, ordinals.referenceTypeOrdinal(this.referenceType), nodeIdKey(this.nodeId));
+        if (this._key === undefined) {
+            this._key = referenceKey(this.isForward, ordinals.referenceTypeOrdinal(this.referenceType), nodeIdKey(this.nodeId));
         }
-        return this.__key;
+        return this._key;
     }
 
     /**
@@ -230,7 +231,7 @@ export class ReferenceImpl implements UAReference {
      */
     public dispose(): void {
         this.__hash = undefined;
-        this.__key = undefined;
+        // _key stays: the index holding this reference finds it by that key (ReferenceIndex)
         this.node = undefined;
         /*
         this._referenceType = null;

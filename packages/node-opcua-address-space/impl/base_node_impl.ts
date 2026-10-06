@@ -89,13 +89,8 @@ import {
     reservedChildAccessorNames,
     resolveChildInIndex
 } from "./child_accessors.js";
-import {
-    isMassivelyUsedReferenceType,
-    type MinimalistAddressSpace,
-    nodeIdKey,
-    ReferenceImpl,
-    type ReferenceKey
-} from "./reference_impl.js";
+import { isMassivelyUsedReferenceType, type MinimalistAddressSpace, nodeIdKey, ReferenceImpl } from "./reference_impl.js";
+import type { ReferenceIndex } from "./reference_index.js";
 import { referenceTypeVersion } from "./reference_type_version.js";
 import { coerceRolePermissions } from "./role_permissions.js";
 
@@ -555,7 +550,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         const results: UAReference[] = [];
         const addressSpace = this.addressSpace;
         let unresolved = false;
-        const process = (referenceIdx: Map<ReferenceKey, UAReference>) => {
+        const process = (referenceIdx: ReferenceIndex) => {
             for (const ref of referenceIdx.values()) {
                 if (ref.isForward === isForward && referenceTypeNode.checkHasSubtype(ref.referenceType)) {
                     // callers read ref.node: resolved here, once per reference, for the references a
@@ -1078,7 +1073,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         if (do_debug) {
             // c8 ignore next
             doDebug && debugLog("all references :", this.nodeId.toString(), this.browseName.toString());
-            dumpReferences(addressSpace, _private._referenceIdx.values());
+            dumpReferences(addressSpace, [..._private._referenceIdx.values()]);
         }
 
         // filter out references not matching referenceType
@@ -1762,8 +1757,8 @@ function toString_ReferenceDescription(ref: UAReference, options: { addressSpace
     return str;
 }
 
-function _setup_parent_item(this: BaseNode, referencesMap: Map<ReferenceKey, UAReference>): BaseNode | null {
-    let references: UAReference[] | MapIterator<UAReference> = referencesMap.values();
+function _setup_parent_item(this: BaseNode, referencesMap: ReferenceIndex): BaseNode | null {
+    let references: UAReference[];
 
     const _private = BaseNode_getPrivate(this);
     assert(!_private._parent, "_setup_parent_item has been already called");
