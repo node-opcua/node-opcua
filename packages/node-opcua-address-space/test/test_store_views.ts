@@ -70,9 +70,14 @@ describe("store views: node objects on demand over the compact store", function 
     });
 
     it("reads, sets and binds the value of a Variable", () => {
-        const currentTime = space.findNode("ns=0;i=2258") as StoreVariableView;
+        should((space.findNode("ns=0;i=2258") as StoreVariableView).dataType.toString()).eql("ns=0;i=294");
+        space.registerNamespace("urn:test:views");
+        const currentTime = space.addVariable({
+            browseName: "Speed",
+            organizedBy: space.findNode("ns=0;i=85") as never,
+            dataType: "Double"
+        });
         should(currentTime).be.instanceOf(StoreVariableView);
-        should(currentTime.dataType.toString()).eql("ns=0;i=294");
         should(currentTime.readValue().statusCode).eql(StatusCodes.BadWaitingForInitialData);
 
         const v0 = currentTime.valueVersion;

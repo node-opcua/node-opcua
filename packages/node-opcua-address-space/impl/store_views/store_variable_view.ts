@@ -91,20 +91,28 @@ export class StoreVariableView extends StoreNodeView {
         return this.#dataValueFromColumns().clone();
     }
 
-    /** the application sets the value, as today: the timestamps are now unless given */
+    /**
+     * the application sets the value, as today: the timestamps are now unless given, and a
+     * value the DataType does not accept is an error (a Null clears the value)
+     */
     public setValueFromSource(variant: VariantLike, statusCode = StatusCodes.Good, sourceTimestamp?: Date): void {
+        const v = variant instanceof Variant ? variant : new Variant(variant);
+        if (!this.#accepts(v, true)) {
+            throw new Error(
+                `StoreVariableView#setValueFromSource ${this.browseName.toString()} ${this.nodeId.toString()}: ` +
+                    `a ${DataType[v.dataType]} value does not fit DataType ${this.dataType.toString()}`
+            );
+        }
         const now = getCurrentClock();
         const source = sourceTimestamp ? sourceTimestamp.getTime() : now.timestamp.getTime();
-        this.#storeVariant(
-            variant instanceof Variant ? variant : new Variant(variant),
-            statusCode.value,
-            source,
-            now.timestamp.getTime()
-        );
+        this.#storeVariant(v, statusCode.value, source, now.timestamp.getTime());
     }
 
     /** a Write from a client: through the setter when one is bound, else into the columns */
     public writeValue(dataValue: DataValue): number {
+        if (!this.#accepts(dataValue.value, false)) {
+            return StatusCodes.BadTypeMismatch.value;
+        }
         const binding = this.space.bindings.get(this.index);
         if (binding?.set) {
             const status = binding.set(dataValue.value);
@@ -120,6 +128,11 @@ export class StoreVariableView extends StoreNodeView {
             now
         );
         return StatusCodes.Good.value;
+    }
+
+    /** true when the Variable's DataType takes a value of the variant's built-in type */
+    #accepts(variant: Variant, allowNull: boolean): boolean {
+        return this.space.dataTypes.accepts(this.space.store.nodes.dataType(this.index), variant.dataType, allowNull);
     }
 
     #storeVariant(variant: Variant, statusCode: number, sourceTimestamp: number, serverTimestamp: number): void {

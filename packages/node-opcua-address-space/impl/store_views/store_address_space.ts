@@ -6,7 +6,7 @@
  * built on demand and kept in a bounded most-recently-used cache, so that a model of ten
  * million nodes costs ten million rows and only as many objects as are being looked at.
  */
-import { AttributeReader, Browser, CompactStore, NO_NODE } from "node-opcua-address-space-store";
+import { AttributeReader, Browser, CompactStore, DataTypeResolver, NO_NODE } from "node-opcua-address-space-store";
 import { NodeClass } from "node-opcua-data-model";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import type { NodeSetPermissionsPolicy } from "../../api/interfaces/nodeset_loader_options.js";
@@ -94,6 +94,8 @@ export class StoreAddressSpace {
     public readonly store: CompactStore;
     public readonly browser: Browser;
     public readonly reader: AttributeReader;
+    /** what each Variable's DataType accepts on a write */
+    public readonly dataTypes: DataTypeResolver;
     public readonly namespaceUris: string[] = [];
     /** the getters, setters and refresh functions bound to Variables, by node index */
     public readonly bindings = new Map<number, VariableBinding>();
@@ -108,6 +110,7 @@ export class StoreAddressSpace {
         this.store = new CompactStore({ expectedNodes: options.expectedNodes ?? 4096 });
         this.browser = new Browser(this.store);
         this.reader = new AttributeReader(this.store);
+        this.dataTypes = new DataTypeResolver(this.store);
         this.permissions = new StorePermissions(this, options.unresolvedPermissionPolicy);
         this.#views = new ViewCache(options.viewCacheSize ?? 10000);
         this.#builder = new StoreNodeBuilder(this);
@@ -130,6 +133,7 @@ export class StoreAddressSpace {
         const result = this.#applier ? this.#applier.finish() : { unresolved: 0 };
         this.#applier = null;
         this.browser.refresh();
+        this.dataTypes.invalidate();
         this.permissions.invalidate();
         return result;
     }
