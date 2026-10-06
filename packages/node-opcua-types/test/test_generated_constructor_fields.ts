@@ -13,13 +13,22 @@ type Constructor = (new (
     schema?: IStructuredTypeSchema;
 };
 
-function generatedTypes(): [string, Constructor][] {
-    return Object.entries(types).filter(
-        (entry): entry is [string, Constructor] =>
-            typeof entry[1] === "function" &&
-            Object.hasOwn(entry[1], "schema") &&
-            Array.isArray((entry[1] as Constructor).schema?.fields)
+function isGeneratedType(value: unknown): value is Constructor {
+    return (
+        typeof value === "function" &&
+        Object.hasOwn(value, "schema") &&
+        Array.isArray((value as { schema?: { fields?: unknown } }).schema?.fields)
     );
+}
+
+function generatedTypes(): [string, Constructor][] {
+    const result: [string, Constructor][] = [];
+    for (const [name, value] of Object.entries(types as Record<string, unknown>)) {
+        if (isGeneratedType(value)) {
+            result.push([name, value]);
+        }
+    }
+    return result;
 }
 
 function lowerFirst(name: string) {
