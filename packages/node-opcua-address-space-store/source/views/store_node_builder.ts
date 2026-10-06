@@ -8,9 +8,11 @@
 
 import { AccessLevelFlag, type LocalizedTextLike, NodeClass, QualifiedName, type QualifiedNameLike } from "node-opcua-data-model";
 import { NodeId, type NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
-import { DataType, type VariantLike } from "node-opcua-variant";
+import { Argument, type ArgumentOptions } from "node-opcua-types";
+import { DataType, VariantArrayType, type VariantLike } from "node-opcua-variant";
 import type { NodeRecord, RolePermissionEntry } from "../node_store.js";
 import type { StoreAddressSpace } from "./store_address_space.js";
+import type { StoreMethodView } from "./store_method_view.js";
 import type { StoreNodeView, VariableBinding } from "./store_node_view.js";
 import type { StoreVariableView } from "./store_variable_view.js";
 
@@ -50,6 +52,13 @@ export interface StoreAddObjectOptions extends StoreAddNodeOptions {
     eventNotifier?: number;
 }
 
+export interface StoreAddMethodOptions extends StoreAddNodeOptions {
+    /** what the Method takes: its InputArguments property */
+    inputArguments?: ArgumentOptions[];
+    /** what it returns: its OutputArguments property */
+    outputArguments?: ArgumentOptions[];
+}
+
 const HAS_COMPONENT = resolveNodeId("ns=0;i=47");
 const HAS_PROPERTY = resolveNodeId("ns=0;i=46");
 const ORGANIZES = resolveNodeId("ns=0;i=35");
@@ -58,6 +67,7 @@ const BASE_OBJECT_TYPE = resolveNodeId("ns=0;i=58");
 const FOLDER_TYPE = resolveNodeId("ns=0;i=61");
 const BASE_DATA_VARIABLE_TYPE = resolveNodeId("ns=0;i=63");
 const PROPERTY_TYPE = resolveNodeId("ns=0;i=68");
+const ARGUMENT = resolveNodeId("ns=0;i=296");
 
 export class StoreNodeBuilder {
     readonly #space: StoreAddressSpace;
@@ -99,6 +109,30 @@ export class StoreNodeBuilder {
             { eventNotifier: options.eventNotifier }
         );
         return this.#space.viewOf(index);
+    }
+
+    public addMethod(options: StoreAddMethodOptions): StoreMethodView {
+        const index = this.#addNode(NodeClass.Method, { ...options, typeDefinition: undefined }, {});
+        const method = this.#space.viewOf(index) as StoreMethodView;
+        const declare = (name: string, args: ArgumentOptions[] | undefined) => {
+            if (!args) return;
+            this.addVariable({
+                browseName: new QualifiedName({ namespaceIndex: 0, name }),
+                namespaceIndex: method.nodeId.namespace,
+                propertyOf: method,
+                dataType: ARGUMENT,
+                valueRank: 1,
+                accessLevel: AccessLevelFlag.CurrentRead,
+                value: {
+                    dataType: DataType.ExtensionObject,
+                    arrayType: VariantArrayType.Array,
+                    value: args.map((a) => new Argument(a))
+                }
+            });
+        };
+        declare("InputArguments", options.inputArguments);
+        declare("OutputArguments", options.outputArguments);
+        return method;
     }
 
     public addFolder(parent: NodeRef, options: StoreAddNodeOptions | string): StoreNodeView {

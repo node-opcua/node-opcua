@@ -520,6 +520,11 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
     }
 
     public async callMethod(context: ISessionContext, methodToCall: CallMethodRequest): Promise<CallMethodResultOptions> {
+        const backend = this.#backend;
+        if (backend && this.#isCompact(methodToCall.methodId)) {
+            // a Method of the compact namespaces: the function bound to it in the compact address space
+            return backend.call ? backend.call(context, methodToCall) : { statusCode: StatusCodes.BadNotImplemented };
+        }
         return await callMethodHelper(context, this.addressSpace, methodToCall);
     }
 

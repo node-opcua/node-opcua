@@ -1,9 +1,10 @@
 /**
  * @module node-opcua-address-space-store
  *
- * The Read, Write, Browse and TranslateBrowsePaths services answered on a compact address
+ * The Read, Write, Browse, TranslateBrowsePaths and Call services answered on a compact address
  * space: the same statuses and the same result shapes as the node objects give, from the
- * columns, with the views only where a value goes through a getter or a setter.
+ * columns, with the views only where a value goes through a getter or a setter, or where a
+ * Method runs the function bound to it.
  */
 
 import type { ISessionContext } from "node-opcua-address-space-base";
@@ -21,27 +22,35 @@ import { apply_timestamps_no_copy, coerceTimestampsToReturn, DataValue, Timestam
 import { getCurrentClock, isMinDate } from "node-opcua-date-time";
 import { coerceExpandedNodeId, ExpandedNodeId, type NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
-import { StatusCodes } from "node-opcua-status-code";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
+    type Argument,
     BrowseDescription,
     type BrowseDescriptionOptions,
     type BrowsePath,
     BrowsePathResult,
     type BrowsePathTargetOptions,
     BrowseResult,
+    type CallMethodRequest,
+    type CallMethodResultOptions,
+    PermissionType,
     type ReadValueIdOptions,
     ReferenceDescription,
     type ReferenceDescriptionOptions,
     type WriteValue
 } from "node-opcua-types";
+import { Variant, VariantArrayType } from "node-opcua-variant";
 import type { BrowsedReference } from "../browser.js";
 import { NO_NODE } from "../node_id_index.js";
 import type { StoreAddressSpace } from "./store_address_space.js";
 import { attributeDataValue, deniedDataValue, valueDataValue } from "./store_data_value.js";
+import type { StoreMethodView } from "./store_method_view.js";
 import type { StoreVariableView } from "./store_variable_view.js";
 
 const HIERARCHICAL_REFERENCES = resolveNodeId("ns=0;i=33");
 const HAS_TYPE_DEFINITION = resolveNodeId("ns=0;i=40");
+const HAS_COMPONENT = resolveNodeId("ns=0;i=47");
+const HAS_SUBTYPE = resolveNodeId("ns=0;i=45");
 const nullExpandedNodeId = ExpandedNodeId.nullNodeId as ExpandedNodeId;
 
 export class StoreServices {
@@ -49,6 +58,129 @@ export class StoreServices {
 
     constructor(space: StoreAddressSpace) {
         this.#space = space;
+    }
+
+    /**
+     * one Method call, with the steps and statuses of the node objects: the Object, then the
+     * Method (a component of the Object, or of one of its types), then the session's right to
+     * call it, then its arguments, then the function bound to it
+     */
+    public async call(context: ISessionContext | null, request: CallMethodRequest): Promise<CallMethodResultOptions> {
+        const space = this.#space;
+        const store = space.store;
+        const object = store.find(resolveNodeId(request.objectId));
+        if (object === NO_NODE || store.nodes.isDeleted(object)) {
+            return { statusCode: StatusCodes.BadNodeIdUnknown };
+        }
+        const objectClass = store.nodes.nodeClass(object);
+        if (objectClass !== NodeClass.Object && objectClass !== NodeClass.ObjectType) {
+            return { statusCode: StatusCodes.BadNodeIdInvalid };
+        }
+        const requested = store.find(resolveNodeId(request.methodId));
+        if (requested === NO_NODE || store.nodes.isDeleted(requested) || store.nodes.nodeClass(requested) !== NodeClass.Method) {
+            return { statusCode: StatusCodes.BadMethodInvalid };
+        }
+        const method = this.#methodOf(object, requested);
+        if (method === NO_NODE) {
+            return { statusCode: StatusCodes.BadMethodInvalid };
+        }
+        // the function of the Method, or of the declaration in the type when the instance has none
+        const handler = space.methods.get(method) ?? space.methods.get(requested);
+        if (!handler) {
+            return { statusCode: StatusCodes.BadNotExecutable };
+        }
+        if (space.permissions.isAccessRestricted(context, method)) {
+            return { statusCode: StatusCodes.BadSecurityModeInsufficient };
+        }
+        if ((space.permissions.permissions(context, method) & PermissionType.Call) === 0) {
+            return { statusCode: StatusCodes.BadUserAccessDenied };
+        }
+        const view = space.viewOf(method) as StoreMethodView;
+        const declared = view.inputArguments ?? (space.viewOf(requested) as StoreMethodView).inputArguments;
+        const inputArguments = (request.inputArguments ?? []) as Variant[];
+        const checked = this.#checkArguments(declared, inputArguments);
+        if (!checked.statusCode.isGood()) {
+            return checked;
+        }
+        try {
+            const result = await handler(inputArguments, context, store.nodes.nodeId(object));
+            return {
+                statusCode: result.statusCode ?? StatusCodes.Good,
+                inputArgumentResults: result.inputArgumentResults ?? checked.inputArgumentResults,
+                outputArguments: (result.outputArguments ?? []).map((v) => (v instanceof Variant ? v : new Variant(v)))
+            };
+        } catch {
+            return { statusCode: StatusCodes.BadInternalError };
+        }
+    }
+
+    /** the Method a call of `requested` on `object` runs; NO_NODE when it is not one of the object */
+    #methodOf(object: number, requested: number): number {
+        const space = this.#space;
+        const store = space.store;
+        const components = space.browser.browse(object, { referenceType: HAS_COMPONENT, forward: true });
+        if (components.some((r) => r.target === requested)) {
+            return requested;
+        }
+        // a Method of one of its types: the instance's own Method of that name when it has one
+        const declaringParent = store.nodes.parent(requested);
+        let type = store.nodes.nodeClass(object) === NodeClass.ObjectType ? object : store.nodes.typeDefinition(object);
+        while (type !== NO_NODE) {
+            if (type === declaringParent) {
+                const name = store.nodes.browseName(requested);
+                const own = components.find(
+                    (r) => store.nodes.nodeClass(r.target) === NodeClass.Method && store.nodes.browseName(r.target) === name
+                );
+                return own ? own.target : requested;
+            }
+            const supertypes = space.browser.browse(type, { referenceType: HAS_SUBTYPE, includeSubtypes: false, forward: false });
+            type = supertypes.length > 0 ? supertypes[0].target : NO_NODE;
+        }
+        return NO_NODE;
+    }
+
+    /** the input arguments against what the Method declares; nothing to check when it declares nothing the store can read */
+    #checkArguments(
+        declared: Argument[] | null,
+        inputs: Variant[]
+    ): { statusCode: StatusCode; inputArgumentResults?: StatusCode[] } {
+        if (!declared) {
+            return { statusCode: StatusCodes.Good, inputArgumentResults: inputs.map(() => StatusCodes.Good) };
+        }
+        if (inputs.length < declared.length) {
+            return { statusCode: StatusCodes.BadArgumentsMissing };
+        }
+        if (inputs.length > declared.length) {
+            return { statusCode: StatusCodes.BadTooManyArguments };
+        }
+        const results = declared.map((argument, k) =>
+            this.#accepts(argument, inputs[k]) ? StatusCodes.Good : StatusCodes.BadTypeMismatch
+        );
+        const allGood = results.every((r) => r === StatusCodes.Good);
+        return { statusCode: allGood ? StatusCodes.Good : StatusCodes.BadInvalidArgument, inputArgumentResults: results };
+    }
+
+    #accepts(argument: Argument, input: Variant): boolean {
+        const space = this.#space;
+        const dataType = argument.dataType ? space.store.find(resolveNodeId(argument.dataType)) : NO_NODE;
+        if (!space.dataTypes.accepts(dataType, input.dataType, false)) {
+            return false;
+        }
+        const scalar = input.arrayType === VariantArrayType.Scalar;
+        switch (argument.valueRank) {
+            case -1: // a scalar
+                return scalar;
+            case -2: // anything
+                return true;
+            case -3: // a scalar or one dimension
+                return scalar || input.arrayType === VariantArrayType.Array;
+            case 0: // one dimension or more
+                return !scalar;
+            case 1:
+                return input.arrayType === VariantArrayType.Array;
+            default:
+                return input.arrayType === VariantArrayType.Matrix && (input.dimensions?.length ?? 0) === argument.valueRank;
+        }
     }
 
     /** one item of a Read, as the server's accessor answers it for a node object */

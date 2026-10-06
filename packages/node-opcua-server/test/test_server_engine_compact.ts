@@ -1,22 +1,24 @@
 import { type CompactAddressSpace, SessionContext } from "node-opcua-address-space";
 import { AttributeIds, BrowseDirection, NodeClass, ResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
+import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { WriteValue } from "node-opcua-service-write";
 import { StatusCodes } from "node-opcua-status-code";
-import { BrowseDescription } from "node-opcua-types";
+import { BrowseDescription, CallMethodRequest } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { ServerEngine } from "../dist/server_engine.js";
 
-describe("ServerEngine with a compact address space: Read, Write, Browse and Translate on compact namespaces", function () {
+describe("ServerEngine with a compact address space: Read, Write, Browse, Translate and Call on compact namespaces", function () {
     this.timeout(60000);
     let engine: ServerEngine;
     let compact: CompactAddressSpace;
     let ns: number;
     const context = SessionContext.defaultContext;
+    let machineId = "";
 
     before((done) => {
         engine = new ServerEngine({ applicationUri: "urn:test:compact" });
@@ -41,6 +43,18 @@ describe("ServerEngine with a compact address space: Read, Write, Browse and Tra
                 dataType: "UInt32",
                 value: { get: () => new Variant({ dataType: DataType.UInt32, value: ++reads }) }
             });
+            compact
+                .addMethod({
+                    nodeId: `ns=${ns};s=Machine.Double`,
+                    browseName: "Double",
+                    componentOf: machine,
+                    inputArguments: [{ name: "x", dataType: resolveNodeId("Double"), valueRank: -1 }],
+                    outputArguments: [{ name: "twice", dataType: resolveNodeId("Double"), valueRank: -1 }]
+                })
+                .bindMethod((inputs) => ({
+                    outputArguments: [{ dataType: DataType.Double, value: 2 * (inputs[0].value as number) }]
+                }));
+            machineId = machine.nodeId.toString();
             done();
         });
     });
@@ -74,6 +88,20 @@ describe("ServerEngine with a compact address space: Read, Write, Browse and Tra
         should(values[2].value.value).eql(1, "the getter is read");
         should(values[3].statusCode).eql(StatusCodes.BadNodeIdUnknown);
         should(values[4].value.value.name).eql("ServerStatus", "the node objects still answer their namespaces");
+    });
+
+    it("calls a Method of the compact namespace through the Call service", async () => {
+        const [result, wrong] = await engine.call(context, [
+            new CallMethodRequest({
+                objectId: machineId,
+                methodId: `ns=${ns};s=Machine.Double`,
+                inputArguments: [new Variant({ dataType: DataType.Double, value: 21 })]
+            }),
+            new CallMethodRequest({ objectId: machineId, methodId: `ns=${ns};s=Machine.Double`, inputArguments: [] })
+        ]);
+        should(result.statusCode).eql(StatusCodes.Good);
+        should((result.outputArguments ?? [])[0]?.value).eql(42);
+        should(wrong.statusCode).eql(StatusCodes.BadArgumentsMissing);
     });
 
     it("writes a compact node through the Write service", async () => {
@@ -116,7 +144,7 @@ describe("ServerEngine with a compact address space: Read, Write, Browse and Tra
         const machines = (await browse(plant?.nodeId.toString() ?? ""))[0];
         should((machines.references ?? []).map((r) => r.browseName.toString())).eql([`${ns}:Machine`]);
         const machine = (await browse(machines.references?.[0].nodeId.toString() ?? ""))[0];
-        should((machine.references ?? []).map((r) => r.browseName.name).sort()).eql(["Counter", "Speed"]);
+        should((machine.references ?? []).map((r) => r.browseName.name).sort()).eql(["Counter", "Double", "Speed"]);
     });
 
     it("translates a path from the Objects folder into the compact namespace", async () => {

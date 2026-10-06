@@ -210,6 +210,49 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
         await write(sessions[1], `ns=${ns};s=Name`, new Variant({ dataType: DataType.String, value: "pump" }));
     });
 
+    it("calls a Method of the compact namespace: the engine runs it", async () => {
+        const space = engine.addressSpace;
+        const plant = space.findNode(`ns=${ns};s=Speed`)?.parent;
+        should(plant).not.eql(null);
+        const reset = space.addMethod({
+            nodeId: `ns=${ns};s=Plant.Reset`,
+            browseName: "Reset",
+            componentOf: plant ?? undefined,
+            inputArguments: [{ name: "speed", dataType: resolveNodeId("Double"), valueRank: -1 }],
+            outputArguments: [{ name: "previous", dataType: resolveNodeId("Double"), valueRank: -1 }]
+        });
+        reset.bindMethod((inputs) => {
+            const speed = space.findNode(`ns=${ns};s=Speed`) as unknown as {
+                readValue(): DataValue;
+                setValueFromSource(v: VariantLike): void;
+            };
+            const previous = speed.readValue().value.value as number;
+            speed.setValueFromSource({ dataType: DataType.Double, value: inputs[0].value as number });
+            return { outputArguments: [{ dataType: DataType.Double, value: previous }] };
+        });
+        await pause(50);
+        const before = engine.requests.call;
+        const result = await sessions[0].call({
+            objectId: plant?.nodeId ?? "",
+            methodId: reset.nodeId,
+            inputArguments: [new Variant({ dataType: DataType.Double, value: 12 })]
+        });
+        should(result.statusCode).eql(StatusCodes.Good);
+        should(result.outputArguments?.[0].value).eql(1.5);
+        should(engine.requests.call).eql(before + 1);
+        for (const session of sessions) {
+            const speed = await session.read({ nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value });
+            should(speed.value.value).eql(12);
+        }
+        const wrong = await sessions[1].call({
+            objectId: plant?.nodeId ?? "",
+            methodId: reset.nodeId,
+            inputArguments: [new Variant({ dataType: DataType.String, value: "fast" })]
+        });
+        should(wrong.statusCode).eql(StatusCodes.BadInvalidArgument);
+        await write(sessions[1], `ns=${ns};s=Speed`, new Variant({ dataType: DataType.Double, value: 1.5 }));
+    });
+
     it("writes through the engine and every connection sees it", async () => {
         const statuses = await sessions[1].write([
             {
@@ -317,6 +360,7 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             "Counter",
             "Levels",
             "Name",
+            "Reset",
             "Speed",
             "WriteOnly"
         ]);

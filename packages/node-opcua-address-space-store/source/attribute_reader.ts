@@ -134,8 +134,8 @@ export class AttributeReader {
                 return scalar(DataType.Boolean, nodes.containsNoLoops(node));
             case AttributeIds.Executable:
             case AttributeIds.UserExecutable:
-                // a Method of the store is callable as far as the node knows; the server decides
-                return scalar(DataType.Boolean, true);
+                // a Method of the store is executable once a function is bound to it
+                return scalar(DataType.Boolean, nodes.isBound(node));
             case AttributeIds.EventNotifier:
                 return scalar(DataType.Byte, nodes.eventNotifier(node));
             case AttributeIds.DataType: {

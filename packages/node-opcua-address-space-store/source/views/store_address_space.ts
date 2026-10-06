@@ -14,7 +14,9 @@ import { Browser } from "../browser.js";
 import { CompactStore, NAMESPACE_DEFAULT_RESTRICTIONS, NAMESPACE_DEFAULT_ROLE_PERMISSIONS } from "../compact_store.js";
 import { DataTypeResolver } from "../data_type_resolver.js";
 import { NO_NODE } from "../node_id_index.js";
+import { type StoreMethodHandler, StoreMethodView } from "./store_method_view.js";
 import {
+    type StoreAddMethodOptions,
     type StoreAddNodeOptions,
     type StoreAddObjectOptions,
     type StoreAddVariableOptions,
@@ -109,6 +111,8 @@ export class StoreAddressSpace {
     public readonly namespaceUris: string[] = [];
     /** the getters, setters and refresh functions bound to Variables, by node index */
     public readonly bindings = new Map<number, VariableBinding>();
+    /** the functions bound to the Methods (see StoreMethodView.bindMethod) */
+    public readonly methods = new Map<number, StoreMethodHandler>();
     /** what a session may read: the access restrictions and role permissions of the nodes */
     public readonly permissions: StorePermissions;
     readonly #views: ViewCache;
@@ -217,6 +221,8 @@ export class StoreAddressSpace {
                 return new StoreVariableView(this, index);
             case NodeClass.Object:
                 return new StoreObjectView(this, index);
+            case NodeClass.Method:
+                return new StoreMethodView(this, index);
             default:
                 return new StoreNodeView(this, index);
         }
@@ -228,6 +234,10 @@ export class StoreAddressSpace {
     }
     public addObject(options: StoreAddObjectOptions): StoreNodeView {
         return this.#builder.addObject(options);
+    }
+    /** a Method with its InputArguments and OutputArguments; executable once a function is bound to it */
+    public addMethod(options: StoreAddMethodOptions): StoreMethodView {
+        return this.#builder.addMethod(options);
     }
     public addFolder(parent: StoreNodeView | NodeId | string, options: StoreAddNodeOptions | string): StoreNodeView {
         return this.#builder.addFolder(parent, options);
@@ -260,6 +270,7 @@ export class StoreAddressSpace {
         const nodeClass = this.store.nodes.nodeClass(index);
         this.store.deleteNode(index);
         this.bindings.delete(index);
+        this.methods.delete(index);
         this.#views.delete(index);
         this.permissions.invalidate();
         if (nodeClass === NodeClass.ReferenceType) {

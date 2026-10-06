@@ -29,6 +29,9 @@ import {
     type BrowsePath,
     BrowsePathResult,
     BrowseResult,
+    type CallMethodRequest,
+    CallMethodResult,
+    type CallMethodResultOptions,
     type ReadValueIdOptions,
     type ReferenceDescription,
     type WriteValue
@@ -302,6 +305,16 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
             description: encodeStructure(description)
         });
         return decodeStructure(bytes, new BrowseResult()).references ?? [];
+    }
+
+    /** a Method call: run by the engine, where the function is bound */
+    public async call(context: ISessionContext | null, request: CallMethodRequest): Promise<CallMethodResultOptions> {
+        const bytes = await this.#channel.call<Uint8Array>({
+            kind: "call",
+            context: describeContext(context),
+            request: encodeStructure(request)
+        });
+        return decodeStructure(bytes, new CallMethodResult());
     }
 
     public async translate(browsePath: BrowsePath): Promise<BrowsePathResult | null> {
