@@ -68,6 +68,7 @@ import { historizerFactoryHolder } from "./historizer_factory.js";
 import { isNonEmptyQualifiedName, NamespaceImpl } from "./namespace_impl.js";
 import type { NamespacePrivate } from "./namespace_private.js";
 import { nodeIdKey, ReferenceImpl } from "./reference_impl.js";
+import { StoreAddressSpace, type StoreAddressSpaceOptions } from "./store_views/store_address_space.js";
 import { UADataTypeImpl } from "./ua_data_type_impl.js";
 import { UAObjectImpl } from "./ua_object_impl.js";
 import { UAObjectTypeImpl } from "./ua_object_type_impl.js";
@@ -187,6 +188,10 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
 
     public static create(): AddressSpaceImpl {
         return new AddressSpaceImpl();
+    }
+
+    public static createCompact(options?: StoreAddressSpaceOptions): StoreAddressSpace {
+        return new StoreAddressSpace(options);
     }
 
     private static registry = new ObjectRegistry();

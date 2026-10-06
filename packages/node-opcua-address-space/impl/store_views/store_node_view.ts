@@ -6,6 +6,7 @@
  * it stays valid when the reference table is re-indexed.
  */
 import { EventEmitter } from "node:events";
+import type { ISessionContext } from "node-opcua-address-space-base";
 import { type BrowsedReference, NO_NODE, ReadStatus } from "node-opcua-address-space-store";
 import { AttributeIds, LocalizedText, type NodeClass, QualifiedName } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
@@ -162,7 +163,7 @@ export class StoreNodeView extends EventEmitter {
     }
 
     // ---- read
-    public readAttribute(_context: unknown, attributeId: AttributeIds): DataValue {
+    public readAttribute(_context: ISessionContext | null, attributeId: AttributeIds): DataValue {
         const read = this.space.reader.read(this.index, attributeId);
         if (read.statusCode !== ReadStatus.Good) {
             return new DataValue({ statusCode: coerceStatusCode(read.statusCode) });

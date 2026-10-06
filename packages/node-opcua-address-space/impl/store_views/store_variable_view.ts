@@ -4,7 +4,9 @@
  * A Variable over a node index: its value read from the value columns, or from the getter the
  * application bound to it; its writes into the columns, with a version bump the samplers see.
  */
+import type { ISessionContext } from "node-opcua-address-space-base";
 import { NO_NODE, ValueKind } from "node-opcua-address-space-store";
+import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 import { NodeId } from "node-opcua-nodeid";
@@ -51,8 +53,30 @@ export class StoreVariableView extends StoreNodeView {
         this.space.bindings.set(this.index, binding);
     }
 
-    /** the current value: from the getter when one is bound, else from the columns */
-    public readValue(): DataValue {
+    public override readAttribute(context: ISessionContext | null, attributeId: AttributeIds): DataValue {
+        // the Value goes through the getter and the permission gates; the rest is the columns
+        return attributeId === AttributeIds.Value ? this.readValue(context) : super.readAttribute(context, attributeId);
+    }
+
+    /**
+     * the current value: from the getter when one is bound, else from the columns. The gates
+     * come first, the same ones as the node objects apply: the access level for every caller,
+     * the access restrictions and the role permissions for a session. What is denied comes
+     * back as a status stamped with the time of the denial, the value behind it undisclosed.
+     */
+    public readValue(context?: ISessionContext | null): DataValue {
+        const status = this.space.permissions.readValueStatus(context, this.index);
+        if (status !== 0) {
+            const now = getCurrentClock();
+            // field by field: a null-constructed DataValue skips the options walk
+            const denied = new DataValue(null);
+            denied.statusCode = coerceStatusCode(status);
+            denied.sourceTimestamp = now.timestamp;
+            denied.sourcePicoseconds = now.picoseconds;
+            denied.serverTimestamp = now.timestamp;
+            denied.serverPicoseconds = now.picoseconds;
+            return denied;
+        }
         const binding = this.space.bindings.get(this.index);
         if (binding?.get) {
             const variant = binding.get();

@@ -3,9 +3,14 @@
  */
 import type { IAddressSpace } from "node-opcua-address-space-base";
 import { AddressSpaceImpl } from "../impl/address_space.js";
+import type { StoreAddressSpace, StoreAddressSpaceOptions } from "../impl/store_views/store_address_space.js";
 import type { IHistorizerFactory } from "./address_space_ts.js";
 import type { Namespace } from "./namespace.js";
 import type { UARootFolder } from "./ua_root_folder.js";
+
+/** the published names of the compact address space and its options */
+export type CompactAddressSpace = StoreAddressSpace;
+export type CompactAddressSpaceOptions = StoreAddressSpaceOptions;
 
 /**
  * The address space: the set of nodes a server exposes, and the namespaces they live in.
@@ -39,6 +44,14 @@ export interface AddressSpace extends IAddressSpace {
 export interface AddressSpaceConstructor {
     /** build an empty address space */
     create(): AddressSpace;
+
+    /**
+     * build an empty compact address space: the nodes in typed columns, node objects built
+     * on demand. Cheaper by far for a large model, and not yet an {@link AddressSpace}: it
+     * answers finds, browses, attribute and value reads, bindings and writes, and a server
+     * cannot be built on it yet.
+     */
+    createCompact(options?: CompactAddressSpaceOptions): CompactAddressSpace;
 
     /**
      * How historized variables get their historian. Assigning here replaces the default that

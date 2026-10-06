@@ -35,7 +35,23 @@ export interface NodeRecord {
     historizing?: boolean;
     eventNotifier?: number;
     isAbstract?: boolean;
+    /** the AccessRestrictions flags the node declares; undefined inherits the namespace default */
+    accessRestrictions?: number;
+    /**
+     * the RolePermissions the node declares: an empty list grants nothing (HasNoPermissions),
+     * undefined or null inherits the namespace default
+     */
+    rolePermissions?: readonly RolePermissionEntry[] | null;
 }
+
+/** one entry of a RolePermissions attribute */
+export interface RolePermissionEntry {
+    roleId: NodeId;
+    permissions: number;
+}
+
+/** the accessRestrictions column value for a node that declares none */
+const INHERITED_ACCESS_RESTRICTIONS = 0xff;
 
 type Column = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array;
 
@@ -71,6 +87,9 @@ export class NodeStore {
     #eventNotifier: Uint8Array;
     #minimumSamplingInterval: Float32Array;
     #flags: Uint8Array; // bit 0 historizing, bit 1 isAbstract, bit 2 deleted
+    #accessRestrictions: Uint8Array; // flags, or INHERITED_ACCESS_RESTRICTIONS
+    // the few nodes that declare RolePermissions (557 of the 5,476 nodes of the standard nodeset)
+    readonly #rolePermissions = new Map<number, readonly RolePermissionEntry[]>();
 
     constructor(expectedNodes = 1024) {
         this.strings = new StringArena(Math.max(64, expectedNodes >> 2));
@@ -94,6 +113,7 @@ export class NodeStore {
         this.#eventNotifier = new Uint8Array(n);
         this.#minimumSamplingInterval = new Float32Array(n);
         this.#flags = new Uint8Array(n);
+        this.#accessRestrictions = new Uint8Array(n).fill(INHERITED_ACCESS_RESTRICTIONS);
     }
 
     /** indexes handed out so far, deleted ones included */
@@ -128,6 +148,10 @@ export class NodeStore {
         this.#eventNotifier[i] = record.eventNotifier ?? 0;
         this.#minimumSamplingInterval[i] = record.minimumSamplingInterval ?? 0;
         this.#flags[i] = (record.historizing ? 1 : 0) | (record.isAbstract ? 2 : 0);
+        this.#accessRestrictions[i] = record.accessRestrictions ?? INHERITED_ACCESS_RESTRICTIONS; // check-proto-pollution: ok - typed array, node index
+        if (record.rolePermissions) {
+            this.#rolePermissions.set(i, record.rolePermissions);
+        }
         return i;
     }
 
@@ -135,6 +159,7 @@ export class NodeStore {
     public delete(i: number): void {
         this.byNodeId.delete(this.nodeId(i));
         this.#flags[i] |= 4;
+        this.#rolePermissions.delete(i);
     }
 
     public isDeleted(i: number): boolean {
@@ -224,6 +249,22 @@ export class NodeStore {
     public isAbstract(i: number): boolean {
         return (this.#flags[i] & 2) !== 0;
     }
+    /** the AccessRestrictions the node declares, undefined when it inherits its namespace's */
+    public accessRestrictions(i: number): number | undefined {
+        const flags = this.#accessRestrictions[i];
+        return flags === INHERITED_ACCESS_RESTRICTIONS ? undefined : flags;
+    }
+    public setAccessRestrictions(i: number, flags: number | undefined): void {
+        this.#accessRestrictions[i] = flags ?? INHERITED_ACCESS_RESTRICTIONS; // check-proto-pollution: ok - typed array, node index
+    }
+    /** the RolePermissions the node declares, null when it inherits its namespace's */
+    public rolePermissions(i: number): readonly RolePermissionEntry[] | null {
+        return this.#rolePermissions.get(i) ?? null;
+    }
+    public setRolePermissions(i: number, entries: readonly RolePermissionEntry[] | null): void {
+        if (entries) this.#rolePermissions.set(i, entries);
+        else this.#rolePermissions.delete(i);
+    }
 
     /** after a bulk load: drop the growth slack of every column */
     public compact(): void {
@@ -272,5 +313,10 @@ export class NodeStore {
         this.#eventNotifier = resized(this.#eventNotifier, n, Uint8Array);
         this.#minimumSamplingInterval = resized(this.#minimumSamplingInterval, n, Float32Array);
         this.#flags = resized(this.#flags, n, Uint8Array);
+        const restrictions = resized(this.#accessRestrictions, n, Uint8Array);
+        if (n > this.#accessRestrictions.length) {
+            restrictions.fill(INHERITED_ACCESS_RESTRICTIONS, this.#accessRestrictions.length);
+        }
+        this.#accessRestrictions = restrictions;
     }
 }

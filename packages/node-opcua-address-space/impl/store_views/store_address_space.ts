@@ -9,16 +9,23 @@
 import { AttributeReader, Browser, CompactStore, NO_NODE } from "node-opcua-address-space-store";
 import { NodeClass } from "node-opcua-data-model";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { NodeSetPermissionsPolicy } from "../../api/interfaces/nodeset_loader_options.js";
 import type { NodesetRecord } from "../../api/loader/nodeset_record.js";
-import { StoreRecordApplier } from "../../api/loader/store_record_applier.js";
+import { StoreRecordApplier, type StoreRecordApplierOptions } from "../../api/loader/store_record_applier.js";
 import { StoreNodeView, type VariableBinding } from "./store_node_view.js";
 import { StoreObjectView } from "./store_object_view.js";
+import { StorePermissions, type UnresolvedPermissionPolicy } from "./store_permissions.js";
 import { StoreVariableView } from "./store_variable_view.js";
 
 export interface StoreAddressSpaceOptions {
     expectedNodes?: number;
     /** how many views are kept alive at most; the least recently used go first */
     viewCacheSize?: number;
+    /** what a session whose roles match no policy gets: everything (the default) or nothing */
+    unresolvedPermissionPolicy?: UnresolvedPermissionPolicy;
+    /** what the nodeset's RolePermissions and AccessRestrictions become: enforced, or ignored */
+    permissions?: NodeSetPermissionsPolicy;
+    accessRestrictions?: NodeSetPermissionsPolicy;
 }
 
 /**
@@ -72,21 +79,30 @@ export class StoreAddressSpace {
     public readonly namespaceUris: string[] = [];
     /** the getters, setters and refresh functions bound to Variables, by node index */
     public readonly bindings = new Map<number, VariableBinding>();
+    /** what a session may read: the access restrictions and role permissions of the nodes */
+    public readonly permissions: StorePermissions;
     readonly #views: ViewCache;
+    readonly #applierOptions: StoreRecordApplierOptions;
     #applier: StoreRecordApplier | null = null;
 
     constructor(options: StoreAddressSpaceOptions = {}) {
         this.store = new CompactStore({ expectedNodes: options.expectedNodes ?? 4096 });
         this.browser = new Browser(this.store);
         this.reader = new AttributeReader(this.store);
+        this.permissions = new StorePermissions(this, options.unresolvedPermissionPolicy);
         this.#views = new ViewCache(options.viewCacheSize ?? 10000);
+        this.#applierOptions = { permissions: options.permissions, accessRestrictions: options.accessRestrictions };
     }
 
     // ---- loading
     /** the consumer a nodeset producer feeds; finishLoad() once the records are all in */
     public recordConsumer(): { apply(record: NodesetRecord): void } {
         if (!this.#applier) {
-            this.#applier = new StoreRecordApplier(this.store, { indexOf: (uri) => this.namespaceIndexOf(uri) });
+            this.#applier = new StoreRecordApplier(
+                this.store,
+                { indexOf: (uri) => this.namespaceIndexOf(uri) },
+                this.#applierOptions
+            );
         }
         return this.#applier;
     }
@@ -94,6 +110,7 @@ export class StoreAddressSpace {
         const result = this.#applier ? this.#applier.finish() : { unresolved: 0 };
         this.#applier = null;
         this.browser.refresh();
+        this.permissions.invalidate();
         return result;
     }
 
@@ -145,5 +162,6 @@ export class StoreAddressSpace {
         this.store.nodes.delete(index);
         this.bindings.delete(index);
         this.#views.delete(index);
+        this.permissions.invalidate();
     }
 }
