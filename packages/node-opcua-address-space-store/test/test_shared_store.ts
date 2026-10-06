@@ -17,7 +17,8 @@ const fresh = (): SharedValue => ({
     sourceTimestamp: 0,
     sourcePicoseconds: 0,
     serverTimestamp: 0,
-    serverPicoseconds: 0
+    serverPicoseconds: 0,
+    version: 0
 });
 
 function build(nodes: number): CompactStore {

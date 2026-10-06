@@ -72,6 +72,7 @@ import {
     type BuildInfoOptions,
     type CallMethodRequest,
     type CallMethodResultOptions,
+    type MonitoredItemCreateRequest,
     PermissionType,
     ProgramDiagnosticDataType,
     type ReadRequestOptions,
@@ -2247,6 +2248,21 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 (error: Error) => callback(error)
             );
         });
+    }
+
+    /**
+     * before the items of a CreateMonitoredItems are created: what the compact backend must
+     * fetch to find their nodes. Undefined when nothing is to be fetched, the common case.
+     */
+    public prepareMonitoredItems(context: ISessionContext, itemsToCreate: MonitoredItemCreateRequest[]): Promise<void> | undefined {
+        const backend = (this.addressSpaceAccessor as AddressSpaceAccessor | null)?.compactBackend;
+        if (!backend?.prefetchNodes) {
+            return undefined;
+        }
+        return backend.prefetchNodes(
+            context,
+            itemsToCreate.map((item) => item.itemToMonitor)
+        );
     }
 
     public refreshValues(

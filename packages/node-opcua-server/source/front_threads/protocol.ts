@@ -122,8 +122,42 @@ export interface FrontWorkerData {
     sharedPort: boolean;
 }
 
+/**
+ * what a front needs to know of a node to create a monitored item on it, without asking again:
+ * what does not depend on the session. index and generation tell the node from the next one
+ * given its index once it is deleted.
+ */
+export interface NodeDescription {
+    index: number;
+    generation: number;
+    nodeClass: number;
+    namespaceIndex: number;
+    name: string;
+    /** the DataType of a Variable, as a NodeId string */
+    dataType: string | null;
+    isNumber: boolean;
+    /** the low and high of its EURange property, for a percent deadband */
+    euRange: [number, number] | null;
+}
+
+export interface DescribeReply {
+    nodes: (NodeDescription | null)[];
+    /** the attribute of each item as the session reads it; an empty DataValue for the Values (sampled later) */
+    attributes: Uint8Array;
+}
+
+export interface ValueReply {
+    value: Uint8Array;
+    /** the version word of the value when it was read; -1 when the node is gone */
+    version: number;
+}
+
 export type EngineToFront =
     | { kind: "replies"; ids: number[]; payloads: unknown[] }
+    /** values written since the last message, for the nodes this front watches, in the order of the writes */
+    | { kind: "changes"; indexes: number[]; versions: number[]; values: Uint8Array }
+    /** watched nodes that were deleted */
+    | { kind: "disposed"; indexes: number[] }
     | { kind: "descriptor"; descriptor: SharedStoreDescriptor }
     | { kind: "anchors"; anchors: string[] }
     | { kind: "stop" };
@@ -142,10 +176,17 @@ export type FrontRequest =
     | { kind: "write"; context: ContextDescriptor; items: Uint8Array[] }
     | { kind: "browse"; context: ContextDescriptor; description: Uint8Array }
     | { kind: "references"; context: ContextDescriptor; nodeId: string; description: Uint8Array }
-    | { kind: "translate"; browsePath: Uint8Array };
+    | { kind: "translate"; browsePath: Uint8Array }
+    | { kind: "describe"; context: ContextDescriptor; items: { nodeId: string; attributeId: number }[] }
+    | { kind: "value"; context: ContextDescriptor; index: number; generation: number };
+
+/** start (1) or stop (0) watching a node: index and generation, three numbers per operation, in order */
+export const WATCH = 1;
+export const UNWATCH = 0;
 
 export type FrontToEngine =
     | { kind: "requests"; ids: number[]; requests: FrontRequest[] }
+    | { kind: "watches"; operations: number[] }
     | { kind: "ready"; endpointUrl: string }
     | { kind: "failed"; message: string }
     | { kind: "stopped" };

@@ -18,15 +18,19 @@
  * functions and certificate managers cannot cross threads. Every front loads the same nodesets as
  * the engine, skips its own namespace and listens with reusePort.
  *
- * Experimental: subscriptions on the compact namespaces, history and methods are not served by
- * the fronts yet; each front keeps its own sessions and server diagnostics.
+ * Monitored items on the compact namespaces are sampled in place by the fronts; the items that
+ * report changes as they happen make their front watch the node, and the engine pushes the
+ * values written to it, the writes of a turn of the event loop in one message per front.
+ *
+ * Experimental: history and methods are not served by the fronts yet; each front keeps its own
+ * sessions, subscriptions and server diagnostics.
  */
 import { Worker } from "node:worker_threads";
 import { AddressSpace, type CompactAddressSpace } from "node-opcua-address-space";
 import { generateCompactAddressSpace } from "node-opcua-address-space/nodeJS.js";
-import { StoreServices } from "node-opcua-address-space-store";
-import { QualifiedName } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
+import { type StoreNodeView, StoreServices, type StoreVariableView } from "node-opcua-address-space-store";
+import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
+import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { make_warningLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets as standardNodesets } from "node-opcua-nodesets";
@@ -35,13 +39,17 @@ import { StatusCodes } from "node-opcua-status-code";
 import { BrowseDescription, BrowsePath, BrowseResult, WriteValue } from "node-opcua-types";
 import {
     contextOf,
+    type DescribeReply,
     decodeStructure,
     type EngineToFront,
     encodeDataValues,
     encodeStructure,
     type FrontRequest,
     type FrontToEngine,
-    type FrontWorkerData
+    type FrontWorkerData,
+    type NodeDescription,
+    type ValueReply,
+    WATCH
 } from "./protocol.js";
 
 const warningLog = make_warningLog("front_thread_engine");
@@ -67,6 +75,23 @@ export interface FrontThreadsStartOptions {
     workerScript?: string | URL;
 }
 
+/** a node the monitored items of one front or more listen to */
+interface Watch {
+    generation: number;
+    view: StoreNodeView;
+    fronts: Set<Worker>;
+    onChange: (dataValue: DataValue) => void;
+    onDispose: () => void;
+}
+
+/** what goes to a front at the end of the turn */
+interface Outgoing {
+    indexes: number[];
+    versions: number[];
+    values: DataValue[];
+    disposed: number[];
+}
+
 export class FrontThreadEngine {
     /** the model: build it here, before or after start() */
     public readonly addressSpace: CompactAddressSpace;
@@ -77,7 +102,10 @@ export class FrontThreadEngine {
     readonly #fronts: Worker[] = [];
     readonly #endpointUrls: string[] = [];
     /** the requests the fronts sent, by kind: what they could not answer in place */
-    public readonly requests = { read: 0, write: 0, browse: 0, references: 0, translate: 0 };
+    public readonly requests = { read: 0, write: 0, browse: 0, references: 0, translate: 0, describe: 0, value: 0 };
+    readonly #watched = new Map<number, Watch>();
+    readonly #outgoing = new Map<Worker, Outgoing>();
+    #pushScheduled = false;
     #layoutShared = -1;
     #syncScheduled = false;
     #anchorsChanged = false;
@@ -153,6 +181,7 @@ export class FrontThreadEngine {
                         if (message.kind === "ready") resolve(message.endpointUrl);
                         else if (message.kind === "failed") reject(new Error(`front ${front}: ${message.message}`));
                         else if (message.kind === "requests") this.#answer(worker, message.ids, message.requests);
+                        else if (message.kind === "watches") this.#applyWatches(worker, message.operations);
                     });
                     worker.once("error", reject);
                     worker.once("exit", (code) => reject(new Error(`front ${front} exited with code ${code}`)));
@@ -169,6 +198,9 @@ export class FrontThreadEngine {
 
     /** the fronts close their sessions and stop listening, then end */
     public async shutdown(): Promise<void> {
+        for (const watch of this.#watched.values()) this.#stopListening(watch);
+        this.#watched.clear();
+        this.#outgoing.clear();
         const fronts = this.#fronts.splice(0);
         await Promise.all(
             fronts.map(
@@ -254,7 +286,181 @@ export class FrontThreadEngine {
                 const result = services.translate(decodeStructure(request.browsePath, new BrowsePath()));
                 return result.statusCode.isGood() ? encodeStructure(result) : null;
             }
+            case "describe": {
+                const context = contextOf(request.context);
+                const nodes: (NodeDescription | null)[] = [];
+                const attributes: DataValue[] = [];
+                for (const item of request.items) {
+                    const nodeId = resolveNodeId(item.nodeId);
+                    const index = this.addressSpace.store.find(nodeId);
+                    const description = index < 0 || this.addressSpace.store.nodes.isDeleted(index) ? null : this.#describe(index);
+                    nodes.push(description);
+                    attributes.push(
+                        description === null || item.attributeId === AttributeIds.Value
+                            ? new DataValue()
+                            : services.read(context, { nodeId, attributeId: item.attributeId }, 0, TimestampsToReturn.Both)
+                    );
+                }
+                const reply: DescribeReply = { nodes, attributes: encodeDataValues(attributes) };
+                return reply;
+            }
+            case "value": {
+                const store = this.addressSpace.store;
+                if (store.nodes.isDeleted(request.index) || store.nodes.generation(request.index) !== request.generation) {
+                    const gone: ValueReply = {
+                        value: encodeDataValues([new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown })]),
+                        version: -1
+                    };
+                    return gone;
+                }
+                const view = this.addressSpace.viewOf(request.index) as StoreVariableView;
+                const dataValue = view.readValue(contextOf(request.context));
+                const reply: ValueReply = { value: encodeDataValues([dataValue]), version: store.values.version(request.index) };
+                return reply;
+            }
         }
+    }
+
+    /** what does not depend on the session, for a front to create monitored items on the node */
+    #describe(index: number): NodeDescription {
+        const nodes = this.addressSpace.store.nodes;
+        const view = this.addressSpace.viewOf(index);
+        const nodeClass = nodes.nodeClass(index);
+        let dataType: string | null = null;
+        let isNumber = false;
+        let euRange: [number, number] | null = null;
+        if (nodeClass === NodeClass.Variable) {
+            const variable = view as StoreVariableView;
+            dataType = variable.dataType.toString();
+            isNumber = variable.isNumberDataType();
+            const property = view.getChildByName("EURange", 0);
+            if (property && property.nodeClass === NodeClass.Variable) {
+                const range = (property as StoreVariableView).readValue(null).value.value as {
+                    low?: unknown;
+                    high?: unknown;
+                } | null;
+                if (range && typeof range.low === "number" && typeof range.high === "number") {
+                    euRange = [range.low, range.high];
+                }
+            }
+        }
+        return {
+            index,
+            generation: nodes.generation(index),
+            nodeClass,
+            namespaceIndex: view.browseName.namespaceIndex,
+            name: view.browseName.name ?? "",
+            dataType,
+            isNumber,
+            euRange
+        };
+    }
+
+    // ---- the nodes the fronts watch
+
+    #applyWatches(worker: Worker, operations: number[]): void {
+        for (let k = 0; k + 2 < operations.length; k += 3) {
+            if (operations[k] === WATCH) this.#watch(worker, operations[k + 1], operations[k + 2]);
+            else this.#unwatch(worker, operations[k + 1], operations[k + 2]);
+        }
+    }
+
+    #watch(worker: Worker, index: number, generation: number): void {
+        const nodes = this.addressSpace.store.nodes;
+        let watch = this.#watched.get(index);
+        if (
+            (watch !== undefined && watch.generation !== generation) ||
+            index >= nodes.count ||
+            nodes.isDeleted(index) ||
+            nodes.generation(index) !== generation
+        ) {
+            // the node the front holds is gone
+            this.#outgoingTo(worker).disposed.push(index);
+            this.#schedulePush();
+            return;
+        }
+        if (watch === undefined) {
+            const view = this.addressSpace.viewOf(index);
+            const created: Watch = {
+                generation,
+                view,
+                fronts: new Set(),
+                onChange: (dataValue: DataValue) => {
+                    for (const front of created.fronts) this.#queue(front, index, dataValue);
+                },
+                onDispose: () => {
+                    // the view is gone with the node: its listeners go with it
+                    this.#watched.delete(index);
+                    for (const front of created.fronts) this.#outgoingTo(front).disposed.push(index);
+                    this.#schedulePush();
+                }
+            };
+            view.on("value_changed", created.onChange);
+            view.on("dispose", created.onDispose);
+            this.#watched.set(index, created);
+            watch = created;
+        }
+        watch.fronts.add(worker);
+        // the value now: the front may have read it in place before this watch, and missed a write since
+        if (view_isVariable(watch.view)) {
+            this.#queue(worker, index, watch.view.readValue(null));
+        }
+    }
+
+    #unwatch(worker: Worker, index: number, generation: number): void {
+        const watch = this.#watched.get(index);
+        if (watch === undefined || watch.generation !== generation || !watch.fronts.delete(worker) || watch.fronts.size > 0) {
+            return;
+        }
+        this.#watched.delete(index);
+        this.#stopListening(watch);
+    }
+
+    #stopListening(watch: Watch): void {
+        watch.view.removeListener("value_changed", watch.onChange as (...args: unknown[]) => void);
+        watch.view.removeListener("dispose", watch.onDispose);
+    }
+
+    #outgoingTo(worker: Worker): Outgoing {
+        let outgoing = this.#outgoing.get(worker);
+        if (outgoing === undefined) {
+            outgoing = { indexes: [], versions: [], values: [], disposed: [] };
+            this.#outgoing.set(worker, outgoing);
+        }
+        return outgoing;
+    }
+
+    #queue(worker: Worker, index: number, dataValue: DataValue): void {
+        const outgoing = this.#outgoingTo(worker);
+        outgoing.indexes.push(index);
+        outgoing.versions.push(this.addressSpace.store.values.version(index));
+        outgoing.values.push(dataValue);
+        this.#schedulePush();
+    }
+
+    /** the changes of this turn, one message per front, after the replies of the turn */
+    #schedulePush(): void {
+        if (this.#pushScheduled) return;
+        this.#pushScheduled = true;
+        setImmediate(() => {
+            this.#pushScheduled = false;
+            for (const [worker, outgoing] of this.#outgoing) {
+                if (outgoing.indexes.length > 0) {
+                    const changes: EngineToFront = {
+                        kind: "changes",
+                        indexes: outgoing.indexes,
+                        versions: outgoing.versions,
+                        values: encodeDataValues(outgoing.values)
+                    };
+                    worker.postMessage(changes);
+                }
+                if (outgoing.disposed.length > 0) {
+                    const disposed: EngineToFront = { kind: "disposed", indexes: outgoing.disposed };
+                    worker.postMessage(disposed);
+                }
+            }
+            this.#outgoing.clear();
+        });
     }
 
     /** a request that threw: the answer a front can still return to its client */
@@ -270,6 +476,20 @@ export class FrontThreadEngine {
                 return encodeStructure(new BrowseResult({ statusCode: StatusCodes.Good, references: [] }));
             case "translate":
                 return null;
+            case "describe": {
+                const reply: DescribeReply = {
+                    nodes: request.items.map(() => null),
+                    attributes: encodeDataValues(request.items.map(() => new DataValue()))
+                };
+                return reply;
+            }
+            case "value": {
+                const reply: ValueReply = {
+                    value: encodeDataValues([new DataValue({ statusCode: StatusCodes.BadInternalError })]),
+                    version: 0
+                };
+                return reply;
+            }
         }
     }
 
@@ -322,6 +542,10 @@ export class FrontThreadEngine {
             for (const worker of this.#fronts) for (const message of messages) worker.postMessage(message);
         });
     }
+}
+
+function view_isVariable(view: StoreNodeView): view is StoreVariableView {
+    return view.nodeClass === NodeClass.Variable;
 }
 
 /** the platforms where several sockets may listen on one port, the kernel spreading the connections */

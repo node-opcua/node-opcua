@@ -61,6 +61,12 @@ async function main(): Promise<void> {
             case "anchors":
                 backend.setAnchors(message.anchors);
                 break;
+            case "changes":
+                backend.receiveChanges(message.indexes, message.versions, message.values);
+                break;
+            case "disposed":
+                backend.receiveDisposed(message.indexes);
+                break;
             case "stop":
                 server
                     .shutdown(0)

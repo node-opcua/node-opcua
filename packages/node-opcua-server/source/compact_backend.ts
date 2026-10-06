@@ -48,6 +48,11 @@ export interface ICompactBackend {
     references(context: ISessionContext | null, nodeId: NodeId, description: BrowseDescription): Promise<ReferenceDescription[]>;
     /** a path followed in these namespaces from its start; null when it leads nowhere here */
     translate(browsePath: BrowsePath): Promise<BrowsePathResult | null>;
+    /**
+     * before the items of a CreateMonitoredItems are created: what findNode() needs to answer
+     * them synchronously. Undefined when there is nothing to fetch.
+     */
+    prefetchNodes?(context: ISessionContext, itemsToMonitor: ReadValueIdOptions[]): Promise<void> | undefined;
     /** the node a monitored item watches; undefined where monitored items are not served yet */
     findNode?(nodeId: NodeIdLike): FoundNode | null;
 }
