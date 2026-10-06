@@ -368,5 +368,36 @@
     "nodes": 8120,
     "references": 30224,
     "hash": "4ea02d621783bffa1aad09c60ea339d77632ab0a"
+  },
+  "fxData": {
+    "files": [
+      "standard",
+      "fxData"
+    ],
+    "nodes": 5662,
+    "references": 19725,
+    "hash": "466730f3569569488571a671db70d122454859b4"
+  },
+  "fxAc": {
+    "files": [
+      "standard",
+      "di",
+      "fxData",
+      "fxAc"
+    ],
+    "nodes": 6620,
+    "references": 23259,
+    "hash": "aba9cb0f250fbaea6c85e64b9d5d5879c6481191"
+  },
+  "fxCm": {
+    "files": [
+      "standard",
+      "di",
+      "fxData",
+      "fxCm"
+    ],
+    "nodes": 6654,
+    "references": 23387,
+    "hash": "6557f411bbd099728ad3abee991bb9b083386cfa"
   }
 }
