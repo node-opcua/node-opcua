@@ -2186,6 +2186,9 @@ export function defineSharedChildAccessors(browseNames: string[]): void {
  *
  * This is the runtime fallback of child_accessors.ts, for names no loaded nodeset declared.
  */
+/** see install_child_as_object_property */
+export const maxOwnChildAccessorsPerParent = 1000;
+
 /** the child an own accessor was installed for, kept on the getter itself */
 const installedFor = Symbol("installedFor");
 type OwnChildAccessor = { [installedFor]?: BaseNode };
@@ -2199,6 +2202,15 @@ function install_child_as_object_property(parentObj: BaseNode | null, child: Bas
     if (!name || isReservedChildAccessorName(name) || hasSharedChildAccessor(name) || name in parentObj) {
         return;
     }
+    // a parent with a thousand runtime-named children (a folder of tags) is not addressed as
+    // `folder.tag123` by anyone; past that many, the children stay reachable by getChildByName
+    // and browse, and the parent is spared an accessor (170 bytes) per child and dictionary mode
+    const parentPrivate = BaseNode_getPrivate(parentObj);
+    const installed = parentPrivate._ownChildAccessors ?? 0;
+    if (installed >= maxOwnChildAccessorsPerParent) {
+        return;
+    }
+    parentPrivate._ownChildAccessors = installed + 1;
     doDebug && debugLog(`Installing property ${name}`, " on ", parentObj.browseName.toString());
     const get: (() => BaseNode | undefined) & OwnChildAccessor = () =>
         // an own property wins over the prototype: should the name get a shared getter later
@@ -2226,6 +2238,8 @@ function uninstall_child_object_property(parentObj: BaseNode, child: BaseNode): 
         return;
     }
     delete (parentObj as unknown as Record<string, unknown>)[name];
+    const parentPrivate = BaseNode_getPrivate(parentObj);
+    parentPrivate._ownChildAccessors = Math.max(0, (parentPrivate._ownChildAccessors ?? 1) - 1);
 }
 
 export function getReferenceType(reference: UAReference): UAReferenceType {

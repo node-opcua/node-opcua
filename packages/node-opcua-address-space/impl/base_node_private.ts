@@ -123,6 +123,8 @@ interface BaseNodeCache {
     _referenceIdx: ReferenceIndex;
     /** the property name this node is exposed as on its parents (see child_accessors.ts) */
     _accessorName?: string;
+    /** how many children this node exposes through an own accessor (see install_child_as_object_property) */
+    _ownChildAccessors?: number;
 }
 
 /**
