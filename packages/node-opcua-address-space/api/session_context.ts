@@ -455,8 +455,9 @@ interface PermissionCache {
     evaluationRoles?: NodeId[];
     /** keyed by the RolePermissions that apply, which most nodes share with their namespace */
     permissions: Map<RolePermissionType[] | null, PermissionFlag>;
-    defaultRolePermissions: Map<NamespacePrivate, RolePermissionType[] | null>;
-    defaultAccessRestrictions: Map<NamespacePrivate, AccessRestrictionsFlag>;
+    /** keyed by namespace index: a Read stays within one address space */
+    defaultRolePermissions: Map<number, RolePermissionType[] | null>;
+    defaultAccessRestrictions: Map<number, AccessRestrictionsFlag>;
 }
 
 export class SessionContext implements ISessionContext {
@@ -680,15 +681,15 @@ export class SessionContext implements ISessionContext {
 
     public getApplicableRolePermissions(node: BaseNode): RolePermissionType[] | null {
         if (!node.rolePermissions) {
-            const namespace = node.namespace as NamespacePrivate;
             const cache = this.#permissionCache;
             if (!cache) {
-                return getDefaultUserRolePermissionsOnNamespace(namespace, this);
+                return getDefaultUserRolePermissionsOnNamespace(node.namespace as NamespacePrivate, this);
             }
-            let defaultUserRolePermissions = cache.defaultRolePermissions.get(namespace);
+            const namespaceIndex = node.nodeId.namespace;
+            let defaultUserRolePermissions = cache.defaultRolePermissions.get(namespaceIndex);
             if (defaultUserRolePermissions === undefined) {
-                defaultUserRolePermissions = getDefaultUserRolePermissionsOnNamespace(namespace, this);
-                cache.defaultRolePermissions.set(namespace, defaultUserRolePermissions);
+                defaultUserRolePermissions = getDefaultUserRolePermissionsOnNamespace(node.namespace as NamespacePrivate, this);
+                cache.defaultRolePermissions.set(namespaceIndex, defaultUserRolePermissions);
             }
             return defaultUserRolePermissions;
         }
@@ -782,15 +783,15 @@ export class SessionContext implements ISessionContext {
 
     public getAccessRestrictions(node: BaseNode): AccessRestrictionsFlag {
         if (node.accessRestrictions === undefined) {
-            const namespace = node.namespace as NamespacePrivate;
             const cache = this.#permissionCache;
             if (!cache) {
-                return getAccessRestrictionsOnNamespace(namespace, this);
+                return getAccessRestrictionsOnNamespace(node.namespace as NamespacePrivate, this);
             }
-            let accessRestrictions = cache.defaultAccessRestrictions.get(namespace);
+            const namespaceIndex = node.nodeId.namespace;
+            let accessRestrictions = cache.defaultAccessRestrictions.get(namespaceIndex);
             if (accessRestrictions === undefined) {
-                accessRestrictions = getAccessRestrictionsOnNamespace(namespace, this);
-                cache.defaultAccessRestrictions.set(namespace, accessRestrictions);
+                accessRestrictions = getAccessRestrictionsOnNamespace(node.namespace as NamespacePrivate, this);
+                cache.defaultAccessRestrictions.set(namespaceIndex, accessRestrictions);
             }
             return accessRestrictions;
         }

@@ -135,10 +135,6 @@ function adjust_samplingInterval(minimumSamplingInterval: number): number {
     return minimumSamplingInterval;
 }
 
-function is_Variant(v: unknown): boolean {
-    return v instanceof Variant;
-}
-
 function is_StatusCode(v: unknown): boolean {
     return !!(
         v?.constructor &&
@@ -151,13 +147,6 @@ function is_StatusCode(v: unknown): boolean {
 
 function isThenable<T>(v: T | PromiseLike<T>): v is PromiseLike<T> {
     return typeof (v as PromiseLike<T> | null | undefined)?.then === "function";
-}
-
-function is_Variant_or_StatusCode(v: unknown): boolean {
-    if (is_Variant(v)) {
-        // /@@assert(v.isValid());
-    }
-    return is_Variant(v) || is_StatusCode(v);
 }
 
 function default_func(this: UAVariable, dataValue1: DataValue, callback1: CallbackT<StatusCode>) {
@@ -2397,21 +2386,10 @@ function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOpt
     const timestamped_get_func_from__Variable_bind_with_simple_get = () => {
         const value: Variant | StatusCode = (this._get_func as GetFunc)();
 
-        /* c8 ignore next */
-        if (!is_Variant_or_StatusCode(value)) {
-            errorLog(
-                chalk.red(" Bind variable error: "),
-                " : the getter must return a Variant or a StatusCode" + "\nvalue_check.constructor.name ",
-                value ? value.constructor.name : "null"
-            );
-            throw new Error(
-                " bindVariable : the value getter function returns a invalid result ( expecting a Variant or a StatusCode !!!"
-            );
-        }
-        if (is_StatusCode(value)) {
-            return new DataValue({ statusCode: value as StatusCode });
-        } else {
-            if (!this.$dataValue?.statusCode.isGoodish() || !sameVariant(this.$dataValue.value, value as Variant)) {
+        // a getter returns a Variant on every read but a failing one: test for it first, as
+        // is_StatusCode ends in comparisons of constructor names
+        if (value instanceof Variant) {
+            if (!this.$dataValue?.statusCode.isGoodish() || !sameVariant(this.$dataValue.value, value)) {
                 // rebuilding artificially timestamps with current clock as they are not provided
                 // by the underlying getter function
                 const { timestamp: sourceTimestamp, picoseconds: sourcePicoseconds } = getCurrentClock();
@@ -2423,6 +2401,19 @@ function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOpt
             }
             return this.$dataValue;
         }
+
+        /* c8 ignore next */
+        if (!is_StatusCode(value)) {
+            errorLog(
+                chalk.red(" Bind variable error: "),
+                " : the getter must return a Variant or a StatusCode" + "\nvalue_check.constructor.name ",
+                value ? value.constructor.name : "null"
+            );
+            throw new Error(
+                " bindVariable : the value getter function returns a invalid result ( expecting a Variant or a StatusCode !!!"
+            );
+        }
+        return new DataValue({ statusCode: value as StatusCode });
     };
 
     _Variable_bind_with_timestamped_get.call(this, {
