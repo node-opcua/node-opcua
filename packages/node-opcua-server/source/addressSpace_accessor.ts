@@ -142,16 +142,21 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
      * busiest one a server answers.
      */
     public readSync(context: ISessionContext, readRequest: ReadRequestOptions): DataValue[] {
-        readRequest.maxAge = readRequest.maxAge || 0;
+        const maxAge = readRequest.maxAge || 0;
+        readRequest.maxAge = maxAge;
         const timestampsToReturn = readRequest.timestampsToReturn;
         const nodesToRead = readRequest.nodesToRead || [];
 
         context.currentTime = getCurrentClock();
-        const dataValues: DataValue[] = new Array(nodesToRead.length);
-        for (let i = 0; i < nodesToRead.length; i++) {
-            dataValues[i] = this.readNodeSync(context, nodesToRead[i], readRequest.maxAge, timestampsToReturn);
-        }
-        return dataValues;
+        const readAll = () => {
+            const dataValues: DataValue[] = new Array(nodesToRead.length);
+            for (let i = 0; i < nodesToRead.length; i++) {
+                dataValues[i] = this.readNodeSync(context, nodesToRead[i], maxAge, timestampsToReturn);
+            }
+            return dataValues;
+        };
+        // the Roles and the namespace defaults are the same for every node of the request
+        return context.withPermissionCache ? context.withPermissionCache(readAll) : readAll();
     }
 
     public async write(context: ISessionContext, nodesToWrite: WriteValue[]): Promise<StatusCode[]> {

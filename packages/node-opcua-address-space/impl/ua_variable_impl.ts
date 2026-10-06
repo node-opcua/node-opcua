@@ -1366,7 +1366,13 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             func = answerStatusOnly(StatusCodes.BadNotReadable);
         } else if (!this.checkPermissionPrivate(context, PermissionType.Read)) {
             func = answerStatusOnly(StatusCodes.BadUserAccessDenied);
-        } else if (!this.isUserReadable(context)) {
+        } else if (
+            // as in readValue(): the Read permission has just passed, only the access level is
+            // left, unless a node replaced isUserReadable (see makeNotReadableIfEnabledFlagIsFalse)
+            this.isUserReadable === UAVariableImpl.prototype.isUserReadable
+                ? !this.checkAccessLevelPrivate(context, AccessLevelFlag.CurrentRead)
+                : !this.isUserReadable(context)
+        ) {
             func = answerStatusOnly(StatusCodes.BadNotReadable);
         } else {
             const clock = getCurrentClock();
