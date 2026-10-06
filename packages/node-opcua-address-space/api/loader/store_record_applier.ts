@@ -4,10 +4,11 @@
  * The nodeset records written straight into a compact store: no node object is created.
  * Same producer as the object applier (NodesetRecordApplier), other sink.
  */
-import { type CompactStore, NO_NODE } from "node-opcua-address-space-store";
-import { makeAccessLevelFlag, NodeClass } from "node-opcua-data-model";
+import { type CompactStore, NO_NODE, type RolePermissionEntry } from "node-opcua-address-space-store";
+import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { DataType, VariantArrayType, type VariantOptions } from "node-opcua-variant";
+import type { NodeSetPermissionsPolicy } from "../interfaces/nodeset_loader_options.js";
 import type { NodesetHeaderRecord, NodesetNodeRecord, NodesetRecord, NodesetRecordConsumer } from "./nodeset_record.js";
 
 const UA_NAMESPACE_URI = "http://opcfoundation.org/UA/";
@@ -16,6 +17,14 @@ const UA_NAMESPACE_URI = "http://opcfoundation.org/UA/";
 export interface NamespaceRegistry {
     /** the index of a namespace, registering it when it is new */
     indexOf(namespaceUri: string): number;
+}
+
+/** the same two policies as the object loader, with the same defaults */
+export interface StoreRecordApplierOptions {
+    /** the nodeset's RolePermissions: kept (the default) or dropped */
+    permissions?: NodeSetPermissionsPolicy;
+    /** the nodeset's AccessRestrictions: kept, or dropped (the default) */
+    accessRestrictions?: NodeSetPermissionsPolicy;
 }
 
 export class StoreRecordApplier implements NodesetRecordConsumer {
@@ -31,10 +40,14 @@ export class StoreRecordApplier implements NodesetRecordConsumer {
     readonly #store: CompactStore;
     readonly #namespaces: NamespaceRegistry;
     readonly #loadTime = Date.now();
+    readonly #keepPermissions: boolean;
+    readonly #keepAccessRestrictions: boolean;
 
-    constructor(store: CompactStore, namespaces: NamespaceRegistry) {
+    constructor(store: CompactStore, namespaces: NamespaceRegistry, options: StoreRecordApplierOptions = {}) {
         this.#store = store;
         this.#namespaces = namespaces;
+        this.#keepPermissions = (options.permissions ?? "apply") === "apply";
+        this.#keepAccessRestrictions = (options.accessRestrictions ?? "ignore") === "apply";
     }
 
     /** nodes applied by this applier */
@@ -120,12 +133,16 @@ export class StoreRecordApplier implements NodesetRecordConsumer {
             displayName: record.displayName && record.displayName !== record.browseName.name ? record.displayName : null,
             description: record.description ?? null,
             valueRank: record.valueRank,
-            accessLevel: record.accessLevel === undefined ? undefined : makeAccessLevelFlag(record.accessLevel),
-            userAccessLevel: record.userAccessLevel === undefined ? undefined : makeAccessLevelFlag(record.userAccessLevel),
+            // the document gives the levels as numbers; CurrentRead when it says nothing, and the
+            // user level follows the node's unless declared (same reading as the object applier)
+            accessLevel: parseAccessLevel(record.accessLevel, 1),
+            userAccessLevel: record.userAccessLevel ? parseAccessLevel(record.userAccessLevel, 1) : undefined,
             minimumSamplingInterval: record.minimumSamplingInterval,
             historizing: record.historizing,
             eventNotifier: record.eventNotifier,
-            isAbstract: record.isAbstract
+            isAbstract: record.isAbstract,
+            accessRestrictions: this.#keepAccessRestrictions ? parseAccessRestrictions(record.accessRestrictions) : undefined,
+            rolePermissions: this.#keepPermissions ? this.#rolePermissions(record) : undefined
         });
         this.#nodeCount++;
         for (const reference of record.references) {
@@ -156,6 +173,14 @@ export class StoreRecordApplier implements NodesetRecordConsumer {
         }
     }
 
+    #rolePermissions(record: NodesetNodeRecord): RolePermissionEntry[] | undefined {
+        if (record.rolePermissions) {
+            return record.rolePermissions.map((r) => ({ roleId: this.#translate(r.roleId), permissions: r.permissions }));
+        }
+        // HasNoPermissions grants nothing; an absent RolePermissions inherits the namespace default
+        return record.hasNoPermissions ? [] : undefined;
+    }
+
     #applyValue(i: number, value: VariantOptions): void {
         const now = this.#loadTime;
         const dataType =
@@ -175,4 +200,18 @@ export class StoreRecordApplier implements NodesetRecordConsumer {
     public get objectValueCount(): number {
         return this.#pendingValues;
     }
+}
+
+function parseAccessLevel(text: string | undefined, absent: number): number {
+    const value = parseInt(text || "", 10);
+    return Number.isNaN(value) ? absent : value;
+}
+
+/** the AccessRestrictions attribute of the document: a number; absent or invalid inherits */
+function parseAccessRestrictions(text: string | undefined): number | undefined {
+    if (text === undefined || text === "") {
+        return undefined;
+    }
+    const value = parseInt(text, 10);
+    return Number.isNaN(value) ? undefined : value & 0xf;
 }

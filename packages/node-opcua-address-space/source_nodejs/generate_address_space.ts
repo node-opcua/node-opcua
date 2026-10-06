@@ -5,6 +5,7 @@ import zlib, { gunzip, gzip as gzipCb } from "node:zlib";
 import type { IAddressSpace } from "node-opcua-address-space-base";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import {
+    type CompactAddressSpace,
     generateAddressSpaceRaw,
     type NamedNodesetSource,
     type NodeSetLoaderOptions,
@@ -15,7 +16,8 @@ import {
     readNodesetImageInfo,
     setImageDeflater,
     setImageInflater,
-    sha256Hex
+    sha256Hex,
+    xmlNodesetRecords
 } from "../dist/api/index.js";
 import { FileNodesetImageStore } from "./nodeset_image_file_store.js";
 
@@ -226,4 +228,24 @@ export async function nodesetFileToImage(source: NodesetSource | string, options
     const resolved: NodesetSource =
         typeof source === "string" && !source.trimStart().startsWith("<") ? nodesetSourceFromFileWhole(source) : source;
     return nodesetToImageRaw(resolved, { addressSpaceVersion: addressSpacePackageVersion(), ...options });
+}
+
+/**
+ * the NodeSet2 XML files loaded into a compact address space, in the order given, each
+ * streamed in chunks: no node object is created, the records go straight into the columns
+ */
+export async function generateCompactAddressSpace(addressSpace: CompactAddressSpace, xmlFiles: string | string[]): Promise<void> {
+    const files = Array.isArray(xmlFiles) ? xmlFiles : [xmlFiles];
+    const consumer = addressSpace.recordConsumer();
+    for (const xmlFile of files) {
+        checkNodeSet2XmlFileExists(xmlFile);
+        const chunks = fs.createReadStream(xmlFile, { encoding: "utf8", highWaterMark: FILE_CHUNK_SIZE });
+        for await (const record of xmlNodesetRecords(chunks)) {
+            consumer.apply(record);
+        }
+    }
+    const { unresolved } = addressSpace.finishLoad();
+    if (unresolved > 0) {
+        debugLog(`generateCompactAddressSpace: ${unresolved} references point at nodes no document declares`);
+    }
 }
