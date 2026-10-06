@@ -69,6 +69,7 @@ import {
 import { DataType, sameVariant, Variant } from "node-opcua-variant";
 import { canReceiveEvent } from "./audit_event_permissions.js";
 import { checkWhereClauseOnAdressSpace as checkWhereClauseOnAddressSpace } from "./filter/check_where_clause_on_address_space.js";
+import type { MonitorableNode } from "./monitorable_node.js";
 import { appendToTimer, removeFromTimer } from "./node_sampler.js";
 import type { SamplingFunc } from "./sampling_func.js";
 import type { MonitoredItemBase } from "./server_subscription.js";
@@ -470,7 +471,7 @@ const badDataUnavailable = new DataValue({ statusCode: StatusCodes.BadDataUnavai
  *
  */
 export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
-    public get node(): UAVariable | UAObject | UAMethod | null {
+    public get node(): MonitorableNode | null {
         return this._node;
     }
 
@@ -506,7 +507,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     public _samplingId?: NodeJS.Timeout | string;
     public samplingFunc: SamplingFunc | null = null;
 
-    private _node: UAVariable | UAObject | UAMethod | null;
+    private _node: MonitorableNode | null;
     public queue: QueueItem[];
     private _semantic_version: number;
     private _is_sampling = false;
@@ -572,7 +573,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         MonitoredItem.registry.register(this);
     }
 
-    public setNode(node: UAVariable | UAObject | UAMethod): void {
+    public setNode(node: MonitorableNode): void {
         assert(!this.node || this.node === node, "node already set");
         this._node = node;
         this._semantic_version = "semantic_version" in node ? node.semantic_version : 0;
@@ -582,9 +583,9 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             if (!this._node) {
                 throw new Error("MonitoredItem#_on_node_disposed_listener: expecting a valid node");
             }
-            this._on_node_disposed(this._node);
+            this._on_node_disposed(this._node as unknown as BaseNode);
         };
-        (this._node as BaseNode).on("dispose", this._on_node_disposed_listener);
+        (this._node as unknown as EventEmitter).on("dispose", this._on_node_disposed_listener);
     }
 
     public setMonitoringMode(monitoringMode: MonitoringMode): StatusCode {
@@ -981,10 +982,15 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             if (!this.node) {
                 throw new Error("setMonitoringParameters: expecting a valid node");
             }
-            const statusCodeFilter = validateFilter(monitoringParameters.filter, this.itemToMonitor, this.node, {
-                maxWhereClauseParameters: this.$subscription?.maxWhereClauseParameters,
-                maxSelectClauseParameters: this.$subscription?.maxSelectClauseParameters
-            });
+            const statusCodeFilter = validateFilter(
+                monitoringParameters.filter,
+                this.itemToMonitor,
+                this.node as unknown as BaseNode,
+                {
+                    maxWhereClauseParameters: this.$subscription?.maxWhereClauseParameters,
+                    maxSelectClauseParameters: this.$subscription?.maxSelectClauseParameters
+                }
+            );
             if (statusCodeFilter.isNot(StatusCodes.Good)) {
                 return new MonitoredItemModifyResult({
                     statusCode: statusCodeFilter
@@ -1428,7 +1434,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 // we are monitoring OPCUA Event
                 this._on_opcua_event_received_callback = this._on_opcua_event.bind(this);
                 if (this.node && this.node.nodeClass === NodeClass.Object) {
-                    this.node.on("event", this._on_opcua_event_received_callback);
+                    (this.node as unknown as EventEmitter).on("event", this._on_opcua_event_received_callback);
                 }
             }
             return;
@@ -1458,7 +1464,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         // told about the change as it happens, whether it is sampled or exception-based.
         if (!this._semantic_changed_callback && this.node.nodeClass === NodeClass.Variable) {
             this._semantic_changed_callback = this._on_semantic_changed.bind(this);
-            this.node.on("semantic_changed", this._semantic_changed_callback);
+            (this.node as unknown as EventEmitter).on("semantic_changed", this._semantic_changed_callback);
         }
 
         if (this._exceptionBased) {
@@ -1467,7 +1473,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             if (!this._value_changed_callback) {
                 this._value_changed_callback = this._on_value_changed_exception_based.bind(this);
                 if (this.node.nodeClass === NodeClass.Variable) {
-                    this.node.on("value_changed", this._value_changed_callback);
+                    (this.node as unknown as EventEmitter).on("value_changed", this._value_changed_callback);
                 }
             }
 

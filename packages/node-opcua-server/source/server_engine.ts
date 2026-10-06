@@ -1,9 +1,9 @@
 /**
  * @module node-opcua-server
  */
+
 import { EventEmitter } from "node:events";
 import { types } from "node:util";
-
 import chalk from "chalk";
 import {
     AddressSpace,
@@ -87,6 +87,7 @@ import { AddressSpaceAccessor } from "./addressSpace_accessor.js";
 import { defaultAuditEventRoles, restrictAuditEventReception } from "./audit_event_permissions.js";
 import { HistoryServerCapabilities, type HistoryServerCapabilitiesOptions } from "./history_server_capabilities.js";
 import type { IAddressSpaceAccessor } from "./i_address_space_accessor.js";
+import type { FoundNode, INodeFinder } from "./monitorable_node.js";
 import { MonitoredItem } from "./monitored_item.js";
 import type { OPCUAServerOptions } from "./opcua_server.js";
 import {
@@ -2160,6 +2161,29 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             }
         }
         return result;
+    }
+
+    /**
+     * where the nodes to monitor are found: the node objects, and the compact address space for
+     * the namespaces it serves
+     */
+    public get nodeFinder(): INodeFinder {
+        const addressSpace = this.addressSpace;
+        if (!addressSpace) {
+            throw new Error("nodeFinder: the engine is not initialized");
+        }
+        const compact = (this.addressSpaceAccessor as AddressSpaceAccessor | null)?.compact;
+        if (!compact) {
+            return addressSpace;
+        }
+        return {
+            findNode: (nodeId: NodeIdLike) => {
+                const resolved = resolveNodeId(nodeId);
+                return compact.namespaces.has(resolved.namespace)
+                    ? (compact.space.findNode(resolved) as unknown as FoundNode | null)
+                    : addressSpace.findNode(resolved);
+            }
+        };
     }
 
     /**

@@ -4,11 +4,9 @@
 
 import { EventEmitter } from "node:events";
 import chalk from "chalk";
-
 import {
     type BaseNode,
     type Duration,
-    type IAddressSpace,
     type ISessionContext,
     SessionContext,
     type UAMethod,
@@ -50,6 +48,7 @@ import {
     type MonitoringFilter
 } from "node-opcua-types";
 import { type IServerSidePublishEngine, TransferredSubscription } from "./i_server_side_publish_engine.js";
+import type { INodeFinder, MonitorableNode } from "./monitorable_node.js";
 
 import { MonitoredItem, type MonitoredItemOptions, type QueueItem } from "./monitored_item.js";
 import { Queue } from "./queue.js";
@@ -456,7 +455,7 @@ export interface InternalCreateMonitoredItemResult {
 }
 
 export interface MonitoredItemBase {
-    node: UAVariable | UAObject | UAMethod | null;
+    node: MonitorableNode | null;
     // from monitoring parameters
     filter: MonitoringFilter | null;
     monitoringMode: MonitoringMode;
@@ -1076,7 +1075,7 @@ export class Subscription extends EventEmitter {
      * @param monitoredItemCreateRequest - the parameters describing the monitored Item to create
      */
     public preCreateMonitoredItem(
-        addressSpace: IAddressSpace,
+        nodeFinder: INodeFinder,
         timestampsToReturn: TimestampsToReturn,
         monitoredItemCreateRequest: MonitoredItemCreateRequest
     ): InternalCreateMonitoredItemResult {
@@ -1091,7 +1090,7 @@ export class Subscription extends EventEmitter {
 
         const itemToMonitor = monitoredItemCreateRequest.itemToMonitor;
 
-        const node = addressSpace.findNode(itemToMonitor.nodeId) as UAObject | UAVariable | UAMethod;
+        const node = nodeFinder.findNode(itemToMonitor.nodeId) as unknown as UAObject | UAVariable | UAMethod;
         if (
             !node ||
             (node.nodeClass !== NodeClass.Variable && node.nodeClass !== NodeClass.Object && node.nodeClass !== NodeClass.Method)
@@ -1177,12 +1176,12 @@ export class Subscription extends EventEmitter {
     }
 
     public async createMonitoredItem(
-        addressSpace: IAddressSpace,
+        nodeFinder: INodeFinder,
         timestampsToReturn: TimestampsToReturn,
         monitoredItemCreateRequest: MonitoredItemCreateRequest
     ): Promise<MonitoredItemCreateResult> {
         const { monitoredItem, createResult } = this.preCreateMonitoredItem(
-            addressSpace,
+            nodeFinder,
             timestampsToReturn,
             monitoredItemCreateRequest
         );

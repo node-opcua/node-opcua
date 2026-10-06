@@ -125,7 +125,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
     }
 
     #isCompact(nodeId: NodeId): boolean {
-        return this.#compact !== null && this.#compact.namespaces.has(nodeId.namespace);
+        return this.#compact?.namespaces.has(nodeId.namespace) ?? false;
     }
 
     public async browse(context: ISessionContext, nodesToBrowse: BrowseDescriptionOptions[]): Promise<BrowseResult[]> {

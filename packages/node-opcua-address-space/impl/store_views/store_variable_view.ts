@@ -5,7 +5,7 @@
  * application bound to it; its writes into the columns, with a version bump the samplers see.
  */
 import type { ISessionContext } from "node-opcua-address-space-base";
-import { NO_NODE, ValueKind } from "node-opcua-address-space-store";
+import { NO_NODE, ResolvedType, ValueKind } from "node-opcua-address-space-store";
 import { AttributeIds } from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
@@ -153,6 +153,22 @@ export class StoreVariableView extends StoreNodeView {
                 serverTimestamp
             );
         }
+        // what a monitored item delivered on change listens to, as on the node objects; a view
+        // with listeners is the one every writer of this node reaches (see ViewCache)
+        if (this.hasListeners()) {
+            this.emit("value_changed", this.#dataValueFromColumns().clone());
+        }
+    }
+
+    /** the value through a callback, as the node objects offer it to the samplers; nothing here waits */
+    public readValueAsync(context: ISessionContext | null, callback: (err: Error | null, dataValue?: DataValue) => void): void {
+        callback(null, this.readValue(context));
+    }
+
+    /** true when the DataType takes numbers: what a deadband filter needs */
+    public isNumberDataType(): boolean {
+        const resolved = this.space.dataTypes.resolve(this.space.store.nodes.dataType(this.index));
+        return resolved === ResolvedType.AbstractNumber || (resolved >= DataType.SByte && resolved <= DataType.Double);
     }
 
     /** true when the columns already hold this scalar value with a Good status */
