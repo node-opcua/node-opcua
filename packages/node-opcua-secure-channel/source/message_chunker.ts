@@ -2,17 +2,12 @@
  * @module node-opcua-secure-channel
  */
 
-import { assert } from "node-opcua-assert";
 import { encodeExpandedNodeId } from "node-opcua-basic-types";
 import { BinaryStream, BinaryStreamMaxSizeExceededError } from "node-opcua-binary-stream";
 import type { Mode } from "node-opcua-chunkmanager";
 import { make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { BaseUAObject } from "node-opcua-factory";
-import {
-    AsymmetricAlgorithmSecurityHeader,
-    MessageSecurityMode,
-    SymmetricAlgorithmSecurityHeader
-} from "node-opcua-service-secure-channel";
+import { MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { timestamp } from "node-opcua-utils";
 
@@ -50,6 +45,9 @@ export class MessageChunker {
 
     /** size of the last message encoded on this chunker, used to size the next one */
     #messageSizeHint: number = MessageChunker.minimumMessageSizeHint;
+    /** the largest encode buffer kept from one message to the next, see #takeEncodeBuffer */
+    public static readonly maxRetainedEncodeBufferSize: number = 64 * 1024;
+    #encodeBuffer: Buffer | null = null;
 
     public maxMessageSize: number;
     public maxChunkCount: number;
@@ -62,15 +60,30 @@ export class MessageChunker {
         this.maxChunkCount = options.maxChunkCount === undefined ? MessageChunker.defaultChunkCount : options.maxChunkCount;
     }
 
-    public dispose(): void {}
+    public dispose(): void {
+        this.#encodeBuffer = null;
+    }
+
+    /**
+     * The buffer a message is encoded into is only read by the chunk manager, which copies
+     * it into the chunks before `write` returns: it can serve the next message instead of
+     * being allocated and collected for each one. It is taken here and given back by
+     * #recycleEncodeBuffer, so a message encoded while another is in flight gets its own.
+     */
+    #takeEncodeBuffer(ceiling: number): BinaryStream {
+        const buffer = this.#encodeBuffer;
+        this.#encodeBuffer = null;
+        return BinaryStream.createGrowable(buffer ?? Math.min(this.#messageSizeHint, ceiling), ceiling);
+    }
+
+    #recycleEncodeBuffer(stream: BinaryStream): void {
+        if (stream.buffer.length <= MessageChunker.maxRetainedEncodeBufferSize) {
+            this.#encodeBuffer = stream.buffer;
+        }
+    }
 
     #_build_chunk_manager(msgType: string, params: ChunkMessageParameters): SecureMessageChunkManager {
         const securityHeader = params.securityHeader;
-        if (msgType === "OPN") {
-            assert(securityHeader instanceof AsymmetricAlgorithmSecurityHeader);
-        } else if (msgType === "MSG") {
-            assert(securityHeader instanceof SymmetricAlgorithmSecurityHeader);
-        }
         const channelId = params.channelId;
         const mode = this.securityMode as unknown as Mode;
         const chunkManager = new SecureMessageChunkManager(
@@ -165,7 +178,7 @@ export class MessageChunker {
         // Growth is capped at the negotiated maximum message size, so encoding before the
         // oversize check cannot be used to make us allocate without bound.
         const ceiling = this.maxMessageSize > 0 ? this.maxMessageSize : MessageChunker.defaultMaxMessageSize;
-        const stream = BinaryStream.createGrowable(Math.min(this.#messageSizeHint, ceiling), ceiling);
+        const stream = this.#takeEncodeBuffer(ceiling);
         try {
             encodeExpandedNodeId(encodingDefaultBinary, stream);
             message.encode(stream);
@@ -177,8 +190,12 @@ export class MessageChunker {
             throw err;
         }
         const messageLength = stream.length;
-        // remember the size so the next message on this channel usually fits without growing
-        this.#messageSizeHint = Math.max(MessageChunker.minimumMessageSizeHint, messageLength);
+        // remember the size so the next message on this channel usually fits without growing,
+        // up to the size of buffer worth keeping: a rare large message grows its buffer instead
+        this.#messageSizeHint = Math.min(
+            Math.max(MessageChunker.minimumMessageSizeHint, messageLength),
+            MessageChunker.maxRetainedEncodeBufferSize
+        );
 
         const { statusCode, chunkManager } = this.prepareChunk(msgType, params, messageLength);
         if (statusCode !== StatusCodes.Good) {
@@ -237,6 +254,7 @@ export class MessageChunker {
         // note: the growable buffer is usually larger than the message, so the length must
         // come from the cursor - stream.buffer.length would ship uninitialised tail bytes
         chunkManager.write(stream.buffer, messageLength);
+        this.#recycleEncodeBuffer(stream);
         chunkManager.end();
         return StatusCodes.Good;
     }
@@ -264,6 +282,7 @@ export class MessageChunker {
             return statusCode;
         }
         chunkManager.write(stream.buffer, messageLength);
+        this.#recycleEncodeBuffer(stream);
         await chunkManager.endAsync();
         return StatusCodes.Good;
     }

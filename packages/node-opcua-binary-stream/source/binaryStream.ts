@@ -196,11 +196,12 @@ export class BinaryStream {
      * real. Both passes walk the whole object graph, and measuring shows the sizing pass
      * costs about as much as the real one.
      *
-     * @param initialSize starting capacity; a good guess avoids reallocation entirely
+     * @param initialSize starting capacity, or a buffer to start in (it is replaced when the
+     *                    stream grows); a good guess avoids reallocation entirely
      * @param maxLength   hard ceiling - exceeding it throws BinaryStreamMaxSizeExceededError
      */
-    public static createGrowable(initialSize: number, maxLength: number): BinaryStream {
-        const stream = new BinaryStream(Math.max(1, initialSize));
+    public static createGrowable(initialSize: number | Buffer, maxLength: number): BinaryStream {
+        const stream = new BinaryStream(typeof initialSize === "number" ? Math.max(1, initialSize) : initialSize);
         stream.#maxLength = maxLength;
         return stream;
     }
