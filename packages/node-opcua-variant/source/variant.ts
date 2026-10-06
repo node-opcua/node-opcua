@@ -249,6 +249,20 @@ export class Variant extends BaseUAObject {
             this.dimensions = null;
             return;
         }
+        if (
+            options instanceof Variant &&
+            options.arrayType === VariantArrayType.Scalar &&
+            options.dataType !== DataType.ExtensionObject
+        ) {
+            // copying a scalar Variant (new DataValue({ value: variant }) does it on every
+            // sample of a monitored item): these are the fields constructHook and
+            // initialize_field would produce, since the value field ("Any") has no coercion
+            this.dataType = options.dataType;
+            this.arrayType = VariantArrayType.Scalar;
+            this.value = options.value;
+            this.dimensions = options.dimensions || null;
+            return;
+        }
         const options2 = constructHook(options || {});
 
         this.dataType = DataType.Null;
