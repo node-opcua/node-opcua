@@ -15,6 +15,7 @@ export default async function frontServerOptions(data, { front }) {
         serverCertificateManager,
         allowAnonymous: true,
         maxConnectionsPerEndpoint: data.maxConnectionsPerEndpoint,
+        allowAnonymousSubscriptionTransferOnUnsecuredChannel: data.allowAnonymousSubscriptionTransferOnUnsecuredChannel,
         serverCapabilities: { minSupportedSampleRate: 0, ...data.serverCapabilities }
     };
 }

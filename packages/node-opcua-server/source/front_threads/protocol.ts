@@ -11,6 +11,9 @@ import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stre
 import { type DataValue, decodeDataValue, encodeDataValue, encodedDataValue } from "node-opcua-data-value";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { MessageSecurityMode } from "node-opcua-types";
+import type { SubscriptionTransferState } from "../server_subscription.js";
+import type { ITransferSessionIdentity } from "../sessions_compatible_for_transfer.js";
+import type { DiagnosticsUpdate } from "./diagnostics_mirror.js";
 
 /** what the engine needs of a session to apply the permission rules of the store */
 export interface ContextDescriptor {
@@ -207,6 +210,8 @@ export interface FrontWorkerData {
     counters: SharedArrayBuffer;
     /** when the engine started: the ServerStatus.StartTime of every front */
     startTime: number;
+    /** the ApplicationUri of the fronts unless their options name one: the URI of namespace 1 */
+    applicationUri: string;
     /**
      * true: every front listens on the port of its options (SO_REUSEPORT); false, where the
      * platform has no SO_REUSEPORT: front k listens on that port + k
@@ -255,8 +260,18 @@ export interface ValueReply {
     version: number;
 }
 
+/** a SubscriptionTransferState with its OPC UA structures as their binary encoding */
+export interface EncodedTransferState extends Omit<SubscriptionTransferState, "sentNotificationMessages" | "monitoredItems"> {
+    sentNotificationMessages: Uint8Array[];
+    monitoredItems: (Omit<SubscriptionTransferState["monitoredItems"][number], "request"> & { request: Uint8Array })[];
+}
+
 export type EngineToFront =
     | { kind: "replies"; ids: number[]; payloads: unknown[] }
+    /** the sessions of another front, for the diagnostics of this one */
+    | { kind: "diagnostics"; front: number; update: DiagnosticsUpdate }
+    /** give up this subscription if it is here: another front's session takes it (TransferSubscriptions) */
+    | { kind: "exportSubscription"; requestId: number; subscriptionId: number; identity: ITransferSessionIdentity }
     /** values written since the last message, for the nodes this front watches, in the order of the writes */
     | { kind: "changes"; indexes: number[]; versions: number[]; values: Uint8Array }
     /** watched nodes that were deleted */
@@ -283,6 +298,7 @@ export type FrontRequest =
     | { kind: "translate"; browsePath: Uint8Array }
     | { kind: "describe"; context: ContextDescriptor; items: { nodeId: string; attributeId: number }[] }
     | { kind: "value"; context: ContextDescriptor; index: number; generation: number }
+    | { kind: "takeSubscription"; subscriptionId: number; identity: ITransferSessionIdentity }
     /** a Method call: the CallMethodRequest as its binary encoding; answered with the CallMethodResult's */
     | { kind: "call"; context: ContextDescriptor; request: Uint8Array }
     /**
@@ -302,6 +318,10 @@ export type FrontToEngine =
     | { kind: "watches"; operations: number[] }
     /** the last "changes" message was delivered: the engine may send the next one */
     | { kind: "changesDone" }
+    /** the sessions of this front whose diagnostics changed, once a second */
+    | { kind: "diagnostics"; update: DiagnosticsUpdate }
+    /** the answer to exportSubscription: the state, a refusal (a StatusCode value), or null when it is not here */
+    | { kind: "exportedSubscription"; requestId: number; result: EncodedTransferState | number | null }
     | { kind: "ready"; endpointUrl: string }
     | { kind: "failed"; message: string }
     | { kind: "stopped" };

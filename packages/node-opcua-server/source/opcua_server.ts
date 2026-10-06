@@ -1868,6 +1868,10 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 }
             });
 
+            // the items of a subscription the engine adopts from another thread are sampled as the server's own
+            this.engine.prepareMonitoredItemSampling = (context, monitoredItem) =>
+                prepareMonitoredItem(context, this.engine.nodeFinder, monitoredItem);
+
             this.objectFactory = new Factory(this.engine);
 
             const endpointDefinitions: OPCUAServerEndpointOptions[] = [

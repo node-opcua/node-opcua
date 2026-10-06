@@ -101,11 +101,19 @@ export function sessionsCompatibleForTransfer(
     options?: SessionsCompatibleForTransferOptions
 ): boolean {
     assert(sessionDest);
+    return identitiesCompatibleForTransfer(sourceIdentity, getTransferSessionIdentity(sessionDest), options);
+}
+
+/** the same check, on the identity of the destination Session: what another thread of the server is told of it */
+export function identitiesCompatibleForTransfer(
+    sourceIdentity: ITransferSessionIdentity | undefined,
+    dest: ITransferSessionIdentity,
+    options?: SessionsCompatibleForTransferOptions
+): boolean {
     // The identity of the owning Session must be known in order to enforce the ownership check.
     if (!sourceIdentity) {
         return false;
     }
-    const dest = getTransferSessionIdentity(sessionDest);
 
     // An identity token we cannot safely represent -> we cannot validate ownership -> fail closed.
     if (sourceIdentity.kind === "unsupported" || dest.kind === "unsupported") {

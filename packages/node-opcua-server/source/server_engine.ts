@@ -100,8 +100,13 @@ import { type IServerCounters, LocalServerCounters, ServerCounter } from "./serv
 import { ServerSidePublishEngine } from "./server_publish_engine.js";
 import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions.js";
 import { ServerSession } from "./server_session.js";
-import { Subscription } from "./server_subscription.js";
-import { getTransferSessionIdentity, sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer.js";
+import { Subscription, type SubscriptionTransferState } from "./server_subscription.js";
+import {
+    getTransferSessionIdentity,
+    type ITransferSessionIdentity,
+    identitiesCompatibleForTransfer,
+    sessionsCompatibleForTransfer
+} from "./sessions_compatible_for_transfer.js";
 
 const debugLog = make_debugLog("server_engine");
 const errorLog = make_errorLog("server_engine");
@@ -432,6 +437,18 @@ export interface ServerConfigurationOptions {
      */
     serverCapabilities?: string[] | StringArrayGetter; // default|"N/A"]
 }
+/**
+ * the subscriptions other threads of the same server hold (see FrontThreadEngine): where
+ * TransferSubscriptions looks for an id this engine does not have
+ */
+export interface IRemoteSubscriptions {
+    /**
+     * takes subscription `subscriptionId` from the thread that holds it, for a session with
+     * identity `dest`: its state, a StatusCode when that thread refuses, null when none has it
+     */
+    take(subscriptionId: number, dest: ITransferSessionIdentity): Promise<SubscriptionTransferState | StatusCode | null>;
+}
+
 export interface ServerEngineOptions {
     applicationUri: string | StringGetter;
     /** the counts the limits are checked against; this engine's own by default */
@@ -503,6 +520,13 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * as one from several threads, counts shared by all of them (set before initialize())
      */
     public counters: IServerCounters = new LocalServerCounters();
+    /** where TransferSubscriptions looks for the subscriptions this engine does not hold */
+    public remoteSubscriptions: IRemoteSubscriptions | null = null;
+    /**
+     * gives a monitored item its sampling function: what the server does for the items of the
+     * subscriptions it creates, and the engine for those it adopts from another thread
+     */
+    public prepareMonitoredItemSampling: ((context: ISessionContext, monitoredItem: MonitoredItem) => void) | null = null;
     // slots taken by reserveSession() / reserveSubscription() for the creation that follows
     #reservedSessions = 0;
     #reservedSubscriptions = 0;
@@ -2171,7 +2195,9 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         const subscription = this.findSubscription(subscriptionId);
         if (!subscription) {
-            return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
+            return this.remoteSubscriptions
+                ? this.#transferFromAnotherThread(session, subscriptionId)
+                : new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
         }
 
         // check that the destination session is operating on behalf of the same user as the session
@@ -2234,6 +2260,107 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         }
 
         return result;
+    }
+
+    /** a subscription another thread of this server holds: taken from there, rebuilt here */
+    async #transferFromAnotherThread(session: ServerSession, subscriptionId: number): Promise<TransferResult> {
+        const taken = await this.remoteSubscriptions?.take(subscriptionId, getTransferSessionIdentity(session));
+        if (!taken) {
+            return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
+        }
+        if (!("monitoredItems" in taken)) {
+            return new TransferResult({ statusCode: taken });
+        }
+        return this.adoptSubscription(session, taken);
+    }
+
+    /**
+     * gives up a subscription to another thread of this server (TransferSubscriptions there): the
+     * same identity check as a transfer here, the old session told Good_SubscriptionTransferred,
+     * then the subscription ends here. Null when this engine does not hold it.
+     */
+    public exportSubscription(
+        subscriptionId: number,
+        dest: ITransferSessionIdentity
+    ): SubscriptionTransferState | StatusCode | null {
+        const subscription = this.findSubscription(subscriptionId);
+        if (!subscription) {
+            return null;
+        }
+        const sourceIdentity = subscription.$session
+            ? getTransferSessionIdentity(subscription.$session)
+            : subscription.$transferSessionIdentity;
+        if (
+            !identitiesCompatibleForTransfer(sourceIdentity, dest, {
+                allowAnonymousTransferOnUnsecuredChannel: this.allowAnonymousSubscriptionTransferOnUnsecuredChannel
+            })
+        ) {
+            return StatusCodes.BadUserAccessDenied;
+        }
+        const state = subscription.exportTransferState();
+        // the old session is told, as it is when the subscription moves to a session of this thread
+        subscription.notifyTransfer();
+        const publishEngine = subscription.publishEngine as unknown as ServerSidePublishEngine | null;
+        publishEngine?.detach_subscription(subscription);
+        subscription.terminate();
+        return state;
+    }
+
+    /**
+     * a subscription another thread of this server gave up for `session` (see exportSubscription):
+     * rebuilt with its id, its items and their ids, and its sequence numbers. Its items record
+     * their current values, as they do when created: the first Publish carries them.
+     */
+    public async adoptSubscription(session: ServerSession, state: SubscriptionTransferState): Promise<TransferResult> {
+        const subscription = session.createSubscription(
+            {
+                requestedPublishingInterval: state.publishingInterval,
+                requestedLifetimeCount: state.lifeTimeCount,
+                requestedMaxKeepAliveCount: state.maxKeepAliveCount,
+                maxNotificationsPerPublish: state.maxNotificationsPerPublish,
+                publishingEnabled: state.publishingEnabled,
+                priority: state.priority
+            },
+            state.id
+        );
+        subscription.continueFrom(state.nextSequenceNumber, state.sentNotificationMessages);
+        const context = session.sessionContext;
+        subscription.on("monitoredItem", (monitoredItem: MonitoredItem) => {
+            this.prepareMonitoredItemSampling?.(context, monitoredItem);
+        });
+        const preparing = this.prepareMonitoredItems(
+            context,
+            state.monitoredItems.map((item) => item.request)
+        );
+        if (preparing) {
+            await preparing;
+        }
+        for (const item of state.monitoredItems) {
+            const { monitoredItem, createResult } = subscription.preCreateMonitoredItem(
+                this.nodeFinder,
+                item.timestampsToReturn,
+                item.request,
+                item.monitoredItemId
+            );
+            if (monitoredItem) {
+                subscription.postCreateMonitoredItem(monitoredItem, item.request, createResult);
+            } else {
+                warningLog(
+                    "adoptSubscription: monitored item",
+                    item.monitoredItemId,
+                    "not recreated:",
+                    createResult.statusCode.toString()
+                );
+            }
+        }
+        for (const item of state.monitoredItems) {
+            const monitoredItem = subscription.getMonitoredItem(item.monitoredItemId);
+            for (const linked of item.linkedItems) monitoredItem?.addLinkItem(linked);
+        }
+        return new TransferResult({
+            availableSequenceNumbers: subscription.getAvailableSequenceNumbers(),
+            statusCode: StatusCodes.Good
+        });
     }
 
     /**
@@ -2528,7 +2655,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * create a new subscription
      * @return {Subscription}
      */
-    public _createSubscriptionOnSession(session: ServerSession, request: CreateSubscriptionRequestLike): Subscription {
+    public _createSubscriptionOnSession(session: ServerSession, request: CreateSubscriptionRequestLike, id?: number): Subscription {
         assert(Object.hasOwn(request, "requestedPublishingInterval")); // Duration
         assert(Object.hasOwn(request, "requestedLifetimeCount")); // Counter
         assert(Object.hasOwn(request, "requestedMaxKeepAliveCount")); // Counter
@@ -2546,7 +2673,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         else this.counters.add(ServerCounter.Subscriptions, 1);
         const subscription = new Subscription({
             // unique across the threads when the counts are shared, for TransferSubscriptions
-            id: this.counters.shared ? this.counters.add(ServerCounter.SubscriptionId, 1) : _get_next_subscriptionId(),
+            id: id ?? (this.counters.shared ? this.counters.add(ServerCounter.SubscriptionId, 1) : _get_next_subscriptionId()),
             lifeTimeCount,
             maxKeepAliveCount,
             maxNotificationsPerPublish: request.maxNotificationsPerPublish,

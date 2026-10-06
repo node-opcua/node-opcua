@@ -338,6 +338,30 @@ interface IGlobalMonitoredItemCounter {
     release?(): void;
 }
 
+/**
+ * what a Subscription carries to another thread of the same server for TransferSubscriptions: its
+ * parameters, its monitored items as they were created and revised, its next sequence number and
+ * the NotificationMessages the client has not acknowledged yet
+ */
+export interface SubscriptionTransferState {
+    id: number;
+    publishingInterval: number;
+    lifeTimeCount: number;
+    maxKeepAliveCount: number;
+    maxNotificationsPerPublish: number;
+    publishingEnabled: boolean;
+    priority: number;
+    nextSequenceNumber: number;
+    sentNotificationMessages: NotificationMessage[];
+    monitoredItems: {
+        monitoredItemId: number;
+        timestampsToReturn: TimestampsToReturn;
+        request: MonitoredItemCreateRequest;
+        /** the items this one triggers */
+        linkedItems: number[];
+    }[];
+}
+
 export interface SubscriptionOptions {
     sessionId?: NodeId;
     /**
@@ -1083,7 +1107,9 @@ export class Subscription extends EventEmitter {
     public preCreateMonitoredItem(
         nodeFinder: INodeFinder,
         timestampsToReturn: TimestampsToReturn,
-        monitoredItemCreateRequest: MonitoredItemCreateRequest
+        monitoredItemCreateRequest: MonitoredItemCreateRequest,
+        /** the id the item keeps, when it comes from another thread of the server (TransferSubscriptions) */
+        monitoredItemId?: number
     ): InternalCreateMonitoredItemResult {
         assert(monitoredItemCreateRequest instanceof MonitoredItemCreateRequest);
 
@@ -1151,7 +1177,7 @@ export class Subscription extends EventEmitter {
             return handle_error(StatusCodes.BadTooManyMonitoredItems);
         }
 
-        const createResult = this._createMonitoredItemStep2(timestampsToReturn, monitoredItemCreateRequest, node);
+        const createResult = this._createMonitoredItemStep2(timestampsToReturn, monitoredItemCreateRequest, node, monitoredItemId);
 
         assert(createResult.statusCode.isGood());
 
@@ -1310,6 +1336,43 @@ export class Subscription extends EventEmitter {
      *  returns in an array the sequence numbers of the notifications that have been sent
      *  and that haven't been acknowledged yet.
      */
+    /** what another thread of the server needs to carry on this subscription (see continueFrom) */
+    public exportTransferState(): SubscriptionTransferState {
+        return {
+            id: this.id,
+            publishingInterval: this.publishingInterval,
+            lifeTimeCount: this.lifeTimeCount,
+            maxKeepAliveCount: this.maxKeepAliveCount,
+            maxNotificationsPerPublish: this.maxNotificationsPerPublish,
+            publishingEnabled: this.publishingEnabled,
+            priority: this.priority,
+            nextSequenceNumber: this._sequence_number_generator.future(),
+            sentNotificationMessages: [...this._sent_notification_messages],
+            monitoredItems: [...this.monitoredItems.values()].map((monitoredItem) => ({
+                monitoredItemId: monitoredItem.monitoredItemId,
+                timestampsToReturn: monitoredItem.timestampsToReturn,
+                linkedItems: [...monitoredItem.linkedItems],
+                request: new MonitoredItemCreateRequest({
+                    itemToMonitor: monitoredItem.itemToMonitor,
+                    monitoringMode: monitoredItem.monitoringMode,
+                    requestedParameters: {
+                        clientHandle: monitoredItem.clientHandle,
+                        samplingInterval: monitoredItem.samplingInterval,
+                        filter: monitoredItem.filter,
+                        queueSize: monitoredItem.queueSize,
+                        discardOldest: monitoredItem.discardOldest
+                    }
+                })
+            }))
+        };
+    }
+
+    /** a subscription carried over from another thread: its sequence numbers and the messages not acknowledged */
+    public continueFrom(nextSequenceNumber: number, sentNotificationMessages: NotificationMessage[]): void {
+        this._sequence_number_generator._set(nextSequenceNumber);
+        this._sent_notification_messages = [...sentNotificationMessages];
+    }
+
     public getAvailableSequenceNumbers(): number[] {
         const availableSequenceNumbers = _getSequenceNumbers(this._sent_notification_messages);
         return availableSequenceNumbers;
@@ -2089,7 +2152,8 @@ export class Subscription extends EventEmitter {
     private _createMonitoredItemStep2(
         timestampsToReturn: TimestampsToReturn,
         monitoredItemCreateRequest: MonitoredItemCreateRequest,
-        node: BaseNode
+        node: BaseNode,
+        givenMonitoredItemId?: number
     ): MonitoredItemCreateResult {
         // note : most of the parameter inconsistencies shall have been handled by the caller
         // any error here will raise an assert here
@@ -2102,7 +2166,7 @@ export class Subscription extends EventEmitter {
 
         this.monitoredItemIdCounter += 1;
 
-        const monitoredItemId = getNextMonitoredItemId();
+        const monitoredItemId = givenMonitoredItemId ?? getNextMonitoredItemId();
 
         const requestedParameters = monitoredItemCreateRequest.requestedParameters;
 

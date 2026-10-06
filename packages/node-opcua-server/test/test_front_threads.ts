@@ -2,15 +2,29 @@ import {
     ClientMonitoredItem,
     type ClientSession,
     type ClientSubscription,
+    type DeleteSubscriptionsRequestLike,
+    type DeleteSubscriptionsResponse,
+    MonitoringMode,
     type MonitoringParametersOptions,
     OPCUAClient,
     type ReadValueIdOptions,
-    TimestampsToReturn
+    type SetMonitoringModeRequestLike,
+    type SetMonitoringModeResponse,
+    TimestampsToReturn,
+    type TransferSubscriptionsRequestLike,
+    type TransferSubscriptionsResponse
 } from "node-opcua-client";
 import { AttributeIds, BrowseDirection, NodeClass, QualifiedName, ResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { resolveNodeId } from "node-opcua-nodeid";
-import { DataChangeFilter, DataChangeTrigger, DeadbandType } from "node-opcua-service-subscription";
+import {
+    DataChangeFilter,
+    DataChangeNotification,
+    DataChangeTrigger,
+    DeadbandType,
+    PublishRequest,
+    type PublishResponse
+} from "node-opcua-service-subscription";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { PermissionType, Range } from "node-opcua-types";
@@ -23,6 +37,8 @@ const port = 5826;
 const defaultFrontsPort = 5828;
 // the engine whose limits the fronts share (consecutive ports from there where they cannot share one)
 const limitsPort = 5829;
+// the engine whose fronts each listen on a port of their own: a client chooses its front
+const transferPort = 5833;
 
 async function until(predicate: () => boolean, what: string, timeout = 5000): Promise<void> {
     const end = Date.now() + timeout;
@@ -765,5 +781,111 @@ describe("FrontThreadEngine: the limits apply to the server as a whole", functio
         // past the limit a front makes room by closing a channel of its own that has no session (the
         // denial of service protection of the endpoint): the count never goes past the limit
         should(engine.counters.get(ServerCounter.Connections)).be.belowOrEqual(maxConnectionsPerEndpoint);
+    });
+});
+
+describe("FrontThreadEngine: TransferSubscriptions from a session of another front", function () {
+    this.timeout(120000);
+    let engine: FrontThreadEngine;
+    let ns: number;
+    const clients: OPCUAClient[] = [];
+
+    // the services a client uses on subscriptions it did not create itself, in their promise form
+    interface SubscriptionServices {
+        transferSubscriptions(options: TransferSubscriptionsRequestLike): Promise<TransferSubscriptionsResponse>;
+        setMonitoringMode(options: SetMonitoringModeRequestLike): Promise<SetMonitoringModeResponse>;
+        deleteSubscriptions(options: DeleteSubscriptionsRequestLike): Promise<DeleteSubscriptionsResponse>;
+    }
+    type RawSession = ClientSession & SubscriptionServices;
+
+    async function sessionOn(front: number): Promise<RawSession> {
+        const client = OPCUAClient.create({ endpointMustExist: false, connectionStrategy: { maxRetry: 0 } });
+        const url = new URL(engine.endpointUrls[front]);
+        await client.connect(`opc.tcp://localhost:${url.port}`);
+        clients.push(client);
+        return (await client.createSession()) as unknown as RawSession;
+    }
+
+    function publish(session: ClientSession): Promise<PublishResponse> {
+        return new Promise((resolve, reject) =>
+            (
+                session as unknown as { publish(r: PublishRequest, cb: (e: Error | null, r?: PublishResponse) => void): void }
+            ).publish(new PublishRequest({ subscriptionAcknowledgements: [] }), (err, response) =>
+                err || !response ? reject(err ?? new Error("no response")) : resolve(response)
+            )
+        );
+    }
+
+    before(async () => {
+        engine = await FrontThreadEngine.create();
+        ns = engine.registerNamespace("urn:test:front-threads-transfer");
+        const space = engine.addressSpace;
+        space.addVariable({
+            nodeId: `ns=${ns};s=Speed`,
+            browseName: "Speed",
+            organizedBy: space.findNode("ns=0;i=85") as never,
+            dataType: "Double",
+            value: { dataType: DataType.Double, value: 1 }
+        });
+        await engine.start({
+            fronts: 2,
+            sharePort: false,
+            serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
+            // the test sessions are anonymous, on an unsecured channel
+            serverModuleData: { port: transferPort, allowAnonymousSubscriptionTransferOnUnsecuredChannel: true }
+        });
+    });
+    after(async () => {
+        for (const client of clients) await client.disconnect();
+        await engine.shutdown();
+    });
+
+    it("moves a subscription and its items to a session of another front", async () => {
+        const sessionA = await sessionOn(0);
+        const sessionB = await sessionOn(1);
+        const subscription = await sessionA.createSubscription2({
+            requestedPublishingInterval: 50,
+            requestedMaxKeepAliveCount: 10,
+            requestedLifetimeCount: 100,
+            publishingEnabled: true
+        });
+        const { item, values } = await monitor(
+            subscription,
+            { nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value },
+            { samplingInterval: 0, queueSize: 10, discardOldest: true }
+        );
+        await until(() => values.length >= 1, "the first value on the first front");
+
+        const transferred = await sessionB.transferSubscriptions({
+            subscriptionIds: [subscription.subscriptionId],
+            sendInitialValues: true
+        });
+        should(transferred.results?.[0].statusCode).eql(StatusCodes.Good);
+
+        await write(sessionB, `ns=${ns};s=Speed`, new Variant({ dataType: DataType.Double, value: 77 }));
+        const seen: number[] = [];
+        for (let k = 0; k < 20 && !seen.includes(77); k++) {
+            const response = await publish(sessionB);
+            should(response.subscriptionId).eql(subscription.subscriptionId);
+            for (const data of response.notificationMessage.notificationData ?? []) {
+                if (data instanceof DataChangeNotification) {
+                    for (const item of data.monitoredItems ?? []) seen.push(item.value.value.value as number);
+                }
+            }
+        }
+        // the value written after the transfer reaches the new session
+        should(seen).containEql(77);
+        // the item kept its id: the client goes on addressing it
+        const mode = await sessionB.setMonitoringMode({
+            subscriptionId: subscription.subscriptionId,
+            monitoringMode: MonitoringMode.Sampling,
+            monitoredItemIds: [item.monitoredItemId as number]
+        });
+        should(mode.results?.[0]).eql(StatusCodes.Good);
+
+        const deleted = await sessionA.deleteSubscriptions({ subscriptionIds: [subscription.subscriptionId] });
+        should(deleted.results?.[0]).eql(StatusCodes.BadSubscriptionIdInvalid, "the first session has it no more");
+        await sessionB.close();
+        await sessionA.close();
     });
 });

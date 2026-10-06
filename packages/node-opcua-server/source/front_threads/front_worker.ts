@@ -10,6 +10,7 @@ import { OPCUAServer, type OPCUAServerOptions } from "../opcua_server.js";
 import { SharedServerCounters } from "../server_counters.js";
 import type { EngineToFront, FrontToEngine, FrontWorkerData } from "./protocol.js";
 import { EngineChannel, RemoteCompactBackend } from "./remote_backend.js";
+import { encodeExportResult, RemoteSubscriptions } from "./remote_subscriptions.js";
 
 type ServerOptionsFactory = (data: unknown, front: { front: number }) => OPCUAServerOptions | Promise<OPCUAServerOptions>;
 
@@ -56,6 +57,8 @@ async function main(): Promise<void> {
     const channel = new EngineChannel(port);
     const backend = new RemoteCompactBackend(data.descriptor, channel, data.compactNamespaces, data.anchors);
     (server.engine.addressSpaceAccessor as AddressSpaceAccessor).compactBackend = backend;
+    // TransferSubscriptions finds the subscriptions of the other fronts
+    server.engine.remoteSubscriptions = new RemoteSubscriptions(channel);
 
     port.on("message", (message: EngineToFront) => {
         if (channel.receive(message)) return;
@@ -75,6 +78,15 @@ async function main(): Promise<void> {
             case "disposed":
                 backend.receiveDisposed(message.indexes);
                 break;
+            case "exportSubscription": {
+                const exported: FrontToEngine = {
+                    kind: "exportedSubscription",
+                    requestId: message.requestId,
+                    result: encodeExportResult(server.engine.exportSubscription(message.subscriptionId, message.identity))
+                };
+                port.postMessage(exported);
+                break;
+            }
             case "stop":
                 server
                     .shutdown(0)
