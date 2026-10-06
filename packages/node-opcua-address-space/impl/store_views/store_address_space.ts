@@ -28,24 +28,33 @@ export interface StoreAddressSpaceOptions {
 class ViewCache {
     readonly #views = new Map<number, StoreNodeView>();
     readonly #capacity: number;
+    #tick = 0;
     constructor(capacity: number) {
         this.#capacity = Math.max(16, capacity);
     }
     get(index: number): StoreNodeView | undefined {
         const view = this.#views.get(index);
         if (view !== undefined) {
-            this.#views.delete(index);
-            this.#views.set(index, view);
+            // a hit only stamps the view: no reordering of the map on the hot path
+            view.lastUse = ++this.#tick;
         }
         return view;
     }
     set(index: number, view: StoreNodeView): void {
+        view.lastUse = ++this.#tick;
         this.#views.set(index, view);
         if (this.#views.size > this.#capacity) {
-            // the oldest entry; a view the application still holds keeps working, it only
-            // stops being the one handed out for that index
-            const oldest = this.#views.keys().next().value as number;
-            this.#views.delete(oldest);
+            this.#evict();
+        }
+    }
+    /** drop the least recently stamped quarter; a view the application holds keeps working */
+    #evict(): void {
+        const stamps: number[] = [];
+        for (const v of this.#views.values()) stamps.push(v.lastUse);
+        stamps.sort((a, b) => a - b);
+        const cutoff = stamps[Math.floor(stamps.length / 4)];
+        for (const [index, v] of this.#views) {
+            if (v.lastUse <= cutoff) this.#views.delete(index);
         }
     }
     delete(index: number): void {

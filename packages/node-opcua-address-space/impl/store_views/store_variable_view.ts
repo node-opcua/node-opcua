@@ -14,6 +14,10 @@ import type { StoreAddressSpace } from "./store_address_space.js";
 import { StoreNodeView, type VariableBinding } from "./store_node_view.js";
 
 export class StoreVariableView extends StoreNodeView {
+    // the DataValue built for the value's version: handed out again until the value moves
+    #dataValue: DataValue | undefined;
+    #dataValueVersion = -1;
+
     constructor(space: StoreAddressSpace, index: number) {
         super(space, index);
     }
@@ -52,13 +56,15 @@ export class StoreVariableView extends StoreNodeView {
         const binding = this.space.bindings.get(this.index);
         if (binding?.get) {
             const variant = binding.get();
-            const now = getCurrentClock();
             // the getter's value is also what the columns hold, so a sampler or another
-            // thread reading the columns sees it
-            this.#storeVariant(variant, StatusCodes.Good.value, now.timestamp.getTime(), now.timestamp.getTime());
-            return this.#dataValueFromColumns();
+            // thread reading the columns sees it; unchanged, it is not written again
+            if (!this.#sameAsStored(variant)) {
+                const now = getCurrentClock().timestamp.getTime();
+                this.#storeVariant(variant, StatusCodes.Good.value, now, now);
+            }
         }
-        return this.#dataValueFromColumns();
+        // a copy: the services stamp timestamps on what they are given, the cached one stays as built
+        return this.#dataValueFromColumns().clone();
     }
 
     /** the application sets the value, as today: the timestamps are now unless given */
@@ -110,7 +116,39 @@ export class StoreVariableView extends StoreNodeView {
         }
     }
 
+    /** true when the columns already hold this scalar value with a Good status */
+    #sameAsStored(variant: Variant): boolean {
+        const values = this.space.store.values;
+        const i = this.index;
+        const v = variant.value;
+        if (variant.arrayType !== VariantArrayType.Scalar || (typeof v !== "number" && typeof v !== "boolean")) {
+            return false;
+        }
+        const kind = values.kind(i);
+        if (kind !== (typeof v === "boolean" ? ValueKind.Boolean : ValueKind.Number)) {
+            return false;
+        }
+        return (
+            values.statusCode(i) === 0 &&
+            values.dataType(i) === variant.dataType &&
+            values.number(i) === (typeof v === "boolean" ? (v ? 1 : 0) : v)
+        );
+    }
+
     #dataValueFromColumns(): DataValue {
+        const values = this.space.store.values;
+        const i = this.index;
+        const version = values.version(i);
+        if (this.#dataValue !== undefined && this.#dataValueVersion === version) {
+            return this.#dataValue;
+        }
+        const dataValue = this.#buildDataValue();
+        this.#dataValue = dataValue;
+        this.#dataValueVersion = version;
+        return dataValue;
+    }
+
+    #buildDataValue(): DataValue {
         const values = this.space.store.values;
         const i = this.index;
         const kind = values.kind(i);
