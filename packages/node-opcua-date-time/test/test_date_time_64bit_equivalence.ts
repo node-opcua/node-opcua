@@ -65,7 +65,23 @@ describe("DTE - DateTime conversions give what 64-bit arithmetic gave", () => {
             new Date(Number.NaN)
         ];
         for (const date of dates) {
-            for (const picoseconds of [undefined, 0, 99999, 100000, 999999, -100000, -1, 1e20, Number.NaN]) {
+            for (const picoseconds of [
+                undefined,
+                0,
+                99999,
+                100000,
+                999999,
+                -100000,
+                -1,
+                1e20,
+                -1e20,
+                2 ** 50 * 100000 + 100000,
+                1e30,
+                -1e30,
+                Number.POSITIVE_INFINITY,
+                Number.NEGATIVE_INFINITY,
+                Number.NaN
+            ]) {
                 checkEncode(date, picoseconds);
             }
         }

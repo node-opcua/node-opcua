@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-date-time
  */
-import long from "long";
 import { assert } from "node-opcua-assert";
 import { hrtime } from "node-opcua-utils";
 
@@ -27,15 +26,36 @@ export const offsetFactor1601 = (function offset_factor_1601() {
 const offset = offsetFactor1601[0];
 const factor = offsetFactor1601[1];
 
-const offsetLong = long.fromNumber(offset, true);
-const factorLong = long.fromNumber(factor, true);
-
 const TWO_POW_32 = 0x100000000;
+const TWO_POW_63 = 2 ** 63;
 /** 2^32 = factor * TWO_POW_32_DIV_FACTOR + TWO_POW_32_MOD_FACTOR */
 const TWO_POW_32_DIV_FACTOR = Math.floor(TWO_POW_32 / factor);
 const TWO_POW_32_MOD_FACTOR = TWO_POW_32 % factor;
 /** the largest excess of 100 ns ticks for which the encoding below stays exact */
 const maxExcess = 2 ** 50;
+
+/**
+ * a number as a 64-bit signed integer, the way DateTime encoding has always treated one: NaN
+ * is 0, a value beyond the Int64 range is clamped to it, a fraction is truncated
+ */
+function toInt64(value: number): bigint {
+    if (Number.isNaN(value)) {
+        return BigInt(0);
+    }
+    if (value <= -TWO_POW_63) {
+        return -(BigInt(2) ** BigInt(63));
+    }
+    if (value + 1 >= TWO_POW_63) {
+        return BigInt(2) ** BigInt(63) - BigInt(1);
+    }
+    return BigInt(Math.trunc(value));
+}
+
+/** the high and low 32-bit words, both signed, of a value taken modulo 2^64 */
+function int64ToHighLow(value: bigint): number[] {
+    const wrapped = BigInt.asIntN(64, value);
+    return [Number(BigInt.asIntN(32, wrapped >> BigInt(32))), Number(BigInt.asIntN(32, wrapped))];
+}
 
 // Extracted from OpcUA Spec v1.02 : part 6:
 //
@@ -87,12 +107,11 @@ export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds?: num
 
     //           value_64 = (t + offset ) * factor + excess;
     // computed on plain numbers: every intermediate value below stays under 2^53, so the result
-    // is exact, and wraps modulo 2^64 like the 64-bit arithmetic it replaces. The few inputs that
-    // would not stay exact (an invalid Date, absurd picoseconds) keep the 64-bit path.
+    // is exact, and wraps modulo 2^64. The few inputs that would not stay exact (an invalid Date,
+    // absurd picoseconds) go through 64-bit integers instead.
     const ms = t + offset;
     if (!Number.isSafeInteger(ms) || !Number.isSafeInteger(excess100nanosecond) || Math.abs(excess100nanosecond) > maxExcess) {
-        const a = long.fromNumber(t, false).add(offsetLong).multiply(factorLong).add(excess100nanosecond);
-        return [a.getHighBits(), a.getLowBits()];
+        return int64ToHighLow((toInt64(t) + BigInt(offset)) * BigInt(factor) + toInt64(excess100nanosecond));
     }
     const msHigh = Math.floor(ms / TWO_POW_32);
     const lowSum = (ms - msHigh * TWO_POW_32) * factor + excess100nanosecond;
