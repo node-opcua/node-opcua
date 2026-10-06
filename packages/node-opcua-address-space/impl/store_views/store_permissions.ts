@@ -76,10 +76,15 @@ export class StorePermissions {
         this.#policy = policy;
     }
 
-    /** the defaults of a namespace, instead of what its NamespaceMetadata object says */
+    /**
+     * the defaults of a namespace as the application sets them: what its NamespaceMetadata
+     * object does not say (the standard nodesets declare the properties without a value), as
+     * Namespace.setDefaultAccessRestrictions() and setDefaultRolePermissions() do today
+     */
     public setNamespaceDefaults(namespaceIndex: number, defaults: NamespacePermissionDefaults | null): void {
         if (defaults) this.#explicit.set(namespaceIndex, defaults);
         else this.#explicit.delete(namespaceIndex);
+        this.invalidate();
     }
 
     /** forget the metadata nodes found so far: after nodes were added or removed */
@@ -166,17 +171,13 @@ export class StorePermissions {
     }
 
     public namespaceDefaults(namespaceIndex: number): NamespacePermissionDefaults {
-        const explicit = this.#explicit.get(namespaceIndex);
-        if (explicit) {
-            return explicit;
-        }
         let metadata = this.#metadata.get(namespaceIndex);
         if (metadata === undefined) {
             metadata = this.#findMetadata(namespaceIndex);
             this.#metadata.set(namespaceIndex, metadata);
         }
         if (metadata === null) {
-            return NO_DEFAULTS;
+            return this.#explicit.get(namespaceIndex) ?? NO_DEFAULTS;
         }
         const values = this.#space.store.values;
         const v = metadata.versions;
@@ -185,7 +186,7 @@ export class StorePermissions {
             v[1] !== values.version(metadata.rolePermissions) ||
             v[2] !== values.version(metadata.userRolePermissions)
         ) {
-            metadata.defaults = this.#readMetadata(metadata);
+            metadata.defaults = this.#readMetadata(metadata, namespaceIndex);
         }
         return metadata.defaults;
     }
@@ -210,11 +211,13 @@ export class StorePermissions {
             versions: [0, 0, 0],
             defaults: NO_DEFAULTS
         };
-        metadata.defaults = this.#readMetadata(metadata);
+        metadata.defaults = this.#readMetadata(metadata, namespaceIndex);
         return metadata;
     }
 
-    #readMetadata(metadata: NamespaceMetadata): NamespacePermissionDefaults {
+    /** the metadata values, each field falling back on the application's setting when unset */
+    #readMetadata(metadata: NamespaceMetadata, namespaceIndex: number): NamespacePermissionDefaults {
+        const explicit = this.#explicit.get(namespaceIndex) ?? NO_DEFAULTS;
         const values = this.#space.store.values;
         const version = (i: number) => (i < 0 ? 0 : values.version(i));
         metadata.versions = [
@@ -222,7 +225,7 @@ export class StorePermissions {
             version(metadata.rolePermissions),
             version(metadata.userRolePermissions)
         ];
-        let accessRestrictions = AccessRestrictionsFlag.None;
+        let accessRestrictions = explicit.accessRestrictions;
         if (
             metadata.restrictions >= 0 &&
             values.kind(metadata.restrictions) === ValueKind.Number &&
@@ -232,7 +235,9 @@ export class StorePermissions {
         }
         // the user-specific policy wins when it carries a value, else the namespace policy
         const rolePermissions =
-            rolePermissionEntries(values, metadata.userRolePermissions) ?? rolePermissionEntries(values, metadata.rolePermissions);
+            rolePermissionEntries(values, metadata.userRolePermissions) ??
+            rolePermissionEntries(values, metadata.rolePermissions) ??
+            explicit.rolePermissions;
         return { accessRestrictions, rolePermissions };
     }
 }
