@@ -3,7 +3,8 @@ import assert from "node-opcua-assert";
 import { DataType } from "node-opcua-basic-types";
 import { NodeClass } from "node-opcua-data-model";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
-import type { ExtensionObject } from "node-opcua-extension-object";
+import { ExtensionObject } from "node-opcua-extension-object";
+import { NodeId } from "node-opcua-nodeid";
 import type { StructureField } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import type { TranslationTable } from "../../api/xml_writer.js";
@@ -11,6 +12,7 @@ import type { BaseNodeImpl } from "../base_node_impl.js";
 import type { NamespacePrivate } from "../namespace_private.js";
 import { ReferenceImpl } from "../reference_impl.js";
 import type { UAVariableImpl } from "../ua_variable_impl.js";
+import type { UAVariableTypeImpl } from "../ua_variable_type_impl.js";
 
 const warningLog = make_warningLog("construct_namespace_dependency");
 const _debugLog = make_debugLog("construct_namespace_dependency");
@@ -212,11 +214,31 @@ export function _getCompleteRequiredModelsFromValuesAndReferences(
         }
     };
 
+    // the exporter translates every NodeId a value holds (an Argument's DataType, a NodeId field of
+    // a structure, a NodeId variable), so each of their namespaces is a dependency whatever its priority
+    const exploreValue = (value: unknown): void => {
+        if (value === null || value === undefined) return;
+        if (value instanceof NodeId) {
+            consider(value.namespace);
+        } else if (value instanceof Variant) {
+            exploreValue(value.value);
+        } else if (Array.isArray(value)) {
+            for (const element of value) exploreValue(element);
+        } else if (value instanceof ExtensionObject) {
+            for (const fieldValue of Object.values(value)) exploreValue(fieldValue);
+        }
+    };
+
     const addressSpace = namespace.addressSpace;
     const nonHierarchicalReferencesType = addressSpace.findReferenceType("NonHierarchicalReferences");
 
     //const maxIndex = Math.max(...requiredNamespaceIndexes);
     for (const node of namespace_.nodeIterator()) {
+        if (node.nodeClass === NodeClass.Variable) {
+            exploreValue((node as UAVariableImpl).$dataValue?.value);
+        } else if (node.nodeClass === NodeClass.VariableType) {
+            exploreValue((node as UAVariableTypeImpl).value);
+        }
         const references = (<BaseNodeImpl>node).allReferences();
         for (const reference of references) {
             // check referenceId
