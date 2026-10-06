@@ -56,6 +56,8 @@ export class StoreVariableView extends StoreNodeView {
 
     public bindVariable(binding: VariableBinding): void {
         this.space.bindings.set(this.index, binding);
+        // a reader in another thread cannot call the getter: it asks the owner
+        this.space.store.nodes.setBound(this.index, !!(binding.get || binding.timestampedGet || binding.refreshFunc));
     }
 
     public override readAttribute(

@@ -15,8 +15,9 @@
  */
 import { NodeClass } from "node-opcua-data-model";
 import { type NodeId, NodeIdType } from "node-opcua-nodeid";
-import type { SharedStoreDescriptor } from "./compact_store.js";
+import { NAMESPACE_DEFAULT_RESTRICTIONS, NAMESPACE_DEFAULT_ROLE_PERMISSIONS, type SharedStoreDescriptor } from "./compact_store.js";
 import { NO_NODE, NodeIdIndex } from "./node_id_index.js";
+import { BOUND, INHERITED_ACCESS_RESTRICTIONS, OWN_ROLE_PERMISSIONS } from "./node_store.js";
 import { ValueKind } from "./value_store.js";
 
 const FREE = 0;
@@ -57,6 +58,9 @@ export class SharedStoreReader {
     readonly #accessLevel: Uint8Array;
     readonly #userAccessLevel: Uint8Array;
     readonly #flags: Uint8Array;
+    readonly #namespace: Uint16Array;
+    readonly #accessRestrictions: Uint8Array;
+    readonly #namespacePolicy: Uint8Array;
     // the NodeId index
     readonly #ns: Uint16Array;
     readonly #kind: Uint8Array;
@@ -88,6 +92,9 @@ export class SharedStoreReader {
         this.#accessLevel = new Uint8Array(n.accessLevel);
         this.#userAccessLevel = new Uint8Array(n.userAccessLevel);
         this.#flags = new Uint8Array(n.flags);
+        this.#namespace = new Uint16Array(n.namespace);
+        this.#accessRestrictions = new Uint8Array(n.accessRestrictions);
+        this.#namespacePolicy = new Uint8Array(descriptor.namespacePolicy);
         this.#ns = new Uint16Array(n.index.ns);
         this.#kind = new Uint8Array(n.index.kind);
         this.#word = new Uint32Array(n.index.word);
@@ -130,6 +137,34 @@ export class SharedStoreReader {
             default:
                 return NO_NODE;
         }
+    }
+
+    /**
+     * true when no permission rule applies to node `i` beyond its access levels: no access
+     * restrictions of its own or of its namespace, no role permissions of its own or of its
+     * namespace, no getter. Such a value may be served to any session in place; the others
+     * are the owner's to answer, with the session's roles and channel.
+     */
+    public isOpen(i: number): boolean {
+        const flags = this.#flags[i];
+        if ((flags & (OWN_ROLE_PERMISSIONS | BOUND | DELETED)) !== 0) return false;
+        const policy = this.#namespacePolicy[this.#namespace[i]];
+        if ((policy & NAMESPACE_DEFAULT_ROLE_PERMISSIONS) !== 0) return false;
+        const own = this.#accessRestrictions[i];
+        if (own === INHERITED_ACCESS_RESTRICTIONS) return (policy & NAMESPACE_DEFAULT_RESTRICTIONS) === 0;
+        return own === 0;
+    }
+
+    /**
+     * true when a Read of the Value of node `i` would be Good and may be answered here, for any
+     * session: a readable Variable holding a scalar, under no permission rule (see isOpen)
+     */
+    public canServe(i: number): boolean {
+        if (i === NO_NODE || this.#nodeClass[i] !== NodeClass.Variable) return false;
+        if ((this.#accessLevel[i] & CURRENT_READ) === 0 || (this.#userAccessLevel[i] & CURRENT_READ) === 0) return false;
+        const kind = this.#valueKind[i];
+        if (kind !== ValueKind.Number && kind !== ValueKind.Boolean) return false;
+        return this.isOpen(i);
     }
 
     /** the Value of node `i` into `out`, under the node's seqlock */

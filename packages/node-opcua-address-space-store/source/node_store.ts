@@ -57,7 +57,10 @@ export interface RolePermissionEntry {
 }
 
 /** the accessRestrictions column value for a node that declares none */
-const INHERITED_ACCESS_RESTRICTIONS = 0xff;
+export const INHERITED_ACCESS_RESTRICTIONS = 0xff;
+/** flag bits a reader in another thread looks at */
+export const OWN_ROLE_PERMISSIONS = 32;
+export const BOUND = 64;
 
 export class NodeStore {
     public readonly strings: StringArena;
@@ -83,7 +86,9 @@ export class NodeStore {
     #userAccessLevel: Uint8Array;
     #eventNotifier: Uint8Array;
     #minimumSamplingInterval: Float32Array;
-    #flags: Uint8Array; // bit 0 historizing, bit 1 isAbstract, bit 2 deleted, bit 3 symmetric, bit 4 containsNoLoops
+    // bit 0 historizing, bit 1 isAbstract, bit 2 deleted, bit 3 symmetric, bit 4 containsNoLoops,
+    // bit 5 has its own RolePermissions, bit 6 bound to a getter (a reader in another thread asks the owner)
+    #flags: Uint8Array;
     #inverseName: Int32Array; // arena id or NO_STRING (reference types)
     #accessRestrictions: Uint8Array; // flags, or INHERITED_ACCESS_RESTRICTIONS
     // how many nodes have occupied each index: a view remembers the one it was built for
@@ -128,6 +133,8 @@ export class NodeStore {
     public exportShared(): SharedNodeBuffers {
         return {
             nodeClass: bufferOf(this.#nodeClass),
+            namespace: bufferOf(this.#namespace),
+            accessRestrictions: bufferOf(this.#accessRestrictions),
             accessLevel: bufferOf(this.#accessLevel),
             userAccessLevel: bufferOf(this.#userAccessLevel),
             flags: bufferOf(this.#flags),
@@ -187,6 +194,7 @@ export class NodeStore {
         this.#accessRestrictions[i] = record.accessRestrictions ?? INHERITED_ACCESS_RESTRICTIONS; // check-proto-pollution: ok - typed array, node index
         if (record.rolePermissions) {
             this.#rolePermissions.set(i, record.rolePermissions);
+            this.#flags[i] |= OWN_ROLE_PERMISSIONS;
         } else {
             this.#rolePermissions.delete(i);
         }
@@ -321,8 +329,21 @@ export class NodeStore {
         return this.#rolePermissions.get(i) ?? null;
     }
     public setRolePermissions(i: number, entries: readonly RolePermissionEntry[] | null): void {
-        if (entries) this.#rolePermissions.set(i, entries);
-        else this.#rolePermissions.delete(i);
+        if (entries) {
+            this.#rolePermissions.set(i, entries);
+            this.#flags[i] |= OWN_ROLE_PERMISSIONS;
+        } else {
+            this.#rolePermissions.delete(i);
+            this.#flags[i] &= ~OWN_ROLE_PERMISSIONS;
+        }
+    }
+    /** a Variable bound to a getter or setter: its value is the owner's to answer */
+    public setBound(i: number, bound: boolean): void {
+        if (bound) this.#flags[i] |= BOUND;
+        else this.#flags[i] &= ~BOUND;
+    }
+    public isBound(i: number): boolean {
+        return (this.#flags[i] & BOUND) !== 0;
     }
 
     /** after a bulk load: drop the growth slack of every column */
@@ -386,6 +407,8 @@ export class NodeStore {
 /** what a reader in another thread needs of the nodes */
 export interface SharedNodeBuffers {
     nodeClass: SharedArrayBuffer;
+    namespace: SharedArrayBuffer;
+    accessRestrictions: SharedArrayBuffer;
     accessLevel: SharedArrayBuffer;
     userAccessLevel: SharedArrayBuffer;
     flags: SharedArrayBuffer;
