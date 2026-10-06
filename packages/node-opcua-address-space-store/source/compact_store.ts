@@ -35,6 +35,7 @@ export class CompactStore {
         const expected = options.expectedNodes ?? 1024;
         this.nodes = new NodeStore(expected);
         this.references = new ReferenceTable(expected * 3);
+        this.references.setTargetNameKey((target) => this.nodes.browseNameId(target));
         this.values = new ValueStore(expected);
     }
 
@@ -85,6 +86,33 @@ export class CompactStore {
             return;
         }
         this.references.add(source, typeOrdinal, forward, targetIndex);
+    }
+
+    /**
+     * a reference between two nodes that both exist, both ends at once; false when it is
+     * there already. For the running address space, where a dangling end is an error.
+     */
+    public link(source: number, referenceType: NodeId, forward: boolean, target: number): boolean {
+        const typeOrdinal = this.referenceTypeOrdinal(referenceType);
+        if (this.references.find(source, typeOrdinal, forward, target) !== -1) {
+            return false;
+        }
+        this.references.add(source, typeOrdinal, forward, target);
+        this.references.add(target, typeOrdinal, !forward, source);
+        return true;
+    }
+
+    /** the reference gone from both ends; false when there was none */
+    public unlink(source: number, referenceType: NodeId, forward: boolean, target: number): boolean {
+        const ordinal = this.#ordinalByReferenceType.get(packedKey(referenceType));
+        return ordinal === undefined ? false : this.references.removeBoth(source, ordinal, forward, target);
+    }
+
+    /** the node gone: its NodeId forgotten, its references removed from both ends, its value cleared */
+    public deleteNode(i: number): void {
+        this.references.removeAllOf(i);
+        this.values.clear(i);
+        this.nodes.delete(i);
     }
 
     /** the references whose target was missing when they were declared */
@@ -161,10 +189,14 @@ export class CompactStore {
     }
 }
 
-/** a Map key for the few NodeIds the store keeps in maps (reference types): not for nodes */
+/**
+ * a Map key for the few NodeIds the store keeps in maps (reference types): not for nodes. A
+ * small integer where it fits (the namespace above 24 bits of identifier), so the map hashes
+ * it as one; a string otherwise.
+ */
 export function packedKey(nodeId: NodeId): number | string {
-    if (nodeId.identifierType === NodeIdType.NUMERIC && nodeId.namespace < 0x10000) {
-        return nodeId.namespace * 0x100000000 + (nodeId.value as number);
+    if (nodeId.identifierType === NodeIdType.NUMERIC && nodeId.namespace < 64 && (nodeId.value as number) < 0x1000000) {
+        return nodeId.namespace * 0x1000000 + (nodeId.value as number);
     }
     return nodeId.toString();
 }
