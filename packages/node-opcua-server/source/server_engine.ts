@@ -96,6 +96,7 @@ import {
     type ServerCapabilitiesOptions,
     type ServerOperationLimits
 } from "./server_capabilities.js";
+import { type IServerCounters, LocalServerCounters, ServerCounter } from "./server_counters.js";
 import { ServerSidePublishEngine } from "./server_publish_engine.js";
 import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions.js";
 import { ServerSession } from "./server_session.js";
@@ -310,6 +311,24 @@ let next_subscriptionId = Math.ceil(Math.random() * 1000000);
 export function setNextSubscriptionId(n: number) {
     next_subscriptionId = Math.max(n, 1);
 }
+/** the ServerDiagnosticsSummary fields the server counters hold */
+const COUNTED_SUMMARY_FIELDS: readonly [keyof ServerDiagnosticsSummaryDataType, ServerCounter][] = [
+    ["currentSessionCount", ServerCounter.Sessions],
+    ["cumulatedSessionCount", ServerCounter.CumulatedSessions],
+    ["securityRejectedSessionCount", ServerCounter.SecurityRejectedSessions],
+    ["rejectedSessionCount", ServerCounter.RejectedSessions],
+    ["sessionTimeoutCount", ServerCounter.SessionTimeouts],
+    ["sessionAbortCount", ServerCounter.SessionAborts],
+    ["cumulatedSubscriptionCount", ServerCounter.CumulatedSubscriptions],
+    ["securityRejectedRequestsCount", ServerCounter.SecurityRejectedRequests],
+    ["rejectedRequestsCount", ServerCounter.RejectedRequests]
+];
+const SUMMARY_FIELD_OF = new Map<ServerCounter, keyof ServerDiagnosticsSummaryDataType>(
+    COUNTED_SUMMARY_FIELDS.map(([field, counter]) => [counter, field])
+);
+// how often a server sharing its counts looks for the changes the other threads made
+const SHARED_COUNTS_WATCH_INTERVAL = 500;
+
 function _get_next_subscriptionId() {
     /* c8 ignore next */
     doDebug && debugLog(" next_subscriptionId = ", next_subscriptionId);
@@ -415,6 +434,8 @@ export interface ServerConfigurationOptions {
 }
 export interface ServerEngineOptions {
     applicationUri: string | StringGetter;
+    /** the counts the limits are checked against; this engine's own by default */
+    counters?: IServerCounters;
 
     buildInfo?: BuildInfoOptions;
     isAuditing?: boolean;
@@ -477,11 +498,29 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     private _applicationUri: string;
     private _expectedShutdownTime!: Date;
     private _serverStatus: ServerStatusDataType;
-    private _globalCounter: { totalMonitoredItemCount: number } = { totalMonitoredItemCount: 0 };
+    /**
+     * what the limits and ServerDiagnosticsSummary count: plain numbers, or, for servers answering
+     * as one from several threads, counts shared by all of them (set before initialize())
+     */
+    public counters: IServerCounters = new LocalServerCounters();
+    // slots taken by reserveSession() / reserveSubscription() for the creation that follows
+    #reservedSessions = 0;
+    #reservedSubscriptions = 0;
+    private _globalCounter = {
+        get: () => this.counters.get(ServerCounter.MonitoredItems),
+        tryAcquire: (limit: number) => this.counters.tryAcquire(ServerCounter.MonitoredItems, limit),
+        release: () => {
+            this.counters.add(ServerCounter.MonitoredItems, -1);
+        },
+        get totalMonitoredItemCount(): number {
+            return this.get();
+        }
+    };
     private _serverArrayProvider?: () => string[];
 
     constructor(options?: ServerEngineOptions) {
         super();
+        if (options?.counters) this.counters = options.counters;
 
         options = options || ({ applicationUri: "" } as ServerEngineOptions);
         options.buildInfo = options.buildInfo || {};
@@ -553,8 +592,24 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         //      and sessionDiagnostics.currentSubscriptionsCount ( with an s)
         assert(Object.hasOwn(this.serverDiagnosticsSummary, "currentSubscriptionCount"));
 
+        for (const [field, counter] of COUNTED_SUMMARY_FIELDS) {
+            Object.defineProperty(this.serverDiagnosticsSummary, field, {
+                get: () => this.counters.get(counter),
+                // an assignment through the bound object is what tells its child variable: a count
+                // shared with other threads only changes by atomic adds (see #count)
+                set: (value: number) => {
+                    if (!this.counters.shared) this.counters.add(counter, value - this.counters.get(counter));
+                },
+                enumerable: true,
+                configurable: true
+            });
+        }
         Object.defineProperty(this.serverDiagnosticsSummary, "currentSubscriptionCount", {
             get: () => {
+                if (this.counters.shared) {
+                    // the subscriptions of every server sharing the counts
+                    return this.counters.get(ServerCounter.Subscriptions);
+                }
                 // currentSubscriptionCount returns the total number of subscriptions
                 // that are currently active on all sessions
                 let counter = 0;
@@ -565,6 +620,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 counter += this._orphanPublishEngine ? this._orphanPublishEngine.subscriptions.length : 0;
                 return counter;
             },
+            // computed: an assignment only tells the child variable
+            set: () => undefined,
             configurable: true
         });
 
@@ -595,6 +652,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     }
 
     public dispose(): void {
+        this.#stopWatchingSharedCounts();
         this.addressSpace = null;
 
         assert(Object.keys(this._sessions).length === 0, "ServerEngine#_sessions not empty");
@@ -642,6 +700,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     /**
      */
     public async shutdown(): Promise<void> {
+        this.#stopWatchingSharedCounts();
         /* c8 ignore next */
         doDebug && debugLog("ServerEngine#shutdown");
 
@@ -731,19 +790,19 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     public incrementSessionTimeoutCount(): void {
         if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
             // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
-            this.serverDiagnosticsSummary.sessionTimeoutCount += 1;
+            this.#count(ServerCounter.SessionTimeouts, 1);
         }
     }
     public incrementSessionAbortCount(): void {
         if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
             // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
-            this.serverDiagnosticsSummary.sessionAbortCount += 1;
+            this.#count(ServerCounter.SessionAborts, 1);
         }
     }
     public incrementRejectedRequestsCount(): void {
         if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
             // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
-            this.serverDiagnosticsSummary.rejectedRequestsCount += 1;
+            this.#count(ServerCounter.RejectedRequests, 1);
         }
     }
 
@@ -753,7 +812,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     public incrementRejectedSessionCount(): void {
         if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
             // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
-            this.serverDiagnosticsSummary.rejectedSessionCount += 1;
+            this.#count(ServerCounter.RejectedSessions, 1);
         }
         this.incrementRejectedRequestsCount();
     }
@@ -761,7 +820,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     public incrementSecurityRejectedRequestsCount(): void {
         if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
             // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
-            this.serverDiagnosticsSummary.securityRejectedRequestsCount += 1;
+            this.#count(ServerCounter.SecurityRejectedRequests, 1);
         }
         this.incrementRejectedRequestsCount();
     }
@@ -772,9 +831,73 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     public incrementSecurityRejectedSessionCount(): void {
         if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
             // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
-            this.serverDiagnosticsSummary.securityRejectedSessionCount += 1;
+            this.#count(ServerCounter.SecurityRejectedSessions, 1);
         }
         this.incrementSecurityRejectedRequestsCount();
+    }
+
+    /**
+     * takes a slot of maxSessions for the createSession() that follows, at once: false when the
+     * server (every thread of it, when the counts are shared) has no session left to give
+     */
+    public reserveSession(): boolean {
+        if (!this.counters.tryAcquire(ServerCounter.Sessions, this.serverCapabilities.maxSessions)) {
+            return false;
+        }
+        this.#reservedSessions++;
+        return true;
+    }
+
+    /** takes a slot of maxSubscriptions for the subscription created next on a session */
+    public reserveSubscription(): boolean {
+        if (!this.counters.tryAcquire(ServerCounter.Subscriptions, this.serverCapabilities.maxSubscriptions)) {
+            return false;
+        }
+        this.#reservedSubscriptions++;
+        return true;
+    }
+
+    /** adds to a count, and tells the child variable of ServerDiagnosticsSummary that holds it */
+    #count(counter: ServerCounter, delta: number): void {
+        this.counters.add(counter, delta);
+        this.#touch(counter);
+    }
+
+    #touch(counter: ServerCounter): void {
+        const field = SUMMARY_FIELD_OF.get(counter);
+        if (field && this.serverDiagnosticsSummary) {
+            // through the bound object: its setter adds nothing, the binding touches the child variable
+            (this.serverDiagnosticsSummary as unknown as Record<string, number>)[field] = this.counters.get(counter); // check-proto-pollution: ok - field name from a fixed table
+        }
+    }
+
+    #sharedCountsWatch: NodeJS.Timeout | null = null;
+
+    /** the counts other threads changed: their child variables told, as this server's own changes are */
+    #watchSharedCounts(): void {
+        if (!this.counters.shared || this.#sharedCountsWatch) return;
+        const seen = new Map<ServerCounter, number>();
+        let subscriptions = -1;
+        this.#sharedCountsWatch = setInterval(() => {
+            for (const [, counter] of COUNTED_SUMMARY_FIELDS) {
+                const value = this.counters.get(counter);
+                if (seen.get(counter) !== value) {
+                    seen.set(counter, value);
+                    this.#touch(counter);
+                }
+            }
+            const current = this.counters.get(ServerCounter.Subscriptions);
+            if (current !== subscriptions && this.serverDiagnosticsSummary) {
+                subscriptions = current;
+                this.serverDiagnosticsSummary.currentSubscriptionCount = current;
+            }
+        }, SHARED_COUNTS_WATCH_INTERVAL);
+        this.#sharedCountsWatch.unref();
+    }
+
+    #stopWatchingSharedCounts(): void {
+        if (this.#sharedCountsWatch) clearInterval(this.#sharedCountsWatch);
+        this.#sharedCountsWatch = null;
     }
 
     public setShutdownTime(date: Date): void {
@@ -1204,6 +1327,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                         if (serverDiagnosticsSummaryNode) {
                             serverDiagnosticsSummaryNode.bindExtensionObject(this.serverDiagnosticsSummary);
                             this.serverDiagnosticsSummary = serverDiagnosticsSummaryNode.$extensionObject;
+                            this.#watchSharedCounts();
                             makeNotReadableIfEnabledFlagIsFalse(serverDiagnosticsSummaryNode);
                         }
                     };
@@ -1829,7 +1953,11 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         // writes through `this.addressSpace?.rootFolder?...setValueFromSource(...)`, so
         // once the address space is disposed the write silently does nothing and the
         // state never reaches Shutdown. Guarding on it let the crash straight through.
+        // a slot taken by reserveSession() is this session's
+        const reserved = this.#reservedSessions > 0;
+        if (reserved) this.#reservedSessions--;
         if (this._internalState === "shutdown" || this._internalState === "disposed") {
+            if (reserved) this.counters.add(ServerCounter.Sessions, -1);
             const err = new Error("createSession: the server is shutting down") as Error & {
                 statusCode?: StatusCode;
             };
@@ -1840,8 +1968,9 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         options.server = options.server || {};
         /* c8 ignore next */
         doDebug && debugLog("createSession : increasing serverDiagnosticsSummary cumulatedSessionCount/currentSessionCount ");
-        this.serverDiagnosticsSummary.cumulatedSessionCount += 1;
-        this.serverDiagnosticsSummary.currentSessionCount += 1;
+        this.#count(ServerCounter.CumulatedSessions, 1);
+        if (!reserved) this.counters.add(ServerCounter.Sessions, 1);
+        this.#touch(ServerCounter.Sessions);
 
         this.clientDescription = options.clientDescription || new ApplicationDescription({});
 
@@ -1870,7 +1999,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         //        in its SessionDiagnosticsArray Variable
 
         session.on("new_subscription", (_subscription: Subscription) => {
-            this.serverDiagnosticsSummary.cumulatedSubscriptionCount += 1;
+            this.#count(ServerCounter.CumulatedSubscriptions, 1);
             // add the subscription diagnostics in our subscriptions diagnostics array
             // note currentSubscriptionCount is handled directly with a special getter
         });
@@ -1973,7 +2102,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         // c8 ignore next
         doDebug && debugLog(" engine.serverDiagnosticsSummary.currentSessionCount -= 1;");
-        this.serverDiagnosticsSummary.currentSessionCount -= 1;
+        this.#count(ServerCounter.Sessions, -1);
 
         // xx //TODO make sure _closedSessions gets cleaned at some point
         // xx self._closedSessions[key] = session;
@@ -2412,8 +2541,12 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         const maxKeepAliveCount = request.requestedMaxKeepAliveCount || 0;
         const lifeTimeCount = request.requestedLifetimeCount || 0;
 
+        // a slot taken by reserveSubscription() is this subscription's
+        if (this.#reservedSubscriptions > 0) this.#reservedSubscriptions--;
+        else this.counters.add(ServerCounter.Subscriptions, 1);
         const subscription = new Subscription({
-            id: _get_next_subscriptionId(),
+            // unique across the threads when the counts are shared, for TransferSubscriptions
+            id: this.counters.shared ? this.counters.add(ServerCounter.SubscriptionId, 1) : _get_next_subscriptionId(),
             lifeTimeCount,
             maxKeepAliveCount,
             maxNotificationsPerPublish: request.maxNotificationsPerPublish,
@@ -2435,6 +2568,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         const engine = this;
         subscription.once("terminated", function (this: Subscription) {
+            engine.counters.add(ServerCounter.Subscriptions, -1);
             engine._unexposeSubscriptionDiagnostics(this);
         });
 

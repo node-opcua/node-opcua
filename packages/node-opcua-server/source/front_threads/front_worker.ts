@@ -7,6 +7,7 @@
 import { parentPort, workerData } from "node:worker_threads";
 import type { AddressSpaceAccessor } from "../addressSpace_accessor.js";
 import { OPCUAServer, type OPCUAServerOptions } from "../opcua_server.js";
+import { SharedServerCounters } from "../server_counters.js";
 import type { EngineToFront, FrontToEngine, FrontWorkerData } from "./protocol.js";
 import { EngineChannel, RemoteCompactBackend } from "./remote_backend.js";
 
@@ -29,9 +30,13 @@ async function main(): Promise<void> {
         ...(data.sharedPort ? { reusePort: true } : { port: (options.port ?? 26543) + data.front }),
         // the namespace table of every front starts as the engine's: same nodesets, no own namespace
         nodeset_filename: data.nodesets,
-        skipOwnNamespace: true
+        skipOwnNamespace: true,
+        // the limits and ServerDiagnosticsSummary count every front: one server to the clients
+        counters: new SharedServerCounters(data.counters)
     });
     await server.initialize();
+    // one server to the clients: the time the engine started
+    server.engine.serverStatus.startTime = new Date(data.startTime);
 
     const addressSpace = server.engine.addressSpace;
     if (!addressSpace) {

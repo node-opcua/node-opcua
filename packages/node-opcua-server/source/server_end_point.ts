@@ -33,6 +33,7 @@ import type { UserTokenPolicyOptions } from "node-opcua-types";
 
 import type { IChannelData } from "./i_channel_data.js";
 import type { ISocketData } from "./i_socket_data.js";
+import { type IServerCounters, ServerCounter } from "./server_counters.js";
 
 const debugLog = make_debugLog("server_end_point");
 const errorLog = make_errorLog("server_end_point");
@@ -144,6 +145,12 @@ export interface OPCUAServerEndPointOptions {
      * @default 20
      */
     maxConnections?: number;
+
+    /**
+     * the counts of the server: when they are shared by servers in several threads on one port,
+     * maxConnections applies to the connections of all of them
+     */
+    counters?: () => IServerCounters;
 
     /**
      *  the  timeout for the TCP HEL/ACK transaction (in ms)
@@ -378,6 +385,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * in the debugger's property list or JSON serialization.
      */
     #certProvider: ICertificateChainProvider;
+    readonly #counters?: () => IServerCounters;
     /**
      * Combined DER cache — invalidated whenever the cert provider
      * changes so that `EndpointDescription.serverCertificate`
@@ -419,6 +427,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 600000;
 
         this.maxConnections = options.maxConnections || 20;
+        this.#counters = options.counters;
 
         this.timeout = options.timeout || 30000;
 
@@ -1030,6 +1039,22 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         return Object.keys(this._channels).length;
     }
 
+    /** the connections maxConnections is checked against: this endpoint's, or those of every thread sharing the port */
+    #connectionCount(): number {
+        const counters = this.#counters?.();
+        return counters?.shared ? counters.get(ServerCounter.Connections) : Object.keys(this._channels).length;
+    }
+
+    #addChannel(channel: ServerSecureChannelLayer): void {
+        this._channels[channel.hashKey] = channel;
+        this.#counters?.().add(ServerCounter.Connections, 1);
+    }
+
+    #removeChannel(channel: ServerSecureChannelLayer): void {
+        Reflect.deleteProperty(this._channels, channel.hashKey);
+        this.#counters?.().add(ServerCounter.Connections, -1);
+    }
+
     private _dump_statistics() {
         this._server?.getConnections((_err: Error | null, count: number) => {
             // c8 ignore next
@@ -1102,7 +1127,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         };
 
         const establish_connection = () => {
-            const nbConnections = Object.keys(this._channels).length;
+            const nbConnections = this.#connectionCount();
             if (nbConnections >= this.maxConnections) {
                 warningLog(
                     " nbConnections ",
@@ -1234,7 +1259,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             if (settled) return;
 
             // reverse connections still consume a channel slot: honor maxConnections
-            const nbConnections = Object.keys(this._channels).length;
+            const nbConnections = this.#connectionCount();
             if (nbConnections >= this.maxConnections) {
                 settled = true;
                 socket.destroy();
@@ -1298,7 +1323,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         assert(!Object.hasOwn(this._channels, channel.hashKey), " channel already preregistered!");
 
-        this._channels[channel.hashKey] = channel;
+        this.#addChannel(channel);
         const onAbort = () => {
             // c8 ignore next
             doDebug && debugLog("Channel received an abort event during the preregistration phase");
@@ -1315,7 +1340,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             doDebug && debugLog("Already un preregistered ?", channel.hashKey);
             return;
         }
-        delete this._channels[channel.hashKey];
+        this.#removeChannel(channel);
         const onAbort = preregisterAbortListeners.get(channel);
         if (onAbort) {
             channel.removeListener("abort", onAbort);
@@ -1332,7 +1357,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             doDebug && debugLog(chalk.red("_registerChannel = "), "channel.hashKey = ", channel.hashKey);
 
             assert(!this._channels[channel.hashKey]);
-            this._channels[channel.hashKey] = channel;
+            this.#addChannel(channel);
 
             /**
              * @event newChannel — fired after transport init (HEL/ACK).
@@ -1387,7 +1412,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this.bytesWrittenInOldChannels += channel.bytesWritten;
         this.bytesReadInOldChannels += channel.bytesRead;
         this.transactionsCountOldChannels += channel.transactionsCount;
-        delete this._channels[channel.hashKey];
+        this.#removeChannel(channel);
 
         // c8 ignore next
         if (doDebug) {
@@ -1425,7 +1450,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * @private
      */
     private _prevent_DDOS_Attack(establish_connection: () => void, deny_connection: () => void) {
-        const nbConnections = this.activeChannelCount;
+        const nbConnections = this.#connectionCount();
 
         if (nbConnections >= this.maxConnections) {
             // c8 ignore next

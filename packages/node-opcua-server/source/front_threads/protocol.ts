@@ -203,6 +203,10 @@ export interface FrontWorkerData {
     serverModule: string;
     serverModuleData: unknown;
     front: number;
+    /** the counts every front shares: sessions, subscriptions, monitored items, connections (see SharedServerCounters) */
+    counters: SharedArrayBuffer;
+    /** when the engine started: the ServerStatus.StartTime of every front */
+    startTime: number;
     /**
      * true: every front listens on the port of its options (SO_REUSEPORT); false, where the
      * platform has no SO_REUSEPORT: front k listens on that port + k

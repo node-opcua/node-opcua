@@ -27,13 +27,20 @@
  * newer value of a node replaces its last waiting one, so that the front gets the latest values
  * instead of a growing backlog.
  *
- * Experimental: history and methods are not served by the fronts yet; each front keeps its own
- * sessions, subscriptions and server diagnostics.
+ * The fronts share one set of counts (SharedServerCounters): maxSessions, maxSubscriptions,
+ * maxMonitoredItems and maxConnectionsPerEndpoint apply to the server as a whole, the subscription
+ * ids are unique across the fronts, and ServerDiagnosticsSummary reports the whole server.
+ *
+ * Experimental: history and methods are not served by the fronts yet. Each front lists only its
+ * own sessions and subscriptions in the diagnostics arrays, and a subscription cannot be
+ * transferred to a session of another front.
  */
+import os from "node:os";
 import { Worker } from "node:worker_threads";
 import { AddressSpace, type CompactAddressSpace } from "node-opcua-address-space";
 import { generateCompactAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { type StoreNodeView, StoreServices, type StoreVariableView } from "node-opcua-address-space-store";
+import { makeApplicationUrn } from "node-opcua-common";
 import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
@@ -44,6 +51,9 @@ import { NumericRange } from "node-opcua-numeric-range";
 import { ReadRawModifiedDetails } from "node-opcua-service-history";
 import { StatusCodes } from "node-opcua-status-code";
 import { BrowseDescription, BrowsePath, BrowseResult, CallMethodRequest, CallMethodResult, WriteValue } from "node-opcua-types";
+import { SharedServerCounters } from "../server_counters.js";
+import type { ITransferSessionIdentity } from "../sessions_compatible_for_transfer.js";
+import type { DiagnosticsUpdate } from "./diagnostics_mirror.js";
 import {
     contextOf,
     type DescribeReply,
@@ -61,8 +71,12 @@ import {
     type ValueReply,
     WATCH
 } from "./protocol.js";
+import type { ExportResult } from "./remote_subscriptions.js";
 
 const warningLog = make_warningLog("front_thread_engine");
+
+/** how long the other fronts have to answer for a subscription asked by TransferSubscriptions */
+const EXPORT_TIMEOUT = 10000;
 
 /** the changes waiting for a busy front beyond which only the latest value of each node is kept */
 const MAX_WAITING_CHANGES = 1000;
@@ -70,6 +84,13 @@ const MAX_WAITING_CHANGES = 1000;
 export interface FrontThreadEngineOptions {
     /** the nodesets of the engine and of every front, in this order; the standard nodeset by default */
     nodesets?: string[];
+    /**
+     * the ApplicationUri of the server the fronts make together: the URI of namespace 1, where each
+     * front keeps its own nodes (its sessions' diagnostics). The fronts take it unless their options
+     * name one, which must then be the same. makeApplicationUrn(hostname, "NodeOPCUA-Server") by default,
+     * as for an OPCUAServer.
+     */
+    applicationUri?: string;
     /** how many nodes the store is sized for at first */
     expectedNodes?: number;
 }
@@ -92,6 +113,12 @@ export interface FrontThreadsStartOptions {
     serverModuleData?: unknown;
     /** the front worker script, for a bundled deployment; this package's by default */
     workerScript?: string | URL;
+    /**
+     * false: every front listens on a port of its own (the port asked for, plus its index), even
+     * where the fronts could share one; what lets a client choose its front, in tests. Shared where
+     * the platform has SO_REUSEPORT by default.
+     */
+    sharePort?: boolean;
 }
 
 /** a node the monitored items of one front or more listen to */
@@ -133,19 +160,31 @@ export class FrontThreadEngine {
         translate: 0,
         describe: 0,
         value: 0,
+        takeSubscription: 0,
         call: 0,
         historyCheck: 0,
         historyExtract: 0
     };
+    // the TransferSubscriptions waiting for the other fronts' answers, by request id
+    readonly #exports = new Map<number, { waiting: number; resolve: (result: ExportResult) => void }>();
+    #exportId = 0;
     readonly #watched = new Map<number, Watch>();
     readonly #outgoing = new Map<Worker, Outgoing>();
     #pushScheduled = false;
+    readonly #countersBuffer = SharedServerCounters.allocate(Math.ceil(Math.random() * 1000000));
+    readonly #startTime = Date.now();
+    /** the counts the fronts share: what their limits are checked against */
+    public readonly counters = new SharedServerCounters(this.#countersBuffer);
     #layoutShared = -1;
     #syncScheduled = false;
     #anchorsChanged = false;
 
-    private constructor(addressSpace: CompactAddressSpace, nodesets: string[]) {
+    /** the ApplicationUri of the fronts: the URI of namespace 1 */
+    public readonly applicationUri: string;
+
+    private constructor(addressSpace: CompactAddressSpace, nodesets: string[], applicationUri: string) {
         this.addressSpace = addressSpace;
+        this.applicationUri = applicationUri;
         this.#nodesets = nodesets;
         this.#services = new StoreServices(addressSpace);
         addressSpace.onLink = (source, target) => this.#noteLink(source, target);
@@ -157,8 +196,14 @@ export class FrontThreadEngine {
     public static async create(options: FrontThreadEngineOptions = {}): Promise<FrontThreadEngine> {
         const nodesets = options.nodesets ?? [standardNodesets.standard];
         const addressSpace = AddressSpace.createCompact({ expectedNodes: options.expectedNodes ?? 8192, shared: true });
+        // namespace 1 is the server's own, before any nodeset, as in an OPCUAServer: the fronts keep their
+        // own nodes there (sessions), not in a namespace of the shared store
+        const applicationUri = options.applicationUri ?? makeApplicationUrn(os.hostname(), "NodeOPCUA-Server");
+        // the table the loader starts from, as ServerEngine gives its compact space
+        addressSpace.namespaceUris.length = 0;
+        addressSpace.namespaceUris.push("http://opcfoundation.org/UA/", applicationUri);
         await generateCompactAddressSpace(addressSpace, nodesets);
-        return new FrontThreadEngine(addressSpace, nodesets);
+        return new FrontThreadEngine(addressSpace, nodesets, applicationUri);
     }
 
     /** a namespace of the model, served by the fronts from the shared store */
@@ -190,9 +235,9 @@ export class FrontThreadEngine {
         const descriptor = this.addressSpace.store.shareForReaders();
         this.#layoutShared = descriptor.layoutSeen;
         const workerScript = options.workerScript ?? new URL("./front_worker.js", import.meta.url);
-        const sharedPort = platformSharesPorts();
+        const sharedPort = (options.sharePort ?? true) && platformSharesPorts();
         const fronts = Math.max(1, Math.floor(options.fronts ?? 1));
-        if (!sharedPort && fronts > 1) {
+        if (!sharedPort && fronts > 1 && options.sharePort !== false) {
             warningLog(
                 `FrontThreadEngine: ${process.platform} has no SO_REUSEPORT, the fronts listen on consecutive ports (see endpointUrls)`
             );
@@ -208,6 +253,9 @@ export class FrontThreadEngine {
                 serverModule: options.serverModule.toString(),
                 serverModuleData: options.serverModuleData,
                 front,
+                counters: this.#countersBuffer,
+                applicationUri: this.applicationUri,
+                startTime: this.#startTime,
                 sharedPort
             };
             const worker = new Worker(workerScript, { workerData: data });
@@ -220,6 +268,8 @@ export class FrontThreadEngine {
                         else if (message.kind === "requests") this.#answer(worker, message.ids, message.requests);
                         else if (message.kind === "watches") this.#applyWatches(worker, message.operations);
                         else if (message.kind === "changesDone") this.#changesDone(worker);
+                        else if (message.kind === "exportedSubscription") this.#exported(message.requestId, message.result);
+                        else if (message.kind === "diagnostics") this.#relayDiagnostics(worker, front, message.update);
                     });
                     worker.once("error", reject);
                     worker.once("exit", (code) => reject(new Error(`front ${front} exited with code ${code}`)));
@@ -275,8 +325,15 @@ export class FrontThreadEngine {
             // a namespace default may have been written (NamespaceMetadata)
             this.addressSpace.publishNamespacePolicy();
         }
+        for (let k = 0; k < requests.length; k++) {
+            const request = requests[k];
+            if (request.kind !== "takeSubscription") continue;
+            // an answer that waits for the other fronts
+            const taken = this.#takeSubscription(worker, request.subscriptionId, request.identity);
+            payloads[k] = taken; // check-proto-pollution: ok - numeric index of the batch
+        }
         if (payloads.some((payload) => payload instanceof Promise)) {
-            // the batch is answered once its last answer is there (a Method that runs a while)
+            // the batch is answered once its last answer is there (a Method that runs a while, a transfer)
             Promise.all(payloads).then((settled) => {
                 const reply: EngineToFront = { kind: "replies", ids, payloads: settled };
                 worker.postMessage(reply);
@@ -285,6 +342,43 @@ export class FrontThreadEngine {
         }
         const reply: EngineToFront = { kind: "replies", ids, payloads };
         worker.postMessage(reply, transferablesOf(payloads));
+    }
+
+    /** a front's sessions, to the diagnostics of the others */
+    #relayDiagnostics(from: Worker, front: number, update: DiagnosticsUpdate): void {
+        const message: EngineToFront = { kind: "diagnostics", front, update };
+        for (const worker of this.#fronts) if (worker !== from) worker.postMessage(message);
+    }
+
+    /** asks every other front to give up the subscription: the one holding it answers with its state */
+    #takeSubscription(asking: Worker, subscriptionId: number, identity: ITransferSessionIdentity): Promise<ExportResult> {
+        const others = this.#fronts.filter((front) => front !== asking);
+        if (others.length === 0) return Promise.resolve(null);
+        const requestId = ++this.#exportId;
+        return new Promise<ExportResult>((resolve) => {
+            const timer = setTimeout(() => this.#exported(requestId, null, true), EXPORT_TIMEOUT);
+            this.#exports.set(requestId, {
+                waiting: others.length,
+                resolve: (result) => {
+                    clearTimeout(timer);
+                    resolve(result);
+                }
+            });
+            for (const front of others) {
+                const ask: EngineToFront = { kind: "exportSubscription", requestId, subscriptionId, identity };
+                front.postMessage(ask);
+            }
+        });
+    }
+
+    #exported(requestId: number, result: ExportResult, timedOut = false): void {
+        const pending = this.#exports.get(requestId);
+        if (!pending) return;
+        pending.waiting--;
+        if (result !== null || pending.waiting <= 0 || timedOut) {
+            this.#exports.delete(requestId);
+            pending.resolve(result);
+        }
     }
 
     #serve(request: FrontRequest): unknown {
@@ -354,6 +448,9 @@ export class FrontThreadEngine {
                 const reply: DescribeReply = { nodes, attributes: encodeDataValues(attributes) };
                 return reply;
             }
+            case "takeSubscription":
+                // answered in #answer, once the other fronts have
+                return null;
             case "historyCheck": {
                 const refused = (status: number): HistoryCheckReply => ({ status, boundsSupported: false, bounds: null });
                 const index = this.addressSpace.store.find(resolveNodeId(request.nodeId));
@@ -607,6 +704,8 @@ export class FrontThreadEngine {
                 };
                 return reply;
             }
+            case "takeSubscription":
+                return null;
             case "call":
                 return encodeStructure(new CallMethodResult({ statusCode: StatusCodes.BadInternalError }));
             case "historyCheck": {

@@ -179,6 +179,7 @@ import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_on
 import { ReverseConnectManager, type ReverseConnectOptions } from "./reverse_connect_manager.js";
 import type { SamplingFunc } from "./sampling_func.js";
 import type { ServerCapabilitiesOptions } from "./server_capabilities.js";
+import type { IServerCounters } from "./server_counters.js";
 import {
     type AdvertisedEndpoint,
     type EndpointDescriptionEx,
@@ -1058,6 +1059,12 @@ export interface OPCUAServerEndpointOptions {
 
 export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerEndpointOptions {
     /**
+     * the counts the server limits (maxSessions, maxSubscriptions, maxMonitoredItems,
+     * maxConnectionsPerEndpoint) and ServerDiagnosticsSummary are kept in; the server's own by
+     * default. Servers answering as one from several threads share a SharedServerCounters.
+     */
+    counters?: IServerCounters;
+    /**
      * @deprecated
      */
     alternateEndpoints?: OPCUAServerEndpointOptions[];
@@ -1842,6 +1849,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             // note: applicationUri is handled in a special way
             this.engine = new ServerEngine({
                 applicationUri: () => this.serverInfo.applicationUri || "",
+                counters: options.counters,
                 buildInfo,
                 isAuditing: options.isAuditing,
                 allowAnonymousSubscriptionTransferOnUnsecuredChannel: options.allowAnonymousSubscriptionTransferOnUnsecuredChannel,
@@ -2750,6 +2758,10 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         }
 
         // see Release 1.02  27  OPC Unified Architecture, Part 4
+        // the slot this session takes, at once: two threads sharing the counts cannot both take the last one
+        if (!this.engine.reserveSession()) {
+            return rejectConnection(this, StatusCodes.BadTooManySessions);
+        }
         const session = this.createSession({
             clientDescription: request.clientDescription,
             sessionTimeout: revisedSessionTimeout,
@@ -3850,7 +3862,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                     return sendError(StatusCodes.BadTooManySubscriptions);
                 }
 
-                if (this.currentSubscriptionCount >= this.engine.serverCapabilities.maxSubscriptions) {
+                if (!this.engine.reserveSubscription()) {
                     return sendError(StatusCodes.BadTooManySubscriptions);
                 }
 
@@ -4580,6 +4592,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             timeout: serverOptions.timeout || 3 * 60 * 1000,
 
             maxConnections: this.maxConnectionsPerEndpoint,
+            counters: () => this.engine.counters,
             objectFactory: this.objectFactory,
             serverInfo: this.serverInfo,
             transportSettings: serverOptions.transportSettings

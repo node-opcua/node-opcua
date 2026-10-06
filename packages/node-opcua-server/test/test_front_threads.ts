@@ -16,11 +16,13 @@ import { StatusCodes } from "node-opcua-status-code";
 import { PermissionType, Range } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType, type VariantLike } from "node-opcua-variant";
 import should from "should";
-import { FrontThreadEngine } from "../dist/index.js";
+import { FrontThreadEngine, ServerCounter } from "../dist/index.js";
 
 const port = 5826;
 // the engine started with the default number of fronts
 const defaultFrontsPort = 5828;
+// the engine whose limits the fronts share (consecutive ports from there where they cannot share one)
+const limitsPort = 5829;
 
 async function until(predicate: () => boolean, what: string, timeout = 5000): Promise<void> {
     const end = Date.now() + timeout;
@@ -665,5 +667,103 @@ describe("FrontThreadEngine: the number of fronts", function () {
         } finally {
             await engine.shutdown();
         }
+    });
+});
+
+describe("FrontThreadEngine: the limits apply to the server as a whole", function () {
+    this.timeout(120000);
+    const fronts = 3;
+    const limits = { maxSessions: 4, maxSubscriptions: 3, maxMonitoredItems: 5 };
+    const maxConnectionsPerEndpoint = 12;
+    let engine: FrontThreadEngine;
+    const clients: OPCUAClient[] = [];
+    const sessions: ClientSession[] = [];
+
+    async function connect(k: number): Promise<OPCUAClient> {
+        const client = OPCUAClient.create({ endpointMustExist: false, connectionStrategy: { maxRetry: 0 } });
+        const url = new URL(engine.endpointUrls[k % engine.endpointUrls.length]);
+        await client.connect(`opc.tcp://localhost:${url.port}`);
+        clients.push(client);
+        return client;
+    }
+
+    before(async () => {
+        engine = await FrontThreadEngine.create();
+        engine.registerNamespace("urn:test:front-threads-limits");
+        await engine.start({
+            fronts,
+            serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
+            serverModuleData: { port: limitsPort, serverCapabilities: limits, maxConnectionsPerEndpoint }
+        });
+    });
+    after(async () => {
+        for (const session of sessions) await session.close().catch(() => undefined);
+        for (const client of clients) await client.disconnect();
+        await engine.shutdown();
+    });
+
+    it("gives maxSessions sessions, no more, to clients racing on every front", async () => {
+        const racing = await Promise.all(Array.from({ length: 10 }, (_, k) => connect(k)));
+        const attempts = await Promise.allSettled(racing.map((client) => client.createSession()));
+        for (const attempt of attempts) if (attempt.status === "fulfilled") sessions.push(attempt.value);
+        // a session not activated yet may be closed to make room (OPC 10000-4 5.6.2): never more than the limit
+        should(sessions.length).be.belowOrEqual(limits.maxSessions);
+        should(sessions.length).be.above(0);
+        should(engine.counters.get(ServerCounter.Sessions)).eql(sessions.length, "the count is the sessions alive");
+        // what every front reports is the whole server
+        for (const session of sessions) {
+            const count = await session.read({ nodeId: "ns=0;i=2277", attributeId: AttributeIds.Value });
+            should(count.value.value).eql(sessions.length);
+        }
+    });
+
+    it("refuses a session past the limit, and gives one back when one closes", async () => {
+        while (sessions.length < limits.maxSessions) sessions.push(await clients[sessions.length].createSession());
+        await should(clients[limits.maxSessions].createSession()).be.rejectedWith(/BadTooManySessions/);
+        const closed = sessions.pop() as ClientSession;
+        await closed.close();
+        should(engine.counters.get(ServerCounter.Sessions)).eql(limits.maxSessions - 1);
+        sessions.push(await clients[limits.maxSessions].createSession());
+        should(engine.counters.get(ServerCounter.Sessions)).eql(limits.maxSessions);
+    });
+
+    it("gives maxSubscriptions subscriptions over every front, each with an id of its own", async () => {
+        const parameters = { requestedPublishingInterval: 100, requestedMaxKeepAliveCount: 10, requestedLifetimeCount: 100 };
+        const attempts = await Promise.allSettled(
+            Array.from({ length: 8 }, (_, k) => sessions[k % sessions.length].createSubscription2(parameters))
+        );
+        const created = attempts
+            .filter((a) => a.status === "fulfilled")
+            .map((a) => (a as PromiseFulfilledResult<ClientSubscription>).value);
+        should(created.length).eql(limits.maxSubscriptions);
+        const refused = attempts.filter((a) => a.status === "rejected") as PromiseRejectedResult[];
+        for (const r of refused) should(String(r.reason)).match(/BadTooManySubscriptions/);
+        should(new Set(created.map((c) => c.subscriptionId)).size).eql(created.length, "no id handed out twice");
+
+        const items = await Promise.allSettled(
+            Array.from({ length: 9 }, (_, k) =>
+                monitor(
+                    created[k % created.length],
+                    { nodeId: "ns=0;i=2258", attributeId: AttributeIds.Value },
+                    { samplingInterval: 100, queueSize: 1, discardOldest: true }
+                )
+            )
+        );
+        should(items.filter((i) => i.status === "fulfilled").length).eql(limits.maxMonitoredItems);
+        should(engine.counters.get(ServerCounter.MonitoredItems)).eql(limits.maxMonitoredItems);
+        for (const subscription of created) await subscription.terminate();
+        should(engine.counters.get(ServerCounter.MonitoredItems)).eql(0, "the items of an ended subscription are given back");
+        should(engine.counters.get(ServerCounter.Subscriptions)).eql(0);
+    });
+
+    it("accepts maxConnectionsPerEndpoint connections over every front", async () => {
+        should(engine.counters.get(ServerCounter.Connections)).eql(clients.length);
+        const more = maxConnectionsPerEndpoint - clients.length + 3;
+        const attempts = await Promise.allSettled(Array.from({ length: more }, (_, k) => connect(clients.length + k)));
+        const accepted = attempts.filter((a) => a.status === "fulfilled").length;
+        should(accepted).be.aboveOrEqual(more - 3);
+        // past the limit a front makes room by closing a channel of its own that has no session (the
+        // denial of service protection of the endpoint): the count never goes past the limit
+        should(engine.counters.get(ServerCounter.Connections)).be.belowOrEqual(maxConnectionsPerEndpoint);
     });
 });

@@ -330,6 +330,12 @@ function createSubscriptionDiagnostics(subscription: Subscription): Subscription
 
 interface IGlobalMonitoredItemCounter {
     totalMonitoredItemCount: number;
+    /**
+     * takes a slot of maxMonitoredItems at once (the engine's counter, shared between threads
+     * when its counts are): false when there is none left. A plain counter is read then bumped.
+     */
+    tryAcquire?(limit: number): boolean;
+    release?(): void;
 }
 
 export interface SubscriptionOptions {
@@ -1139,7 +1145,9 @@ export class Subscription extends EventEmitter {
             return handle_error(StatusCodes.BadTooManyMonitoredItems);
         }
 
-        if (this.globalCounter.totalMonitoredItemCount >= this.serverCapabilities.maxMonitoredItems) {
+        const counter = this.globalCounter;
+        const maxMonitoredItems = this.serverCapabilities.maxMonitoredItems;
+        if (counter.tryAcquire ? !counter.tryAcquire(maxMonitoredItems) : counter.totalMonitoredItemCount >= maxMonitoredItems) {
             return handle_error(StatusCodes.BadTooManyMonitoredItems);
         }
 
@@ -1257,7 +1265,8 @@ export class Subscription extends EventEmitter {
         monitoredItem.dispose();
 
         this.monitoredItems.delete(monitoredItemId);
-        this.globalCounter.totalMonitoredItemCount -= 1;
+        if (this.globalCounter.release) this.globalCounter.release();
+        else this.globalCounter.totalMonitoredItemCount -= 1;
 
         return StatusCodes.Good;
     }
@@ -2114,7 +2123,8 @@ export class Subscription extends EventEmitter {
         assert(monitoredItem.monitoredItemId === monitoredItemId);
 
         this.monitoredItems.set(monitoredItemId, monitoredItem);
-        this.globalCounter.totalMonitoredItemCount += 1;
+        // a counter with tryAcquire took the slot when the item was admitted
+        if (!this.globalCounter.tryAcquire) this.globalCounter.totalMonitoredItemCount += 1;
 
         assert(monitoredItem.clientHandle !== 4294967295);
 
