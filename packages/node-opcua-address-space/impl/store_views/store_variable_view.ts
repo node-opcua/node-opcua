@@ -7,7 +7,7 @@
 import { NO_NODE, ValueKind } from "node-opcua-address-space-store";
 import { DataValue } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
-import type { NodeId } from "node-opcua-nodeid";
+import { NodeId } from "node-opcua-nodeid";
 import { coerceStatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType, type VariantLike } from "node-opcua-variant";
 import type { StoreAddressSpace } from "./store_address_space.js";
@@ -24,7 +24,7 @@ export class StoreVariableView extends StoreNodeView {
 
     public get dataType(): NodeId {
         const t = this.space.store.nodes.dataType(this.index);
-        return t === NO_NODE ? new (this.nodeId.constructor as new () => NodeId)() : this.space.store.nodes.nodeId(t);
+        return t === NO_NODE ? NodeId.nullNodeId : this.space.store.nodes.nodeId(t);
     }
     public get valueRank(): number {
         return this.space.store.nodes.valueRank(this.index);
