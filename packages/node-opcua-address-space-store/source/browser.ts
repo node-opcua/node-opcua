@@ -38,6 +38,9 @@ export interface RelativePathElement {
 export class Browser {
     public readonly hierarchy = new ReferenceTypeHierarchy();
     readonly #store: CompactStore;
+    // the acceptors handed out, by ordinal * 2 + (subtypes included ? 1 : 0); a closure each
+    // was most of what a child lookup cost
+    #acceptors: ((ordinal: number) => boolean)[] = [];
 
     constructor(store: CompactStore) {
         this.#store = store;
@@ -47,6 +50,18 @@ export class Browser {
     /** to be called after reference types changed (a nodeset loaded, a type added) */
     public refresh(): void {
         this.hierarchy.build(this.#store);
+        this.#acceptors = [];
+    }
+
+    #acceptor(referenceType: NodeId, includeSubtypes: boolean): (ordinal: number) => boolean {
+        const base = this.#store.referenceTypeOrdinal(referenceType);
+        const key = base * 2 + (includeSubtypes ? 1 : 0);
+        let accept = this.#acceptors[key];
+        if (accept === undefined) {
+            accept = this.hierarchy.acceptor(base, includeSubtypes);
+            this.#acceptors[key] = accept; // check-proto-pollution: ok - numeric key from an ordinal
+        }
+        return accept;
     }
 
     public browse(node: number, options: BrowseOptions = {}): BrowsedReference[] {
@@ -54,8 +69,7 @@ export class Browser {
         const refs = store.references;
         let accept: (ordinal: number) => boolean;
         if (options.referenceType) {
-            const base = store.referenceTypeOrdinal(options.referenceType);
-            accept = this.hierarchy.acceptor(base, options.includeSubtypes ?? true);
+            accept = this.#acceptor(options.referenceType, options.includeSubtypes ?? true);
         } else {
             accept = () => true;
         }
@@ -83,7 +97,7 @@ export class Browser {
             return NO_NODE;
         }
         const refs = store.references;
-        const accept = this.hierarchy.acceptor(store.referenceTypeOrdinal(referenceType), includeSubtypes);
+        const accept = this.#acceptor(referenceType, includeSubtypes);
         for (const row of refs.rowsNamed(node, nameId)) {
             if (refs.isForward(row) !== forward || !accept(refs.typeOrdinal(row))) continue;
             const target = refs.target(row);
@@ -132,7 +146,7 @@ export class Browser {
         const nameId = store.nodes.strings.find(name);
         if (nameId === -1) return [];
         const refs = store.references;
-        const accept = this.hierarchy.acceptor(store.referenceTypeOrdinal(referenceType), includeSubtypes);
+        const accept = this.#acceptor(referenceType, includeSubtypes);
         const out: number[] = [];
         for (const row of refs.rowsNamed(node, nameId)) {
             if (refs.isForward(row) !== forward || !accept(refs.typeOrdinal(row))) continue;
