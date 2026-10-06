@@ -30,6 +30,13 @@ const factor = offsetFactor1601[1];
 const offsetLong = long.fromNumber(offset, true);
 const factorLong = long.fromNumber(factor, true);
 
+const TWO_POW_32 = 0x100000000;
+/** 2^32 = factor * TWO_POW_32_DIV_FACTOR + TWO_POW_32_MOD_FACTOR */
+const TWO_POW_32_DIV_FACTOR = Math.floor(TWO_POW_32 / factor);
+const TWO_POW_32_MOD_FACTOR = TWO_POW_32 % factor;
+/** the largest excess of 100 ns ticks for which the encoding below stays exact */
+const maxExcess = 2 ** 50;
+
 // Extracted from OpcUA Spec v1.02 : part 6:
 //
 // 5.2.2.5 DateTime
@@ -78,12 +85,21 @@ export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds?: num
     const t = date.getTime(); // number of milliseconds since since 1 January 1970 00:00:00 UTC.
     const excess100nanosecond = picoseconds !== undefined ? Math.floor(picoseconds / 100000) : 0;
 
-    //           value_64 = (t + offset ) * factor;
-    const tL = long.fromNumber(t, false);
-    const a = tL.add(offsetLong).multiply(factorLong).add(excess100nanosecond);
-
-    const high_low = [a.getHighBits(), a.getLowBits()];
-    return high_low;
+    //           value_64 = (t + offset ) * factor + excess;
+    // computed on plain numbers: every intermediate value below stays under 2^53, so the result
+    // is exact, and wraps modulo 2^64 like the 64-bit arithmetic it replaces. The few inputs that
+    // would not stay exact (an invalid Date, absurd picoseconds) keep the 64-bit path.
+    const ms = t + offset;
+    if (!Number.isSafeInteger(ms) || !Number.isSafeInteger(excess100nanosecond) || Math.abs(excess100nanosecond) > maxExcess) {
+        const a = long.fromNumber(t, false).add(offsetLong).multiply(factorLong).add(excess100nanosecond);
+        return [a.getHighBits(), a.getLowBits()];
+    }
+    const msHigh = Math.floor(ms / TWO_POW_32);
+    const lowSum = (ms - msHigh * TWO_POW_32) * factor + excess100nanosecond;
+    const carry = Math.floor(lowSum / TWO_POW_32);
+    const high = (msHigh * factor + carry) | 0;
+    const low = (lowSum - carry * TWO_POW_32) | 0;
+    return [high, low];
 }
 
 export function bn_dateToHundredNanoSecondFrom1601Excess(_date: Date, picoseconds?: number): number {
@@ -99,13 +115,18 @@ export function bn_hundredNanoSecondFrom1601ToDate(
 ): [Date, number] {
     assert(low !== undefined);
     //           value_64 / factor  - offset = t
-    const l = new long(low, high, /*unsigned*/ true);
-    const value1 = l.div(factor).toNumber() - offset;
+    // value_64 is read as unsigned: high * 2^32 + low. With 2^32 = factor * 429496 + 7296,
+    // value_64 / factor = high * 429496 + (high * 7296 + low) / factor, where high * 7296 + low
+    // stays under 2^45: the quotient and the remainder are exact on plain numbers.
+    const h = high >>> 0;
+    const rest = h * TWO_POW_32_MOD_FACTOR + (low >>> 0);
+    const restQuotient = Math.floor(rest / factor);
+    const value1 = h * TWO_POW_32_DIV_FACTOR + restQuotient - offset;
     // const date = _value || new Date(value1);
     // if (_value) _value.setTime(value1);
     const date = new Date(value1);
     // enrich the date
-    const excess100nanoInPico = l.mod(10000).mul(100000).toNumber();
+    const excess100nanoInPico = (rest - restQuotient * factor) * 100000;
     // picosecond will contains un-decoded 100 nanoseconds => 10 x 100 nanoseconds = 1 microsecond
     const picoseconds2 = excess100nanoInPico + (picoseconds || 0);
     return [date, picoseconds2];
