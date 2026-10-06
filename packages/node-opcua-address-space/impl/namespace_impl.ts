@@ -1996,7 +1996,9 @@ export class NamespaceImpl implements NamespacePrivate {
         // ------------- set display name
         if (!options.displayName) {
             assert(typeof options.browseName.name === "string");
-            options.displayName = coerceLocalizedText(options.browseName.name || "");
+            // kept as a string: the node builds the LocalizedText on first read, and most
+            // nodes are never asked for their display name
+            options.displayName = options.browseName.name || "";
         }
         if (!options.nodeClass || options.nodeClass === undefined) {
             throw new Error("nodeclass must be specified");
