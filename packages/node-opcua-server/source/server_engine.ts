@@ -1696,10 +1696,14 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         return this.addressSpaceAccessor.browse(context, nodesToBrowse);
     }
     public async read(context: ISessionContext, readRequest: ReadRequestOptions): Promise<DataValue[]> {
+        return this.readSync(context, readRequest);
+    }
+    /** read, without a promise: see AddressSpaceAccessor#readSync */
+    public readSync(context: ISessionContext, readRequest: ReadRequestOptions): DataValue[] {
         if (!this.addressSpaceAccessor) {
             throw new Error("addressSpaceAccessor is not available");
         }
-        return this.addressSpaceAccessor.read(context, readRequest);
+        return this.addressSpaceAccessor.readSync(context, readRequest);
     }
     public async write(context: ISessionContext, nodesToWrite: WriteValue[]): Promise<StatusCode[]> {
         if (!this.addressSpaceAccessor) {
@@ -2113,8 +2117,6 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
          */
         callback: (err: Error | null, dataValues?: DataValue[]) => void
     ): void {
-        assert(typeof callback === "function");
-
         // this runs on every Read, and most Reads touch no Variable with a refresh func: the
         // candidates are collected by identity (findNode returns one node per NodeId), without
         // building a NodeId string per node, and the reference clock is only taken when needed.

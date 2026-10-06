@@ -93,7 +93,7 @@ import {
     DeleteReferencesResponse
 } from "node-opcua-service-node-management";
 import { QueryFirstResponse, QueryNextResponse } from "node-opcua-service-query";
-import { ReadRequest, ReadResponse, ReadValueId, TimestampsToReturn } from "node-opcua-service-read";
+import { type ReadRequest, ReadResponse, ReadValueId, TimestampsToReturn } from "node-opcua-service-read";
 import {
     RegisterNodesRequest,
     RegisterNodesResponse,
@@ -3218,11 +3218,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             sendError: (statusCode: StatusCode) => void
         ) => void | Promise<void>
     ): Promise<void> {
-        assert(typeof actionToPerform === "function");
-
         function sendResponse(response1: Response) {
             try {
-                assert(response1 instanceof ResponseClass || response1 instanceof ServiceFault);
                 if (message.session) {
                     const counterName = ResponseClass.schema.name.replace("Response", "");
                     message.session.incrementRequestTotalCounter(counterName);
@@ -3296,7 +3293,6 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         // request on the Session within the timeout period negotiated by the Server in the
         // CreateSession Service response. )
         if (message.session.keepAlive) {
-            assert(typeof message.session.keepAlive === "function");
             message.session.keepAlive();
         }
         message.session.incrementTotalRequestCount();
@@ -3616,7 +3612,6 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
     // read services
     protected _on_ReadRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as ReadRequest;
-        assert(request instanceof ReadRequest);
 
         this._apply_on_SessionObject(
             ReadResponse,
@@ -3641,8 +3636,6 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                     return sendError(StatusCodes.BadNothingToDo);
                 }
 
-                assert(request.nodesToRead[0].schema.name === "ReadValueId");
-
                 // limit size of nodesToRead array to maxNodesPerRead
                 if (this.engine.serverCapabilities.operationLimits.maxNodesPerRead > 0) {
                     if (request.nodesToRead.length > this.engine.serverCapabilities.operationLimits.maxNodesPerRead) {
@@ -3655,20 +3648,25 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                     nodeToRead.nodeId = session.resolveRegisteredNode(nodeToRead.nodeId);
                 }
 
-                // ask for a refresh of asynchronous variables
+                // ask for a refresh of asynchronous variables, then read: the whole of it runs
+                // before this handler returns when no Variable is asynchronous, which is the
+                // common case, and the response leaves with the others of the same tick
                 this.engine.refreshValues(request.nodesToRead, request.maxAge, (_err?: Error | null) => {
-                    this.engine.read(context, request).then((results) => {
-                        assert(results[0].schema.name === "DataValue");
-                        assert(results.length === request.nodesToRead?.length);
+                    let results: DataValue[];
+                    try {
+                        results = this.engine.readSync(context, request);
+                    } catch (err) {
+                        errorLog("Read: internal error", (err as Error).message);
+                        return sendError(StatusCodes.BadInternalError);
+                    }
+                    assert(results.length === request.nodesToRead?.length);
 
-                        // null: the response is built with its defaults set directly, rather
-                        // than through the schema, field by field, header included
-                        const response = new ReadResponse(null);
-                        // set it here for performance
-                        response.results = results;
-                        assert(response.diagnosticInfos?.length === 0);
-                        sendResponse(response);
-                    });
+                    // null: the response is built with its defaults set directly, rather
+                    // than through the schema, field by field, header included
+                    const response = new ReadResponse(null);
+                    // set it here for performance
+                    response.results = results;
+                    sendResponse(response);
                 });
             }
         );
