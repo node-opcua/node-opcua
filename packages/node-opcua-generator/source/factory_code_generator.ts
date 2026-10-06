@@ -203,7 +203,26 @@ function write_basic(write: WriteFunc, _schema: IStructuredTypeSchema, field: Fi
         // write(`}`);
         write(`        this.${member} = initialize_field_array(schema.fields[${i}], options?.${field.name});`);
     } else {
-        write(`        this.${member} = initialize_field(schema.fields[${i}], options?.${field.name});`);
+        // what initialize_field does for a basic field, written out here so that each field gets
+        // its own call sites: through the one shared function, coerce and computer_default_value
+        // are called on every type there is, and are never specialised. A null value, a field
+        // with a validate function or without a type schema still goes through initialize_field.
+        write("        {");
+        write(`            const field = schema.fields[${i}];`);
+        write("            const t = field.schema;");
+        write(`            const value = options?.${field.name};`);
+        write(`            if (value !== null && !field.validate && typeof t === "object" && t !== null) {`);
+        write("                const v =");
+        write("                    value !== undefined");
+        write("                        ? value");
+        write("                        : t.computer_default_value");
+        write("                          ? t.computer_default_value(field.defaultValue)");
+        write("                          : field.defaultValue;");
+        write(`                this.${member} = (t.coerce ? t.coerce(v) : v) as this["${member}"];`);
+        write("            } else {");
+        write(`                this.${member} = initialize_field(field, value);`);
+        write("            }");
+        write("        }");
     }
 }
 function write_basic_fast_init(
