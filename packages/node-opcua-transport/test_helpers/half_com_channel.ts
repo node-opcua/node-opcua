@@ -1,5 +1,4 @@
 import { EventEmitter } from "node:events";
-import { assert } from "node-opcua-assert";
 import type { ISocketLike } from "../source/index.js";
 
 export class HalfComChannel extends EventEmitter implements ISocketLike {
@@ -20,7 +19,9 @@ export class HalfComChannel extends EventEmitter implements ISocketLike {
         if (typeof data === "string") {
             data = Buffer.from(data);
         }
-        assert(data instanceof Buffer, "HalfComChannel.write expecting a buffer");
+        if (!(data instanceof Buffer)) {
+            throw new TypeError("HalfComChannel.write expecting a buffer");
+        }
         const copy = Buffer.concat([data]);
         this.emit("send_data", copy);
     }
@@ -29,14 +30,18 @@ export class HalfComChannel extends EventEmitter implements ISocketLike {
         this.end();
     }
     public onReceiveData(data: Buffer): void {
-        assert(data instanceof Buffer);
+        if (!(data instanceof Buffer)) {
+            throw new TypeError("HalfComChannel expecting a buffer");
+        }
         this._triggerTimeoutTimer();
         this.emit("data", data);
     }
 
     private _disconnectOtherParty() {
         if (!this._hasEnded) {
-            assert(!this._hasEnded, "half communication channel has already ended !");
+            if (this._hasEnded) {
+                throw new Error("half communication channel has already ended !");
+            }
             this._hasEnded = true;
             this.emit("ending");
         }

@@ -1,6 +1,5 @@
 import { EventEmitter } from "node:events";
 import net from "node:net";
-import { assert } from "node-opcua-assert";
 import type { ISocketLike } from "../source/index.js";
 
 export class FakeServer extends EventEmitter {
@@ -21,7 +20,9 @@ export class FakeServer extends EventEmitter {
         this._serverSocket = undefined;
 
         this.tcpServer.on("connection", (socket: net.Socket) => {
-            assert(!this._serverSocket, " already connected");
+            if (this._serverSocket) {
+                throw new Error("FakeServer: already connected");
+            }
             this._serverSocket = socket;
 
             this._serverSocket.on("data", (data: Buffer) => {
@@ -65,7 +66,7 @@ export class FakeServer extends EventEmitter {
         // invisible while the suite ran one file at a time and the socket happened to
         // close first; under the parallel runner the machine is loaded and it does not.
         //
-        // Destroying the tracked socket is enough: the connection handler asserts this
+        // Destroying the tracked socket is enough: the connection handler enforces that this
         // server never holds more than one. destroy() is optional-called because
         // transport_pair_socket.ts reuses FakeServer with an emulated socket.
         this._serverSocket?.destroy?.();

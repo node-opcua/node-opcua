@@ -5,7 +5,6 @@
 import { EventEmitter } from "node:events";
 import chalk from "chalk";
 
-import { assert } from "node-opcua-assert";
 import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { PacketAssembler, PacketAssemblerErrorCode } from "node-opcua-packet-assembler";
@@ -255,14 +254,14 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
         return this.#_timeout;
     }
     public set timeout(value: number) {
-        assert(!this.#_timerId);
+        // a timer already running keeps its original duration; the new value applies
+        // to the next one-time message receiver.
         doDebug && debugLog(`Setting socket ${this.name} timeout = ${value}`);
         this.#_timeout = value;
     }
 
     public dispose(): void {
         this._cleanup_timers();
-        assert(!this.#_timerId);
         this.#flushCorkedSocket();
         if (this._socket) {
             const gracefully = false;
@@ -286,9 +285,25 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
      */
     public write(messageChunk: Buffer, callback?: (err?: Error | null) => undefined | undefined): void {
         // the chunk comes from our own chunk manager: the length field (offset 4) and the
-        // isFinal byte (offset 3, one of "F", "C", "A") are checked without decoding the header
-        assert(messageChunk.readUInt32LE(4) === messageChunk.length);
-        assert(messageChunk[3] === 0x46 || messageChunk[3] === 0x43 || messageChunk[3] === 0x41);
+        // isFinal byte (offset 3, one of "F", "C", "A") are checked without decoding the header.
+        // An inconsistent chunk is a programming error, reported through the callback (or
+        // the log) rather than thrown, because write() also runs from socket event handlers
+        // where a throw is uncatchable.
+        let err: Error | null = null;
+        if (messageChunk.length < 8) {
+            err = new Error(`invalid message chunk: ${messageChunk.length} bytes, shorter than the 8-byte header`);
+        } else if (messageChunk.readUInt32LE(4) !== messageChunk.length) {
+            err = new Error(
+                `invalid message chunk: header announces ${messageChunk.readUInt32LE(4)} bytes, chunk has ${messageChunk.length}`
+            );
+        } else if (messageChunk[3] !== 0x46 && messageChunk[3] !== 0x43 && messageChunk[3] !== 0x41) {
+            err = new Error(`invalid message chunk: unknown chunk type ${JSON.stringify(String.fromCharCode(messageChunk[3]))}`);
+        }
+        if (err) {
+            errorLog(this.name, err.message);
+            callback?.(err);
+            return;
+        }
         this._write_chunk(messageChunk, callback);
     }
 
@@ -413,13 +428,17 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
     }
 
     protected _install_socket(socket: ISocketLike): void {
-        // note: it is possible that a transport may be recycled and re-used again after a connection break
-        assert(socket);
-        assert(!this._socket, "already have a socket");
+        // note: it is possible that a transport may be recycled and re-used again after a connection break.
+        // Callers (connect/init) catch this and report it through their callback.
+        if (!socket) {
+            throw new Error("TCP_transport#_install_socket: expecting a socket");
+        }
+        if (this._socket) {
+            throw new Error("TCP_transport#_install_socket: already have a socket");
+        }
         this._socket = socket;
         this.#_closedEmitted = undefined;
         this._theCloseError = null;
-        assert(this.#_closedEmitted === undefined, "TCP Transport has already been closed !");
 
         this._socket.setKeepAlive(true);
         // Setting true for noDelay will immediately fire off data each time socket.write() is called.
@@ -470,12 +489,14 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
         doDebugFlow && errorLog("prematureTerminate from", "has socket = ", !!this._socket, new Error().stack);
 
         if (this._socket) {
-            err.message = `premature socket termination ${err.message} `;
+            // a new Error rather than rewriting err.message: some Error subclasses
+            // (AssertionError for one) expose message through a getter only.
+            const error = new Error(`premature socket termination ${err.message} `);
             // we consider this as an error
             const _s = this._socket;
             this._socket = null;
             this.#flushCorkedSocket();
-            _s.destroy(err);
+            _s.destroy(error);
             this.dispose();
         }
     }
@@ -502,8 +523,11 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
      *
      */
     protected _install_one_time_message_receiver(callback: CallbackWithData): void {
-        assert(!this.#_theCallback, "callback already set");
-        assert(typeof callback === "function");
+        if (this.#_theCallback || this.#_timerId || this.#_on_error_during_one_time_message_receiver) {
+            // the pending receiver keeps its callback; only the new request is refused.
+            callback(new Error("TCP_transport: a one-time message receiver is already pending"));
+            return;
+        }
         this._start_one_time_message_receiver(callback);
     }
 
@@ -536,8 +560,6 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
     }
 
     private _start_one_time_message_receiver(callback: CallbackWithData) {
-        assert(!this.#_timerId && !this.#_on_error_during_one_time_message_receiver, "timer already started");
-
         const _cleanUp = () => {
             this._cleanup_timers();
             if (this.#_on_error_during_one_time_message_receiver) {
@@ -579,11 +601,24 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
     private _on_socket_data(data: Buffer): void {
         // c8 ignore next
         if (!this.#packetAssembler) {
-            throw new Error("internal Error");
+            // data arriving after dispose(): nothing to feed it to
+            return;
         }
         this.bytesRead += data.length;
-        if (data.length > 0) {
+        if (data.length === 0) {
+            return;
+        }
+        try {
             this.#packetAssembler.feed(data);
+        } catch (err) {
+            // whatever goes wrong while assembling or dispatching a chunk (including in
+            // the "chunk" listeners) must not escape the socket data handler: node would
+            // turn it into an uncaught exception and take the process down. Close this
+            // connection with the error instead.
+            const error = err instanceof Error ? err : new Error(String(err));
+            errorLog(this.name, "error while processing incoming data:", error.message);
+            this._theCloseError = error;
+            this.prematureTerminate(error, StatusCodes2.BadTcpInternalError);
         }
     }
 

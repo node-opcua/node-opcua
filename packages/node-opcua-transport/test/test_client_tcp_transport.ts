@@ -1,6 +1,5 @@
 import type net from "node:net";
 import chalk from "chalk";
-import { assert } from "node-opcua-assert";
 import { hexDump, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { type ErrorCallback, StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -36,7 +35,33 @@ const port12 = 5711;
 const port13 = 5804;
 const port14 = 5805;
 const port15 = 5806;
-const ports = [port1, port2, port3, port4, port5, port6, port7, port8, port9, port10, port11, port12, port13, port14, port15];
+const port16 = 5821;
+const port17 = 5822;
+const port18 = 5823;
+const port19 = 5824;
+const port20 = 5825;
+const ports = [
+    port1,
+    port2,
+    port3,
+    port4,
+    port5,
+    port6,
+    port7,
+    port8,
+    port9,
+    port10,
+    port11,
+    port12,
+    port13,
+    port14,
+    port15,
+    port16,
+    port17,
+    port18,
+    port19,
+    port20
+];
 let portIndex = 0;
 
 import { BinaryStream } from "../../node-opcua/dist/index.js";
@@ -106,7 +131,7 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
 
     it("TCS-1 should create and connect to a client TCP", (done) => {
         const spyOnServerWrite = sinon.spy((socket, data) => {
-            assert(data);
+            should.exist(data);
             // received Fake HEL Message
             // send Fake ACK response
             const messageChunk = packTcpMessage("ACK", fakeAcknowledgeMessage);
@@ -182,7 +207,7 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
     });
 
     function makeError(statusCode: StatusCode) {
-        assert(statusCode instanceof StatusCode);
+        should(statusCode).be.instanceOf(StatusCode);
         return new TCPErrorMessage({ statusCode: statusCode, reason: statusCode.description });
     }
 
@@ -221,7 +246,7 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
     // build a TCP message header (msgType + chunkType 'F' + total length) followed by
     // `payload`, but force the advertised total length so that the chunk is self-consistent
     // for the packet assembler yet shorter than what the message decoder expects.
-    function makeRawChunk(msgType: "ACK" | "ERR", payload: Buffer) {
+    function makeRawChunk(msgType: "ACK" | "ERR" | "MSG", payload: Buffer) {
         const buffer = Buffer.alloc(8 + payload.length);
         const stream = new BinaryStream(buffer);
         writeTCPMessageHeader(msgType, "F", buffer.length, stream);
@@ -275,6 +300,102 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
             } else {
                 done(new Error("transport.connect should have raised a connection error"));
             }
+        });
+    });
+
+    // an Acknowledge payload: protocolVersion, receiveBufferSize, sendBufferSize,
+    // maxMessageSize, maxChunkCount
+    function makeAckPayload(receiveBufferSize: number, sendBufferSize: number) {
+        const payload = Buffer.alloc(20);
+        payload.writeUInt32LE(0, 0);
+        payload.writeUInt32LE(receiveBufferSize, 4);
+        payload.writeUInt32LE(sendBufferSize, 8);
+        payload.writeUInt32LE(100000, 12);
+        payload.writeUInt32LE(0, 16);
+        return payload;
+    }
+
+    function shouldFailHandshake(reply: Buffer, expectedError: RegExp, done: Mocha.Done) {
+        // the server keeps the connection open so that the client is responsible for closing it.
+        fakeServer.pushResponse(sinon.spy((socket, _data) => socket.write(reply)));
+
+        clientTransport.timeout = 1000;
+
+        clientTransport.connect(endpointUrl, (err) => {
+            if (err) {
+                should(err.message).match(expectedError);
+                spyOnConnect.callCount.should.eql(0);
+                // the failed handshake must not leave a half-open socket behind
+                should.not.exist((clientTransport as unknown as { _socket: net.Socket | null })._socket);
+                done();
+            } else {
+                done(new Error("transport.connect should have raised a connection error"));
+            }
+        });
+    }
+
+    it("TCS-4d should report an error (and not crash) on an ACK whose receiveBufferSize is below the header size - #1782", (done) => {
+        shouldFailHandshake(makeRawChunk("ACK", makeAckPayload(4, 8192)), /invalid buffer size/, done);
+    });
+
+    it("TCS-4e should report an error (and not crash) on an ACK with a zero sendBufferSize - #1782", (done) => {
+        shouldFailHandshake(makeRawChunk("ACK", makeAckPayload(8192, 0)), /invalid buffer size/, done);
+    });
+
+    it("TCS-4f should report an error (and not crash) when HEL is answered by neither ACK nor ERR - #1782", (done) => {
+        shouldFailHandshake(makeRawChunk("MSG", makeAckPayload(4, 8192)), /unexpected message type/, done);
+    });
+
+    it("TCS-4g should close the connection with the error, not crash, when a chunk listener throws", (done) => {
+        // the throw happens inside the socket "data" handler, where nothing but the
+        // transport itself can catch it: before the fix it was an uncaught exception.
+        const message1 = Buffer.alloc(10);
+        const spyOnServerWrite = sinon.spy((socket: net.Socket, data: Buffer) => {
+            if (spyOnServerWrite.callCount === 1) {
+                socket.write(packTcpMessage("ACK", fakeAcknowledgeMessage));
+            } else {
+                socket.write(data); // echo the chunk back
+            }
+        });
+        fakeServer.pushResponse(spyOnServerWrite);
+        fakeServer.pushResponse(spyOnServerWrite);
+
+        clientTransport.timeout = 1000;
+
+        clientTransport.on("chunk", () => {
+            throw new Error("listener failure");
+        });
+        clientTransport.on("close", (err) => {
+            should(err).be.instanceOf(Error);
+            should((err as Error).message).match(/listener failure/);
+            done();
+        });
+
+        clientTransport.connect(endpointUrl, (err) => {
+            should.not.exist(err);
+            const chunk = Buffer.alloc(18);
+            writeTCPMessageHeader("MSG", "F", chunk.length, new BinaryStream(chunk));
+            message1.copy(chunk, 8);
+            clientTransport.write(chunk);
+        });
+    });
+
+    it("TCS-4h write() should report an inconsistent chunk through the callback instead of throwing", (done) => {
+        fakeServer.pushResponse(
+            sinon.spy((socket: net.Socket, _data: Buffer) => socket.write(packTcpMessage("ACK", fakeAcknowledgeMessage)))
+        );
+        clientTransport.timeout = 1000;
+        clientTransport.connect(endpointUrl, (err) => {
+            should.not.exist(err);
+            // header announces 100 bytes, the chunk has 18
+            const chunk = Buffer.alloc(18);
+            writeTCPMessageHeader("MSG", "F", 100, new BinaryStream(chunk));
+            clientTransport.write(chunk, (err2) => {
+                should(err2).be.instanceOf(Error);
+                should((err2 as Error).message).match(/header announces 100 bytes/);
+                done();
+                return undefined;
+            });
         });
     });
 
@@ -339,7 +460,7 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
          *  - a created chunk should be committed using the ```write``` method before an other one is created.
          */
         function createChunk(msgType: "MSG", chunkType: "A" | "F", headerSize: number, length: number) {
-            assert(msgType === "MSG");
+            should(msgType).eql("MSG");
             const totalLength = length + headerSize;
             const buffer = Buffer.alloc(totalLength);
             const stream = new BinaryStream(buffer);
@@ -350,7 +471,7 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
             if (err) {
                 errorLog(chalk.bgWhite.red(" err = "), err.message);
             }
-            assert(!err);
+            should.not.exist(err);
             const buf = createChunk("MSG", "F", TCP_transport.headerSize, message1.length);
             message1.copy(buf, TCP_transport.headerSize, 0, message1.length);
             clientTransport.write(buf);
@@ -373,7 +494,7 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
                 socket.write(messageChunk);
                 return;
             }
-            assert(false, "unexpected data received");
+            throw new Error("unexpected data received");
         });
         fakeServer.pushResponse(spyOnServerWrite);
         fakeServer.pushResponse(spyOnServerWrite);
@@ -394,14 +515,14 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
             if (err) {
                 errorLog(chalk.bgWhite.red(" err = "), err.message);
             }
-            assert(!err);
+            should.not.exist(err);
             server_confirms_that_server_socket_has_been_closed.should.equal(false);
             transport_confirms_that_close_event_has_been_processed.should.equal(false);
             clientTransport.disconnect((err) => {
                 if (err) {
                     errorLog(chalk.bgWhite.red(" err = "), err.message);
                 }
-                assert(!err);
+                should.not.exist(err);
                 // Both flags are set from socket 'close' handlers, which are events, not
                 // continuations: a single setImmediate is not a guarantee that either has
                 // run. It held while the machine was idle and stopped holding under the
@@ -447,7 +568,7 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
             } else if (counter === 2) {
                 //
             } else {
-                assert(false, "unexpected data received");
+                throw new Error("unexpected data received");
             }
         });
         fakeServer.pushResponse(spyOnServerWrite);
@@ -471,7 +592,7 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
         });
 
         clientTransport.connect(endpointUrl, (err) => {
-            assert(!err);
+            should.not.exist(err);
         });
     });
 
@@ -479,7 +600,7 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
         clientTransport.timeout = 100;
 
         const spyOnServerWrite = sinon.spy((socket, data) => {
-            assert(data);
+            should.exist(data);
             // received Fake HEL Message
             // send Fake ACK response
             const messageChunk = packTcpMessage("ACK", fakeAcknowledgeMessage);
@@ -652,7 +773,7 @@ describe("testing ClientTCP_transport", function (this: Mocha.Suite) {
 
             // Re-enter connect() on the SAME transport object, exactly as the backoff
             // retry does. Before the fix a leaked socket was still installed and
-            // _install_socket asserted "already have a socket", throwing synchronously
+            // _install_socket threw "already have a socket" synchronously
             // out of the reconnection timer and crashing the process. The retry here
             // targets a refused port so it fails cleanly through the callback instead.
             let synchronousThrow: Error | null = null;

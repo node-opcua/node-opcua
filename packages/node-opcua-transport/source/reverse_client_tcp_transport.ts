@@ -62,7 +62,7 @@ export class ReverseClientTCP_transport extends ClientTransportBase {
         this.#provider()
             .then((accepted: IAcceptedReverseConnection) => {
                 // The RHE tells us which endpoint URL to use for the SecureChannel.
-                // _send_HELLO_request asserts endpointUrl.length > 0, so this must be set first.
+                // _send_HELLO_request puts endpointUrl in the HEL, so this must be set first.
                 this.endpointUrl = accepted.endpointUrl || endpointUrl;
                 this.serverUri = accepted.serverUri || this.serverUri;
 

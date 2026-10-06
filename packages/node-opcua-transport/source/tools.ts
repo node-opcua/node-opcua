@@ -2,37 +2,31 @@
  * @module node-opcua-transport
  */
 
-import { assert } from "node-opcua-assert";
 import { BinaryStream, type OutputBinaryStream } from "node-opcua-binary-stream";
 import { readMessageHeader } from "node-opcua-chunkmanager";
 import type { BaseUAObject } from "node-opcua-factory";
 
 import { TCPErrorMessage } from "./TCPErrorMessage.js";
 
+const validMsgTypes = [
+    "HEL",
+    "ACK",
+    "ERR", // Connection Layer
+    "RHE", // ReverseHello - OPC UA Part 6 §7.1.2.6 (server-initiated / reverse connect)
+    "OPN",
+    "MSG",
+    "CLO" // OPC Unified Architecture, Part 6 page 36
+];
+const validChunkTypes = ["A", "F", "C"];
+
 function is_valid_msg_type(msgType: string): boolean {
-    assert(
-        [
-            "HEL",
-            "ACK",
-            "ERR", // Connection Layer
-            "RHE", // ReverseHello - OPC UA Part 6 §7.1.2.6 (server-initiated / reverse connect)
-            "OPN",
-            "MSG",
-            "CLO" // OPC Unified Architecture, Part 6 page 36
-        ].indexOf(msgType) >= 0,
-        `invalid message type  ${msgType}`
-    );
-    return true;
+    return validMsgTypes.indexOf(msgType) >= 0;
 }
 
 export type ConstructorFunc = new () => BaseUAObject;
 
 export function decodeMessage(stream: BinaryStream, classNameConstructor: ConstructorFunc): BaseUAObject {
-    assert(stream instanceof BinaryStream);
-    assert(classNameConstructor instanceof Function, ` expecting a function for ${classNameConstructor}`);
-
     const header = readMessageHeader(stream);
-    assert(stream.length === 8);
 
     let obj: BaseUAObject;
     if (header.msgType === "ERR") {
@@ -47,8 +41,6 @@ export function decodeMessage(stream: BinaryStream, classNameConstructor: Constr
 }
 
 export function packTcpMessage(msgType: string, encodableObject: BaseUAObject): Buffer {
-    assert(is_valid_msg_type(msgType));
-
     const messageChunk = Buffer.allocUnsafe(encodableObject.binaryStoreSize() + 8);
     // encode encode-ableObject in a packet
     const stream = new BinaryStream(messageChunk);
@@ -106,8 +98,14 @@ export function writeTCPMessageHeader(msgType: string, chunkType: string, totalL
     if (stream instanceof Buffer) {
         stream = new BinaryStream(stream);
     }
-    assert(is_valid_msg_type(msgType));
-    assert(["A", "F", "C"].indexOf(chunkType) !== -1);
+    // the caller is always node-opcua code: a bad type is a programming error, reported
+    // as a plain exception so that it surfaces where the chunk is built.
+    if (!is_valid_msg_type(msgType)) {
+        throw new Error(`invalid message type ${JSON.stringify(msgType)}`);
+    }
+    if (validChunkTypes.indexOf(chunkType) === -1) {
+        throw new Error(`invalid chunk type ${JSON.stringify(chunkType)}`);
+    }
 
     stream.writeUInt8(msgType.charCodeAt(0));
     stream.writeUInt8(msgType.charCodeAt(1));
@@ -124,5 +122,7 @@ function encodeMessage(msgType: string, messageContent: BaseUAObject, stream: Ou
 
     writeTCPMessageHeader(msgType, "F", totalLength, stream);
     messageContent.encode(stream);
-    assert(totalLength === stream.length, "invalid message size");
+    if (totalLength !== stream.length) {
+        throw new Error(`invalid message size: binaryStoreSize announced ${totalLength} bytes, encode wrote ${stream.length}`);
+    }
 }

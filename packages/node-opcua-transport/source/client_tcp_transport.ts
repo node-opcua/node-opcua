@@ -7,7 +7,6 @@ import os from "node:os";
 import { types } from "node:util";
 import chalk from "chalk";
 
-import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import type { ErrorCallback } from "node-opcua-status-code";
 
@@ -42,7 +41,6 @@ function createClientSocket(endpointUrl: string, timeout: number): ISocketLike {
 
             return socket;
         case "fake:":
-            assert(ep.protocol === "fake:", " Unsupported transport protocol");
             socket = getFakeTransport();
             return socket;
         default: {
@@ -149,9 +147,8 @@ export class ClientTCP_transport extends ClientTransportBase {
             // this handler will catch attempt to connect to an inaccessible address.
             /* c8 ignore next */
             doDebug && debugLog(chalk.cyan("ClientTCP_transport#connect - _on_socket_error_for_connect"), err.message);
-            assert(types.isNativeError(err));
             _remove_connect_listeners();
-            callback(err);
+            callback(types.isNativeError(err) ? err : new Error(String(err)));
         };
 
         const _on_socket_end_for_connect = () => {
@@ -173,7 +170,7 @@ export class ClientTCP_transport extends ClientTransportBase {
             this._install_socket(socket);
         } catch (err) {
             // a transport object may be reused across reconnection attempts. If a
-            // previous socket is somehow still installed, _install_socket asserts.
+            // previous socket is somehow still installed, _install_socket throws.
             // Report that synchronously through the callback instead of letting it
             // escape into a caller's reconnection timer, and drop the fresh socket
             // we just created so it does not linger unmonitored.

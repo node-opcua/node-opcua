@@ -1,5 +1,5 @@
-import { assert } from "node-opcua-assert";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import sinon from "sinon";
 import type { ISocketLike } from "../source/index.js";
 import type { ITransportPair } from "../test_helpers/ITransportPair.js";
@@ -113,8 +113,8 @@ function installTestFor(Transport: new (options: { port: number }) => ITransport
             if (!transportPair) throw new Error("internal error");
             transportPair.initialize(() => {
                 if (!transportPair) throw new Error("internal error");
-                assert(transportPair.client);
-                assert(transportPair.server);
+                should.exist(transportPair.client);
+                should.exist(transportPair.server);
 
                 (transportPair.client as unknown as { name: string }).name = `client${counter}`;
                 (transportPair.server as unknown as { name: string }).name = `server${counter}`;

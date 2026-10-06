@@ -4,7 +4,6 @@
 // system
 
 import chalk from "chalk";
-import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { verify_message_chunk } from "node-opcua-chunkmanager";
 // opcua requires
@@ -26,7 +25,9 @@ const warningLog = make_warningLog("TRANSPORT");
 const doDebug = checkDebugFlag("TRANSPORT");
 
 function clamp_value(value: number, minVal: number, maxVal: number): number {
-    assert(minVal <= maxVal);
+    if (minVal > maxVal) {
+        throw new Error(`invalid transport parameters: minimum ${minVal} is greater than maximum ${maxVal}`);
+    }
     if (value === 0) {
         return maxVal;
     }
@@ -172,8 +173,16 @@ export class ServerTCP_transport extends TCP_transport {
         // c8 ignore next
         debugLog?.(chalk.cyan("init socket"));
 
-        assert(!this._socket, "init already called!");
-        this._install_socket(socket);
+        if (this._socket) {
+            callback(new Error("ServerTCP_transport#init: init already called"));
+            return;
+        }
+        try {
+            this._install_socket(socket);
+        } catch (err) {
+            callback(err instanceof Error ? err : new Error(String(err)));
+            return;
+        }
         this._install_HEL_message_receiver(callback);
     }
 
@@ -197,7 +206,10 @@ export class ServerTCP_transport extends TCP_transport {
         // c8 ignore next
         debugLog?.(chalk.cyan("initReverse socket"));
 
-        assert(!this._socket, "init already called!");
+        if (this._socket) {
+            callback(new Error("ServerTCP_transport#initReverse: init already called"));
+            return;
+        }
 
         const reverseHelloMessage = new ReverseHelloMessage({
             serverUri: reverseHello.serverUri,
@@ -211,7 +223,12 @@ export class ServerTCP_transport extends TCP_transport {
             return;
         }
 
-        this._install_socket(socket);
+        try {
+            this._install_socket(socket);
+        } catch (err) {
+            callback(err instanceof Error ? err : new Error(String(err)));
+            return;
+        }
 
         // c8 ignore next
         doTraceHelloAck && warningLog(`sending ReverseHello\n${reverseHelloMessage.toString()}`);
@@ -248,10 +265,8 @@ export class ServerTCP_transport extends TCP_transport {
         }, ServerTCP_transport.throttleTime);
     }
 
+    // the caller has already checked the buffer sizes against minimumBufferSize
     private _send_ACK_response(helloMessage: HelloMessage): void {
-        assert(helloMessage.receiveBufferSize >= minimumBufferSize);
-        assert(helloMessage.sendBufferSize >= minimumBufferSize);
-
         const limits = this.adjustLimits(helloMessage);
 
         this.setLimits(limits);
@@ -313,7 +328,11 @@ export class ServerTCP_transport extends TCP_transport {
         // c8 ignore next
         doDebug && debugLog(chalk.cyan("_on_HEL_message"));
 
-        assert(!this._helloReceived);
+        // c8 ignore next
+        if (this._helloReceived) {
+            callback(new Error("HEL message already received"));
+            return;
+        }
         const stream = new BinaryStream(data);
         const msgType = data.subarray(0, 3).toString("utf-8");
 
@@ -325,7 +344,9 @@ export class ServerTCP_transport extends TCP_transport {
 
         if (msgType === "HEL") {
             try {
-                assert(data.length >= 24);
+                if (data.length < 24) {
+                    throw new Error(`HEL message too short (${data.length} bytes)`);
+                }
                 const decoded = decodeMessage(stream, HelloMessage);
                 if (!(decoded instanceof HelloMessage)) {
                     throw new Error("expecting a HelloMessage");

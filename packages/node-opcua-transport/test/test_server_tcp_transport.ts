@@ -1,11 +1,9 @@
-import "should";
-
-import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { readMessageHeader } from "node-opcua-chunkmanager";
 import { make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { compare_buffers } from "node-opcua-utils";
+import should from "should";
 import sinon from "sinon";
 
 import {
@@ -14,7 +12,8 @@ import {
     HelloMessage,
     packTcpMessage,
     ServerTCP_transport,
-    TCPErrorMessage
+    TCPErrorMessage,
+    writeTCPMessageHeader
 } from "../dist/source/index.js";
 
 import { type ITransportPair, TransportPairDirect, TransportPairSocket } from "../dist/test_helpers/index.js";
@@ -95,7 +94,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
             let hasBeenClosed = false;
             let _errInit: Error | null = null;
             serverTransport.init(transportPair.server, (err) => {
-                assert(err);
+                should.exist(err);
                 _errInit = err as Error;
                 _errInit.message.should.match(/timeout/);
                 spyOnClose.callCount.should.eql(1);
@@ -125,7 +124,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
         it("TSS-1 should send a TCPErrorMessage and close the communication if the client initiates the communication with a message which is not HEL", (done) => {
             let _err: Error | null = null;
             serverTransport.init(transportPair.server, (err) => {
-                assert(err);
+                should.exist(err);
                 _err = err as Error | null;
 
                 (_err! as Error).message.should.match(/Expecting 'HEL' message/);
@@ -152,7 +151,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
 
         it("TSS-2 should bind a socket and process the HEL message by returning ACK", (done) => {
             serverTransport.init(transportPair.server, (err) => {
-                assert(!err);
+                should.not.exist(err);
             });
 
             // simulate client send HEL
@@ -205,11 +204,30 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
             test_malformedHelloMessage(altered_helloMessage3, done);
         });
 
+        it("TSS-5b should reject (and not crash on) a HEL chunk shorter than the fixed Hello fields", (done) => {
+            // a self-consistent 12-byte HEL chunk: 8-byte header plus a protocolVersion, nothing else
+            const shortHello = Buffer.alloc(12);
+            writeTCPMessageHeader("HEL", "F", shortHello.length, new BinaryStream(shortHello));
+            test_malformedHelloMessage(shortHello, done);
+        });
+
+        it("TSS-5c init() called twice should report the second call through its callback", (done) => {
+            serverTransport.init(transportPair.server, (_err) => {
+                /* first init: completes (or fails) when the pair shuts down */
+            });
+            serverTransport.init(transportPair.server, (err) => {
+                should(err).be.instanceOf(Error);
+                should((err as Error).message).match(/init already called/);
+                transportPair.client.end();
+                done();
+            });
+        });
+
         it("TSS-6 should bind a socket and process the HEL message by returning ERR if protocol version is not OK", (done) => {
             serverTransport.protocolVersion.should.eql(0);
             serverTransport.protocolVersion = 10;
             serverTransport.init(transportPair.server, (err) => {
-                assert(err);
+                should.exist(err);
                 (err as Error).message.should.match(/BadProtocolVersionUnsupported/);
             });
 
@@ -256,7 +274,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
                 if (err) {
                     console.log(err.message);
                 }
-                assert(!err);
+                should.not.exist(err);
             });
 
             serverTransport.on("chunk", (messageChunk) => {
@@ -456,7 +474,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
 
         it("TSS-F should reply ERR when the bytes following HEL in the same packet announce an oversized chunk", (done) => {
             serverTransport.init(transportPair.server, (err) => {
-                assert(!err);
+                should.not.exist(err);
             });
             serverTransport.on("chunk", (_messageChunk) => {
                 done(new Error("Not expecting a message"));
@@ -476,7 +494,7 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
 
         it("TSS-G should forward a message chunk that follows HEL in the same packet", (done) => {
             serverTransport.init(transportPair.server, (err) => {
-                assert(!err);
+                should.not.exist(err);
             });
             serverTransport.on("chunk", (messageChunk) => {
                 compare_buffers(messageChunk, openChannelRequest);
