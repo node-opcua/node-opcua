@@ -567,23 +567,16 @@ function monitoredItem_read_and_record_value(
  * @private
  */
 function monitoredItem_read_and_record_value_async(
-    self: MonitoredItem,
+    _self: MonitoredItem,
     context: ISessionContext,
-    oldValue: DataValue,
+    _oldValue: DataValue,
     node: UAVariable,
-    itemToMonitor: ReadValueId,
+    _itemToMonitor: ReadValueId,
     callback: (err: Error | null, dataValue?: DataValue) => void
 ) {
-    assert(context instanceof SessionContext);
-    assert(itemToMonitor.attributeId === AttributeIds.Value);
-    assert(self instanceof MonitoredItem);
-    assert(oldValue instanceof DataValue);
-    // do it asynchronously ( this is only valid for value attributes )
-    assert(itemToMonitor.attributeId === AttributeIds.Value);
-
-    node.readValueAsync(context, (err: Error | null, dataValue?: DataValue) => {
-        callback(err, dataValue);
-    });
+    // runs on every sample of every monitored item, so it asserts nothing: it is only chosen by
+    // build_scanning_node_function for the Value attribute of a node that has readValueAsync
+    node.readValueAsync(context, callback);
 }
 
 function build_scanning_node_function(nodeFinder: INodeFinder, itemToMonitor: ReadValueId): SamplingFunc {
@@ -624,9 +617,6 @@ function build_scanning_node_function(nodeFinder: INodeFinder, itemToMonitor: Re
             oldDataValue: DataValue,
             callback: (err: Error | null, dataValue?: DataValue) => void
         ) {
-            assert(this instanceof MonitoredItem);
-            assert(oldDataValue instanceof DataValue);
-            assert(typeof callback === "function");
             monitoredItem_read_and_record_value_func(this, sessionContext, oldDataValue, node, itemToMonitor, callback);
         };
     } else {

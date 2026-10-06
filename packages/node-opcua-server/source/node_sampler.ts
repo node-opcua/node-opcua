@@ -29,6 +29,8 @@ interface ITimer {
      * that had to be kept in step is gone.
      */
     monitoredItems: Map<number, MonitoredItem>;
+    /** the pass that samples every item of this interval, once a tick has queued it */
+    passImmediate?: NodeJS.Immediate;
 }
 const timers: Record<string, ITimer> = {};
 const NS_PER_SEC = 1e9;
@@ -36,18 +38,6 @@ const NS_PER_SEC = 1e9;
 interface MonitoredItemPriv {
     _on_sampling_timer(): void;
 }
-function sampleMonitoredItem(monitoredItem: MonitoredItem) {
-    const _monitoredItem = monitoredItem as unknown as MonitoredItemPriv;
-
-    if (monitoredItem.monitoringMode === MonitoringMode.Disabled) {
-        return;
-    }
-
-    setImmediate(() => {
-        _monitoredItem._on_sampling_timer();
-    });
-}
-
 /**
  * the point of the sampling grid the next tick is due at, given the one the current
  * tick was due at.
@@ -86,12 +76,17 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
             monitoredItems: new Map()
         };
 
-        const tick = () => {
-            scheduleNextTick(_t, samplingInterval, tick);
+        // one immediate per tick samples every item: Node runs the immediates queued before
+        // its check phase back to back anyway, so one per item only added the queueing cost
+        // without letting any I/O through in between
+        const samplePass = () => {
+            _t.passImmediate = undefined;
             const start = doDebug ? hrtime() : undefined;
             let counter = 0;
             for (const monitoredItem of _t.monitoredItems.values()) {
-                sampleMonitoredItem(monitoredItem);
+                if (monitoredItem.monitoringMode !== MonitoringMode.Disabled) {
+                    (monitoredItem as unknown as MonitoredItemPriv)._on_sampling_timer();
+                }
                 counter++;
             }
             /* c8 ignore next */
@@ -102,6 +97,13 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
                         (elapsed[0] * NS_PER_SEC + elapsed[1]) / 1000 / 1000.0
                     ).toFixed(3)} milliseconds for ${counter} elements`
                 );
+            }
+        };
+        const tick = () => {
+            scheduleNextTick(_t, samplingInterval, tick);
+            // a pass still queued from the previous tick samples the same items: nothing to add
+            if (!_t.passImmediate) {
+                _t.passImmediate = setImmediate(samplePass);
             }
         };
         scheduleNextTick(_t, samplingInterval, tick);
@@ -129,6 +131,9 @@ export function removeFromTimer(monitoredItem: MonitoredItem): void {
     if (_t.monitoredItems.size === 0) {
         if (_t._samplingId !== false) {
             clearTimeout(_t._samplingId);
+        }
+        if (_t.passImmediate) {
+            clearImmediate(_t.passImmediate);
         }
         delete timers[key];
     }
