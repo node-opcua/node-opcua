@@ -47,9 +47,27 @@ const debugLog = make_debugLog("SecureChannel");
 const doDebug = checkDebugFlag("SecureChannel");
 const warningLog = make_warningLog("SecureChannel");
 
+/**
+ * construct the message to decode. The object is decoded right away, so its fields are not
+ * initialised from the schema (the generated constructors, and the hand-written ones such as
+ * QualifiedName, take `null` for that). A constructor that does not take `null` gets the usual call.
+ */
+function constructForDecoding(binaryEncodingNodeId: NodeId): BaseUAObject {
+    const factory = getStandardDataTypeFactory();
+    const Constructor = factory.getConstructor(binaryEncodingNodeId) as (new (options?: null) => BaseUAObject) | null;
+    if (!Constructor) {
+        return factory.constructObject(binaryEncodingNodeId) as BaseUAObject; // throws as it always did
+    }
+    try {
+        return new Constructor(null);
+    } catch {
+        return new Constructor();
+    }
+}
+
 const defaultObjectFactory = {
     constructObject(binaryEncodingNodeId: NodeId): BaseUAObject {
-        return getStandardDataTypeFactory().constructObject(binaryEncodingNodeId);
+        return constructForDecoding(binaryEncodingNodeId);
     },
     hasConstructor(binaryEncodingNodeId: ExpandedNodeId): boolean {
         return getStandardDataTypeFactory().hasConstructor(binaryEncodingNodeId);
