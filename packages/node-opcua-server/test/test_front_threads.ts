@@ -278,7 +278,7 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             );
             should(seen).eql(
                 Array.from({ length: 20 }, (_, k) => k + 1),
-                "one notification per write"
+                `one notification per write, received ${seen.join(",")}`
             );
             await item.terminate();
         });
