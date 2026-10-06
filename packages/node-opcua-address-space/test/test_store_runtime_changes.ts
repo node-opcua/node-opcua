@@ -1,13 +1,13 @@
 import { readFileSync } from "node:fs";
+import { StoreAddressSpace, type StoreVariableView } from "node-opcua-address-space-store";
 import { NodeClass } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
+import { compactRecordConsumer } from "../dist/api/index.js";
 import { xmlNodesetRecords } from "../dist/api/loader/nodeset_xml_producer.js";
-import { StoreAddressSpace } from "../dist/impl/store_views/store_address_space.js";
-import type { StoreVariableView } from "../dist/impl/store_views/store_variable_view.js";
 
 describe("store runtime changes: nodes and references added and removed through the views", function () {
     this.timeout(60000);
@@ -16,11 +16,11 @@ describe("store runtime changes: nodes and references added and removed through 
 
     before(async () => {
         space = new StoreAddressSpace({ expectedNodes: 8192 });
-        const consumer = space.recordConsumer();
+        const consumer = compactRecordConsumer(space);
         for await (const record of xmlNodesetRecords([readFileSync(nodesets.standard, "utf8")])) {
             consumer.apply(record);
         }
-        should(space.finishLoad().unresolved).eql(0);
+        should(consumer.finish().unresolved).eql(0);
         ns = space.registerNamespace("urn:test:runtime");
         should(ns).eql(1);
     });

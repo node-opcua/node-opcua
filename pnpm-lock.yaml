@@ -758,12 +758,33 @@ importers:
 
   packages/node-opcua-address-space-store:
     dependencies:
+      node-opcua-address-space-base:
+        specifier: 2.186.17
+        version: link:../node-opcua-address-space-base
+      node-opcua-constants:
+        specifier: 2.185.0
+        version: link:../node-opcua-constants
       node-opcua-data-model:
         specifier: 2.186.10
         version: link:../node-opcua-data-model
+      node-opcua-data-value:
+        specifier: 2.186.10
+        version: link:../node-opcua-data-value
+      node-opcua-date-time:
+        specifier: 2.186.7
+        version: link:../node-opcua-date-time
       node-opcua-nodeid:
         specifier: 2.186.7
         version: link:../node-opcua-nodeid
+      node-opcua-numeric-range:
+        specifier: 2.186.7
+        version: link:../node-opcua-numeric-range
+      node-opcua-status-code:
+        specifier: 2.186.7
+        version: link:../node-opcua-status-code
+      node-opcua-types:
+        specifier: 2.186.10
+        version: link:../node-opcua-types
       node-opcua-variant:
         specifier: 2.186.10
         version: link:../node-opcua-variant

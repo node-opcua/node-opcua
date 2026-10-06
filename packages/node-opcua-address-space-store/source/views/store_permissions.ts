@@ -1,5 +1,5 @@
 /**
- * @module node-opcua-address-space
+ * @module node-opcua-address-space-store
  *
  * What a session may do with a node of the store: the same rules as SessionContext applies to
  * node objects (access restrictions against the channel's security mode, role permissions
@@ -7,12 +7,13 @@
  * from the columns instead of the node.
  */
 import type { ISessionContext } from "node-opcua-address-space-base";
-import { type RolePermissionEntry, ValueKind } from "node-opcua-address-space-store";
 import { WellKnownRoles } from "node-opcua-constants";
 import { AccessLevelFlag, AccessRestrictionsFlag, PermissionFlag } from "node-opcua-data-model";
 import { type NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { MessageSecurityMode } from "node-opcua-types";
+import type { RolePermissionEntry } from "../node_store.js";
+import { ValueKind } from "../value_store.js";
 import type { StoreAddressSpace } from "./store_address_space.js";
 
 export type UnresolvedPermissionPolicy = "allow" | "deny";

@@ -1,5 +1,5 @@
 /**
- * @module node-opcua-address-space
+ * @module node-opcua-address-space-store
  *
  * An Object over a node index.
  */

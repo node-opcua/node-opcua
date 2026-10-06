@@ -1,14 +1,15 @@
 /**
- * @module node-opcua-address-space
+ * @module node-opcua-address-space-store
  *
  * Nodes and references added to the store while it runs, with the options the object
  * namespace takes (browseName, componentOf/organizedBy/propertyOf, typeDefinition, dataType,
  * value): the records go into the columns and the view comes back.
  */
-import type { NodeRecord, RolePermissionEntry } from "node-opcua-address-space-store";
+
 import { AccessLevelFlag, type LocalizedTextLike, NodeClass, QualifiedName, type QualifiedNameLike } from "node-opcua-data-model";
 import { NodeId, type NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { DataType, type VariantLike } from "node-opcua-variant";
+import type { NodeRecord, RolePermissionEntry } from "../node_store.js";
 import type { StoreAddressSpace } from "./store_address_space.js";
 import type { StoreNodeView, VariableBinding } from "./store_node_view.js";
 import type { StoreVariableView } from "./store_variable_view.js";

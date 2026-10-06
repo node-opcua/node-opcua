@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { StoreAddressSpace, type StoreVariableView } from "node-opcua-address-space-store";
 import { AttributeIds, QualifiedName } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { nodesets } from "node-opcua-nodesets";
@@ -7,10 +8,8 @@ import { StatusCodes } from "node-opcua-status-code";
 import { WriteValue } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import { CompactAddressSpaceServices } from "../dist/api/index.js";
+import { CompactAddressSpaceServices, compactRecordConsumer } from "../dist/api/index.js";
 import { xmlNodesetRecords } from "../dist/api/loader/nodeset_xml_producer.js";
-import { StoreAddressSpace } from "../dist/impl/store_views/store_address_space.js";
-import type { StoreVariableView } from "../dist/impl/store_views/store_variable_view.js";
 
 describe("store index ranges: a range of an array Value read and written on a compact Variable", function () {
     this.timeout(60000);
@@ -25,11 +24,11 @@ describe("store index ranges: a range of an array Value read and written on a co
 
     before(async () => {
         space = new StoreAddressSpace({ expectedNodes: 8192 });
-        const consumer = space.recordConsumer();
+        const consumer = compactRecordConsumer(space);
         for await (const record of xmlNodesetRecords([readFileSync(nodesets.standard, "utf8")])) {
             consumer.apply(record);
         }
-        space.finishLoad();
+        consumer.finish();
         space.registerNamespace("urn:test:ranges");
         services = new CompactAddressSpaceServices(space);
         const objects = space.findNode("ns=0;i=85") as never;

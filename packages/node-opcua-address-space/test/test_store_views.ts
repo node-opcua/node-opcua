@@ -1,13 +1,13 @@
 import { readFileSync } from "node:fs";
+import { StoreAddressSpace, StoreVariableView } from "node-opcua-address-space-store";
 import { AttributeIds, NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
+import { compactRecordConsumer } from "../dist/api/index.js";
 import { xmlNodesetRecords } from "../dist/api/loader/nodeset_xml_producer.js";
-import { StoreAddressSpace } from "../dist/impl/store_views/store_address_space.js";
-import { StoreVariableView } from "../dist/impl/store_views/store_variable_view.js";
 
 describe("store views: node objects on demand over the compact store", function () {
     this.timeout(60000);
@@ -15,11 +15,11 @@ describe("store views: node objects on demand over the compact store", function 
 
     before(async () => {
         space = new StoreAddressSpace({ expectedNodes: 8192, viewCacheSize: 64 });
-        const consumer = space.recordConsumer();
+        const consumer = compactRecordConsumer(space);
         for await (const record of xmlNodesetRecords([readFileSync(nodesets.standard, "utf8")])) {
             consumer.apply(record);
         }
-        should(space.finishLoad().unresolved).eql(0);
+        should(consumer.finish().unresolved).eql(0);
     });
 
     it("finds a node and reads its attributes through a view", () => {

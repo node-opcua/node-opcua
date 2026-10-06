@@ -4,7 +4,7 @@
  * The nodeset records written straight into a compact store: no node object is created.
  * Same producer as the object applier (NodesetRecordApplier), other sink.
  */
-import { type CompactStore, NO_NODE, type RolePermissionEntry } from "node-opcua-address-space-store";
+import { type CompactStore, NO_NODE, type RolePermissionEntry, type StoreAddressSpace } from "node-opcua-address-space-store";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { DataType, VariantArrayType, type VariantOptions } from "node-opcua-variant";
@@ -214,4 +214,26 @@ function parseAccessRestrictions(text: string | undefined): number | undefined {
     }
     const value = parseInt(text, 10);
     return Number.isNaN(value) ? undefined : value & 0xf;
+}
+
+/** what a compact address space is loaded through: the records go in, finish() once they are all in */
+export interface CompactRecordConsumer extends NodesetRecordConsumer {
+    finish(): { unresolved: number };
+}
+
+/**
+ * the consumer a nodeset producer feeds to load a compact address space: the records written
+ * into its store, the namespaces registered on it, and what the space derives from its columns
+ * derived again at the end
+ */
+export function compactRecordConsumer(space: StoreAddressSpace, options: StoreRecordApplierOptions = {}): CompactRecordConsumer {
+    const applier = new StoreRecordApplier(space.store, { indexOf: (uri) => space.namespaceIndexOf(uri) }, options);
+    return {
+        apply: (record) => applier.apply(record),
+        finish: () => {
+            const result = applier.finish();
+            space.finishLoad();
+            return result;
+        }
+    };
 }

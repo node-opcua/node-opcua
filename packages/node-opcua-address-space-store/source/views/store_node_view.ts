@@ -1,5 +1,5 @@
 /**
- * @module node-opcua-address-space
+ * @module node-opcua-address-space-store
  *
  * A node object over a node index of the store: what the application reads of a node, and
  * the methods it calls, answered from the columns. Holds the index, never a row position, so
@@ -8,7 +8,6 @@
 
 import { EventEmitter } from "node:events";
 import type { ISessionContext } from "node-opcua-address-space-base";
-import { type BrowsedReference, NO_NODE } from "node-opcua-address-space-store";
 import {
     AttributeIds,
     isDataEncoding,
@@ -22,6 +21,8 @@ import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import type { Variant } from "node-opcua-variant";
+import type { BrowsedReference } from "../browser.js";
+import { NO_NODE } from "../node_id_index.js";
 import type { StoreAddressSpace } from "./store_address_space.js";
 import { attributeDataValue } from "./store_data_value.js";
 

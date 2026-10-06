@@ -10,15 +10,16 @@
         "source/**/*.ts"
     ],
     "references": [
-        {
-            "path": "../node-opcua-data-model"
-        },
-        {
-            "path": "../node-opcua-nodeid"
-        },
-        {
-            "path": "../node-opcua-variant"
-        }
+        { "path": "../node-opcua-address-space-base" },
+        { "path": "../node-opcua-constants" },
+        { "path": "../node-opcua-data-model" },
+        { "path": "../node-opcua-data-value" },
+        { "path": "../node-opcua-date-time" },
+        { "path": "../node-opcua-nodeid" },
+        { "path": "../node-opcua-numeric-range" },
+        { "path": "../node-opcua-status-code" },
+        { "path": "../node-opcua-types" },
+        { "path": "../node-opcua-variant" }
     ],
     "exclude": [
         "node_modules",
