@@ -8,6 +8,7 @@
 export { AttributeReader, type AttributeValue, ReadStatus } from "./attribute_reader.js";
 export { type BrowsedReference, type BrowseOptions, Browser, type RelativePathElement } from "./browser.js";
 export { CompactStore, type CompactStoreOptions, packedKey } from "./compact_store.js";
+export { DataTypeResolver, ResolvedType } from "./data_type_resolver.js";
 export { NO_NODE, NodeIdIndex } from "./node_id_index.js";
 export { NO_STRING, type NodeRecord, NodeStore, type RolePermissionEntry } from "./node_store.js";
 export { ReferenceTable } from "./reference_table.js";

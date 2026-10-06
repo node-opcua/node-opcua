@@ -156,15 +156,19 @@ export class StoreNodeBuilder {
         }
         if (nodeClass === NodeClass.ReferenceType) {
             space.browser.refresh();
+        } else if (nodeClass === NodeClass.DataType) {
+            space.dataTypes.invalidate();
         }
         space.permissions.invalidate();
         return index;
     }
 
     #afterReferenceChange(referenceType: NodeId): void {
-        // a HasSubtype between reference types changes what "include subtypes" means
+        // a HasSubtype changes what "include subtypes" means for reference types, and what a
+        // DataType resolves to
         if (referenceType.namespace === 0 && referenceType.value === 45) {
             this.#space.browser.refresh();
+            this.#space.dataTypes.invalidate();
         }
     }
 
