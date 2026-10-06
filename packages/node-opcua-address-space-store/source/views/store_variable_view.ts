@@ -11,8 +11,8 @@ import { DataValue, extractRange } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 import { NodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
-import { StatusCodes } from "node-opcua-status-code";
-import { DataType, Variant, VariantArrayType, type VariantLike } from "node-opcua-variant";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { DataType, sameVariant, Variant, VariantArrayType, type VariantLike } from "node-opcua-variant";
 import { ResolvedType } from "../data_type_resolver.js";
 import { NO_NODE } from "../node_id_index.js";
 import { ValueKind } from "../value_store.js";
@@ -154,8 +154,10 @@ export class StoreVariableView extends StoreNodeView {
         }
         const binding = this.space.bindings.get(this.index);
         if (binding?.set) {
-            const status = binding.set(dataValue.value);
-            if (typeof status === "number" && status !== StatusCodes.Good.value) {
+            // a setter answers with a StatusCode, its number, or nothing for Good
+            const answer = binding.set(dataValue.value);
+            const status = typeof answer === "number" ? answer : answer ? (answer as StatusCode).value : 0;
+            if (status !== StatusCodes.Good.value) {
                 return status;
             }
         }
@@ -250,13 +252,18 @@ export class StoreVariableView extends StoreNodeView {
         return resolved === ResolvedType.AbstractNumber || (resolved >= DataType.SByte && resolved <= DataType.Double);
     }
 
-    /** true when the columns already hold this scalar value with a Good status */
+    /** true when the columns already hold this value with a Good status */
     #sameAsStored(variant: Variant): boolean {
         const values = this.space.store.values;
         const i = this.index;
         const v = variant.value;
         if (variant.arrayType !== VariantArrayType.Scalar || (typeof v !== "number" && typeof v !== "boolean")) {
-            return false;
+            // a string, an array, a structure: compared with the Variant built from the columns
+            return (
+                values.kind(i) === ValueKind.Object &&
+                values.statusCode(i) === 0 &&
+                sameVariant(this.#dataValueFromColumns().value, variant)
+            );
         }
         const kind = values.kind(i);
         if (kind !== (typeof v === "boolean" ? ValueKind.Boolean : ValueKind.Number)) {

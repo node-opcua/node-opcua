@@ -985,9 +985,14 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         }
         // a load that fails reports once, through the callback, and the setup below is skipped
         const loadCompact = async () => {
-            if (!this.compactAddressSpace) return;
-            const files = nodesetDocuments.filter((d): d is string => typeof d === "string");
-            await generateCompactAddressSpace(this.compactAddressSpace, files);
+            const compact = this.compactAddressSpace;
+            if (!compact || !this.addressSpace) return;
+            // the compact space takes the node objects' namespace table as its own before it loads,
+            // so that a companion nodeset gets the same index in both (the server's own namespace
+            // sits at 1 on the node objects' side before any companion model)
+            compact.namespaceUris.length = 0;
+            compact.namespaceUris.push(...this.addressSpace.getNamespaceArray().map((n) => n.namespaceUri));
+            await generateCompactAddressSpace(compact, nodesetDocuments, options.nodesetLoaderOptions);
         };
         generateAddressSpace(this.addressSpace, nodesetDocuments, options.nodesetLoaderOptions)
             .then(loadCompact)

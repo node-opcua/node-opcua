@@ -39,7 +39,9 @@ function attributesOf(nodeClass: NodeClass): number {
         bit(AttributeIds.NodeClass) |
         bit(AttributeIds.BrowseName) |
         bit(AttributeIds.DisplayName) |
-        bit(AttributeIds.Description);
+        bit(AttributeIds.Description) |
+        bit(AttributeIds.WriteMask) |
+        bit(AttributeIds.UserWriteMask);
     switch (nodeClass) {
         case NodeClass.Object:
             return common | bit(AttributeIds.EventNotifier);
@@ -116,8 +118,24 @@ export class AttributeReader {
                     text === null ? new LocalizedText({ text: "" }) : new LocalizedText({ text })
                 );
             }
+            case AttributeIds.WriteMask:
+            case AttributeIds.UserWriteMask:
+                // nothing of a compact node is writable through its attributes but the Value
+                return scalar(DataType.UInt32, 0);
             case AttributeIds.IsAbstract:
                 return scalar(DataType.Boolean, nodes.isAbstract(node));
+            case AttributeIds.Symmetric:
+                return scalar(DataType.Boolean, nodes.symmetric(node));
+            case AttributeIds.InverseName: {
+                const text = nodes.inverseName(node);
+                return scalar(DataType.LocalizedText, new LocalizedText({ text: text ?? "" }));
+            }
+            case AttributeIds.ContainsNoLoops:
+                return scalar(DataType.Boolean, nodes.containsNoLoops(node));
+            case AttributeIds.Executable:
+            case AttributeIds.UserExecutable:
+                // a Method of the store is callable as far as the node knows; the server decides
+                return scalar(DataType.Boolean, true);
             case AttributeIds.EventNotifier:
                 return scalar(DataType.Byte, nodes.eventNotifier(node));
             case AttributeIds.DataType: {
