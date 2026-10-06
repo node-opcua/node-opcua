@@ -302,9 +302,12 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
     /**
      * returns the nodeId of this node's Type Definition
      */
+    /** the type definition, remembered on the node: a cache object for it alone was 56 bytes per node */
+    declare private _typeDefinition?: NodeId;
+    declare private _typeDefinitionObj?: UAObjectType | UAVariableType | null;
+
     public get typeDefinition(): NodeId {
-        const _cache = BaseNode_getCache(this);
-        if (!_cache.typeDefinition) {
+        if (!this._typeDefinition) {
             const has_type_definition_ref = this.findReference("HasTypeDefinition", true);
             let nodeId = has_type_definition_ref ? has_type_definition_ref.nodeId : null;
             if (!nodeId) {
@@ -318,21 +321,20 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
                     default:
                 }
             }
-            _cache.typeDefinition = nodeId as NodeId;
+            this._typeDefinition = nodeId as NodeId;
         }
-        return _cache.typeDefinition;
+        return this._typeDefinition;
     }
 
     /**
      * returns the nodeId of this node's Type Definition
      */
     public get typeDefinitionObj(): UAObjectType | UAVariableType {
-        const _cache = BaseNode_getCache(this);
-        if (undefined === _cache.typeDefinitionObj) {
+        if (undefined === this._typeDefinitionObj) {
             const nodeId = this.typeDefinition;
-            _cache.typeDefinitionObj = nodeId ? (this.addressSpace.findNode(nodeId) as UAObjectType | UAVariableType) : null;
+            this._typeDefinitionObj = nodeId ? (this.addressSpace.findNode(nodeId) as UAObjectType | UAVariableType) : null;
         }
-        if (!_cache.typeDefinitionObj) {
+        if (!this._typeDefinitionObj) {
             warningLog(
                 this.nodeClass,
                 "cannot find typeDefinitionObj ",
@@ -341,7 +343,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
                 NodeClass[this.nodeClass]
             );
         }
-        return _cache.typeDefinitionObj as UAObjectType | UAVariableType;
+        return this._typeDefinitionObj as UAObjectType | UAVariableType;
     }
 
     public get parentNodeId(): NodeId | undefined {
