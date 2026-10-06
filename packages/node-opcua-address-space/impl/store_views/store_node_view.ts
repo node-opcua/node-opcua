@@ -49,6 +49,10 @@ export class StoreReferenceView {
 export class StoreNodeView extends EventEmitter {
     public readonly space: StoreAddressSpace;
     public readonly index: number;
+    /** stamped by the view cache on each lookup */
+    public lastUse = 0;
+    #nodeId: NodeId | undefined;
+    #browseName: QualifiedName | undefined;
 
     constructor(space: StoreAddressSpace, index: number) {
         super();
@@ -60,14 +64,23 @@ export class StoreNodeView extends EventEmitter {
 
     // ---- attributes, straight from the columns
     public get nodeId(): NodeId {
-        return this.space.store.nodes.nodeId(this.index);
+        if (this.#nodeId === undefined) {
+            this.#nodeId = this.space.store.nodes.nodeId(this.index);
+        }
+        return this.#nodeId;
     }
     public get nodeClass(): NodeClass {
         return this.space.store.nodes.nodeClass(this.index);
     }
     public get browseName(): QualifiedName {
-        const nodes = this.space.store.nodes;
-        return new QualifiedName({ namespaceIndex: nodes.browseNameNamespace(this.index), name: nodes.browseName(this.index) });
+        if (this.#browseName === undefined) {
+            const nodes = this.space.store.nodes;
+            this.#browseName = new QualifiedName({
+                namespaceIndex: nodes.browseNameNamespace(this.index),
+                name: nodes.browseName(this.index)
+            });
+        }
+        return this.#browseName;
     }
     public get displayName(): LocalizedText[] {
         return [new LocalizedText({ text: this.space.store.nodes.displayName(this.index) })];

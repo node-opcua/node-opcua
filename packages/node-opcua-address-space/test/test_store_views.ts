@@ -31,7 +31,10 @@ describe("store views: node objects on demand over the compact store", function 
         should(server?.typeDefinitionObj?.browseName.name).eql("ServerType");
         // Objects organizes Server: not an aggregation, so no parent, as in the object address space
         should(server?.parent).eql(null);
-        should(space.findNode("ns=0;i=2256")?.parent?.nodeId.toString()).eql("ns=0;i=2253", "ServerStatus is a component of Server");
+        should(space.findNode("ns=0;i=2256")?.parent?.nodeId.toString()).eql(
+            "ns=0;i=2253",
+            "ServerStatus is a component of Server"
+        );
         should(server?.readAttribute(null, AttributeIds.DisplayName).value.value.text).eql("Server");
         should(server?.readAttribute(null, AttributeIds.Value).statusCode).eql(StatusCodes.BadAttributeIdInvalid);
     });
