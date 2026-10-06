@@ -242,6 +242,12 @@ export { type NodesetToImageOptions, nodesetToImage } from "./loader/nodeset_to_
 export { headerComplete, parseDependencies, sliceHeader } from "./loader/nodeset_xml_header.js";
 export { makeXmlNodesetRecordReader, type XmlNodesetRecordReader, xmlNodesetRecords } from "./loader/nodeset_xml_producer.js";
 export * from "./loader/register_node_promoter.js";
+export {
+    type CompactRecordConsumer,
+    compactRecordConsumer,
+    StoreRecordApplier,
+    type StoreRecordApplierOptions
+} from "./loader/store_record_applier.js";
 export * from "./namespace.js";
 export type { INamespaceAlarmAndCondition } from "./namespace_alarm_and_condition.js";
 export * from "./namespace_data_access.js";

@@ -1,10 +1,10 @@
+import type { StoreVariableView } from "node-opcua-address-space-store";
 import { AttributeIds, NodeClass } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, type CompactAddressSpace } from "../dist/api/index.js";
-import type { StoreVariableView } from "../dist/impl/store_views/store_variable_view.js";
 import { generateCompactAddressSpace } from "../nodeJS.js";
 
 describe("compact address space: AddressSpace.createCompact and the file loader", function () {

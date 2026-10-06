@@ -1,5 +1,5 @@
 /**
- * @module node-opcua-address-space
+ * @module node-opcua-address-space-store
  *
  * The Read, Write, Browse and TranslateBrowsePaths services answered on a compact address
  * space: the same statuses and the same result shapes as the node objects give, from the
@@ -7,7 +7,6 @@
  */
 
 import type { ISessionContext } from "node-opcua-address-space-base";
-import { type BrowsedReference, NO_NODE } from "node-opcua-address-space-store";
 import {
     AttributeIds,
     BrowseDirection,
@@ -35,6 +34,8 @@ import {
     type ReferenceDescriptionOptions,
     type WriteValue
 } from "node-opcua-types";
+import type { BrowsedReference } from "../browser.js";
+import { NO_NODE } from "../node_id_index.js";
 import type { StoreAddressSpace } from "./store_address_space.js";
 import { attributeDataValue, deniedDataValue, valueDataValue } from "./store_data_value.js";
 import type { StoreVariableView } from "./store_variable_view.js";

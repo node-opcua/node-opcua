@@ -1,13 +1,13 @@
 import { readFileSync } from "node:fs";
+import { StoreAddressSpace, type StoreVariableView } from "node-opcua-address-space-store";
 import { DataValue } from "node-opcua-data-value";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { ServerStatusDataType } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
+import { compactRecordConsumer } from "../dist/api/index.js";
 import { xmlNodesetRecords } from "../dist/api/loader/nodeset_xml_producer.js";
-import { StoreAddressSpace } from "../dist/impl/store_views/store_address_space.js";
-import type { StoreVariableView } from "../dist/impl/store_views/store_variable_view.js";
 
 describe("store data type validation: what a Variable's DataType accepts on a write", function () {
     this.timeout(60000);
@@ -18,11 +18,11 @@ describe("store data type validation: what a Variable's DataType accepts on a wr
 
     before(async () => {
         space = new StoreAddressSpace({ expectedNodes: 8192 });
-        const consumer = space.recordConsumer();
+        const consumer = compactRecordConsumer(space);
         for await (const record of xmlNodesetRecords([readFileSync(nodesets.standard, "utf8")])) {
             consumer.apply(record);
         }
-        should(space.finishLoad().unresolved).eql(0);
+        should(consumer.finish().unresolved).eql(0);
         space.registerNamespace("urn:test:datatypes");
     });
 

@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import type { ISessionContext } from "node-opcua-address-space-base";
+import { StoreAddressSpace, type StoreVariableView } from "node-opcua-address-space-store";
 import { WellKnownRoles } from "node-opcua-constants";
 import { AccessLevelFlag, AccessRestrictionsFlag, AttributeIds, NodeClass, PermissionFlag } from "node-opcua-data-model";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
@@ -8,9 +9,8 @@ import { StatusCodes } from "node-opcua-status-code";
 import { MessageSecurityMode, RolePermissionType } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
+import { compactRecordConsumer } from "../dist/api/index.js";
 import { xmlNodesetRecords } from "../dist/api/loader/nodeset_xml_producer.js";
-import { StoreAddressSpace } from "../dist/impl/store_views/store_address_space.js";
-import type { StoreVariableView } from "../dist/impl/store_views/store_variable_view.js";
 
 const anonymous = resolveNodeId(WellKnownRoles.Anonymous);
 const securityAdmin = resolveNodeId(WellKnownRoles.SecurityAdmin);
@@ -87,14 +87,14 @@ describe("store permissions: access restrictions and role permissions on the sto
     let nobody: StoreVariableView;
 
     before(async () => {
-        space = new StoreAddressSpace({ expectedNodes: 8192, accessRestrictions: "apply" });
-        const consumer = space.recordConsumer();
+        space = new StoreAddressSpace({ expectedNodes: 8192 });
+        const consumer = compactRecordConsumer(space, { accessRestrictions: "apply" });
         for (const document of [readFileSync(nodesets.standard, "utf8"), extraNodeset]) {
             for await (const record of xmlNodesetRecords([document])) {
                 consumer.apply(record);
             }
         }
-        should(space.finishLoad().unresolved).eql(0);
+        should(consumer.finish().unresolved).eql(0);
         const variable = (id: string) => {
             const view = space.findNode(id) as StoreVariableView;
             should(view).not.eql(null);

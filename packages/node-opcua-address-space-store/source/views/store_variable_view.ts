@@ -1,12 +1,11 @@
 /**
- * @module node-opcua-address-space
+ * @module node-opcua-address-space-store
  *
  * A Variable over a node index: its value read from the value columns, or from the getter the
  * application bound to it; its writes into the columns, with a version bump the samplers see.
  */
 
 import type { ISessionContext } from "node-opcua-address-space-base";
-import { NO_NODE, ResolvedType, ValueKind } from "node-opcua-address-space-store";
 import { AttributeIds, isValidDataEncoding, type QualifiedNameLike } from "node-opcua-data-model";
 import { DataValue, extractRange } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
@@ -14,6 +13,9 @@ import { NodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType, type VariantLike } from "node-opcua-variant";
+import { ResolvedType } from "../data_type_resolver.js";
+import { NO_NODE } from "../node_id_index.js";
+import { ValueKind } from "../value_store.js";
 import type { StoreAddressSpace } from "./store_address_space.js";
 import { deniedDataValue, valueDataValue } from "./store_data_value.js";
 import { StoreNodeView, type VariableBinding } from "./store_node_view.js";

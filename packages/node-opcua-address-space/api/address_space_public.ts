@@ -2,9 +2,8 @@
  * @module node-opcua-address-space
  */
 import type { IAddressSpace } from "node-opcua-address-space-base";
+import { type StoreAddressSpace, type StoreAddressSpaceOptions, StoreServices } from "node-opcua-address-space-store";
 import { AddressSpaceImpl } from "../impl/address_space.js";
-import type { StoreAddressSpace, StoreAddressSpaceOptions } from "../impl/store_views/store_address_space.js";
-import { StoreServices } from "../impl/store_views/store_services.js";
 import type { IHistorizerFactory } from "./address_space_ts.js";
 import type { Namespace } from "./namespace.js";
 import type { UARootFolder } from "./ua_root_folder.js";

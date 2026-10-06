@@ -1,17 +1,19 @@
 /**
- * @module node-opcua-address-space
+ * @module node-opcua-address-space-store
  *
  * An address space backed by the compact store. The store holds the data; the node objects
  * the application sees (`findNode()`, `folder.getChildByName()`) are views over a node index,
  * built on demand and kept in a bounded most-recently-used cache, so that a model of ten
  * million nodes costs ten million rows and only as many objects as are being looked at.
  */
-import { AttributeReader, Browser, CompactStore, DataTypeResolver, NO_NODE } from "node-opcua-address-space-store";
+
 import { NodeClass } from "node-opcua-data-model";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
-import type { NodeSetPermissionsPolicy } from "../../api/interfaces/nodeset_loader_options.js";
-import type { NodesetRecord } from "../../api/loader/nodeset_record.js";
-import { StoreRecordApplier, type StoreRecordApplierOptions } from "../../api/loader/store_record_applier.js";
+import { AttributeReader } from "../attribute_reader.js";
+import { Browser } from "../browser.js";
+import { CompactStore } from "../compact_store.js";
+import { DataTypeResolver } from "../data_type_resolver.js";
+import { NO_NODE } from "../node_id_index.js";
 import {
     type StoreAddNodeOptions,
     type StoreAddObjectOptions,
@@ -29,9 +31,6 @@ export interface StoreAddressSpaceOptions {
     viewCacheSize?: number;
     /** what a session whose roles match no policy gets: everything (the default) or nothing */
     unresolvedPermissionPolicy?: UnresolvedPermissionPolicy;
-    /** what the nodeset's RolePermissions and AccessRestrictions become: enforced, or ignored */
-    permissions?: NodeSetPermissionsPolicy;
-    accessRestrictions?: NodeSetPermissionsPolicy;
 }
 
 /**
@@ -111,8 +110,6 @@ export class StoreAddressSpace {
     public readonly permissions: StorePermissions;
     readonly #views: ViewCache;
     readonly #builder: StoreNodeBuilder;
-    readonly #applierOptions: StoreRecordApplierOptions;
-    #applier: StoreRecordApplier | null = null;
 
     constructor(options: StoreAddressSpaceOptions = {}) {
         this.store = new CompactStore({ expectedNodes: options.expectedNodes ?? 4096 });
@@ -122,28 +119,17 @@ export class StoreAddressSpace {
         this.permissions = new StorePermissions(this, options.unresolvedPermissionPolicy);
         this.#views = new ViewCache(options.viewCacheSize ?? 10000);
         this.#builder = new StoreNodeBuilder(this);
-        this.#applierOptions = { permissions: options.permissions, accessRestrictions: options.accessRestrictions };
     }
 
     // ---- loading
-    /** the consumer a nodeset producer feeds; finishLoad() once the records are all in */
-    public recordConsumer(): { apply(record: NodesetRecord): void } {
-        if (!this.#applier) {
-            this.#applier = new StoreRecordApplier(
-                this.store,
-                { indexOf: (uri) => this.namespaceIndexOf(uri) },
-                this.#applierOptions
-            );
-        }
-        return this.#applier;
-    }
-    public finishLoad(): { unresolved: number } {
-        const result = this.#applier ? this.#applier.finish() : { unresolved: 0 };
-        this.#applier = null;
+    /**
+     * after a load wrote its records into the store (the nodeset loader of node-opcua-address-space
+     * does, through its StoreRecordApplier): what was derived from the columns is derived again
+     */
+    public finishLoad(): void {
         this.browser.refresh();
         this.dataTypes.invalidate();
         this.permissions.invalidate();
-        return result;
     }
 
     /** a namespace of the application: the index new nodes default to */

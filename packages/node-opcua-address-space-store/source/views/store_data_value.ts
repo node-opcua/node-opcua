@@ -1,15 +1,17 @@
 /**
- * @module node-opcua-address-space
+ * @module node-opcua-address-space-store
  *
  * DataValues built straight from the columns, for the services and the views alike: no view is
  * needed to read a node unless a getter is bound to it.
  */
-import { type AttributeReader, ReadStatus, ValueKind, type ValueStore } from "node-opcua-address-space-store";
+
 import type { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 import { coerceStatusCode, StatusCodes } from "node-opcua-status-code";
 import { type DataType, Variant, type VariantArrayType, type VariantOptions } from "node-opcua-variant";
+import { type AttributeReader, ReadStatus } from "../attribute_reader.js";
+import { ValueKind, type ValueStore } from "../value_store.js";
 
 /** the Value of node `i` as the columns hold it: BadWaitingForInitialData when nothing was ever set */
 export function valueDataValue(values: ValueStore, i: number): DataValue {

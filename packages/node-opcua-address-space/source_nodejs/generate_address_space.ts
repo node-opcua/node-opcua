@@ -6,6 +6,7 @@ import type { IAddressSpace } from "node-opcua-address-space-base";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import {
     type CompactAddressSpace,
+    compactRecordConsumer,
     generateAddressSpaceRaw,
     type NamedNodesetSource,
     type NodeSetLoaderOptions,
@@ -14,6 +15,7 @@ import {
     nodesetImageProblem,
     nodesetToImage as nodesetToImageRaw,
     readNodesetImageInfo,
+    type StoreRecordApplierOptions,
     setImageDeflater,
     setImageInflater,
     sha256Hex,
@@ -234,9 +236,13 @@ export async function nodesetFileToImage(source: NodesetSource | string, options
  * the NodeSet2 XML files loaded into a compact address space, in the order given, each
  * streamed in chunks: no node object is created, the records go straight into the columns
  */
-export async function generateCompactAddressSpace(addressSpace: CompactAddressSpace, xmlFiles: string | string[]): Promise<void> {
+export async function generateCompactAddressSpace(
+    addressSpace: CompactAddressSpace,
+    xmlFiles: string | string[],
+    options: StoreRecordApplierOptions = {}
+): Promise<void> {
     const files = Array.isArray(xmlFiles) ? xmlFiles : [xmlFiles];
-    const consumer = addressSpace.recordConsumer();
+    const consumer = compactRecordConsumer(addressSpace, options);
     for (const xmlFile of files) {
         checkNodeSet2XmlFileExists(xmlFile);
         const chunks = fs.createReadStream(xmlFile, { encoding: "utf8", highWaterMark: FILE_CHUNK_SIZE });
@@ -244,7 +250,7 @@ export async function generateCompactAddressSpace(addressSpace: CompactAddressSp
             consumer.apply(record);
         }
     }
-    const { unresolved } = addressSpace.finishLoad();
+    const { unresolved } = consumer.finish();
     if (unresolved > 0) {
         debugLog(`generateCompactAddressSpace: ${unresolved} references point at nodes no document declares`);
     }
