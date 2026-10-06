@@ -306,6 +306,9 @@ fetch_from_github(version, "I4AAS/Opc.Ua.I4AAS.NodeSet2.xml");
 fetch_from_github(version, "Weihenstephan/Opc.Ua.Weihenstephan.NodeSet2.xml");
 fetch_from_github(version, "SurfaceTechnology/GeneralTypes/Opc.Ua.STGeneralTypes.NodeSet2.xml");
 fetch_from_github(version, "SurfaceTechnology/OCT-MSS/Opc.Ua.ST-Mss.NodeSet2.xml");
+fetch_from_github(version, "UAFX/opc.ua.fx.data.nodeset2.xml");
+fetch_from_github(version, "UAFX/opc.ua.fx.ac.nodeset2.xml");
+fetch_from_github(version, "UAFX/opc.ua.fx.cm.nodeset2.xml");
 
 
 /*

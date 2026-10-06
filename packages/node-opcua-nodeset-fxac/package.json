@@ -1,0 +1,45 @@
+{
+    "name": "node-opcua-nodeset-fxac",
+    "version": "2.186.17",
+    "type": "module",
+    "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-fxac",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "clean": "npx rimraf -g  dist *.tsbuildinfo",
+        "build": "tsc -b"
+    },
+    "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
+    "license": "MIT",
+    "engines": {
+        "node": ">=22.13.0"
+    },
+    "dependencies": {
+        "node-opcua-address-space-base": "2.186.17",
+        "node-opcua-basic-types": "2.186.7",
+        "node-opcua-data-model": "2.186.10",
+        "node-opcua-extension-object": "2.186.7",
+        "node-opcua-nodeid": "2.186.7",
+        "node-opcua-nodeset-di": "2.186.17",
+        "node-opcua-nodeset-fx-data": "2.186.17",
+        "node-opcua-nodeset-ua": "2.186.17",
+        "node-opcua-variant": "2.186.10"
+    },
+    "files": [
+        "dist",
+        "source"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/"
+}

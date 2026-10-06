@@ -2413,6 +2413,96 @@ importers:
         specifier: 2.186.10
         version: link:../node-opcua-variant
 
+  packages/node-opcua-nodeset-fx-data:
+    dependencies:
+      node-opcua-address-space-base:
+        specifier: 2.186.17
+        version: link:../node-opcua-address-space-base
+      node-opcua-basic-types:
+        specifier: 2.186.7
+        version: link:../node-opcua-basic-types
+      node-opcua-data-model:
+        specifier: 2.186.10
+        version: link:../node-opcua-data-model
+      node-opcua-extension-object:
+        specifier: 2.186.7
+        version: link:../node-opcua-extension-object
+      node-opcua-nodeid:
+        specifier: 2.186.7
+        version: link:../node-opcua-nodeid
+      node-opcua-nodeset-ua:
+        specifier: 2.186.17
+        version: link:../node-opcua-nodeset-ua
+      node-opcua-status-code:
+        specifier: 2.186.7
+        version: link:../node-opcua-status-code
+      node-opcua-variant:
+        specifier: 2.186.10
+        version: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-fxac:
+    dependencies:
+      node-opcua-address-space-base:
+        specifier: 2.186.17
+        version: link:../node-opcua-address-space-base
+      node-opcua-basic-types:
+        specifier: 2.186.7
+        version: link:../node-opcua-basic-types
+      node-opcua-data-model:
+        specifier: 2.186.10
+        version: link:../node-opcua-data-model
+      node-opcua-extension-object:
+        specifier: 2.186.7
+        version: link:../node-opcua-extension-object
+      node-opcua-nodeid:
+        specifier: 2.186.7
+        version: link:../node-opcua-nodeid
+      node-opcua-nodeset-di:
+        specifier: 2.186.17
+        version: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-fx-data:
+        specifier: 2.186.17
+        version: link:../node-opcua-nodeset-fx-data
+      node-opcua-nodeset-ua:
+        specifier: 2.186.17
+        version: link:../node-opcua-nodeset-ua
+      node-opcua-variant:
+        specifier: 2.186.10
+        version: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-fxcm:
+    dependencies:
+      node-opcua-address-space-base:
+        specifier: 2.186.17
+        version: link:../node-opcua-address-space-base
+      node-opcua-basic-types:
+        specifier: 2.186.7
+        version: link:../node-opcua-basic-types
+      node-opcua-data-model:
+        specifier: 2.186.10
+        version: link:../node-opcua-data-model
+      node-opcua-extension-object:
+        specifier: 2.186.7
+        version: link:../node-opcua-extension-object
+      node-opcua-nodeid:
+        specifier: 2.186.7
+        version: link:../node-opcua-nodeid
+      node-opcua-nodeset-di:
+        specifier: 2.186.17
+        version: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-fx-data:
+        specifier: 2.186.17
+        version: link:../node-opcua-nodeset-fx-data
+      node-opcua-nodeset-ua:
+        specifier: 2.186.17
+        version: link:../node-opcua-nodeset-ua
+      node-opcua-status-code:
+        specifier: 2.186.7
+        version: link:../node-opcua-status-code
+      node-opcua-variant:
+        specifier: 2.186.10
+        version: link:../node-opcua-variant
+
   packages/node-opcua-nodeset-gds:
     dependencies:
       node-opcua-address-space-base:

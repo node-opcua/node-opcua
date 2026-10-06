@@ -6,6 +6,9 @@ export type NodesetName =
     | "autoId"
     | "commercialKitchenEquipment"
     | "cnc"
+    | "fxData"
+    | "fxAc"
+    | "fxCm"
     | "gds"
     | "glass"
     | "ia"
@@ -331,5 +334,29 @@ export const nodesetCatalog: NodesetMeta[] = [
             "surfaceTechnologyGeneralTypes"
         ],
         licence: "DUAL"
+    },
+    {
+        name: "fxData",
+        packageName: "fx-data",
+        uri: "http://opcfoundation.org/UA/FX/Data/",
+        xmlFile: "opc.ua.fx.data.nodeset2.xml",
+        dependencies: [],
+        licence: "MIT"
+    },
+    {
+        name: "fxAc",
+        packageName: "fxac",
+        uri: "http://opcfoundation.org/UA/FX/AC/",
+        xmlFile: "opc.ua.fx.ac.nodeset2.xml",
+        dependencies: ["di", "fxData"],
+        licence: "MIT"
+    },
+    {
+        name: "fxCm",
+        packageName: "fxcm",
+        uri: "http://opcfoundation.org/UA/FX/CM/",
+        xmlFile: "opc.ua.fx.cm.nodeset2.xml",
+        dependencies: ["di", "fxData"],
+        licence: "MIT"
     }
 ];

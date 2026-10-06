@@ -163,5 +163,20 @@
     "uri": "http://opcfoundation.org/UA/SurfaceTechnology/OCT-MSS/",
     "length": 145435,
     "sha1": "f626958742c1f928af91e1375790f35234f3d906"
+  },
+  "fxData": {
+    "uri": "http://opcfoundation.org/UA/FX/Data/",
+    "length": 175447,
+    "sha1": "6aa3ee19d042665fcf618f6dc0539ad1b19c9098"
+  },
+  "fxAc": {
+    "uri": "http://opcfoundation.org/UA/FX/AC/",
+    "length": 368454,
+    "sha1": "da0e36ea2b0813a3e6bd861d13ed3e8d42f160fd"
+  },
+  "fxCm": {
+    "uri": "http://opcfoundation.org/UA/FX/CM/",
+    "length": 467266,
+    "sha1": "8cd82c9469eb759840e65e701fc10e962628315b"
   }
 }
