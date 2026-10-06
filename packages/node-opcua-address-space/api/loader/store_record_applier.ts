@@ -27,6 +27,7 @@ export class StoreRecordApplier implements NodesetRecordConsumer {
     // a type definition or data type declared before its node exists: set at finish()
     #deferredTypeDefinitions: [number, NodeId][] = [];
     #deferredDataTypes: [number, NodeId][] = [];
+    #deferredParents: [number, NodeId][] = [];
     readonly #store: CompactStore;
     readonly #namespaces: NamespaceRegistry;
     readonly #loadTime = Date.now();
@@ -64,8 +65,13 @@ export class StoreRecordApplier implements NodesetRecordConsumer {
             const t = store.find(nodeId);
             if (t !== NO_NODE) store.nodes.setDataType(i, t);
         }
+        for (const [i, nodeId] of this.#deferredParents) {
+            const t = store.find(nodeId);
+            if (t !== NO_NODE) store.nodes.setParent(i, t);
+        }
         this.#deferredTypeDefinitions = [];
         this.#deferredDataTypes = [];
+        this.#deferredParents = [];
         store.finish();
         return { unresolved: unresolved.length };
     }
@@ -138,6 +144,12 @@ export class StoreRecordApplier implements NodesetRecordConsumer {
             const dataType = store.find(dataTypeId);
             if (dataType !== NO_NODE) store.nodes.setDataType(i, dataType);
             else this.#deferredDataTypes.push([i, dataTypeId]);
+        }
+        if (record.parentNodeId) {
+            const parentId = this.#translate(record.parentNodeId);
+            const parent = store.find(parentId);
+            if (parent !== NO_NODE) store.nodes.setParent(i, parent);
+            else this.#deferredParents.push([i, parentId]);
         }
         if (record.value && (record.nodeClass === NodeClass.Variable || record.nodeClass === NodeClass.VariableType)) {
             this.#applyValue(i, record.value);

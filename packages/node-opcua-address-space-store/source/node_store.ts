@@ -26,6 +26,8 @@ export interface NodeRecord {
     typeDefinition?: number;
     /** node index of the data type (Variables, VariableTypes), or NO_NODE */
     dataType?: number;
+    /** node index of the declared parent, or NO_NODE */
+    parent?: number;
     valueRank?: number;
     accessLevel?: number;
     userAccessLevel?: number;
@@ -62,6 +64,7 @@ export class NodeStore {
     #description: Int32Array; // arena id or NO_STRING
     #typeDefinition: Int32Array; // node index or NO_NODE
     #dataType: Int32Array; // node index or NO_NODE
+    #parent: Int32Array; // the declared parent (ParentNodeId), node index or NO_NODE
     #valueRank: Int8Array;
     #accessLevel: Uint8Array;
     #userAccessLevel: Uint8Array;
@@ -84,6 +87,7 @@ export class NodeStore {
         this.#description = new Int32Array(n);
         this.#typeDefinition = new Int32Array(n);
         this.#dataType = new Int32Array(n);
+        this.#parent = new Int32Array(n);
         this.#valueRank = new Int8Array(n);
         this.#accessLevel = new Uint8Array(n);
         this.#userAccessLevel = new Uint8Array(n);
@@ -117,6 +121,7 @@ export class NodeStore {
         this.#description[i] = record.description ? this.strings.intern(record.description) : NO_STRING;
         this.#typeDefinition[i] = record.typeDefinition ?? NO_NODE;
         this.#dataType[i] = record.dataType ?? NO_NODE;
+        this.#parent[i] = record.parent ?? NO_NODE;
         this.#valueRank[i] = record.valueRank ?? -1;
         this.#accessLevel[i] = record.accessLevel ?? 0;
         this.#userAccessLevel[i] = record.userAccessLevel ?? this.#accessLevel[i];
@@ -191,6 +196,13 @@ export class NodeStore {
     public setDataType(i: number, node: number): void {
         this.#dataType[i] = node;
     }
+    /** the parent the document declared, when it did */
+    public parent(i: number): number {
+        return this.#parent[i];
+    }
+    public setParent(i: number, node: number): void {
+        this.#parent[i] = node;
+    }
     public valueRank(i: number): number {
         return this.#valueRank[i];
     }
@@ -253,6 +265,7 @@ export class NodeStore {
         this.#description = resized(this.#description, n, Int32Array);
         this.#typeDefinition = resized(this.#typeDefinition, n, Int32Array);
         this.#dataType = resized(this.#dataType, n, Int32Array);
+        this.#parent = resized(this.#parent, n, Int32Array);
         this.#valueRank = resized(this.#valueRank, n, Int8Array);
         this.#accessLevel = resized(this.#accessLevel, n, Uint8Array);
         this.#userAccessLevel = resized(this.#userAccessLevel, n, Uint8Array);
