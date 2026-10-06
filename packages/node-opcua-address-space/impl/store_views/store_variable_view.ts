@@ -4,12 +4,14 @@
  * A Variable over a node index: its value read from the value columns, or from the getter the
  * application bound to it; its writes into the columns, with a version bump the samplers see.
  */
+
 import type { ISessionContext } from "node-opcua-address-space-base";
 import { NO_NODE, ResolvedType, ValueKind } from "node-opcua-address-space-store";
-import { AttributeIds } from "node-opcua-data-model";
-import type { DataValue } from "node-opcua-data-value";
+import { AttributeIds, isValidDataEncoding, type QualifiedNameLike } from "node-opcua-data-model";
+import { DataValue, extractRange } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 import { NodeId } from "node-opcua-nodeid";
+import type { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType, type VariantLike } from "node-opcua-variant";
 import type { StoreAddressSpace } from "./store_address_space.js";
@@ -54,9 +56,16 @@ export class StoreVariableView extends StoreNodeView {
         this.space.bindings.set(this.index, binding);
     }
 
-    public override readAttribute(context: ISessionContext | null, attributeId: AttributeIds): DataValue {
+    public override readAttribute(
+        context: ISessionContext | null,
+        attributeId: AttributeIds,
+        indexRange?: NumericRange | null,
+        dataEncoding?: QualifiedNameLike | null
+    ): DataValue {
         // the Value goes through the getter and the permission gates; the rest is the columns
-        return attributeId === AttributeIds.Value ? this.readValue(context) : super.readAttribute(context, attributeId);
+        return attributeId === AttributeIds.Value
+            ? this.readValue(context, indexRange, dataEncoding)
+            : super.readAttribute(context, attributeId, indexRange, dataEncoding);
     }
 
     /**
@@ -65,10 +74,18 @@ export class StoreVariableView extends StoreNodeView {
      * the access restrictions and the role permissions for a session. What is denied comes
      * back as a status stamped with the time of the denial, the value behind it undisclosed.
      */
-    public readValue(context?: ISessionContext | null): DataValue {
+    public readValue(
+        context?: ISessionContext | null,
+        indexRange?: NumericRange | null,
+        dataEncoding?: QualifiedNameLike | null
+    ): DataValue {
         const status = this.space.permissions.readValueStatus(context, this.index);
         if (status !== 0) {
             return deniedDataValue(status);
+        }
+        if (!isValidDataEncoding(dataEncoding)) {
+            // Table 51: no encoding can be applied to a non-Structure value
+            return deniedDataValue(StatusCodes.BadDataEncodingInvalid.value);
         }
         const binding = this.space.bindings.get(this.index);
         if (binding?.get) {
@@ -80,8 +97,13 @@ export class StoreVariableView extends StoreNodeView {
                 this.#storeVariant(variant, StatusCodes.Good.value, now, now);
             }
         }
-        // a copy: the services stamp timestamps on what they are given, the cached one stays as built
-        return this.#dataValueFromColumns().clone();
+        // a copy: the services stamp timestamps on what they are given, the cached one stays as built;
+        // extractRange makes that copy when a range is asked for
+        const dataValue = this.#dataValueFromColumns();
+        // an invalid range is not "defined" but must still be refused: anything but an empty one goes through
+        return indexRange && !indexRange.isEmpty() && dataValue.statusCode.isGoodish()
+            ? extractRange(dataValue, indexRange)
+            : dataValue.clone();
     }
 
     /**
@@ -105,7 +127,7 @@ export class StoreVariableView extends StoreNodeView {
      * a Write from a client: the gates first when a context is given (the same as the node
      * objects apply), the DataType, then the setter when one is bound, else the columns
      */
-    public writeValue(dataValue: DataValue, context?: ISessionContext | null): number {
+    public writeValue(dataValue: DataValue, context?: ISessionContext | null, indexRange?: NumericRange | null): number {
         if (context) {
             const status = this.space.permissions.writeValueStatus(context, this.index);
             if (status !== 0) {
@@ -114,6 +136,19 @@ export class StoreVariableView extends StoreNodeView {
         }
         if (!this.#accepts(dataValue.value, false)) {
             return StatusCodes.BadTypeMismatch.value;
+        }
+        if (indexRange && !indexRange.isEmpty()) {
+            // the new elements land in the array the columns hold; what is stored is the whole array
+            const merged = this.#mergeRange(dataValue.value, indexRange);
+            if (typeof merged === "number") {
+                return merged;
+            }
+            dataValue = new DataValue({
+                value: merged,
+                statusCode: dataValue.statusCode,
+                sourceTimestamp: dataValue.sourceTimestamp,
+                sourcePicoseconds: dataValue.sourcePicoseconds
+            });
         }
         const binding = this.space.bindings.get(this.index);
         if (binding?.set) {
@@ -130,6 +165,48 @@ export class StoreVariableView extends StoreNodeView {
             now
         );
         return StatusCodes.Good.value;
+    }
+
+    /** the stored array or matrix with `variant` written over `indexRange`, or the status that refuses it */
+    #mergeRange(variant: Variant, indexRange: NumericRange): Variant | number {
+        if (!indexRange.isValid()) {
+            return StatusCodes.BadIndexRangeInvalid.value;
+        }
+        const values = this.space.store.values;
+        if (values.kind(this.index) !== ValueKind.Object) {
+            // a scalar, or nothing yet: there is no array to write into
+            return StatusCodes.BadTypeMismatch.value;
+        }
+        const stored = values.get(this.index).value as {
+            dataType: DataType;
+            arrayType?: VariantArrayType;
+            dimensions?: number[] | null;
+            value: unknown;
+        };
+        const storedArrayType = stored.arrayType ?? VariantArrayType.Scalar;
+        if (variant.arrayType === VariantArrayType.Array && storedArrayType === VariantArrayType.Array) {
+            const result = indexRange.set_values(stored.value as never, variant.value as never);
+            if (!result.statusCode.isGood()) {
+                return result.statusCode.value;
+            }
+            return new Variant({ dataType: stored.dataType, arrayType: VariantArrayType.Array, value: result.array });
+        }
+        if (variant.arrayType === VariantArrayType.Matrix && storedArrayType === VariantArrayType.Matrix && stored.dimensions) {
+            const result = indexRange.set_values_matrix(
+                { matrix: stored.value as never, dimensions: stored.dimensions },
+                variant.value as never
+            );
+            if (!result.statusCode.isGood()) {
+                return result.statusCode.value;
+            }
+            return new Variant({
+                dataType: stored.dataType,
+                arrayType: VariantArrayType.Matrix,
+                dimensions: stored.dimensions,
+                value: result.matrix
+            });
+        }
+        return StatusCodes.BadTypeMismatch.value;
     }
 
     /** true when the Variable's DataType takes a value of the variant's built-in type */

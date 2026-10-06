@@ -5,12 +5,23 @@
  * space: the same statuses and the same result shapes as the node objects give, from the
  * columns, with the views only where a value goes through a getter or a setter.
  */
+
 import type { ISessionContext } from "node-opcua-address-space-base";
 import { type BrowsedReference, NO_NODE } from "node-opcua-address-space-store";
-import { AttributeIds, BrowseDirection, LocalizedText, NodeClass, QualifiedName, ResultMask } from "node-opcua-data-model";
+import {
+    AttributeIds,
+    BrowseDirection,
+    isDataEncoding,
+    LocalizedText,
+    NodeClass,
+    QualifiedName,
+    type QualifiedNameLike,
+    ResultMask
+} from "node-opcua-data-model";
 import { apply_timestamps_no_copy, coerceTimestampsToReturn, DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock, isMinDate } from "node-opcua-date-time";
 import { coerceExpandedNodeId, ExpandedNodeId, type NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import type { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import {
     BrowseDescription,
@@ -59,7 +70,7 @@ export class StoreServices {
             return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
         }
         const attributeId = nodeToRead.attributeId as AttributeIds;
-        let dataValue = this.#attribute(context, index, attributeId);
+        let dataValue = this.#attribute(context, index, attributeId, nodeToRead.indexRange, nodeToRead.dataEncoding);
         dataValue = apply_timestamps_no_copy(dataValue, timestampsToReturn, attributeId);
         if (timestampsToReturn === TimestampsToReturn.Server) {
             dataValue.sourceTimestamp = null;
@@ -86,13 +97,26 @@ export class StoreServices {
     }
 
     /** an attribute of a node, from the columns; the Value of a bound Variable through its view */
-    #attribute(context: ISessionContext | null, index: number, attributeId: AttributeIds): DataValue {
+    #attribute(
+        context: ISessionContext | null,
+        index: number,
+        attributeId: AttributeIds,
+        indexRange?: NumericRange | null,
+        dataEncoding?: QualifiedNameLike | null
+    ): DataValue {
         const space = this.#space;
         if (attributeId !== AttributeIds.Value || space.store.nodes.nodeClass(index) !== NodeClass.Variable) {
+            if (indexRange?.isDefined()) {
+                return new DataValue({ statusCode: StatusCodes.BadIndexRangeNoData });
+            }
+            if (isDataEncoding(dataEncoding)) {
+                return new DataValue({ statusCode: StatusCodes.BadDataEncodingInvalid });
+            }
             return attributeDataValue(space.reader, index, attributeId);
         }
-        if (space.bindings.has(index)) {
-            return (space.viewOf(index) as StoreVariableView).readValue(context);
+        if (space.bindings.has(index) || (indexRange && !indexRange.isEmpty()) || isDataEncoding(dataEncoding)) {
+            // the view knows the getter, the range and the encoding
+            return (space.viewOf(index) as StoreVariableView).readValue(context, indexRange, dataEncoding);
         }
         const status = space.permissions.readValueStatus(context, index);
         if (status !== 0) {
@@ -116,7 +140,7 @@ export class StoreServices {
         if (view.nodeClass !== NodeClass.Variable) {
             return StatusCodes.BadNotWritable.value;
         }
-        return (view as StoreVariableView).writeValue(writeValue.value, context);
+        return (view as StoreVariableView).writeValue(writeValue.value, context, writeValue.indexRange);
     }
 
     /** the Browse of one node */
