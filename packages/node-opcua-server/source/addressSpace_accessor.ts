@@ -1,6 +1,8 @@
 import chalk from "chalk";
 import {
     type AddressSpace,
+    type CompactAddressSpace,
+    CompactAddressSpaceServices,
     callMethodHelper,
     ensureDatatypeExtracted,
     resolveOpaqueOnAddressSpace,
@@ -13,7 +15,7 @@ import { apply_timestamps_no_copy, coerceTimestampsToReturn, DataValue, Timestam
 import { getCurrentClock, isMinDate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     AggregateConfiguration,
     BrowseDescription,
@@ -96,8 +98,35 @@ interface IAddressSpaceAccessorSingle {
     ): Promise<HistoryReadResult>;
 }
 
+/**
+ * the namespaces a compact address space serves: a NodeId in one of them is read, written,
+ * browsed and translated there, the rest on the node objects. The compact space holds the
+ * standard nodeset too, so that a node of the base namespace can organize nodes of a compact
+ * one: a Browse of such a node merges the references the compact space adds to it.
+ */
+export interface CompactNamespaces {
+    space: CompactAddressSpace;
+    namespaces: ReadonlySet<number>;
+}
+
 export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpaceAccessorSingle {
+    #compact: CompactNamespaces | null = null;
+    #compactServices: CompactAddressSpaceServices | null = null;
+
     constructor(public addressSpace: AddressSpace) {}
+
+    /** the compact space and the namespaces it serves; the services are built once */
+    public set compact(compact: CompactNamespaces | null) {
+        this.#compact = compact;
+        this.#compactServices = compact ? new CompactAddressSpaceServices(compact.space) : null;
+    }
+    public get compact(): CompactNamespaces | null {
+        return this.#compact;
+    }
+
+    #isCompact(nodeId: NodeId): boolean {
+        return this.#compact !== null && this.#compact.namespaces.has(nodeId.namespace);
+    }
 
     public async browse(context: ISessionContext, nodesToBrowse: BrowseDescriptionOptions[]): Promise<BrowseResult[]> {
         const results: BrowseResult[] = [];
@@ -255,13 +284,34 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             throw new Error("browseNode: expecting a nodeId in browseDescription");
         }
         const nodeId = resolveNodeId(browseDescription.nodeId);
-        const r = this.addressSpace.browseSingleNode(
-            nodeId,
+        const description =
             browseDescription instanceof BrowseDescription
                 ? browseDescription
-                : new BrowseDescription({ ...browseDescription, nodeId }),
-            context
-        );
+                : new BrowseDescription({ ...browseDescription, nodeId });
+        if (this.#compactServices && this.#isCompact(nodeId)) {
+            return this.#compactServices.browse(context ?? null, description);
+        }
+        const r = this.addressSpace.browseSingleNode(nodeId, description, context);
+        if (this.#compact && this.#compactServices && r.statusCode.isGood()) {
+            // the references the compact space adds to this node: those that lead into it
+            const compactNode = this.#compact.space.store.find(nodeId);
+            if (compactNode >= 0) {
+                const referenceType =
+                    description.referenceTypeId && description.referenceTypeId.value !== 0
+                        ? description.referenceTypeId
+                        : undefined;
+                const extra = this.#compactServices.references(
+                    context ?? null,
+                    compactNode,
+                    description,
+                    referenceType,
+                    this.#compact.namespaces
+                );
+                if (extra.length > 0) {
+                    r.references = [...(r.references ?? []), ...extra];
+                }
+            }
+        }
         return r;
     }
     public async readNode(
@@ -295,6 +345,10 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
         }
 
         timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
+
+        if (this.#compactServices && this.#isCompact(nodeId)) {
+            return this.#compactServices.read(context, nodeToRead, maxAge, timestampsToReturn);
+        }
 
         const obj = this.__findNode(nodeId);
 
@@ -370,6 +424,10 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
         assert(writeValue.value.value instanceof Variant);
 
         const nodeId = writeValue.nodeId;
+
+        if (this.#compactServices && this.#isCompact(nodeId)) {
+            return coerceStatusCode(this.#compactServices.write(context, writeValue));
+        }
 
         const obj = this.__findNode(nodeId) as UAVariable;
         if (!obj) {
