@@ -207,15 +207,12 @@ export class ChunkManager extends EventEmitter {
 
     public write(buffer: Buffer, length?: number) {
         length = length || buffer.length;
-        assert(buffer instanceof Buffer || buffer === null);
         assert(length > 0);
 
         let l = length;
         let inputCursor = 0;
 
         while (l > 0) {
-            assert(length - inputCursor !== 0);
-
             if (this.#cursor === 0) {
                 this.#_push_pending_chunk(false);
             }
