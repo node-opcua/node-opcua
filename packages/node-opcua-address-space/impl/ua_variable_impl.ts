@@ -217,52 +217,56 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     implements UAVariable<T>, UAVariableImplExtArray
 {
     // -------------- UAvaraibleImplExArray
-    $$variableType?: UAVariableType;
-    $$dataType?: UADataType = undefined;
-    $$getElementBrowseName?: (extObject: ExtensionObject, index: number | number[]) => QualifiedName;
-    $$extensionObjectArray?: ExtensionObject[];
-    $$indexPropertyName?: string;
+    declare $$variableType?: UAVariableType;
+    declare $$dataType?: UADataType;
+    declare $$getElementBrowseName?: (extObject: ExtensionObject, index: number | number[]) => QualifiedName;
+    declare $$extensionObjectArray?: ExtensionObject[];
+    declare $$indexPropertyName?: string;
     // --------------
 
     public readonly nodeClass = NodeClass.Variable;
 
     public dataType: NodeId;
-    private _basicDataType?: DataType;
+    declare private _basicDataType?: DataType;
 
     // narrowing this to ExtensionObject breaks declaration-merging in ua_two_state_variable.ts and elsewhere
     // (concrete *T variants bind $extensionObject to a different, more specific shape) — see the matching
     // comment on UAVariable.$extensionObject in node-opcua-address-space-base for the documented precedent.
     // biome-ignore lint/suspicious/noExplicitAny: see comment above
-    public $extensionObject?: any;
-    public $set_ExtensionObject?: (newValue: ExtensionObject, sourceTimestamp: PreciseClock, cache: Set<UAVariableImpl>) => void;
+    declare public $extensionObject?: any;
+    declare public $set_ExtensionObject?: (
+        newValue: ExtensionObject,
+        sourceTimestamp: PreciseClock,
+        cache: Set<UAVariableImpl>
+    ) => void;
 
-    public $historicalDataConfiguration?: UAHistoricalDataConfiguration;
-    public varHistorian?: IVariableHistorian;
+    declare public $historicalDataConfiguration?: UAHistoricalDataConfiguration;
+    declare public varHistorian?: IVariableHistorian;
 
     /**
      * @internal @private
      */
     public $dataValue: DataValue;
     public accessLevel: number;
-    public userAccessLevel?: number;
+    declare public userAccessLevel?: number;
     public valueRank: number;
     public minimumSamplingInterval: number;
     public historizing: boolean;
     public semantic_version: number;
     public arrayDimensions: null | number[];
 
-    public _timestamped_get_func?: TimestampGetFunc | null;
-    public _timestamped_set_func?: VariableDataValueSetterWithCallback | null;
-    public _get_func?: GetFunc | null;
-    public _set_func?: ((value: Variant, callback: (err: Error | null, statusCode?: StatusCode) => void) => void) | null;
-    public refreshFunc?: (callback: CallbackT<DataValue>) => void;
+    declare public _timestamped_get_func?: TimestampGetFunc | null;
+    declare public _timestamped_set_func?: VariableDataValueSetterWithCallback | null;
+    declare public _get_func?: GetFunc | null;
+    declare public _set_func?: ((value: Variant, callback: (err: Error | null, statusCode?: StatusCode) => void) => void) | null;
+    declare public refreshFunc?: (callback: CallbackT<DataValue>) => void;
     /**
      * true when refreshFunc only wraps the synchronous getter of a Variable bound with a plain
      * `get`. readValue evaluates that getter itself: refreshing such a Variable before reading
      * it, as the Read service does for the others, evaluates the getter twice for nothing.
      */
-    public _refreshFuncWrapsGetter?: boolean;
-    public __waiting_callbacks?: CallbackT<DataValue>[];
+    declare public _refreshFuncWrapsGetter?: boolean;
+    declare public __waiting_callbacks?: CallbackT<DataValue>[];
 
     get typeDefinitionObj(): UAVariableType {
         /* c8 ignore next */
