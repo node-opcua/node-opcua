@@ -10,7 +10,8 @@
  * const engine = await FrontThreadEngine.create();
  * const ns = engine.registerNamespace("urn:my:plant");
  * engine.addressSpace.addVariable({ nodeId: `ns=${ns};s=Speed`, ... });
- * await engine.start({ fronts: 3, serverModule: new URL("./front_options.mjs", import.meta.url) });
+ * // one front by default; see FrontThreadsStartOptions.fronts before raising it
+ * await engine.start({ serverModule: new URL("./front_options.mjs", import.meta.url) });
  * ```
  *
  * `serverModule` is imported by each front thread: its default export returns the
@@ -65,8 +66,14 @@ export interface FrontThreadEngineOptions {
 }
 
 export interface FrontThreadsStartOptions {
-    /** how many front threads */
-    fronts: number;
+    /**
+     * how many front threads; 1 by default. A machine given to this server alone may take
+     * `os.availableParallelism() - 1`: one core is left to the engine, which applies every
+     * write and pushes every change. A read-mostly server gains up to one front per core.
+     * Each front is a whole server with its own copy of the nodesets, and needs a few client
+     * connections of its own (Linux spreads connections over the fronts by hash).
+     */
+    fronts?: number;
     /**
      * the module a front imports to configure its OPCUAServer: its default export, called with
      * `serverModuleData` and `{ front }`, returns the OPCUAServerOptions of that front
@@ -162,13 +169,14 @@ export class FrontThreadEngine {
         this.#layoutShared = descriptor.layoutSeen;
         const workerScript = options.workerScript ?? new URL("./front_worker.js", import.meta.url);
         const sharedPort = platformSharesPorts();
-        if (!sharedPort && options.fronts > 1) {
+        const fronts = Math.max(1, Math.floor(options.fronts ?? 1));
+        if (!sharedPort && fronts > 1) {
             warningLog(
                 `FrontThreadEngine: ${process.platform} has no SO_REUSEPORT, the fronts listen on consecutive ports (see endpointUrls)`
             );
         }
         const ready: Promise<string>[] = [];
-        for (let front = 0; front < options.fronts; front++) {
+        for (let front = 0; front < fronts; front++) {
             const data: FrontWorkerData = {
                 descriptor,
                 namespaceUris: [...this.addressSpace.namespaceUris],

@@ -335,3 +335,21 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
         });
     });
 });
+
+describe("FrontThreadEngine: the number of fronts", function () {
+    this.timeout(60000);
+    it("starts one front when the application does not say how many", async () => {
+        const engine = await FrontThreadEngine.create();
+        engine.registerNamespace("urn:test:front-threads-default");
+        try {
+            await engine.start({
+                serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
+                serverModuleData: { port: 5828 }
+            });
+            should(engine.frontCount).eql(1);
+            should(engine.endpointUrls.length).eql(1);
+        } finally {
+            await engine.shutdown();
+        }
+    });
+});
