@@ -11,7 +11,6 @@ import {
     type BindVariableOptions,
     bindExtObjArrayNode,
     type CompactAddressSpace,
-    CompactAddressSpaceServices,
     type DTServerStatus,
     ensureObjectIsSecure,
     type IAddressSpace,
@@ -2157,11 +2156,11 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             throw new Error("addressSpace is not available");
         }
         const result = this.addressSpace.browsePath(browsePath);
-        const compact = (this.addressSpaceAccessor as AddressSpaceAccessor | null)?.compact;
-        if (compact && result.statusCode.equals(StatusCodes.BadNoMatch)) {
+        const backend = (this.addressSpaceAccessor as AddressSpaceAccessor | null)?.compactBackend;
+        if (backend && result.statusCode.equals(StatusCodes.BadNoMatch)) {
             // a path that leads into a compact namespace is followed there, from the same start
-            const inCompact = new CompactAddressSpaceServices(compact.space).translate(browsePath);
-            if (inCompact.statusCode.isGood()) {
+            const inCompact = await backend.translate(browsePath);
+            if (inCompact) {
                 return inCompact;
             }
         }
@@ -2177,16 +2176,18 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         if (!addressSpace) {
             throw new Error("nodeFinder: the engine is not initialized");
         }
-        const compact = (this.addressSpaceAccessor as AddressSpaceAccessor | null)?.compact;
-        if (!compact) {
+        const backend = (this.addressSpaceAccessor as AddressSpaceAccessor | null)?.compactBackend;
+        if (!backend) {
             return addressSpace;
         }
         return {
             findNode: (nodeId: NodeIdLike) => {
                 const resolved = resolveNodeId(nodeId);
-                return compact.namespaces.has(resolved.namespace)
-                    ? (compact.space.findNode(resolved) as unknown as FoundNode | null)
-                    : addressSpace.findNode(resolved);
+                if (!backend.namespaces.has(resolved.namespace)) {
+                    return addressSpace.findNode(resolved);
+                }
+                // a backend that does not serve monitored items answers no node: BadNodeIdUnknown
+                return backend.findNode ? backend.findNode(resolved) : null;
             }
         };
     }
@@ -2223,6 +2224,31 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * @param callback
      *
      */
+    /**
+     * what a Read needs before its values are read: the asynchronous Variables refreshed, and
+     * what the compact namespaces cannot answer in place fetched (front threads)
+     */
+    public prepareRead(context: ISessionContext, readRequest: ReadRequestOptions, callback: (err?: Error | null) => void): void {
+        const nodesToRead = (readRequest.nodesToRead ?? []) as ReadValueId[];
+        const maxAge = readRequest.maxAge ?? 0;
+        this.refreshValues(nodesToRead, maxAge, (err?: Error | null) => {
+            if (err) {
+                callback(err);
+                return;
+            }
+            const backend = (this.addressSpaceAccessor as AddressSpaceAccessor | null)?.compactBackend;
+            const fetching = backend?.prefetch?.(context, nodesToRead, maxAge, readRequest.timestampsToReturn);
+            if (!fetching) {
+                callback(null);
+                return;
+            }
+            fetching.then(
+                () => callback(null),
+                (error: Error) => callback(error)
+            );
+        });
+    }
+
     public refreshValues(
         nodesToRefresh: ReadValueId[] | HistoryReadValueId[],
         maxAge: number,

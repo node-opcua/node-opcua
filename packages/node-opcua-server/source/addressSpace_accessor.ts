@@ -2,7 +2,6 @@ import chalk from "chalk";
 import {
     type AddressSpace,
     type CompactAddressSpace,
-    CompactAddressSpaceServices,
     callMethodHelper,
     ensureDatatypeExtracted,
     mayHoldOpaqueStructure,
@@ -34,6 +33,7 @@ import {
     type WriteValue
 } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
+import { type ICompactBackend, LocalCompactBackend } from "./compact_backend.js";
 import type { IAddressSpaceAccessor } from "./i_address_space_accessor.js";
 
 /** Part 4 5.10.2: a MaxAge of Int32 max or more asks for the cached value as is */
@@ -112,21 +112,33 @@ export interface CompactNamespaces {
 
 export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpaceAccessorSingle {
     #compact: CompactNamespaces | null = null;
-    #compactServices: CompactAddressSpaceServices | null = null;
+    #backend: ICompactBackend | null = null;
 
     constructor(public addressSpace: AddressSpace) {}
 
-    /** the compact space and the namespaces it serves; the services are built once */
+    /** the compact space of this thread and the namespaces it serves */
     public set compact(compact: CompactNamespaces | null) {
         this.#compact = compact;
-        this.#compactServices = compact ? new CompactAddressSpaceServices(compact.space) : null;
+        this.#backend = compact ? new LocalCompactBackend(compact.space, compact.namespaces) : null;
     }
     public get compact(): CompactNamespaces | null {
         return this.#compact;
     }
 
+    /**
+     * what serves the compact namespaces: the compact space of this thread (see compact), or the
+     * engine thread's store as a front thread sees it
+     */
+    public set compactBackend(backend: ICompactBackend | null) {
+        this.#compact = null;
+        this.#backend = backend;
+    }
+    public get compactBackend(): ICompactBackend | null {
+        return this.#backend;
+    }
+
     #isCompact(nodeId: NodeId): boolean {
-        return this.#compact?.namespaces.has(nodeId.namespace) ?? false;
+        return this.#backend?.namespaces.has(nodeId.namespace) ?? false;
     }
 
     public async browse(context: ISessionContext, nodesToBrowse: BrowseDescriptionOptions[]): Promise<BrowseResult[]> {
@@ -193,11 +205,28 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
         context.currentTime = getCurrentClock();
         await ensureDatatypeExtracted(this.addressSpace);
         const results: StatusCode[] = new Array(nodesToWrite.length);
-        // the nodes are written in order, each one once the previous one is done, as before; but a
-        // write that is done when writeAttribute returns, the common case, is not awaited
+        // the items of the compact namespaces go to their backend together, in their order
+        const backend = this.#backend;
+        const compactIndexes: number[] = [];
+        if (backend) {
+            for (let k = 0; k < nodesToWrite.length; k++) {
+                if (this.#isCompact(nodesToWrite[k].nodeId)) compactIndexes.push(k);
+            }
+        }
+        const compactStatuses =
+            backend && compactIndexes.length > 0
+                ? backend.write(
+                      context,
+                      compactIndexes.map((k) => nodesToWrite[k])
+                  )
+                : null;
+        const compactItem = compactIndexes.length > 0 ? new Set(compactIndexes) : null;
+        // the other nodes are written in order, each one once the previous one is done, as before; but
+        // a write that is done when writeAttribute returns, the common case, is not awaited
         let i = 0;
         const writeWhileSynchronous = (): Promise<StatusCode> | null => {
             for (; i < nodesToWrite.length; i++) {
+                if (compactItem?.has(i)) continue;
                 const statusCode = this.#writeNode(context, nodesToWrite[i]);
                 if (statusCode instanceof Promise) {
                     return statusCode;
@@ -214,6 +243,12 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             if (pending) {
                 results[i] = await pending; // check-proto-pollution: ok - numeric index into an array
                 i++;
+            }
+        }
+        if (compactStatuses) {
+            const statuses = await compactStatuses;
+            for (let k = 0; k < compactIndexes.length; k++) {
+                results[compactIndexes[k]] = statuses[k]; // check-proto-pollution: ok - numeric index of the request
             }
         }
         return results;
@@ -308,28 +343,16 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             browseDescription instanceof BrowseDescription
                 ? browseDescription
                 : new BrowseDescription({ ...browseDescription, nodeId });
-        if (this.#compactServices && this.#isCompact(nodeId)) {
-            return this.#compactServices.browse(context ?? null, description);
+        const backend = this.#backend;
+        if (backend && this.#isCompact(nodeId)) {
+            return backend.browse(context ?? null, description);
         }
         const r = this.addressSpace.browseSingleNode(nodeId, description, context);
-        if (this.#compact && this.#compactServices && r.statusCode.isGood()) {
-            // the references the compact space adds to this node: those that lead into it
-            const compactNode = this.#compact.space.store.find(nodeId);
-            if (compactNode >= 0) {
-                const referenceType =
-                    description.referenceTypeId && description.referenceTypeId.value !== 0
-                        ? description.referenceTypeId
-                        : undefined;
-                const extra = this.#compactServices.references(
-                    context ?? null,
-                    compactNode,
-                    description,
-                    referenceType,
-                    this.#compact.namespaces
-                );
-                if (extra.length > 0) {
-                    r.references = [...(r.references ?? []), ...extra];
-                }
+        if (backend && r.statusCode.isGood()) {
+            // the references the compact namespaces add to this node: those that lead into them
+            const extra = await backend.references(context ?? null, nodeId, description);
+            if (extra.length > 0) {
+                r.references = [...(r.references ?? []), ...extra];
             }
         }
         return r;
@@ -366,8 +389,8 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
 
         timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
 
-        if (this.#compactServices && this.#isCompact(nodeId)) {
-            return this.#compactServices.read(context, nodeToRead, maxAge, timestampsToReturn);
+        if (this.#backend && this.#isCompact(nodeId)) {
+            return this.#backend.read(context, nodeToRead, maxAge, timestampsToReturn);
         }
 
         const obj = this.__findNode(nodeId);
@@ -459,8 +482,8 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
 
         const nodeId = writeValue.nodeId;
 
-        if (this.#compactServices && this.#isCompact(nodeId)) {
-            return coerceStatusCode(this.#compactServices.write(context, writeValue));
+        if (this.#backend && this.#isCompact(nodeId)) {
+            return this.#backend.write(context, [writeValue]).then((statuses) => statuses[0]);
         }
 
         const obj = this.__findNode(nodeId) as UAVariable;

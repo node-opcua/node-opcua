@@ -122,6 +122,8 @@ export interface OPCUAServerEndPointOptions {
      * the tcp host
      */
     host?: string;
+    /** share the port with other listeners (SO_REUSEPORT): see OPCUAServerEndpointOptions.reusePort */
+    reusePort?: boolean;
     /**
      * The certificate chain and key of this endpoint, as a provider — the
      * endpoint never holds raw private-key material. For an in-memory
@@ -329,6 +331,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      */
     public port: number;
     public host: string | undefined;
+    public readonly reusePort: boolean;
     public certificateManager: ICertificateStore;
     public defaultSecureTokenLifetime: number;
     public maxConnections: number;
@@ -406,6 +409,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         this.port = parseInt(options.port.toString(), 10);
         this.host = options.host;
+        this.reusePort = options.reusePort ?? false;
         assert(typeof this.port === "number");
 
         this.#certProvider = options.certificateKeyPairProvider;
@@ -818,7 +822,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         const listenOptions: net.ListenOptions = {
             port: this.port,
-            host: this.host
+            host: this.host,
+            ...(this.reusePort ? { reusePort: true } : {})
         };
 
         this._server.listen(
