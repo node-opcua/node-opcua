@@ -437,6 +437,56 @@ function installTestFor(TransportPair: typeof TransportPairDirect | typeof Trans
             transportPair.client.write(packTcpMessage("HEL", helloMessage));
         });
 
+        // a chunk header announcing far more than any negotiated receive buffer
+        function makeOversizedChunkHeader() {
+            const header = Buffer.alloc(8);
+            header.write("MSGF", 0, "ascii");
+            header.writeUInt32LE(0x7fffffff, 4);
+            return header;
+        }
+
+        // the message types found in a socket read, which may hold several messages
+        function readMessageTypes(data: Buffer): string[] {
+            const types: string[] = [];
+            for (let offset = 0; offset + 8 <= data.length; offset += data.readUInt32LE(offset + 4)) {
+                types.push(data.subarray(offset, offset + 3).toString("ascii"));
+            }
+            return types;
+        }
+
+        it("TSS-F should reply ERR when the bytes following HEL in the same packet announce an oversized chunk", (done) => {
+            serverTransport.init(transportPair.server, (err) => {
+                assert(!err);
+            });
+            serverTransport.on("chunk", (_messageChunk) => {
+                done(new Error("Not expecting a message"));
+            });
+
+            const received: string[] = [];
+            transportPair.client.on("data", (data) => {
+                received.push(...readMessageTypes(data));
+                if (received.includes("ERR")) {
+                    received.should.eql(["ACK", "ERR"]);
+                    done();
+                }
+            });
+
+            transportPair.client.write(Buffer.concat([helloMessage, makeOversizedChunkHeader()]));
+        });
+
+        it("TSS-G should forward a message chunk that follows HEL in the same packet", (done) => {
+            serverTransport.init(transportPair.server, (err) => {
+                assert(!err);
+            });
+            serverTransport.on("chunk", (messageChunk) => {
+                compare_buffers(messageChunk, openChannelRequest);
+                transportPair.client.end();
+                done();
+            });
+
+            transportPair.client.write(Buffer.concat([helloMessage, openChannelRequest]));
+        });
+
         it("TSS-D Test CLO message at transport end ", async () => {
             serverTransport.init(transportPair.server, (_err) => {
                 /** */

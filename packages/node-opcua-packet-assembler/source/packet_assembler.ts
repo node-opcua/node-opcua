@@ -172,6 +172,21 @@ export class PacketAssembler extends EventEmitter {
     }
 
     /**
+     * Changes the maximum allowed chunk size.
+     *
+     * The new limit applies from the next chunk header read. It can be called from a
+     * "chunk" handler while feed() is still walking the same input buffer: the bytes
+     * that follow the current chunk are then checked against the new limit.
+     *
+     * @param maxChunkSize - Maximum allowed chunk size (falls back to the default when 0)
+     */
+    public setMaxChunkSize(maxChunkSize: number): void {
+        const value = maxChunkSize || PacketAssembler.defaultMaxMessageSize;
+        assert(value >= this.minimumSizeInBytes);
+        this.maxChunkSize = value;
+    }
+
+    /**
      * Feeds incoming data to the assembler for processing.
      *
      * This method can be called multiple times with partial data. The assembler will
