@@ -405,6 +405,10 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
      */
     constructor(options: InternalBaseNodeOptions) {
         super();
+        // EventEmitter allocates its listener table in its constructor, although every one of
+        // its methods also creates it on first use. Few nodes ever get a listener, and the
+        // table is 185 bytes: on a large model that is a tenth of the address space
+        (this as unknown as { _events?: unknown })._events = undefined;
 
         assert(this.nodeClass === NodeClass.Unspecified, "must not be specify a nodeClass");
         assert(options.addressSpace); // expecting an address space
