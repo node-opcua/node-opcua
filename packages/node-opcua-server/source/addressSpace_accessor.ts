@@ -15,7 +15,7 @@ import { apply_timestamps_no_copy, coerceTimestampsToReturn, DataValue, Timestam
 import { getCurrentClock, isMinDate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     AggregateConfiguration,
     BrowseDescription,

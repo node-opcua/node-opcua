@@ -35,6 +35,12 @@ import "node-opcua-uanodeset-json";
 
 export * from "./audit_event_permissions.js";
 export * from "./base_server.js";
+export * from "./compact_backend.js";
+export {
+    FrontThreadEngine,
+    type FrontThreadEngineOptions,
+    type FrontThreadsStartOptions
+} from "./front_threads/front_thread_engine.js";
 export * from "./helper.js";
 export * from "./invalidate_server_certificate_cache.js";
 export * from "./monitored_item.js";

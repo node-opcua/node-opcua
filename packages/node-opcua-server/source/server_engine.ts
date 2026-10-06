@@ -86,7 +86,7 @@ import { AddressSpaceAccessor } from "./addressSpace_accessor.js";
 import { defaultAuditEventRoles, restrictAuditEventReception } from "./audit_event_permissions.js";
 import { HistoryServerCapabilities, type HistoryServerCapabilitiesOptions } from "./history_server_capabilities.js";
 import type { IAddressSpaceAccessor } from "./i_address_space_accessor.js";
-import type { FoundNode, INodeFinder } from "./monitorable_node.js";
+import type { INodeFinder } from "./monitorable_node.js";
 import { MonitoredItem } from "./monitored_item.js";
 import type { OPCUAServerOptions } from "./opcua_server.js";
 import {
