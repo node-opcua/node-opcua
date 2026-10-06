@@ -16,6 +16,7 @@ import {
     type SharedValue,
     ValueKind
 } from "node-opcua-address-space-store";
+import { BinaryStream } from "node-opcua-binary-stream";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
@@ -32,7 +33,7 @@ import {
     type ReferenceDescription,
     type WriteValue
 } from "node-opcua-types";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { DataType, decodeVariant, Variant, VariantArrayType } from "node-opcua-variant";
 import type { ICompactBackend } from "../compact_backend.js";
 import { FrontMonitoredNode, type FrontNodeHost } from "./front_node.js";
 import {
@@ -129,7 +130,8 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
         sourcePicoseconds: 0,
         serverTimestamp: 0,
         serverPicoseconds: 0,
-        version: 0
+        version: 0,
+        encoded: null
     };
     // what the engine described of the nodes monitored items were created on, by NodeId string
     #descriptions = new Map<string, NodeDescription>();
@@ -236,10 +238,16 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
     }
 
     #dataValueOf(v: SharedValue, context: ISessionContext | null, maxAge: number, ts: TimestampsToReturn): DataValue {
-        const variant = new Variant(null);
-        variant.dataType = v.dataType as DataType;
-        variant.arrayType = VariantArrayType.Scalar;
-        variant.value = v.kind === ValueKind.Boolean ? v.value !== 0 : v.value;
+        let variant: Variant;
+        if (v.encoded) {
+            // a string, an array: its binary encoding, copied out of the shared heap
+            variant = decodeVariant(new BinaryStream(Buffer.from(v.encoded.buffer, v.encoded.byteOffset, v.encoded.byteLength)));
+        } else {
+            variant = new Variant(null);
+            variant.dataType = v.dataType as DataType;
+            variant.arrayType = VariantArrayType.Scalar;
+            variant.value = v.kind === ValueKind.Boolean ? v.value !== 0 : v.value;
+        }
         const dataValue = new DataValue(null);
         dataValue.value = variant;
         dataValue.statusCode = v.statusCode === 0 ? StatusCodes.Good : coerceStatusCode(v.statusCode);

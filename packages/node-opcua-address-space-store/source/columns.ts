@@ -23,6 +23,8 @@ export class ColumnSpace {
     public readonly shared: boolean;
     /** moves each time a column is reallocated: a reader holding older buffers asks for the new ones */
     public readonly layout: Int32Array;
+    /** called after the layout moved: the owner tells its readers (see FrontThreadEngine) */
+    public onRelayout: (() => void) | null = null;
 
     constructor(shared = false) {
         this.shared = shared;
@@ -45,6 +47,7 @@ export class ColumnSpace {
     /** tell the readers that a column moved to a new buffer */
     public relayout(): void {
         Atomics.add(this.layout, 0, 1);
+        this.onRelayout?.();
     }
 }
 

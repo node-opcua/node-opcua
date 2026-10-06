@@ -11,6 +11,7 @@
     ],
     "references": [
         { "path": "../node-opcua-address-space-base" },
+        { "path": "../node-opcua-binary-stream" },
         { "path": "../node-opcua-constants" },
         { "path": "../node-opcua-data-model" },
         { "path": "../node-opcua-data-value" },

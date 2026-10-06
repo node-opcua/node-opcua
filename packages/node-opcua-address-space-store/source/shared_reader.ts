@@ -9,9 +9,12 @@
  * of the fields, else the read is retried. The version is read with Atomics.load, which is what
  * keeps the field reads between the two version reads under the memory model.
  *
- * What is not in shared columns is answered NotShared, and the caller asks the owner: values
- * kept as objects (strings, arrays, structures), Variables bound to a getter, and every NodeId
- * a reader cannot place after the owner reallocated a column (see isCurrent).
+ * A value kept as an object (a string, an array) is read as the bytes of its binary encoding,
+ * copied out of the shared heap under the same seqlock: the caller decodes them.
+ *
+ * What is not in shared columns is answered NotShared, and the caller asks the owner: structures,
+ * Variables bound to a getter, and every NodeId a reader cannot place after the owner reallocated
+ * a column (see isCurrent).
  */
 import { NodeClass } from "node-opcua-data-model";
 import { type NodeId, NodeIdType } from "node-opcua-nodeid";
@@ -50,6 +53,8 @@ export interface SharedValue {
     serverPicoseconds: number;
     /** the version word the value was read under: what orders it against the changes the owner reports */
     version: number;
+    /** for an object (kind Object): a copy of its binary encoding, a Variant; null otherwise */
+    encoded: Uint8Array | null;
 }
 
 export class SharedStoreReader {
@@ -87,6 +92,10 @@ export class SharedStoreReader {
     readonly #sourcePicoseconds: Uint16Array;
     readonly #serverPicoseconds: Uint16Array;
     readonly #version: Uint32Array;
+    // the shared heap: the objects as their binary encoding
+    readonly #heapBytes: Uint8Array;
+    readonly #heapOffset: Int32Array;
+    readonly #heapLength: Int32Array;
 
     constructor(descriptor: SharedStoreDescriptor) {
         this.#layout = new Int32Array(descriptor.layout);
@@ -121,6 +130,9 @@ export class SharedStoreReader {
         this.#sourcePicoseconds = new Uint16Array(v.sourcePicoseconds);
         this.#serverPicoseconds = new Uint16Array(v.serverPicoseconds);
         this.#version = new Uint32Array(v.version);
+        this.#heapBytes = new Uint8Array(v.heap.bytes);
+        this.#heapOffset = new Int32Array(v.heap.offset);
+        this.#heapLength = new Int32Array(v.heap.length);
     }
 
     /**
@@ -187,7 +199,7 @@ export class SharedStoreReader {
     public canServe(i: number): boolean {
         if (!this.isReadableByAll(i)) return false;
         const kind = this.#valueKind[i];
-        return kind === ValueKind.Number || kind === ValueKind.Boolean;
+        return kind === ValueKind.Number || kind === ValueKind.Boolean || (kind === ValueKind.Object && this.#heapLength[i] > 0);
     }
 
     /**
@@ -216,7 +228,17 @@ export class SharedStoreReader {
             const before = Atomics.load(version, i);
             if ((before & 1) !== 0) continue; // a write is in progress
             const kind = this.#valueKind[i] as ValueKind;
-            if (kind !== ValueKind.Number && kind !== ValueKind.Boolean) {
+            if (kind === ValueKind.Object) {
+                const length = this.#heapLength[i];
+                if (length === 0) {
+                    return SharedReadStatus.NotShared;
+                }
+                const offset = this.#heapOffset[i];
+                // a copy: the slot may be written again once the version is checked
+                out.encoded = this.#heapBytes.slice(offset, offset + length);
+            } else if (kind === ValueKind.Number || kind === ValueKind.Boolean) {
+                out.encoded = null;
+            } else {
                 return SharedReadStatus.NotShared;
             }
             out.kind = kind;
@@ -227,6 +249,11 @@ export class SharedStoreReader {
             out.sourcePicoseconds = this.#sourcePicoseconds[i];
             out.serverTimestamp = this.#serverTimestamp[i];
             out.serverPicoseconds = this.#serverPicoseconds[i];
+            // bytes copied from a heap the owner has since compacted are an older value than the
+            // columns read with them: the owner writes the new buffers only after the layout moved
+            if (out.encoded !== null && Atomics.load(this.#layout, 0) !== this.#layoutSeen) {
+                return SharedReadStatus.NotShared;
+            }
             if (Atomics.load(version, i) === before) {
                 out.version = before;
                 return SharedReadStatus.Good;

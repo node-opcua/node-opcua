@@ -136,6 +136,8 @@ export class FrontThreadEngine {
         this.#nodesets = nodesets;
         this.#services = new StoreServices(addressSpace);
         addressSpace.onLink = (source, target) => this.#noteLink(source, target);
+        // a column moved (nodes added, the heap of strings and arrays compacted): the fronts get the new buffers
+        addressSpace.store.space.onRelayout = () => this.#scheduleSync();
     }
 
     /** an engine with its store loaded with the nodesets */

@@ -127,6 +127,14 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             // 4 MB: above the size from which the engine hands buffers over instead of copying them
             value: new Variant({ dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: bigArray(0) })
         });
+        space.addVariable({
+            nodeId: `ns=${ns};s=Levels`,
+            browseName: "Levels",
+            componentOf: plant,
+            dataType: "Int32",
+            valueRank: 1,
+            value: { dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: new Int32Array([3, 1, 4]) }
+        });
         await engine.start({
             fronts: 2,
             serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
@@ -174,12 +182,32 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
         ]);
         should(values[0].statusCode).eql(StatusCodes.Good);
         should(values[0].value.value).eql(1.5, "in place: a scalar under no permission rule");
-        should(values[1].value.value).eql("pump", "a string: the engine answers it");
+        should(values[1].value.value).eql("pump", "a string: in place too, from the shared heap");
         should(values[2].statusCode).eql(StatusCodes.BadNotReadable);
         should(values[3].value.value).be.above(0, "a getter: called in the engine");
         should(values[4].value.value.name).eql("Speed");
         should(values[5].statusCode).eql(StatusCodes.BadNodeIdUnknown);
         should(values[6].value.value.name).eql("ServerStatus", "the base namespace from the front's own nodes");
+    });
+
+    it("serves strings and arrays in place, before and after a write", async () => {
+        const before = engine.requests.read;
+        for (const session of sessions) {
+            const [name, levels] = await session.read([
+                { nodeId: `ns=${ns};s=Name`, attributeId: AttributeIds.Value },
+                { nodeId: `ns=${ns};s=Levels`, attributeId: AttributeIds.Value }
+            ]);
+            should(name.value.value).eql("pump");
+            should([...(levels.value.value as Int32Array)]).eql([3, 1, 4]);
+        }
+        // a longer string: a new slot in the heap
+        await write(sessions[1], `ns=${ns};s=Name`, new Variant({ dataType: DataType.String, value: "centrifugal pump" }));
+        for (const session of sessions) {
+            const name = await session.read({ nodeId: `ns=${ns};s=Name`, attributeId: AttributeIds.Value });
+            should(name.value.value).eql("centrifugal pump");
+        }
+        should(engine.requests.read).eql(before, "no read asked to the engine");
+        await write(sessions[1], `ns=${ns};s=Name`, new Variant({ dataType: DataType.String, value: "pump" }));
     });
 
     it("writes through the engine and every connection sees it", async () => {
@@ -285,7 +313,13 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             nodeClassMask: 0,
             resultMask: ResultMask.BrowseName
         });
-        should((children.references ?? []).map((r) => r.browseName.name).sort()).eql(["Counter", "Name", "Speed", "WriteOnly"]);
+        should((children.references ?? []).map((r) => r.browseName.name).sort()).eql([
+            "Counter",
+            "Levels",
+            "Name",
+            "Speed",
+            "WriteOnly"
+        ]);
         const translated = await sessions[3].translateBrowsePath(makeBrowsePath("ns=0;i=85", `/${ns}:Plant/${ns}:Speed`));
         should(translated.statusCode).eql(StatusCodes.Good);
         should(translated.targets?.[0].targetId.toString()).eql(`ns=${ns};s=Speed`);
