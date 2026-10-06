@@ -198,4 +198,54 @@ describe("MessageChunker single-pass encoding", () => {
         chunker.maxMessageSize = 0;
         should(chunker.maxBodySize("MSG", makeOptions(8192))).eql(0);
     });
+
+    // the buffer a message is encoded into is kept for the next message: the chunks handed
+    // out are copies, so the previous message must not move, and the next one must not
+    // allocate a new encode buffer
+    it("keeps the encode buffer from one message to the next", () => {
+        const chunker = freshChunker();
+        const kept: Buffer[] = [];
+        chunker.chunkSecureMessage("MSG", makeOptions(0), makeReadResponse(3), (chunk) => {
+            if (chunk) kept.push(chunk);
+        });
+        const snapshot = Buffer.concat(kept.map((chunk) => Buffer.from(chunk)));
+
+        const sizes: number[] = [];
+        const allocUnsafe = Buffer.allocUnsafe;
+        Buffer.allocUnsafe = (size: number) => {
+            sizes.push(size);
+            return allocUnsafe(size);
+        };
+        let second: { statusCode: { name: string }; bytes: Buffer };
+        try {
+            second = chunkAll(chunker, makeReadResponse(7));
+        } finally {
+            Buffer.allocUnsafe = allocUnsafe;
+        }
+
+        should(second.statusCode.name).eql("Good");
+        should(Buffer.concat(kept).equals(snapshot)).eql(true, "a chunk handed out earlier has been modified");
+        // the chunk of the second message is allocated, the encode buffer (4 KiB and more) is not
+        should(sizes.filter((size) => size >= MessageChunker.minimumMessageSizeHint)).eql([]);
+    });
+
+    it("does not keep an encode buffer larger than maxRetainedEncodeBufferSize", () => {
+        const chunker = freshChunker();
+        chunkAll(chunker, makeReadResponse(20000)); // about 200 KiB, well over 64 KiB
+        const sizes: number[] = [];
+        const allocUnsafe = Buffer.allocUnsafe;
+        Buffer.allocUnsafe = (size: number) => {
+            sizes.push(size);
+            return allocUnsafe(size);
+        };
+        try {
+            chunkAll(chunker, makeReadResponse(1));
+        } finally {
+            Buffer.allocUnsafe = allocUnsafe;
+        }
+        // a fresh encode buffer of the largest size worth keeping is taken instead
+        should(sizes.filter((size) => size >= MessageChunker.minimumMessageSizeHint)).eql([
+            MessageChunker.maxRetainedEncodeBufferSize
+        ]);
+    });
 });
