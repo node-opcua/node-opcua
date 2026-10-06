@@ -8,9 +8,13 @@ import { parentPort, workerData } from "node:worker_threads";
 import type { AddressSpaceAccessor } from "../addressSpace_accessor.js";
 import { OPCUAServer, type OPCUAServerOptions } from "../opcua_server.js";
 import { SharedServerCounters } from "../server_counters.js";
+import { DiagnosticsMirror, DiagnosticsPublisher } from "./diagnostics_mirror.js";
 import type { EngineToFront, FrontToEngine, FrontWorkerData } from "./protocol.js";
 import { EngineChannel, RemoteCompactBackend } from "./remote_backend.js";
 import { encodeExportResult, RemoteSubscriptions } from "./remote_subscriptions.js";
+
+/** how often a front sends the diagnostics of its sessions that changed (they promise two seconds) */
+const DIAGNOSTICS_INTERVAL = 1000;
 
 type ServerOptionsFactory = (data: unknown, front: { front: number }) => OPCUAServerOptions | Promise<OPCUAServerOptions>;
 
@@ -29,9 +33,10 @@ async function main(): Promise<void> {
         ...options,
         // without SO_REUSEPORT each front takes a port of its own, after the one asked for
         ...(data.sharedPort ? { reusePort: true } : { port: (options.port ?? 26543) + data.front }),
-        // the namespace table of every front starts as the engine's: same nodesets, no own namespace
+        // the namespace table of every front is the engine's: the server's own namespace at 1, then the
+        // same nodesets, then the namespaces registered in the engine (aligned below)
+        serverInfo: { ...options.serverInfo, applicationUri: options.serverInfo?.applicationUri ?? data.applicationUri },
         nodeset_filename: data.nodesets,
-        skipOwnNamespace: true,
         // the limits and ServerDiagnosticsSummary count every front: one server to the clients
         counters: new SharedServerCounters(data.counters)
     });
@@ -59,6 +64,17 @@ async function main(): Promise<void> {
     (server.engine.addressSpaceAccessor as AddressSpaceAccessor).compactBackend = backend;
     // TransferSubscriptions finds the subscriptions of the other fronts
     server.engine.remoteSubscriptions = new RemoteSubscriptions(channel);
+    // the sessions of every front in the diagnostics of each
+    const mirror = new DiagnosticsMirror(server.engine);
+    const publisher = new DiagnosticsPublisher(server.engine);
+    const publishing = setInterval(() => {
+        const update = publisher.update();
+        if (update) {
+            const message: FrontToEngine = { kind: "diagnostics", update };
+            port.postMessage(message);
+        }
+    }, DIAGNOSTICS_INTERVAL);
+    publishing.unref();
 
     port.on("message", (message: EngineToFront) => {
         if (channel.receive(message)) return;
@@ -78,6 +94,9 @@ async function main(): Promise<void> {
             case "disposed":
                 backend.receiveDisposed(message.indexes);
                 break;
+            case "diagnostics":
+                mirror.apply(message.front, message.update);
+                break;
             case "exportSubscription": {
                 const exported: FrontToEngine = {
                     kind: "exportedSubscription",
@@ -88,6 +107,8 @@ async function main(): Promise<void> {
                 break;
             }
             case "stop":
+                clearInterval(publishing);
+                mirror.clear();
                 server
                     .shutdown(0)
                     .catch(() => undefined)

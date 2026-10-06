@@ -888,4 +888,82 @@ describe("FrontThreadEngine: TransferSubscriptions from a session of another fro
         await sessionB.close();
         await sessionA.close();
     });
+
+    it("lists the sessions and subscriptions of every front in the diagnostics of each", async () => {
+        const sessions = [await sessionOn(0), await sessionOn(1)];
+        const subscriptions = [];
+        for (const session of sessions) {
+            subscriptions.push(
+                await session.createSubscription2({
+                    requestedPublishingInterval: 100,
+                    requestedMaxKeepAliveCount: 10,
+                    requestedLifetimeCount: 100,
+                    publishingEnabled: true
+                })
+            );
+        }
+        // the other fronts learn of a session within a second (MinimumSamplingInterval of its diagnostics: 2 s)
+        await pause(1500);
+        const sessionIds = sessions
+            .map((session) => (session as unknown as { sessionId: { toString(): string } }).sessionId.toString())
+            .sort();
+        const subscriptionIds = subscriptions.map((subscription) => subscription.subscriptionId).sort();
+        for (const session of sessions) {
+            const [sessionArray, subscriptionArray] = await session.read([
+                { nodeId: "ns=0;i=3707", attributeId: AttributeIds.Value }, // SessionDiagnosticsArray
+                { nodeId: "ns=0;i=2290", attributeId: AttributeIds.Value } // SubscriptionDiagnosticsArray
+            ]);
+            should(sessionArray.statusCode).eql(StatusCodes.Good);
+            const listed = (sessionArray.value.value as { sessionId: { toString(): string } }[])
+                .map((d) => d.sessionId.toString())
+                .sort();
+            should(listed).eql(sessionIds);
+            const subscribed = (subscriptionArray.value.value as { subscriptionId: number }[]).map((d) => d.subscriptionId).sort();
+            should(subscribed).eql(subscriptionIds);
+            // the session objects, browsed and read from either front
+            const summary = await session.browse({
+                nodeId: "ns=0;i=3706", // SessionsDiagnosticsSummary
+                browseDirection: BrowseDirection.Forward,
+                referenceTypeId: "ns=0;i=47",
+                includeSubtypes: true,
+                nodeClassMask: NodeClass.Object,
+                resultMask: ResultMask.BrowseName
+            });
+            const objects = (summary.references ?? []).map((r) => r.nodeId.toString()).sort();
+            should(objects).eql(sessionIds);
+            for (const objectId of objects) {
+                const path = await session.translateBrowsePath(makeBrowsePath(objectId, "/SessionDiagnostics"));
+                should(path.statusCode).eql(StatusCodes.Good);
+                const diagnostics = await session.read({
+                    nodeId: path.targets?.[0].targetId.toString() ?? "",
+                    attributeId: AttributeIds.Value
+                });
+                should(diagnostics.statusCode).eql(StatusCodes.Good);
+                should(diagnostics.value.value.sessionId.toString()).eql(objectId);
+            }
+        }
+        // the counters of a session reach the other front: requests on the second, read from the first
+        const remoteId = (sessions[1] as unknown as { sessionId: { toString(): string } }).sessionId.toString();
+        const remotePath = await sessions[0].translateBrowsePath(makeBrowsePath(remoteId, "/SessionDiagnostics"));
+        const remoteNode = remotePath.targets?.[0].targetId.toString() ?? "";
+        const totalOf = async () =>
+            (
+                (await sessions[0].read({ nodeId: remoteNode, attributeId: AttributeIds.Value })).value.value as {
+                    totalRequestCount: { totalCount: number };
+                }
+            ).totalRequestCount.totalCount;
+        const before = await totalOf();
+        for (let k = 0; k < 5; k++) await sessions[1].read({ nodeId: "ns=0;i=2258", attributeId: AttributeIds.Value });
+        await pause(1500);
+        should(await totalOf()).be.aboveOrEqual(before + 5);
+
+        // a closed session leaves the other front
+        await sessions[1].close();
+        await pause(1500);
+        const left = await sessions[0].read({ nodeId: "ns=0;i=3707", attributeId: AttributeIds.Value });
+        should((left.value.value as { sessionId: { toString(): string } }[]).map((d) => d.sessionId.toString())).eql([
+            (sessions[0] as unknown as { sessionId: { toString(): string } }).sessionId.toString()
+        ]);
+        await sessions[0].close();
+    });
 });
