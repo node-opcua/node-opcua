@@ -31,6 +31,8 @@ export interface StoreAddressSpaceOptions {
     viewCacheSize?: number;
     /** what a session whose roles match no policy gets: everything (the default) or nothing */
     unresolvedPermissionPolicy?: UnresolvedPermissionPolicy;
+    /** the columns in SharedArrayBuffers, for readers in other threads (see CompactStore#shareForReaders) */
+    shared?: boolean;
 }
 
 /**
@@ -113,7 +115,7 @@ export class StoreAddressSpace {
     readonly #builder: StoreNodeBuilder;
 
     constructor(options: StoreAddressSpaceOptions = {}) {
-        this.store = new CompactStore({ expectedNodes: options.expectedNodes ?? 4096 });
+        this.store = new CompactStore({ expectedNodes: options.expectedNodes ?? 4096, shared: options.shared });
         this.browser = new Browser(this.store);
         this.reader = new AttributeReader(this.store);
         this.dataTypes = new DataTypeResolver(this.store);

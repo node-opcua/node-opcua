@@ -6,12 +6,28 @@
  */
 import type { NodeClass } from "node-opcua-data-model";
 import { type NodeId, NodeIdType } from "node-opcua-nodeid";
-import { NO_NODE, type NodeRecord, NodeStore } from "./node_store.js";
+import { ColumnSpace } from "./columns.js";
+import { NO_NODE, type NodeRecord, NodeStore, type SharedNodeBuffers } from "./node_store.js";
 import { ReferenceTable } from "./reference_table.js";
-import { ValueStore } from "./value_store.js";
+import { type SharedValueBuffers, ValueStore } from "./value_store.js";
 
 export interface CompactStoreOptions {
     expectedNodes?: number;
+    /**
+     * the columns in SharedArrayBuffers: readers in other threads find nodes and read values
+     * without asking this thread (see shareForReaders and SharedStoreReader). This thread stays
+     * the only writer.
+     */
+    shared?: boolean;
+}
+
+/** what a reader in another thread is handed: the buffers, and the layout they belong to */
+export interface SharedStoreDescriptor {
+    /** the layout counter itself: a reader compares it with `layoutSeen` before each batch */
+    layout: SharedArrayBuffer;
+    layoutSeen: number;
+    nodes: SharedNodeBuffers;
+    values: SharedValueBuffers;
 }
 
 /** a reference declared before its target existed: resolved by `resolvePending()` */
@@ -31,12 +47,33 @@ export class CompactStore {
     readonly #referenceTypeByOrdinal: NodeId[] = [];
     #pending: PendingReference[] = [];
 
+    /** where the columns live: ordinary or shared buffers */
+    public readonly space: ColumnSpace;
+
     constructor(options: CompactStoreOptions = {}) {
         const expected = options.expectedNodes ?? 1024;
-        this.nodes = new NodeStore(expected);
+        this.space = new ColumnSpace(options.shared ?? false);
+        this.nodes = new NodeStore(expected, this.space);
         this.references = new ReferenceTable(expected * 3);
         this.references.setTargetNameKey((target) => this.nodes.browseNameId(target));
-        this.values = new ValueStore(expected);
+        this.values = new ValueStore(expected, this.space);
+    }
+
+    /**
+     * the buffers a reader in another thread is built from; asked again whenever the layout
+     * counter moved past `layoutSeen` (a column was reallocated). The references and the
+     * values kept as objects stay in this thread.
+     */
+    public shareForReaders(): SharedStoreDescriptor {
+        if (!this.space.shared) {
+            throw new Error("CompactStore#shareForReaders: the store was not created with shared: true");
+        }
+        return {
+            layout: this.space.layout.buffer as SharedArrayBuffer,
+            layoutSeen: Atomics.load(this.space.layout, 0),
+            nodes: this.nodes.exportShared(),
+            values: this.values.exportShared()
+        };
     }
 
     public get nodeCount(): number {

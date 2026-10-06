@@ -17,6 +17,7 @@
  * misses several times its size, and whenever the table moves.
  */
 import { type NodeId, NodeIdType } from "node-opcua-nodeid";
+import { bufferOf, ColumnSpace } from "./columns.js";
 import type { StringArena } from "./string_arena.js";
 
 export const NO_NODE = -1;
@@ -40,15 +41,29 @@ export class NodeIdIndex {
     readonly #hot = new Map<string, number>();
     #hotMisses = 0;
 
-    constructor(arena: StringArena, expectedNodes = 1024) {
+    readonly #space: ColumnSpace;
+
+    constructor(arena: StringArena, expectedNodes = 1024, space = new ColumnSpace()) {
         this.#arena = arena;
+        this.#space = space;
         let n = 64;
         while (n < expectedNodes * 2) n *= 2;
-        this.#ns = new Uint16Array(n);
-        this.#kind = new Uint8Array(n);
-        this.#word = new Uint32Array(n);
-        this.#value = new Int32Array(n);
+        this.#ns = space.allocate(Uint16Array, n);
+        this.#kind = space.allocate(Uint8Array, n);
+        this.#word = space.allocate(Uint32Array, n);
+        this.#value = space.allocate(Int32Array, n);
         this.#mask = n - 1;
+    }
+
+    /** the buffers a reader in another thread finds NodeIds with (see SharedStoreReader) */
+    public exportShared(): SharedIndexBuffers {
+        return {
+            ns: bufferOf(this.#ns),
+            kind: bufferOf(this.#kind),
+            word: bufferOf(this.#word),
+            value: bufferOf(this.#value),
+            mask: this.#mask
+        };
     }
 
     public get size(): number {
@@ -79,9 +94,7 @@ export class NodeIdIndex {
     }
 
     #hash(ns: number, kind: number, word: number): number {
-        let h = Math.imul(word ^ (kind << 28), 0x9e3779b1) ^ Math.imul(ns + 1, 0x85ebca6b);
-        h ^= h >>> 15;
-        return h & this.#mask;
+        return NodeIdIndex.hash(ns, kind, word, this.#mask);
     }
 
     public set(nodeId: NodeId, index: number): void {
@@ -189,10 +202,10 @@ export class NodeIdIndex {
         const word = this.#word;
         const value = this.#value;
         const n = (this.#mask + 1) * 2;
-        this.#ns = new Uint16Array(n);
-        this.#kind = new Uint8Array(n);
-        this.#word = new Uint32Array(n);
-        this.#value = new Int32Array(n);
+        this.#ns = this.#space.allocate(Uint16Array, n);
+        this.#kind = this.#space.allocate(Uint8Array, n);
+        this.#word = this.#space.allocate(Uint32Array, n);
+        this.#value = this.#space.allocate(Int32Array, n);
         this.#mask = n - 1;
         this.#size = 0;
         this.#occupied = 0;
@@ -209,5 +222,22 @@ export class NodeIdIndex {
             this.#size++;
             this.#occupied++;
         }
+        this.#space.relayout();
     }
+
+    /** the slot hash, shared with the readers of other threads: they must probe the same way */
+    public static hash(ns: number, kind: number, word: number, mask: number): number {
+        let h = Math.imul(word ^ (kind << 28), 0x9e3779b1) ^ Math.imul(ns + 1, 0x85ebca6b);
+        h ^= h >>> 15;
+        return h & mask;
+    }
+}
+
+/** what a reader in another thread needs of the NodeId index */
+export interface SharedIndexBuffers {
+    ns: SharedArrayBuffer;
+    kind: SharedArrayBuffer;
+    word: SharedArrayBuffer;
+    value: SharedArrayBuffer;
+    mask: number;
 }

@@ -10,6 +10,7 @@
  * a value consistently (odd version: a write is in progress, read again).
  */
 import type { DataType } from "node-opcua-variant";
+import { bufferOf, type Column, ColumnSpace, type ColumnType } from "./columns.js";
 
 /** what the columns hold for a node */
 export enum ValueKind {
@@ -34,16 +35,6 @@ export interface StoredValue {
     serverPicoseconds: number;
 }
 
-function resized<T extends Uint8Array | Uint16Array | Uint32Array | Float64Array>(
-    col: T,
-    n: number,
-    Type: new (n: number) => T
-): T {
-    const next = new Type(n);
-    next.set((col.length > n ? col.subarray(0, n) : col) as unknown as ArrayLike<number>);
-    return next;
-}
-
 export class ValueStore {
     #kind: Uint8Array;
     #dataType: Uint8Array;
@@ -55,18 +46,35 @@ export class ValueStore {
     #serverPicoseconds: Uint16Array;
     #version: Uint32Array;
     readonly #objects = new Map<number, unknown>();
+    readonly #space: ColumnSpace;
 
-    constructor(expectedNodes = 1024) {
+    constructor(expectedNodes = 1024, space = new ColumnSpace()) {
+        this.#space = space;
         const n = Math.max(16, expectedNodes);
-        this.#kind = new Uint8Array(n);
-        this.#dataType = new Uint8Array(n);
-        this.#number = new Float64Array(n);
-        this.#statusCode = new Uint32Array(n);
-        this.#sourceTimestamp = new Float64Array(n);
-        this.#serverTimestamp = new Float64Array(n);
-        this.#sourcePicoseconds = new Uint16Array(n);
-        this.#serverPicoseconds = new Uint16Array(n);
-        this.#version = new Uint32Array(n);
+        this.#kind = space.allocate(Uint8Array, n);
+        this.#dataType = space.allocate(Uint8Array, n);
+        this.#number = space.allocate(Float64Array, n);
+        this.#statusCode = space.allocate(Uint32Array, n);
+        this.#sourceTimestamp = space.allocate(Float64Array, n);
+        this.#serverTimestamp = space.allocate(Float64Array, n);
+        this.#sourcePicoseconds = space.allocate(Uint16Array, n);
+        this.#serverPicoseconds = space.allocate(Uint16Array, n);
+        this.#version = space.allocate(Uint32Array, n);
+    }
+
+    /** the columns a reader in another thread reads values from (see SharedStoreReader) */
+    public exportShared(): SharedValueBuffers {
+        return {
+            kind: bufferOf(this.#kind),
+            dataType: bufferOf(this.#dataType),
+            number: bufferOf(this.#number),
+            statusCode: bufferOf(this.#statusCode),
+            sourceTimestamp: bufferOf(this.#sourceTimestamp),
+            serverTimestamp: bufferOf(this.#serverTimestamp),
+            sourcePicoseconds: bufferOf(this.#sourcePicoseconds),
+            serverPicoseconds: bufferOf(this.#serverPicoseconds),
+            version: bufferOf(this.#version)
+        };
     }
 
     public get capacity(): number {
@@ -231,14 +239,21 @@ export class ValueStore {
         return this.#objects.size;
     }
 
+    // the version word is the seqlock of the value: odd while a write is in progress. In a
+    // shared store the increments are atomic, so that a reader in another thread sees them
+    // ordered with the field writes between them
     #begin(i: number): void {
-        this.#version[i] += 1; // odd while the write is in progress
+        if (this.#space.shared) Atomics.add(this.#version, i, 1);
+        else this.#version[i] += 1;
     }
     #end(i: number): void {
-        this.#version[i] += 1;
+        if (this.#space.shared) Atomics.add(this.#version, i, 1);
+        else this.#version[i] += 1;
     }
 
     #resize(n: number): void {
+        const space = this.#space;
+        const resized = <T extends Column>(col: T, length: number, Type: ColumnType<T>) => space.resized(col, length, Type);
         this.#kind = resized(this.#kind, n, Uint8Array);
         this.#dataType = resized(this.#dataType, n, Uint8Array);
         this.#number = resized(this.#number, n, Float64Array);
@@ -249,4 +264,17 @@ export class ValueStore {
         this.#serverPicoseconds = resized(this.#serverPicoseconds, n, Uint16Array);
         this.#version = resized(this.#version, n, Uint32Array);
     }
+}
+
+/** what a reader in another thread needs of the values */
+export interface SharedValueBuffers {
+    kind: SharedArrayBuffer;
+    dataType: SharedArrayBuffer;
+    number: SharedArrayBuffer;
+    statusCode: SharedArrayBuffer;
+    sourceTimestamp: SharedArrayBuffer;
+    serverTimestamp: SharedArrayBuffer;
+    sourcePicoseconds: SharedArrayBuffer;
+    serverPicoseconds: SharedArrayBuffer;
+    version: SharedArrayBuffer;
 }

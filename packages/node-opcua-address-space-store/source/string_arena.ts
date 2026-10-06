@@ -10,6 +10,8 @@
  * so the arena can later be shared between threads as a SharedArrayBuffer.
  */
 
+import { bufferOf, ColumnSpace } from "./columns.js";
+
 const EMPTY = -1;
 const FNV_OFFSET = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
@@ -48,15 +50,28 @@ export class StringArena {
     #decoded: (string | undefined)[] = [];
     readonly #encoder = new TextEncoder();
     readonly #decoder = new TextDecoder();
+    readonly #space: ColumnSpace;
 
-    constructor(expectedStrings = 1024, expectedBytes = expectedStrings * 16) {
-        this.#bytes = new Uint8Array(Math.max(64, expectedBytes));
-        this.#starts = new Int32Array(Math.max(16, expectedStrings));
-        this.#lengths = new Int32Array(Math.max(16, expectedStrings));
+    constructor(expectedStrings = 1024, expectedBytes = expectedStrings * 16, space = new ColumnSpace()) {
+        this.#space = space;
+        this.#bytes = space.allocate(Uint8Array, Math.max(64, expectedBytes));
+        this.#starts = space.allocate(Int32Array, Math.max(16, expectedStrings));
+        this.#lengths = space.allocate(Int32Array, Math.max(16, expectedStrings));
         let n = 32;
         while (n < expectedStrings * 2) n *= 2;
-        this.#slots = new Int32Array(n).fill(EMPTY);
+        this.#slots = space.allocate(Int32Array, n).fill(EMPTY);
         this.#mask = n - 1;
+    }
+
+    /** the buffers a reader in another thread finds strings with (see SharedStoreReader) */
+    public exportShared(): SharedArenaBuffers {
+        return {
+            bytes: bufferOf(this.#bytes),
+            starts: bufferOf(this.#starts),
+            lengths: bufferOf(this.#lengths),
+            slots: bufferOf(this.#slots),
+            mask: this.#mask
+        };
     }
 
     /** how many distinct strings are held */
@@ -210,18 +225,12 @@ export class StringArena {
         if (this.#used + length > this.#bytes.length) {
             let n = this.#bytes.length * 2;
             while (n < this.#used + length) n *= 2;
-            const grown = new Uint8Array(n);
-            grown.set(this.#bytes.subarray(0, this.#used));
-            this.#bytes = grown;
+            this.#bytes = this.#space.resized(this.#bytes, n, Uint8Array);
         }
         if (this.#count === this.#starts.length) {
             const n = this.#starts.length * 2;
-            const starts = new Int32Array(n);
-            starts.set(this.#starts);
-            this.#starts = starts;
-            const lengths = new Int32Array(n);
-            lengths.set(this.#lengths);
-            this.#lengths = lengths;
+            this.#starts = this.#space.resized(this.#starts, n, Int32Array);
+            this.#lengths = this.#space.resized(this.#lengths, n, Int32Array);
         }
         const id = this.#count++;
         this.#starts[id] = this.#used;
@@ -233,7 +242,7 @@ export class StringArena {
 
     #rehash(): void {
         const n = (this.#mask + 1) * 2;
-        const slots = new Int32Array(n).fill(EMPTY);
+        const slots = this.#space.allocate(Int32Array, n).fill(EMPTY);
         const mask = n - 1;
         for (let id = 0; id < this.#count; id++) {
             const start = this.#starts[id];
@@ -243,5 +252,15 @@ export class StringArena {
         }
         this.#slots = slots;
         this.#mask = mask;
+        this.#space.relayout();
     }
+}
+
+/** what a reader in another thread needs of an arena */
+export interface SharedArenaBuffers {
+    bytes: SharedArrayBuffer;
+    starts: SharedArrayBuffer;
+    lengths: SharedArrayBuffer;
+    slots: SharedArrayBuffer;
+    mask: number;
 }
