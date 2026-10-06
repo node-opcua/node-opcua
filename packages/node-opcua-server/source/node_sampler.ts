@@ -14,6 +14,13 @@ import type { MonitoredItem } from "./monitored_item.js";
 interface ITimer {
     _samplingId: NodeJS.Timeout | false;
     /**
+     * the performance.now() time the next tick is due at. Ticks sit on a fixed grid
+     * (start + k * samplingInterval) rather than being re-armed from the moment the
+     * previous tick ran, as setInterval does: a tick that runs late is followed by a
+     * shorter wait, so the long-run sampling rate stays at the requested one.
+     */
+    nextTick: number;
+    /**
      * a Map, not a plain object: this is walked in full on every sampling tick, and a
      * subscription may hold up to maxMonitoredItemsPerSubscription (100 000 by default)
      * items on the same interval. At that size a plain object goes into dictionary mode
@@ -41,6 +48,32 @@ function sampleMonitoredItem(monitoredItem: MonitoredItem) {
     });
 }
 
+/**
+ * the point of the sampling grid the next tick is due at, given the one the current
+ * tick was due at.
+ *
+ * setInterval re-arms from the time the callback actually ran, so every millisecond
+ * of lateness (libuv rounds its loop clock to the millisecond, and a busy loop wakes
+ * up late) is lost for good: at a 10 ms interval an idle Node process delivers about
+ * 98.4 ticks per second instead of 100, and a loaded one fewer. Keeping the ticks on
+ * a fixed grid lets a late tick be followed by a shorter wait. When the loop is more
+ * than a whole interval behind, the missed ticks are skipped instead of being fired
+ * back to back.
+ * @private
+ */
+export function nextSamplingTick(dueAt: number, now: number, samplingInterval: number): number {
+    const next = dueAt + samplingInterval;
+    const behind = now - next;
+    return behind < 0 ? next : next + (Math.floor(behind / samplingInterval) + 1) * samplingInterval;
+}
+
+function scheduleNextTick(_t: ITimer, samplingInterval: number, tick: () => void) {
+    const now = performance.now();
+    _t.nextTick = nextSamplingTick(_t.nextTick, now, samplingInterval);
+    // whole milliseconds keep the timeouts on one Node timer list per interval
+    _t._samplingId = setTimeout(tick, Math.max(1, Math.round(_t.nextTick - now)));
+}
+
 export function appendToTimer(monitoredItem: MonitoredItem): string {
     const samplingInterval = monitoredItem.samplingInterval;
     const key = samplingInterval.toString();
@@ -49,10 +82,12 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
     if (!_t) {
         _t = {
             _samplingId: false,
+            nextTick: performance.now(),
             monitoredItems: new Map()
         };
 
-        _t._samplingId = setInterval(() => {
+        const tick = () => {
+            scheduleNextTick(_t, samplingInterval, tick);
             const start = doDebug ? hrtime() : undefined;
             let counter = 0;
             for (const monitoredItem of _t.monitoredItems.values()) {
@@ -68,7 +103,8 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
                     ).toFixed(3)} milliseconds for ${counter} elements`
                 );
             }
-        }, samplingInterval);
+        };
+        scheduleNextTick(_t, samplingInterval, tick);
         timers[key] = _t;
     }
     assert(!_t.monitoredItems.has(monitoredItem.monitoredItemId));
@@ -92,7 +128,7 @@ export function removeFromTimer(monitoredItem: MonitoredItem): void {
     _t.monitoredItems.delete(monitoredItem.monitoredItemId);
     if (_t.monitoredItems.size === 0) {
         if (_t._samplingId !== false) {
-            clearInterval(_t._samplingId);
+            clearTimeout(_t._samplingId);
         }
         delete timers[key];
     }
