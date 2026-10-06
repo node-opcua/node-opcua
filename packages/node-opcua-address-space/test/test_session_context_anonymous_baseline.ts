@@ -91,4 +91,24 @@ describe("SessionContext - the Anonymous Role is the baseline every Session stan
         });
         context.getPermissions(secret).should.eql(PermissionFlag.None);
     });
+
+    it("SCAB-6 should resolve to the Anonymous Role alone on each of its three paths", () => {
+        const expected = makeRoles([WellKnownRoles.Anonymous]);
+        const anonymousUser = makeMockSessionContext({ userName: "anonymous", server: serverFor([]) });
+        const noUserManager = makeMockSessionContext({ userName: "ivan", server: {} });
+        const userManagerWithoutRoles = makeMockSessionContext({ userName: "ivan", server: { userManager: {} } });
+        for (const context of [anonymousUser, noUserManager, userManagerWithoutRoles]) {
+            should(context.getCurrentUserRoles().map((r) => r.toString())).eql(expected.map((r) => r.toString()));
+        }
+    });
+
+    it("SCAB-7 should hand each caller its own array of Anonymous Roles", () => {
+        const context = makeMockSessionContext({ userName: "anonymous", server: serverFor([]) });
+        const first = context.getCurrentUserRoles();
+        first.push(...makeRoles([WellKnownRoles.SecurityAdmin]));
+        const second = context.getCurrentUserRoles();
+        should(second).not.equal(first);
+        should(second.map((r) => r.toString())).eql(makeRoles([WellKnownRoles.Anonymous]).map((r) => r.toString()));
+        should(context.currentUserHasRole(WellKnownRoles.SecurityAdmin)).eql(false);
+    });
 });
