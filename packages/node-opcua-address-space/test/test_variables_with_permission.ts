@@ -381,9 +381,20 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
         it("it should inherit from namespace defaults", async () => {
             const nodeId = uaDefaultVariable.nodeId;
 
+            // the namespace requires SigningRequired | SessionRequired: an unsigned channel is refused
             const sessionAnonymous = new PseudoSession(addressSpace, contextAnonymous);
             const dataValue = await sessionAnonymous.read({ nodeId, attributeId: AttributeIds.Value });
-            dataValue.statusCode.should.eql(StatusCodes.Good);
+            should(dataValue.statusCode).eql(StatusCodes.BadSecurityModeInsufficient);
+
+            const sessionSigned = new PseudoSession(addressSpace, contextSecuritySign);
+            const signedDataValue = await sessionSigned.read({ nodeId, attributeId: AttributeIds.Value });
+            should(signedDataValue.statusCode).eql(StatusCodes.Good);
+        });
+
+        it("applies the namespace default access restrictions to a variable without its own", () => {
+            should(contextSecurityNone.isAccessRestricted(uaDefaultVariable)).eql(true);
+            should(contextSecuritySign.isAccessRestricted(uaDefaultVariable)).eql(false);
+            should(uaDefaultVariable.readValue(contextSecurityNone).statusCode).eql(StatusCodes.BadSecurityModeInsufficient);
         });
     });
 

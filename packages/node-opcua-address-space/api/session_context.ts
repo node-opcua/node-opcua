@@ -238,21 +238,20 @@ function getAccessRestrictionsOnNamespace(namespace: NamespacePrivate, context: 
         return AccessRestrictionsFlag.None;
     }
     const namespaces = getServerNamespaces(namespace);
-    if (!namespaces) {
-        return AccessRestrictionsFlag.None;
-    }
-    const namespaceObject = namespaces.getChildByName(namespace.namespaceUri);
-    if (!namespaceObject) {
-        return AccessRestrictionsFlag.None;
-    }
-    const defaultAccessRestriction = namespaceObject.getChildByName("defaultAccessRestriction");
-    if (defaultAccessRestriction) {
-        const dataValue = defaultAccessRestriction.readAttribute(null, AttributeIds.Value);
-        if (dataValue?.statusCode.isGood()) {
-            return dataValue.value.value as AccessRestrictionsFlag;
+    const namespaceObject = namespaces?.getChildByName(namespace.namespaceUri);
+    const defaultAccessRestrictions = namespaceObject?.getChildByName("DefaultAccessRestrictions");
+    if (defaultAccessRestrictions) {
+        const dataValue = defaultAccessRestrictions.readAttribute(null, AttributeIds.Value);
+        const value = dataValue?.value?.value as AccessRestrictionsFlag | null | undefined;
+        // the NamespaceMetadata nodes of the standard nodesets declare the property without a
+        // value: a null falls through to the namespace's own setting below
+        if (dataValue?.statusCode.isGood() && value !== null && value !== undefined) {
+            return value;
         }
     }
-    return AccessRestrictionsFlag.None;
+    // same fallback as getDefaultUserRolePermissionsOnNamespace: the policy set with
+    // Namespace.setDefaultAccessRestrictions() applies even without setNamespaceMetaData()
+    return namespace.getDefaultAccessRestrictions();
 }
 
 function getDefaultUserRolePermissionsOnNamespace(
