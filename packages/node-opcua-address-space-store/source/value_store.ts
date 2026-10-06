@@ -8,9 +8,32 @@
  * Every write bumps the node's version word, so a reader can tell that a value changed
  * without comparing it, and, once the columns are shared between threads, read the fields of
  * a value consistently (odd version: a write is in progress, read again).
+ *
+ * In a shared store, a value kept as an object is also kept as its binary encoding in a shared
+ * heap, for the readers of the other threads (see SharedHeap); a structure is not, since a reader
+ * may not know its type: the owner answers it.
  */
-import type { DataType } from "node-opcua-variant";
+import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
+import { DataType, encodeVariant, Variant, type VariantOptions } from "node-opcua-variant";
 import { bufferOf, type Column, ColumnSpace, type ColumnType } from "./columns.js";
+import { SharedHeap, type SharedHeapBuffers } from "./shared_heap.js";
+
+/** the binary encoding of a value for the readers of other threads; null for what they cannot decode */
+function encodedForReaders(value: unknown, dataType: DataType): Uint8Array | null {
+    if (dataType === DataType.ExtensionObject || dataType === DataType.Variant || dataType === DataType.DiagnosticInfo) {
+        return null;
+    }
+    try {
+        const variant = value instanceof Variant ? value : new Variant(value as VariantOptions);
+        const size = new BinaryStreamSizeCalculator();
+        encodeVariant(variant, size);
+        const stream = new BinaryStream(size.length);
+        encodeVariant(variant, stream);
+        return stream.buffer.subarray(0, size.length);
+    } catch {
+        return null;
+    }
+}
 
 /** what the columns hold for a node */
 export enum ValueKind {
@@ -47,6 +70,8 @@ export class ValueStore {
     #version: Uint32Array;
     readonly #objects = new Map<number, unknown>();
     readonly #space: ColumnSpace;
+    // the objects as bytes, for the readers of other threads: a shared store only
+    readonly #heap: SharedHeap | null;
 
     constructor(expectedNodes = 1024, space = new ColumnSpace()) {
         this.#space = space;
@@ -60,6 +85,7 @@ export class ValueStore {
         this.#sourcePicoseconds = space.allocate(Uint16Array, n);
         this.#serverPicoseconds = space.allocate(Uint16Array, n);
         this.#version = space.allocate(Uint32Array, n);
+        this.#heap = space.shared ? new SharedHeap(space, n) : null;
     }
 
     /** the columns a reader in another thread reads values from (see SharedStoreReader) */
@@ -73,8 +99,19 @@ export class ValueStore {
             serverTimestamp: bufferOf(this.#serverTimestamp),
             sourcePicoseconds: bufferOf(this.#sourcePicoseconds),
             serverPicoseconds: bufferOf(this.#serverPicoseconds),
-            version: bufferOf(this.#version)
+            version: bufferOf(this.#version),
+            heap: (this.#heap as SharedHeap).exportShared()
         };
+    }
+
+    /** the bytes a reader of another thread decodes the object of node `i` from; 0: it asks the owner */
+    public encodedLength(i: number): number {
+        return this.#heap ? this.#heap.length(i) : 0;
+    }
+
+    /** the bytes of the shared heap in use (garbage included); 0 in a store of one thread */
+    public get heapSize(): number {
+        return this.#heap ? this.#heap.used : 0;
     }
 
     public get capacity(): number {
@@ -136,6 +173,7 @@ export class ValueStore {
         this.#serverTimestamp[i] = serverTimestamp;
         this.#serverPicoseconds[i] = serverPicoseconds;
         this.#objects.delete(i);
+        this.#heap?.clear(i);
         this.#end(i);
     }
 
@@ -150,6 +188,8 @@ export class ValueStore {
         sourcePicoseconds = 0,
         serverPicoseconds = 0
     ): void {
+        // encoded before the write begins: the seqlock is held for the copy only
+        const encoded = this.#heap ? encodedForReaders(value, dataType) : null;
         this.#begin(i);
         this.#kind[i] = ValueKind.Object;
         this.#dataType[i] = dataType;
@@ -160,6 +200,8 @@ export class ValueStore {
         this.#serverTimestamp[i] = serverTimestamp;
         this.#serverPicoseconds[i] = serverPicoseconds;
         this.#objects.set(i, value);
+        if (encoded) this.#heap?.write(i, encoded);
+        else this.#heap?.clear(i);
         this.#end(i);
     }
 
@@ -170,6 +212,7 @@ export class ValueStore {
         this.#statusCode[i] = statusCode;
         this.#serverTimestamp[i] = serverTimestamp;
         this.#objects.delete(i);
+        this.#heap?.clear(i);
         this.#end(i);
     }
 
@@ -202,6 +245,7 @@ export class ValueStore {
         this.#sourcePicoseconds[i] = 0;
         this.#serverPicoseconds[i] = 0;
         this.#objects.delete(i);
+        this.#heap?.release(i);
         this.#end(i);
     }
 
@@ -263,6 +307,7 @@ export class ValueStore {
         this.#sourcePicoseconds = resized(this.#sourcePicoseconds, n, Uint16Array);
         this.#serverPicoseconds = resized(this.#serverPicoseconds, n, Uint16Array);
         this.#version = resized(this.#version, n, Uint32Array);
+        this.#heap?.resize(n);
     }
 }
 
@@ -277,4 +322,5 @@ export interface SharedValueBuffers {
     sourcePicoseconds: SharedArrayBuffer;
     serverPicoseconds: SharedArrayBuffer;
     version: SharedArrayBuffer;
+    heap: SharedHeapBuffers;
 }
