@@ -627,7 +627,8 @@ export class SessionContext implements ISessionContext {
             return [];
         }
 
-        const anonymous = makeRoles([WellKnownRoles.Anonymous]);
+        // a fresh array each time, a caller may change it; the NodeId is resolved once, at load
+        const anonymous = (): NodeId[] => [anonymousRoleNodeId];
 
         const username = getUserName(userIdentityToken);
 
@@ -641,16 +642,16 @@ export class SessionContext implements ISessionContext {
         }
 
         if (username === "anonymous") {
-            return anonymous;
+            return anonymous();
         }
         if (!this.server?.userManager) {
-            return anonymous;
+            return anonymous();
         }
 
         assert(this.server != null, "expecting a server");
 
         if (typeof this.server.userManager.getUserRoles !== "function") {
-            return anonymous;
+            return anonymous();
         }
 
         const rolesNodeId = this.server.userManager.getUserRoles(username) || [];
