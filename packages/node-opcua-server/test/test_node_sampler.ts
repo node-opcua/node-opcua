@@ -53,6 +53,9 @@ describe("node_sampler", () => {
                 samples: 0,
                 _on_sampling_timer() {
                     item.samples++;
+                },
+                getSessionContext(): object | null {
+                    return null;
                 }
             };
             return item;
@@ -72,6 +75,43 @@ describe("node_sampler", () => {
             removeFromTimer(item1 as unknown as MonitoredItem);
             removeFromTimer(item2 as unknown as MonitoredItem);
             should(clock.countTimers()).eql(0);
+        });
+
+        it("samples the items of one session context inside a single permission cache per tick", () => {
+            let cacheCalls = 0;
+            let insideCache = false;
+            const context = {
+                withPermissionCache<T>(action: () => T): T {
+                    cacheCalls++;
+                    insideCache = true;
+                    try {
+                        return action();
+                    } finally {
+                        insideCache = false;
+                    }
+                }
+            };
+            const sampledInsideCache: boolean[] = [];
+            const makeItem = (id: number) => {
+                const item = fakeMonitoredItem(id, 10);
+                item._on_sampling_timer = () => {
+                    item.samples++;
+                    sampledInsideCache.push(insideCache);
+                };
+                item.getSessionContext = () => context;
+                return item;
+            };
+            const item1 = makeItem(21);
+            const item2 = makeItem(22);
+            item1._samplingId = appendToTimer(item1 as unknown as MonitoredItem);
+            item2._samplingId = appendToTimer(item2 as unknown as MonitoredItem);
+
+            clock.tick(15);
+            should(cacheCalls).eql(1);
+            should(sampledInsideCache).eql([true, true]);
+
+            removeFromTimer(item1 as unknown as MonitoredItem);
+            removeFromTimer(item2 as unknown as MonitoredItem);
         });
 
         it("samples every interval until the last item is removed", () => {

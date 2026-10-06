@@ -9,6 +9,7 @@ import { hrtime } from "node-opcua-utils";
 const debugLog = make_debugLog("node_sampler");
 const doDebug = checkDebugFlag("node_sampler");
 
+import type { ISessionContext } from "node-opcua-address-space-base";
 import type { MonitoredItem } from "./monitored_item.js";
 
 interface ITimer {
@@ -37,6 +38,7 @@ const NS_PER_SEC = 1e9;
 
 interface MonitoredItemPriv {
     _on_sampling_timer(): void;
+    getSessionContext(): ISessionContext | null;
 }
 /**
  * the point of the sampling grid the next tick is due at, given the one the current
@@ -83,11 +85,34 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
             _t.passImmediate = undefined;
             const start = doDebug ? hrtime() : undefined;
             let counter = 0;
+            // the items are sampled per session context, inside that context's permission cache:
+            // the Roles and namespace defaults are then resolved once per tick, not once per item
+            const groups = new Map<ISessionContext | null, MonitoredItemPriv[]>();
             for (const monitoredItem of _t.monitoredItems.values()) {
-                if (monitoredItem.monitoringMode !== MonitoringMode.Disabled) {
-                    (monitoredItem as unknown as MonitoredItemPriv)._on_sampling_timer();
+                if (monitoredItem.monitoringMode === MonitoringMode.Disabled) {
+                    continue;
+                }
+                const item = monitoredItem as unknown as MonitoredItemPriv;
+                const context = item.getSessionContext();
+                const group = groups.get(context);
+                if (group) {
+                    group.push(item);
+                } else {
+                    groups.set(context, [item]);
                 }
                 counter++;
+            }
+            for (const [context, items] of groups) {
+                const sampleGroup = () => {
+                    for (const item of items) {
+                        item._on_sampling_timer();
+                    }
+                };
+                if (context?.withPermissionCache) {
+                    context.withPermissionCache(sampleGroup);
+                } else {
+                    sampleGroup();
+                }
             }
             /* c8 ignore next */
             if (doDebug) {
