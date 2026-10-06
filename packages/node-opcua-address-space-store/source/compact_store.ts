@@ -21,11 +21,17 @@ export interface CompactStoreOptions {
     shared?: boolean;
 }
 
+/** the bits of the namespace policy table */
+export const NAMESPACE_DEFAULT_RESTRICTIONS = 1;
+export const NAMESPACE_DEFAULT_ROLE_PERMISSIONS = 2;
+
 /** what a reader in another thread is handed: the buffers, and the layout they belong to */
 export interface SharedStoreDescriptor {
     /** the layout counter itself: a reader compares it with `layoutSeen` before each batch */
     layout: SharedArrayBuffer;
     layoutSeen: number;
+    /** per namespace index: whether it has default access restrictions or role permissions */
+    namespacePolicy: SharedArrayBuffer;
     nodes: SharedNodeBuffers;
     values: SharedValueBuffers;
 }
@@ -49,6 +55,12 @@ export class CompactStore {
 
     /** where the columns live: ordinary or shared buffers */
     public readonly space: ColumnSpace;
+    /**
+     * per namespace index, the defaults a reader in another thread cannot evaluate itself:
+     * NAMESPACE_DEFAULT_RESTRICTIONS, NAMESPACE_DEFAULT_ROLE_PERMISSIONS. Kept by the owner
+     * (see StoreAddressSpace#publishNamespacePolicy)
+     */
+    public readonly namespacePolicy: Uint8Array;
 
     constructor(options: CompactStoreOptions = {}) {
         const expected = options.expectedNodes ?? 1024;
@@ -57,6 +69,7 @@ export class CompactStore {
         this.references = new ReferenceTable(expected * 3);
         this.references.setTargetNameKey((target) => this.nodes.browseNameId(target));
         this.values = new ValueStore(expected, this.space);
+        this.namespacePolicy = this.space.allocate(Uint8Array, 65536);
     }
 
     /**
@@ -71,6 +84,7 @@ export class CompactStore {
         return {
             layout: this.space.layout.buffer as SharedArrayBuffer,
             layoutSeen: Atomics.load(this.space.layout, 0),
+            namespacePolicy: this.namespacePolicy.buffer as SharedArrayBuffer,
             nodes: this.nodes.exportShared(),
             values: this.values.exportShared()
         };

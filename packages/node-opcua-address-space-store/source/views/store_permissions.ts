@@ -86,6 +86,7 @@ export class StorePermissions {
         if (defaults) this.#explicit.set(namespaceIndex, defaults);
         else this.#explicit.delete(namespaceIndex);
         this.invalidate();
+        this.#space.publishNamespacePolicy();
     }
 
     /** forget the metadata nodes found so far: after nodes were added or removed */

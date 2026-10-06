@@ -11,7 +11,7 @@ import { NodeClass } from "node-opcua-data-model";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { AttributeReader } from "../attribute_reader.js";
 import { Browser } from "../browser.js";
-import { CompactStore } from "../compact_store.js";
+import { CompactStore, NAMESPACE_DEFAULT_RESTRICTIONS, NAMESPACE_DEFAULT_ROLE_PERMISSIONS } from "../compact_store.js";
 import { DataTypeResolver } from "../data_type_resolver.js";
 import { NO_NODE } from "../node_id_index.js";
 import {
@@ -124,6 +124,27 @@ export class StoreAddressSpace {
         this.#builder = new StoreNodeBuilder(this);
     }
 
+    /**
+     * called for each reference the running space adds between two nodes (after a load, through
+     * addVariable, addObject, addFolder, addReference): a front-thread engine keeps track of the
+     * nodes of other namespaces that lead into its own
+     */
+    public onLink: ((source: number, target: number) => void) | null = null;
+
+    /**
+     * the namespace policy table of the store, as readers in other threads see it: which
+     * namespaces have default access restrictions or role permissions (see SharedStoreReader#isOpen)
+     */
+    public publishNamespacePolicy(): void {
+        const table = this.store.namespacePolicy;
+        for (let ns = 0; ns < this.namespaceUris.length; ns++) {
+            const defaults = this.permissions.namespaceDefaults(ns);
+            table[ns] = // check-proto-pollution: ok - typed array, namespace index
+                (defaults.accessRestrictions !== 0 ? NAMESPACE_DEFAULT_RESTRICTIONS : 0) |
+                (defaults.rolePermissions !== null ? NAMESPACE_DEFAULT_ROLE_PERMISSIONS : 0);
+        }
+    }
+
     // ---- loading
     /**
      * after a load wrote its records into the store (the nodeset loader of node-opcua-address-space
@@ -133,6 +154,7 @@ export class StoreAddressSpace {
         this.browser.refresh();
         this.dataTypes.invalidate();
         this.permissions.invalidate();
+        this.publishNamespacePolicy();
     }
 
     /** a namespace of the application: the index new nodes default to */

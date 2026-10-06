@@ -8,7 +8,14 @@
 export { AttributeReader, type AttributeValue, ReadStatus } from "./attribute_reader.js";
 export { type BrowsedReference, type BrowseOptions, Browser, type RelativePathElement } from "./browser.js";
 export { type Column, ColumnSpace, type ColumnType } from "./columns.js";
-export { CompactStore, type CompactStoreOptions, packedKey, type SharedStoreDescriptor } from "./compact_store.js";
+export {
+    CompactStore,
+    type CompactStoreOptions,
+    NAMESPACE_DEFAULT_RESTRICTIONS,
+    NAMESPACE_DEFAULT_ROLE_PERMISSIONS,
+    packedKey,
+    type SharedStoreDescriptor
+} from "./compact_store.js";
 export { DataTypeResolver, ResolvedType } from "./data_type_resolver.js";
 export { NO_NODE, NodeIdIndex } from "./node_id_index.js";
 export { NO_STRING, type NodeRecord, NodeStore, type RolePermissionEntry, type SharedNodeBuffers } from "./node_store.js";

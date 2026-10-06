@@ -108,8 +108,11 @@ export class StoreNodeBuilder {
 
     /** a reference between two existing nodes; false when it is there already */
     public addReference(source: NodeRef, referenceType: NodeIdLike, target: NodeRef, forward = true): boolean {
-        const added = this.#space.store.link(this.#index(source), resolveNodeId(referenceType), forward, this.#index(target));
+        const from = this.#index(source);
+        const to = this.#index(target);
+        const added = this.#space.store.link(from, resolveNodeId(referenceType), forward, to);
         this.#afterReferenceChange(resolveNodeId(referenceType));
+        if (added) this.#space.onLink?.(from, to);
         return added;
     }
 
@@ -148,12 +151,16 @@ export class StoreNodeBuilder {
             rolePermissions: options.rolePermissions,
             ...extra
         });
-        if (typeDefinition !== undefined) store.link(index, HAS_TYPE_DEFINITION, true, typeDefinition);
-        if (options.componentOf) store.link(this.#index(options.componentOf), HAS_COMPONENT, true, index);
-        if (options.propertyOf) store.link(this.#index(options.propertyOf), HAS_PROPERTY, true, index);
-        if (options.organizedBy) store.link(this.#index(options.organizedBy), ORGANIZES, true, index);
+        const link = (source: number, referenceType: NodeId, forward: boolean, target: number) => {
+            store.link(source, referenceType, forward, target);
+            space.onLink?.(source, target);
+        };
+        if (typeDefinition !== undefined) link(index, HAS_TYPE_DEFINITION, true, typeDefinition);
+        if (options.componentOf) link(this.#index(options.componentOf), HAS_COMPONENT, true, index);
+        if (options.propertyOf) link(this.#index(options.propertyOf), HAS_PROPERTY, true, index);
+        if (options.organizedBy) link(this.#index(options.organizedBy), ORGANIZES, true, index);
         for (const r of options.references ?? []) {
-            store.link(index, resolveNodeId(r.referenceType), r.isForward ?? true, this.#index(r.nodeId));
+            link(index, resolveNodeId(r.referenceType), r.isForward ?? true, this.#index(r.nodeId));
         }
         if (nodeClass === NodeClass.ReferenceType) {
             space.browser.refresh();
