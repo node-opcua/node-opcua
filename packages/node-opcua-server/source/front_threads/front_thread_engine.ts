@@ -41,6 +41,7 @@ import { make_warningLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets as standardNodesets } from "node-opcua-nodesets";
 import { NumericRange } from "node-opcua-numeric-range";
+import { ReadRawModifiedDetails } from "node-opcua-service-history";
 import { StatusCodes } from "node-opcua-status-code";
 import { BrowseDescription, BrowsePath, BrowseResult, CallMethodRequest, CallMethodResult, WriteValue } from "node-opcua-types";
 import {
@@ -54,6 +55,7 @@ import {
     type FrontRequest,
     type FrontToEngine,
     type FrontWorkerData,
+    type HistoryCheckReply,
     type NodeDescription,
     transferablesOf,
     type ValueReply,
@@ -123,7 +125,18 @@ export class FrontThreadEngine {
     readonly #fronts: Worker[] = [];
     readonly #endpointUrls: string[] = [];
     /** the requests the fronts sent, by kind: what they could not answer in place */
-    public readonly requests = { read: 0, write: 0, browse: 0, references: 0, translate: 0, describe: 0, value: 0, call: 0 };
+    public readonly requests = {
+        read: 0,
+        write: 0,
+        browse: 0,
+        references: 0,
+        translate: 0,
+        describe: 0,
+        value: 0,
+        call: 0,
+        historyCheck: 0,
+        historyExtract: 0
+    };
     readonly #watched = new Map<number, Watch>();
     readonly #outgoing = new Map<Worker, Outgoing>();
     #pushScheduled = false;
@@ -340,6 +353,36 @@ export class FrontThreadEngine {
                 }
                 const reply: DescribeReply = { nodes, attributes: encodeDataValues(attributes) };
                 return reply;
+            }
+            case "historyCheck": {
+                const refused = (status: number): HistoryCheckReply => ({ status, boundsSupported: false, bounds: null });
+                const index = this.addressSpace.store.find(resolveNodeId(request.nodeId));
+                if (index < 0 || this.addressSpace.store.nodes.isDeleted(index)) return refused(StatusCodes.BadNodeIdUnknown.value);
+                const historian = this.addressSpace.historians.get(index);
+                // not historized: what a node object without history answers
+                if (!historian) return refused(StatusCodes.BadNotReadable.value);
+                const status = this.addressSpace.permissions.historyReadStatus(contextOf(request.context), index);
+                if (status !== StatusCodes.Good.value) return refused(status);
+                const boundsSupported = !!(historian.findBoundBefore && historian.findBoundAfter);
+                const bounds: DataValue[] = [];
+                if (boundsSupported) {
+                    for (const time of request.boundTimes) {
+                        bounds.push(historian.findBoundBefore?.(new Date(time)) ?? new DataValue());
+                        bounds.push(historian.findBoundAfter?.(new Date(time)) ?? new DataValue());
+                    }
+                }
+                const reply: HistoryCheckReply = { status, boundsSupported, bounds: encodeDataValues(bounds) };
+                return reply;
+            }
+            case "historyExtract": {
+                const historian = this.addressSpace.historians.get(this.addressSpace.store.find(resolveNodeId(request.nodeId)));
+                if (!historian) return null;
+                const details = decodeStructure(request.details, new ReadRawModifiedDetails());
+                return new Promise<Uint8Array | null>((resolve) => {
+                    historian.extractDataValues(details, request.max, request.isReversed, request.reverse, (err, values) =>
+                        resolve(err || !values ? null : encodeDataValues(values))
+                    );
+                });
             }
             case "call": {
                 const call = decodeStructure(request.request, new CallMethodRequest());
@@ -566,6 +609,16 @@ export class FrontThreadEngine {
             }
             case "call":
                 return encodeStructure(new CallMethodResult({ statusCode: StatusCodes.BadInternalError }));
+            case "historyCheck": {
+                const reply: HistoryCheckReply = {
+                    status: StatusCodes.BadInternalError.value,
+                    boundsSupported: false,
+                    bounds: null
+                };
+                return reply;
+            }
+            case "historyExtract":
+                return null;
         }
     }
 

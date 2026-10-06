@@ -8,7 +8,7 @@
  * event loop in one message. Monitored items get a FrontMonitoredNode (see front_node.ts).
  */
 import type { MessagePort } from "node:worker_threads";
-import type { ISessionContext } from "node-opcua-address-space";
+import { type ContinuationData, historyReadThrough, type ISessionContext, type IVariableHistorian } from "node-opcua-address-space";
 import {
     SharedReadStatus,
     type SharedStoreDescriptor,
@@ -17,12 +17,18 @@ import {
     ValueKind
 } from "node-opcua-address-space-store";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { AttributeIds } from "node-opcua-data-model";
+import { AttributeIds, QualifiedName } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { encodedNodesToWrite } from "node-opcua-secure-channel";
+import {
+    type HistoryReadDetails,
+    HistoryReadResult,
+    type HistoryReadValueId,
+    type ReadRawModifiedDetails
+} from "node-opcua-service-history";
 import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     type BrowseDescription,
@@ -50,6 +56,7 @@ import {
     encodeStructures,
     type FrontRequest,
     type FrontToEngine,
+    type HistoryCheckReply,
     type NodeDescription,
     type ReadItem,
     transferablesOf,
@@ -64,6 +71,57 @@ const MAX_AGE_CACHED = 0x7fffffff;
 const DESCRIPTIONS_PER_GENERATION = 50000;
 // attributes other than the Value kept per session for the items being created
 const ATTRIBUTES_PER_SESSION = 10000;
+
+/**
+ * the historian of a node, in the engine: what a front's HistoryRead extracts from. The bounding
+ * values of a raw read are looked up synchronously, at the start and the end of the request: they
+ * are fetched with the check that precedes the read.
+ */
+class EngineHistorian implements IVariableHistorian {
+    readonly #channel: EngineChannel;
+    readonly #nodeId: string;
+    public findBoundBefore?: (date: Date) => DataValue | null;
+    public findBoundAfter?: (date: Date) => DataValue | null;
+
+    /** `bounds`: the values before and after each time the request bounds, fetched with the check */
+    constructor(channel: EngineChannel, nodeId: string, bounds: Map<number, [DataValue | null, DataValue | null]> | null) {
+        this.#channel = channel;
+        this.#nodeId = nodeId;
+        if (bounds) {
+            this.findBoundBefore = (date) => bounds.get(date.getTime())?.[0] ?? null;
+            this.findBoundAfter = (date) => bounds.get(date.getTime())?.[1] ?? null;
+        }
+    }
+
+    public async push(): Promise<void> {
+        throw new Error("EngineHistorian: the engine records the values");
+    }
+
+    public extractDataValues(
+        details: ReadRawModifiedDetails,
+        maxNumberToExtract: number,
+        isReversed: boolean,
+        reverseDataValue: boolean,
+        callback: (err: Error | null, dataValue?: DataValue[]) => void
+    ): void {
+        this.#channel
+            .call<Uint8Array | null>({
+                kind: "historyExtract",
+                nodeId: this.#nodeId,
+                details: encodeStructure(details),
+                max: maxNumberToExtract,
+                isReversed,
+                reverse: reverseDataValue
+            })
+            .then(
+                (bytes) =>
+                    bytes
+                        ? callback(null, decodeDataValues(bytes))
+                        : callback(new Error("the engine has no history for this node")),
+                (err: Error) => callback(err)
+            );
+    }
+}
 
 /**
  * request and reply over the port to the engine. The requests made in one turn of the event
@@ -305,6 +363,57 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
             description: encodeStructure(description)
         });
         return decodeStructure(bytes, new BrowseResult()).references ?? [];
+    }
+
+    /**
+     * a HistoryRead: the engine says whether the session may read the node's history, then the
+     * values are read here, from the engine's historian, continuation points in this front's session
+     */
+    public async historyRead(
+        context: ISessionContext,
+        nodeToRead: HistoryReadValueId,
+        historyReadDetails: HistoryReadDetails,
+        continuationData: ContinuationData
+    ): Promise<HistoryReadResult> {
+        const nodeId = resolveNodeId(nodeToRead.nodeId);
+        // the times the bounds of a raw read are computed at
+        const raw = historyReadDetails as { returnBounds?: boolean; startTime?: Date | null; endTime?: Date | null };
+        const boundTimes =
+            raw.returnBounds && raw.startTime instanceof Date && raw.endTime instanceof Date
+                ? [raw.startTime.getTime(), raw.endTime.getTime()]
+                : [];
+        const check = await this.#channel.call<HistoryCheckReply>({
+            kind: "historyCheck",
+            context: describeContext(context),
+            nodeId: nodeId.toString(),
+            boundTimes
+        });
+        if (check.status !== StatusCodes.Good.value) {
+            return new HistoryReadResult({ statusCode: coerceStatusCode(check.status) });
+        }
+        let bounds: Map<number, [DataValue | null, DataValue | null]> | null = null;
+        if (check.boundsSupported) {
+            bounds = new Map();
+            const values = check.bounds ? decodeDataValues(check.bounds) : [];
+            const some = (d: DataValue | undefined) =>
+                d && (d.value.dataType !== DataType.Null || !d.statusCode.isGood()) ? d : null;
+            for (let k = 0; k < boundTimes.length; k++) {
+                bounds.set(boundTimes[k], [some(values[2 * k]), some(values[2 * k + 1])]);
+            }
+        }
+        return historyReadThrough(
+            {
+                nodeId,
+                browseName: new QualifiedName({ name: nodeId.toString() }),
+                varHistorian: new EngineHistorian(this.#channel, nodeId.toString(), bounds),
+                canUserReadHistory: () => true
+            },
+            context,
+            historyReadDetails as Parameters<typeof historyReadThrough>[2],
+            nodeToRead.indexRange ?? null,
+            nodeToRead.dataEncoding ?? null,
+            continuationData
+        );
     }
 
     /** a Method call: run by the engine, where the function is bound */

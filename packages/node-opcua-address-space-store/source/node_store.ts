@@ -340,6 +340,14 @@ export class NodeStore {
         }
     }
     /** a Variable bound to a getter or setter: its value is the owner's to answer */
+    public setHistorizing(i: number, historizing: boolean): void {
+        if (historizing) this.#flags[i] |= 1;
+        else this.#flags[i] &= ~1;
+    }
+    public setAccessLevels(i: number, accessLevel: number, userAccessLevel: number): void {
+        this.#accessLevel[i] = accessLevel; // check-proto-pollution: ok - typed array, node index
+        this.#userAccessLevel[i] = userAccessLevel; // check-proto-pollution: ok - typed array, node index
+    }
     public setBound(i: number, bound: boolean): void {
         if (bound) this.#flags[i] |= BOUND;
         else this.#flags[i] &= ~BOUND;

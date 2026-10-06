@@ -5,12 +5,13 @@
  * in a front thread, the shared columns of the engine thread's store plus messages to the engine.
  * The accessor routes every NodeId of these namespaces here; the rest goes to the node objects.
  */
-import type { CompactAddressSpace, ISessionContext } from "node-opcua-address-space";
-import { CompactAddressSpaceServices } from "node-opcua-address-space";
+import type { CompactAddressSpace, ContinuationData, ISessionContext } from "node-opcua-address-space";
+import { CompactAddressSpaceServices, historyReadThrough } from "node-opcua-address-space";
 import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { coerceStatusCode, type StatusCode } from "node-opcua-status-code";
+import { type HistoryReadDetails, HistoryReadResult, type HistoryReadValueId } from "node-opcua-service-history";
+import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type {
     BrowseDescription,
     BrowsePath,
@@ -53,6 +54,13 @@ export interface ICompactBackend {
     translate(browsePath: BrowsePath): Promise<BrowsePathResult | null>;
     /** a call of a Method of these namespaces */
     call?(context: ISessionContext | null, request: CallMethodRequest): Promise<CallMethodResultOptions>;
+    /** a HistoryRead of a Variable of these namespaces */
+    historyRead?(
+        context: ISessionContext,
+        nodeToRead: HistoryReadValueId,
+        historyReadDetails: HistoryReadDetails,
+        continuationData: ContinuationData
+    ): Promise<HistoryReadResult>;
     /**
      * before the items of a CreateMonitoredItems are created: what findNode() needs to answer
      * them synchronously. Undefined when there is nothing to fetch.
@@ -114,6 +122,38 @@ export class LocalCompactBackend implements ICompactBackend {
 
     public call(context: ISessionContext | null, request: CallMethodRequest): Promise<CallMethodResultOptions> {
         return this.#services.call(context, request);
+    }
+
+    public async historyRead(
+        context: ISessionContext,
+        nodeToRead: HistoryReadValueId,
+        historyReadDetails: HistoryReadDetails,
+        continuationData: ContinuationData
+    ): Promise<HistoryReadResult> {
+        const space = this.#space;
+        const index = space.store.find(resolveNodeId(nodeToRead.nodeId));
+        if (index < 0 || space.store.nodes.isDeleted(index)) {
+            return new HistoryReadResult({ statusCode: StatusCodes.BadNodeIdUnknown });
+        }
+        const historian = space.historians.get(index);
+        if (!historian) {
+            // not historized: what a node object without history answers
+            return new HistoryReadResult({ statusCode: StatusCodes.BadNotReadable });
+        }
+        const view = space.viewOf(index);
+        return historyReadThrough(
+            {
+                nodeId: view.nodeId,
+                browseName: view.browseName,
+                varHistorian: historian,
+                canUserReadHistory: (c) => space.permissions.historyReadStatus(c, index) === StatusCodes.Good.value
+            },
+            context,
+            historyReadDetails as Parameters<typeof historyReadThrough>[2],
+            nodeToRead.indexRange ?? null,
+            nodeToRead.dataEncoding ?? null,
+            continuationData
+        );
     }
 
     public findNode(nodeId: NodeIdLike): FoundNode | null {

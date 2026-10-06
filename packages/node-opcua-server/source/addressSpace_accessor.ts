@@ -551,6 +551,14 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             return new HistoryReadResult({ statusCode: StatusCodes.BadTimestampsToReturnInvalid });
         }
 
+        const backend = this.#backend;
+        if (backend && this.#isCompact(nodeId)) {
+            // a Variable of the compact namespaces: its historian in the compact address space
+            return backend.historyRead
+                ? backend.historyRead(context, nodeToRead, historyReadDetails, continuationData)
+                : new HistoryReadResult({ statusCode: StatusCodes.BadHistoryOperationUnsupported });
+        }
+
         const obj = this.__findNode(nodeId) as UAVariable;
 
         if (!obj) {

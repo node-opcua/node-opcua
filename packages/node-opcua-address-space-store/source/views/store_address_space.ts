@@ -7,7 +7,8 @@
  * million nodes costs ten million rows and only as many objects as are being looked at.
  */
 
-import { NodeClass } from "node-opcua-data-model";
+import type { IHistoricalDataNodeOptions, IVariableHistorian, IVariableHistorianOptions } from "node-opcua-address-space-base";
+import { AccessLevelFlag, NodeClass } from "node-opcua-data-model";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { AttributeReader } from "../attribute_reader.js";
 import { Browser } from "../browser.js";
@@ -113,6 +114,11 @@ export class StoreAddressSpace {
     public readonly bindings = new Map<number, VariableBinding>();
     /** the functions bound to the Methods (see StoreMethodView.bindMethod) */
     public readonly methods = new Map<number, StoreMethodHandler>();
+    /** the historians of the historized Variables (see installHistoricalDataNode) */
+    public readonly historians = new Map<number, IVariableHistorian>();
+    /** the historian a Variable gets when installHistoricalDataNode is given none (set by AddressSpace.createCompact) */
+    public historianFactory: ((variable: StoreVariableView, options: IVariableHistorianOptions) => IVariableHistorian) | null =
+        null;
     /** what a session may read: the access restrictions and role permissions of the nodes */
     public readonly permissions: StorePermissions;
     readonly #views: ViewCache;
@@ -235,6 +241,36 @@ export class StoreAddressSpace {
     public addObject(options: StoreAddObjectOptions): StoreNodeView {
         return this.#builder.addObject(options);
     }
+    /**
+     * the values of a Variable recorded as they are written, for HistoryRead: its Historizing
+     * attribute set, HistoryRead added to its access levels. The historian of the options, or the
+     * one historianFactory makes (the last values in memory).
+     */
+    public installHistoricalDataNode(
+        variable: StoreVariableView | NodeId | string,
+        options: IHistoricalDataNodeOptions = {}
+    ): IVariableHistorian {
+        const index =
+            typeof variable === "object" && "index" in variable ? variable.index : this.store.find(resolveNodeId(variable));
+        if (index === NO_NODE || this.store.nodes.nodeClass(index) !== NodeClass.Variable) {
+            throw new Error("installHistoricalDataNode: not a Variable of this address space");
+        }
+        const view = this.viewOf(index) as StoreVariableView;
+        const historian = options.historian ?? this.historianFactory?.(view, options as IVariableHistorianOptions);
+        if (!historian) {
+            throw new Error("installHistoricalDataNode: no historian given, and no historianFactory to make one");
+        }
+        const nodes = this.store.nodes;
+        nodes.setHistorizing(index, true);
+        nodes.setAccessLevels(
+            index,
+            nodes.accessLevel(index) | AccessLevelFlag.HistoryRead,
+            nodes.userAccessLevel(index) | AccessLevelFlag.HistoryRead
+        );
+        this.historians.set(index, historian);
+        return historian;
+    }
+
     /** a Method with its InputArguments and OutputArguments; executable once a function is bound to it */
     public addMethod(options: StoreAddMethodOptions): StoreMethodView {
         return this.#builder.addMethod(options);
@@ -271,6 +307,7 @@ export class StoreAddressSpace {
         this.store.deleteNode(index);
         this.bindings.delete(index);
         this.methods.delete(index);
+        this.historians.delete(index);
         this.#views.delete(index);
         this.permissions.invalidate();
         if (nodeClass === NodeClass.ReferenceType) {

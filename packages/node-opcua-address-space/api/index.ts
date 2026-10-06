@@ -91,7 +91,12 @@ export * from "../impl/event_data.js";
 /** Building and maintaining a variable whose value is an array of extension objects. */
 export { addElement, bindExtObjArrayNode, createExtObjArrayNode, removeElement } from "../impl/extension_object_array_node.js";
 /** The default historian, installed through {@link AddressSpace.historizerFactory}. */
-export { VariableHistorian } from "../impl/historical_access/address_space_historical_data_node.js";
+export {
+    createDetachedHistorian,
+    historyReadThrough,
+    type IHistoryReadTarget,
+    VariableHistorian
+} from "../impl/historical_access/address_space_historical_data_node.js";
 export {
     installReadProcessedDetails,
     type ReadProcessedDetailsFunc
