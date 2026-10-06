@@ -2000,14 +2000,16 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             this.$dataValue = dataValue;
             this.$dataValue.statusCode = this.$dataValue.statusCode || StatusCodes.Good;
         }
-        // repair missing timestamps
-        const now = new Date();
+        // repair missing timestamps (the clock is only read when one is missing: this runs on
+        // every stored value, and most arrive with both timestamps)
+        let now: Date | undefined;
         if (!dataValue.serverTimestamp) {
+            now = new Date();
             this.$dataValue.serverTimestamp = old_dataValue.serverTimestamp || now;
             this.$dataValue.serverPicoseconds = old_dataValue.serverPicoseconds || 0;
         }
         if (!dataValue.sourceTimestamp) {
-            this.$dataValue.sourceTimestamp = old_dataValue.sourceTimestamp || now;
+            this.$dataValue.sourceTimestamp = old_dataValue.sourceTimestamp || (now ?? new Date());
             this.$dataValue.sourcePicoseconds = old_dataValue.sourcePicoseconds || 0;
         }
 
