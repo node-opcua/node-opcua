@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
-import { Browser, CompactStore, NO_NODE } from "node-opcua-address-space-store";
-import { NodeClass } from "node-opcua-data-model";
+import { AttributeReader, Browser, CompactStore, NO_NODE, ReadStatus } from "node-opcua-address-space-store";
+import { AttributeIds, NodeClass } from "node-opcua-data-model";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
+import { DataType } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace } from "../dist/api/index.js";
 import { xmlNodesetRecords } from "../dist/api/loader/nodeset_xml_producer.js";
@@ -126,6 +127,32 @@ describe("StoreRecordApplier: the standard nodeset into a compact store", functi
         should(browser.hierarchy.isSubtypeOf(ordinal(47), ordinal(44))).eql(true, "HasComponent < Aggregates");
         should(browser.hierarchy.isSubtypeOf(ordinal(35), ordinal(44))).eql(false, "Organizes is not an Aggregates");
         should(browser.hierarchy.isSubtypeOf(ordinal(35), ordinal(33))).eql(true, "Organizes < HierarchicalReferences");
+    });
+
+    it("reads attributes from the store", () => {
+        const reader = new AttributeReader(store);
+        const id = (i: number) => new NodeId(NodeIdType.NUMERIC, i, 0);
+        const currentTime = store.find(id(2258));
+        should(reader.read(currentTime, AttributeIds.BrowseName).value).have.property("name", "CurrentTime");
+        should(reader.read(currentTime, AttributeIds.DisplayName).value).have.property("text", "CurrentTime");
+        should(reader.read(currentTime, AttributeIds.NodeClass).value).eql(NodeClass.Variable);
+        should(reader.read(currentTime, AttributeIds.DataType).value?.toString()).eql("ns=0;i=294");
+        should(reader.read(currentTime, AttributeIds.ValueRank).value).eql(-1);
+        should(reader.read(currentTime, AttributeIds.Value).statusCode).eql(
+            ReadStatus.BadWaitingForInitialData,
+            "no value in the file"
+        );
+        should(reader.read(currentTime, AttributeIds.EventNotifier).statusCode).eql(
+            ReadStatus.BadAttributeIdInvalid,
+            "not an attribute of a Variable"
+        );
+        should(reader.read(NO_NODE, AttributeIds.NodeId).statusCode).eql(ReadStatus.BadNodeIdUnknown);
+        const server = store.find(id(2253));
+        should(reader.read(server, AttributeIds.EventNotifier).dataType).eql(DataType.Byte);
+        should(reader.read(server, AttributeIds.NodeId).value?.toString()).eql("ns=0;i=2253");
+        // a value the file declares, as an object (an enum strings array)
+        const serverStatusType = store.find(id(2138));
+        should(store.nodes.nodeClass(serverStatusType)).eql(NodeClass.VariableType);
     });
 
     it("interns the vocabulary once", () => {
