@@ -135,7 +135,7 @@ export * from "./helpers/call_helpers.js";
 export * from "./helpers/dump_tools.js";
 export * from "./helpers/ensure_secure_access.js";
 export * from "./helpers/make_optionals_map.js";
-export { resolveOpaqueOnAddressSpace } from "./helpers/resolve_opaque_on_address_space.js";
+export { mayHoldOpaqueStructure, resolveOpaqueOnAddressSpace } from "./helpers/resolve_opaque_on_address_space.js";
 export * from "./interfaces/alarms_and_conditions/condition_info_i.js";
 export * from "./interfaces/alarms_and_conditions/condition_snapshot.js";
 export * from "./interfaces/alarms_and_conditions/instantiate_alarm_condition_options.js";

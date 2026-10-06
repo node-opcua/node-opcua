@@ -5,6 +5,7 @@ import {
     CompactAddressSpaceServices,
     callMethodHelper,
     ensureDatatypeExtracted,
+    mayHoldOpaqueStructure,
     resolveOpaqueOnAddressSpace,
     SessionContext
 } from "node-opcua-address-space";
@@ -191,10 +192,29 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
     public async write(context: ISessionContext, nodesToWrite: WriteValue[]): Promise<StatusCode[]> {
         context.currentTime = getCurrentClock();
         await ensureDatatypeExtracted(this.addressSpace);
-        const results: StatusCode[] = [];
-        for (const writeValue of nodesToWrite) {
-            const statusCode = await this.writeNode(context, writeValue);
-            results.push(statusCode);
+        const results: StatusCode[] = new Array(nodesToWrite.length);
+        // the nodes are written in order, each one once the previous one is done, as before; but a
+        // write that is done when writeAttribute returns, the common case, is not awaited
+        let i = 0;
+        const writeWhileSynchronous = (): Promise<StatusCode> | null => {
+            for (; i < nodesToWrite.length; i++) {
+                const statusCode = this.#writeNode(context, nodesToWrite[i]);
+                if (statusCode instanceof Promise) {
+                    return statusCode;
+                }
+                results[i] = statusCode; // check-proto-pollution: ok - numeric index into an array
+            }
+            return null;
+        };
+        while (i < nodesToWrite.length) {
+            // the permission cache only lives through a synchronous run: it is dropped before an await
+            const pending = context.withPermissionCache
+                ? context.withPermissionCache(writeWhileSynchronous)
+                : writeWhileSynchronous();
+            if (pending) {
+                results[i] = await pending; // check-proto-pollution: ok - numeric index into an array
+                i++;
+            }
         }
         return results;
     }
@@ -410,8 +430,22 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
     }
 
     public async writeNode(context: ISessionContext, writeValue: WriteValue): Promise<StatusCode> {
-        await resolveOpaqueOnAddressSpace(this.addressSpace, writeValue.value.value);
+        return await this.#writeNode(context, writeValue);
+    }
 
+    /**
+     * writes one node: the StatusCode when the write is done on return, which is the common case,
+     * a promise of it otherwise (an opaque structure to resolve first, or a setter that answers later)
+     */
+    #writeNode(context: ISessionContext, writeValue: WriteValue): StatusCode | Promise<StatusCode> {
+        const variant = writeValue.value.value;
+        if (mayHoldOpaqueStructure(variant)) {
+            return resolveOpaqueOnAddressSpace(this.addressSpace, variant).then(() => this.#writeResolvedNode(context, writeValue));
+        }
+        return this.#writeResolvedNode(context, writeValue);
+    }
+
+    #writeResolvedNode(context: ISessionContext, writeValue: WriteValue): StatusCode | Promise<StatusCode> {
         assert(context instanceof SessionContext);
         assert(writeValue.schema.name === "WriteValue");
         assert(writeValue.value instanceof DataValue);
@@ -432,18 +466,33 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
         const obj = this.__findNode(nodeId) as UAVariable;
         if (!obj) {
             return StatusCodes.BadNodeIdUnknown;
-        } else {
-            return await new Promise<StatusCode>((resolve, reject) => {
-                obj.writeAttribute(context, writeValue, (err, statusCode) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        // a setter is allowed to invoke its callback with no statusCode to mean Good
-                        resolve(statusCode || StatusCodes.Good);
-                    }
-                });
-            });
         }
+        // writeAttribute answers through a callback: called before it returns for a plain value or
+        // a synchronous setter, later for an asynchronous one
+        let answered = false;
+        let answerError: Error | null = null;
+        let answer: StatusCode = StatusCodes.Good;
+        let later: { resolve: (statusCode: StatusCode) => void; reject: (err: Error) => void } | null = null;
+        obj.writeAttribute(context, writeValue, (err, statusCode) => {
+            // a setter is allowed to invoke its callback with no statusCode to mean Good
+            const status = statusCode || StatusCodes.Good;
+            if (later) {
+                err ? later.reject(err) : later.resolve(status);
+                return;
+            }
+            answered = true;
+            answerError = err ?? null;
+            answer = status;
+        });
+        if (answered) {
+            if (answerError) {
+                throw answerError;
+            }
+            return answer;
+        }
+        return new Promise<StatusCode>((resolve, reject) => {
+            later = { resolve, reject };
+        });
     }
 
     public async callMethod(context: ISessionContext, methodToCall: CallMethodRequest): Promise<CallMethodResultOptions> {
