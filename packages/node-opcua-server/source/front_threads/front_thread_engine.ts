@@ -42,7 +42,7 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets as standardNodesets } from "node-opcua-nodesets";
 import { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
-import { BrowseDescription, BrowsePath, BrowseResult, WriteValue } from "node-opcua-types";
+import { BrowseDescription, BrowsePath, BrowseResult, CallMethodRequest, CallMethodResult, WriteValue } from "node-opcua-types";
 import {
     contextOf,
     type DescribeReply,
@@ -123,7 +123,7 @@ export class FrontThreadEngine {
     readonly #fronts: Worker[] = [];
     readonly #endpointUrls: string[] = [];
     /** the requests the fronts sent, by kind: what they could not answer in place */
-    public readonly requests = { read: 0, write: 0, browse: 0, references: 0, translate: 0, describe: 0, value: 0 };
+    public readonly requests = { read: 0, write: 0, browse: 0, references: 0, translate: 0, describe: 0, value: 0, call: 0 };
     readonly #watched = new Map<number, Watch>();
     readonly #outgoing = new Map<Worker, Outgoing>();
     #pushScheduled = false;
@@ -262,6 +262,14 @@ export class FrontThreadEngine {
             // a namespace default may have been written (NamespaceMetadata)
             this.addressSpace.publishNamespacePolicy();
         }
+        if (payloads.some((payload) => payload instanceof Promise)) {
+            // the batch is answered once its last answer is there (a Method that runs a while)
+            Promise.all(payloads).then((settled) => {
+                const reply: EngineToFront = { kind: "replies", ids, payloads: settled };
+                worker.postMessage(reply);
+            });
+            return;
+        }
         const reply: EngineToFront = { kind: "replies", ids, payloads };
         worker.postMessage(reply, transferablesOf(payloads));
     }
@@ -332,6 +340,13 @@ export class FrontThreadEngine {
                 }
                 const reply: DescribeReply = { nodes, attributes: encodeDataValues(attributes) };
                 return reply;
+            }
+            case "call": {
+                const call = decodeStructure(request.request, new CallMethodRequest());
+                return services
+                    .call(contextOf(request.context), call)
+                    .then((result) => encodeStructure(new CallMethodResult(result)))
+                    .catch(() => encodeStructure(new CallMethodResult({ statusCode: StatusCodes.BadInternalError })));
             }
             case "value": {
                 const store = this.addressSpace.store;
@@ -549,6 +564,8 @@ export class FrontThreadEngine {
                 };
                 return reply;
             }
+            case "call":
+                return encodeStructure(new CallMethodResult({ statusCode: StatusCodes.BadInternalError }));
         }
     }
 

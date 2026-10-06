@@ -16,6 +16,8 @@ import type {
     BrowsePath,
     BrowsePathResult,
     BrowseResult,
+    CallMethodRequest,
+    CallMethodResultOptions,
     ReadValueIdOptions,
     ReferenceDescription,
     WriteValue
@@ -49,6 +51,8 @@ export interface ICompactBackend {
     references(context: ISessionContext | null, nodeId: NodeId, description: BrowseDescription): Promise<ReferenceDescription[]>;
     /** a path followed in these namespaces from its start; null when it leads nowhere here */
     translate(browsePath: BrowsePath): Promise<BrowsePathResult | null>;
+    /** a call of a Method of these namespaces */
+    call?(context: ISessionContext | null, request: CallMethodRequest): Promise<CallMethodResultOptions>;
     /**
      * before the items of a CreateMonitoredItems are created: what findNode() needs to answer
      * them synchronously. Undefined when there is nothing to fetch.
@@ -106,6 +110,10 @@ export class LocalCompactBackend implements ICompactBackend {
     public async translate(browsePath: BrowsePath): Promise<BrowsePathResult | null> {
         const result = this.#services.translate(browsePath);
         return result.statusCode.isGood() ? result : null;
+    }
+
+    public call(context: ISessionContext | null, request: CallMethodRequest): Promise<CallMethodResultOptions> {
+        return this.#services.call(context, request);
     }
 
     public findNode(nodeId: NodeIdLike): FoundNode | null {

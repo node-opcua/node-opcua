@@ -269,7 +269,9 @@ export type FrontRequest =
     | { kind: "references"; context: ContextDescriptor; nodeId: string; description: Uint8Array }
     | { kind: "translate"; browsePath: Uint8Array }
     | { kind: "describe"; context: ContextDescriptor; items: { nodeId: string; attributeId: number }[] }
-    | { kind: "value"; context: ContextDescriptor; index: number; generation: number };
+    | { kind: "value"; context: ContextDescriptor; index: number; generation: number }
+    /** a Method call: the CallMethodRequest as its binary encoding; answered with the CallMethodResult's */
+    | { kind: "call"; context: ContextDescriptor; request: Uint8Array };
 
 /** start (1) or stop (0) watching a node: index and generation, three numbers per operation, in order */
 export const WATCH = 1;

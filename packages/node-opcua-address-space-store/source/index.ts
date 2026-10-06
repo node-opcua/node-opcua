@@ -26,7 +26,13 @@ export { StringArena } from "./string_arena.js";
 export { type SharedValueBuffers, type StoredValue, ValueKind, ValueStore } from "./value_store.js";
 export { StoreAddressSpace, type StoreAddressSpaceOptions } from "./views/store_address_space.js";
 export { attributeDataValue, deniedDataValue, valueDataValue } from "./views/store_data_value.js";
-export type { StoreAddNodeOptions, StoreAddObjectOptions, StoreAddVariableOptions } from "./views/store_node_builder.js";
+export { type StoreMethodHandler, StoreMethodView } from "./views/store_method_view.js";
+export type {
+    StoreAddMethodOptions,
+    StoreAddNodeOptions,
+    StoreAddObjectOptions,
+    StoreAddVariableOptions
+} from "./views/store_node_builder.js";
 export { StoreNodeView, StoreReferenceView, type VariableBinding } from "./views/store_node_view.js";
 export { StoreObjectView } from "./views/store_object_view.js";
 export { type NamespacePermissionDefaults, StorePermissions, type UnresolvedPermissionPolicy } from "./views/store_permissions.js";

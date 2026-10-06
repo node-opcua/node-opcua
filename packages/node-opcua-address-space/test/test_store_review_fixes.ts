@@ -93,8 +93,9 @@ describe("store: what the review of the compact store found", function () {
         should(hasComponent?.readAttribute(null, AttributeIds.Symmetric).value.value).eql(false);
         should(hasComponent?.readAttribute(null, AttributeIds.InverseName).value.value.text).eql("ComponentOf");
         const method = space.findNode("ns=0;i=11492"); // GetMonitoredItems
-        should(method?.readAttribute(null, AttributeIds.Executable).value.value).eql(true);
-        should(method?.readAttribute(null, AttributeIds.UserExecutable).value.value).eql(true);
+        // answered, and false: a Method of the store is executable once a function is bound to it
+        should(method?.readAttribute(null, AttributeIds.Executable).value.value).eql(false);
+        should(method?.readAttribute(null, AttributeIds.UserExecutable).value.value).eql(false);
         should(objects?.readAttribute(null, AttributeIds.Executable).statusCode).eql(StatusCodes.BadAttributeIdInvalid);
     });
 
