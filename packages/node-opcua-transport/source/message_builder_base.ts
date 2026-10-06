@@ -2,7 +2,6 @@
  * @module node-opcua-transport
  */
 import { EventEmitter } from "node:events";
-import { assert } from "node-opcua-assert";
 
 import { decodeStatusCode, decodeString, decodeUInt32 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -176,9 +175,7 @@ export class MessageBuilderBase extends EventEmitter {
     protected _read_headers(binaryStream: BinaryStream): boolean {
         try {
             this.messageHeader = readMessageHeader(binaryStream);
-            // assert(binaryStream.length === 8, "expecting message header to be 8 bytes");
             this.channelId = binaryStream.readUInt32();
-            // assert(binaryStream.length === 12);
 
             // verifying secure ChannelId
             if (this.#_expectedChannelId && this.channelId !== this.#_expectedChannelId) {
@@ -273,7 +270,10 @@ export class MessageBuilderBase extends EventEmitter {
 
     /** the second half of {@link #_append}, run after the (possibly awaited) header processing. */
     #_append_after_headers(chunk: Buffer, binaryStream: BinaryStream): boolean {
-        assert(binaryStream.length >= 12);
+        // c8 ignore next
+        if (binaryStream.length < 12) {
+            return this._report_error(StatusCodes2.BadTcpInternalError, "message chunk headers shorter than 12 bytes");
+        }
 
         // verify message chunk length
         if (this.messageHeader?.length !== chunk.length) {
@@ -352,7 +352,17 @@ export class MessageBuilderBase extends EventEmitter {
     }
 
     #_feed_messageChunk(chunk: Buffer): boolean | Promise<boolean> {
-        const messageHeader = readMessageHeader(new BinaryStream(chunk));
+        let messageHeader: ReturnType<typeof readMessageHeader>;
+        try {
+            messageHeader = readMessageHeader(new BinaryStream(chunk));
+        } catch (err) {
+            // the packet assembler hands out chunks of at least 8 bytes, so this is not
+            // expected; still, a bad chunk must not throw out of the socket data handler.
+            return this._report_error(
+                StatusCodes2.BadTcpInternalError,
+                `Error decoding message header ${err instanceof Error ? err.message : String(err)}`
+            );
+        }
         this.emit("chunk", chunk);
 
         if (messageHeader.isFinal === "F") {
@@ -379,7 +389,6 @@ export class MessageBuilderBase extends EventEmitter {
                 // only valid for MSG, according to spec
                 const stream = new BinaryStream(chunk);
                 readMessageHeader(stream);
-                assert(stream.length === 8);
                 // instead of
                 //   const securityHeader = new SymmetricAlgorithmSecurityHeader();
                 //   securityHeader.decode(stream);

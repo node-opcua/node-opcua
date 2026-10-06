@@ -13,9 +13,6 @@
     ],
     "references": [
         {
-            "path": "../node-opcua-assert"
-        },
-        {
             "path": "../node-opcua-basic-types"
         },
         {

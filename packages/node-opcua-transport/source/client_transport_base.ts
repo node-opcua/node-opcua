@@ -11,7 +11,6 @@
  * Node-only built-in beyond what `TCP_transport` already inherits from `node:events`.
  */
 
-import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { readMessageHeader } from "node-opcua-chunkmanager";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
@@ -30,6 +29,9 @@ import { doTraceHelloAck } from "./utils.js";
 const doDebug = checkDebugFlag("ClientTransportBase");
 const debugLog = make_debugLog("ClientTransportBase");
 const warningLog = make_warningLog("ClientTransportBase");
+
+// smallest ReceiveBufferSize / SendBufferSize a peer may negotiate (OPC UA Part 6, 7.1.2.4)
+const minimumBufferSize = 8192;
 
 export interface ClientTransportBase {
     on(eventName: "chunk", eventHandler: (messageChunk: Buffer) => void): this;
@@ -135,8 +137,6 @@ export abstract class ClientTransportBase extends TCP_transport {
             callback(new Error("No socket available to perform HEL/ACK transaction"));
             return;
         }
-        assert(this._socket, "expecting a valid socket to send a message");
-        assert(typeof callback === "function");
         this._counter = 0;
         /* c8 ignore next */
         doDebug && debugLog("entering _perform_HEL_ACK_transaction");
@@ -153,10 +153,6 @@ export abstract class ClientTransportBase extends TCP_transport {
     private _send_HELLO_request(): void {
         /* c8 ignore next */
         doDebug && debugLog("entering _send_HELLO_request");
-
-        assert(this._socket);
-        assert(Number.isFinite(this.protocolVersion));
-        assert(this.endpointUrl.length > 0, " expecting a valid endpoint url");
 
         const { maxChunkCount, maxMessageSize, receiveBufferSize, sendBufferSize } = this._helloSettings;
 
@@ -179,8 +175,13 @@ export abstract class ClientTransportBase extends TCP_transport {
         /* c8 ignore next */
         doDebug && debugLog("entering _on_ACK_response");
 
-        assert(typeof externalCallback === "function");
-        assert(this._counter === 0, "Ack response should only be received once !");
+        // c8 ignore next
+        if (this._counter !== 0) {
+            // the one-time receiver hands over a single message; a second call would
+            // report the handshake twice to the caller, so drop it.
+            warningLog("ACK response received more than once, ignoring");
+            return;
+        }
         this._counter += 1;
 
         if (err || !data) {
@@ -242,6 +243,11 @@ export abstract class ClientTransportBase extends TCP_transport {
             // the socket here too, matching the malformed/no-data paths above.
             this._destroySocket();
             callback(err);
+        } else if (messageHeader.msgType !== "ACK") {
+            // only ACK or ERR may answer a HEL: anything else would be decoded as an
+            // AcknowledgeMessage and its bytes mistaken for the negotiated limits.
+            this._destroySocket();
+            callback(new Error(`ACK: unexpected message type ${JSON.stringify(messageHeader.msgType)} in response to HEL`));
         } else {
             responseClass = AcknowledgeMessage;
             _stream.rewind();
@@ -253,6 +259,19 @@ export abstract class ClientTransportBase extends TCP_transport {
                 // decoder read past the end of the buffer.
                 this._destroySocket();
                 callback(new Error("ACK: failed to decode Acknowledge response (malformed or truncated)"));
+                return;
+            }
+
+            // the limits are about to size the packet assembler and the outgoing chunks:
+            // a buffer size below the minimum of OPC UA Part 6 (7.1.2.4) is a protocol
+            // violation, and must fail the handshake rather than blow up in setLimits.
+            if (response.receiveBufferSize < minimumBufferSize || response.sendBufferSize < minimumBufferSize) {
+                this._destroySocket();
+                callback(
+                    new Error(
+                        `ACK: invalid buffer size in Acknowledge response (receiveBufferSize=${response.receiveBufferSize}, sendBufferSize=${response.sendBufferSize}, minimum=${minimumBufferSize})`
+                    )
+                );
                 return;
             }
 
