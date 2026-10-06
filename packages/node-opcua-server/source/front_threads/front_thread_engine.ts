@@ -20,7 +20,10 @@
  *
  * Monitored items on the compact namespaces are sampled in place by the fronts; the items that
  * report changes as they happen make their front watch the node, and the engine pushes the
- * values written to it, the writes of a turn of the event loop in one message per front.
+ * values written to it, the writes of a turn of the event loop in one message per front. One
+ * such message is in flight per front at a time: while a front is busy with it, a newer value of
+ * a node replaces the one waiting, so that a front that falls behind gets the latest values
+ * instead of a growing backlog.
  *
  * Experimental: history and methods are not served by the fronts yet; each front keeps its own
  * sessions, subscriptions and server diagnostics.
@@ -90,6 +93,10 @@ interface Outgoing {
     versions: number[];
     values: DataValue[];
     disposed: number[];
+    /** a "changes" message the front has not finished with */
+    inFlight: boolean;
+    /** while one is in flight: where each node's waiting value is, to replace it with a newer one */
+    waiting: Map<number, number>;
 }
 
 export class FrontThreadEngine {
@@ -182,6 +189,7 @@ export class FrontThreadEngine {
                         else if (message.kind === "failed") reject(new Error(`front ${front}: ${message.message}`));
                         else if (message.kind === "requests") this.#answer(worker, message.ids, message.requests);
                         else if (message.kind === "watches") this.#applyWatches(worker, message.operations);
+                        else if (message.kind === "changesDone") this.#changesDone(worker);
                     });
                     worker.once("error", reject);
                     worker.once("exit", (code) => reject(new Error(`front ${front} exited with code ${code}`)));
@@ -424,7 +432,7 @@ export class FrontThreadEngine {
     #outgoingTo(worker: Worker): Outgoing {
         let outgoing = this.#outgoing.get(worker);
         if (outgoing === undefined) {
-            outgoing = { indexes: [], versions: [], values: [], disposed: [] };
+            outgoing = { indexes: [], versions: [], values: [], disposed: [], inFlight: false, waiting: new Map() };
             this.#outgoing.set(worker, outgoing);
         }
         return outgoing;
@@ -432,10 +440,29 @@ export class FrontThreadEngine {
 
     #queue(worker: Worker, index: number, dataValue: DataValue): void {
         const outgoing = this.#outgoingTo(worker);
+        const version = this.addressSpace.store.values.version(index);
+        if (outgoing.inFlight) {
+            const at = outgoing.waiting.get(index);
+            if (at !== undefined) {
+                // the front is behind: the newer value replaces the one waiting
+                outgoing.versions[at] = version; // check-proto-pollution: ok - numeric array position
+                outgoing.values[at] = dataValue; // check-proto-pollution: ok - numeric array position
+                return;
+            }
+            outgoing.waiting.set(index, outgoing.indexes.length);
+        }
         outgoing.indexes.push(index);
-        outgoing.versions.push(this.addressSpace.store.values.version(index));
+        outgoing.versions.push(version);
         outgoing.values.push(dataValue);
         this.#schedulePush();
+    }
+
+    #changesDone(worker: Worker): void {
+        const outgoing = this.#outgoing.get(worker);
+        if (outgoing === undefined) return;
+        outgoing.inFlight = false;
+        outgoing.waiting.clear();
+        if (outgoing.indexes.length > 0) this.#schedulePush();
     }
 
     /** the changes of this turn, one message per front, after the replies of the turn */
@@ -445,7 +472,7 @@ export class FrontThreadEngine {
         setImmediate(() => {
             this.#pushScheduled = false;
             for (const [worker, outgoing] of this.#outgoing) {
-                if (outgoing.indexes.length > 0) {
+                if (outgoing.indexes.length > 0 && !outgoing.inFlight) {
                     const changes: EngineToFront = {
                         kind: "changes",
                         indexes: outgoing.indexes,
@@ -453,13 +480,17 @@ export class FrontThreadEngine {
                         values: encodeDataValues(outgoing.values)
                     };
                     worker.postMessage(changes);
+                    outgoing.indexes = [];
+                    outgoing.versions = [];
+                    outgoing.values = [];
+                    outgoing.inFlight = true;
                 }
                 if (outgoing.disposed.length > 0) {
                     const disposed: EngineToFront = { kind: "disposed", indexes: outgoing.disposed };
                     worker.postMessage(disposed);
+                    outgoing.disposed = [];
                 }
             }
-            this.#outgoing.clear();
         });
     }
 
