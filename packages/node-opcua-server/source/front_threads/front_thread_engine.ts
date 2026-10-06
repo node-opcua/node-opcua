@@ -152,7 +152,7 @@ export class FrontThreadEngine {
                     worker.on("message", (message: FrontToEngine) => {
                         if (message.kind === "ready") resolve(message.endpointUrl);
                         else if (message.kind === "failed") reject(new Error(`front ${front}: ${message.message}`));
-                        else if (message.kind === "request") this.#answer(worker, message.id, message.request);
+                        else if (message.kind === "requests") this.#answer(worker, message.ids, message.requests);
                     });
                     worker.once("error", reject);
                     worker.once("exit", (code) => reject(new Error(`front ${front} exited with code ${code}`)));
@@ -187,16 +187,25 @@ export class FrontThreadEngine {
         this.#endpointUrls.length = 0;
     }
 
-    #answer(worker: Worker, id: number, request: FrontRequest): void {
-        this.requests[request.kind]++;
-        let payload: unknown;
-        try {
-            payload = this.#serve(request);
-        } catch (err) {
-            warningLog("front thread request failed", request.kind, (err as Error).message);
-            payload = this.#failure(request);
+    #answer(worker: Worker, ids: number[], requests: FrontRequest[]): void {
+        const payloads: unknown[] = new Array(requests.length);
+        let wrote = false;
+        for (let k = 0; k < requests.length; k++) {
+            const request = requests[k];
+            this.requests[request.kind]++;
+            wrote ||= request.kind === "write";
+            try {
+                payloads[k] = this.#serve(request);
+            } catch (err) {
+                warningLog("front thread request failed", request.kind, (err as Error).message);
+                payloads[k] = this.#failure(request);
+            }
         }
-        const reply: EngineToFront = { kind: "reply", id, payload };
+        if (wrote) {
+            // a namespace default may have been written (NamespaceMetadata)
+            this.addressSpace.publishNamespacePolicy();
+        }
+        const reply: EngineToFront = { kind: "replies", ids, payloads };
         worker.postMessage(reply);
     }
 
@@ -222,10 +231,7 @@ export class FrontThreadEngine {
             }
             case "write": {
                 const context = contextOf(request.context);
-                const statuses = request.items.map((bytes) => services.write(context, decodeStructure(bytes, new WriteValue())));
-                // a namespace default may have been written (NamespaceMetadata)
-                this.addressSpace.publishNamespacePolicy();
-                return statuses;
+                return request.items.map((bytes) => services.write(context, decodeStructure(bytes, new WriteValue())));
             }
             case "browse": {
                 const description = decodeStructure(request.description, new BrowseDescription());

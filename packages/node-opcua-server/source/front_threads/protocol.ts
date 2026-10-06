@@ -31,12 +31,23 @@ export function describeContext(context: ISessionContext | null): ContextDescrip
     };
 }
 
+// the roles of a session do not change from one request to the next: parsed once
+const parsedRoles = new Map<string, NodeId>();
+function roleOf(text: string): NodeId {
+    let role = parsedRoles.get(text);
+    if (role === undefined) {
+        role = resolveNodeId(text);
+        if (parsedRoles.size < 10000) parsedRoles.set(text, role);
+    }
+    return role;
+}
+
 /** a context with what the store's permissions and services read of it, and nothing else */
 export function contextOf(descriptor: ContextDescriptor): ISessionContext | null {
     if (!descriptor.session) {
         return null;
     }
-    const roles: NodeId[] = descriptor.roles.map((role) => resolveNodeId(role));
+    const roles: NodeId[] = descriptor.roles.map(roleOf);
     return {
         session: { channel: { securityMode: descriptor.securityMode } },
         getCurrentUserRoles: () => roles
@@ -48,12 +59,22 @@ interface Encodable {
     encode(stream: BinaryStream | BinaryStreamSizeCalculator): void;
 }
 
+/**
+ * bytes of their own, of exactly this length: a slice of Buffer's shared pool would carry the
+ * whole pool across the thread, since a structured clone copies the entire backing buffer
+ */
+function exact(stream: BinaryStream, length: number): Uint8Array {
+    const bytes = new Uint8Array(length);
+    bytes.set(stream.buffer.subarray(0, length));
+    return bytes;
+}
+
 export function encodeStructure(value: Encodable): Uint8Array {
     const size = new BinaryStreamSizeCalculator();
     value.encode(size);
     const stream = new BinaryStream(size.length);
     value.encode(stream);
-    return stream.buffer;
+    return exact(stream, size.length);
 }
 
 export function decodeStructure<T extends { decode(stream: BinaryStream): void }>(bytes: Uint8Array, value: T): T {
@@ -69,7 +90,7 @@ export function encodeDataValues(values: DataValue[]): Uint8Array {
     const stream = new BinaryStream(size.length);
     stream.writeUInt32(values.length);
     for (const value of values) encodeDataValue(value, stream);
-    return stream.buffer;
+    return exact(stream, size.length);
 }
 
 export function decodeDataValues(bytes: Uint8Array): DataValue[] {
@@ -102,7 +123,7 @@ export interface FrontWorkerData {
 }
 
 export type EngineToFront =
-    | { kind: "reply"; id: number; payload: unknown }
+    | { kind: "replies"; ids: number[]; payloads: unknown[] }
     | { kind: "descriptor"; descriptor: SharedStoreDescriptor }
     | { kind: "anchors"; anchors: string[] }
     | { kind: "stop" };
@@ -124,7 +145,7 @@ export type FrontRequest =
     | { kind: "translate"; browsePath: Uint8Array };
 
 export type FrontToEngine =
-    | { kind: "request"; id: number; request: FrontRequest }
+    | { kind: "requests"; ids: number[]; requests: FrontRequest[] }
     | { kind: "ready"; endpointUrl: string }
     | { kind: "failed"; message: string }
     | { kind: "stopped" };
