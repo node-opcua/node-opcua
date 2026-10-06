@@ -328,7 +328,6 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     }
     private checkPermissionPrivate(context: ISessionContext, permission: PermissionType): boolean {
         if (!context) return true;
-        assert(context instanceof SessionContext);
         if (context.checkPermission) {
             if (!(context.checkPermission instanceof Function)) {
                 errorLog("context checkPermission is not a function");

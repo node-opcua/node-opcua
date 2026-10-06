@@ -343,7 +343,6 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         const result = subscriptions.reduce((sum: number, subscription: Subscription) => {
             return sum + subscription.monitoredItemCount;
         }, 0);
-        assert(Number.isFinite(result));
         return result;
     }
 

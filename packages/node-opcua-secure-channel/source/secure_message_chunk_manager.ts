@@ -124,10 +124,6 @@ export class SecureMessageChunkManager extends EventEmitter {
     }
 
     public write_header(finalC: string, buffer: Buffer, length: number): void {
-        assert(buffer.length > 12);
-        assert(finalC.length === 1);
-        assert(buffer instanceof Buffer);
-
         const stream = new BinaryStream(buffer);
 
         // message header --------------------------

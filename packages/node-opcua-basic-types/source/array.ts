@@ -1,7 +1,3 @@
-/***
- * @module node-opcua-basic-types
- */
-import { assert } from "node-opcua-assert";
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 
 /**
@@ -18,7 +14,6 @@ export function encodeArray<T>(
         stream.writeUInt32(0xffffffff);
         return;
     }
-    assert(Array.isArray(arr));
     stream.writeUInt32(arr.length);
     for (const value of arr) {
         encodeElementFunc(value, stream);

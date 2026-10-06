@@ -890,7 +890,6 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
      * @private
      */
     public on_request(message: Message, channel: ServerSecureChannelLayer): void {
-        assert(message.request);
         assert(message.requestId !== 0);
         const request = message.request;
 

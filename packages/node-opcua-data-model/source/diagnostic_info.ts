@@ -242,8 +242,6 @@ export enum DiagnosticInfo_EncodingByte {
 }
 
 function getDiagnosticInfoEncodingByte(diagnosticInfo: DiagnosticInfo): DiagnosticInfo_EncodingByte {
-    assert(diagnosticInfo);
-
     let encodingMask = 0;
 
     if (diagnosticInfo.symbolicId >= 0) {

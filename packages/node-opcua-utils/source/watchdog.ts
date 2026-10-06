@@ -31,12 +31,10 @@ function hasExpired(watchDogData: IWatchdogData2, currentTime: ArbitraryClockTic
 }
 
 function keepAliveFunc(this: ISubscriber) {
-    assert(this._watchDog instanceof WatchDog);
     /* c8 ignore next */
     if (!this._watchDogData || !this._watchDog) {
         throw new Error("Internal error");
     }
-    assert(typeof this._watchDogData.key === "number");
     this._watchDogData.lastSeen = this._watchDog.getCurrentSystemTick();
     if (this.onClientSeen) {
         this.onClientSeen();

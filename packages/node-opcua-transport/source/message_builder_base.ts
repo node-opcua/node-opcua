@@ -352,7 +352,6 @@ export class MessageBuilderBase extends EventEmitter {
     }
 
     #_feed_messageChunk(chunk: Buffer): boolean | Promise<boolean> {
-        assert(chunk);
         const messageHeader = readMessageHeader(new BinaryStream(chunk));
         this.emit("chunk", chunk);
 

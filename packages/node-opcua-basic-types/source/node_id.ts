@@ -121,7 +121,6 @@ export function encodeNodeId(nodeId: NodeId, stream: OutputBinaryStream): void {
 }
 
 export function encodeExpandedNodeId(expandedNodeId: ExpandedNodeId, stream: OutputBinaryStream): void {
-    assert(expandedNodeId, "encodeExpandedNodeId: must provide a valid expandedNodeId");
     const encodingByte = nodeID_encodingByte(expandedNodeId);
     _encodeNodeId(encodingByte, expandedNodeId, stream);
     if (encodingByte & EnumNodeIdEncoding.NamespaceUriFlag) {
