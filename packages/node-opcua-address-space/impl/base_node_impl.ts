@@ -595,14 +595,21 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
     }
 
     public findReferences(referenceType: string | NodeId | UAReferenceType, isForward = true): UAReference[] {
-        const _cache = BaseNode_getCache(this);
         const referenceTypeNode = this._coerceReferenceType(referenceType);
         if (!referenceTypeNode) {
             // note: when loading nodeset2.xml files, reference type may not exit yet
             // throw new Error("expecting valid reference name " + strReference);
             return [];
         }
-
+        // the memo is for the nodes a scan is worth remembering on (see findReferencesEx): on a
+        // leaf node, scanning three references costs less than the memo would, and the memo
+        // (a cache object, a Map, a key string and a result array per question) was the single
+        // largest part of what a node weighed: every node is asked its type definition once
+        const _private = BaseNode_getPrivate(this);
+        if (_private._referenceIdx.size + _private._back_referenceIdx.size <= referenceScanMemoThreshold) {
+            return this.findReferences_no_cache(referenceTypeNode, isForward);
+        }
+        const _cache = BaseNode_getCache(this);
         _cache._ref = _cache._ref || new Map();
 
         const hash = `r|${referenceTypeNode.nodeId.toString()}|${isForward ? "f" : "b"}`;
