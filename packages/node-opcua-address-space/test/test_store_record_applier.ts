@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { CompactStore, NO_NODE } from "node-opcua-address-space-store";
+import { Browser, CompactStore, NO_NODE } from "node-opcua-address-space-store";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
@@ -89,6 +89,43 @@ describe("StoreRecordApplier: the standard nodeset into a compact store", functi
         should(applier.objectValueCount).be.above(10);
         const namespaceArray = store.find(new NodeId(NodeIdType.NUMERIC, 2255, 0));
         should(store.nodes.browseName(namespaceArray)).eql("NamespaceArray");
+    });
+
+    it("browses with reference subtypes and translates a browse path, on indexes", () => {
+        const browser = new Browser(store);
+        const id = (i: number) => new NodeId(NodeIdType.NUMERIC, i, 0);
+        const objects = store.find(id(85));
+        const server = store.find(id(2253));
+        const hierarchical = id(33);
+        // Objects -> Server is an Organizes reference, a HierarchicalReference subtype
+        const forward = browser.browse(objects, { referenceType: hierarchical, includeSubtypes: true, forward: true });
+        should(forward.map((r) => r.target)).containEql(server);
+        should(browser.browse(objects, { referenceType: hierarchical, includeSubtypes: false, forward: true })).eql([]);
+        should(
+            browser.browse(objects, { referenceType: id(35), includeSubtypes: false, forward: true }).map((r) => r.target)
+        ).containEql(server);
+        // only Variables among the Server's children
+        const variables = browser.browse(server, { referenceType: hierarchical, forward: true, nodeClassMask: NodeClass.Variable });
+        should(variables.every((r) => store.nodes.nodeClass(r.target) === NodeClass.Variable)).eql(true);
+        should(variables.map((r) => store.nodes.browseName(r.target))).containEql("NamespaceArray");
+
+        should(browser.child(server, 0, "ServerStatus", hierarchical)).eql(store.find(id(2256)));
+        should(browser.child(server, 0, "Nothing", hierarchical)).eql(NO_NODE);
+
+        const path = ["Server", "ServerStatus", "CurrentTime"].map((name) => ({ targetName: { namespaceIndex: 0, name } }));
+        should(browser.translate(objects, path, hierarchical)).eql([store.find(id(2258))]);
+        should(
+            browser.translate(
+                objects,
+                [{ targetName: { namespaceIndex: 0, name: "Server" } }, { targetName: { namespaceIndex: 0, name: "Missing" } }],
+                hierarchical
+            )
+        ).eql([]);
+        // the hierarchy knows HasComponent is an Aggregates reference, and Organizes is not
+        const ordinal = (i: number) => store.referenceTypeOrdinal(id(i));
+        should(browser.hierarchy.isSubtypeOf(ordinal(47), ordinal(44))).eql(true, "HasComponent < Aggregates");
+        should(browser.hierarchy.isSubtypeOf(ordinal(35), ordinal(44))).eql(false, "Organizes is not an Aggregates");
+        should(browser.hierarchy.isSubtypeOf(ordinal(35), ordinal(33))).eql(true, "Organizes < HierarchicalReferences");
     });
 
     it("interns the vocabulary once", () => {
