@@ -1010,6 +1010,12 @@ export interface OPCUAServerEndpointOptions {
      */
     port?: number;
     /**
+     * share the port with other listeners in this process or others (SO_REUSEPORT, Linux): the
+     * kernel spreads the incoming connections across them. Used by front threads, which all
+     * listen on the same port.
+     */
+    reusePort?: boolean;
+    /**
      * the possible security policies that the server will expose
      * @default  [SecurityPolicy.None, SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256Sha256, SecurityPolicy.Aes128_Sha256_RsaOaep, SecurityPolicy.Aes256_Sha256_RsaPss  ]
      */
@@ -3654,7 +3660,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 // ask for a refresh of asynchronous variables, then read: the whole of it runs
                 // before this handler returns when no Variable is asynchronous, which is the
                 // common case, and the response leaves with the others of the same tick
-                this.engine.refreshValues(request.nodesToRead, request.maxAge, (_err?: Error | null) => {
+                this.engine.prepareRead(context, request, (_err?: Error | null) => {
                     let results: DataValue[];
                     try {
                         results = this.engine.readSync(context, request);
@@ -4523,6 +4529,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             defaultSecureTokenLifetime?: number;
             timeout?: number;
             host?: string;
+            reusePort?: boolean;
             transportSettings?: IServerTransportSettings;
         }
     ): OPCUAServerEndPoint {
@@ -4543,6 +4550,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         const endPoint = new OPCUAServerEndPoint({
             port: port1,
             host: serverOptions.host,
+            reusePort: serverOptions.reusePort,
             certificateManager: this.serverCertificateManager,
 
             certificateKeyPairProvider: endpointProvider,
