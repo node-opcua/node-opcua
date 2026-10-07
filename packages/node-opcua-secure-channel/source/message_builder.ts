@@ -29,6 +29,7 @@ import { decodeStatusCode, type StatusCode, StatusCodes } from "node-opcua-statu
 import { doTraceChunk, MessageBuilderBase, type MessageBuilderBaseOptions, StatusCodes2 } from "node-opcua-transport";
 import { timestamp } from "node-opcua-utils";
 
+import { retainEncodedNodesToWrite } from "./encoded_nodes_to_write.js";
 import { SymmetricAlgorithmSecurityHeader } from "./secure_channel_service.js";
 import { chooseSecurityHeader, type SecurityHeader } from "./secure_message_chunk_manager.js";
 import {
@@ -423,8 +424,10 @@ export class MessageBuilder extends MessageBuilderBase {
 
         // read expandedNodeId:
         let id: ExpandedNodeId;
+        let requestHeaderStart = 0;
         try {
             id = decodeExpandedNodeId(binaryStream);
+            requestHeaderStart = binaryStream.length;
         } catch (err) {
             // this may happen if the message is not well formed or has been altered
             // we better off reporting an error and abort the communication
@@ -447,6 +450,14 @@ export class MessageBuilder extends MessageBuilderBase {
             return this._report_error(StatusCodes.BadNotSupported, `cannot construct object with nodeID ${id}`);
         } else {
             if (this.#_safe_decode_message_body(fullMessageBody, objMessage, binaryStream)) {
+                const nodesToWrite = (objMessage as { nodesToWrite?: unknown[] | null }).nodesToWrite;
+                if (objMessage.schema.name === "WriteRequest" && nodesToWrite && nodesToWrite.length > 0) {
+                    try {
+                        retainEncodedNodesToWrite(nodesToWrite, fullMessageBody, requestHeaderStart);
+                    } catch {
+                        // without them, the WriteValues are encoded again where needed
+                    }
+                }
                 /* c8 ignore next */
                 if (doDebug) {
                     const o = objMessage as BaseUAObject & {

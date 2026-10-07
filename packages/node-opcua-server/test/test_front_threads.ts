@@ -245,6 +245,26 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
         should(value.value.value).eql(998, "the last good item of the batch wins");
     });
 
+    it("writes a node of the engine registered with RegisterNodes", async () => {
+        const session = sessions[1];
+        // a front registers aliases for the nodes of its own address space only: a node of the
+        // engine keeps its NodeId, so the bytes the WriteValues arrived as still name it (were an
+        // alias given, the server would drop those bytes and encode the resolved WriteValues)
+        const [registered] = await session.registerNodes([`ns=${ns};s=Batch`]);
+        should(registered.toString()).eql(`ns=${ns};s=Batch`);
+        const statuses = await session.write(
+            Array.from({ length: 5 }, (_, k) => ({
+                nodeId: registered,
+                attributeId: AttributeIds.Value,
+                value: new DataValue({ value: new Variant({ dataType: DataType.Double, value: 500 + k }) })
+            }))
+        );
+        should(statuses).eql(Array(5).fill(StatusCodes.Good));
+        const value = await sessions[0].read({ nodeId: `ns=${ns};s=Batch`, attributeId: AttributeIds.Value });
+        should(value.value.value).eql(504);
+        await session.unregisterNodes([registered]);
+    });
+
     it("browses from the Objects folder into the compact namespace and translates a path", async () => {
         const objects = await sessions[2].browse({
             nodeId: "ns=0;i=85",
