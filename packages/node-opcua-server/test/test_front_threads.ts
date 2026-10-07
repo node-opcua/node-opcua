@@ -36,7 +36,7 @@ const port = 5826;
 // the engine started with the default number of fronts
 const defaultFrontsPort = 5828;
 // the engine whose limits the fronts share (consecutive ports from there where they cannot share one)
-const limitsPort = 5829;
+const limitsPort = 5835;
 // the engine whose fronts each listen on a port of their own: a client chooses its front
 const transferPort = 5833;
 
