@@ -360,10 +360,11 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
         this.#tell({ kind: "raiseEvent", eventType, fields });
     }
 
-    /** an ActivateSession went through: the engine learns the user (its roles) and the new channel */
-    public sessionActivated(session: ServerSession): void {
+    /** an ActivateSession goes through: the engine learns the user (its roles) and the new channel */
+    public sessionActivated(session: ServerSession): Promise<void> | undefined {
         const activation = this.activationOf(session);
-        if (activation) this.#tell({ kind: "sessionActivated", activation });
+        if (!activation) return undefined;
+        return this.#channel.call<unknown>({ kind: "sessionActivated", activation }).then(() => undefined);
     }
 
     public recordOf(session: ServerSession): SessionRecord {
