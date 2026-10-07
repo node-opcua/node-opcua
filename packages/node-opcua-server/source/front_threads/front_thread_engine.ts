@@ -786,7 +786,8 @@ export class FrontThreadEngine {
         const node = addressSpace?.findNode(request.nodeId) as unknown as EventEmitter | null;
         if (!addressSpace || !node) return;
         const filter = decodeStructure(request.filter, new EventFilter());
-        const context = new RolesContext(request.context);
+        const described = new RolesContext(request.context);
+        const token = request.token;
         const listener = (eventData: IEventData) => {
             // a ConditionRefresh in progress goes to the items of the Subscription it names (OPC 10000-9 5.5.7, 5.5.8),
             // its bracket whatever their filter (4.5), as MonitoredItem does where the events are raised
@@ -797,6 +798,8 @@ export class FrontThreadEngine {
                 (scope.monitoredItemId === undefined || scope.monitoredItemId === monitoredItemId);
             if (scope && !forThisItem) return;
             const bracket = forThisItem && isRefreshBracketEvent(eventData);
+            // the roles of the session now: they change when it is activated again with another user
+            const context = (token !== null && this.#sessions.contextOf(token)) || described;
             if (!bracket && !canReceiveEvent(context, addressSpace, eventData)) return;
             if (
                 !bracket &&

@@ -521,6 +521,8 @@ export type FrontRequest =
           id: number;
           nodeId: string;
           context: ContextDescriptor;
+          /** the session of the item: the engine filters each event with its roles of the moment */
+          token: string | null;
           filter: Uint8Array;
           /** the item's, which a ConditionRefresh names */
           subscriptionId: number;
