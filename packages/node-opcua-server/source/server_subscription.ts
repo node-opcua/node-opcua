@@ -48,7 +48,7 @@ import {
     type MonitoringFilter
 } from "node-opcua-types";
 import { type IServerSidePublishEngine, TransferredSubscription } from "./i_server_side_publish_engine.js";
-import type { INodeFinder, MonitorableNode } from "./monitorable_node.js";
+import type { CompactMonitorableNode, INodeFinder, MonitorableNode } from "./monitorable_node.js";
 
 import { MonitoredItem, type MonitoredItemOptions, type QueueItem } from "./monitored_item.js";
 import { Queue } from "./queue.js";
@@ -168,6 +168,11 @@ function analyzeEventFilterResult(node: BaseNode, eventFilter: EventFilter): Eve
         throw new Error("Internal Error");
     }
 
+    // a node of a session worker: the engine, where the event types are, checked the filter
+    const checked = (node as Pick<CompactMonitorableNode, "analyzeEventFilter">).analyzeEventFilter?.(eventFilter);
+    if (checked) {
+        return checked;
+    }
     const selectClauseResults = checkSelectClauses(node as UAObjectType, eventFilter.selectClauses || []);
 
     const whereClauseResult = new ContentFilterResult();

@@ -183,8 +183,13 @@ export class SharedStoreReader {
      * are the owner's to answer, with the session's roles and channel.
      */
     public isOpen(i: number): boolean {
+        return (this.#flags[i] & BOUND) === 0 && this.#permitsAll(i);
+    }
+
+    /** no permission rule applies to node `i` beyond its access levels; a getter is no permission rule */
+    #permitsAll(i: number): boolean {
         const flags = this.#flags[i];
-        if ((flags & (OWN_ROLE_PERMISSIONS | BOUND | DELETED)) !== 0) return false;
+        if ((flags & (OWN_ROLE_PERMISSIONS | DELETED)) !== 0) return false;
         const policy = this.#namespacePolicy[this.#namespace[i]];
         if ((policy & NAMESPACE_DEFAULT_ROLE_PERMISSIONS) !== 0) return false;
         const own = this.#accessRestrictions[i];
@@ -197,19 +202,20 @@ export class SharedStoreReader {
      * session: a readable Variable holding a scalar, under no permission rule (see isOpen)
      */
     public canServe(i: number): boolean {
-        if (!this.isReadableByAll(i)) return false;
+        // a getter computes the value: the owner answers it
+        if (!this.isReadableByAll(i) || (this.#flags[i] & BOUND) !== 0) return false;
         const kind = this.#valueKind[i];
         return kind === ValueKind.Number || kind === ValueKind.Boolean || (kind === ValueKind.Object && this.#heapLength[i] > 0);
     }
 
     /**
-     * true when every session may read the Value of node `i`, whatever it holds: a readable
-     * Variable under no permission rule (see isOpen)
+     * true when every session may read the Value of node `i`, whatever it holds and wherever it
+     * comes from (a getter included): a readable Variable under no permission rule
      */
     public isReadableByAll(i: number): boolean {
         if (i === NO_NODE || this.#nodeClass[i] !== NodeClass.Variable) return false;
         if ((this.#accessLevel[i] & CURRENT_READ) === 0 || (this.#userAccessLevel[i] & CURRENT_READ) === 0) return false;
-        return this.isOpen(i);
+        return this.#permitsAll(i);
     }
 
     /** the Value of node `i` into `out`, under the node's seqlock */

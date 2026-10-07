@@ -11,6 +11,9 @@ import type { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-mod
 import type { DataValue } from "node-opcua-data-value";
 import type { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
+import type { EventFilter } from "node-opcua-service-filter";
+import type { EventFilterResult } from "node-opcua-types";
+import type { Variant } from "node-opcua-variant";
 
 /** a node of the compact address space, as a monitored item sees it */
 export interface CompactMonitorableNode extends EventEmitter {
@@ -29,6 +32,14 @@ export interface CompactMonitorableNode extends EventEmitter {
     readValueAsync?(context: ISessionContext | null, callback: (err: Error | null, dataValue?: DataValue) => void): void;
     /** true when the Variable's DataType is a number: what a deadband filter needs */
     isNumberDataType?(): boolean;
+    /**
+     * a node whose events are filtered where they are raised (the engine of front threads): `onFields`
+     * receives the selected fields of each event the filter and the session's permissions let through.
+     * Returns what stops it.
+     */
+    subscribeEvents?(filter: EventFilter, context: ISessionContext | null, onFields: (fields: Variant[]) => void): () => void;
+    /** the result of an EventFilter on a node whose address space is elsewhere, checked there beforehand */
+    analyzeEventFilter?(filter: EventFilter): EventFilterResult | undefined;
 }
 
 export type MonitorableNode = UAVariable | UAObject | UAMethod | CompactMonitorableNode;

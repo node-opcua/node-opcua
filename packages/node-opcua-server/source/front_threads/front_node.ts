@@ -18,9 +18,11 @@ import type { ISessionContext } from "node-opcua-address-space";
 import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { EventFilter } from "node-opcua-service-filter";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import type { EventFilterResult } from "node-opcua-types";
 import { Range } from "node-opcua-types";
-import { DataType, type VariantOptions } from "node-opcua-variant";
+import { DataType, type Variant, type VariantOptions } from "node-opcua-variant";
 import type { CompactMonitorableNode } from "../monitorable_node.js";
 import type { NodeDescription } from "./protocol.js";
 
@@ -39,6 +41,15 @@ export interface FrontNodeHost {
     attributeFor(context: ISessionContext | null, node: FrontMonitoredNode, attributeId: AttributeIds): DataValue | undefined;
     watch(node: FrontMonitoredNode): void;
     unwatch(node: FrontMonitoredNode): void;
+    /** the events of the node, filtered by the engine for an item */
+    subscribeEvents(
+        nodeId: NodeId,
+        filter: EventFilter,
+        context: ISessionContext | null,
+        onFields: (fields: Variant[]) => void
+    ): () => void;
+    /** the result of the filter of an event item, checked by the engine before the item was created */
+    eventFilterResult(filter: EventFilter): EventFilterResult | undefined;
 }
 
 function good(value: VariantOptions): DataValue {
@@ -105,6 +116,18 @@ export class FrontMonitoredNode extends EventEmitter implements CompactMonitorab
 
     public get minimumSamplingInterval(): number {
         return this.#host.minimumSamplingInterval(this);
+    }
+
+    public subscribeEvents(
+        filter: EventFilter,
+        context: ISessionContext | null,
+        onFields: (fields: Variant[]) => void
+    ): () => void {
+        return this.#host.subscribeEvents(this.nodeId, filter, context, onFields);
+    }
+
+    public analyzeEventFilter(filter: EventFilter): EventFilterResult | undefined {
+        return this.#host.eventFilterResult(filter);
     }
 
     public isNumberDataType(): boolean {

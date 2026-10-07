@@ -3,6 +3,7 @@ import type { IEventData } from "node-opcua-address-space";
 import { ClientMonitoredItem, type ClientSession, ClientSubscription, OPCUAClient, TimestampsToReturn } from "node-opcua-client";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
+import { constructEventFilter } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
@@ -240,19 +241,53 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         }
         // Server.ServerStatus.CurrentTime, read through the engine at each sample
         const times = await monitor("ns=0;i=2258", 100);
-        // Server.ServiceLevel, set by the application in the engine: pushed to the worker as it changes
-        const levels = await monitor("ns=0;i=2267", 0);
-        const serviceLevel = engine.serverEngine.addressSpace?.findNode("ns=0;i=2267") as unknown as {
+        // ServerConfiguration.MaxTrustListSize, a value the application sets in the engine: pushed as it changes
+        // (a value a getter computes, ServiceLevel, is the getter's: sampled through the engine)
+        const levels = await monitor("ns=0;i=12640", 0);
+        const maxTrustListSize = engine.serverEngine.addressSpace?.findNode("ns=0;i=12640") as unknown as {
             setValueFromSource(value: { dataType: DataType; value: number }): void;
         };
-        serviceLevel.setValueFromSource({ dataType: DataType.Byte, value: 123 });
+        maxTrustListSize.setValueFromSource({ dataType: DataType.UInt32, value: 123 });
         const end = Date.now() + 5000;
         while ((times.length < 3 || !levels.some((v) => v.value.value === 123)) && Date.now() < end) {
             await new Promise((resolve) => setTimeout(resolve, 20));
         }
         should(times.length >= 3).eql(true, "CurrentTime sampled");
         should(times[0].value.dataType).eql(DataType.DateTime);
-        should(levels.some((v) => v.value.value === 123)).eql(true, "ServiceLevel pushed");
+        should(levels.some((v) => v.value.value === 123)).eql(true, "MaxTrustListSize pushed");
+        await subscription.terminate();
+        await session.close();
+    });
+
+    it("delivers the events of the Server object to an event item of a session worker, filtered by the engine", async () => {
+        const session = await sessionOn(0);
+        const subscription = ClientSubscription.create(session, {
+            requestedPublishingInterval: 50,
+            requestedLifetimeCount: 600,
+            requestedMaxKeepAliveCount: 10,
+            publishingEnabled: true
+        });
+        await new Promise<void>((resolve) => subscription.once("started", () => resolve()));
+        const messages: string[] = [];
+        const item = ClientMonitoredItem.create(
+            subscription,
+            { nodeId: "ns=0;i=2253", attributeId: AttributeIds.EventNotifier },
+            { queueSize: 10, filter: constructEventFilter(["EventType", "Message"]) },
+            TimestampsToReturn.Both
+        );
+        item.on("changed", (fields: unknown) => {
+            const [, message] = fields as Variant[];
+            messages.push((message?.value as { text?: string } | null)?.text ?? "");
+        });
+        await new Promise<void>((resolve, reject) => {
+            item.once("initialized", () => resolve());
+            item.once("err", (message: string) => reject(new Error(message)));
+        });
+        const server = engine.serverEngine.addressSpace?.rootFolder.objects.server;
+        server?.raiseEvent("BaseEventType", { message: { dataType: DataType.LocalizedText, value: { text: "from the engine" } } });
+        const end = Date.now() + 5000;
+        while (!messages.includes("from the engine") && Date.now() < end) await new Promise((resolve) => setTimeout(resolve, 20));
+        should(messages).containEql("from the engine");
         await subscription.terminate();
         await session.close();
     });

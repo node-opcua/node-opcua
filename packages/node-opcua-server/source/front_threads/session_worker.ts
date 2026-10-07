@@ -18,7 +18,9 @@ import { type DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import type { BaseUAObject } from "node-opcua-factory";
 import { NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { Message, Response, SecurityHeader, ServerSecureChannelLayer } from "node-opcua-secure-channel";
-import type { MessageSecurityMode, MonitoredItemCreateRequest, ReadValueIdOptions } from "node-opcua-types";
+import type { EventFilter } from "node-opcua-service-filter";
+import type { EventFilterResult, MessageSecurityMode, MonitoredItemCreateRequest, ReadValueIdOptions } from "node-opcua-types";
+import type { Variant } from "node-opcua-variant";
 import type { FoundNode, INodeFinder } from "../monitorable_node.js";
 import { OPCUAServerCore } from "../opcua_server.js";
 import type { ServerEngineOptions } from "../server_engine.js";
@@ -118,6 +120,19 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         return value;
     }
 
+    public subscribeEvents(
+        nodeId: NodeId,
+        filter: EventFilter,
+        context: ISessionContext | null,
+        onFields: (fields: Variant[]) => void
+    ): () => void {
+        return this.#backend.subscribeEvents(nodeId, filter, context, onFields);
+    }
+
+    public eventFilterResult(filter: EventFilter): EventFilterResult | undefined {
+        return this.#backend.eventFilterResult(filter);
+    }
+
     public watch(node: RemoteObjectNode): void {
         void this.#channel.call<unknown>({ kind: "watchObject", nodeId: node.nodeId.toString() });
     }
@@ -138,7 +153,7 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         for (const item of itemsToMonitor) {
             const nodeId = resolveNodeId(item.nodeId ?? "");
             const key = nodeId.toString();
-            if (this.#backend.namespaces.has(nodeId.namespace) || this.#objects.has(key) || seen.has(key)) continue;
+            if (this.#backend.findNode(nodeId) || this.#objects.has(key) || seen.has(key)) continue;
             seen.add(key);
             nodeIds.push(nodeId);
         }
@@ -210,10 +225,10 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
     public override get nodeFinder(): INodeFinder {
         const backend = this.#backend;
         return {
+            // what the store describes, else a node object the engine described: the namespace does not matter
             findNode: (nodeId: NodeIdLike): FoundNode | null => {
                 const resolved = resolveNodeId(nodeId);
-                if (!backend.namespaces.has(resolved.namespace)) return this.#objects.get(resolved.toString()) ?? null;
-                return backend.findNode ? backend.findNode(resolved) : null;
+                return backend.findNode(resolved) ?? this.#objects.get(resolved.toString()) ?? null;
             }
         };
     }
@@ -224,9 +239,10 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
     ): Promise<void> | undefined {
         if (!context || !itemsToCreate) return undefined;
         const items = itemsToCreate.map((item) => item.itemToMonitor);
-        return Promise.all([this.#backend.prefetchNodes(context, items), this.#describeObjects(context, items)]).then(
-            () => undefined
-        );
+        // the store's nodes and the engine's checks of the event filters first, then the node objects the store does not hold
+        return Promise.all([this.#backend.prefetchNodes(context, items), this.#backend.prefetchEventFilters(itemsToCreate)])
+            .then(() => this.#describeObjects(context, items))
+            .then(() => undefined);
     }
 }
 
@@ -327,6 +343,9 @@ async function main(): Promise<void> {
             }
             case "disposed":
                 backend.receiveDisposed(message.indexes);
+                break;
+            case "events":
+                backend.receiveEvents(message.ids, message.fields);
                 break;
             case "objectChanges":
                 engine.objectsChanged(message.nodeIds, decodeDataValues(message.values));
