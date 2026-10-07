@@ -76,6 +76,9 @@ import {
 import { ValueWatches } from "./value_watches.js";
 
 const warningLog = make_warningLog("front_thread_engine");
+/** how long a thread has to end after "stop", then after terminate(), before shutdown() goes on without it */
+const stopGraceMs = 5000;
+const terminateGraceMs = 2000;
 
 export interface FrontThreadEngineOptions {
     /** the nodesets of the engine, in this order; the standard nodeset by default */
@@ -397,25 +400,42 @@ export class FrontThreadEngine {
     public async shutdown(): Promise<void> {
         this.#stopping = true;
         this.#values.stopAll();
-        const fronts = [...this.#fronts.splice(0), ...this.#sessionWorkers.splice(0)];
+        const threads = [
+            ...this.#fronts.splice(0).map((worker, k) => ({ worker, name: `front ${k}` })),
+            ...this.#sessionWorkers.splice(0).map((worker, k) => ({ worker, name: `session worker ${k}` }))
+        ];
         for (const stop of this.#mirrors.splice(0)) stop();
         this.#events.stopAll();
         this.#sessions.frontsGone();
-        await Promise.all(
-            fronts.map(
-                (worker) =>
-                    new Promise<void>((resolve) => {
-                        const timer = setTimeout(() => worker.terminate().then(() => resolve()), 5000);
-                        worker.once("exit", () => {
-                            clearTimeout(timer);
-                            resolve();
-                        });
-                        const stop: EngineToFront = { kind: "stop" };
-                        worker.postMessage(stop);
-                    })
-            )
-        );
+        await Promise.all(threads.map(({ worker, name }) => FrontThreadEngine.#stopThread(worker, name)));
         this.#endpointUrls.length = 0;
+    }
+
+    /**
+     * a thread gets stopGraceMs to end after "stop", then is terminated; one blocked in native code
+     * does not end even then: it is left behind, unreferenced (Node still waits for it when the process exits)
+     */
+    static #stopThread(worker: Worker, name: string): Promise<void> {
+        return new Promise<void>((resolve) => {
+            if (worker.threadId < 0) return resolve(); // it has already exited
+            let timer: NodeJS.Timeout;
+            const done = () => {
+                clearTimeout(timer);
+                resolve();
+            };
+            worker.once("exit", done);
+            timer = setTimeout(() => {
+                warningLog(`FrontThreadEngine: ${name} did not end within ${stopGraceMs} ms of stop, terminating it`);
+                worker.terminate().then(done, done);
+                timer = setTimeout(() => {
+                    warningLog(`FrontThreadEngine: ${name} did not end after terminate (blocked in native code?), left behind`);
+                    worker.unref();
+                    resolve();
+                }, terminateGraceMs);
+            }, stopGraceMs);
+            const stop: EngineToFront = { kind: "stop" };
+            worker.postMessage(stop);
+        });
     }
 
     #answer(worker: Worker, ids: number[], requests: FrontRequest[]): void {
