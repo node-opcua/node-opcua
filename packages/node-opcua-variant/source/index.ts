@@ -27,6 +27,7 @@
 export * from "./adjust_variant.js";
 export * from "./cast_variant.js";
 export * from "./DataType_enum.js";
+export * from "./encoded_variant.js";
 export * from "./VariantArrayType_enum.js";
 export * from "./variant.js";
 export * from "./verify_rank_and_dimension.js";
