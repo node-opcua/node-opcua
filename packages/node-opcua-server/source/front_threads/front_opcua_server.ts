@@ -58,10 +58,12 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
         this.#remote = engine;
         this.#workers = workers;
         for (const port of workers) port.on("message", (message: WorkerToFront) => this.#answered(message));
-        this.on("session_activated", (session: ServerSession) => {
-            engine.sessionActivated(session);
-            this.#announce(session);
-        });
+        this.on("session_activated", (session: ServerSession) => this.#announce(session));
+    }
+
+    /** the engine records the activation (user, roles, diagnostics) before the client hears of it */
+    protected override recordActivation(session: ServerSession): Promise<void> | undefined {
+        return this.#remote.sessionActivated(session);
     }
 
     /** the subscription services go to the session worker of the session, the others are served here */

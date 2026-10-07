@@ -3157,26 +3157,47 @@ export abstract class OPCUAServerCore<
                                 responseHeader: { serviceResult: activationStatus },
                                 serverNonce: session.nonce
                             });
-                            channel.send_response("MSG", response, message);
+                            const answer = () => {
+                                channel.send_response("MSG", response, message);
 
-                            // send OPCUA Event Notification
-                            // see part 5 : 6.4.3 AuditEventType
-                            //              6.4.7 AuditSessionEventType
-                            //              6.4.10 AuditActivateSessionEventType
-                            assert(session.nodeId); // sessionId
-                            // xx assert(session.channel.clientCertificate instanceof Buffer);
-                            assert(session.sessionTimeout > 0);
+                                // send OPCUA Event Notification
+                                // see part 5 : 6.4.3 AuditEventType
+                                //              6.4.7 AuditSessionEventType
+                                //              6.4.10 AuditActivateSessionEventType
+                                assert(session.nodeId); // sessionId
+                                // xx assert(session.channel.clientCertificate instanceof Buffer);
+                                assert(session.sessionTimeout > 0);
 
-                            raiseAuditActivateSessionEventType.call(this, session, request.requestHeader.auditEntryId ?? "");
+                                raiseAuditActivateSessionEventType.call(this, session, request.requestHeader.auditEntryId ?? "");
 
-                            this.emit("session_activated", session, userIdentityTokenPasswordRemoved(session.userIdentityToken));
+                                this.emit(
+                                    "session_activated",
+                                    session,
+                                    userIdentityTokenPasswordRemoved(session.userIdentityToken)
+                                );
 
-                            session.resendMonitoredItemInitialValues();
+                                session.resendMonitoredItemInitialValues();
+                            };
+                            const recorded = this.recordActivation(session);
+                            if (recorded) {
+                                recorded.then(answer, answer);
+                            } else {
+                                answer();
+                            }
                         }
                     }
                 );
             }
         );
+    }
+
+    /**
+     * an ActivateSession about to be answered: a server that keeps its sessions in another thread
+     * (FrontOPCUAServer) records the activation there first, so that once the client has its answer,
+     * the session is active wherever the server is read from. Nothing to wait for here.
+     */
+    protected recordActivation(_session: ServerSession): Promise<void> | undefined {
+        return undefined;
     }
 
     protected prepare(message: Message, channel: ServerSecureChannelLayer): void {
