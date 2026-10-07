@@ -228,6 +228,11 @@ export function encodedDataValuesOf(bytes: Uint8Array): DataValue[] {
 // ---------------------------------------------------------------- engine -> front
 
 export interface FrontWorkerData {
+    /**
+     * the kind of thread: its entry module starts only there. An application may bundle the front
+     * worker with the options of its server, and session workers import that module for its hooks.
+     */
+    thread: "front";
     descriptor: SharedStoreDescriptor;
     /** the namespaces whose live values the store holds: the model's, and those of the node objects it mirrors */
     storeNamespaces: number[];
@@ -247,6 +252,11 @@ export interface FrontWorkerData {
 
 /** what a session worker starts with: the store, as a front reads it, and a port from each front */
 export interface SessionWorkerData {
+    /**
+     * see FrontWorkerData.thread An application may bundle the front
+     * worker with the options of its server, and session workers import that module for its hooks.
+     */
+    thread: "session";
     descriptor: SharedStoreDescriptor;
     storeNamespaces: number[];
     server: EngineServerState;

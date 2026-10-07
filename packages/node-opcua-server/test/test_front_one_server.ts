@@ -472,6 +472,58 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
     });
 });
 
+describe("FrontThreadEngine, one server: one module as the front worker and its serverModule", function () {
+    this.timeout(60000);
+    const onePort = 5843;
+
+    it("serves a subscription from the session worker, which imports that module for its hooks, and stops", async () => {
+        const engine = await FrontThreadEngine.create({ applicationUri: "urn:test:one-module" });
+        const ns = engine.registerNamespace("urn:test:one-module:plant");
+        engine.addressSpace.addVariable({
+            nodeId: `ns=${ns};s=Level`,
+            browseName: "Level",
+            organizedBy: engine.addressSpace.findNode("ns=0;i=85") as never,
+            dataType: "Double",
+            value: { dataType: DataType.Double, value: 3.5 }
+        });
+        const module = new URL("./fixtures/front_threads_worker_and_options.mjs", import.meta.url);
+        await engine.start({
+            fronts: 1,
+            ownPorts: true,
+            workerScript: module,
+            serverModule: module,
+            serverModuleData: { port: onePort }
+        });
+        const client = OPCUAClient.create({ endpointMustExist: false, connectionStrategy: { maxRetry: 0 } });
+        try {
+            await client.connect(`opc.tcp://localhost:${onePort}`);
+            const session = await client.createSession();
+            const subscription = ClientSubscription.create(session, {
+                requestedPublishingInterval: 50,
+                requestedLifetimeCount: 600,
+                requestedMaxKeepAliveCount: 10,
+                publishingEnabled: true
+            });
+            await new Promise<void>((resolve) => subscription.once("started", () => resolve()));
+            const item = ClientMonitoredItem.create(
+                subscription,
+                { nodeId: `ns=${ns};s=Level`, attributeId: AttributeIds.Value },
+                { samplingInterval: 0, queueSize: 1 },
+                TimestampsToReturn.Both
+            );
+            const value = await new Promise<number>((resolve) =>
+                item.once("changed", (dataValue: DataValue) => resolve(dataValue.value.value))
+            );
+            should(value).eql(3.5);
+            await session.close();
+        } finally {
+            await client.disconnect();
+            // before, the session worker ran the front worker's code too, and never answered the stop
+            await engine.shutdown();
+        }
+    });
+});
+
 describe("FrontThreadEngine, one server: TransferSubscriptions between sessions of the session workers", function () {
     this.timeout(120000);
     const transferPort = 5840;
