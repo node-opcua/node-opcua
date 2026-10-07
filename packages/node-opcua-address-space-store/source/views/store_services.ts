@@ -126,8 +126,12 @@ export class StoreServices {
         return valueDataValue(space.store.values, index);
     }
 
-    /** one item of a Write: the status of the write */
-    public write(context: ISessionContext | null, writeValue: WriteValue): number {
+    /**
+     * one item of a Write: the status of the write.
+     * @param now the time (ms) to stamp the value with: a Write of many items reads the clock once
+     *            for all of them, rather than once per item
+     */
+    public write(context: ISessionContext | null, writeValue: WriteValue, now?: number): number {
         if (!writeValue.value?.value) {
             return StatusCodes.BadTypeMismatch.value;
         }
@@ -141,7 +145,7 @@ export class StoreServices {
         if (view.nodeClass !== NodeClass.Variable) {
             return StatusCodes.BadNotWritable.value;
         }
-        return (view as StoreVariableView).writeValue(writeValue.value, context, writeValue.indexRange);
+        return (view as StoreVariableView).writeValue(writeValue.value, context, writeValue.indexRange, now);
     }
 
     /** the Browse of one node */

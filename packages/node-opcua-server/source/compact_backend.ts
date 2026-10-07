@@ -8,6 +8,7 @@
 import type { CompactAddressSpace, ISessionContext } from "node-opcua-address-space";
 import { CompactAddressSpaceServices } from "node-opcua-address-space";
 import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
+import { getCurrentClock } from "node-opcua-date-time";
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { coerceStatusCode, type StatusCode } from "node-opcua-status-code";
 import type {
@@ -79,7 +80,9 @@ export class LocalCompactBackend implements ICompactBackend {
     }
 
     public async write(context: ISessionContext | null, nodesToWrite: WriteValue[]): Promise<StatusCode[]> {
-        return nodesToWrite.map((writeValue) => coerceStatusCode(this.#services.write(context, writeValue)));
+        // one clock for the whole Write (the accessor has read it into the context already)
+        const now = (context?.currentTime ?? getCurrentClock()).timestamp.getTime();
+        return nodesToWrite.map((writeValue) => coerceStatusCode(this.#services.write(context, writeValue, now)));
     }
 
     public async browse(context: ISessionContext | null, description: BrowseDescription): Promise<BrowseResult> {

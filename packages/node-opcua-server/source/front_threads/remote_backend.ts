@@ -40,11 +40,14 @@ import {
     decodeStructure,
     describeContext,
     type EngineToFront,
+    encodedDataValuesOf,
     encodeStructure,
+    encodeStructures,
     type FrontRequest,
     type FrontToEngine,
     type NodeDescription,
     type ReadItem,
+    transferablesOf,
     UNWATCH,
     type ValueReply,
     WATCH
@@ -90,9 +93,11 @@ export class EngineChannel {
 
     #flush(): void {
         const message: FrontToEngine = { kind: "requests", ids: this.#ids, requests: this.#requests };
+        // the encoded WriteValues of a large write (an array) are handed over, not copied
+        const transfer = transferablesOf(this.#requests.map((request) => (request.kind === "write" ? request.items : null)));
         this.#ids = [];
         this.#requests = [];
-        this.#port.postMessage(message);
+        this.#port.postMessage(message, transfer);
     }
 
     /** the replies from the engine; false when the message is not one */
@@ -202,7 +207,8 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
                 timestampsToReturn: timestampsToReturn ?? TimestampsToReturn.Source
             })
             .then((bytes) => {
-                const values = decodeDataValues(bytes);
+                // the values the engine read go into the Read response as the engine encoded them
+                const values = encodedDataValuesOf(bytes);
                 for (let k = 0; k < asked.length; k++) this.#fetched.set(asked[k], values[k]);
             });
     }
@@ -254,7 +260,8 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
         const statuses = await this.#channel.call<number[]>({
             kind: "write",
             context: describeContext(context),
-            items: nodesToWrite.map((w) => encodeStructure(w))
+            items: encodeStructures(nodesToWrite),
+            count: nodesToWrite.length
         });
         return statuses.map((s) => coerceStatusCode(s));
     }
