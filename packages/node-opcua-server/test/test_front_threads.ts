@@ -75,7 +75,8 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
     let getterCalls = 0;
 
     before(async () => {
-        engine = await FrontThreadEngine.create();
+        // items that report changes as they happen, without a coalescing window: a setting of the one server
+        engine = await FrontThreadEngine.create({ serverCapabilities: { minSupportedSampleRate: 0 } });
         ns = engine.registerNamespace("urn:test:front-threads");
         const space = engine.addressSpace;
         const plant = space.addFolder(space.findNode("ns=0;i=85") as never, "Plant");
@@ -162,12 +163,12 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
     });
 
     it("answers a scalar under no permission rule without asking the engine", async () => {
-        const before = engine.requests.read;
+        const before = engine.serviceRequests.read;
         for (const session of sessions) {
             const value = await session.read({ nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value });
             should(value.statusCode).eql(StatusCodes.Good);
         }
-        should(engine.requests.read).eql(before);
+        should(engine.serviceRequests.read).eql(before);
     });
 
     it("reads a value in place and the others through the engine", async () => {
@@ -191,7 +192,7 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
     });
 
     it("serves strings and arrays in place, before and after a write", async () => {
-        const before = engine.requests.read;
+        const before = engine.serviceRequests.read;
         for (const session of sessions) {
             const [name, levels] = await session.read([
                 { nodeId: `ns=${ns};s=Name`, attributeId: AttributeIds.Value },
@@ -206,7 +207,7 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             const name = await session.read({ nodeId: `ns=${ns};s=Name`, attributeId: AttributeIds.Value });
             should(name.value.value).eql("centrifugal pump");
         }
-        should(engine.requests.read).eql(before, "no read asked to the engine");
+        should(engine.serviceRequests.read).eql(before, "no read asked to the engine");
         await write(sessions[1], `ns=${ns};s=Name`, new Variant({ dataType: DataType.String, value: "pump" }));
     });
 
@@ -231,7 +232,7 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             return { outputArguments: [{ dataType: DataType.Double, value: previous }] };
         });
         await pause(50);
-        const before = engine.requests.call;
+        const before = engine.serviceRequests.call;
         const result = await sessions[0].call({
             objectId: plant?.nodeId ?? "",
             methodId: reset.nodeId,
@@ -239,7 +240,7 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
         });
         should(result.statusCode).eql(StatusCodes.Good);
         should(result.outputArguments?.[0].value).eql(1.5);
-        should(engine.requests.call).eql(before + 1);
+        should(engine.serviceRequests.call).eql(before + 1);
         for (const session of sessions) {
             const speed = await session.read({ nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value });
             should(speed.value.value).eql(12);
@@ -270,7 +271,7 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
         }
         await pause(50);
         const end = new Date(Date.now() + 10000);
-        const before = engine.requests.historyExtract;
+        const before = engine.serviceRequests.historyRead;
         // two values at a time: the continuation point lives in the front's session
         const seen: number[] = [];
         let first = await sessions[0].readHistoryValue(flow.nodeId, start, end, { numValuesPerNode: 2, returnBounds: false });
@@ -291,7 +292,7 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
         }
         // the values written once the Variable was historized, in two-value pages
         should(seen).eql([1, 2, 3, 4, 5]);
-        should(engine.requests.historyExtract).be.above(before);
+        should(engine.serviceRequests.historyRead).be.above(before);
         // with the bounds: none before the first value (BoundNoData), the last value held after it
         const bounded = await sessions[0].readHistoryValue(flow.nodeId, start, end, { returnBounds: true });
         const page = (bounded.historyData as unknown as { dataValues?: DataValue[] }).dataValues ?? [];
@@ -323,7 +324,7 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
     });
 
     it("reads a large array through the engine, many times at once, unchanged", async () => {
-        const before = engine.requests.read;
+        const before = engine.serviceRequests.read;
         const values = await Promise.all(
             Array.from({ length: 8 }, (_, k) =>
                 sessions[k % sessions.length].read({ nodeId: `ns=${ns};s=Big`, attributeId: AttributeIds.Value })
@@ -335,7 +336,7 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             should(value.value.value[0]).eql(0);
             should(value.value.value[BIG_ELEMENTS - 1]).eql(BIG_ELEMENTS - 1);
         }
-        should(engine.requests.read).be.above(before);
+        should(engine.serviceRequests.read).be.above(before);
     });
 
     it("writes a large array through the engine and reads it back", async () => {

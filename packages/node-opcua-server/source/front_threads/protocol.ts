@@ -229,13 +229,8 @@ export function encodedDataValuesOf(bytes: Uint8Array): DataValue[] {
 
 export interface FrontWorkerData {
     descriptor: SharedStoreDescriptor;
-    /** the namespace table of the engine's store, which every front's table must start with */
-    namespaceUris: string[];
-    /** the namespaces the fronts serve from the engine's store */
-    compactNamespaces: number[];
-    /** nodes of other namespaces that have references into the compact ones (NodeIds as strings) */
-    anchors: string[];
-    nodesets: string[];
+    /** the namespaces whose live values the store holds: the model's, and those of the node objects it mirrors */
+    storeNamespaces: number[];
     serverModule: string;
     serverModuleData: unknown;
     front: number;
@@ -244,18 +239,16 @@ export interface FrontWorkerData {
      * platform has no SO_REUSEPORT: front k listens on that port + k
      */
     sharedPort: boolean;
-    /** set when the fronts are FrontOPCUAServers on the engine's ServerEngine: what they need of it */
-    server?: EngineServerState;
-    /** with server: a port to each session worker, where the subscription services of its sessions go */
-    sessionWorkerPorts?: MessagePort[];
+    /** what a FrontOPCUAServer needs of the engine's ServerEngine */
+    server: EngineServerState;
+    /** a port to each session worker, where the subscription services of its sessions go */
+    sessionWorkerPorts: MessagePort[];
 }
 
 /** what a session worker starts with: the store, as a front reads it, and a port from each front */
 export interface SessionWorkerData {
     descriptor: SharedStoreDescriptor;
-    namespaceUris: string[];
-    compactNamespaces: number[];
-    anchors: string[];
+    storeNamespaces: number[];
     server: EngineServerState;
     frontPorts: MessagePort[];
     index: number;
@@ -438,15 +431,6 @@ export interface DescribeReply {
     attributes: Uint8Array;
 }
 
-export interface HistoryCheckReply {
-    /** a StatusCode value: Good when the session may read the history */
-    status: number;
-    /** false when the historian computes no bounds */
-    boundsSupported: boolean;
-    /** for each time asked: the value before it, then the value after it, as DataValues (an empty DataValue for none) */
-    bounds: Uint8Array | null;
-}
-
 export interface ValueReply {
     value: Uint8Array;
     /** the version word of the value when it was read; -1 when the node is gone */
@@ -460,7 +444,6 @@ export type EngineToFront =
     /** watched nodes that were deleted */
     | { kind: "disposed"; indexes: number[] }
     | { kind: "descriptor"; descriptor: SharedStoreDescriptor }
-    | { kind: "anchors"; anchors: string[] }
     /** the engine closed a session of this front (timeout, room made for a new one, another front took it) */
     | { kind: "sessionClosed"; token: string; reason: string }
     /** to a session worker: values written to node objects it watches, DataValues in the order of the nodes */
@@ -477,31 +460,11 @@ export type EngineToFront =
 
 // ---------------------------------------------------------------- front -> engine
 
-export interface ReadItem {
-    nodeId: string;
-    attributeId: number;
-    indexRange: string | null;
-    dataEncoding: string | null;
-}
-
 export type FrontRequest =
-    | { kind: "read"; context: ContextDescriptor; items: ReadItem[]; maxAge: number; timestampsToReturn: number }
-    /** the WriteValues of the request, encodeStructures() of them, and how many there are */
-    | { kind: "write"; context: ContextDescriptor; items: Uint8Array; count: number }
-    | { kind: "browse"; context: ContextDescriptor; description: Uint8Array }
-    | { kind: "references"; context: ContextDescriptor; nodeId: string; description: Uint8Array }
-    | { kind: "translate"; browsePath: Uint8Array }
+    /** what the monitored items of a session worker need of the nodes of the store (a DescribeReply) */
     | { kind: "describe"; context: ContextDescriptor; items: { nodeId: string; attributeId: number }[] }
+    /** the value of a node of the store, as the engine reads it for the session (a ValueReply) */
     | { kind: "value"; context: ContextDescriptor; index: number; generation: number }
-    /** a Method call: the CallMethodRequest as its binary encoding; answered with the CallMethodResult's */
-    | { kind: "call"; context: ContextDescriptor; request: Uint8Array }
-    /**
-     * may this session read the history of the node (a HistoryCheckReply): and, at each of these
-     * times (milliseconds since the epoch), the values just before and just after, for the bounds
-     */
-    | { kind: "historyCheck"; context: ContextDescriptor; nodeId: string; boundTimes: number[] }
-    /** values from the historian of the node: ReadRawModifiedDetails as its binary encoding; answered with DataValues, or null */
-    | { kind: "historyExtract"; nodeId: string; details: Uint8Array; max: number; isReversed: boolean; reverse: boolean }
     /** room for one more session (true), made by closing the oldest not activated if needed; held until sessionCreated */
     | { kind: "admitSession" }
     /** answered with the index of the session worker that hosts the session's subscriptions */

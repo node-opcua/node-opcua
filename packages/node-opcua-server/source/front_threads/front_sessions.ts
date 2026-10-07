@@ -12,7 +12,7 @@ import type { ISessionContext } from "node-opcua-address-space";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { make_warningLog } from "node-opcua-debug";
 import { decodeExtensionObject } from "node-opcua-extension-object";
-import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { resolveNodeId } from "node-opcua-nodeid";
 import { ApplicationDescription, EndpointDescription, type MessageSecurityMode, type UserIdentityToken } from "node-opcua-types";
 import type { ClosingReason, ServerEngine } from "../server_engine.js";
 import type { ServerSession, SessionChannelSecurity } from "../server_session.js";

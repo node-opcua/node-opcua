@@ -2248,43 +2248,26 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      *
      */
     /**
-     * what a Read needs before its values are read: the asynchronous Variables refreshed, and
-     * what the compact namespaces cannot answer in place fetched (front threads)
+     * what a Read needs before its values are read: the asynchronous Variables refreshed (a front
+     * thread's engine fetches there what it cannot read in place, see RemoteEngine)
      */
-    public prepareRead(context: ISessionContext, readRequest: ReadRequestOptions, callback: (err?: Error | null) => void): void {
+    public prepareRead(_context: ISessionContext, readRequest: ReadRequestOptions, callback: (err?: Error | null) => void): void {
         const nodesToRead = (readRequest.nodesToRead ?? []) as ReadValueId[];
         const maxAge = readRequest.maxAge ?? 0;
         this.refreshValues(nodesToRead, maxAge, (err?: Error | null) => {
-            if (err) {
-                callback(err);
-                return;
-            }
-            const backend = (this.addressSpaceAccessor as AddressSpaceAccessor | null)?.compactBackend;
-            const fetching = backend?.prefetch?.(context, nodesToRead, maxAge, readRequest.timestampsToReturn);
-            if (!fetching) {
-                callback(null);
-                return;
-            }
-            fetching.then(
-                () => callback(null),
-                (error: Error) => callback(error)
-            );
+            callback(err ?? null);
         });
     }
 
     /**
-     * before the items of a CreateMonitoredItems are created: what the compact backend must
-     * fetch to find their nodes. Undefined when nothing is to be fetched, the common case.
+     * before the items of a CreateMonitoredItems are created: what must be fetched to find their
+     * nodes synchronously. Nothing here, where every node is (a session worker fetches them).
      */
-    public prepareMonitoredItems(context: ISessionContext, itemsToCreate: MonitoredItemCreateRequest[]): Promise<void> | undefined {
-        const backend = (this.addressSpaceAccessor as AddressSpaceAccessor | null)?.compactBackend;
-        if (!backend?.prefetchNodes) {
-            return undefined;
-        }
-        return backend.prefetchNodes(
-            context,
-            itemsToCreate.map((item) => item.itemToMonitor)
-        );
+    public prepareMonitoredItems(
+        _context: ISessionContext,
+        _itemsToCreate: MonitoredItemCreateRequest[]
+    ): Promise<void> | undefined {
+        return undefined;
     }
 
     public refreshValues(
