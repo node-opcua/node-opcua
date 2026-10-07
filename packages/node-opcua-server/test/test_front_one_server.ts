@@ -213,4 +213,47 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         await subscriber.close();
         await writer.close();
     });
+
+    it("monitors node objects of namespace 0 from a session worker, sampled and on change", async () => {
+        const session = await sessionOn(1);
+        const subscription = ClientSubscription.create(session, {
+            requestedPublishingInterval: 50,
+            requestedLifetimeCount: 600,
+            requestedMaxKeepAliveCount: 10,
+            publishingEnabled: true
+        });
+        await new Promise<void>((resolve) => subscription.once("started", () => resolve()));
+        async function monitor(nodeId: string, samplingInterval: number): Promise<DataValue[]> {
+            const values: DataValue[] = [];
+            const item = ClientMonitoredItem.create(
+                subscription,
+                { nodeId, attributeId: AttributeIds.Value },
+                { samplingInterval, queueSize: 10 },
+                TimestampsToReturn.Both
+            );
+            item.on("changed", (dataValue: DataValue) => values.push(dataValue));
+            await new Promise<void>((resolve, reject) => {
+                item.once("initialized", () => resolve());
+                item.once("err", (message: string) => reject(new Error(message)));
+            });
+            return values;
+        }
+        // Server.ServerStatus.CurrentTime, read through the engine at each sample
+        const times = await monitor("ns=0;i=2258", 100);
+        // Server.ServiceLevel, set by the application in the engine: pushed to the worker as it changes
+        const levels = await monitor("ns=0;i=2267", 0);
+        const serviceLevel = engine.serverEngine.addressSpace?.findNode("ns=0;i=2267") as unknown as {
+            setValueFromSource(value: { dataType: DataType; value: number }): void;
+        };
+        serviceLevel.setValueFromSource({ dataType: DataType.Byte, value: 123 });
+        const end = Date.now() + 5000;
+        while ((times.length < 3 || !levels.some((v) => v.value.value === 123)) && Date.now() < end) {
+            await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+        should(times.length >= 3).eql(true, "CurrentTime sampled");
+        should(times[0].value.dataType).eql(DataType.DateTime);
+        should(levels.some((v) => v.value.value === 123)).eql(true, "ServiceLevel pushed");
+        await subscription.terminate();
+        await session.close();
+    });
 });
