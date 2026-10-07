@@ -384,6 +384,8 @@ export type EngineToFront =
     | { kind: "anchors"; anchors: string[] }
     /** the engine closed a session of this front (timeout, room made for a new one, another front took it) */
     | { kind: "sessionClosed"; token: string; reason: string }
+    /** to a session worker: values written to node objects it watches, DataValues in the order of the nodes */
+    | { kind: "objectChanges"; nodeIds: string[]; values: Uint8Array }
     /** to a session worker: the engine closed a session it hosts the subscriptions of */
     | { kind: "workerSessionClosed"; token: string }
     /** another front takes this session over: answer with its state (sessionReleased) and drop it */
@@ -432,6 +434,9 @@ export type FrontRequest =
     | { kind: "takeSession"; token: string }
     /** a service of the engine's ServerEngine, its request as its binary encoding, run in the context of the session */
     | { kind: "service"; service: ServiceKind; token: string | null; request: Uint8Array }
+    /** a session worker watches a node object (namespace 0): the engine pushes the values written to it (objectChanges) */
+    | { kind: "watchObject"; nodeId: string }
+    | { kind: "unwatchObject"; nodeId: string }
     /** an event the front raises on the Server object: its type, and each field as an encoded Variant */
     | { kind: "raiseEvent"; eventType: string; fields: Record<string, Uint8Array> };
 

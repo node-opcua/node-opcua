@@ -30,6 +30,7 @@
  * Experimental: history and methods are not served by the fronts yet; each front keeps its own
  * sessions, subscriptions and server diagnostics.
  */
+import type { EventEmitter } from "node:events";
 import { MessageChannel, type MessagePort, Worker } from "node:worker_threads";
 import { type CompactAddressSpace, SessionContext } from "node-opcua-address-space";
 import { type StoreNodeView, StoreServices, type StoreVariableView } from "node-opcua-address-space-store";
@@ -161,6 +162,11 @@ export class FrontThreadEngine {
     readonly #anchors = new Set<string>();
     readonly #fronts: Worker[] = [];
     readonly #sessionWorkers: Worker[] = [];
+    readonly #objectWatches = new Map<
+        string,
+        { node: EventEmitter; workers: Set<Worker>; listener: (dataValue: DataValue) => void }
+    >();
+    readonly #objectChanges = new Map<Worker, { nodeIds: string[]; values: DataValue[] }>();
     readonly #endpointUrls: string[] = [];
     /** the requests the fronts sent, by kind: what they could not answer in place */
     public readonly requests = {
@@ -175,6 +181,8 @@ export class FrontThreadEngine {
         historyCheck: 0,
         historyExtract: 0,
         admitSession: 0,
+        watchObject: 0,
+        unwatchObject: 0,
         sessionCreated: 0,
         sessionActivated: 0,
         closeSession: 0,
@@ -429,6 +437,12 @@ export class FrontThreadEngine {
                 return this.#sessions.take(worker, request.token);
             case "service":
                 return this.#runService(request.service, request.token, request.request);
+            case "watchObject":
+                this.#watchObject(worker, request.nodeId);
+                return null;
+            case "unwatchObject":
+                this.#unwatchObject(worker, request.nodeId);
+                return null;
             case "raiseEvent": {
                 const server = this.serverEngine.addressSpace?.rootFolder.objects.server;
                 const fields: Record<string, Variant> = {};
@@ -728,6 +742,57 @@ export class FrontThreadEngine {
         });
     }
 
+    /** a node object a session worker monitors: the values written to it go to that worker */
+    #watchObject(worker: Worker, nodeId: string): void {
+        let watch = this.#objectWatches.get(nodeId);
+        if (!watch) {
+            const node = this.serverEngine.addressSpace?.findNode(nodeId) as unknown as EventEmitter | null;
+            if (!node) return;
+            const workers = new Set<Worker>();
+            const listener = (dataValue: DataValue) => {
+                for (const target of workers) this.#queueObjectChange(target, nodeId, dataValue);
+            };
+            node.on("value_changed", listener);
+            watch = { node, workers, listener };
+            this.#objectWatches.set(nodeId, watch);
+        }
+        watch.workers.add(worker);
+    }
+
+    #unwatchObject(worker: Worker, nodeId: string): void {
+        const watch = this.#objectWatches.get(nodeId);
+        if (!watch) return;
+        watch.workers.delete(worker);
+        if (watch.workers.size === 0) {
+            watch.node.removeListener("value_changed", watch.listener);
+            this.#objectWatches.delete(nodeId);
+        }
+    }
+
+    /** the values of the watched node objects, one message per worker and turn of the event loop */
+    #queueObjectChange(worker: Worker, nodeId: string, dataValue: DataValue): void {
+        let queued = this.#objectChanges.get(worker);
+        if (!queued) {
+            queued = { nodeIds: [], values: [] };
+            this.#objectChanges.set(worker, queued);
+            if (this.#objectChanges.size === 1) setImmediate(() => this.#flushObjectChanges());
+        }
+        queued.nodeIds.push(nodeId);
+        queued.values.push(dataValue);
+    }
+
+    #flushObjectChanges(): void {
+        for (const [target, changes] of this.#objectChanges) {
+            const message: EngineToFront = {
+                kind: "objectChanges",
+                nodeIds: changes.nodeIds,
+                values: encodeDataValues(changes.values)
+            };
+            target.postMessage(message);
+        }
+        this.#objectChanges.clear();
+    }
+
     /** what a FrontOPCUAServer needs of the server engine */
     #serverState(): EngineServerState {
         const engine = this.serverEngine;
@@ -783,6 +848,9 @@ export class FrontThreadEngine {
         switch (request.kind) {
             case "admitSession":
                 return false;
+            case "watchObject":
+            case "unwatchObject":
+                return null;
             case "sessionCreated":
             case "sessionActivated":
             case "closeSession":

@@ -10,13 +10,15 @@
  */
 import { EventEmitter } from "node:events";
 import { type MessagePort, parentPort, workerData } from "node:worker_threads";
-import type { ISessionContext } from "node-opcua-address-space";
+import { type ISessionContext, SessionContext } from "node-opcua-address-space";
 import type { CreateSubscriptionRequestLike } from "node-opcua-client";
 import type { Certificate } from "node-opcua-crypto/web";
+import { AttributeIds } from "node-opcua-data-model";
+import { type DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import type { BaseUAObject } from "node-opcua-factory";
 import { NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { Message, Response, SecurityHeader, ServerSecureChannelLayer } from "node-opcua-secure-channel";
-import type { MessageSecurityMode, MonitoredItemCreateRequest } from "node-opcua-types";
+import type { MessageSecurityMode, MonitoredItemCreateRequest, ReadValueIdOptions } from "node-opcua-types";
 import type { FoundNode, INodeFinder } from "../monitorable_node.js";
 import { OPCUAServerCore } from "../opcua_server.js";
 import type { ServerEngineOptions } from "../server_engine.js";
@@ -25,6 +27,7 @@ import type { ServerSession } from "../server_session.js";
 import { Subscription } from "../server_subscription.js";
 import {
     type ChannelSecurityDescriptor,
+    decodeDataValues,
     decodeExtensionObjectBytes,
     EngineCount,
     type EngineServerState,
@@ -39,6 +42,7 @@ import {
 } from "./protocol.js";
 import { EngineChannel, RemoteCompactBackend } from "./remote_backend.js";
 import { RemoteEngine } from "./remote_engine.js";
+import { DESCRIBED_ATTRIBUTES, describeFromRead, type RemoteObjectHost, RemoteObjectNode } from "./remote_object_node.js";
 import { ResolvedRolesContext } from "./resolved_roles_context.js";
 
 /**
@@ -83,15 +87,71 @@ class WorkerChannel extends EventEmitter {
 }
 
 /** the engine of a session worker: the sessions it hosts, their subscriptions, the nodes they monitor */
-class WorkerEngine extends RemoteEngine {
+class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
     readonly #backend: RemoteCompactBackend;
+    readonly #channel: EngineChannel;
     readonly #counts: Int32Array;
     readonly #globalCounter = { totalMonitoredItemCount: 0 };
+    // the node objects of the engine monitored here, by NodeId
+    readonly #objects = new Map<string, RemoteObjectNode>();
 
     constructor(state: EngineServerState, channel: EngineChannel, backend: RemoteCompactBackend) {
         super(state, channel, backend);
         this.#backend = backend;
+        this.#channel = channel;
         this.#counts = new Int32Array(state.counts);
+    }
+
+    /** a Read through the engine, in the context of the session */
+    #read(context: ISessionContext | null, nodesToRead: ReadValueIdOptions[]): Promise<DataValue[]> {
+        const request = { nodesToRead, maxAge: 0, timestampsToReturn: TimestampsToReturn.Both };
+        const sessionContext = context ?? SessionContext.defaultContext;
+        return new Promise<DataValue[]>((resolve, reject) =>
+            this.prepareRead(sessionContext, request, (err) =>
+                err ? reject(err) : resolve(this.readSync(sessionContext, request))
+            )
+        );
+    }
+
+    public async readValue(context: ISessionContext | null, node: RemoteObjectNode): Promise<DataValue> {
+        const [value] = await this.#read(context, [{ nodeId: node.nodeId, attributeId: AttributeIds.Value }]);
+        return value;
+    }
+
+    public watch(node: RemoteObjectNode): void {
+        void this.#channel.call<unknown>({ kind: "watchObject", nodeId: node.nodeId.toString() });
+    }
+
+    public unwatch(node: RemoteObjectNode): void {
+        void this.#channel.call<unknown>({ kind: "unwatchObject", nodeId: node.nodeId.toString() });
+    }
+
+    /** values the engine pushed for the node objects watched here */
+    public objectsChanged(nodeIds: string[], values: DataValue[]): void {
+        for (let k = 0; k < nodeIds.length; k++) this.#objects.get(nodeIds[k])?.changed(values[k]);
+    }
+
+    /** the node objects of the items to create, described by the engine for this session */
+    async #describeObjects(context: ISessionContext, itemsToMonitor: ReadValueIdOptions[]): Promise<void> {
+        const nodeIds: NodeId[] = [];
+        const seen = new Set<string>();
+        for (const item of itemsToMonitor) {
+            const nodeId = resolveNodeId(item.nodeId ?? "");
+            const key = nodeId.toString();
+            if (this.#backend.namespaces.has(nodeId.namespace) || this.#objects.has(key) || seen.has(key)) continue;
+            seen.add(key);
+            nodeIds.push(nodeId);
+        }
+        if (nodeIds.length === 0) return;
+        const values = await this.#read(
+            context,
+            nodeIds.flatMap((nodeId) => DESCRIBED_ATTRIBUTES.map((attributeId) => ({ nodeId, attributeId })))
+        );
+        const size = DESCRIBED_ATTRIBUTES.length;
+        nodeIds.forEach((nodeId, k) => {
+            const description = describeFromRead(values.slice(k * size, (k + 1) * size));
+            if (description) this.#objects.set(nodeId.toString(), new RemoteObjectNode(this, nodeId, description));
+        });
     }
 
     /** a session as its front activated it: created here at its first activation, updated at the next */
@@ -152,7 +212,7 @@ class WorkerEngine extends RemoteEngine {
         return {
             findNode: (nodeId: NodeIdLike): FoundNode | null => {
                 const resolved = resolveNodeId(nodeId);
-                if (!backend.namespaces.has(resolved.namespace)) return null;
+                if (!backend.namespaces.has(resolved.namespace)) return this.#objects.get(resolved.toString()) ?? null;
                 return backend.findNode ? backend.findNode(resolved) : null;
             }
         };
@@ -163,9 +223,9 @@ class WorkerEngine extends RemoteEngine {
         itemsToCreate?: MonitoredItemCreateRequest[]
     ): Promise<void> | undefined {
         if (!context || !itemsToCreate) return undefined;
-        return this.#backend.prefetchNodes(
-            context,
-            itemsToCreate.map((item) => item.itemToMonitor)
+        const items = itemsToCreate.map((item) => item.itemToMonitor);
+        return Promise.all([this.#backend.prefetchNodes(context, items), this.#describeObjects(context, items)]).then(
+            () => undefined
         );
     }
 }
@@ -267,6 +327,9 @@ async function main(): Promise<void> {
             }
             case "disposed":
                 backend.receiveDisposed(message.indexes);
+                break;
+            case "objectChanges":
+                engine.objectsChanged(message.nodeIds, decodeDataValues(message.values));
                 break;
             case "workerSessionClosed":
                 engine.drop(message.token);
