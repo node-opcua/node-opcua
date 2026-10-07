@@ -52,6 +52,7 @@ export * from "./server_capabilities.js";
 export * from "./server_capability_tools.js";
 export * from "./server_end_point.js";
 export * from "./server_engine.js";
+export type * from "./server_engine_interface.js";
 export * from "./server_publish_engine.js";
 export * from "./server_session.js";
 export * from "./server_subscription.js";
