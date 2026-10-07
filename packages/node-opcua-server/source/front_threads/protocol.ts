@@ -461,6 +461,12 @@ export type EngineToFront =
     | { kind: "exportSubscription"; id: number; subscriptionId: number; identity: ITransferSessionIdentity }
     /** another front takes this session over: answer with its state (sessionReleased) and drop it */
     | { kind: "releaseSession"; id: number; token: string }
+    /**
+     * to a session worker: a Server method about a Subscription of session `token` (subscription_methods.ts), the
+     * engine's Call service having checked its arguments and permissions; `request` is a CallMethodRequest
+     * (subscriptionMethodCalled)
+     */
+    | { kind: "callSubscriptionMethod"; id: number; token: string; request: Uint8Array }
     | { kind: "stop" };
 
 // ---------------------------------------------------------------- front -> engine
@@ -542,6 +548,8 @@ export type FrontToEngine =
      * [session token, subscription id, item id (-1 for the Subscription itself), 1 added / 0 removed]
      */
     | { kind: "subscriptionChanges"; changes: [string, number, number, number][] }
+    /** a session worker's answer to callSubscriptionMethod: a CallMethodResult */
+    | { kind: "subscriptionMethodCalled"; id: number; result: Uint8Array }
     /** the state of a session another front takes over (releaseSession); null when this front no longer has it */
     | { kind: "sessionReleased"; id: number; state: SessionState | null }
     | { kind: "ready"; endpointUrl: string }

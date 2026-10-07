@@ -12,8 +12,18 @@ import type { ISessionBase, ISessionContext, ISubscriptionBase } from "node-opcu
 import { BinaryStream } from "node-opcua-binary-stream";
 import { make_warningLog } from "node-opcua-debug";
 import { decodeExtensionObject } from "node-opcua-extension-object";
-import { resolveNodeId } from "node-opcua-nodeid";
-import { ApplicationDescription, EndpointDescription, type MessageSecurityMode, type UserIdentityToken } from "node-opcua-types";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { StatusCodes } from "node-opcua-status-code";
+import {
+    ApplicationDescription,
+    CallMethodRequest,
+    CallMethodResult,
+    type CallMethodResultOptions,
+    EndpointDescription,
+    type MessageSecurityMode,
+    type UserIdentityToken
+} from "node-opcua-types";
+import type { Variant } from "node-opcua-variant";
 import type { ClosingReason, ServerEngine } from "../server_engine.js";
 import type { ServerSession, SessionChannelSecurity } from "../server_session.js";
 import {
@@ -21,6 +31,7 @@ import {
     decodeStructure,
     EngineCount,
     type EngineToFront,
+    encodeStructure,
     type SessionActivation,
     type SessionRecord,
     type SessionState
@@ -68,6 +79,9 @@ export class FrontSessions {
     readonly #engine: ServerEngine;
     readonly #counts: Int32Array;
     readonly #entries = new Map<string, Entry>();
+    // the Server methods about a Subscription a session worker runs, until it answers (callSubscriptionMethod)
+    readonly #calls = new Map<number, (result: CallMethodResult) => void>();
+    #callId = 0;
     /** sessions admitted and not created yet: they count against maxSessions */
     #reserved = 0;
     #releaseId = 0;
@@ -229,6 +243,46 @@ export class FrontSessions {
                 else items?.delete(itemId);
             }
         }
+    }
+
+    /**
+     * a Server method about one Subscription (subscription_methods.ts), called in the engine by a
+     * session of the fronts: run by the session worker that hosts the session's Subscriptions. The
+     * Subscription is checked first as the method does it, with the ids the workers reported. Null for a
+     * session the fronts do not serve.
+     */
+    public callSubscriptionMethod(
+        methodId: number,
+        inputArguments: Variant[],
+        context: ISessionContext
+    ): Promise<CallMethodResultOptions> | null {
+        const token = (context.session as { authenticationToken?: NodeId } | undefined)?.authenticationToken?.toString();
+        const entry = token === undefined ? undefined : this.#entries.get(token);
+        if (!token || !entry || entry.worker < 0) return null;
+        const subscriptionId = inputArguments[0]?.value as number;
+        if (!entry.subscriptions.has(subscriptionId)) {
+            // a Subscription of another session is denied, an unknown one invalid
+            const elsewhere = [...this.#entries.values()].some((other) => other.subscriptions.has(subscriptionId));
+            return Promise.resolve({
+                statusCode: elsewhere ? StatusCodes.BadUserAccessDenied : StatusCodes.BadSubscriptionIdInvalid
+            });
+        }
+        const id = ++this.#callId;
+        const request = encodeStructure(
+            new CallMethodRequest({ objectId: resolveNodeId("ns=0;i=2253"), methodId: resolveNodeId(methodId), inputArguments })
+        );
+        return new Promise((resolve) => {
+            this.#calls.set(id, resolve);
+            this.#toWorker(entry, { kind: "callSubscriptionMethod", id, token, request });
+        });
+    }
+
+    /** a session worker's answer to callSubscriptionMethod */
+    public subscriptionMethodCalled(id: number, result: Uint8Array): void {
+        const resolve = this.#calls.get(id);
+        if (!resolve) return;
+        this.#calls.delete(id);
+        resolve(decodeStructure(result, new CallMethodResult()));
     }
 
     /** a front goes on with a session another front holds: that one gives it up */

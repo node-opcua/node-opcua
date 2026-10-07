@@ -22,7 +22,15 @@ import type { Message, Response, SecurityHeader, ServerSecureChannelLayer } from
 import type { EventFilter } from "node-opcua-service-filter";
 import { TransferResult } from "node-opcua-service-subscription";
 import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
-import type { EventFilterResult, MessageSecurityMode, MonitoredItemCreateRequest, ReadValueIdOptions } from "node-opcua-types";
+import {
+    CallMethodRequest,
+    CallMethodResult,
+    type CallMethodResultOptions,
+    type EventFilterResult,
+    type MessageSecurityMode,
+    type MonitoredItemCreateRequest,
+    type ReadValueIdOptions
+} from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
 import type { EventItemIdentity, FoundNode, INodeFinder } from "../monitorable_node.js";
 import type { MonitoredItem } from "../monitored_item.js";
@@ -44,15 +52,18 @@ import {
     identitiesCompatibleForTransfer,
     sessionsCompatibleForTransfer
 } from "../sessions_compatible_for_transfer.js";
+import { subscriptionMethods } from "../subscription_methods.js";
 import {
     type ChannelSecurityDescriptor,
     decodeDataValues,
     decodeExtensionObjectBytes,
+    decodeStructure,
     decodeTransferState,
     EngineCount,
     type EngineServerState,
     type EngineToFront,
     encodeExtensionObjectBytes,
+    encodeStructure,
     encodeTransferState,
     type FrontToEngine,
     type FrontToWorker,
@@ -271,6 +282,29 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         this.#owners.set(subscription, token);
         this.#report(token, subscription.id, -1, 1);
         for (const itemId of subscription.getMonitoredItems().serverHandles) this.#report(token, subscription.id, itemId, 1);
+    }
+
+    /** see subscription_methods.ts: a Subscription of another session of this worker */
+    public findSubscription(subscriptionId: number): Subscription | null {
+        return this.#findSubscription(subscriptionId);
+    }
+
+    /** a Server method about a Subscription of session `token`, which the engine checked and sends here (callSubscriptionMethod) */
+    public callSubscriptionMethod(token: string, requestBytes: Uint8Array): Promise<Uint8Array> {
+        const request = decodeStructure(requestBytes, new CallMethodRequest());
+        const session = this.sessions.get(token);
+        const method = subscriptionMethods.get(request.methodId.value as number);
+        const answer = (result: CallMethodResultOptions) => encodeStructure(new CallMethodResult(result));
+        if (!session || !method) return Promise.resolve(answer({ statusCode: StatusCodes.BadSessionIdInvalid }));
+        return new Promise((resolve) => {
+            method.call(
+                this,
+                request.inputArguments ?? [],
+                session.sessionContext,
+                (err: Error | null, result?: CallMethodResultOptions) =>
+                    resolve(answer(err || !result ? { statusCode: StatusCodes.BadInternalError } : result))
+            );
+        });
     }
 
     #findSubscription(subscriptionId: number): Subscription | null {
@@ -602,6 +636,12 @@ async function main(): Promise<void> {
                 break;
             case "workerSessionClosed":
                 void engine.drop(message.token, message.deleteSubscriptions);
+                break;
+            case "callSubscriptionMethod":
+                void engine.callSubscriptionMethod(message.token, message.request).then((result) => {
+                    const called: FrontToEngine = { kind: "subscriptionMethodCalled", id: message.id, result };
+                    port.postMessage(called);
+                });
                 break;
             case "exportSubscription": {
                 const exported: FrontToEngine = {

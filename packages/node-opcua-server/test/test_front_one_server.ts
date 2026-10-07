@@ -376,6 +376,71 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         await session.close();
     });
 
+    it("runs GetMonitoredItems, ResendData and SetSubscriptionDurable on the subscription of a session worker", async () => {
+        const session = await sessionOn(0);
+        const create = async () => {
+            const subscription = ClientSubscription.create(session, {
+                requestedPublishingInterval: 50,
+                requestedLifetimeCount: 600,
+                requestedMaxKeepAliveCount: 10,
+                publishingEnabled: true
+            });
+            await new Promise<void>((resolve) => subscription.once("started", () => resolve()));
+            return subscription;
+        };
+        const subscription = await create();
+        const values: number[] = [];
+        const item = ClientMonitoredItem.create(
+            subscription,
+            { nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value },
+            { samplingInterval: 0, queueSize: 10 },
+            TimestampsToReturn.Both
+        );
+        item.on("changed", (dataValue: DataValue) => values.push(dataValue.value.value as number));
+        await new Promise<void>((resolve) => item.once("initialized", () => resolve()));
+        const waitFor = async (condition: () => boolean) => {
+            const end = Date.now() + 5000;
+            while (!condition() && Date.now() < end) await new Promise((resolve) => setTimeout(resolve, 20));
+        };
+        await waitFor(() => values.length > 0);
+        // Server.GetMonitoredItems (i=11492), Server.ResendData (i=12873), Server.SetSubscriptionDurable (i=12749)
+        const method = (methodId: number, ...args: number[]) => ({
+            objectId: "ns=0;i=2253",
+            methodId: `ns=0;i=${methodId}`,
+            inputArguments: args.map((value) => ({ dataType: DataType.UInt32, value }))
+        });
+
+        const listed = await session.call(method(11492, subscription.subscriptionId));
+        should(listed.statusCode).eql(StatusCodes.Good);
+        should(Array.from(listed.outputArguments?.[0].value as Uint32Array)).eql([item.monitoredItemId]);
+        should(Array.from(listed.outputArguments?.[1].value as Uint32Array)).eql([item.monitoringParameters.clientHandle]);
+
+        const received = values.length;
+        should((await session.call(method(12873, subscription.subscriptionId))).statusCode).eql(StatusCodes.Good);
+        await waitFor(() => values.length > received);
+        should(values.length).eql(received + 1, "ResendData sends the current value again");
+
+        // durable only before the first item (OPC 10000-5 9.3)
+        should((await session.call(method(12749, subscription.subscriptionId, 5))).statusCode).eql(StatusCodes.BadInvalidState);
+        const empty = await create();
+        const durable = await session.call(method(12749, empty.subscriptionId, 5));
+        should(durable.statusCode).eql(StatusCodes.Good);
+        should(durable.outputArguments?.[0].value).eql(5);
+
+        // several in one Call, as for any method
+        const both = await session.call([method(11492, subscription.subscriptionId), method(12873, empty.subscriptionId)]);
+        should(both.map((result) => result.statusCode)).eql([StatusCodes.Good, StatusCodes.Good]);
+        // a subscription of another session is denied, an unknown one invalid
+        const other = await sessionOn(1);
+        should((await other.call(method(11492, subscription.subscriptionId))).statusCode).eql(StatusCodes.BadUserAccessDenied);
+        should((await session.call(method(11492, 4242))).statusCode).eql(StatusCodes.BadSubscriptionIdInvalid);
+
+        await subscription.terminate();
+        await empty.terminate();
+        await other.close();
+        await session.close();
+    });
+
     it("runs the monitored item hooks of the application in the session worker", async () => {
         const counts = new Int32Array(hookCounts);
         const [created0, deleted0] = [Atomics.load(counts, 0), Atomics.load(counts, 1)];
