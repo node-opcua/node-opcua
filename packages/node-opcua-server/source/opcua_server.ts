@@ -2990,6 +2990,7 @@ export abstract class OPCUAServerCore<
         // AuditActivateSessionEventType. Every refusal below goes through here, so each failed
         // request raises exactly one, with Status false.
         function rejectConnection(server: OPCUAServerCore, statusCode: StatusCode): void {
+            if (session) server.activationRefused(session);
             raiseAuditActivateSessionEventType.call(server, session, request.requestHeader.auditEntryId ?? "", {
                 statusCode,
                 userIdentityToken: request.userIdentityToken as UserIdentityToken | null,
@@ -3200,6 +3201,9 @@ export abstract class OPCUAServerCore<
     protected recordActivation(_session: ServerSession): Promise<void> | undefined {
         return undefined;
     }
+
+    /** an ActivateSession refused: the session stays as it was (FrontOPCUAServer gives back one it took) */
+    protected activationRefused(_session: ServerSession): void {}
 
     protected prepare(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request;

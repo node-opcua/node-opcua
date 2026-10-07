@@ -16,6 +16,8 @@ import type { NodeId } from "node-opcua-nodeid";
 import { constructEventFilter, ofType } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
 import {
+    ActivateSessionRequest,
+    AnonymousIdentityToken,
     CreateSessionRequest,
     CreateSubscriptionRequest,
     DataChangeNotification,
@@ -184,6 +186,34 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         await session.close();
         should(engine.serverEngine.currentSessionCount).eql(0);
         proxy.close();
+    });
+
+    it("leaves a session with its front when an ActivateSession on another front is refused", async () => {
+        const session = await sessionOn(0);
+        const sessionId = session.sessionId.toString();
+        const otherClient = await clientOn(1);
+        // an ActivateSession for that session through front 1, with an identity the server refuses
+        const internal = otherClient as unknown as {
+            performMessageTransaction(
+                request: ActivateSessionRequest,
+                callback: (err: Error | null, response?: unknown) => void
+            ): void;
+        };
+        const request = new ActivateSessionRequest({
+            requestHeader: { authenticationToken: (session as unknown as { authenticationToken: NodeId }).authenticationToken },
+            userIdentityToken: new AnonymousIdentityToken({ policyId: "no-such-policy" })
+        });
+        const answer = await new Promise<unknown>((resolve) =>
+            internal.performMessageTransaction(request, (err, r) => resolve(err ?? r))
+        );
+        should(
+            String((answer as { responseHeader?: { serviceResult: unknown } }).responseHeader?.serviceResult ?? answer)
+        ).not.match(/Good/);
+        // the session goes on through front 0, the same session
+        const value = await session.read({ nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value });
+        should(value.statusCode).eql(StatusCodes.Good);
+        should(session.sessionId.toString()).eql(sessionId);
+        await session.close();
     });
 
     it("raises the audit events of a front on the engine's Server object", async () => {

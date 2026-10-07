@@ -62,6 +62,11 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
         this.on("session_activated", (session: ServerSession) => this.#announce(session));
     }
 
+    /** a session taken from another front for this ActivateSession goes back there */
+    protected override activationRefused(session: ServerSession): void {
+        this.#remote.returnSession(session);
+    }
+
     /** the engine records the activation (user, roles, diagnostics) before the client hears of it */
     protected override recordActivation(session: ServerSession): Promise<void> | undefined {
         return this.#remote.sessionActivated(session);
