@@ -9,6 +9,10 @@
  * `dataType` or `arrayType` (the encoding mask of a DataValue, for one) does not decode. Reading
  * `value` or `dimensions` decodes once; writing any of the four fields detaches the Variant from its
  * bytes, and it is then encoded like any other.
+ *
+ * Made by encodedVariant(), never by its constructor: the constructor of Variant defines the four
+ * fields on the instance itself, hiding the accessors of the prototype, and accessors defined per
+ * instance cost several times what decoding a short string does.
  */
 import { BinaryStream, type OutputBinaryStream } from "node-opcua-binary-stream";
 import type { DataType } from "./DataType_enum.js";
@@ -18,73 +22,73 @@ import { decodeVariant, Variant } from "./variant.js";
 const ARRAY_VALUES = 0x80;
 const ARRAY_DIMENSIONS = 0x40;
 const TYPE_MASK = 0x3f;
-const FIELDS = ["dataType", "arrayType", "value", "dimensions"] as const;
-type Field = (typeof FIELDS)[number];
 
 export class EncodedVariant extends Variant {
-    // null once the value was written: the Variant encodes its fields again
-    #bytes: Uint8Array | null;
-    #decoded: Variant | null = null;
+    /** the encoding; null once a field was written, the Variant then encoding its fields */
+    declare _bytes: Uint8Array | null;
+    /** the Variant the bytes decode to, once a field other than dataType and arrayType was read */
+    declare _decoded: Variant | null;
 
-    /** `bytes`: the binary encoding of one Variant, owned by this object from now on */
-    constructor(bytes: Uint8Array) {
+    private constructor() {
         super(null);
-        this.#bytes = bytes;
-        const mask = bytes[0];
-        const dataType = (mask & TYPE_MASK) as DataType;
-        const arrayType =
-            (mask & ARRAY_VALUES) === 0
-                ? VariantArrayType.Scalar
-                : (mask & ARRAY_DIMENSIONS) !== 0
-                  ? VariantArrayType.Matrix
-                  : VariantArrayType.Array;
-        // own accessors: the fields of Variant are own data properties, which would hide accessors of the prototype
-        const read: Record<Field, () => unknown> = {
-            dataType: () => dataType,
-            arrayType: () => arrayType,
-            value: () => this.#full().value,
-            dimensions: () => this.#full().dimensions
-        };
-        for (const field of FIELDS) {
-            Object.defineProperty(this, field, {
-                get: read[field],
-                set: (v: unknown) => this.#detach(field, v),
-                enumerable: true,
-                configurable: true
-            });
-        }
     }
 
     /** the encoding as it is, or null once the Variant was changed */
     public get encoded(): Uint8Array | null {
-        return this.#bytes;
+        return this._bytes;
     }
 
     public override encode(stream: OutputBinaryStream): void {
-        const bytes = this.#bytes;
+        const bytes = this._bytes;
         if (bytes) {
             stream.writeArrayBuffer(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength);
             return;
         }
-        super.encode(stream);
+        (this._decoded as Variant).encode(stream);
     }
+}
 
-    #full(): Variant {
-        if (!this.#decoded) {
-            const bytes = this.#bytes as Uint8Array;
-            // decoded from a copy: a typed array must not alias the bytes it came from
-            this.#decoded = decodeVariant(new BinaryStream(Buffer.from(bytes)));
-        }
-        return this.#decoded;
+function decodedOf(variant: EncodedVariant): Variant {
+    if (!variant._decoded) {
+        const bytes = variant._bytes as Uint8Array;
+        // decoded from a copy: a typed array must not alias the bytes it came from
+        variant._decoded = decodeVariant(new BinaryStream(Buffer.from(bytes)));
     }
+    return variant._decoded;
+}
 
-    /** a field written: the Variant holds plain fields from now on */
-    #detach(field: Field, v: unknown): void {
-        const full = this.#full();
-        this.#bytes = null;
-        for (const f of FIELDS) {
-            Object.defineProperty(this, f, { value: full[f], writable: true, enumerable: true, configurable: true });
-        }
-        (this as unknown as Record<string, unknown>)[field] = v; // check-proto-pollution: ok - field is one of FIELDS
-    }
+function arrayTypeOf(mask: number): VariantArrayType {
+    if ((mask & ARRAY_VALUES) === 0) return VariantArrayType.Scalar;
+    return (mask & ARRAY_DIMENSIONS) !== 0 ? VariantArrayType.Matrix : VariantArrayType.Array;
+}
+
+// the four fields of an EncodedVariant, once on the prototype: from the first byte, or the decoded Variant
+const read = {
+    dataType: (v: EncodedVariant) => (v._bytes ? ((v._bytes[0] & TYPE_MASK) as DataType) : decodedOf(v).dataType),
+    arrayType: (v: EncodedVariant) => (v._bytes ? arrayTypeOf(v._bytes[0]) : decodedOf(v).arrayType),
+    value: (v: EncodedVariant) => decodedOf(v).value,
+    dimensions: (v: EncodedVariant) => decodedOf(v).dimensions
+};
+for (const field of ["dataType", "arrayType", "value", "dimensions"] as const) {
+    Object.defineProperty(EncodedVariant.prototype, field, {
+        get(this: EncodedVariant) {
+            return read[field](this);
+        },
+        set(this: EncodedVariant, value: unknown) {
+            // written: the Variant holds its fields from now on, the bytes no longer tell them
+            const decoded = decodedOf(this);
+            this._bytes = null;
+            (decoded as unknown as Record<string, unknown>)[field] = value; // check-proto-pollution: ok - field is one of the four Variant fields of the literal list above
+        },
+        configurable: true,
+        enumerable: true
+    });
+}
+
+/** a Variant for the binary encoding of one Variant (`bytes`, owned by it from now on), decoded only if its value is read */
+export function encodedVariant(bytes: Uint8Array): EncodedVariant {
+    const variant = Object.create(EncodedVariant.prototype) as EncodedVariant;
+    variant._bytes = bytes;
+    variant._decoded = null;
+    return variant;
 }

@@ -1,7 +1,7 @@
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
 import { LocalizedText } from "node-opcua-data-model";
 import should from "should";
-import { DataType, decodeVariant, EncodedVariant, encodeVariant, sameVariant, Variant, VariantArrayType } from "../dist/index.js";
+import { DataType, decodeVariant, encodedVariant, encodeVariant, sameVariant, Variant, VariantArrayType } from "../dist/index.js";
 
 function bytesOf(variant: Variant): Uint8Array {
     const size = new BinaryStreamSizeCalculator();
@@ -34,11 +34,11 @@ const samples: [string, Variant][] = [
     ["a string array", new Variant({ dataType: DataType.String, arrayType: VariantArrayType.Array, value: ["a", "b"] })]
 ];
 
-describe("EncodedVariant: a Variant kept as its binary encoding", () => {
+describe("encodedVariant: a Variant kept as its binary encoding", () => {
     for (const [name, variant] of samples) {
         it(`writes ${name} unchanged, and reads it as the Variant it encodes`, () => {
             const bytes = bytesOf(variant);
-            const island = new EncodedVariant(bytes.slice());
+            const island = encodedVariant(bytes.slice());
             should(island.dataType).eql(variant.dataType);
             should(island.arrayType).eql(variant.arrayType);
             should(Buffer.from(bytesOf(island)).equals(Buffer.from(bytes))).eql(true);
@@ -52,7 +52,7 @@ describe("EncodedVariant: a Variant kept as its binary encoding", () => {
 
     it("does not decode to tell its DataType", () => {
         const bytes = bytesOf(samples[0][1]);
-        const island = new EncodedVariant(bytes);
+        const island = encodedVariant(bytes);
         // garbage after the first byte: only a read of the value would notice
         bytes.fill(0xff, 1);
         should(island.dataType).eql(DataType.String);
@@ -61,19 +61,19 @@ describe("EncodedVariant: a Variant kept as its binary encoding", () => {
 
     it("gives a decoded array that does not alias its bytes", () => {
         const bytes = bytesOf(samples[1][1]);
-        const island = new EncodedVariant(bytes);
+        const island = encodedVariant(bytes);
         (island.value as Float64Array)[0] = 99;
-        should(Buffer.from(bytesOf(new EncodedVariant(bytes.slice()))).equals(Buffer.from(bytesOf(samples[1][1])))).eql(true);
+        should(Buffer.from(bytesOf(encodedVariant(bytes.slice()))).equals(Buffer.from(bytesOf(samples[1][1])))).eql(true);
     });
 
     it("is encoded from its fields once one of them is written", () => {
-        const island = new EncodedVariant(bytesOf(samples[0][1]));
+        const island = encodedVariant(bytesOf(samples[0][1]));
         island.value = "valve";
         should(island.encoded).eql(null);
         const decoded = decodeVariant(new BinaryStream(Buffer.from(bytesOf(island))));
         should(decoded.value).eql("valve");
         should(decoded.dataType).eql(DataType.String);
-        const retyped = new EncodedVariant(bytesOf(samples[0][1]));
+        const retyped = encodedVariant(bytesOf(samples[0][1]));
         retyped.dataType = DataType.ByteString;
         retyped.value = Buffer.from("x");
         should(decodeVariant(new BinaryStream(Buffer.from(bytesOf(retyped)))).dataType).eql(DataType.ByteString);
@@ -82,7 +82,7 @@ describe("EncodedVariant: a Variant kept as its binary encoding", () => {
     it("is encoded by encodeVariant like any Variant", () => {
         const bytes = bytesOf(samples[3][1]);
         const stream = new BinaryStream(bytes.length);
-        encodeVariant(new EncodedVariant(bytes.slice()), stream);
+        encodeVariant(encodedVariant(bytes.slice()), stream);
         should(Buffer.from(stream.buffer.subarray(0, bytes.length)).equals(Buffer.from(bytes))).eql(true);
     });
 });
