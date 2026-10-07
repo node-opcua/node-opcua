@@ -665,8 +665,11 @@ async function main(): Promise<void> {
     port.postMessage(ready);
 }
 
-main().catch((err: Error) => {
-    const failed: FrontToEngine = { kind: "failed", message: err?.stack ?? String(err) };
-    parentPort?.postMessage(failed);
-    parentPort?.close();
-});
+// a session worker only (see FrontWorkerData.thread)
+if ((workerData as Partial<SessionWorkerData> | undefined)?.thread === "session") {
+    main().catch((err: Error) => {
+        const failed: FrontToEngine = { kind: "failed", message: err?.stack ?? String(err) };
+        parentPort?.postMessage(failed);
+        parentPort?.close();
+    });
+}

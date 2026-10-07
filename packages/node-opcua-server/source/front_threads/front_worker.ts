@@ -77,8 +77,11 @@ async function main(): Promise<void> {
     port.postMessage(ready);
 }
 
-main().catch((err: Error) => {
-    const failed: FrontToEngine = { kind: "failed", message: err?.stack ?? String(err) };
-    parentPort?.postMessage(failed);
-    parentPort?.close();
-});
+// a front thread only: a session worker imports this module when it is also the serverModule of the fronts
+if ((workerData as Partial<FrontWorkerData> | undefined)?.thread === "front") {
+    main().catch((err: Error) => {
+        const failed: FrontToEngine = { kind: "failed", message: err?.stack ?? String(err) };
+        parentPort?.postMessage(failed);
+        parentPort?.close();
+    });
+}

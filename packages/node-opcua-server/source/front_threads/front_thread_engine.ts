@@ -322,6 +322,7 @@ export class FrontThreadEngine {
             for (let index = 0; index < count; index++) {
                 const frontPorts = channels[index].map((c) => c.port2);
                 const data: SessionWorkerData = {
+                    thread: "session",
                     descriptor,
                     storeNamespaces: served,
                     server: this.#serverState(),
@@ -348,6 +349,7 @@ export class FrontThreadEngine {
         const ready: Promise<string>[] = [];
         for (let front = 0; front < fronts; front++) {
             const data: FrontWorkerData = {
+                thread: "front",
                 descriptor,
                 storeNamespaces: served,
                 serverModule: options.serverModule.toString(),
