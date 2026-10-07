@@ -28,6 +28,7 @@ import {
     type SessionSecurityDiagnosticsDataType,
     SubscriptionDiagnosticsDataType
 } from "node-opcua-common";
+import type { Certificate } from "node-opcua-crypto/web";
 import { NodeClass, QualifiedName } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
@@ -38,6 +39,7 @@ import type {
     ApplicationDescription,
     CreateSubscriptionRequestOptions,
     EndpointDescription,
+    MessageSecurityMode,
     UserIdentityToken
 } from "node-opcua-types";
 import { type ISubscriber, type IWatchdogData2, lowerFirstLetter, randomBytes, WatchDog } from "node-opcua-utils";
@@ -140,12 +142,25 @@ export type SessionStatus = "new" | "active" | "screwed" | "disposed" | "closed"
  */
 const EXTRA_CHANNEL_LISTENERS = 10;
 
+/** what a Session asks of the engine it belongs to */
+export type ServerSessionParent = Pick<
+    ServerEngine,
+    "addressSpace" | "clientDescription" | "incrementRejectedRequestsCount" | "_createSubscriptionOnSession"
+>;
+
+/** the security of the channel a Session is on, as its diagnostics show it */
+export interface SessionChannelSecurity {
+    securityMode: MessageSecurityMode;
+    securityPolicy: string;
+    clientCertificate: Certificate | null;
+}
+
 export class ServerSession extends EventEmitter implements ISubscriber, ISessionBase, IServerSession, IServerSessionBase {
     public static registry = new ObjectRegistry();
     public static maxPublishRequestInQueue = 100;
 
     public __status: SessionStatus = "new";
-    public parent: ServerEngine;
+    public parent: ServerSessionParent;
     public authenticationToken: NodeId;
     public nodeId: NodeId;
     public sessionName = "";
@@ -205,7 +220,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
     private channel_abort_event_handler?: () => void;
 
-    constructor(parent: ServerEngine, server: IServerBase, sessionTimeout: number) {
+    constructor(parent: ServerSessionParent, server: IServerBase, sessionTimeout: number) {
         super();
 
         this.parent = parent; // SessionEngine
@@ -307,7 +322,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         assert(!this.sessionObject, " sessionObject has not been cleared !");
 
-        this.parent = null as unknown as ServerEngine;
+        this.parent = null as unknown as ServerSessionParent;
         this.authenticationToken = new NodeId();
 
         if (this.publishEngine) {
@@ -339,6 +354,23 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public get clientLastContactTime(): number {
         const lastSeen = this._watchDogData ? this._watchDogData.lastSeen : getMinOPCUADate().getTime();
         return WatchDog.lastSeenToDuration(lastSeen);
+    }
+
+    /**
+     * a Session whose timeout another thread keeps (the engine of front threads): it leaves this
+     * thread's watchdog, and each keepAlive() calls `seen` instead
+     */
+    public watchedElsewhere(seen: () => void): void {
+        theWatchDog.removeSubscriber(this);
+        this.keepAlive = seen;
+    }
+
+    /** the security of the channel of a Session kept here for a channel of another thread (front threads) */
+    public remoteChannelSecurity?: SessionChannelSecurity;
+
+    /** the security of the Session's channel */
+    public get channelSecurity(): SessionChannelSecurity | undefined {
+        return this.channel ?? this.remoteChannelSecurity;
     }
 
     public get status(): SessionStatus {
@@ -1020,19 +1052,19 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
                 Object.defineProperty(this._sessionSecurityDiagnostics, "securityMode", {
                     get(this: SessionSecurityDiagnosticsDataTypeEx) {
                         const session = this.$session;
-                        return session?.channel?.securityMode;
+                        return session?.channelSecurity?.securityMode;
                     }
                 });
                 Object.defineProperty(this._sessionSecurityDiagnostics, "securityPolicyUri", {
                     get(this: SessionSecurityDiagnosticsDataTypeEx) {
                         const session = this.$session;
-                        return session?.channel?.securityPolicy;
+                        return session?.channelSecurity?.securityPolicy;
                     }
                 });
                 Object.defineProperty(this._sessionSecurityDiagnostics, "clientCertificate", {
                     get(this: SessionSecurityDiagnosticsDataTypeEx) {
                         const session = this.$session;
-                        return session?.channel?.clientCertificate;
+                        return session?.channelSecurity?.clientCertificate;
                     }
                 });
 

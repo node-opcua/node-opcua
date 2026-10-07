@@ -30,7 +30,7 @@ export interface IServerEngineForServer
         | "createSession"
         | "closeSession"
         | "getSession"
-        | "getOldestInactiveSession"
+        | "admitSession"
         | "currentSessionCount"
         | "rejectedSessionCount"
         | "rejectedRequestsCount"

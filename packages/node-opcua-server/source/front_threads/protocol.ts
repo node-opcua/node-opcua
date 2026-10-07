@@ -208,7 +208,76 @@ export interface FrontWorkerData {
      * platform has no SO_REUSEPORT: front k listens on that port + k
      */
     sharedPort: boolean;
+    /** set when the fronts are FrontOPCUAServers on the engine's ServerEngine: what they need of it */
+    server?: EngineServerState;
 }
+
+/** the engine-wide counts a front reads without asking, in an Int32Array the engine alone writes */
+export enum EngineCount {
+    Sessions = 0,
+    Subscriptions = 1,
+    RejectedSessions = 2,
+    RejectedRequests = 3,
+    SessionAborts = 4,
+    PublishingIntervals = 5,
+    /** the ServerState of the server */
+    ServerState = 6,
+    Size = 7
+}
+
+/** what a front needs of the engine's ServerEngine to serve as the same server */
+export interface EngineServerState {
+    /** ServerCapabilities, structured-cloned: rebuilt with new ServerCapabilities() */
+    serverCapabilities: object;
+    /** the BuildInfo, as its binary encoding */
+    buildInfo: Uint8Array;
+    isAuditing: boolean;
+    /** EngineCount, kept up to date by the engine */
+    counts: SharedArrayBuffer;
+}
+
+/** the security of a session's channel, as the engine keeps it for the session's diagnostics */
+export interface ChannelSecurityDescriptor {
+    securityMode: number;
+    securityPolicy: string;
+    clientCertificate: Uint8Array | null;
+}
+
+/** what a front tells the engine of a session it created */
+export interface SessionRecord {
+    nodeId: string;
+    /** the authenticationToken, as its NodeId string: the key of the session in every message */
+    token: string;
+    sessionTimeout: number;
+    sessionName: string;
+    /** the ApplicationDescription of the client, as its binary encoding */
+    clientDescription: Uint8Array;
+    /** the EndpointDescription the session was created on, as its binary encoding */
+    endpoint: Uint8Array | null;
+    security: ChannelSecurityDescriptor;
+}
+
+/** what the engine learns of a session when it is activated */
+export interface SessionActivation {
+    token: string;
+    /** the roles the front resolved for the user (its user manager stays in the front) */
+    roles: string[];
+    /** the UserIdentityToken, as an ExtensionObject's binary encoding; null for none */
+    userIdentityToken: Uint8Array | null;
+    localeIds: string[];
+    security: ChannelSecurityDescriptor;
+}
+
+/** a session as it moves from one front to another: what the new front needs to go on with it */
+export interface SessionState {
+    record: SessionRecord;
+    activation: SessionActivation | null;
+    /** the last server nonce, which the client signs in its next ActivateSession */
+    nonce: Uint8Array | null;
+}
+
+/** the services a front forwards to the engine's ServerEngine as they are */
+export type ServiceKind = "read" | "write" | "browse" | "translate" | "call" | "historyRead";
 
 /**
  * what a front needs to know of a node to create a monitored item on it, without asking again:
@@ -259,6 +328,10 @@ export type EngineToFront =
     | { kind: "disposed"; indexes: number[] }
     | { kind: "descriptor"; descriptor: SharedStoreDescriptor }
     | { kind: "anchors"; anchors: string[] }
+    /** the engine closed a session of this front (timeout, room made for a new one, another front took it) */
+    | { kind: "sessionClosed"; token: string; reason: string }
+    /** another front takes this session over: answer with its state (sessionReleased) and drop it */
+    | { kind: "releaseSession"; id: number; token: string }
     | { kind: "stop" };
 
 // ---------------------------------------------------------------- front -> engine
@@ -287,7 +360,23 @@ export type FrontRequest =
      */
     | { kind: "historyCheck"; context: ContextDescriptor; nodeId: string; boundTimes: number[] }
     /** values from the historian of the node: ReadRawModifiedDetails as its binary encoding; answered with DataValues, or null */
-    | { kind: "historyExtract"; nodeId: string; details: Uint8Array; max: number; isReversed: boolean; reverse: boolean };
+    | { kind: "historyExtract"; nodeId: string; details: Uint8Array; max: number; isReversed: boolean; reverse: boolean }
+    /** room for one more session (true), made by closing the oldest not activated if needed; held until sessionCreated */
+    | { kind: "admitSession" }
+    | { kind: "sessionCreated"; session: SessionRecord }
+    | { kind: "sessionActivated"; activation: SessionActivation }
+    | {
+          kind: "closeSession";
+          token: string;
+          deleteSubscriptions: boolean;
+          reason: "Timeout" | "Terminated" | "CloseSession" | "Forcing";
+      }
+    /** a session another front holds, for this front to go on with (ActivateSession on a new channel): its SessionState, or null */
+    | { kind: "takeSession"; token: string }
+    /** a service of the engine's ServerEngine, its request as its binary encoding, run in the context of the session */
+    | { kind: "service"; service: ServiceKind; token: string | null; request: Uint8Array }
+    /** an event the front raises on the Server object: its type, and each field as an encoded Variant */
+    | { kind: "raiseEvent"; eventType: string; fields: Record<string, Uint8Array> };
 
 /** start (1) or stop (0) watching a node: index and generation, three numbers per operation, in order */
 export const WATCH = 1;
@@ -298,6 +387,21 @@ export type FrontToEngine =
     | { kind: "watches"; operations: number[] }
     /** the last "changes" message was delivered: the engine may send the next one */
     | { kind: "changesDone" }
+    /**
+     * what the sessions of the front did in a turn of the event loop: the sessions seen (their
+     * watchdog), the service counters (token, counter name or "" for the total, 1 for an error), the
+     * sessions and the requests refused
+     */
+    | {
+          kind: "activity";
+          seen: string[];
+          counters: [string, string, number][];
+          rejected: number;
+          securityRejected: number;
+          rejectedRequests: number;
+      }
+    /** the state of a session another front takes over (releaseSession); null when this front no longer has it */
+    | { kind: "sessionReleased"; id: number; state: SessionState | null }
     | { kind: "ready"; endpointUrl: string }
     | { kind: "failed"; message: string }
     | { kind: "stopped" };

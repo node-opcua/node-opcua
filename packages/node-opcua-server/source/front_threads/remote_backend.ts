@@ -224,6 +224,13 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
     }
 
     /** the node index when its Value can be served here, else -1 */
+    /** whether read() answers this item from the shared store, without the engine */
+    public canReadInPlace(nodeToRead: ReadValueIdOptions): boolean {
+        // the store also holds namespace 0, whose live values are the engine's node objects
+        if (!this.namespaces.has(resolveNodeId(nodeToRead.nodeId ?? "").namespace)) return false;
+        return this.#inPlace(nodeToRead) >= 0;
+    }
+
     #inPlace(nodeToRead: ReadValueIdOptions): number {
         if (nodeToRead.attributeId !== AttributeIds.Value) return -1;
         const range = nodeToRead.indexRange as NumericRange | undefined;
