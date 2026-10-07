@@ -37,6 +37,8 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
     let engine: FrontThreadEngine;
     let ns: number;
     const clients: OPCUAClient[] = [];
+    // the calls of the monitored item hooks of the fixture, counted in the session workers: created, deleted
+    const hookCounts = new SharedArrayBuffer(8);
 
     before(async () => {
         engine = await FrontThreadEngine.create({
@@ -60,7 +62,7 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
             fronts: 2,
             ownPorts: true,
             serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
-            serverModuleData: { port }
+            serverModuleData: { port, hookCounts }
         });
     });
     after(async () => {
@@ -298,6 +300,36 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         should(messages).containEql("from the engine");
         await subscription.terminate();
         await session.close();
+    });
+
+    it("runs the monitored item hooks of the application in the session worker", async () => {
+        const counts = new Int32Array(hookCounts);
+        const [created0, deleted0] = [Atomics.load(counts, 0), Atomics.load(counts, 1)];
+        const session = await sessionOn(0);
+        const subscription = ClientSubscription.create(session, {
+            requestedPublishingInterval: 50,
+            requestedLifetimeCount: 600,
+            requestedMaxKeepAliveCount: 10,
+            publishingEnabled: true
+        });
+        await new Promise<void>((resolve) => subscription.once("started", () => resolve()));
+        const items = [0, 1].map(() =>
+            ClientMonitoredItem.create(
+                subscription,
+                { nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value },
+                { samplingInterval: 100, queueSize: 1 },
+                TimestampsToReturn.Both
+            )
+        );
+        await Promise.all(items.map((item) => new Promise<void>((resolve) => item.once("initialized", () => resolve()))));
+        should(Atomics.load(counts, 0) - created0).eql(2, "onCreateMonitoredItem, once per item");
+        await items[0].terminate();
+        should(Atomics.load(counts, 1) - deleted0).eql(1, "onDeleteMonitoredItem for the item deleted");
+        // the other item ends with its session
+        await session.close(true);
+        const end = Date.now() + 5000;
+        while (Atomics.load(counts, 1) - deleted0 < 2 && Date.now() < end) await new Promise((resolve) => setTimeout(resolve, 20));
+        should(Atomics.load(counts, 1) - deleted0).eql(2, "onDeleteMonitoredItem for the item of the closed session");
     });
 });
 
