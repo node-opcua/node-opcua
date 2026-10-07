@@ -3118,6 +3118,13 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                         if (!authorized) {
                             return rejectConnection(this, statusCode || StatusCodes.BadUserAccessDenied);
                         } else {
+                            if (session.status !== "new" && session.status !== "active") {
+                                // closed while its user was being checked: by the CreateSession of
+                                // another client, which made room by closing the oldest Session not
+                                // activated yet (OPC 10000-4 5.6.2). Activating it now would bring
+                                // back a Session the server no longer counts.
+                                return rejectConnection(this, StatusCodes.BadSessionClosed);
+                            }
                             if (session.status === "active") {
                                 moveSessionToChannel(session, channel);
                             }
