@@ -355,9 +355,13 @@ describe("FrontThreadEngine, one server: TransferSubscriptions between sessions 
         );
     }
 
-    function transferTo(session: RawSession, subscriptionId: number): Promise<TransferSubscriptionsResponse> {
+    function transferTo(
+        session: RawSession,
+        subscriptionId: number,
+        sendInitialValues = true
+    ): Promise<TransferSubscriptionsResponse> {
         return new Promise((resolve, reject) =>
-            session.transferSubscriptions({ subscriptionIds: [subscriptionId], sendInitialValues: true }, (err, response) =>
+            session.transferSubscriptions({ subscriptionIds: [subscriptionId], sendInitialValues }, (err, response) =>
                 err || !response ? reject(err ?? new Error("no response")) : resolve(response)
             )
         );
@@ -442,6 +446,24 @@ describe("FrontThreadEngine, one server: TransferSubscriptions between sessions 
         // the messages the first session did not acknowledge come along
         should((transfer.results?.[0].availableSequenceNumbers ?? []).length > 0).eql(true);
         await receives(second, first, 3);
+        for (const session of [first, second]) await session.close();
+    });
+
+    it("does not send the current values of a subscription taken from another worker with sendInitialValues false", async () => {
+        const first = await sessionOn(0); // worker 0
+        const second = await sessionOn(1); // worker 1
+        const subscriptionId = await subscribe(first);
+        await receives(first, second, 6);
+        const transfer = await transferTo(second, subscriptionId, false);
+        should(transfer.results?.[0].statusCode).eql(StatusCodes.Good);
+        // the first Publish after the transfer: a keep-alive, not the value 6 the client already has
+        const response = await publish(second);
+        const values = (response.notificationMessage.notificationData ?? [])
+            .filter((data): data is DataChangeNotification => data instanceof DataChangeNotification)
+            .flatMap((data) => (data.monitoredItems ?? []).filter((item) => item.clientHandle === 42));
+        should(values.length).eql(0);
+        // a change after the transfer is reported
+        await receives(second, first, 7);
         for (const session of [first, second]) await session.close();
     });
 

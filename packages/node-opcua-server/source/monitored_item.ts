@@ -1659,7 +1659,19 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
      * @param dataValue {DataValue} the dataValue to enqueue
      * @private
      */
+    /**
+     * true: the next value recorded is the baseline the following ones are compared against, and
+     * no notification. What an item rebuilt in another thread of the server for TransferSubscriptions
+     * with sendInitialValues false needs: its first sample tells nothing new to the client.
+     */
+    public silentInitialValue = false;
+
     public _enqueue_value(dataValue: DataValue) {
+        if (this.silentInitialValue) {
+            this.silentInitialValue = false;
+            this.oldDataValue = dataValue.clone();
+            return;
+        }
         // preconditions:
         doDebug && debugLog("_enqueue_value = ", dataValue.toString());
 

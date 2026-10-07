@@ -256,7 +256,7 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         }
         const subscription = this.#findSubscription(subscriptionId);
         if (!subscription) {
-            return this.#takeFromAnotherWorker(session, subscriptionId);
+            return this.#takeFromAnotherWorker(session, subscriptionId, sendInitialValues);
         }
         const sourceIdentity = subscription.$session
             ? getTransferSessionIdentity(subscription.$session)
@@ -284,7 +284,11 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         });
     }
 
-    async #takeFromAnotherWorker(session: ServerSession, subscriptionId: number): Promise<TransferResult> {
+    async #takeFromAnotherWorker(
+        session: ServerSession,
+        subscriptionId: number,
+        sendInitialValues: boolean
+    ): Promise<TransferResult> {
         const taken = await this.#channel.call<TransferredSubscription | number | null>({
             kind: "takeSubscription",
             subscriptionId,
@@ -296,7 +300,7 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         if (typeof taken === "number") {
             return new TransferResult({ statusCode: coerceStatusCode(taken) });
         }
-        return this.#adoptSubscription(session, decodeTransferState(taken));
+        return this.#adoptSubscription(session, decodeTransferState(taken), sendInitialValues);
     }
 
     /**
@@ -326,10 +330,14 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
 
     /**
      * a subscription another session worker gave up, rebuilt for `session` with its id, its items and
-     * their ids, and its sequence numbers. Its items record their current values, as they do when
-     * created: the first Publish carries them.
+     * their ids, and its sequence numbers. Its items sample their current values, as they do when
+     * created: the first Publish carries them when sendInitialValues, else they are only the baseline.
      */
-    async #adoptSubscription(session: ServerSession, state: SubscriptionTransferState): Promise<TransferResult> {
+    async #adoptSubscription(
+        session: ServerSession,
+        state: SubscriptionTransferState,
+        sendInitialValues: boolean
+    ): Promise<TransferResult> {
         const subscription = session.createSubscription(
             {
                 requestedPublishingInterval: state.publishingInterval,
@@ -354,6 +362,7 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
                 item.monitoredItemId
             );
             if (monitoredItem) {
+                monitoredItem.silentInitialValue = !sendInitialValues;
                 subscription.postCreateMonitoredItem(monitoredItem, item.request, createResult);
             }
         }
