@@ -114,7 +114,7 @@ export class StoreVariableView extends StoreNodeView {
      * the application sets the value, as today: the timestamps are now unless given, and a
      * value the DataType does not accept is an error (a Null clears the value)
      */
-    public setValueFromSource(variant: VariantLike, statusCode = StatusCodes.Good, sourceTimestamp?: Date): void {
+    public setValueFromSource(variant: VariantLike, statusCode: StatusCode = StatusCodes.Good, sourceTimestamp?: Date): void {
         const v = variant instanceof Variant ? variant : new Variant(variant);
         if (!this.#accepts(v, true)) {
             throw new Error(

@@ -12,8 +12,10 @@ import type { ISessionContext } from "node-opcua-address-space";
 import { AttributeIds, type NodeClass, QualifiedName } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
+import type { EventFilter } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataType } from "node-opcua-variant";
+import type { EventFilterResult } from "node-opcua-types";
+import { DataType, type Variant } from "node-opcua-variant";
 import type { CompactMonitorableNode } from "../monitorable_node.js";
 
 /** what a node object asks of the worker it is monitored in */
@@ -22,6 +24,14 @@ export interface RemoteObjectHost {
     readValue(context: ISessionContext | null, node: RemoteObjectNode): Promise<DataValue>;
     watch(node: RemoteObjectNode): void;
     unwatch(node: RemoteObjectNode): void;
+    /** the events of the node, filtered by the engine for an item */
+    subscribeEvents(
+        nodeId: NodeId,
+        filter: EventFilter,
+        context: ISessionContext | null,
+        onFields: (fields: Variant[]) => void
+    ): () => void;
+    eventFilterResult(filter: EventFilter): EventFilterResult | undefined;
 }
 
 /** the attributes the engine read of the node when an item was created on it */
@@ -74,6 +84,18 @@ export class RemoteObjectNode extends EventEmitter implements CompactMonitorable
 
     public getChildByName(): unknown {
         return null;
+    }
+
+    public subscribeEvents(
+        filter: EventFilter,
+        context: ISessionContext | null,
+        onFields: (fields: Variant[]) => void
+    ): () => void {
+        return this.#host.subscribeEvents(this.nodeId, filter, context, onFields);
+    }
+
+    public analyzeEventFilter(filter: EventFilter): EventFilterResult | undefined {
+        return this.#host.eventFilterResult(filter);
     }
 
     public readAttribute(_context: ISessionContext | null, attributeId: AttributeIds): DataValue {

@@ -386,6 +386,8 @@ export type EngineToFront =
     | { kind: "sessionClosed"; token: string; reason: string }
     /** to a session worker: values written to node objects it watches, DataValues in the order of the nodes */
     | { kind: "objectChanges"; nodeIds: string[]; values: Uint8Array }
+    /** the fields of events that passed the filter of watchEvents ids, as EventFieldLists (clientHandle 0) */
+    | { kind: "events"; ids: number[]; fields: Uint8Array }
     /** to a session worker: the engine closed a session it hosts the subscriptions of */
     | { kind: "workerSessionClosed"; token: string }
     /** another front takes this session over: answer with its state (sessionReleased) and drop it */
@@ -436,6 +438,14 @@ export type FrontRequest =
     | { kind: "service"; service: ServiceKind; token: string | null; request: Uint8Array }
     /** a session worker watches a node object (namespace 0): the engine pushes the values written to it (objectChanges) */
     | { kind: "watchObject"; nodeId: string }
+    /**
+     * the events of a node, filtered by the engine for an item: its EventFilter as its binary encoding;
+     * the fields of the events it lets through come back in "events" messages under this id
+     */
+    | { kind: "watchEvents"; id: number; nodeId: string; context: ContextDescriptor; filter: Uint8Array }
+    | { kind: "unwatchEvents"; id: number }
+    /** the EventFilterResult of an EventFilter (its binary encoding), checked against the event types of the engine */
+    | { kind: "checkEventFilter"; filter: Uint8Array }
     | { kind: "unwatchObject"; nodeId: string }
     /** an event the front raises on the Server object: its type, and each field as an encoded Variant */
     | { kind: "raiseEvent"; eventType: string; fields: Record<string, Uint8Array> };

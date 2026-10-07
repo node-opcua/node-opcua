@@ -2,8 +2,10 @@
  * @module node-opcua-server
  */
 import { SessionContext } from "node-opcua-address-space";
-import type { NodeId } from "node-opcua-nodeid";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
+import type { MessageSecurityMode } from "node-opcua-types";
 import type { ServerSession } from "../server_session.js";
+import type { ContextDescriptor } from "./protocol.js";
 
 /**
  * the context of a session kept in a thread without the user manager (the engine, a session
@@ -14,6 +16,26 @@ export class ResolvedRolesContext extends SessionContext {
     constructor(session: ServerSession, roles: NodeId[]) {
         super({ session });
         this.#roles = roles;
+    }
+    public override getCurrentUserRoles(): NodeId[] {
+        return this.#roles;
+    }
+}
+
+/**
+ * the context of a session described by its roles alone (a ContextDescriptor): a whole
+ * SessionContext, for the checks that need one (the ReceiveEvents permission of an event)
+ */
+export class RolesContext extends SessionContext {
+    readonly #roles: NodeId[];
+    constructor(descriptor: ContextDescriptor) {
+        // no session: an in-process caller, granted everything; a session that is only its channel's security mode otherwise
+        super(
+            descriptor.session
+                ? { session: { channel: { securityMode: descriptor.securityMode as MessageSecurityMode } } as never }
+                : {}
+        );
+        this.#roles = descriptor.roles.map((role) => resolveNodeId(role));
     }
     public override getCurrentUserRoles(): NodeId[] {
         return this.#roles;

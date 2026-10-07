@@ -22,6 +22,7 @@ import { getCurrentClock } from "node-opcua-date-time";
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { encodedNodesToWrite } from "node-opcua-secure-channel";
+import { type EventFilter, EventFilter as EventFilterClass } from "node-opcua-service-filter";
 import {
     type HistoryReadDetails,
     HistoryReadResult,
@@ -37,6 +38,9 @@ import {
     type CallMethodRequest,
     CallMethodResult,
     type CallMethodResultOptions,
+    EventFieldList,
+    EventFilterResult,
+    type MonitoredItemCreateRequest,
     type ReadValueIdOptions,
     type ReferenceDescription,
     type WriteValue
@@ -48,6 +52,7 @@ import {
     type DescribeReply,
     decodeDataValues,
     decodeStructure,
+    decodeStructures,
     describeContext,
     type EngineToFront,
     encodedDataValuesOf,
@@ -179,6 +184,9 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
     #reader: SharedStoreReader;
     #anchors: Set<string>;
     readonly #channel: EngineChannel;
+    #eventWatchId = 0;
+    readonly #filterResults = new WeakMap<EventFilter, EventFilterResult>();
+    readonly #eventWatches = new Map<number, (fields: Variant[]) => void>();
     // what prefetch fetched for the items of a request, until read() takes it
     readonly #fetched = new WeakMap<object, DataValue>();
     readonly #value: SharedValue = {
@@ -599,6 +607,58 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
     }
 
     /** watched nodes the engine deleted */
+    /** the events of a node, filtered by the engine with the item's filter and the roles of its session */
+    public subscribeEvents(
+        nodeId: NodeId,
+        filter: EventFilter,
+        context: ISessionContext | null,
+        onFields: (fields: Variant[]) => void
+    ): () => void {
+        const id = ++this.#eventWatchId;
+        this.#eventWatches.set(id, onFields);
+        void this.#channel.call<unknown>({
+            kind: "watchEvents",
+            id,
+            nodeId: nodeId.toString(),
+            context: describeContext(context),
+            filter: encodeStructure(filter)
+        });
+        return () => {
+            this.#eventWatches.delete(id);
+            void this.#channel.call<unknown>({ kind: "unwatchEvents", id });
+        };
+    }
+
+    /** the EventFilters of the event items to create, checked by the engine before the items are */
+    public prefetchEventFilters(itemsToCreate: MonitoredItemCreateRequest[]): Promise<void> | undefined {
+        const filters: EventFilter[] = [];
+        for (const item of itemsToCreate) {
+            const filter = item.requestedParameters?.filter;
+            if (item.itemToMonitor.attributeId === AttributeIds.EventNotifier && filter instanceof EventFilterClass) {
+                filters.push(filter);
+            }
+        }
+        if (filters.length === 0) return undefined;
+        return Promise.all(
+            filters.map((filter) =>
+                this.#channel
+                    .call<Uint8Array | null>({ kind: "checkEventFilter", filter: encodeStructure(filter) })
+                    .then((bytes) => {
+                        if (bytes) this.#filterResults.set(filter, decodeStructure(bytes, new EventFilterResult()));
+                    })
+            )
+        ).then(() => undefined);
+    }
+
+    public eventFilterResult(filter: EventFilter): EventFilterResult | undefined {
+        return this.#filterResults.get(filter);
+    }
+
+    public receiveEvents(ids: number[], bytes: Uint8Array): void {
+        const lists = decodeStructures(bytes, EventFieldList.prototype);
+        for (let k = 0; k < ids.length; k++) this.#eventWatches.get(ids[k])?.(lists[k].eventFields ?? []);
+    }
+
     public receiveDisposed(indexes: number[]): void {
         for (const index of indexes) {
             const watchers = this.#watchers.get(index);

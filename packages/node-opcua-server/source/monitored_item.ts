@@ -69,7 +69,7 @@ import {
 import { DataType, sameVariant, Variant } from "node-opcua-variant";
 import { canReceiveEvent } from "./audit_event_permissions.js";
 import { checkWhereClauseOnAdressSpace as checkWhereClauseOnAddressSpace } from "./filter/check_where_clause_on_address_space.js";
-import type { MonitorableNode } from "./monitorable_node.js";
+import type { CompactMonitorableNode, MonitorableNode } from "./monitorable_node.js";
 import { appendToTimer, removeFromTimer } from "./node_sampler.js";
 import type { SamplingFunc } from "./sampling_func.js";
 import type { MonitoredItemBase } from "./server_subscription.js";
@@ -512,6 +512,8 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     private _semantic_version: number;
     private _is_sampling = false;
     private _on_opcua_event_received_callback: ((eventData: IEventData) => void) | null = null;
+    // what stops the events of a node that filters them itself (subscribeEvents)
+    private _unsubscribeEvents: (() => void) | null = null;
     private _attribute_changed_callback: ((dataValue: DataValue, indexRange?: NumericRange | null) => void) | null = null;
     private _value_changed_callback: ((dataValue: DataValue, indexRange?: NumericRange | null) => void) | null = null;
     private _semantic_changed_callback: (() => void) | null = null;
@@ -1139,6 +1141,10 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             (this.node as BaseNode).removeListener("event", this._on_opcua_event_received_callback);
             this._on_opcua_event_received_callback = null;
         }
+        if (this._unsubscribeEvents) {
+            this._unsubscribeEvents();
+            this._unsubscribeEvents = null;
+        }
 
         if (this._attribute_changed_callback) {
             assert(typeof this._attribute_changed_callback === "function");
@@ -1438,6 +1444,14 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             // c8 ignore next
             if (doDebug) {
                 debugLog("xxxxxx monitoring EventNotifier on", this.node.nodeId.toString(), this.node.browseName.toString());
+            }
+            const filtering = this.node as Partial<CompactMonitorableNode>;
+            if (filtering.subscribeEvents && this.filter instanceof EventFilter) {
+                // the node filters its events where they are raised: the item queues the fields it is given
+                this._unsubscribeEvents ??= filtering.subscribeEvents(this.filter, sessionContext, (fields: Variant[]) =>
+                    this._enqueue_event(fields)
+                );
+                return;
             }
             if (!this._on_opcua_event_received_callback) {
                 // we are monitoring OPCUA Event

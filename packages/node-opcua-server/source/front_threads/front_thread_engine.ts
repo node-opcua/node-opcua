@@ -32,7 +32,7 @@
  */
 import type { EventEmitter } from "node:events";
 import { MessageChannel, type MessagePort, Worker } from "node:worker_threads";
-import { type CompactAddressSpace, SessionContext } from "node-opcua-address-space";
+import { type CompactAddressSpace, type IEventData, SessionContext, type UAObjectType } from "node-opcua-address-space";
 import { type StoreNodeView, StoreServices, type StoreVariableView } from "node-opcua-address-space-store";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ServerState } from "node-opcua-common";
@@ -43,6 +43,7 @@ import { make_warningLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets as standardNodesets } from "node-opcua-nodesets";
 import { NumericRange } from "node-opcua-numeric-range";
+import { checkSelectClauses, EventFilter, extractEventFields } from "node-opcua-service-filter";
 import { HistoryReadRequest, ReadRawModifiedDetails } from "node-opcua-service-history";
 import { StatusCodes } from "node-opcua-status-code";
 import {
@@ -51,13 +52,20 @@ import {
     BrowseResult,
     CallMethodRequest,
     CallMethodResult,
+    ContentFilterResult,
+    EventFieldList,
+    EventFilterResult,
     ReadRequest,
     WriteValue
 } from "node-opcua-types";
 import { decodeVariant, type Variant } from "node-opcua-variant";
+import { canReceiveEvent } from "../audit_event_permissions.js";
+import { checkWhereClauseOnAdressSpace } from "../filter/check_where_clause_on_address_space.js";
 import { ServerEngine, type ServerEngineOptions } from "../server_engine.js";
 import { FrontSessions } from "./front_sessions.js";
+import { mirrorNodeObjects } from "./node_object_mirror.js";
 import {
+    type ContextDescriptor,
     contextOf,
     type DescribeReply,
     decodeStructure,
@@ -79,6 +87,7 @@ import {
     type ValueReply,
     WATCH
 } from "./protocol.js";
+import { RolesContext } from "./resolved_roles_context.js";
 
 const warningLog = make_warningLog("front_thread_engine");
 
@@ -162,6 +171,10 @@ export class FrontThreadEngine {
     readonly #anchors = new Set<string>();
     readonly #fronts: Worker[] = [];
     readonly #sessionWorkers: Worker[] = [];
+    readonly #mirrors: (() => void)[] = [];
+    // the event items of each worker: their filter evaluated here, on the node objects
+    readonly #eventWatches = new Map<Worker, Map<number, { stop: () => void }>>();
+    readonly #eventsOut = new Map<Worker, { ids: number[]; lists: EventFieldList[] }>();
     readonly #objectWatches = new Map<
         string,
         { node: EventEmitter; workers: Set<Worker>; listener: (dataValue: DataValue) => void }
@@ -182,6 +195,9 @@ export class FrontThreadEngine {
         historyExtract: 0,
         admitSession: 0,
         watchObject: 0,
+        watchEvents: 0,
+        checkEventFilter: 0,
+        unwatchEvents: 0,
         unwatchObject: 0,
         sessionCreated: 0,
         sessionActivated: 0,
@@ -262,6 +278,20 @@ export class FrontThreadEngine {
         }
         this.#scanAnchors();
         this.addressSpace.publishNamespacePolicy();
+        // one server: the live values of the node objects go into the store, which then serves their namespaces too
+        const served = [...this.#compact];
+        if (options.oneServer && this.serverEngine.addressSpace) {
+            const nodeObjects = this.serverEngine.addressSpace;
+            const others = nodeObjects
+                .getNamespaceArray()
+                .map((namespace) => namespace.index)
+                .filter((index) => !this.#compact.has(index));
+            for (const index of others) {
+                const mirror = mirrorNodeObjects(nodeObjects, this.addressSpace, [index]);
+                this.#mirrors.push(mirror.stop);
+                if (mirror.mirrored > 0) served.push(index);
+            }
+        }
         const descriptor = this.addressSpace.store.shareForReaders();
         this.#layoutShared = descriptor.layoutSeen;
         const workerScript = options.workerScript ?? new URL("./front_worker.js", import.meta.url);
@@ -283,7 +313,7 @@ export class FrontThreadEngine {
                 const data: SessionWorkerData = {
                     descriptor,
                     namespaceUris: [...this.addressSpace.namespaceUris],
-                    compactNamespaces: [...this.#compact],
+                    compactNamespaces: served,
                     anchors: [...this.#anchors],
                     server: this.#serverState(),
                     frontPorts,
@@ -308,7 +338,7 @@ export class FrontThreadEngine {
             const data: FrontWorkerData = {
                 descriptor,
                 namespaceUris: [...this.addressSpace.namespaceUris],
-                compactNamespaces: [...this.#compact],
+                compactNamespaces: options.oneServer ? served : [...this.#compact],
                 anchors: [...this.#anchors],
                 nodesets: this.#nodesets,
                 serverModule: options.serverModule.toString(),
@@ -354,7 +384,11 @@ export class FrontThreadEngine {
                     );
                 else if (message.kind === "sessionReleased") this.#sessions.released(message.id, message.state);
             });
-            worker.once("error", reject);
+            // after it started, a thread that fails is reported: its sessions or connections stop being served
+            worker.on("error", (err: Error) => {
+                warningLog(`FrontThreadEngine: ${name} failed:`, err.stack ?? err.message);
+                reject(err);
+            });
             worker.once("exit", (code) => reject(new Error(`${name} exited with code ${code}`)));
         });
     }
@@ -365,6 +399,9 @@ export class FrontThreadEngine {
         this.#watched.clear();
         this.#outgoing.clear();
         const fronts = [...this.#fronts.splice(0), ...this.#sessionWorkers.splice(0)];
+        for (const stop of this.#mirrors.splice(0)) stop();
+        for (const watches of this.#eventWatches.values()) for (const watch of watches.values()) watch.stop();
+        this.#eventWatches.clear();
         this.#sessions.frontsGone();
         await Promise.all(
             fronts.map(
@@ -437,6 +474,24 @@ export class FrontThreadEngine {
                 return this.#sessions.take(worker, request.token);
             case "service":
                 return this.#runService(request.service, request.token, request.request);
+            case "checkEventFilter": {
+                const server = this.serverEngine.addressSpace?.rootFolder.objects.server;
+                if (!server) return null;
+                const filter = decodeStructure(request.filter, new EventFilter());
+                const result = new EventFilterResult({
+                    selectClauseDiagnosticInfos: [],
+                    selectClauseResults: checkSelectClauses(server as unknown as UAObjectType, filter.selectClauses ?? []),
+                    whereClauseResult: new ContentFilterResult()
+                });
+                return encodeStructure(result);
+            }
+            case "watchEvents":
+                this.#watchEvents(worker, request.id, request.nodeId, request.context, request.filter);
+                return null;
+            case "unwatchEvents":
+                this.#eventWatches.get(worker)?.get(request.id)?.stop();
+                this.#eventWatches.get(worker)?.delete(request.id);
+                return null;
             case "watchObject":
                 this.#watchObject(worker, request.nodeId);
                 return null;
@@ -742,6 +797,55 @@ export class FrontThreadEngine {
         });
     }
 
+    /**
+     * the events of a node object for an event item of a worker: filtered here, where the address
+     * space is, with the item's filter and the roles of its session; the selected fields go to the worker
+     */
+    #watchEvents(worker: Worker, id: number, nodeId: string, descriptor: ContextDescriptor, filterBytes: Uint8Array): void {
+        const addressSpace = this.serverEngine.addressSpace;
+        const node = addressSpace?.findNode(nodeId) as unknown as EventEmitter | null;
+        if (!addressSpace || !node) return;
+        const filter = decodeStructure(filterBytes, new EventFilter());
+        const context = new RolesContext(descriptor);
+        const listener = (eventData: IEventData) => {
+            if (!canReceiveEvent(context, addressSpace, eventData)) return;
+            if (
+                filter.whereClause &&
+                !checkWhereClauseOnAdressSpace(addressSpace, SessionContext.defaultContext, filter.whereClause, eventData)
+            ) {
+                return;
+            }
+            const eventFields = extractEventFields(SessionContext.defaultContext, filter.selectClauses ?? [], eventData);
+            this.#queueEvent(worker, id, new EventFieldList({ clientHandle: 0, eventFields }));
+        };
+        node.on("event", listener);
+        let watches = this.#eventWatches.get(worker);
+        if (!watches) {
+            watches = new Map();
+            this.#eventWatches.set(worker, watches);
+        }
+        watches.set(id, { stop: () => node.removeListener("event", listener) });
+    }
+
+    #queueEvent(worker: Worker, id: number, list: EventFieldList): void {
+        let out = this.#eventsOut.get(worker);
+        if (!out) {
+            out = { ids: [], lists: [] };
+            this.#eventsOut.set(worker, out);
+            if (this.#eventsOut.size === 1) {
+                setImmediate(() => {
+                    for (const [target, events] of this.#eventsOut) {
+                        const message: EngineToFront = { kind: "events", ids: events.ids, fields: encodeStructures(events.lists) };
+                        target.postMessage(message);
+                    }
+                    this.#eventsOut.clear();
+                });
+            }
+        }
+        out.ids.push(id);
+        out.lists.push(list);
+    }
+
     /** a node object a session worker monitors: the values written to it go to that worker */
     #watchObject(worker: Worker, nodeId: string): void {
         let watch = this.#objectWatches.get(nodeId);
@@ -850,6 +954,9 @@ export class FrontThreadEngine {
                 return false;
             case "watchObject":
             case "unwatchObject":
+            case "watchEvents":
+            case "unwatchEvents":
+            case "checkEventFilter":
                 return null;
             case "sessionCreated":
             case "sessionActivated":
