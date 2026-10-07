@@ -1,6 +1,6 @@
 import net from "node:net";
 import type { IEventData } from "node-opcua-address-space";
-import { type ClientSession, OPCUAClient } from "node-opcua-client";
+import { ClientMonitoredItem, type ClientSession, ClientSubscription, OPCUAClient, TimestampsToReturn } from "node-opcua-client";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
@@ -174,5 +174,43 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         should(session.sessionId.toString()).not.eql(timedOut);
         should(engine.serverEngine.currentSessionCount).eql(1);
         await session.close();
+    });
+
+    it("serves subscriptions from a session worker: a write through one front reaches a subscriber on the other", async () => {
+        const subscriber = await sessionOn(0);
+        const writer = await sessionOn(1);
+        const subscription = ClientSubscription.create(subscriber, {
+            requestedPublishingInterval: 50,
+            requestedLifetimeCount: 600,
+            requestedMaxKeepAliveCount: 10,
+            publishingEnabled: true
+        });
+        await new Promise<void>((resolve) => subscription.once("started", () => resolve()));
+        const values: number[] = [];
+        const item = ClientMonitoredItem.create(
+            subscription,
+            { nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value },
+            { samplingInterval: 0, queueSize: 10 },
+            TimestampsToReturn.Both
+        );
+        item.on("changed", (dataValue: DataValue) => values.push(dataValue.value.value as number));
+        await new Promise<void>((resolve, reject) => {
+            item.once("initialized", () => resolve());
+            item.once("err", (message: string) => reject(new Error(message)));
+        });
+        for (const value of [7, 8, 9]) {
+            await writer.write({
+                nodeId: `ns=${ns};s=Speed`,
+                attributeId: AttributeIds.Value,
+                value: new DataValue({ value: new Variant({ dataType: DataType.Double, value }) })
+            });
+        }
+        const end = Date.now() + 5000;
+        while (!values.includes(9) && Date.now() < end) await new Promise((resolve) => setTimeout(resolve, 20));
+        should(values).containEql(9);
+        should(engine.serverEngine.currentSessionCount).eql(2);
+        await subscription.terminate();
+        await subscriber.close();
+        await writer.close();
     });
 });

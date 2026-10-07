@@ -1949,6 +1949,11 @@ export abstract class OPCUAServerCore<
             });
     }
 
+    /** false once the engine is gone (shutdown): its address space, where monitored items find their nodes */
+    protected engineServesSubscriptions(): boolean {
+        return !!this.engine.addressSpace;
+    }
+
     /** what the server installs in the address space of its engine once loaded; an error if it cannot */
     protected afterEngineInitialized(): Error | null {
         if (!this.engine.addressSpace) {
@@ -3820,8 +3825,7 @@ export abstract class OPCUAServerCore<
     // subscription services
     protected _on_CreateSubscriptionRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const engine = this.engine;
-        const addressSpace = engine.addressSpace;
-        if (!addressSpace) {
+        if (!this.engineServesSubscriptions()) {
             g_sendError(channel, message, CreateSubscriptionResponse, StatusCodes.BadSessionClosed);
             return;
         }
@@ -3914,8 +3918,7 @@ export abstract class OPCUAServerCore<
 
     protected _on_CreateMonitoredItemsRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const engine = this.engine;
-        const addressSpace = engine.addressSpace;
-        if (!addressSpace) {
+        if (!this.engineServesSubscriptions()) {
             g_sendError(channel, message, CreateMonitoredItemsResponse, StatusCodes.BadSessionClosed);
             return;
         }
