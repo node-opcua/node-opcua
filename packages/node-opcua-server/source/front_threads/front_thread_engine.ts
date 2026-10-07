@@ -236,6 +236,8 @@ export class FrontThreadEngine {
     #syncScheduled = false;
 
     private constructor(serverEngine: ServerEngine, addressSpace: CompactAddressSpace) {
+        // MonitoredItem ids start somewhere, as in one thread (server_subscription.ts)
+        Atomics.store(new Int32Array(this.#counts), EngineCount.MonitoredItemId, Math.ceil(Math.random() * 100000));
         this.serverEngine = serverEngine;
         this.addressSpace = addressSpace;
         this.#sessions = new FrontSessions(serverEngine, this.#counts);
