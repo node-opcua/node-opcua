@@ -37,7 +37,9 @@ import {
     type CompactAddressSpace,
     type IConditionRefreshScopeHolder,
     type IEventData,
+    type ISessionContext,
     SessionContext,
+    type UAMethod,
     type UAObjectType
 } from "node-opcua-address-space";
 import { type StoreNodeView, StoreServices, type StoreVariableView } from "node-opcua-address-space-store";
@@ -50,12 +52,13 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets as standardNodesets } from "node-opcua-nodesets";
 import { checkSelectClauses, EventFilter, extractEventFields } from "node-opcua-service-filter";
 import { HistoryReadRequest } from "node-opcua-service-history";
-import { StatusCodes } from "node-opcua-status-code";
+import { type CallbackT, StatusCodes } from "node-opcua-status-code";
 import {
     BrowseDescription,
     BrowsePath,
     CallMethodRequest,
     CallMethodResult,
+    type CallMethodResultOptions,
     ContentFilterResult,
     EventFieldList,
     EventFilterResult,
@@ -68,6 +71,7 @@ import { isRefreshBracketEvent } from "../condition_refresh_bracket.js";
 import { checkWhereClauseOnAdressSpace } from "../filter/check_where_clause_on_address_space.js";
 import { ServerEngine, type ServerEngineOptions } from "../server_engine.js";
 import type { ITransferSessionIdentity } from "../sessions_compatible_for_transfer.js";
+import { subscriptionMethods } from "../subscription_methods.js";
 import { FrontSessions } from "./front_sessions.js";
 import { mirrorNodeObjects } from "./node_object_mirror.js";
 import {
@@ -339,6 +343,7 @@ export class FrontThreadEngine {
                 throw err;
             }
             this.#sessions.setWorkers(this.#sessionWorkers);
+            this.#bindSubscriptionMethods();
         }
         const ready: Promise<string>[] = [];
         for (let front = 0; front < fronts; front++) {
@@ -386,6 +391,8 @@ export class FrontThreadEngine {
                 else if (message.kind === "sessionReleased") this.#sessions.released(message.id, message.state);
                 else if (message.kind === "subscriptionExported") this.#subscriptionExported(message.id, message.result);
                 else if (message.kind === "subscriptionChanges") this.#sessions.subscriptionsChanged(message.changes);
+                else if (message.kind === "subscriptionMethodCalled")
+                    this.#sessions.subscriptionMethodCalled(message.id, message.result);
             });
             // after it started, a thread that fails is reported: its sessions or connections stop being served
             worker.on("error", (err: Error) => {
@@ -823,6 +830,27 @@ export class FrontThreadEngine {
             target.postMessage(message);
         }
         this.#objectChanges.clear();
+    }
+
+    /**
+     * GetMonitoredItems, ResendData and SetSubscriptionDurable act on a Subscription: for a session of the
+     * fronts, its session worker runs them, after the Call service checked them here as any method
+     */
+    #bindSubscriptionMethods(): void {
+        const serverEngine = this.serverEngine;
+        for (const [methodId, method] of subscriptionMethods) {
+            const node = serverEngine.addressSpace?.findNode(resolveNodeId(methodId)) as UAMethod | null;
+            node?.bindMethod(
+                (inputArguments: Variant[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) => {
+                    const called = this.#sessions.callSubscriptionMethod(methodId, inputArguments, context);
+                    if (!called) return method.call(serverEngine, inputArguments, context, callback);
+                    called.then(
+                        (result) => callback(null, result),
+                        (err: Error) => callback(err)
+                    );
+                }
+            );
+        }
     }
 
     /** a subscription a session worker does not hold, for one of its sessions: the other workers are asked */
