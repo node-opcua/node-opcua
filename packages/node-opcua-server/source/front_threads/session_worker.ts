@@ -19,27 +19,40 @@ import type { BaseUAObject } from "node-opcua-factory";
 import { NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { Message, Response, SecurityHeader, ServerSecureChannelLayer } from "node-opcua-secure-channel";
 import type { EventFilter } from "node-opcua-service-filter";
+import { TransferResult } from "node-opcua-service-subscription";
+import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { EventFilterResult, MessageSecurityMode, MonitoredItemCreateRequest, ReadValueIdOptions } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
 import type { FoundNode, INodeFinder } from "../monitorable_node.js";
+import type { MonitoredItem } from "../monitored_item.js";
 import { OPCUAServerCore } from "../opcua_server.js";
 import type { ServerEngineOptions } from "../server_engine.js";
-import type { ServerSidePublishEngine } from "../server_publish_engine.js";
+import { ServerSidePublishEngine } from "../server_publish_engine.js";
+import { ServerSidePublishEngineForOrphanSubscription } from "../server_publish_engine_for_orphan_subscriptions.js";
 import type { ServerSession } from "../server_session.js";
-import { Subscription } from "../server_subscription.js";
+import { Subscription, type SubscriptionTransferState } from "../server_subscription.js";
+import {
+    getTransferSessionIdentity,
+    type ITransferSessionIdentity,
+    identitiesCompatibleForTransfer,
+    sessionsCompatibleForTransfer
+} from "../sessions_compatible_for_transfer.js";
 import {
     type ChannelSecurityDescriptor,
     decodeDataValues,
     decodeExtensionObjectBytes,
+    decodeTransferState,
     EngineCount,
     type EngineServerState,
     type EngineToFront,
     encodeExtensionObjectBytes,
+    encodeTransferState,
     type FrontToEngine,
     type FrontToWorker,
     type SessionActivation,
     type SessionRecord,
     type SessionWorkerData,
+    type TransferredSubscription,
     type WorkerToFront
 } from "./protocol.js";
 import { EngineChannel, RemoteCompactBackend } from "./remote_backend.js";
@@ -96,12 +109,18 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
     readonly #globalCounter = { totalMonitoredItemCount: 0 };
     // the node objects of the engine monitored here, by NodeId
     readonly #objects = new Map<string, RemoteObjectNode>();
+    readonly #allowAnonymousTransfer: boolean;
+    // the subscriptions of sessions closed without deleting them, until a TransferSubscriptions or their lifetime ends
+    #orphans: ServerSidePublishEngineForOrphanSubscription | undefined;
+    /** gives the items of an adopted subscription their sampling function: the server's (SessionWorkerServer) */
+    public prepareSamplingOf: ((context: ISessionContext, monitoredItem: MonitoredItem) => void) | null = null;
 
     constructor(state: EngineServerState, channel: EngineChannel, backend: RemoteCompactBackend) {
         super(state, channel, backend);
         this.#backend = backend;
         this.#channel = channel;
         this.#counts = new Int32Array(state.counts);
+        this.#allowAnonymousTransfer = state.allowAnonymousSubscriptionTransferOnUnsecuredChannel;
     }
 
     /** a Read through the engine, in the context of the session */
@@ -191,20 +210,172 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         return session;
     }
 
-    /** the engine closed the session: its subscriptions end with it */
-    public drop(token: string): void {
+    /**
+     * the engine closed the session: its subscriptions end with it, or, when the client kept them
+     * (CloseSession deleteSubscriptions false), wait here for a TransferSubscriptions
+     */
+    public drop(token: string, deleteSubscriptions = true): void {
         const session = this.sessions.get(token);
         if (!session) return;
         this.sessions.delete(token);
-        session.close(true, "Terminated");
+        if (!deleteSubscriptions) {
+            this.#orphans ??= new ServerSidePublishEngineForOrphanSubscription({ maxPublishRequestInQueue: 0 });
+            ServerSidePublishEngine.transferSubscriptionsToOrphan(session.publishEngine, this.#orphans);
+        }
+        session.close(deleteSubscriptions, "CloseSession");
         session.dispose();
     }
 
-    public override _createSubscriptionOnSession(session: ServerSession, request: CreateSubscriptionRequestLike): Subscription {
+    #findSubscription(subscriptionId: number): Subscription | null {
+        for (const session of this.sessions.values()) {
+            const subscription = session.publishEngine.getSubscriptionById(subscriptionId);
+            if (subscription) return subscription;
+        }
+        return this.#orphans?.getSubscriptionById(subscriptionId) ?? null;
+    }
+
+    public override findOrphanSubscription(subscriptionId: number): Subscription | null {
+        return this.#orphans?.getSubscriptionById(subscriptionId) ?? null;
+    }
+
+    public override deleteOrphanSubscription(subscription: Subscription): StatusCode {
+        if (!this.#orphans) return StatusCodes.BadInternalError;
+        subscription.terminate();
+        subscription.dispose();
+        return StatusCodes.Good;
+    }
+
+    /** OPC 10000-4 5.13.7, as ServerEngine does it; a subscription of another session worker is taken from there */
+    public override async transferSubscription(
+        session: ServerSession,
+        subscriptionId: number,
+        sendInitialValues: boolean
+    ): Promise<TransferResult> {
+        if (subscriptionId <= 0) {
+            return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
+        }
+        const subscription = this.#findSubscription(subscriptionId);
+        if (!subscription) {
+            return this.#takeFromAnotherWorker(session, subscriptionId);
+        }
+        const sourceIdentity = subscription.$session
+            ? getTransferSessionIdentity(subscription.$session)
+            : subscription.$transferSessionIdentity;
+        if (
+            !sessionsCompatibleForTransfer(sourceIdentity, session, {
+                allowAnonymousTransferOnUnsecuredChannel: this.#allowAnonymousTransfer
+            })
+        ) {
+            return new TransferResult({ statusCode: StatusCodes.BadUserAccessDenied });
+        }
+        subscription.subscriptionDiagnostics.transferRequestCount++;
+        if (session.publishEngine === (subscription.publishEngine as unknown) || session === subscription.$session) {
+            return new TransferResult({ statusCode: StatusCodes.BadNothingToDo });
+        }
+        subscription.subscriptionDiagnostics.transferredToAltClientCount++;
+        subscription.subscriptionDiagnostics.transferredToSameClientCount++;
+        subscription.$session?._unexposeSubscriptionDiagnostics(subscription);
+        subscription.$session = session;
+        await ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
+        session._exposeSubscriptionDiagnostics(subscription);
+        return new TransferResult({
+            availableSequenceNumbers: subscription.getAvailableSequenceNumbers(),
+            statusCode: StatusCodes.Good
+        });
+    }
+
+    async #takeFromAnotherWorker(session: ServerSession, subscriptionId: number): Promise<TransferResult> {
+        const taken = await this.#channel.call<TransferredSubscription | number | null>({
+            kind: "takeSubscription",
+            subscriptionId,
+            identity: getTransferSessionIdentity(session)
+        });
+        if (taken === null) {
+            return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
+        }
+        if (typeof taken === "number") {
+            return new TransferResult({ statusCode: coerceStatusCode(taken) });
+        }
+        return this.#adoptSubscription(session, decodeTransferState(taken));
+    }
+
+    /**
+     * gives up a subscription to a session of another session worker: the same identity check as a
+     * transfer here, the old session told Good_SubscriptionTransferred, then the subscription ends
+     * here. Null when this worker does not hold it.
+     */
+    public exportSubscription(subscriptionId: number, dest: ITransferSessionIdentity): TransferredSubscription | number | null {
+        const subscription = this.#findSubscription(subscriptionId);
+        if (!subscription) return null;
+        const sourceIdentity = subscription.$session
+            ? getTransferSessionIdentity(subscription.$session)
+            : subscription.$transferSessionIdentity;
+        if (
+            !identitiesCompatibleForTransfer(sourceIdentity, dest, {
+                allowAnonymousTransferOnUnsecuredChannel: this.#allowAnonymousTransfer
+            })
+        ) {
+            return StatusCodes.BadUserAccessDenied.value;
+        }
+        const state = subscription.exportTransferState();
+        subscription.notifyTransfer();
+        (subscription.publishEngine as unknown as ServerSidePublishEngine | null)?.detach_subscription(subscription);
+        subscription.terminate();
+        return encodeTransferState(state);
+    }
+
+    /**
+     * a subscription another session worker gave up, rebuilt for `session` with its id, its items and
+     * their ids, and its sequence numbers. Its items record their current values, as they do when
+     * created: the first Publish carries them.
+     */
+    async #adoptSubscription(session: ServerSession, state: SubscriptionTransferState): Promise<TransferResult> {
+        const subscription = session.createSubscription(
+            {
+                requestedPublishingInterval: state.publishingInterval,
+                requestedLifetimeCount: state.lifeTimeCount,
+                requestedMaxKeepAliveCount: state.maxKeepAliveCount,
+                maxNotificationsPerPublish: state.maxNotificationsPerPublish,
+                publishingEnabled: state.publishingEnabled,
+                priority: state.priority
+            },
+            state.id
+        );
+        subscription.continueFrom(state.nextSequenceNumber, state.sentNotificationMessages);
+        const context = session.sessionContext;
+        subscription.on("monitoredItem", (monitoredItem: MonitoredItem) => this.prepareSamplingOf?.(context, monitoredItem));
+        const requests = state.monitoredItems.map((item) => item.request);
+        await this.prepareMonitoredItems(context, requests);
+        for (const item of state.monitoredItems) {
+            const { monitoredItem, createResult } = subscription.preCreateMonitoredItem(
+                this.nodeFinder,
+                item.timestampsToReturn,
+                item.request,
+                item.monitoredItemId
+            );
+            if (monitoredItem) {
+                subscription.postCreateMonitoredItem(monitoredItem, item.request, createResult);
+            }
+        }
+        for (const item of state.monitoredItems) {
+            const monitoredItem = subscription.getMonitoredItem(item.monitoredItemId);
+            for (const linked of item.linkedItems) monitoredItem?.addLinkItem(linked);
+        }
+        return new TransferResult({
+            availableSequenceNumbers: subscription.getAvailableSequenceNumbers(),
+            statusCode: StatusCodes.Good
+        });
+    }
+
+    public override _createSubscriptionOnSession(
+        session: ServerSession,
+        request: CreateSubscriptionRequestLike,
+        id?: number
+    ): Subscription {
         const counts = this.#counts;
         const subscription = new Subscription({
             // unique across the session workers
-            id: Atomics.add(counts, EngineCount.SubscriptionId, 1) + 1,
+            id: id ?? Atomics.add(counts, EngineCount.SubscriptionId, 1) + 1,
             lifeTimeCount: request.requestedLifetimeCount || 0,
             maxKeepAliveCount: request.requestedMaxKeepAliveCount || 0,
             maxNotificationsPerPublish: request.maxNotificationsPerPublish,
@@ -253,6 +424,7 @@ class SessionWorkerServer extends OPCUAServerCore<WorkerEngine> {
     constructor(engine: WorkerEngine) {
         super({});
         this.engine = engine;
+        engine.prepareSamplingOf = (context, monitoredItem) => this.prepareSamplingOf(context, monitoredItem);
     }
 
     protected createEngine(_options: ServerEngineOptions): WorkerEngine {
@@ -351,8 +523,17 @@ async function main(): Promise<void> {
                 engine.objectsChanged(message.nodeIds, decodeDataValues(message.values));
                 break;
             case "workerSessionClosed":
-                engine.drop(message.token);
+                engine.drop(message.token, message.deleteSubscriptions);
                 break;
+            case "exportSubscription": {
+                const exported: FrontToEngine = {
+                    kind: "subscriptionExported",
+                    id: message.id,
+                    result: engine.exportSubscription(message.subscriptionId, message.identity)
+                };
+                port.postMessage(exported);
+                break;
+            }
             case "stop":
                 for (const token of [...engine.sessionTokens()]) engine.drop(token);
                 for (const frontPort of data.frontPorts) frontPort.close();

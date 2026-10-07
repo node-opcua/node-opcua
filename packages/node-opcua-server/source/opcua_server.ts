@@ -1949,6 +1949,11 @@ export abstract class OPCUAServerCore<
             });
     }
 
+    /** gives a monitored item its sampling function, as the items of the subscriptions the server creates get it */
+    protected prepareSamplingOf(context: ISessionContext, monitoredItem: MonitoredItem): void {
+        prepareMonitoredItem(context, this.engine.nodeFinder, monitoredItem);
+    }
+
     /** false once the engine is gone (shutdown): its address space, where monitored items find their nodes */
     protected engineServesSubscriptions(): boolean {
         return !!this.engine.addressSpace;

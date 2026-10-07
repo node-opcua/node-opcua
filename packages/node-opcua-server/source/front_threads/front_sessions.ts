@@ -132,7 +132,9 @@ export class FrontSessions {
         const entry: Entry = { session, front, record, activation: null, worker };
         this.#entries.set(record.token, entry);
         if (worker >= 0) this.#workerLoad[worker]++;
-        session.once("session_closed", () => this.#closed(record.token));
+        session.once("session_closed", (_session: ServerSession, deleteSubscriptions: boolean) =>
+            this.#closed(record.token, deleteSubscriptions !== false)
+        );
         this.publishCounts();
         return worker;
     }
@@ -222,12 +224,13 @@ export class FrontSessions {
         }
     }
 
-    #closed(token: string): void {
+    #closed(token: string, deleteSubscriptions: boolean): void {
         const entry = this.#entries.get(token);
         this.#entries.delete(token);
         if (entry && entry.worker >= 0) {
             this.#workerLoad[entry.worker]--;
-            this.#toWorker(entry, { kind: "workerSessionClosed", token });
+            // the subscriptions of a session closed without deleting them wait in the worker for a TransferSubscriptions
+            this.#toWorker(entry, { kind: "workerSessionClosed", token, deleteSubscriptions });
         }
         const reason = this.#closing.get(token);
         this.#closing.delete(token);

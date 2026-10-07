@@ -778,8 +778,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         return this.channel.aborted;
     }
 
-    public createSubscription(parameters: CreateSubscriptionRequestOptions): Subscription {
-        const subscription = this.parent._createSubscriptionOnSession(this, parameters);
+    /** `id`: the id the subscription keeps, when it comes from another thread of the server */
+    public createSubscription(parameters: CreateSubscriptionRequestOptions, id?: number): Subscription {
+        const subscription = this.parent._createSubscriptionOnSession(this, parameters, id);
         assert(!Object.hasOwn(parameters, "id"));
         this.assignSubscription(subscription);
         assert(subscription.$session === this);

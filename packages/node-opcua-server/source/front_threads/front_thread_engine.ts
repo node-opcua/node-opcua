@@ -62,6 +62,7 @@ import { decodeVariant, type Variant } from "node-opcua-variant";
 import { canReceiveEvent } from "../audit_event_permissions.js";
 import { checkWhereClauseOnAdressSpace } from "../filter/check_where_clause_on_address_space.js";
 import { ServerEngine, type ServerEngineOptions } from "../server_engine.js";
+import type { ITransferSessionIdentity } from "../sessions_compatible_for_transfer.js";
 import { FrontSessions } from "./front_sessions.js";
 import { mirrorNodeObjects } from "./node_object_mirror.js";
 import {
@@ -83,6 +84,7 @@ import {
     type NodeDescription,
     type ServiceKind,
     type SessionWorkerData,
+    type TransferredSubscription,
     transferablesOf,
     type ValueReply,
     WATCH
@@ -105,6 +107,8 @@ export interface FrontThreadEngineOptions {
     buildInfo?: ServerEngineOptions["buildInfo"];
     serverCapabilities?: ServerEngineOptions["serverCapabilities"];
     isAuditing?: boolean;
+    /** see OPCUAServerOptions.allowAnonymousSubscriptionTransferOnUnsecuredChannel */
+    allowAnonymousSubscriptionTransferOnUnsecuredChannel?: boolean;
 }
 
 export interface FrontThreadsStartOptions {
@@ -172,6 +176,9 @@ export class FrontThreadEngine {
     readonly #fronts: Worker[] = [];
     readonly #sessionWorkers: Worker[] = [];
     readonly #mirrors: (() => void)[] = [];
+    // the TransferSubscriptions waiting for the other session workers, by request id
+    readonly #exports = new Map<number, { waiting: number; resolve: (result: TransferredSubscription | number | null) => void }>();
+    #exportId = 0;
     // the event items of each worker: their filter evaluated here, on the node objects
     readonly #eventWatches = new Map<Worker, Map<number, { stop: () => void }>>();
     readonly #eventsOut = new Map<Worker, { ids: number[]; lists: EventFieldList[] }>();
@@ -203,6 +210,7 @@ export class FrontThreadEngine {
         sessionActivated: 0,
         closeSession: 0,
         takeSession: 0,
+        takeSubscription: 0,
         service: 0,
         raiseEvent: 0
     };
@@ -234,7 +242,8 @@ export class FrontThreadEngine {
             applicationUri: options.applicationUri ?? "",
             buildInfo: options.buildInfo,
             serverCapabilities: options.serverCapabilities,
-            isAuditing: options.isAuditing
+            isAuditing: options.isAuditing,
+            allowAnonymousSubscriptionTransferOnUnsecuredChannel: options.allowAnonymousSubscriptionTransferOnUnsecuredChannel
         });
         await new Promise<void>((resolve, reject) =>
             serverEngine.initialize(
@@ -383,6 +392,7 @@ export class FrontThreadEngine {
                         message.rejectedRequests
                     );
                 else if (message.kind === "sessionReleased") this.#sessions.released(message.id, message.state);
+                else if (message.kind === "subscriptionExported") this.#subscriptionExported(message.id, message.result);
             });
             // after it started, a thread that fails is reported: its sessions or connections stop being served
             worker.on("error", (err: Error) => {
@@ -472,6 +482,8 @@ export class FrontThreadEngine {
                 return null;
             case "takeSession":
                 return this.#sessions.take(worker, request.token);
+            case "takeSubscription":
+                return this.#takeSubscription(worker, request.subscriptionId, request.identity);
             case "service":
                 return this.#runService(request.service, request.token, request.request);
             case "checkEventFilter": {
@@ -897,6 +909,33 @@ export class FrontThreadEngine {
         this.#objectChanges.clear();
     }
 
+    /** a subscription a session worker does not hold, for one of its sessions: the other workers are asked */
+    #takeSubscription(
+        asker: Worker,
+        subscriptionId: number,
+        identity: ITransferSessionIdentity
+    ): Promise<TransferredSubscription | number | null> | null {
+        const others = this.#sessionWorkers.filter((worker) => worker !== asker);
+        if (others.length === 0) return null;
+        const id = ++this.#exportId;
+        return new Promise((resolve) => {
+            this.#exports.set(id, { waiting: others.length, resolve });
+            const ask: EngineToFront = { kind: "exportSubscription", id, subscriptionId, identity };
+            for (const worker of others) worker.postMessage(ask);
+        });
+    }
+
+    #subscriptionExported(id: number, result: TransferredSubscription | number | null): void {
+        const pending = this.#exports.get(id);
+        if (!pending) return;
+        pending.waiting--;
+        // the worker that has it answers with it or with its refusal; the others with null
+        if (result !== null || pending.waiting === 0) {
+            this.#exports.delete(id);
+            pending.resolve(result);
+        }
+    }
+
     /** what a FrontOPCUAServer needs of the server engine */
     #serverState(): EngineServerState {
         const engine = this.serverEngine;
@@ -904,6 +943,7 @@ export class FrontThreadEngine {
             serverCapabilities: { ...engine.serverCapabilities },
             buildInfo: encodeStructure(engine.buildInfo),
             isAuditing: engine.isAuditing,
+            allowAnonymousSubscriptionTransferOnUnsecuredChannel: !!engine.allowAnonymousSubscriptionTransferOnUnsecuredChannel,
             counts: this.#counts
         };
     }
@@ -962,6 +1002,7 @@ export class FrontThreadEngine {
             case "sessionActivated":
             case "closeSession":
             case "takeSession":
+            case "takeSubscription":
             case "raiseEvent":
                 return null;
             case "service":

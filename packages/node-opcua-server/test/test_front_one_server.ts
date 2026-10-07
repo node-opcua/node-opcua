@@ -1,10 +1,19 @@
 import net from "node:net";
 import type { IEventData } from "node-opcua-address-space";
-import { ClientMonitoredItem, type ClientSession, ClientSubscription, OPCUAClient, TimestampsToReturn } from "node-opcua-client";
+import {
+    ClientMonitoredItem,
+    type ClientSession,
+    type ClientSessionPublishService,
+    type ClientSessionRawSubscriptionService,
+    ClientSubscription,
+    OPCUAClient,
+    TimestampsToReturn
+} from "node-opcua-client";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { constructEventFilter } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
+import { DataChangeNotification, PublishRequest, type PublishResponse, type TransferSubscriptionsResponse } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { FrontThreadEngine } from "../dist/index.js";
@@ -290,5 +299,146 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         should(messages).containEql("from the engine");
         await subscription.terminate();
         await session.close();
+    });
+});
+
+describe("FrontThreadEngine, one server: TransferSubscriptions between sessions of the session workers", function () {
+    this.timeout(120000);
+    const transferPort = 5840;
+    let engine: FrontThreadEngine;
+    let ns: number;
+    const clients: OPCUAClient[] = [];
+
+    before(async () => {
+        engine = await FrontThreadEngine.create({
+            applicationUri: "urn:test:one-server-transfer",
+            allowAnonymousSubscriptionTransferOnUnsecuredChannel: true
+        });
+        ns = engine.registerNamespace("urn:test:one-server-transfer:plant");
+        engine.addressSpace.addVariable({
+            nodeId: `ns=${ns};s=Level`,
+            browseName: "Level",
+            organizedBy: engine.addressSpace.findNode("ns=0;i=85") as never,
+            dataType: "Double",
+            accessLevel: 3,
+            userAccessLevel: 3,
+            value: { dataType: DataType.Double, value: 0 }
+        });
+        await engine.start({
+            fronts: 2,
+            oneServer: true,
+            ownPorts: true,
+            // sessions go to the least loaded worker: the 1st and 3rd on worker 0, the 2nd on worker 1
+            sessionWorkers: 2,
+            serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
+            serverModuleData: { port: transferPort }
+        });
+    });
+    after(async () => {
+        for (const client of clients) await client.disconnect();
+        await engine.shutdown();
+    });
+
+    /** a session through front k, with the raw subscription services (what ClientSubscription does under the hood) */
+    type RawSession = ClientSession & ClientSessionRawSubscriptionService & ClientSessionPublishService;
+    async function sessionOn(front: number): Promise<RawSession> {
+        const client = OPCUAClient.create({ endpointMustExist: false, connectionStrategy: { maxRetry: 0 } });
+        await client.connect(`opc.tcp://localhost:${transferPort + front}`);
+        clients.push(client);
+        return (await client.createSession()) as RawSession;
+    }
+
+    function publish(session: RawSession): Promise<PublishResponse> {
+        return new Promise((resolve, reject) =>
+            session.publish(new PublishRequest({ subscriptionAcknowledgements: [] }), (err, response) =>
+                err || !response ? reject(err ?? new Error("no response")) : resolve(response)
+            )
+        );
+    }
+
+    function transferTo(session: RawSession, subscriptionId: number): Promise<TransferSubscriptionsResponse> {
+        return new Promise((resolve, reject) =>
+            session.transferSubscriptions({ subscriptionIds: [subscriptionId], sendInitialValues: true }, (err, response) =>
+                err || !response ? reject(err ?? new Error("no response")) : resolve(response)
+            )
+        );
+    }
+
+    /** a subscription and an item on Level, without a client subscription object (it would publish itself) */
+    async function subscribe(session: RawSession): Promise<number> {
+        const created = await session.createSubscription({
+            requestedPublishingInterval: 50,
+            requestedLifetimeCount: 600,
+            requestedMaxKeepAliveCount: 10,
+            maxNotificationsPerPublish: 0,
+            publishingEnabled: true,
+            priority: 0
+        });
+        const items = await session.createMonitoredItems({
+            subscriptionId: created.subscriptionId,
+            timestampsToReturn: TimestampsToReturn.Both,
+            itemsToCreate: [
+                {
+                    itemToMonitor: { nodeId: `ns=${ns};s=Level`, attributeId: AttributeIds.Value },
+                    monitoringMode: 2,
+                    requestedParameters: { clientHandle: 42, samplingInterval: 0, queueSize: 10, discardOldest: true }
+                }
+            ]
+        });
+        should(items.results?.[0].statusCode).eql(StatusCodes.Good);
+        return created.subscriptionId;
+    }
+
+    /** writes Level, then publishes on `session` until the value arrives for the item (clientHandle 42) */
+    async function receives(session: RawSession, writer: RawSession, value: number): Promise<void> {
+        await writer.write({
+            nodeId: `ns=${ns};s=Level`,
+            attributeId: AttributeIds.Value,
+            value: new DataValue({ value: new Variant({ dataType: DataType.Double, value }) })
+        });
+        for (let k = 0; k < 20; k++) {
+            const response = await publish(session);
+            for (const data of response.notificationMessage.notificationData ?? []) {
+                if (!(data instanceof DataChangeNotification)) continue;
+                if (data.monitoredItems?.some((item) => item.clientHandle === 42 && item.value.value.value === value)) return;
+            }
+        }
+        throw new Error(`value ${value} not received`);
+    }
+
+    it("transfers a subscription to a session of the same session worker", async () => {
+        const first = await sessionOn(0); // worker 0
+        const second = await sessionOn(1); // worker 1
+        const third = await sessionOn(1); // worker 0
+        const subscriptionId = await subscribe(first);
+        const transfer = await transferTo(third, subscriptionId);
+        should(transfer.results?.[0].statusCode).eql(StatusCodes.Good);
+        await receives(third, second, 1);
+        for (const session of [first, second, third]) await session.close();
+    });
+
+    it("transfers a subscription to a session of another session worker, with its id, items and sequence numbers", async () => {
+        const first = await sessionOn(0); // worker 0
+        const second = await sessionOn(1); // worker 1
+        const subscriptionId = await subscribe(first);
+        await receives(first, second, 2);
+        const transfer = await transferTo(second, subscriptionId);
+        should(transfer.results?.[0].statusCode).eql(StatusCodes.Good);
+        // the messages the first session did not acknowledge come along
+        should((transfer.results?.[0].availableSequenceNumbers ?? []).length > 0).eql(true);
+        await receives(second, first, 3);
+        for (const session of [first, second]) await session.close();
+    });
+
+    it("transfers the subscription of a session closed without deleting it, from another session worker", async () => {
+        const first = await sessionOn(0); // worker 0
+        const second = await sessionOn(1); // worker 1
+        const subscriptionId = await subscribe(first);
+        // closed, its subscription kept for a later TransferSubscriptions
+        await first.close(false);
+        const transfer = await transferTo(second, subscriptionId);
+        should(transfer.results?.[0].statusCode).eql(StatusCodes.Good);
+        await receives(second, second, 4);
+        await second.close();
     });
 });
