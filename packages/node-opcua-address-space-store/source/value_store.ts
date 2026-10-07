@@ -9,12 +9,12 @@
  * without comparing it, and, once the columns are shared between threads, read the fields of
  * a value consistently (odd version: a write is in progress, read again).
  *
- * In a shared store, a value kept as an object is also kept as its binary encoding in a shared
- * heap, for the readers of the other threads (see SharedHeap); a structure is not, since a reader
- * may not know its type: the owner answers it.
+ * In a shared store, a value kept as an object is kept as its binary encoding in a shared heap
+ * instead, for the readers of the other threads (see SharedHeap), and decoded when the owner reads
+ * it. A structure stays an object, since a reader may not know its type: the owner answers it.
  */
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
-import { DataType, encodeVariant, Variant, type VariantOptions } from "node-opcua-variant";
+import { DataType, decodeVariant, encodeVariant, Variant, VariantArrayType, type VariantOptions } from "node-opcua-variant";
 import { bufferOf, type Column, ColumnSpace, type ColumnType } from "./columns.js";
 import { SharedHeap, type SharedHeapBuffers } from "./shared_heap.js";
 
@@ -24,15 +24,36 @@ function encodedForReaders(value: unknown, dataType: DataType): Uint8Array | nul
         return null;
     }
     try {
-        const variant = value instanceof Variant ? value : new Variant(value as VariantOptions);
+        const variant = variantOf(value);
         const size = new BinaryStreamSizeCalculator();
         encodeVariant(variant, size);
-        const stream = new BinaryStream(size.length);
-        encodeVariant(variant, stream);
-        return stream.buffer.subarray(0, size.length);
+        if (scratch.length < size.length) scratch = Buffer.alloc(Math.max(size.length, scratch.length * 2));
+        encodeVariant(variant, new BinaryStream(scratch));
+        // the bytes are copied into the heap before the next encoding reuses the scratch buffer
+        return scratch.subarray(0, size.length);
     } catch {
         return null;
     }
+}
+
+let scratch = Buffer.alloc(4096);
+
+/**
+ * the Variant to encode: a scalar written by the views (a number DataType, checked when the value
+ * was written) is set field by field, without the checks of the constructor; anything else, from the
+ * loader for instance (a DataType given by name, a plain array), goes through the constructor
+ */
+function variantOf(value: unknown): Variant {
+    if (value instanceof Variant) return value;
+    const o = value as VariantOptions;
+    if (typeof o.dataType === "number" && (o.arrayType === undefined || o.arrayType === VariantArrayType.Scalar)) {
+        const variant = new Variant(null);
+        variant.dataType = o.dataType;
+        variant.arrayType = VariantArrayType.Scalar;
+        variant.value = o.value;
+        return variant;
+    }
+    return new Variant(o);
 }
 
 /** what the columns hold for a node */
@@ -199,9 +220,14 @@ export class ValueStore {
         this.#sourcePicoseconds[i] = sourcePicoseconds;
         this.#serverTimestamp[i] = serverTimestamp;
         this.#serverPicoseconds[i] = serverPicoseconds;
-        this.#objects.set(i, value);
-        if (encoded) this.#heap?.write(i, encoded);
-        else this.#heap?.clear(i);
+        if (encoded && this.#heap) {
+            // the bytes are the only copy: the owner decodes them when it reads the value
+            this.#heap.write(i, encoded);
+            this.#objects.delete(i);
+        } else {
+            this.#objects.set(i, value);
+            this.#heap?.clear(i);
+        }
         this.#end(i);
     }
 
@@ -249,8 +275,11 @@ export class ValueStore {
         this.#end(i);
     }
 
-    /** the whole value of a node, as plain fields */
-    public get(i: number): StoredValue {
+    /**
+     * the whole value of a node, as plain fields. `withObject` false: without the object of a
+     * non-scalar value, which a shared store would decode, for a caller that has it already
+     */
+    public get(i: number, withObject = true): StoredValue {
         const kind = this.#kind[i] as ValueKind;
         let value: unknown;
         switch (kind) {
@@ -261,7 +290,7 @@ export class ValueStore {
                 value = this.#number[i] !== 0;
                 break;
             case ValueKind.Object:
-                value = this.#objects.get(i);
+                value = withObject ? (this.#objects.get(i) ?? this.#decoded(i)) : undefined;
                 break;
             default:
                 value = undefined;
@@ -276,6 +305,12 @@ export class ValueStore {
             serverTimestamp: this.#serverTimestamp[i],
             serverPicoseconds: this.#serverPicoseconds[i]
         };
+    }
+
+    /** a value kept as bytes only (a shared store): decoded from a copy, an array must not alias the heap */
+    #decoded(i: number): Variant | undefined {
+        if (!this.#heap || this.#heap.length(i) === 0) return undefined;
+        return decodeVariant(new BinaryStream(Buffer.from(this.#heap.copy(i))));
     }
 
     /** how many values are kept as objects */
