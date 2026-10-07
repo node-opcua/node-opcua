@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { makeRoles } from "node-opcua-address-space";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 
 export default async function frontServerOptions(data, { front }) {
@@ -32,5 +33,14 @@ export default async function frontServerOptions(data, { front }) {
               }
           }
         : {};
-    return { port: data.port, serverCertificateManager, allowAnonymous: true, serverCapabilities: { minSupportedSampleRate: 0 }, ...hooks };
+    // a user that holds the SecurityAdmin Role, the one audit events are kept for
+    const users = data.users
+        ? {
+              userManager: {
+                  isValidUser: (userName, password) => userName === "admin" && password === "admin-pw",
+                  getUserRoles: (userName) => (userName === "admin" ? makeRoles("SecurityAdmin") : [])
+              }
+          }
+        : {};
+    return { port: data.port, serverCertificateManager, ...users, allowAnonymous: true, serverCapabilities: { minSupportedSampleRate: 0 }, ...hooks };
 }

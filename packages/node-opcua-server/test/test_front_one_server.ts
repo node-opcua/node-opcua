@@ -7,7 +7,8 @@ import {
     type ClientSessionRawSubscriptionService,
     ClientSubscription,
     OPCUAClient,
-    TimestampsToReturn
+    TimestampsToReturn,
+    UserTokenType
 } from "node-opcua-client";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
@@ -70,7 +71,7 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
             fronts: 2,
             ownPorts: true,
             serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
-            serverModuleData: { port, hookCounts }
+            serverModuleData: { port, hookCounts, users: true }
         });
     });
     after(async () => {
@@ -501,6 +502,48 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         should(value.statusCode).eql(StatusCodes.Good);
         await other.close();
         await owner.close();
+    });
+
+    it("filters the events of an item with the roles its session has now, after a change of user", async () => {
+        const client = await clientOn(0);
+        const session = await client.createSession();
+        const subscription = ClientSubscription.create(session, {
+            requestedPublishingInterval: 50,
+            requestedLifetimeCount: 600,
+            requestedMaxKeepAliveCount: 10,
+            publishingEnabled: true
+        });
+        await new Promise<void>((resolve) => subscription.once("started", () => resolve()));
+        const eventTypes: string[] = [];
+        const item = ClientMonitoredItem.create(
+            subscription,
+            { nodeId: "ns=0;i=2253", attributeId: AttributeIds.EventNotifier },
+            { queueSize: 100, filter: constructEventFilter(["EventType"]) },
+            TimestampsToReturn.Both
+        );
+        item.on("changed", (fields: unknown) => eventTypes.push(String((fields as Variant[])[0]?.value)));
+        await new Promise<void>((resolve) => item.once("initialized", () => resolve()));
+        // AuditActivateSessionEventType (i=2075): raised when another session is activated
+        const activateAnother = async () => {
+            const other = await sessionOn(1);
+            await other.close();
+        };
+        await activateAnother();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        should(eventTypes).not.containEql("ns=0;i=2075", "an anonymous session receives no audit event");
+
+        const changed = await client.changeSessionIdentity(session, {
+            type: UserTokenType.UserName,
+            userName: "admin",
+            password: "admin-pw"
+        });
+        should(changed).eql(StatusCodes.Good);
+        await activateAnother();
+        const end = Date.now() + 5000;
+        while (!eventTypes.includes("ns=0;i=2075") && Date.now() < end) await new Promise((resolve) => setTimeout(resolve, 50));
+        should(eventTypes).containEql("ns=0;i=2075", "the same session as SecurityAdmin receives them");
+        await subscription.terminate();
+        await session.close();
     });
 
     it("runs the monitored item hooks of the application in the session worker", async () => {

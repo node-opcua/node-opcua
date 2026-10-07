@@ -397,6 +397,7 @@ export class RemoteCompactBackend implements FrontNodeHost {
             id,
             nodeId: nodeId.toString(),
             context: describeContext(context),
+            token: (context?.session as { authenticationToken?: NodeId } | undefined)?.authenticationToken?.toString() ?? null,
             filter: encodeStructure(filter),
             subscriptionId: item?.subscriptionId ?? 0,
             monitoredItemId: item?.monitoredItemId ?? 0
