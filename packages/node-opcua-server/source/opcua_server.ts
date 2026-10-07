@@ -68,6 +68,7 @@ import {
     coerceSecurityPolicy,
     computeSignature,
     computeSignatureAsync,
+    forgetEncodedNodesToWrite,
     fromURI,
     getCryptoFactory,
     MAX_NONCE_LENGTH,
@@ -3787,8 +3788,15 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
                 }
 
                 // proceed with registered nodes alias resolution
+                let aliased = false;
                 for (const nodeToWrite of request.nodesToWrite) {
-                    nodeToWrite.nodeId = session.resolveRegisteredNode(nodeToWrite.nodeId);
+                    const nodeId = session.resolveRegisteredNode(nodeToWrite.nodeId);
+                    aliased ||= nodeId !== nodeToWrite.nodeId;
+                    nodeToWrite.nodeId = nodeId;
+                }
+                if (aliased) {
+                    // the bytes the WriteValues arrived as name the aliases, not the nodes
+                    forgetEncodedNodesToWrite(request.nodesToWrite);
                 }
 
                 const context = session.sessionContext;

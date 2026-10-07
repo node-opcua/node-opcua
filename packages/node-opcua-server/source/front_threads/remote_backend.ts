@@ -21,6 +21,7 @@ import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
+import { encodedNodesToWrite } from "node-opcua-secure-channel";
 import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     type BrowseDescription,
@@ -260,7 +261,8 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
         const statuses = await this.#channel.call<number[]>({
             kind: "write",
             context: describeContext(context),
-            items: encodeStructures(nodesToWrite),
+            // the WriteValues as the client encoded them, when they arrived that way and are unchanged
+            items: encodedNodesToWrite(nodesToWrite) ?? encodeStructures(nodesToWrite),
             count: nodesToWrite.length
         });
         return statuses.map((s) => coerceStatusCode(s));

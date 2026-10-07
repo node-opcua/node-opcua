@@ -217,7 +217,8 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             backend && compactIndexes.length > 0
                 ? backend.write(
                       context,
-                      compactIndexes.map((k) => nodesToWrite[k])
+                      // all of them: the array itself, whose bytes as they arrived the backend may use
+                      compactIndexes.length === nodesToWrite.length ? nodesToWrite : compactIndexes.map((k) => nodesToWrite[k])
                   )
                 : null;
         const compactItem = compactIndexes.length > 0 ? new Set(compactIndexes) : null;
