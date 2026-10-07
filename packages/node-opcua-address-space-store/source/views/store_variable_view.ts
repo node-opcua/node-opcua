@@ -131,7 +131,12 @@ export class StoreVariableView extends StoreNodeView {
      * a Write from a client: the gates first when a context is given (the same as the node
      * objects apply), the DataType, then the setter when one is bound, else the columns
      */
-    public writeValue(dataValue: DataValue, context?: ISessionContext | null, indexRange?: NumericRange | null): number {
+    public writeValue(
+        dataValue: DataValue,
+        context?: ISessionContext | null,
+        indexRange?: NumericRange | null,
+        now: number = getCurrentClock().timestamp.getTime()
+    ): number {
         if (context) {
             const status = this.space.permissions.writeValueStatus(context, this.index);
             if (status !== 0) {
@@ -163,7 +168,6 @@ export class StoreVariableView extends StoreNodeView {
                 return status;
             }
         }
-        const now = getCurrentClock().timestamp.getTime();
         this.#storeVariant(
             dataValue.value,
             dataValue.statusCode.value,

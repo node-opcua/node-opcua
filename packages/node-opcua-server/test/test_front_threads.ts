@@ -14,7 +14,7 @@ import { DataChangeFilter, DataChangeTrigger, DeadbandType } from "node-opcua-se
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { PermissionType, Range } from "node-opcua-types";
-import { DataType, Variant, type VariantLike } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType, type VariantLike } from "node-opcua-variant";
 import should from "should";
 import { FrontThreadEngine } from "../dist/index.js";
 
@@ -52,6 +52,14 @@ function setFromSource(engine: FrontThreadEngine, nodeId: string, value: Variant
 }
 
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const BIG_ELEMENTS = 1024 * 1024;
+/** an Int32 array whose elements say which one it is: element i is seed + i */
+function bigArray(seed: number): Int32Array {
+    const array = new Int32Array(BIG_ELEMENTS);
+    for (let i = 0; i < BIG_ELEMENTS; i++) array[i] = seed + i;
+    return array;
+}
 
 async function write(session: ClientSession, nodeId: string, value: Variant): Promise<void> {
     const status = await session.write({ nodeId, attributeId: AttributeIds.Value, value: new DataValue({ value }) });
@@ -98,6 +106,26 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             componentOf: plant,
             dataType: "UInt32",
             value: { get: () => new Variant({ dataType: DataType.UInt32, value: ++getterCalls }) }
+        });
+        // the bulk nodes live in a folder of their own: the Plant folder's children are checked below
+        const bulk = space.addFolder(space.findNode("ns=0;i=85") as never, "Bulk");
+        space.addVariable({
+            nodeId: `ns=${ns};s=Batch`,
+            browseName: "Batch",
+            componentOf: bulk,
+            dataType: "Double",
+            value: { dataType: DataType.Double, value: 0 }
+        });
+        space.addVariable({
+            nodeId: `ns=${ns};s=Big`,
+            browseName: "Big",
+            componentOf: bulk,
+            dataType: "Int32",
+            valueRank: 1,
+            accessLevel: 3,
+            userAccessLevel: 3,
+            // 4 MB: above the size from which the engine hands buffers over instead of copying them
+            value: new Variant({ dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: bigArray(0) })
         });
         await engine.start({
             fronts: 2,
@@ -172,6 +200,49 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             const value = await session.read({ nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value });
             should(value.value.value).eql(42);
         }
+    });
+
+    it("reads a large array through the engine, many times at once, unchanged", async () => {
+        const before = engine.requests.read;
+        const values = await Promise.all(
+            Array.from({ length: 8 }, (_, k) =>
+                sessions[k % sessions.length].read({ nodeId: `ns=${ns};s=Big`, attributeId: AttributeIds.Value })
+            )
+        );
+        for (const value of values) {
+            should(value.statusCode).eql(StatusCodes.Good);
+            should(value.value.value.length).eql(BIG_ELEMENTS);
+            should(value.value.value[0]).eql(0);
+            should(value.value.value[BIG_ELEMENTS - 1]).eql(BIG_ELEMENTS - 1);
+        }
+        should(engine.requests.read).be.above(before);
+    });
+
+    it("writes a large array through the engine and reads it back", async () => {
+        await write(
+            sessions[0],
+            `ns=${ns};s=Big`,
+            new Variant({ dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: bigArray(7) })
+        );
+        const value = await sessions[3].read({ nodeId: `ns=${ns};s=Big`, attributeId: AttributeIds.Value });
+        should(value.value.value.length).eql(BIG_ELEMENTS);
+        should(value.value.value[0]).eql(7);
+        should(value.value.value[BIG_ELEMENTS - 1]).eql(7 + BIG_ELEMENTS - 1);
+    });
+
+    it("writes a batch of 1000 items through the engine, each with its own status, in order", async () => {
+        const nodesToWrite = Array.from({ length: 1000 }, (_, k) => ({
+            nodeId: k % 10 === 9 ? `ns=${ns};s=Nope` : `ns=${ns};s=Batch`,
+            attributeId: AttributeIds.Value,
+            value: new DataValue({ value: new Variant({ dataType: DataType.Double, value: k }) })
+        }));
+        const statuses = await sessions[2].write(nodesToWrite);
+        should(statuses.length).eql(1000);
+        for (let k = 0; k < 1000; k++) {
+            should(statuses[k]).eql(k % 10 === 9 ? StatusCodes.BadNodeIdUnknown : StatusCodes.Good);
+        }
+        const value = await sessions[0].read({ nodeId: `ns=${ns};s=Batch`, attributeId: AttributeIds.Value });
+        should(value.value.value).eql(998, "the last good item of the batch wins");
     });
 
     it("browses from the Objects folder into the compact namespace and translates a path", async () => {

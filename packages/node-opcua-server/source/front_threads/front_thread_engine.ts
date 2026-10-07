@@ -36,6 +36,7 @@ import { generateCompactAddressSpace } from "node-opcua-address-space/nodeJS.js"
 import { type StoreNodeView, StoreServices, type StoreVariableView } from "node-opcua-address-space-store";
 import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
+import { getCurrentClock } from "node-opcua-date-time";
 import { make_warningLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets as standardNodesets } from "node-opcua-nodesets";
@@ -46,6 +47,7 @@ import {
     contextOf,
     type DescribeReply,
     decodeStructure,
+    decodeStructures,
     type EngineToFront,
     encodeDataValues,
     encodeStructure,
@@ -53,6 +55,7 @@ import {
     type FrontToEngine,
     type FrontWorkerData,
     type NodeDescription,
+    transferablesOf,
     type ValueReply,
     WATCH
 } from "./protocol.js";
@@ -258,7 +261,7 @@ export class FrontThreadEngine {
             this.addressSpace.publishNamespacePolicy();
         }
         const reply: EngineToFront = { kind: "replies", ids, payloads };
-        worker.postMessage(reply);
+        worker.postMessage(reply, transferablesOf(payloads));
     }
 
     #serve(request: FrontRequest): unknown {
@@ -283,7 +286,11 @@ export class FrontThreadEngine {
             }
             case "write": {
                 const context = contextOf(request.context);
-                return request.items.map((bytes) => services.write(context, decodeStructure(bytes, new WriteValue())));
+                // one clock for the whole Write, as the Write service of a single thread does
+                const now = getCurrentClock().timestamp.getTime();
+                return decodeStructures(request.items, WriteValue.prototype).map((writeValue) =>
+                    services.write(context, writeValue, now)
+                );
             }
             case "browse": {
                 const description = decodeStructure(request.description, new BrowseDescription());
@@ -519,7 +526,7 @@ export class FrontThreadEngine {
             case "read":
                 return encodeDataValues(request.items.map(() => new DataValue({ statusCode: StatusCodes.BadInternalError })));
             case "write":
-                return request.items.map(() => StatusCodes.BadInternalError.value);
+                return new Array(request.count).fill(StatusCodes.BadInternalError.value);
             case "browse":
                 return encodeStructure(new BrowseResult({ statusCode: StatusCodes.BadInternalError }));
             case "references":

@@ -168,4 +168,22 @@ describe("store index ranges: a range of an array Value read and written on a co
         should(values[0]).eql(-1);
         should(values.length).eql(10);
     });
+
+    it("stamps a write with the time it is given: a Write of many items reads the clock once", () => {
+        const now = Date.UTC(2020, 0, 1, 12, 0, 0);
+        const status = services.write(
+            null,
+            new WriteValue({
+                nodeId: "ns=1;s=Scalar",
+                attributeId: AttributeIds.Value,
+                value: new DataValue({ value: new Variant({ dataType: DataType.Double, value: 2.5 }) })
+            }),
+            now
+        );
+        should(status).eql(StatusCodes.Good.value);
+        const dataValue = scalar.readValue();
+        should(dataValue.value.value).eql(2.5);
+        should(dataValue.serverTimestamp?.getTime()).eql(now);
+        should(dataValue.sourceTimestamp?.getTime()).eql(now, "no SourceTimestamp written: the time of the write");
+    });
 });
