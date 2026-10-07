@@ -122,7 +122,9 @@ export interface FrontThreadsStartOptions {
     fronts?: number;
     /**
      * the module a front imports to configure its OPCUAServer: its default export, called with
-     * `serverModuleData` and `{ front }`, returns the OPCUAServerOptions of that front
+     * `serverModuleData` and `{ front }`, returns the OPCUAServerOptions of that front. Each session
+     * worker calls it too, with `{ front: -1, sessionWorker }`, for the onCreateMonitoredItem and
+     * onDeleteMonitoredItem hooks, which run where the monitored items are; it uses nothing else.
      */
     serverModule: string | URL;
     /** passed to the default export of serverModule; structured-cloned to each front */
@@ -313,6 +315,8 @@ export class FrontThreadEngine {
                     descriptor,
                     storeNamespaces: served,
                     server: this.#serverState(),
+                    serverModule: options.serverModule.toString(),
+                    serverModuleData: options.serverModuleData,
                     frontPorts,
                     index
                 };

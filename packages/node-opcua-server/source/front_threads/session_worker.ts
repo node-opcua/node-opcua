@@ -25,12 +25,18 @@ import type { EventFilterResult, MessageSecurityMode, MonitoredItemCreateRequest
 import type { Variant } from "node-opcua-variant";
 import type { FoundNode, INodeFinder } from "../monitorable_node.js";
 import type { MonitoredItem } from "../monitored_item.js";
-import { OPCUAServerCore } from "../opcua_server.js";
+import { OPCUAServerCore, type OPCUAServerOptions } from "../opcua_server.js";
 import type { ServerEngineOptions } from "../server_engine.js";
 import { ServerSidePublishEngine } from "../server_publish_engine.js";
 import { ServerSidePublishEngineForOrphanSubscription } from "../server_publish_engine_for_orphan_subscriptions.js";
 import type { ServerSession } from "../server_session.js";
-import { Subscription, type SubscriptionTransferState } from "../server_subscription.js";
+import { type DeleteMonitoredItemHook, Subscription, type SubscriptionTransferState } from "../server_subscription.js";
+
+type ServerOptionsFactory = (
+    data: unknown,
+    thread: { front: number; sessionWorker?: number }
+) => OPCUAServerOptions | Promise<OPCUAServerOptions>;
+
 import {
     getTransferSessionIdentity,
     type ITransferSessionIdentity,
@@ -112,6 +118,8 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
     readonly #allowAnonymousTransfer: boolean;
     // the subscriptions of sessions closed without deleting them, until a TransferSubscriptions or their lifetime ends
     #orphans: ServerSidePublishEngineForOrphanSubscription | undefined;
+    /** the application's hook for the items that end with their session (see drop) */
+    public onDeleteMonitoredItem: DeleteMonitoredItemHook | null = null;
     /** gives the items of an adopted subscription their sampling function: the server's (SessionWorkerServer) */
     public prepareSamplingOf: ((context: ISessionContext, monitoredItem: MonitoredItem) => void) | null = null;
 
@@ -214,13 +222,21 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
      * the engine closed the session: its subscriptions end with it, or, when the client kept them
      * (CloseSession deleteSubscriptions false), wait here for a TransferSubscriptions
      */
-    public drop(token: string, deleteSubscriptions = true): void {
+    public async drop(token: string, deleteSubscriptions = true): Promise<void> {
         const session = this.sessions.get(token);
         if (!session) return;
         this.sessions.delete(token);
         if (!deleteSubscriptions) {
             this.#orphans ??= new ServerSidePublishEngineForOrphanSubscription({ maxPublishRequestInQueue: 0 });
             ServerSidePublishEngine.transferSubscriptionsToOrphan(session.publishEngine, this.#orphans);
+        } else if (this.onDeleteMonitoredItem) {
+            // the items go with the session: the application hears of each, as when its CloseSession runs in one thread
+            const onDelete = this.onDeleteMonitoredItem;
+            for (const subscription of session.publishEngine.subscriptions) {
+                await subscription.applyOnMonitoredItem(async (monitoredItem: MonitoredItem) => {
+                    await onDelete(subscription, monitoredItem);
+                });
+            }
         }
         session.close(deleteSubscriptions, "CloseSession");
         session.dispose();
@@ -430,10 +446,12 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
 class SessionWorkerServer extends OPCUAServerCore<WorkerEngine> {
     readonly #channels = new Map<string, WorkerChannel>();
 
-    constructor(engine: WorkerEngine) {
-        super({});
+    /** `hooks`: the monitored item hooks of the application (its serverModule), which run here */
+    constructor(engine: WorkerEngine, hooks: Pick<OPCUAServerOptions, "onCreateMonitoredItem" | "onDeleteMonitoredItem">) {
+        super({ onCreateMonitoredItem: hooks.onCreateMonitoredItem, onDeleteMonitoredItem: hooks.onDeleteMonitoredItem });
         this.engine = engine;
         engine.prepareSamplingOf = (context, monitoredItem) => this.prepareSamplingOf(context, monitoredItem);
+        engine.onDeleteMonitoredItem = hooks.onDeleteMonitoredItem ?? null;
     }
 
     protected createEngine(_options: ServerEngineOptions): WorkerEngine {
@@ -489,7 +507,13 @@ async function main(): Promise<void> {
     const backend = new RemoteCompactBackend(data.descriptor, channel, data.storeNamespaces);
     const engine = new WorkerEngine(data.server, channel, backend);
     await new Promise<void>((resolve, reject) => engine.initialize({}, (err) => (err ? reject(err) : resolve())));
-    const server = new SessionWorkerServer(engine);
+    // the application's monitored item hooks: from the module that configures the fronts
+    const module = (await import(data.serverModule)) as { default?: ServerOptionsFactory };
+    const options =
+        typeof module.default === "function"
+            ? await module.default(data.serverModuleData, { front: -1, sessionWorker: data.index })
+            : {};
+    const server = new SessionWorkerServer(engine, options);
 
     data.frontPorts.forEach((frontPort, front) => {
         frontPort.on("message", (message: FrontToWorker) => {
@@ -529,7 +553,7 @@ async function main(): Promise<void> {
                 engine.objectsChanged(message.nodeIds, decodeDataValues(message.values));
                 break;
             case "workerSessionClosed":
-                engine.drop(message.token, message.deleteSubscriptions);
+                void engine.drop(message.token, message.deleteSubscriptions);
                 break;
             case "exportSubscription": {
                 const exported: FrontToEngine = {
@@ -541,7 +565,7 @@ async function main(): Promise<void> {
                 break;
             }
             case "stop":
-                for (const token of [...engine.sessionTokens()]) engine.drop(token);
+                for (const token of [...engine.sessionTokens()]) void engine.drop(token);
                 for (const frontPort of data.frontPorts) frontPort.close();
                 port.postMessage({ kind: "stopped" } satisfies FrontToEngine);
                 port.close();

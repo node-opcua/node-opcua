@@ -250,6 +250,9 @@ export interface SessionWorkerData {
     descriptor: SharedStoreDescriptor;
     storeNamespaces: number[];
     server: EngineServerState;
+    /** the fronts' options module: its onCreateMonitoredItem and onDeleteMonitoredItem hooks run here */
+    serverModule: string;
+    serverModuleData: unknown;
     frontPorts: MessagePort[];
     index: number;
 }

@@ -10,5 +10,17 @@ export default async function frontServerOptions(data, { front }) {
     fs.mkdirSync(rootFolder, { recursive: true });
     const serverCertificateManager = new OPCUACertificateManager({ automaticallyAcceptUnknownCertificate: true, rootFolder });
     await serverCertificateManager.initialize();
-    return { port: data.port, serverCertificateManager, allowAnonymous: true, serverCapabilities: { minSupportedSampleRate: 0 } };
+    // hooks that count their calls where the test sees them (a session worker is another thread)
+    const counts = data.hookCounts ? new Int32Array(data.hookCounts) : null;
+    const hooks = counts
+        ? {
+              onCreateMonitoredItem: async () => {
+                  Atomics.add(counts, 0, 1);
+              },
+              onDeleteMonitoredItem: async () => {
+                  Atomics.add(counts, 1, 1);
+              }
+          }
+        : {};
+    return { port: data.port, serverCertificateManager, allowAnonymous: true, serverCapabilities: { minSupportedSampleRate: 0 }, ...hooks };
 }
