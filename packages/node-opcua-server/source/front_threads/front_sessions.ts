@@ -80,12 +80,14 @@ export class FrontSessions {
     readonly #counts: Int32Array;
     readonly #entries = new Map<string, Entry>();
     // the Server methods about a Subscription a session worker runs, until it answers (callSubscriptionMethod)
-    readonly #calls = new Map<number, (result: CallMethodResult) => void>();
+    readonly #calls = new Map<number, { worker: number; resolve: (result: CallMethodResult) => void }>();
     #callId = 0;
+    // the sessions the contexts of the fronts' requests carry (contextSessionOf)
+    readonly #contextSessions = new WeakSet<object>();
     /** sessions admitted and not created yet: they count against maxSessions */
     #reserved = 0;
     #releaseId = 0;
-    readonly #releases = new Map<number, (state: SessionState | null) => void>();
+    readonly #releases = new Map<number, { front: Worker; resolve: (state: SessionState | null) => void }>();
     // the reason of a close the registry asked for, for the front to hear the right one
     readonly #closing = new Map<string, string>();
     #workers: Worker[] = [];
@@ -163,9 +165,12 @@ export class FrontSessions {
         session.remoteChannelSecurity = securityOf(record.security);
         const subscriptions = new Map<number, Set<number>>();
         const contextSession = contextSessionOf(session, subscriptions);
+        this.#contextSessions.add(contextSession);
         session.sessionContext = new ResolvedRolesContext(contextSession, []);
         let worker = -1;
         for (let k = 0; k < this.#workers.length; k++) {
+            // a session worker that is gone has an infinite load
+            if (this.#workerLoad[k] === Number.POSITIVE_INFINITY) continue;
             if (worker < 0 || this.#workerLoad[k] < this.#workerLoad[worker]) worker = k;
         }
         const entry: Entry = { session, front, record, activation: null, worker, subscriptions, contextSession };
@@ -263,6 +268,10 @@ export class FrontSessions {
     ): Promise<CallMethodResultOptions> | null {
         const token = (context.session as { authenticationToken?: NodeId } | undefined)?.authenticationToken?.toString();
         const entry = token === undefined ? undefined : this.#entries.get(token);
+        if (!entry && context.session && this.#contextSessions.has(context.session)) {
+            // a session of the fronts, closed since
+            return Promise.resolve({ statusCode: StatusCodes.BadSessionIdInvalid });
+        }
         if (!token || !entry || entry.worker < 0) return null;
         const subscriptionId = inputArguments[0]?.value as number;
         if (!entry.subscriptions.has(subscriptionId)) {
@@ -277,17 +286,17 @@ export class FrontSessions {
             new CallMethodRequest({ objectId: resolveNodeId("ns=0;i=2253"), methodId: resolveNodeId(methodId), inputArguments })
         );
         return new Promise((resolve) => {
-            this.#calls.set(id, resolve);
+            this.#calls.set(id, { worker: entry.worker, resolve });
             this.#toWorker(entry, { kind: "callSubscriptionMethod", id, token, request });
         });
     }
 
     /** a session worker's answer to callSubscriptionMethod */
     public subscriptionMethodCalled(id: number, result: Uint8Array): void {
-        const resolve = this.#calls.get(id);
-        if (!resolve) return;
+        const call = this.#calls.get(id);
+        if (!call) return;
         this.#calls.delete(id);
-        resolve(decodeStructure(result, new CallMethodResult()));
+        call.resolve(decodeStructure(result, new CallMethodResult()));
     }
 
     /** a front goes on with a session another front holds: that one gives it up */
@@ -296,7 +305,7 @@ export class FrontSessions {
         if (!entry) return null;
         if (entry.front === front) return null;
         const id = ++this.#releaseId;
-        const released = new Promise<SessionState | null>((resolve) => this.#releases.set(id, resolve));
+        const released = new Promise<SessionState | null>((resolve) => this.#releases.set(id, { front: entry.front, resolve }));
         const release: EngineToFront = { kind: "releaseSession", id, token };
         entry.front.postMessage(release);
         const state = (await released) ?? { record: entry.record, activation: entry.activation, nonce: null, worker: entry.worker };
@@ -306,16 +315,50 @@ export class FrontSessions {
     }
 
     public released(id: number, state: SessionState | null): void {
-        const resolve = this.#releases.get(id);
+        const release = this.#releases.get(id);
         this.#releases.delete(id);
-        resolve?.(state);
+        release?.resolve(state);
     }
 
     /** the fronts are gone (shutdown): no release will be answered */
     public frontsGone(): void {
-        for (const [id, resolve] of this.#releases) {
+        for (const [id, release] of this.#releases) {
             this.#releases.delete(id);
-            resolve(null);
+            release.resolve(null);
+        }
+    }
+
+    /**
+     * a front ended: what waited on it is answered, and its sessions close. Their subscriptions are
+     * kept, for the client to take them over with TransferSubscriptions from a session of another front.
+     */
+    public frontGone(front: Worker): void {
+        for (const [id, release] of this.#releases) {
+            if (release.front !== front) continue;
+            this.#releases.delete(id);
+            release.resolve(null);
+        }
+        for (const [token, entry] of [...this.#entries]) {
+            if (entry.front !== front) continue;
+            // no front to tell
+            this.#closing.set(token, "");
+            this.#engine.closeSession(entry.session.authenticationToken, false, "Terminated");
+        }
+    }
+
+    /** a session worker ended: its pending calls fail, its sessions close (their subscriptions went with it), no new session goes there */
+    public workerGone(index: number): void {
+        if (index < 0 || index >= this.#workerLoad.length) return;
+        this.#workerLoad[index] = Number.POSITIVE_INFINITY;
+        for (const [id, call] of this.#calls) {
+            if (call.worker !== index) continue;
+            this.#calls.delete(id);
+            call.resolve(new CallMethodResult({ statusCode: StatusCodes.BadInternalError }));
+        }
+        for (const [token, entry] of [...this.#entries]) {
+            if (entry.worker !== index) continue;
+            this.#closing.set(token, "Terminated");
+            this.#engine.closeSession(entry.session.authenticationToken, true, "Terminated");
         }
     }
 
