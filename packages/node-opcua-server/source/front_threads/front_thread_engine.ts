@@ -107,6 +107,8 @@ export interface FrontThreadEngineOptions {
     isAuditing?: boolean;
     /** see OPCUAServerOptions.allowAnonymousSubscriptionTransferOnUnsecuredChannel */
     allowAnonymousSubscriptionTransferOnUnsecuredChannel?: boolean;
+    /** see OPCUAServerOptions.diagnosticsNamespaceUri */
+    diagnosticsNamespaceUri?: string;
 }
 
 export interface FrontThreadsStartOptions {
@@ -231,7 +233,8 @@ export class FrontThreadEngine {
             buildInfo: options.buildInfo,
             serverCapabilities: options.serverCapabilities,
             isAuditing: options.isAuditing,
-            allowAnonymousSubscriptionTransferOnUnsecuredChannel: options.allowAnonymousSubscriptionTransferOnUnsecuredChannel
+            allowAnonymousSubscriptionTransferOnUnsecuredChannel: options.allowAnonymousSubscriptionTransferOnUnsecuredChannel,
+            diagnosticsNamespaceUri: options.diagnosticsNamespaceUri
         });
         await new Promise<void>((resolve, reject) =>
             serverEngine.initialize(
@@ -834,6 +837,7 @@ export class FrontThreadEngine {
             serverCapabilities: { ...engine.serverCapabilities },
             buildInfo: encodeStructure(engine.buildInfo),
             isAuditing: engine.isAuditing,
+            diagnosticsNamespaceIndex: engine.diagnosticsNamespaceIndex,
             allowAnonymousSubscriptionTransferOnUnsecuredChannel: !!engine.allowAnonymousSubscriptionTransferOnUnsecuredChannel,
             counts: this.#counts
         };

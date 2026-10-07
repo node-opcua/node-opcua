@@ -311,7 +311,8 @@ describe("FrontThreadEngine, one server: TransferSubscriptions between sessions 
     before(async () => {
         engine = await FrontThreadEngine.create({
             applicationUri: "urn:test:one-server-transfer",
-            allowAnonymousSubscriptionTransferOnUnsecuredChannel: true
+            allowAnonymousSubscriptionTransferOnUnsecuredChannel: true,
+            diagnosticsNamespaceUri: "urn:test:one-server-transfer:runtime"
         });
         ns = engine.registerNamespace("urn:test:one-server-transfer:plant");
         engine.addressSpace.addVariable({
@@ -403,6 +404,22 @@ describe("FrontThreadEngine, one server: TransferSubscriptions between sessions 
         }
         throw new Error(`value ${value} not received`);
     }
+
+    it("gives the sessions of every front their NodeId and diagnostics in the engine's diagnostics namespace", async () => {
+        const session = await sessionOn(1);
+        const namespaces = (await session.read({ nodeId: "ns=0;i=2255", attributeId: AttributeIds.Value })).value.value as string[];
+        const index = namespaces.indexOf("urn:test:one-server-transfer:runtime");
+        should(index > 1).eql(true);
+        should(session.sessionId.namespace).eql(index);
+        const children = await session.browse({
+            nodeId: session.sessionId,
+            browseDirection: BrowseDirection.Forward,
+            referenceTypeId: "HasComponent",
+            resultMask: 63
+        });
+        should((children.references ?? []).some((r) => r.browseName.name === "SessionDiagnostics")).eql(true);
+        await session.close();
+    });
 
     it("transfers a subscription to a session of the same session worker", async () => {
         const first = await sessionOn(0); // worker 0

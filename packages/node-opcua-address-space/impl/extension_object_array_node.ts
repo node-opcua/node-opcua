@@ -2,7 +2,13 @@
  * @module node-opcua-address-space.Private
  */
 
-import type { BindVariableOptionsVariation1, UADynamicVariableArray, UAObject, UAVariable } from "node-opcua-address-space-base";
+import type {
+    BindVariableOptionsVariation1,
+    INamespace,
+    UADynamicVariableArray,
+    UAObject,
+    UAVariable
+} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { BrowseDirection, NodeClass, type QualifiedName, type QualifiedNameLike } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -238,7 +244,9 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
  */
 export function addElement<T extends ExtensionObject>(
     options: UAVariable | ExtensionObject | Record<string, unknown>,
-    uaArrayVariableNode: UADynamicVariableArray<T>
+    uaArrayVariableNode: UADynamicVariableArray<T>,
+    /** where the element's Variable is created when one is made for it; the address space's own namespace by default */
+    namespace?: INamespace
 ): UAVariable {
     assert(uaArrayVariableNode, " must provide an UAVariable containing the array");
     // verify that arr has been created correctly
@@ -287,7 +295,8 @@ export function addElement<T extends ExtensionObject>(
         elVar = uaArrayVariableNode.$$variableType.instantiate({
             browseName,
             componentOf: uaArrayVariableNode.nodeId,
-            value: { dataType: DataType.ExtensionObject, value: extensionObject }
+            value: { dataType: DataType.ExtensionObject, value: extensionObject },
+            ...(namespace ? { namespace } : {})
         }) as UAVariableImpl;
         elVar.bindExtensionObject(extensionObject, { force: true });
     }
