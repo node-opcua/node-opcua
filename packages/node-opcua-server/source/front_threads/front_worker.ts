@@ -105,7 +105,8 @@ async function serveAsFront(port: MessagePort, data: FrontWorkerData, options: O
             ...options,
             ...(data.sharedPort ? { reusePort: true } : { port: (options.port ?? 26543) + data.front })
         },
-        engine
+        engine,
+        data.sessionWorkerPorts ?? []
     );
     await server.initialize();
 

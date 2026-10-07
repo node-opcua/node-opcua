@@ -8,7 +8,7 @@
  * a client that comes back through another front finds its session there, moved over.
  */
 import type { Worker } from "node:worker_threads";
-import { type ISessionContext, SessionContext } from "node-opcua-address-space";
+import type { ISessionContext } from "node-opcua-address-space";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { make_warningLog } from "node-opcua-debug";
 import { decodeExtensionObject } from "node-opcua-extension-object";
@@ -25,20 +25,9 @@ import {
     type SessionRecord,
     type SessionState
 } from "./protocol.js";
+import { ResolvedRolesContext } from "./resolved_roles_context.js";
 
 const warningLog = make_warningLog("front_sessions");
-
-/** the context of a session whose user's roles its front resolved: the user manager stays in the front */
-class ResolvedRolesContext extends SessionContext {
-    readonly #roles: NodeId[];
-    constructor(session: ServerSession, roles: NodeId[]) {
-        super({ session });
-        this.#roles = roles;
-    }
-    public override getCurrentUserRoles(): NodeId[] {
-        return this.#roles;
-    }
-}
 
 function securityOf(descriptor: ChannelSecurityDescriptor): SessionChannelSecurity {
     return {
@@ -53,6 +42,8 @@ interface Entry {
     front: Worker;
     record: SessionRecord;
     activation: SessionActivation | null;
+    /** the session worker hosting its subscriptions; -1 without session workers */
+    worker: number;
 }
 
 export class FrontSessions {
@@ -65,6 +56,8 @@ export class FrontSessions {
     readonly #releases = new Map<number, (state: SessionState | null) => void>();
     // the reason of a close the registry asked for, for the front to hear the right one
     readonly #closing = new Map<string, string>();
+    #workers: Worker[] = [];
+    #workerLoad: number[] = [];
 
     constructor(engine: ServerEngine, counts: SharedArrayBuffer) {
         this.#engine = engine;
@@ -77,12 +70,23 @@ export class FrontSessions {
         const engine = this.#engine;
         const counts = this.#counts;
         Atomics.store(counts, EngineCount.Sessions, engine.currentSessionCount);
-        Atomics.store(counts, EngineCount.Subscriptions, engine.currentSubscriptionCount);
+        // the session workers count the subscriptions themselves (Atomics.add)
+        if (this.#workers.length === 0) Atomics.store(counts, EngineCount.Subscriptions, engine.currentSubscriptionCount);
         Atomics.store(counts, EngineCount.RejectedSessions, engine.rejectedSessionCount);
         Atomics.store(counts, EngineCount.RejectedRequests, engine.rejectedRequestsCount);
         Atomics.store(counts, EngineCount.SessionAborts, engine.sessionAbortCount);
         Atomics.store(counts, EngineCount.PublishingIntervals, engine.publishingIntervalCount);
         Atomics.store(counts, EngineCount.ServerState, engine.getServerState());
+    }
+
+    /** the session workers that host the subscriptions of the sessions */
+    public setWorkers(workers: Worker[]): void {
+        this.#workers = workers;
+        this.#workerLoad = workers.map(() => 0);
+    }
+
+    #toWorker(entry: Entry, message: EngineToFront): void {
+        if (entry.worker >= 0) this.#workers[entry.worker].postMessage(message);
     }
 
     /** the context of a session's requests: its record's, which carries the roles its front resolved */
@@ -109,7 +113,8 @@ export class FrontSessions {
         return true;
     }
 
-    public created(front: Worker, record: SessionRecord): void {
+    /** a session a front created: its record here, its subscriptions on the least loaded session worker */
+    public created(front: Worker, record: SessionRecord): number {
         this.#reserved = Math.max(0, this.#reserved - 1);
         const session = this.#engine.createSession({
             clientDescription: decodeStructure(record.clientDescription, new ApplicationDescription()),
@@ -120,9 +125,16 @@ export class FrontSessions {
         session.endpoint = record.endpoint ? decodeStructure(record.endpoint, new EndpointDescription()) : undefined;
         session.remoteChannelSecurity = securityOf(record.security);
         session.sessionContext = new ResolvedRolesContext(session, []);
-        this.#entries.set(record.token, { session, front, record, activation: null });
+        let worker = -1;
+        for (let k = 0; k < this.#workers.length; k++) {
+            if (worker < 0 || this.#workerLoad[k] < this.#workerLoad[worker]) worker = k;
+        }
+        const entry: Entry = { session, front, record, activation: null, worker };
+        this.#entries.set(record.token, entry);
+        if (worker >= 0) this.#workerLoad[worker]++;
         session.once("session_closed", () => this.#closed(record.token));
         this.publishCounts();
+        return worker;
     }
 
     public activated(front: Worker, activation: SessionActivation): void {
@@ -190,7 +202,8 @@ export class FrontSessions {
         const released = new Promise<SessionState | null>((resolve) => this.#releases.set(id, resolve));
         const release: EngineToFront = { kind: "releaseSession", id, token };
         entry.front.postMessage(release);
-        const state = (await released) ?? { record: entry.record, activation: entry.activation, nonce: null };
+        const state = (await released) ?? { record: entry.record, activation: entry.activation, nonce: null, worker: entry.worker };
+        state.worker = entry.worker;
         entry.front = front;
         return state;
     }
@@ -212,6 +225,10 @@ export class FrontSessions {
     #closed(token: string): void {
         const entry = this.#entries.get(token);
         this.#entries.delete(token);
+        if (entry && entry.worker >= 0) {
+            this.#workerLoad[entry.worker]--;
+            this.#toWorker(entry, { kind: "workerSessionClosed", token });
+        }
         const reason = this.#closing.get(token);
         this.#closing.delete(token);
         // emitted from inside closeSession, before the engine counts the session out

@@ -30,7 +30,7 @@
  * Experimental: history and methods are not served by the fronts yet; each front keeps its own
  * sessions, subscriptions and server diagnostics.
  */
-import { Worker } from "node:worker_threads";
+import { MessageChannel, type MessagePort, Worker } from "node:worker_threads";
 import { type CompactAddressSpace, SessionContext } from "node-opcua-address-space";
 import { type StoreNodeView, StoreServices, type StoreVariableView } from "node-opcua-address-space-store";
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -73,6 +73,7 @@ import {
     type HistoryCheckReply,
     type NodeDescription,
     type ServiceKind,
+    type SessionWorkerData,
     transferablesOf,
     type ValueReply,
     WATCH
@@ -114,12 +115,16 @@ export interface FrontThreadsStartOptions {
     serverModuleData?: unknown;
     /** the front worker script, for a bundled deployment; this package's by default */
     workerScript?: string | URL;
+    /** the session worker script, for a bundled deployment; this package's by default */
+    sessionWorkerScript?: string | URL;
     /**
      * true: each front is a FrontOPCUAServer, with no address space, sessions or diagnostics of
      * its own, giving access to the one server of this engine. Under development: the fronts
      * serve no subscriptions yet in this mode.
      */
     oneServer?: boolean;
+    /** with oneServer: how many session worker threads host the subscriptions of the sessions; 1 by default */
+    sessionWorkers?: number;
     /** true: front k listens on the port of its options + k, as where there is no SO_REUSEPORT, so that a client chooses its front */
     ownPorts?: boolean;
 }
@@ -155,6 +160,7 @@ export class FrontThreadEngine {
     readonly #compact = new Set<number>();
     readonly #anchors = new Set<string>();
     readonly #fronts: Worker[] = [];
+    readonly #sessionWorkers: Worker[] = [];
     readonly #endpointUrls: string[] = [];
     /** the requests the fronts sent, by kind: what they could not answer in place */
     public readonly requests = {
@@ -258,6 +264,37 @@ export class FrontThreadEngine {
                 `FrontThreadEngine: ${process.platform} has no SO_REUSEPORT, the fronts listen on consecutive ports (see endpointUrls)`
             );
         }
+        // one server: the session workers first, each with a port to every front
+        const workerPorts: MessagePort[][] = [];
+        if (options.oneServer) {
+            const count = Math.max(1, Math.floor(options.sessionWorkers ?? 1));
+            const channels = Array.from({ length: count }, () => Array.from({ length: fronts }, () => new MessageChannel()));
+            const started: Promise<string>[] = [];
+            for (let index = 0; index < count; index++) {
+                const frontPorts = channels[index].map((c) => c.port2);
+                const data: SessionWorkerData = {
+                    descriptor,
+                    namespaceUris: [...this.addressSpace.namespaceUris],
+                    compactNamespaces: [...this.#compact],
+                    anchors: [...this.#anchors],
+                    server: this.#serverState(),
+                    frontPorts,
+                    index
+                };
+                const script = options.sessionWorkerScript ?? new URL("./session_worker.js", import.meta.url);
+                const worker = new Worker(script, { workerData: data, transferList: frontPorts });
+                this.#sessionWorkers.push(worker);
+                started.push(this.#listen(worker, `session worker ${index}`));
+            }
+            for (let front = 0; front < fronts; front++) workerPorts.push(channels.map((perFront) => perFront[front].port1));
+            try {
+                await Promise.all(started);
+            } catch (err) {
+                await this.shutdown();
+                throw err;
+            }
+            this.#sessions.setWorkers(this.#sessionWorkers);
+        }
         const ready: Promise<string>[] = [];
         for (let front = 0; front < fronts; front++) {
             const data: FrontWorkerData = {
@@ -270,32 +307,15 @@ export class FrontThreadEngine {
                 serverModuleData: options.serverModuleData,
                 front,
                 sharedPort,
-                server: options.oneServer ? this.#serverState() : undefined
+                server: options.oneServer ? this.#serverState() : undefined,
+                sessionWorkerPorts: options.oneServer ? workerPorts[front] : undefined
             };
-            const worker = new Worker(workerScript, { workerData: data });
+            const worker = new Worker(workerScript, {
+                workerData: data,
+                transferList: options.oneServer ? workerPorts[front] : []
+            });
             this.#fronts.push(worker);
-            ready.push(
-                new Promise<string>((resolve, reject) => {
-                    worker.on("message", (message: FrontToEngine) => {
-                        if (message.kind === "ready") resolve(message.endpointUrl);
-                        else if (message.kind === "failed") reject(new Error(`front ${front}: ${message.message}`));
-                        else if (message.kind === "requests") this.#answer(worker, message.ids, message.requests);
-                        else if (message.kind === "watches") this.#applyWatches(worker, message.operations);
-                        else if (message.kind === "changesDone") this.#changesDone(worker);
-                        else if (message.kind === "activity")
-                            this.#sessions.activity(
-                                message.seen,
-                                message.counters,
-                                message.rejected,
-                                message.securityRejected,
-                                message.rejectedRequests
-                            );
-                        else if (message.kind === "sessionReleased") this.#sessions.released(message.id, message.state);
-                    });
-                    worker.once("error", reject);
-                    worker.once("exit", (code) => reject(new Error(`front ${front} exited with code ${code}`)));
-                })
-            );
+            ready.push(this.#listen(worker, `front ${front}`));
         }
         try {
             this.#endpointUrls.push(...(await Promise.all(ready)));
@@ -307,12 +327,36 @@ export class FrontThreadEngine {
         }
     }
 
+    /** the messages of a front or a session worker; resolves with what it reports when ready */
+    #listen(worker: Worker, name: string): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            worker.on("message", (message: FrontToEngine) => {
+                if (message.kind === "ready") resolve(message.endpointUrl);
+                else if (message.kind === "failed") reject(new Error(`${name}: ${message.message}`));
+                else if (message.kind === "requests") this.#answer(worker, message.ids, message.requests);
+                else if (message.kind === "watches") this.#applyWatches(worker, message.operations);
+                else if (message.kind === "changesDone") this.#changesDone(worker);
+                else if (message.kind === "activity")
+                    this.#sessions.activity(
+                        message.seen,
+                        message.counters,
+                        message.rejected,
+                        message.securityRejected,
+                        message.rejectedRequests
+                    );
+                else if (message.kind === "sessionReleased") this.#sessions.released(message.id, message.state);
+            });
+            worker.once("error", reject);
+            worker.once("exit", (code) => reject(new Error(`${name} exited with code ${code}`)));
+        });
+    }
+
     /** the fronts close their sessions and stop listening, then end */
     public async shutdown(): Promise<void> {
         for (const watch of this.#watched.values()) this.#stopListening(watch);
         this.#watched.clear();
         this.#outgoing.clear();
-        const fronts = this.#fronts.splice(0);
+        const fronts = [...this.#fronts.splice(0), ...this.#sessionWorkers.splice(0)];
         this.#sessions.frontsGone();
         await Promise.all(
             fronts.map(
@@ -374,8 +418,7 @@ export class FrontThreadEngine {
             case "admitSession":
                 return this.#sessions.admit();
             case "sessionCreated":
-                this.#sessions.created(worker, request.session);
-                return null;
+                return this.#sessions.created(worker, request.session);
             case "sessionActivated":
                 this.#sessions.activated(worker, request.activation);
                 return null;

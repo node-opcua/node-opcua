@@ -5,10 +5,14 @@
  * a thread: OPC UA structures as their binary encoding (a structured clone would drop their
  * classes), the session as the little the engine needs of it.
  */
+
+import type { MessagePort } from "node:worker_threads";
 import type { ISessionContext } from "node-opcua-address-space";
 import type { SharedStoreDescriptor } from "node-opcua-address-space-store";
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
 import { type DataValue, decodeDataValue, encodeDataValue, encodedDataValue } from "node-opcua-data-value";
+import { decodeExtensionObject, encodeExtensionObject } from "node-opcua-extension-object";
+import type { BaseUAObject } from "node-opcua-factory";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { MessageSecurityMode } from "node-opcua-types";
 
@@ -90,6 +94,19 @@ export function transferablesOf(payloads: unknown[]): ArrayBuffer[] {
 }
 /** below this, a copy costs less than detaching the buffer */
 const TRANSFER_THRESHOLD = 64 * 1024;
+
+/** an OPC UA structure with its type: a request or a response, decoded back into its own class */
+export function encodeExtensionObjectBytes(value: BaseUAObject): Uint8Array {
+    const size = new BinaryStreamSizeCalculator();
+    encodeExtensionObject(value, size);
+    const stream = new BinaryStream(size.length);
+    encodeExtensionObject(value, stream);
+    return exact(stream, size.length);
+}
+
+export function decodeExtensionObjectBytes<T>(bytes: Uint8Array): T {
+    return decodeExtensionObject(new BinaryStream(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength))) as T;
+}
 
 export function encodeStructure(value: Encodable): Uint8Array {
     const size = new BinaryStreamSizeCalculator();
@@ -210,7 +227,40 @@ export interface FrontWorkerData {
     sharedPort: boolean;
     /** set when the fronts are FrontOPCUAServers on the engine's ServerEngine: what they need of it */
     server?: EngineServerState;
+    /** with server: a port to each session worker, where the subscription services of its sessions go */
+    sessionWorkerPorts?: MessagePort[];
 }
+
+/** what a session worker starts with: the store, as a front reads it, and a port from each front */
+export interface SessionWorkerData {
+    descriptor: SharedStoreDescriptor;
+    namespaceUris: string[];
+    compactNamespaces: number[];
+    anchors: string[];
+    server: EngineServerState;
+    frontPorts: MessagePort[];
+    index: number;
+}
+
+/** a subscription service request a front forwards to the session worker of the session */
+export type FrontToWorker =
+    /** a session as the front activated it, before its first subscription request: in order with them */
+    | { kind: "session"; record: SessionRecord; activation: SessionActivation }
+    | {
+          kind: "request";
+          /** answered with this id; never 0 */
+          id: number;
+          token: string;
+          /** the front's secure channel the request came on */
+          channel: number;
+          security: ChannelSecurityDescriptor;
+          /** the request, as an ExtensionObject's binary encoding */
+          request: Uint8Array;
+      }
+    | { kind: "channelClosed"; channel: number };
+
+/** a response for the front to send on its channel, as an ExtensionObject's binary encoding */
+export type WorkerToFront = { kind: "response"; id: number; response: Uint8Array };
 
 /** the engine-wide counts a front reads without asking, in an Int32Array the engine alone writes */
 export enum EngineCount {
@@ -222,7 +272,9 @@ export enum EngineCount {
     PublishingIntervals = 5,
     /** the ServerState of the server */
     ServerState = 6,
-    Size = 7
+    /** the last subscription id handed out: session workers take the next one with Atomics.add */
+    SubscriptionId = 7,
+    Size = 8
 }
 
 /** what a front needs of the engine's ServerEngine to serve as the same server */
@@ -274,6 +326,8 @@ export interface SessionState {
     activation: SessionActivation | null;
     /** the last server nonce, which the client signs in its next ActivateSession */
     nonce: Uint8Array | null;
+    /** the session worker that hosts its subscriptions */
+    worker: number;
 }
 
 /** the services a front forwards to the engine's ServerEngine as they are */
@@ -330,6 +384,8 @@ export type EngineToFront =
     | { kind: "anchors"; anchors: string[] }
     /** the engine closed a session of this front (timeout, room made for a new one, another front took it) */
     | { kind: "sessionClosed"; token: string; reason: string }
+    /** to a session worker: the engine closed a session it hosts the subscriptions of */
+    | { kind: "workerSessionClosed"; token: string }
     /** another front takes this session over: answer with its state (sessionReleased) and drop it */
     | { kind: "releaseSession"; id: number; token: string }
     | { kind: "stop" };
@@ -363,6 +419,7 @@ export type FrontRequest =
     | { kind: "historyExtract"; nodeId: string; details: Uint8Array; max: number; isReversed: boolean; reverse: boolean }
     /** room for one more session (true), made by closing the oldest not activated if needed; held until sessionCreated */
     | { kind: "admitSession" }
+    /** answered with the index of the session worker that hosts the session's subscriptions */
     | { kind: "sessionCreated"; session: SessionRecord }
     | { kind: "sessionActivated"; activation: SessionActivation }
     | {
