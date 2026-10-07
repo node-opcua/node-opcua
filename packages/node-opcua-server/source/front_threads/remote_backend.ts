@@ -1,14 +1,14 @@
 /**
  * @module node-opcua-server
  *
- * The compact namespaces as a front thread serves them: a Read of a value no permission rule
- * applies to is answered in place from the engine's shared columns; everything else (other
- * attributes, getters, values kept as objects, nodes under access restrictions or role
- * permissions, Writes, Browse, Translate) is asked to the engine, the requests of a turn of the
- * event loop in one message. Monitored items get a FrontMonitoredNode (see front_node.ts).
+ * The shared store as a front thread or a session worker reads it: a Value no permission rule
+ * applies to and no getter computes is read in place from the engine's columns; the rest is the
+ * engine's to answer (see RemoteEngine). Monitored items get a FrontMonitoredNode (front_node.ts):
+ * sampled in place when it can be, told by the engine of the values written to it, its events
+ * filtered by the engine.
  */
 import type { MessagePort } from "node:worker_threads";
-import { type ContinuationData, historyReadThrough, type ISessionContext, type IVariableHistorian } from "node-opcua-address-space";
+import type { ISessionContext } from "node-opcua-address-space";
 import {
     SharedReadStatus,
     type SharedStoreDescriptor,
@@ -16,37 +16,15 @@ import {
     type SharedValue,
     ValueKind
 } from "node-opcua-address-space-store";
-import { AttributeIds, QualifiedName } from "node-opcua-data-model";
+import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
-import { encodedNodesToWrite } from "node-opcua-secure-channel";
 import { type EventFilter, EventFilter as EventFilterClass } from "node-opcua-service-filter";
-import {
-    type HistoryReadDetails,
-    HistoryReadResult,
-    type HistoryReadValueId,
-    type ReadRawModifiedDetails
-} from "node-opcua-service-history";
-import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
-import {
-    type BrowseDescription,
-    type BrowsePath,
-    BrowsePathResult,
-    BrowseResult,
-    type CallMethodRequest,
-    CallMethodResult,
-    type CallMethodResultOptions,
-    EventFieldList,
-    EventFilterResult,
-    type MonitoredItemCreateRequest,
-    type ReadValueIdOptions,
-    type ReferenceDescription,
-    type WriteValue
-} from "node-opcua-types";
-import { DataType, encodedVariant, Variant, VariantArrayType } from "node-opcua-variant";
-import type { ICompactBackend } from "../compact_backend.js";
+import { coerceStatusCode, StatusCodes } from "node-opcua-status-code";
+import { EventFieldList, EventFilterResult, type MonitoredItemCreateRequest, type ReadValueIdOptions } from "node-opcua-types";
+import { type DataType, encodedVariant, Variant, VariantArrayType } from "node-opcua-variant";
 import { FrontMonitoredNode, type FrontNodeHost } from "./front_node.js";
 import {
     type DescribeReply,
@@ -55,14 +33,10 @@ import {
     decodeStructures,
     describeContext,
     type EngineToFront,
-    encodedDataValuesOf,
     encodeStructure,
-    encodeStructures,
     type FrontRequest,
     type FrontToEngine,
-    type HistoryCheckReply,
     type NodeDescription,
-    type ReadItem,
     transferablesOf,
     UNWATCH,
     type ValueReply,
@@ -75,57 +49,6 @@ const MAX_AGE_CACHED = 0x7fffffff;
 const DESCRIPTIONS_PER_GENERATION = 50000;
 // attributes other than the Value kept per session for the items being created
 const ATTRIBUTES_PER_SESSION = 10000;
-
-/**
- * the historian of a node, in the engine: what a front's HistoryRead extracts from. The bounding
- * values of a raw read are looked up synchronously, at the start and the end of the request: they
- * are fetched with the check that precedes the read.
- */
-class EngineHistorian implements IVariableHistorian {
-    readonly #channel: EngineChannel;
-    readonly #nodeId: string;
-    public findBoundBefore?: (date: Date) => DataValue | null;
-    public findBoundAfter?: (date: Date) => DataValue | null;
-
-    /** `bounds`: the values before and after each time the request bounds, fetched with the check */
-    constructor(channel: EngineChannel, nodeId: string, bounds: Map<number, [DataValue | null, DataValue | null]> | null) {
-        this.#channel = channel;
-        this.#nodeId = nodeId;
-        if (bounds) {
-            this.findBoundBefore = (date) => bounds.get(date.getTime())?.[0] ?? null;
-            this.findBoundAfter = (date) => bounds.get(date.getTime())?.[1] ?? null;
-        }
-    }
-
-    public async push(): Promise<void> {
-        throw new Error("EngineHistorian: the engine records the values");
-    }
-
-    public extractDataValues(
-        details: ReadRawModifiedDetails,
-        maxNumberToExtract: number,
-        isReversed: boolean,
-        reverseDataValue: boolean,
-        callback: (err: Error | null, dataValue?: DataValue[]) => void
-    ): void {
-        this.#channel
-            .call<Uint8Array | null>({
-                kind: "historyExtract",
-                nodeId: this.#nodeId,
-                details: encodeStructure(details),
-                max: maxNumberToExtract,
-                isReversed,
-                reverse: reverseDataValue
-            })
-            .then(
-                (bytes) =>
-                    bytes
-                        ? callback(null, decodeDataValues(bytes))
-                        : callback(new Error("the engine has no history for this node")),
-                (err: Error) => callback(err)
-            );
-    }
-}
 
 /**
  * request and reply over the port to the engine. The requests made in one turn of the event
@@ -161,7 +84,9 @@ export class EngineChannel {
     #flush(): void {
         const message: FrontToEngine = { kind: "requests", ids: this.#ids, requests: this.#requests };
         // the encoded WriteValues of a large write (an array) are handed over, not copied
-        const transfer = transferablesOf(this.#requests.map((request) => (request.kind === "write" ? request.items : null)));
+        const transfer = transferablesOf(
+            this.#requests.map((request) => (request.kind === "service" && request.service === "write" ? request.request : null))
+        );
         this.#ids = [];
         this.#requests = [];
         this.#port.postMessage(message, transfer);
@@ -179,16 +104,14 @@ export class EngineChannel {
     }
 }
 
-export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
+export class RemoteCompactBackend implements FrontNodeHost {
+    /** the namespaces whose live values the store holds: the model, and the engine's node objects it mirrors */
     public readonly namespaces: ReadonlySet<number>;
     #reader: SharedStoreReader;
-    #anchors: Set<string>;
     readonly #channel: EngineChannel;
     #eventWatchId = 0;
     readonly #filterResults = new WeakMap<EventFilter, EventFilterResult>();
     readonly #eventWatches = new Map<number, (fields: Variant[]) => void>();
-    // what prefetch fetched for the items of a request, until read() takes it
-    readonly #fetched = new WeakMap<object, DataValue>();
     readonly #value: SharedValue = {
         dataType: 0,
         value: 0,
@@ -210,16 +133,10 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
     readonly #watchers = new Map<number, Set<FrontMonitoredNode>>();
     #watchOperations: number[] = [];
 
-    constructor(
-        descriptor: SharedStoreDescriptor,
-        channel: EngineChannel,
-        namespaces: Iterable<number>,
-        anchors: Iterable<string>
-    ) {
+    constructor(descriptor: SharedStoreDescriptor, channel: EngineChannel, namespaces: Iterable<number>) {
         this.#reader = new SharedStoreReader(descriptor);
         this.#channel = channel;
         this.namespaces = new Set(namespaces);
-        this.#anchors = new Set(anchors);
     }
 
     /** the engine reallocated columns: the new buffers */
@@ -227,18 +144,13 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
         this.#reader = new SharedStoreReader(descriptor);
     }
 
-    public setAnchors(anchors: Iterable<string>): void {
-        this.#anchors = new Set(anchors);
-    }
-
-    /** the node index when its Value can be served here, else -1 */
     /** whether read() answers this item from the shared store, without the engine */
     public canReadInPlace(nodeToRead: ReadValueIdOptions): boolean {
-        // the store also holds namespace 0, whose live values are the engine's node objects
         if (!this.namespaces.has(resolveNodeId(nodeToRead.nodeId ?? "").namespace)) return false;
         return this.#inPlace(nodeToRead) >= 0;
     }
 
+    /** the node index when its Value can be served here, else -1 */
     #inPlace(nodeToRead: ReadValueIdOptions): number {
         if (nodeToRead.attributeId !== AttributeIds.Value) return -1;
         const range = nodeToRead.indexRange as NumericRange | undefined;
@@ -251,62 +163,17 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
         return reader.canServe(i) ? i : -1;
     }
 
-    public prefetch(
-        context: ISessionContext,
-        nodesToRead: ReadValueIdOptions[],
-        maxAge: number,
-        timestampsToReturn?: TimestampsToReturn
-    ): Promise<void> | undefined {
-        let remote: ReadValueIdOptions[] | null = null;
-        for (const nodeToRead of nodesToRead) {
-            const nodeId = resolveNodeId(nodeToRead.nodeId ?? "");
-            if (!this.namespaces.has(nodeId.namespace)) continue;
-            if (this.#inPlace(nodeToRead) >= 0) continue;
-            if (remote === null) remote = [];
-            remote.push(nodeToRead);
-        }
-        if (remote === null) {
-            return undefined;
-        }
-        const asked = remote;
-        const items: ReadItem[] = asked.map((n) => ({
-            nodeId: resolveNodeId(n.nodeId ?? "").toString(),
-            attributeId: n.attributeId ?? AttributeIds.Value,
-            // the range as it is encoded on the wire: null when there is none (toString() names an empty range)
-            indexRange: n.indexRange ? ((n.indexRange as NumericRange).toEncodeableString() ?? null) : null,
-            dataEncoding: (n.dataEncoding as { name?: string | null } | null | undefined)?.name ?? null
-        }));
-        return this.#channel
-            .call<Uint8Array>({
-                kind: "read",
-                context: describeContext(context),
-                items,
-                maxAge,
-                timestampsToReturn: timestampsToReturn ?? TimestampsToReturn.Source
-            })
-            .then((bytes) => {
-                // the values the engine read go into the Read response as the engine encoded them
-                const values = encodedDataValuesOf(bytes);
-                for (let k = 0; k < asked.length; k++) this.#fetched.set(asked[k], values[k]);
-            });
-    }
-
+    /** one item of a Read that canReadInPlace() accepted */
     public read(
         context: ISessionContext | null,
         nodeToRead: ReadValueIdOptions,
         maxAge: number,
         timestampsToReturn?: TimestampsToReturn
     ): DataValue {
-        const fetched = this.#fetched.get(nodeToRead);
-        if (fetched) {
-            this.#fetched.delete(nodeToRead);
-            return fetched;
-        }
         const i = this.#inPlace(nodeToRead);
         const v = this.#value;
         if (i < 0 || this.#reader.readValue(i, v) !== SharedReadStatus.Good) {
-            // what cannot be answered here was fetched by prefetch() for the Read service; a read
-            // from elsewhere, or a value that changed kind between the two, lands here
+            // the value changed kind (or the columns moved) since canReadInPlace() was asked
             return new DataValue({ statusCode: StatusCodes.BadResourceUnavailable });
         }
         return this.#dataValueOf(v, context, maxAge, timestampsToReturn ?? TimestampsToReturn.Source);
@@ -338,111 +205,6 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
             dataValue.serverPicoseconds = stale ? now.picoseconds : v.serverPicoseconds;
         }
         return dataValue;
-    }
-
-    public async write(context: ISessionContext | null, nodesToWrite: WriteValue[]): Promise<StatusCode[]> {
-        const statuses = await this.#channel.call<number[]>({
-            kind: "write",
-            context: describeContext(context),
-            // the WriteValues as the client encoded them, when they arrived that way and are unchanged
-            items: encodedNodesToWrite(nodesToWrite) ?? encodeStructures(nodesToWrite),
-            count: nodesToWrite.length
-        });
-        return statuses.map((s) => coerceStatusCode(s));
-    }
-
-    public async browse(context: ISessionContext | null, description: BrowseDescription): Promise<BrowseResult> {
-        const bytes = await this.#channel.call<Uint8Array>({
-            kind: "browse",
-            context: describeContext(context),
-            description: encodeStructure(description)
-        });
-        return decodeStructure(bytes, new BrowseResult());
-    }
-
-    public async references(
-        context: ISessionContext | null,
-        nodeId: NodeId,
-        description: BrowseDescription
-    ): Promise<ReferenceDescription[]> {
-        const key = nodeId.toString();
-        if (!this.#anchors.has(key)) {
-            // nothing of the compact namespaces hangs under this node: no message
-            return [];
-        }
-        const bytes = await this.#channel.call<Uint8Array>({
-            kind: "references",
-            context: describeContext(context),
-            nodeId: key,
-            description: encodeStructure(description)
-        });
-        return decodeStructure(bytes, new BrowseResult()).references ?? [];
-    }
-
-    /**
-     * a HistoryRead: the engine says whether the session may read the node's history, then the
-     * values are read here, from the engine's historian, continuation points in this front's session
-     */
-    public async historyRead(
-        context: ISessionContext,
-        nodeToRead: HistoryReadValueId,
-        historyReadDetails: HistoryReadDetails,
-        continuationData: ContinuationData
-    ): Promise<HistoryReadResult> {
-        const nodeId = resolveNodeId(nodeToRead.nodeId);
-        // the times the bounds of a raw read are computed at
-        const raw = historyReadDetails as { returnBounds?: boolean; startTime?: Date | null; endTime?: Date | null };
-        const boundTimes =
-            raw.returnBounds && raw.startTime instanceof Date && raw.endTime instanceof Date
-                ? [raw.startTime.getTime(), raw.endTime.getTime()]
-                : [];
-        const check = await this.#channel.call<HistoryCheckReply>({
-            kind: "historyCheck",
-            context: describeContext(context),
-            nodeId: nodeId.toString(),
-            boundTimes
-        });
-        if (check.status !== StatusCodes.Good.value) {
-            return new HistoryReadResult({ statusCode: coerceStatusCode(check.status) });
-        }
-        let bounds: Map<number, [DataValue | null, DataValue | null]> | null = null;
-        if (check.boundsSupported) {
-            bounds = new Map();
-            const values = check.bounds ? decodeDataValues(check.bounds) : [];
-            const some = (d: DataValue | undefined) =>
-                d && (d.value.dataType !== DataType.Null || !d.statusCode.isGood()) ? d : null;
-            for (let k = 0; k < boundTimes.length; k++) {
-                bounds.set(boundTimes[k], [some(values[2 * k]), some(values[2 * k + 1])]);
-            }
-        }
-        return historyReadThrough(
-            {
-                nodeId,
-                browseName: new QualifiedName({ name: nodeId.toString() }),
-                varHistorian: new EngineHistorian(this.#channel, nodeId.toString(), bounds),
-                canUserReadHistory: () => true
-            },
-            context,
-            historyReadDetails as Parameters<typeof historyReadThrough>[2],
-            nodeToRead.indexRange ?? null,
-            nodeToRead.dataEncoding ?? null,
-            continuationData
-        );
-    }
-
-    /** a Method call: run by the engine, where the function is bound */
-    public async call(context: ISessionContext | null, request: CallMethodRequest): Promise<CallMethodResultOptions> {
-        const bytes = await this.#channel.call<Uint8Array>({
-            kind: "call",
-            context: describeContext(context),
-            request: encodeStructure(request)
-        });
-        return decodeStructure(bytes, new CallMethodResult());
-    }
-
-    public async translate(browsePath: BrowsePath): Promise<BrowsePathResult | null> {
-        const bytes = await this.#channel.call<Uint8Array | null>({ kind: "translate", browsePath: encodeStructure(browsePath) });
-        return bytes ? decodeStructure(bytes, new BrowsePathResult()) : null;
     }
 
     // ---- monitored items
@@ -607,6 +369,17 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
     }
 
     /** watched nodes the engine deleted */
+    public receiveDisposed(indexes: number[]): void {
+        for (const index of indexes) {
+            const watchers = this.#watchers.get(index);
+            if (watchers === undefined) continue;
+            this.#watchers.delete(index);
+            for (const node of [...watchers]) node.dispose();
+        }
+    }
+
+    // ---- events
+
     /** the events of a node, filtered by the engine with the item's filter and the roles of its session */
     public subscribeEvents(
         nodeId: NodeId,
@@ -658,15 +431,4 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
         const lists = decodeStructures(bytes, EventFieldList.prototype);
         for (let k = 0; k < ids.length; k++) this.#eventWatches.get(ids[k])?.(lists[k].eventFields ?? []);
     }
-
-    public receiveDisposed(indexes: number[]): void {
-        for (const index of indexes) {
-            const watchers = this.#watchers.get(index);
-            if (watchers === undefined) continue;
-            this.#watchers.delete(index);
-            for (const node of [...watchers]) node.dispose();
-        }
-    }
 }
-
-export { DataType };

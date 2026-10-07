@@ -58,7 +58,6 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         });
         await engine.start({
             fronts: 2,
-            oneServer: true,
             ownPorts: true,
             serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
             serverModuleData: { port }
@@ -326,7 +325,6 @@ describe("FrontThreadEngine, one server: TransferSubscriptions between sessions 
         });
         await engine.start({
             fronts: 2,
-            oneServer: true,
             ownPorts: true,
             // sessions go to the least loaded worker: the 1st and 3rd on worker 0, the 2nd on worker 1
             sessionWorkers: 2,

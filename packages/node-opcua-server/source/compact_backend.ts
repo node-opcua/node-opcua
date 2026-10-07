@@ -28,17 +28,7 @@ import type { FoundNode } from "./monitorable_node.js";
 export interface ICompactBackend {
     /** the namespace indexes served here */
     readonly namespaces: ReadonlySet<number>;
-    /**
-     * before the reads of a request: fetch what read() cannot answer in place. Undefined when
-     * there is nothing to fetch, which is the common case, so that no promise is made for it.
-     */
-    prefetch?(
-        context: ISessionContext,
-        nodesToRead: ReadValueIdOptions[],
-        maxAge: number,
-        timestampsToReturn?: TimestampsToReturn
-    ): Promise<void> | undefined;
-    /** one item of a Read, synchronously (after prefetch) */
+    /** one item of a Read, synchronously */
     read(
         context: ISessionContext | null,
         nodeToRead: ReadValueIdOptions,
@@ -61,11 +51,6 @@ export interface ICompactBackend {
         historyReadDetails: HistoryReadDetails,
         continuationData: ContinuationData
     ): Promise<HistoryReadResult>;
-    /**
-     * before the items of a CreateMonitoredItems are created: what findNode() needs to answer
-     * them synchronously. Undefined when there is nothing to fetch.
-     */
-    prefetchNodes?(context: ISessionContext, itemsToMonitor: ReadValueIdOptions[]): Promise<void> | undefined;
     /** the node a monitored item watches; undefined where monitored items are not served yet */
     findNode?(nodeId: NodeIdLike): FoundNode | null;
 }

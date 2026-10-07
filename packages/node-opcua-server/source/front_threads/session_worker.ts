@@ -477,7 +477,7 @@ async function main(): Promise<void> {
     }
     const data = workerData as SessionWorkerData;
     const channel = new EngineChannel(port);
-    const backend = new RemoteCompactBackend(data.descriptor, channel, data.compactNamespaces, data.anchors);
+    const backend = new RemoteCompactBackend(data.descriptor, channel, data.storeNamespaces);
     const engine = new WorkerEngine(data.server, channel, backend);
     await new Promise<void>((resolve, reject) => engine.initialize({}, (err) => (err ? reject(err) : resolve())));
     const server = new SessionWorkerServer(engine);
@@ -503,9 +503,6 @@ async function main(): Promise<void> {
         switch (message.kind) {
             case "descriptor":
                 backend.setDescriptor(message.descriptor);
-                break;
-            case "anchors":
-                backend.setAnchors(message.anchors);
                 break;
             case "changes": {
                 backend.receiveChanges(message.indexes, message.versions, message.values);
