@@ -31,6 +31,8 @@ export interface ISocketLike extends EventEmitter {
     setKeepAlive(enable?: boolean, initialDelay?: number): this;
     setNoDelay(noDelay?: boolean): this;
     setTimeout(timeout: number, callback?: () => void): this;
+    /** optional: the bytes written and not yet sent (net.Socket has it) */
+    readonly writableLength?: number;
     /** optional: a socket that can hold its writes lets the transport send a tick's worth of chunks at once */
     cork?(): void;
     uncork?(): void;
@@ -45,6 +47,7 @@ export interface ISocketLike extends EventEmitter {
     on(event: "error", listener: (err: Error) => void): this;
     on(event: "timeout", listener: () => void): this;
     once(event: "close", listener: (hadError: boolean) => void): this;
+    once(event: "drain", listener: () => void): this;
     once(event: "connect", listener: () => void): this;
     once(event: "data", listener: (data: Buffer) => void): this;
     once(event: "end", listener: () => void): this;
@@ -283,6 +286,25 @@ export class TCP_transport extends EventEmitter<TCP_transportEvents> {
 
      * @param messageChunk
      */
+    /** the bytes written to the socket and not sent yet; 0 for a socket that does not say */
+    public get queuedBytes(): number {
+        return this._socket?.writableLength ?? 0;
+    }
+
+    /**
+     * calls `listener` once the socket has sent what it holds. Only meaningful above the socket's
+     * highWaterMark, which is when net.Socket emits "drain"; a socket holding nothing calls back
+     * on the next turn.
+     */
+    public onceDrained(listener: () => void): void {
+        const socket = this._socket;
+        if (!socket?.writableLength) {
+            setImmediate(listener);
+            return;
+        }
+        socket.once("drain", listener);
+    }
+
     public write(messageChunk: Buffer, callback?: (err?: Error | null) => undefined | undefined): void {
         // the chunk comes from our own chunk manager: the length field (offset 4) and the
         // isFinal byte (offset 3, one of "F", "C", "A") are checked without decoding the header.
