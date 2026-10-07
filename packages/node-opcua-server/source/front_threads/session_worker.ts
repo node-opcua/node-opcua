@@ -467,6 +467,7 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         const subscription = new Subscription({
             // unique across the session workers
             id: id ?? Atomics.add(counts, EngineCount.SubscriptionId, 1) + 1,
+            monitoredItemIdAllocator: () => Atomics.add(counts, EngineCount.MonitoredItemId, 1) + 1,
             lifeTimeCount: request.requestedLifetimeCount || 0,
             maxKeepAliveCount: request.requestedMaxKeepAliveCount || 0,
             maxNotificationsPerPublish: request.maxNotificationsPerPublish,

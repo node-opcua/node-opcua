@@ -760,6 +760,46 @@ describe("FrontThreadEngine, one server: TransferSubscriptions between sessions 
         throw new Error(`value ${value} not received`);
     }
 
+    it("gives MonitoredItems ids unique across the session workers, kept unique after a transfer", async () => {
+        // two sessions in a row go to the two workers (least loaded first)
+        const sessions = [await sessionOn(0), await sessionOn(1)];
+        const itemOn = async (session: RawSession, subscriptionId: number) => {
+            const items = await session.createMonitoredItems({
+                subscriptionId,
+                timestampsToReturn: TimestampsToReturn.Both,
+                itemsToCreate: [
+                    {
+                        itemToMonitor: { nodeId: `ns=${ns};s=Level`, attributeId: AttributeIds.Value },
+                        monitoringMode: 2,
+                        requestedParameters: { clientHandle: 7, samplingInterval: 0, queueSize: 1, discardOldest: true }
+                    }
+                ]
+            });
+            return items.results?.[0].monitoredItemId ?? 0;
+        };
+        const subscriptionIds: number[] = [];
+        const ids: number[] = [];
+        for (const session of sessions) {
+            const created = await session.createSubscription({
+                requestedPublishingInterval: 50,
+                requestedLifetimeCount: 600,
+                requestedMaxKeepAliveCount: 10,
+                maxNotificationsPerPublish: 0,
+                publishingEnabled: true,
+                priority: 0
+            });
+            subscriptionIds.push(created.subscriptionId);
+            ids.push(await itemOn(session, created.subscriptionId));
+        }
+        // one counter for both workers
+        should(ids[1]).eql(ids[0] + 1);
+        // the subscription of the first moves to the second worker, which gives it a new item
+        should((await transferTo(sessions[1], subscriptionIds[0])).results?.[0].statusCode).eql(StatusCodes.Good);
+        const added = await itemOn(sessions[1], subscriptionIds[0]);
+        should([ids[0], ids[1]]).not.containEql(added);
+        for (const session of sessions) await session.close();
+    });
+
     it("gives the sessions of every front their NodeId and diagnostics in the engine's diagnostics namespace", async () => {
         const session = await sessionOn(1);
         const namespaces = (await session.read({ nodeId: "ns=0;i=2255", attributeId: AttributeIds.Value })).value.value as string[];

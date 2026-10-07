@@ -299,7 +299,9 @@ export enum EngineCount {
     ServerState = 6,
     /** the last subscription id handed out: session workers take the next one with Atomics.add */
     SubscriptionId = 7,
-    Size = 8
+    /** the last MonitoredItem id handed out, shared the same way: a Subscription moved to another worker keeps unique ids */
+    MonitoredItemId = 8,
+    Size = 9
 }
 
 /** what a front needs of the engine's ServerEngine to serve as the same server */

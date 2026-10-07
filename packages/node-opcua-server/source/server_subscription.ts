@@ -394,6 +394,11 @@ export interface SubscriptionOptions {
 
     serverCapabilities: ServerCapabilitiesPartial;
     globalCounter: IGlobalMonitoredItemCounter;
+    /**
+     * the id of each new MonitoredItem; by default a counter of this thread. Where subscriptions move
+     * between threads (session workers), one counter for all of them keeps the ids of a Subscription unique.
+     */
+    monitoredItemIdAllocator?: () => number;
 }
 
 let g_monitoredItemId = Math.ceil(Math.random() * 100000);
@@ -728,7 +733,10 @@ export class Subscription extends EventEmitter {
         this.serverCapabilities.maxMonitoredItemsPerSubscription =
             this.serverCapabilities.maxMonitoredItemsPerSubscription || Subscription.defaultMaxMonitoredItemCount;
         this.globalCounter = options.globalCounter;
+        this.#allocateMonitoredItemId = options.monitoredItemIdAllocator ?? getNextMonitoredItemId;
     }
+
+    readonly #allocateMonitoredItemId: () => number;
 
     public getSessionId(): NodeId {
         return this.sessionId;
@@ -2162,7 +2170,7 @@ export class Subscription extends EventEmitter {
 
         this.monitoredItemIdCounter += 1;
 
-        const monitoredItemId = givenMonitoredItemId ?? getNextMonitoredItemId();
+        const monitoredItemId = givenMonitoredItemId ?? this.#allocateMonitoredItemId();
 
         const requestedParameters = monitoredItemCreateRequest.requestedParameters;
 
