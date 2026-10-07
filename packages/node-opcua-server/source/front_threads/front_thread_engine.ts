@@ -197,6 +197,7 @@ export class FrontThreadEngine {
         describe: 0,
         value: 0,
         admitSession: 0,
+        cancelAdmission: 0,
         watchObject: 0,
         watchEvents: 0,
         checkEventFilter: 0,
@@ -469,6 +470,9 @@ export class FrontThreadEngine {
         switch (request.kind) {
             case "admitSession":
                 return this.#sessions.admit();
+            case "cancelAdmission":
+                this.#sessions.cancelAdmission();
+                return null;
             case "sessionCreated":
                 return this.#sessions.created(worker, request.session);
             case "sessionActivated":
@@ -942,6 +946,8 @@ export class FrontThreadEngine {
         switch (request.kind) {
             case "admitSession":
                 return false;
+            case "cancelAdmission":
+                return null;
             case "watchObject":
             case "unwatchObject":
             case "watchEvents":

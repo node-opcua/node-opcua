@@ -240,7 +240,11 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
             token,
             new Promise<number>((resolve) =>
                 queueMicrotask(() => {
-                    if (session.status === "closed") return resolve(-1);
+                    if (session.status === "closed") {
+                        // the room the engine made for it goes back
+                        this.#tell({ kind: "cancelAdmission" });
+                        return resolve(-1);
+                    }
                     resolve(this.#channel.call<number>({ kind: "sessionCreated", session: this.recordOf(session) }));
                 })
             )
