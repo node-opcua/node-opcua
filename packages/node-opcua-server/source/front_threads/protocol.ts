@@ -496,7 +496,16 @@ export type FrontRequest =
      * the events of a node, filtered by the engine for an item: its EventFilter as its binary encoding;
      * the fields of the events it lets through come back in "events" messages under this id
      */
-    | { kind: "watchEvents"; id: number; nodeId: string; context: ContextDescriptor; filter: Uint8Array }
+    | {
+          kind: "watchEvents";
+          id: number;
+          nodeId: string;
+          context: ContextDescriptor;
+          filter: Uint8Array;
+          /** the item's, which a ConditionRefresh names */
+          subscriptionId: number;
+          monitoredItemId: number;
+      }
     | { kind: "unwatchEvents"; id: number }
     /** the EventFilterResult of an EventFilter (its binary encoding), checked against the event types of the engine */
     | { kind: "checkEventFilter"; filter: Uint8Array }
@@ -528,6 +537,11 @@ export type FrontToEngine =
       }
     /** a session worker's answer to exportSubscription: the subscription, a refusal (a StatusCode value), or null when it has none */
     | { kind: "subscriptionExported"; id: number; result: TransferredSubscription | number | null }
+    /**
+     * the Subscriptions and MonitoredItems of the sessions of a session worker, as they come and go:
+     * [session token, subscription id, item id (-1 for the Subscription itself), 1 added / 0 removed]
+     */
+    | { kind: "subscriptionChanges"; changes: [string, number, number, number][] }
     /** the state of a session another front takes over (releaseSession); null when this front no longer has it */
     | { kind: "sessionReleased"; id: number; state: SessionState | null }
     | { kind: "ready"; endpointUrl: string }

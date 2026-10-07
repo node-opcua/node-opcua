@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-server
  */
-import { SessionContext } from "node-opcua-address-space";
+import { type ISessionBase, SessionContext } from "node-opcua-address-space";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import type { MessageSecurityMode } from "node-opcua-types";
 import type { ServerSession } from "../server_session.js";
@@ -13,7 +13,7 @@ import type { ContextDescriptor } from "./protocol.js";
  */
 export class ResolvedRolesContext extends SessionContext {
     readonly #roles: NodeId[];
-    constructor(session: ServerSession, roles: NodeId[]) {
+    constructor(session: ServerSession | ISessionBase, roles: NodeId[]) {
         super({ session });
         this.#roles = roles;
     }

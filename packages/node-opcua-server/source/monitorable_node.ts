@@ -15,6 +15,12 @@ import type { EventFilter } from "node-opcua-service-filter";
 import type { EventFilterResult } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
 
+/** an event item, as a ConditionRefresh names it: the refresh goes to the items of one Subscription */
+export interface EventItemIdentity {
+    subscriptionId: number;
+    monitoredItemId: number;
+}
+
 /** a node of the compact address space, as a monitored item sees it */
 export interface CompactMonitorableNode extends EventEmitter {
     readonly nodeId: NodeId;
@@ -37,7 +43,12 @@ export interface CompactMonitorableNode extends EventEmitter {
      * receives the selected fields of each event the filter and the session's permissions let through.
      * Returns what stops it.
      */
-    subscribeEvents?(filter: EventFilter, context: ISessionContext | null, onFields: (fields: Variant[]) => void): () => void;
+    subscribeEvents?(
+        filter: EventFilter,
+        context: ISessionContext | null,
+        onFields: (fields: Variant[]) => void,
+        item?: EventItemIdentity
+    ): () => void;
     /** the result of an EventFilter on a node whose address space is elsewhere, checked there beforehand */
     analyzeEventFilter?(filter: EventFilter): EventFilterResult | undefined;
 }

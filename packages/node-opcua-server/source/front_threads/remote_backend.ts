@@ -7,6 +7,7 @@
  * sampled in place when it can be, told by the engine of the values written to it, its events
  * filtered by the engine.
  */
+
 import type { MessagePort } from "node:worker_threads";
 import type { ISessionContext } from "node-opcua-address-space";
 import {
@@ -25,6 +26,7 @@ import { type EventFilter, EventFilter as EventFilterClass } from "node-opcua-se
 import { coerceStatusCode, StatusCodes } from "node-opcua-status-code";
 import { EventFieldList, EventFilterResult, type MonitoredItemCreateRequest, type ReadValueIdOptions } from "node-opcua-types";
 import { type DataType, encodedVariant, Variant, VariantArrayType } from "node-opcua-variant";
+import type { EventItemIdentity } from "../monitorable_node.js";
 import { FrontMonitoredNode, type FrontNodeHost } from "./front_node.js";
 import {
     type DescribeReply,
@@ -385,7 +387,8 @@ export class RemoteCompactBackend implements FrontNodeHost {
         nodeId: NodeId,
         filter: EventFilter,
         context: ISessionContext | null,
-        onFields: (fields: Variant[]) => void
+        onFields: (fields: Variant[]) => void,
+        item?: EventItemIdentity
     ): () => void {
         const id = ++this.#eventWatchId;
         this.#eventWatches.set(id, onFields);
@@ -394,7 +397,9 @@ export class RemoteCompactBackend implements FrontNodeHost {
             id,
             nodeId: nodeId.toString(),
             context: describeContext(context),
-            filter: encodeStructure(filter)
+            filter: encodeStructure(filter),
+            subscriptionId: item?.subscriptionId ?? 0,
+            monitoredItemId: item?.monitoredItemId ?? 0
         });
         return () => {
             this.#eventWatches.delete(id);
