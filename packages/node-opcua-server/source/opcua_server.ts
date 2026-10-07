@@ -39,6 +39,7 @@ import {
     type UnresolvedPermissionPolicy
 } from "node-opcua-address-space";
 import type { MethodResult } from "node-opcua-address-space-base";
+import type { StoreAddressSpaceOptions } from "node-opcua-address-space-store";
 import { assert } from "node-opcua-assert";
 import type { ByteString, UAString } from "node-opcua-basic-types";
 import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -1340,9 +1341,10 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      * server.engine.registerCompactNamespace() live there, in typed columns, and the Read,
      * Write, Browse and TranslateBrowsePaths services answer them from there. It is loaded
      * with the same nodesets as the node objects, so that a compact node can hang under the
-     * Objects folder. Subscriptions do not reach those nodes yet.
+     * Objects folder. Subscriptions do not reach those nodes yet. The options of the store
+     * (`{ shared: true }` for a store front threads read) may be given instead of true.
      */
-    compactAddressSpace?: boolean;
+    compactAddressSpace?: boolean | StoreAddressSpaceOptions;
     transportSettings?: IServerTransportSettings;
 }
 
