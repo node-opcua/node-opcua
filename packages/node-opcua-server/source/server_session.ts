@@ -145,7 +145,11 @@ const EXTRA_CHANNEL_LISTENERS = 10;
 /** what a Session asks of the engine it belongs to */
 export type ServerSessionParent = Pick<
     ServerEngine,
-    "addressSpace" | "clientDescription" | "incrementRejectedRequestsCount" | "_createSubscriptionOnSession"
+    | "addressSpace"
+    | "clientDescription"
+    | "incrementRejectedRequestsCount"
+    | "_createSubscriptionOnSession"
+    | "diagnosticsNamespaceIndex"
 >;
 
 /** the security of the channel a Session is on, as its diagnostics show it */
@@ -247,8 +251,8 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         this.authenticationToken = new NodeId(NodeIdType.BYTESTRING, authenticationTokenBuf);
 
         // the sessionId
-        const ownNamespaceIndex = 1; // addressSpace.getOwnNamespace().index;
-        this.nodeId = new NodeId(NodeIdType.GUID, randomGuid(), ownNamespaceIndex);
+        // the server's own namespace (1) unless it keeps its runtime nodes in one of their own
+        this.nodeId = new NodeId(NodeIdType.GUID, randomGuid(), parent.diagnosticsNamespaceIndex ?? 1);
 
         assert(this.authenticationToken instanceof NodeId);
         assert(this.nodeId instanceof NodeId);
@@ -850,7 +854,11 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
             // subscription.id,"on session", session.nodeId.toString());
-            addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
+            addElement(
+                subscriptionDiagnostics,
+                subscriptionDiagnosticsArray,
+                this.addressSpace?.getNamespace(this.parent.diagnosticsNamespaceIndex ?? 1)
+            );
         }
     }
 
@@ -920,7 +928,8 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         const sessionSecurityDiagnosticsDataType = this.addressSpace.findDataType("SessionSecurityDiagnosticsDataType");
         const sessionSecurityDiagnosticsType = this.addressSpace.findVariableType("SessionSecurityDiagnosticsType");
 
-        const namespace = this.addressSpace.getOwnNamespace();
+        // where the Session's object, its diagnostics and those of its Subscriptions are created
+        const namespace = this.addressSpace.getNamespace(this.parent.diagnosticsNamespaceIndex ?? 1);
 
         function createSessionDiagnosticsStuff(this: ServerSession) {
             if (sessionDiagnosticsDataType && sessionDiagnosticsVariableType) {
@@ -974,6 +983,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
                 this.sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
                     browseName: new QualifiedName({ name: "SessionDiagnostics", namespaceIndex: 0 }),
+                    namespace,
                     componentOf: this.sessionObject,
                     extensionObject: this._sessionDiagnostics,
                     minimumSamplingInterval: 2000 // 2 seconds
@@ -1071,6 +1081,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
                 this.sessionSecurityDiagnostics = sessionSecurityDiagnosticsType.instantiate({
                     browseName: new QualifiedName({ name: "SessionSecurityDiagnostics", namespaceIndex: 0 }),
+                    namespace,
                     componentOf: this.sessionObject,
                     extensionObject: this._sessionSecurityDiagnostics,
                     minimumSamplingInterval: 2000 // 2 seconds

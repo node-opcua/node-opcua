@@ -426,6 +426,12 @@ export interface ServerEngineOptions {
     historyServerCapabilities?: HistoryServerCapabilitiesOptions;
     serverConfiguration?: ServerConfigurationOptions;
     /**
+     * the namespace of the nodes the server creates while it runs: Sessions (their NodeId, their
+     * object and diagnostics) and the diagnostics of Subscriptions. Registered at initialize; the
+     * server's own namespace (1) when not given.
+     */
+    diagnosticsNamespaceUri?: string;
+    /**
      * OPC UA Part 4 §5.13.7 (TransferSubscriptions): an anonymous session's Subscription may only be
      * transferred over a Sign or SignAndEncrypt channel to a client with the same ApplicationUri.
      * `false` (the default) enforces the rule; `true` relaxes it and accepts anonymous-to-anonymous
@@ -463,6 +469,14 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     public clientDescription?: ApplicationDescription;
 
     public addressSpace: AddressSpace | null;
+    readonly #diagnosticsNamespaceUri?: string;
+    #diagnosticsNamespaceIndex = 1;
+
+    /** the namespace of the Sessions and of the diagnostics of the Subscriptions (see diagnosticsNamespaceUri) */
+    public get diagnosticsNamespaceIndex(): number {
+        return this.#diagnosticsNamespaceIndex;
+    }
+
     /** the compact address space, when the engine was initialized with one */
     public compactAddressSpace: CompactAddressSpace | null = null;
     public addressSpaceAccessor: IAddressSpaceAccessor | null = null;
@@ -486,6 +500,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         super();
 
         options = options || ({ applicationUri: "" } as ServerEngineOptions);
+        this.#diagnosticsNamespaceUri = options.diagnosticsNamespaceUri;
         options.buildInfo = options.buildInfo || {};
 
         ServerEngine.registry.register(this);
@@ -1007,6 +1022,9 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                         throw new Error("Internal error");
                     }
                     const addressSpace = this.addressSpace;
+                    if (this.#diagnosticsNamespaceUri) {
+                        this.#diagnosticsNamespaceIndex = addressSpace.registerNamespace(this.#diagnosticsNamespaceUri).index;
+                    }
 
                     const endTime = new Date();
                     /* c8 ignore next */
@@ -2377,7 +2395,11 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
 
             if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-                addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
+                addElement(
+                    subscriptionDiagnostics,
+                    subscriptionDiagnosticsArray,
+                    this.addressSpace?.getNamespace(this.#diagnosticsNamespaceIndex)
+                );
             }
         } catch (err) {
             errorLog("_exposeSubscriptionDiagnostics err", err);

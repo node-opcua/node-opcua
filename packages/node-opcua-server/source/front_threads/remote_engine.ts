@@ -111,6 +111,8 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
     public _internalState: "creating" | "initializing" | "initialized" | "shutdown" | "disposed" = "creating";
     public readonly serverCapabilities: ServerCapabilities;
     public readonly isAuditing: boolean;
+    /** where the Sessions get their NodeId: the engine's (see OPCUAServerOptions.diagnosticsNamespaceUri) */
+    public readonly diagnosticsNamespaceIndex: number;
     /** a front holds no address space: the engine's is the only one */
     public readonly addressSpace: AddressSpace | null = null;
     public clientDescription?: ApplicationDescription;
@@ -137,6 +139,7 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
         super();
         this.serverCapabilities = new ServerCapabilities(state.serverCapabilities);
         this.isAuditing = state.isAuditing;
+        this.diagnosticsNamespaceIndex = state.diagnosticsNamespaceIndex;
         this.#buildInfo = decodeStructure(state.buildInfo, new BuildInfo());
         this.#counts = new Int32Array(state.counts);
         this.#channel = channel;

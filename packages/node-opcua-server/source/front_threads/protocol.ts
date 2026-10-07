@@ -296,6 +296,8 @@ export interface EngineServerState {
     /** the BuildInfo, as its binary encoding */
     buildInfo: Uint8Array;
     isAuditing: boolean;
+    /** where the Sessions get their NodeId (see OPCUAServerOptions.diagnosticsNamespaceUri) */
+    diagnosticsNamespaceIndex: number;
     /** OPC 10000-4 5.13.7: see OPCUAServerOptions.allowAnonymousSubscriptionTransferOnUnsecuredChannel */
     allowAnonymousSubscriptionTransferOnUnsecuredChannel: boolean;
     /** EngineCount, kept up to date by the engine */

@@ -1272,6 +1272,12 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      * @default false
      */
     allowAnonymousSubscriptionTransferOnUnsecuredChannel?: boolean;
+    /**
+     * a namespace of its own for the nodes the server creates while it runs: Sessions (their NodeId,
+     * object and diagnostics) and the diagnostics of Subscriptions, kept apart from the server's own
+     * namespace (1), where they go when this is not given. Registered when the server initializes.
+     */
+    diagnosticsNamespaceUri?: string;
 
     /**
      * strategy used by the server to declare itself to a discovery server
@@ -1828,6 +1834,7 @@ export abstract class OPCUAServerCore<
                 buildInfo,
                 isAuditing: options.isAuditing,
                 allowAnonymousSubscriptionTransferOnUnsecuredChannel: options.allowAnonymousSubscriptionTransferOnUnsecuredChannel,
+                diagnosticsNamespaceUri: options.diagnosticsNamespaceUri,
                 serverCapabilities: options.serverCapabilities,
 
                 serverConfiguration: {
