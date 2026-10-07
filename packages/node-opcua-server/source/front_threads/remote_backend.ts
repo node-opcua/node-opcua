@@ -41,7 +41,7 @@ import {
     type ReferenceDescription,
     type WriteValue
 } from "node-opcua-types";
-import { DataType, EncodedVariant, Variant, VariantArrayType } from "node-opcua-variant";
+import { DataType, encodedVariant, Variant, VariantArrayType } from "node-opcua-variant";
 import type { ICompactBackend } from "../compact_backend.js";
 import { FrontMonitoredNode, type FrontNodeHost } from "./front_node.js";
 import {
@@ -301,7 +301,7 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
         let variant: Variant;
         if (v.encoded) {
             // a string, an array: its binary encoding, copied out of the shared heap, goes into the response as it is
-            variant = new EncodedVariant(v.encoded);
+            variant = encodedVariant(v.encoded);
         } else {
             variant = new Variant(null);
             variant.dataType = v.dataType as DataType;
