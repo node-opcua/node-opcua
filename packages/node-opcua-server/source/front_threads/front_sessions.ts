@@ -145,6 +145,11 @@ export class FrontSessions {
         return true;
     }
 
+    /** the room admit() made, given back: the session it was for closed before created() */
+    public cancelAdmission(): void {
+        this.#reserved = Math.max(0, this.#reserved - 1);
+    }
+
     /** a session a front created: its record here, its subscriptions on the least loaded session worker */
     public created(front: Worker, record: SessionRecord): number {
         this.#reserved = Math.max(0, this.#reserved - 1);

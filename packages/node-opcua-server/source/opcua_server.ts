@@ -2671,14 +2671,6 @@ export abstract class OPCUAServerCore<
             // and close !
         }
 
-        // From OPCUA V1.03 Part 4 5.6.2 CreateSession
-        // A Server application should limit the number of Sessions. To protect against misbehaving Clients and denial
-        // of service attacks, the Server shall close the oldest Session that is not activated before reaching the
-        // maximum number of supported Sessions
-        if (!(await this.engine.admitSession())) {
-            return rejectConnection(this, StatusCodes.BadTooManySessions);
-        }
-
         // Release 1.03 OPC Unified Architecture, Part 4 page 24 - CreateSession Parameters
         // client should prove a sessionName
         // Session name is a Human readable string that identifies the Session. The Server makes this name and the
@@ -2743,6 +2735,15 @@ export abstract class OPCUAServerCore<
         const { errCode, endpoint } = validate_security_endpoint(this, request, channel);
         if (errCode !== StatusCodes.Good) {
             return rejectConnection(this, errCode);
+        }
+
+        // From OPCUA V1.03 Part 4 5.6.2 CreateSession
+        // A Server application should limit the number of Sessions. To protect against misbehaving Clients and denial
+        // of service attacks, the Server shall close the oldest Session that is not activated before reaching the
+        // maximum number of supported Sessions. Asked once the request is valid: a refused request takes no
+        // room, and closes no other Session to make some.
+        if (!(await this.engine.admitSession())) {
+            return rejectConnection(this, StatusCodes.BadTooManySessions);
         }
 
         // A CreateSession can still arrive after shutdown() has begun disposing the

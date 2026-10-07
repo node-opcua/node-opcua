@@ -15,6 +15,7 @@ import type { NodeId } from "node-opcua-nodeid";
 import { constructEventFilter, ofType } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
 import {
+    CreateSessionRequest,
     CreateSubscriptionRequest,
     DataChangeNotification,
     PublishRequest,
@@ -137,6 +138,28 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         const sessions: ClientSession[] = [];
         for (let k = 0; k < 3; k++) sessions.push(await sessionOn(k % 2));
         await should(sessionOn(1)).be.rejectedWith(/BadTooManySessions/);
+        for (const session of sessions) await session.close();
+    });
+
+    it("takes no room for a CreateSession it refuses", async () => {
+        // more refused requests than maxSessions (3): each would hold a place for good if the engine kept one
+        for (let k = 0; k < 4; k++) {
+            const client = await clientOn(k % 2);
+            const internal = client as unknown as {
+                performMessageTransaction(request: { clientNonce?: Buffer }, callback: unknown): void;
+            };
+            const send = internal.performMessageTransaction.bind(internal);
+            internal.performMessageTransaction = (request, callback) => {
+                // longer than any nonce the server accepts: refused with BadNonceInvalid
+                if (request instanceof CreateSessionRequest) request.clientNonce = Buffer.alloc(4096, 0x42);
+                send(request, callback);
+            };
+            await should(client.createSession()).be.rejectedWith(/BadNonceInvalid/);
+            internal.performMessageTransaction = send;
+        }
+        const sessions: ClientSession[] = [];
+        for (let k = 0; k < 3; k++) sessions.push(await sessionOn(k % 2));
+        should(engine.serverEngine.currentSessionCount).eql(3);
         for (const session of sessions) await session.close();
     });
 

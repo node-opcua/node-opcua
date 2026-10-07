@@ -488,6 +488,8 @@ export type FrontRequest =
     | { kind: "value"; context: ContextDescriptor; index: number; generation: number }
     /** room for one more session (true), made by closing the oldest not activated if needed; held until sessionCreated */
     | { kind: "admitSession" }
+    /** the room admitSession made is not used: the session closed before the engine heard of it */
+    | { kind: "cancelAdmission" }
     /** answered with the index of the session worker that hosts the session's subscriptions */
     | { kind: "sessionCreated"; session: SessionRecord }
     | { kind: "sessionActivated"; activation: SessionActivation }
