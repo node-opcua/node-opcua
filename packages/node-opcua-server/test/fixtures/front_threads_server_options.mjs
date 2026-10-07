@@ -12,6 +12,16 @@ export default async function frontServerOptions(data, { front }) {
     await serverCertificateManager.initialize();
     // hooks that count their calls where the test sees them (a session worker is another thread)
     const counts = data.hookCounts ? new Int32Array(data.hookCounts) : null;
+    // a session worker that ends at the first monitored item it creates (the test of a worker that dies)
+    if (data.endWorkerOnFirstItem && front === -1) {
+        return {
+            onCreateMonitoredItem: async () => {
+                setImmediate(() => {
+                    throw new Error("session worker ended by the test");
+                });
+            }
+        };
+    }
     const hooks = counts
         ? {
               onCreateMonitoredItem: async () => {

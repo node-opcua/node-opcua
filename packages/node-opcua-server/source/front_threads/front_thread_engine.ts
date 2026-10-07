@@ -181,7 +181,13 @@ export class FrontThreadEngine {
     readonly #sessionWorkers: Worker[] = [];
     readonly #mirrors: (() => void)[] = [];
     // the TransferSubscriptions waiting for the other session workers, by request id
-    readonly #exports = new Map<number, { waiting: number; resolve: (result: TransferredSubscription | number | null) => void }>();
+    readonly #exports = new Map<
+        number,
+        { waiting: Set<Worker>; resolve: (result: TransferredSubscription | number | null) => void }
+    >();
+    // the session workers that ended after start: no request goes to them
+    readonly #gone = new Set<Worker>();
+    #stopping = false;
     #exportId = 0;
     // the event items of each worker: their filter evaluated here, on the node objects
     readonly #eventWatches = new Map<Worker, Map<number, { stop: () => void }>>();
@@ -376,10 +382,13 @@ export class FrontThreadEngine {
 
     /** the messages of a front or a session worker; resolves with what it reports when ready */
     #listen(worker: Worker, name: string): Promise<string> {
+        let started = false;
         return new Promise<string>((resolve, reject) => {
             worker.on("message", (message: FrontToEngine) => {
-                if (message.kind === "ready") resolve(message.endpointUrl);
-                else if (message.kind === "failed") reject(new Error(`${name}: ${message.message}`));
+                if (message.kind === "ready") {
+                    started = true;
+                    resolve(message.endpointUrl);
+                } else if (message.kind === "failed") reject(new Error(`${name}: ${message.message}`));
                 else if (message.kind === "requests") this.#answer(worker, message.ids, message.requests);
                 else if (message.kind === "watches") this.#applyWatches(worker, message.operations);
                 else if (message.kind === "changesDone") this.#changesDone(worker);
@@ -392,7 +401,7 @@ export class FrontThreadEngine {
                         message.rejectedRequests
                     );
                 else if (message.kind === "sessionReleased") this.#sessions.released(message.id, message.state);
-                else if (message.kind === "subscriptionExported") this.#subscriptionExported(message.id, message.result);
+                else if (message.kind === "subscriptionExported") this.#subscriptionExported(worker, message.id, message.result);
                 else if (message.kind === "subscriptionChanges") this.#sessions.subscriptionsChanged(message.changes);
                 else if (message.kind === "subscriptionMethodCalled")
                     this.#sessions.subscriptionMethodCalled(message.id, message.result);
@@ -402,12 +411,50 @@ export class FrontThreadEngine {
                 warningLog(`FrontThreadEngine: ${name} failed:`, err.stack ?? err.message);
                 reject(err);
             });
-            worker.once("exit", (code) => reject(new Error(`${name} exited with code ${code}`)));
+            worker.once("exit", (code) => {
+                reject(new Error(`${name} exited with code ${code}`));
+                if (started && !this.#stopping) {
+                    warningLog(`FrontThreadEngine: ${name} exited with code ${code}, its sessions are closed`);
+                    this.#threadGone(worker);
+                }
+            });
         });
+    }
+
+    /** a front or a session worker that ended while the server runs: nothing waits on it any longer */
+    #threadGone(worker: Worker): void {
+        this.#gone.add(worker);
+        const front = this.#fronts.indexOf(worker);
+        if (front >= 0) {
+            this.#fronts.splice(front, 1);
+            this.#sessions.frontGone(worker);
+        }
+        const index = this.#sessionWorkers.indexOf(worker);
+        if (index >= 0) {
+            // the index stays: the sessions name their worker by it
+            this.#sessions.workerGone(index);
+            for (const [id, pending] of this.#exports) {
+                if (!pending.waiting.delete(worker) || pending.waiting.size > 0) continue;
+                this.#exports.delete(id);
+                pending.resolve(null);
+            }
+        }
+        for (const watch of this.#eventWatches.get(worker)?.values() ?? []) watch.stop();
+        this.#eventWatches.delete(worker);
+        this.#eventsOut.delete(worker);
+        for (const nodeId of [...this.#objectWatches.keys()]) this.#unwatchObject(worker, nodeId);
+        this.#objectChanges.delete(worker);
+        for (const [index, watch] of [...this.#watched]) {
+            if (!watch.fronts.delete(worker) || watch.fronts.size > 0) continue;
+            this.#watched.delete(index);
+            this.#stopListening(watch);
+        }
+        this.#outgoing.delete(worker);
     }
 
     /** the fronts close their sessions and stop listening, then end */
     public async shutdown(): Promise<void> {
+        this.#stopping = true;
         for (const watch of this.#watched.values()) this.#stopListening(watch);
         this.#watched.clear();
         this.#outgoing.clear();
@@ -865,22 +912,22 @@ export class FrontThreadEngine {
         subscriptionId: number,
         identity: ITransferSessionIdentity
     ): Promise<TransferredSubscription | number | null> | null {
-        const others = this.#sessionWorkers.filter((worker) => worker !== asker);
+        const others = this.#sessionWorkers.filter((worker) => worker !== asker && !this.#gone.has(worker));
         if (others.length === 0) return null;
         const id = ++this.#exportId;
         return new Promise((resolve) => {
-            this.#exports.set(id, { waiting: others.length, resolve });
+            this.#exports.set(id, { waiting: new Set(others), resolve });
             const ask: EngineToFront = { kind: "exportSubscription", id, subscriptionId, identity };
             for (const worker of others) worker.postMessage(ask);
         });
     }
 
-    #subscriptionExported(id: number, result: TransferredSubscription | number | null): void {
+    #subscriptionExported(worker: Worker, id: number, result: TransferredSubscription | number | null): void {
         const pending = this.#exports.get(id);
         if (!pending) return;
-        pending.waiting--;
+        pending.waiting.delete(worker);
         // the worker that has it answers with it or with its refusal; the others with null
-        if (result !== null || pending.waiting === 0) {
+        if (result !== null || pending.waiting.size === 0) {
             this.#exports.delete(id);
             pending.resolve(result);
         }

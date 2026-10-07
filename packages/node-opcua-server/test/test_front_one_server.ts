@@ -534,6 +534,72 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
     });
 });
 
+describe("FrontThreadEngine, one server: a session worker that ends", function () {
+    this.timeout(120000);
+    const endPort = 5844;
+
+    it("closes its sessions, answers what waited on it, and serves new sessions from the other worker", async () => {
+        const engine = await FrontThreadEngine.create({ applicationUri: "urn:test:worker-ends" });
+        const ns = engine.registerNamespace("urn:test:worker-ends:plant");
+        engine.addressSpace.addVariable({
+            nodeId: `ns=${ns};s=Level`,
+            browseName: "Level",
+            organizedBy: engine.addressSpace.findNode("ns=0;i=85") as never,
+            dataType: "Double",
+            value: { dataType: DataType.Double, value: 1.25 }
+        });
+        await engine.start({
+            fronts: 1,
+            ownPorts: true,
+            sessionWorkers: 2,
+            serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
+            serverModuleData: { port: endPort, endWorkerOnFirstItem: true }
+        });
+        const clients: OPCUAClient[] = [];
+        const connect = async () => {
+            const client = OPCUAClient.create({ endpointMustExist: false, connectionStrategy: { maxRetry: 0 } });
+            await client.connect(`opc.tcp://localhost:${endPort}`);
+            clients.push(client);
+            return client.createSession();
+        };
+        try {
+            const first = await connect();
+            const subscription = ClientSubscription.create(first, {
+                requestedPublishingInterval: 50,
+                requestedLifetimeCount: 600,
+                requestedMaxKeepAliveCount: 10,
+                publishingEnabled: true
+            });
+            await new Promise<void>((resolve) => subscription.once("started", () => resolve()));
+            // GetMonitoredItems waits on the worker: answered when it ends
+            const listed = first.call({
+                objectId: "ns=0;i=2253",
+                methodId: "ns=0;i=11492",
+                inputArguments: [{ dataType: DataType.UInt32, value: subscription.subscriptionId }]
+            });
+            // its first monitored item ends the worker of this session
+            ClientMonitoredItem.create(
+                subscription,
+                { nodeId: `ns=${ns};s=Level`, attributeId: AttributeIds.Value },
+                { samplingInterval: 0, queueSize: 1 },
+                TimestampsToReturn.Both
+            );
+            const end = Date.now() + 10000;
+            while (engine.serverEngine.currentSessionCount > 0 && Date.now() < end) await new Promise((r) => setTimeout(r, 50));
+            should(engine.serverEngine.currentSessionCount).eql(0, "the session of the worker that ended is closed");
+            await Promise.race([listed.catch(() => undefined), new Promise((r) => setTimeout(r, 5000))]);
+            // a new session goes to the other worker, and is served
+            const second = await connect();
+            const value = await second.read({ nodeId: `ns=${ns};s=Level`, attributeId: AttributeIds.Value });
+            should(value.value.value).eql(1.25);
+            await second.close();
+        } finally {
+            for (const client of clients) await client.disconnect();
+            await engine.shutdown();
+        }
+    });
+});
+
 describe("FrontThreadEngine, one server: one module as the front worker and its serverModule", function () {
     this.timeout(60000);
     const onePort = 5843;
