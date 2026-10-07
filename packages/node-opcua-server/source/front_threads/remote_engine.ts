@@ -444,7 +444,7 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
         return Atomics.load(this.#counts, EngineCount.PublishingIntervals);
     }
 
-    public _createSubscriptionOnSession(_session: ServerSession, _parameters: unknown): Subscription {
+    public _createSubscriptionOnSession(_session: ServerSession, _parameters: unknown, _id?: number): Subscription {
         throw new Error("FrontOPCUAServer: subscriptions are not served by this front yet");
     }
 

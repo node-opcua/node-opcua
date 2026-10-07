@@ -2421,7 +2421,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * create a new subscription
      * @return {Subscription}
      */
-    public _createSubscriptionOnSession(session: ServerSession, request: CreateSubscriptionRequestLike): Subscription {
+    /** `id`: the id the subscription keeps, when it comes from another thread of the server */
+    public _createSubscriptionOnSession(session: ServerSession, request: CreateSubscriptionRequestLike, id?: number): Subscription {
         assert(Object.hasOwn(request, "requestedPublishingInterval")); // Duration
         assert(Object.hasOwn(request, "requestedLifetimeCount")); // Counter
         assert(Object.hasOwn(request, "requestedMaxKeepAliveCount")); // Counter
@@ -2435,7 +2436,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         const lifeTimeCount = request.requestedLifetimeCount || 0;
 
         const subscription = new Subscription({
-            id: _get_next_subscriptionId(),
+            id: id ?? _get_next_subscriptionId(),
             lifeTimeCount,
             maxKeepAliveCount,
             maxNotificationsPerPublish: request.maxNotificationsPerPublish,

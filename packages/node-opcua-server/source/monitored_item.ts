@@ -856,6 +856,11 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         return true;
     }
 
+    /** the items this one triggers (SetTriggering) */
+    public get linkedItems(): readonly number[] {
+        return this._linkedItems ?? [];
+    }
+
     public hasLinkItem(linkedMonitoredItemId: number): boolean {
         if (!this._linkedItems) {
             return false;

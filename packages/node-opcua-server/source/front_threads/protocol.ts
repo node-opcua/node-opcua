@@ -10,11 +10,14 @@ import type { MessagePort } from "node:worker_threads";
 import type { ISessionContext } from "node-opcua-address-space";
 import type { SharedStoreDescriptor } from "node-opcua-address-space-store";
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
+import type { TimestampsToReturn } from "node-opcua-data-value";
 import { type DataValue, decodeDataValue, encodeDataValue, encodedDataValue } from "node-opcua-data-value";
 import { decodeExtensionObject, encodeExtensionObject } from "node-opcua-extension-object";
 import type { BaseUAObject } from "node-opcua-factory";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { MessageSecurityMode } from "node-opcua-types";
+import { MessageSecurityMode, MonitoredItemCreateRequest, NotificationMessage } from "node-opcua-types";
+import type { SubscriptionTransferState } from "../server_subscription.js";
+import type { ITransferSessionIdentity } from "../sessions_compatible_for_transfer.js";
 
 /** what the engine needs of a session to apply the permission rules of the store */
 export interface ContextDescriptor {
@@ -154,6 +157,22 @@ export function decodeStructures<T extends { decode(stream: BinaryStream): void 
 }
 
 /**
+ * structures of encodeStructures(), each built by its constructor before it is decoded: for those
+ * whose decode() fills nested structures the constructor creates (MonitoredItemCreateRequest)
+ */
+export function decodeStructuresWith<T extends { decode(stream: BinaryStream): void }>(bytes: Uint8Array, make: () => T): T[] {
+    const stream = new BinaryStream(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength));
+    const count = stream.readUInt32();
+    const values: T[] = new Array(count);
+    for (let i = 0; i < count; i++) {
+        const value = make();
+        value.decode(stream);
+        values[i] = value;
+    }
+    return values;
+}
+
+/**
  * DataValues, one after the other, with their count first and each one's byte length in front of
  * it: a front can then hand on the bytes of a value it does not need to look into (see
  * encodedDataValuesOf), without decoding it to find where the next one starts
@@ -284,6 +303,8 @@ export interface EngineServerState {
     /** the BuildInfo, as its binary encoding */
     buildInfo: Uint8Array;
     isAuditing: boolean;
+    /** OPC 10000-4 5.13.7: see OPCUAServerOptions.allowAnonymousSubscriptionTransferOnUnsecuredChannel */
+    allowAnonymousSubscriptionTransferOnUnsecuredChannel: boolean;
     /** EngineCount, kept up to date by the engine */
     counts: SharedArrayBuffer;
 }
@@ -328,6 +349,64 @@ export interface SessionState {
     nonce: Uint8Array | null;
     /** the session worker that hosts its subscriptions */
     worker: number;
+}
+
+/** a Subscription on its way to another session worker (SubscriptionTransferState, its structures encoded) */
+export interface TransferredSubscription {
+    id: number;
+    publishingInterval: number;
+    lifeTimeCount: number;
+    maxKeepAliveCount: number;
+    maxNotificationsPerPublish: number;
+    publishingEnabled: boolean;
+    priority: number;
+    nextSequenceNumber: number;
+    /** the NotificationMessages not acknowledged yet, encodeStructures() of them */
+    sentNotificationMessages: Uint8Array;
+    /** the MonitoredItemCreateRequests of its items, encodeStructures() of them, in the order of items */
+    requests: Uint8Array;
+    items: { monitoredItemId: number; timestampsToReturn: number; linkedItems: number[] }[];
+}
+
+export function encodeTransferState(state: SubscriptionTransferState): TransferredSubscription {
+    return {
+        id: state.id,
+        publishingInterval: state.publishingInterval,
+        lifeTimeCount: state.lifeTimeCount,
+        maxKeepAliveCount: state.maxKeepAliveCount,
+        maxNotificationsPerPublish: state.maxNotificationsPerPublish,
+        publishingEnabled: state.publishingEnabled,
+        priority: state.priority,
+        nextSequenceNumber: state.nextSequenceNumber,
+        sentNotificationMessages: encodeStructures(state.sentNotificationMessages),
+        requests: encodeStructures(state.monitoredItems.map((item) => item.request)),
+        items: state.monitoredItems.map((item) => ({
+            monitoredItemId: item.monitoredItemId,
+            timestampsToReturn: item.timestampsToReturn,
+            linkedItems: item.linkedItems
+        }))
+    };
+}
+
+export function decodeTransferState(transferred: TransferredSubscription): SubscriptionTransferState {
+    const requests = decodeStructuresWith(transferred.requests, () => new MonitoredItemCreateRequest());
+    return {
+        id: transferred.id,
+        publishingInterval: transferred.publishingInterval,
+        lifeTimeCount: transferred.lifeTimeCount,
+        maxKeepAliveCount: transferred.maxKeepAliveCount,
+        maxNotificationsPerPublish: transferred.maxNotificationsPerPublish,
+        publishingEnabled: transferred.publishingEnabled,
+        priority: transferred.priority,
+        nextSequenceNumber: transferred.nextSequenceNumber,
+        sentNotificationMessages: decodeStructuresWith(transferred.sentNotificationMessages, () => new NotificationMessage()),
+        monitoredItems: transferred.items.map((item, k) => ({
+            monitoredItemId: item.monitoredItemId,
+            timestampsToReturn: item.timestampsToReturn as TimestampsToReturn,
+            linkedItems: item.linkedItems,
+            request: requests[k]
+        }))
+    };
 }
 
 /** the services a front forwards to the engine's ServerEngine as they are */
@@ -389,7 +468,9 @@ export type EngineToFront =
     /** the fields of events that passed the filter of watchEvents ids, as EventFieldLists (clientHandle 0) */
     | { kind: "events"; ids: number[]; fields: Uint8Array }
     /** to a session worker: the engine closed a session it hosts the subscriptions of */
-    | { kind: "workerSessionClosed"; token: string }
+    | { kind: "workerSessionClosed"; token: string; deleteSubscriptions: boolean }
+    /** to a session worker: give subscription subscriptionId up to another worker, if it has it (subscriptionExported) */
+    | { kind: "exportSubscription"; id: number; subscriptionId: number; identity: ITransferSessionIdentity }
     /** another front takes this session over: answer with its state (sessionReleased) and drop it */
     | { kind: "releaseSession"; id: number; token: string }
     | { kind: "stop" };
@@ -434,6 +515,11 @@ export type FrontRequest =
       }
     /** a session another front holds, for this front to go on with (ActivateSession on a new channel): its SessionState, or null */
     | { kind: "takeSession"; token: string }
+    /**
+     * TransferSubscriptions to a session of a session worker, of a subscription that worker does not
+     * hold: the engine asks the others. Answered with the subscription, a refusal (a StatusCode value) or null
+     */
+    | { kind: "takeSubscription"; subscriptionId: number; identity: ITransferSessionIdentity }
     /** a service of the engine's ServerEngine, its request as its binary encoding, run in the context of the session */
     | { kind: "service"; service: ServiceKind; token: string | null; request: Uint8Array }
     /** a session worker watches a node object (namespace 0): the engine pushes the values written to it (objectChanges) */
@@ -472,6 +558,8 @@ export type FrontToEngine =
           securityRejected: number;
           rejectedRequests: number;
       }
+    /** a session worker's answer to exportSubscription: the subscription, a refusal (a StatusCode value), or null when it has none */
+    | { kind: "subscriptionExported"; id: number; result: TransferredSubscription | number | null }
     /** the state of a session another front takes over (releaseSession); null when this front no longer has it */
     | { kind: "sessionReleased"; id: number; state: SessionState | null }
     | { kind: "ready"; endpointUrl: string }
