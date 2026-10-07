@@ -21,7 +21,6 @@ import type {
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import type { DateTime, UInt32 } from "node-opcua-basic-types";
-import { ObjectTypeIds } from "node-opcua-constants";
 import { AttributeIds, NodeClass, type QualifiedNameOptions } from "node-opcua-data-model";
 import {
     apply_timestamps,
@@ -33,7 +32,7 @@ import {
 } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
-import { makeNodeId, type NodeId, sameNodeId } from "node-opcua-nodeid";
+import type { NodeId } from "node-opcua-nodeid";
 import { type NumericalRange0, NumericRange } from "node-opcua-numeric-range";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { EventFilter, extractEventFields } from "node-opcua-service-filter";
@@ -66,8 +65,9 @@ import {
     type SimpleAttributeOperand,
     type SubscriptionDiagnosticsDataType
 } from "node-opcua-types";
-import { DataType, sameVariant, Variant } from "node-opcua-variant";
+import { sameVariant, Variant } from "node-opcua-variant";
 import { canReceiveEvent } from "./audit_event_permissions.js";
+import { isRefreshBracketEvent } from "./condition_refresh_bracket.js";
 import { checkWhereClauseOnAdressSpace as checkWhereClauseOnAddressSpace } from "./filter/check_where_clause_on_address_space.js";
 import type { CompactMonitorableNode, MonitorableNode } from "./monitorable_node.js";
 import { appendToTimer, removeFromTimer } from "./node_sampler.js";
@@ -83,24 +83,6 @@ const defaultItemToMonitor: ReadValueIdOptions = new ReadValueId({
     attributeId: AttributeIds.Value,
     indexRange: undefined
 });
-
-const refreshStartEventTypeNodeId = makeNodeId(ObjectTypeIds.RefreshStartEventType);
-const refreshEndEventTypeNodeId = makeNodeId(ObjectTypeIds.RefreshEndEventType);
-
-/** every EventData carries its EventType field: constructEventData fills it from the raised type */
-interface IEventDataWithEventType {
-    eventType?: Variant;
-}
-
-/** the RefreshStart / RefreshEnd bracket of a ConditionRefresh, and nothing else */
-function _is_refresh_bracket_event(eventData: IEventData): boolean {
-    const eventType = (eventData as IEventDataWithEventType).eventType;
-    if (!eventType || eventType.dataType !== DataType.NodeId) {
-        return false;
-    }
-    const eventTypeNodeId = eventType.value as NodeId;
-    return sameNodeId(eventTypeNodeId, refreshStartEventTypeNodeId) || sameNodeId(eventTypeNodeId, refreshEndEventTypeNodeId);
-}
 
 const debugLog = make_debugLog("monitored_item");
 const doDebug = checkDebugFlag("monitored_item");
@@ -439,6 +421,7 @@ export interface IServerSession2 {
 }
 
 export interface ISubscription {
+    readonly id?: number;
     $session?: IServerSession2;
     subscriptionDiagnostics: SubscriptionDiagnosticsDataType;
     getMonitoredItem(monitoredItemId: number): MonitoredItem | null;
@@ -1354,7 +1337,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
          * ConditionRefresh - it is how a Server asks for one - so there is no refresh scope to
          * recognise it in and nothing here exempts it.
          */
-        const isRefreshBracketForMe = scope !== null && _is_refresh_bracket_event(eventData);
+        const isRefreshBracketForMe = scope !== null && isRefreshBracketEvent(eventData);
 
         // OPC 10000-3 PermissionType ReceiveEvents (bit 11): the Session receives the Event only if
         // it holds the permission on the EventType and on the SourceNode - how Audit Events are
@@ -1453,8 +1436,11 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             const filtering = this.node as Partial<CompactMonitorableNode>;
             if (filtering.subscribeEvents && this.filter instanceof EventFilter) {
                 // the node filters its events where they are raised: the item queues the fields it is given
-                this._unsubscribeEvents ??= filtering.subscribeEvents(this.filter, sessionContext, (fields: Variant[]) =>
-                    this._enqueue_event(fields)
+                this._unsubscribeEvents ??= filtering.subscribeEvents(
+                    this.filter,
+                    sessionContext,
+                    (fields: Variant[]) => this._enqueue_event(fields),
+                    { subscriptionId: this.$subscription?.id ?? 0, monitoredItemId: this.monitoredItemId }
                 );
                 return;
             }

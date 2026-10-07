@@ -33,7 +33,13 @@
  */
 import type { EventEmitter } from "node:events";
 import { MessageChannel, type MessagePort, Worker } from "node:worker_threads";
-import { type CompactAddressSpace, type IEventData, SessionContext, type UAObjectType } from "node-opcua-address-space";
+import {
+    type CompactAddressSpace,
+    type IConditionRefreshScopeHolder,
+    type IEventData,
+    SessionContext,
+    type UAObjectType
+} from "node-opcua-address-space";
 import { type StoreNodeView, StoreServices, type StoreVariableView } from "node-opcua-address-space-store";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ServerState } from "node-opcua-common";
@@ -58,13 +64,13 @@ import {
 } from "node-opcua-types";
 import { decodeVariant, type Variant } from "node-opcua-variant";
 import { canReceiveEvent } from "../audit_event_permissions.js";
+import { isRefreshBracketEvent } from "../condition_refresh_bracket.js";
 import { checkWhereClauseOnAdressSpace } from "../filter/check_where_clause_on_address_space.js";
 import { ServerEngine, type ServerEngineOptions } from "../server_engine.js";
 import type { ITransferSessionIdentity } from "../sessions_compatible_for_transfer.js";
 import { FrontSessions } from "./front_sessions.js";
 import { mirrorNodeObjects } from "./node_object_mirror.js";
 import {
-    type ContextDescriptor,
     contextOf,
     type DescribeReply,
     decodeStructure,
@@ -379,6 +385,7 @@ export class FrontThreadEngine {
                     );
                 else if (message.kind === "sessionReleased") this.#sessions.released(message.id, message.state);
                 else if (message.kind === "subscriptionExported") this.#subscriptionExported(message.id, message.result);
+                else if (message.kind === "subscriptionChanges") this.#sessions.subscriptionsChanged(message.changes);
             });
             // after it started, a thread that fails is reported: its sessions or connections stop being served
             worker.on("error", (err: Error) => {
@@ -479,7 +486,7 @@ export class FrontThreadEngine {
                 return encodeStructure(result);
             }
             case "watchEvents":
-                this.#watchEvents(worker, request.id, request.nodeId, request.context, request.filter);
+                this.#watchEvents(worker, request);
                 return null;
             case "unwatchEvents":
                 this.#eventWatches.get(worker)?.get(request.id)?.stop();
@@ -711,15 +718,26 @@ export class FrontThreadEngine {
      * the events of a node object for an event item of a worker: filtered here, where the address
      * space is, with the item's filter and the roles of its session; the selected fields go to the worker
      */
-    #watchEvents(worker: Worker, id: number, nodeId: string, descriptor: ContextDescriptor, filterBytes: Uint8Array): void {
+    #watchEvents(worker: Worker, request: Extract<FrontRequest, { kind: "watchEvents" }>): void {
+        const { id, subscriptionId, monitoredItemId } = request;
         const addressSpace = this.serverEngine.addressSpace;
-        const node = addressSpace?.findNode(nodeId) as unknown as EventEmitter | null;
+        const node = addressSpace?.findNode(request.nodeId) as unknown as EventEmitter | null;
         if (!addressSpace || !node) return;
-        const filter = decodeStructure(filterBytes, new EventFilter());
-        const context = new RolesContext(descriptor);
+        const filter = decodeStructure(request.filter, new EventFilter());
+        const context = new RolesContext(request.context);
         const listener = (eventData: IEventData) => {
-            if (!canReceiveEvent(context, addressSpace, eventData)) return;
+            // a ConditionRefresh in progress goes to the items of the Subscription it names (OPC 10000-9 5.5.7, 5.5.8),
+            // its bracket whatever their filter (4.5), as MonitoredItem does where the events are raised
+            const scope = (addressSpace as Partial<IConditionRefreshScopeHolder>)._condition_refresh_scope;
+            const forThisItem =
+                !!scope &&
+                scope.subscription.id === subscriptionId &&
+                (scope.monitoredItemId === undefined || scope.monitoredItemId === monitoredItemId);
+            if (scope && !forThisItem) return;
+            const bracket = forThisItem && isRefreshBracketEvent(eventData);
+            if (!bracket && !canReceiveEvent(context, addressSpace, eventData)) return;
             if (
+                !bracket &&
                 filter.whereClause &&
                 !checkWhereClauseOnAdressSpace(addressSpace, SessionContext.defaultContext, filter.whereClause, eventData)
             ) {

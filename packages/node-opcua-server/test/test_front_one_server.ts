@@ -1,5 +1,5 @@
 import net from "node:net";
-import type { IEventData } from "node-opcua-address-space";
+import type { IEventData, UAConditionEx } from "node-opcua-address-space";
 import {
     ClientMonitoredItem,
     type ClientSession,
@@ -11,7 +11,7 @@ import {
 } from "node-opcua-client";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { constructEventFilter } from "node-opcua-service-filter";
+import { constructEventFilter, ofType } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataChangeNotification, PublishRequest, type PublishResponse, type TransferSubscriptionsResponse } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
@@ -299,6 +299,80 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         while (!messages.includes("from the engine") && Date.now() < end) await new Promise((resolve) => setTimeout(resolve, 20));
         should(messages).containEql("from the engine");
         await subscription.terminate();
+        await session.close();
+    });
+
+    it("runs a ConditionRefresh for a subscription of a session worker, and for that subscription only", async () => {
+        // a retained condition in the engine, its events reaching the Server object
+        const addressSpace = engine.serverEngine.addressSpace;
+        if (!addressSpace) throw new Error("no address space");
+        addressSpace.installAlarmsAndConditionsService();
+        const namespace = addressSpace.getOwnNamespace();
+        const objects = addressSpace.rootFolder.objects;
+        const area = namespace.addObject({
+            browseName: "Area",
+            eventNotifier: 1,
+            notifierOf: objects.server,
+            organizedBy: objects
+        });
+        const boiler = namespace.addObject({ browseName: "Boiler", componentOf: area, eventSourceOf: area });
+        const conditionType = namespace.addObjectType({ browseName: "BoilerConditionType", subtypeOf: "ConditionType" });
+        const condition = namespace.instantiateCondition(conditionType, {
+            browseName: "BoilerCondition",
+            conditionSource: boiler,
+            organizedBy: objects
+        }) as UAConditionEx;
+        condition.currentBranch().setRetain(true);
+
+        const session = await sessionOn(1);
+        /** a subscription with one item on the Server object's events; the EventTypes it received */
+        async function eventSubscription(where?: ReturnType<typeof ofType>) {
+            const subscription = ClientSubscription.create(session, {
+                requestedPublishingInterval: 50,
+                requestedLifetimeCount: 600,
+                requestedMaxKeepAliveCount: 10,
+                publishingEnabled: true
+            });
+            await new Promise<void>((resolve) => subscription.once("started", () => resolve()));
+            const eventTypes: string[] = [];
+            const item = ClientMonitoredItem.create(
+                subscription,
+                { nodeId: "ns=0;i=2253", attributeId: AttributeIds.EventNotifier },
+                { queueSize: 100, filter: constructEventFilter(["EventType"], where) },
+                TimestampsToReturn.Both
+            );
+            item.on("changed", (fields: unknown) => eventTypes.push(String((fields as Variant[])[0]?.value)));
+            await new Promise<void>((resolve, reject) => {
+                item.once("initialized", () => resolve());
+                item.once("err", (message: string) => reject(new Error(message)));
+            });
+            return { subscription, eventTypes };
+        }
+        // a where clause that only lets conditions through: the bracket goes through it all the same (OPC 10000-9 4.5)
+        const refreshed = await eventSubscription(ofType("ConditionType"));
+        const other = await eventSubscription();
+        const conditionRefresh = (subscriptionId: number) =>
+            session.call({
+                objectId: "ns=0;i=2782",
+                methodId: "ns=0;i=3875",
+                inputArguments: [{ dataType: DataType.UInt32, value: subscriptionId }]
+            });
+
+        should((await conditionRefresh(refreshed.subscription.subscriptionId)).statusCode).eql(StatusCodes.Good);
+        const end = Date.now() + 5000;
+        while (!refreshed.eventTypes.includes("ns=0;i=2788") && Date.now() < end) {
+            await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+        // RefreshStartEventType, the retained condition, RefreshEndEventType
+        should(refreshed.eventTypes).eql(["ns=0;i=2787", conditionType.nodeId.toString(), "ns=0;i=2788"]);
+        // the other subscription of the session saw nothing of it
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        should(other.eventTypes).eql([]);
+        // a subscription the session does not have
+        should((await conditionRefresh(4242)).statusCode).eql(StatusCodes.BadSubscriptionIdInvalid);
+
+        await refreshed.subscription.terminate();
+        await other.subscription.terminate();
         await session.close();
     });
 

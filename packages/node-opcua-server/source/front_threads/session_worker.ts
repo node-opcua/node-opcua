@@ -8,6 +8,7 @@
  * items sample the compact namespaces in place, as the fronts read them, and hear of the values
  * written from the engine, which pushes them.
  */
+
 import { EventEmitter } from "node:events";
 import { type MessagePort, parentPort, workerData } from "node:worker_threads";
 import { type ISessionContext, SessionContext } from "node-opcua-address-space";
@@ -23,7 +24,7 @@ import { TransferResult } from "node-opcua-service-subscription";
 import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { EventFilterResult, MessageSecurityMode, MonitoredItemCreateRequest, ReadValueIdOptions } from "node-opcua-types";
 import type { Variant } from "node-opcua-variant";
-import type { FoundNode, INodeFinder } from "../monitorable_node.js";
+import type { EventItemIdentity, FoundNode, INodeFinder } from "../monitorable_node.js";
 import type { MonitoredItem } from "../monitored_item.js";
 import { OPCUAServerCore, type OPCUAServerOptions } from "../opcua_server.js";
 import type { ServerEngineOptions } from "../server_engine.js";
@@ -122,6 +123,9 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
     public onDeleteMonitoredItem: DeleteMonitoredItemHook | null = null;
     /** gives the items of an adopted subscription their sampling function: the server's (SessionWorkerServer) */
     public prepareSamplingOf: ((context: ISessionContext, monitoredItem: MonitoredItem) => void) | null = null;
+    // the session each subscription was last reported under, and the reports of this turn (see #report)
+    readonly #owners = new Map<Subscription, string>();
+    #changes: [string, number, number, number][] = [];
 
     constructor(state: EngineServerState, channel: EngineChannel, backend: RemoteCompactBackend) {
         super(state, channel, backend);
@@ -151,9 +155,10 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         nodeId: NodeId,
         filter: EventFilter,
         context: ISessionContext | null,
-        onFields: (fields: Variant[]) => void
+        onFields: (fields: Variant[]) => void,
+        item?: EventItemIdentity
     ): () => void {
-        return this.#backend.subscribeEvents(nodeId, filter, context, onFields);
+        return this.#backend.subscribeEvents(nodeId, filter, context, onFields, item);
     }
 
     public eventFilterResult(filter: EventFilter): EventFilterResult | undefined {
@@ -242,6 +247,32 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         session.dispose();
     }
 
+    /**
+     * tells the engine a Subscription or one of its MonitoredItems (itemId -1: the Subscription)
+     * came or went for a session: a ConditionRefresh, run there, checks the ids it names. One
+     * message per turn, whatever the number of items created.
+     */
+    #report(token: string, subscriptionId: number, itemId: number, added: 0 | 1): void {
+        if (this.#changes.length === 0) {
+            queueMicrotask(() => {
+                const changes = this.#changes;
+                this.#changes = [];
+                this.#channel.send({ kind: "subscriptionChanges", changes });
+            });
+        }
+        this.#changes.push([token, subscriptionId, itemId, added]);
+    }
+
+    /** the subscription, with its items, now belongs to `session` (a TransferSubscriptions in this worker) */
+    #reown(subscription: Subscription, session: ServerSession): void {
+        const previous = this.#owners.get(subscription);
+        if (previous !== undefined) this.#report(previous, subscription.id, -1, 0);
+        const token = session.authenticationToken.toString();
+        this.#owners.set(subscription, token);
+        this.#report(token, subscription.id, -1, 1);
+        for (const itemId of subscription.getMonitoredItems().serverHandles) this.#report(token, subscription.id, itemId, 1);
+    }
+
     #findSubscription(subscriptionId: number): Subscription | null {
         for (const session of this.sessions.values()) {
             const subscription = session.publishEngine.getSubscriptionById(subscriptionId);
@@ -294,6 +325,7 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         subscription.$session = session;
         await ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
         session._exposeSubscriptionDiagnostics(subscription);
+        this.#reown(subscription, session);
         return new TransferResult({
             availableSequenceNumbers: subscription.getAvailableSequenceNumbers(),
             statusCode: StatusCodes.Good
@@ -414,7 +446,23 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         });
         session.publishEngine.add_subscription(subscription);
         Atomics.add(counts, EngineCount.Subscriptions, 1);
-        subscription.once("terminated", () => Atomics.sub(counts, EngineCount.Subscriptions, 1));
+        this.#owners.set(subscription, session.authenticationToken.toString());
+        this.#report(session.authenticationToken.toString(), subscription.id, -1, 1);
+        const owners = this.#owners;
+        subscription.on("monitoredItem", (monitoredItem: MonitoredItem) => {
+            const owner = owners.get(subscription);
+            if (owner !== undefined) this.#report(owner, subscription.id, monitoredItem.monitoredItemId, 1);
+        });
+        subscription.on("removeMonitoredItem", (monitoredItem: MonitoredItem) => {
+            const owner = owners.get(subscription);
+            if (owner !== undefined) this.#report(owner, subscription.id, monitoredItem.monitoredItemId, 0);
+        });
+        subscription.once("terminated", () => {
+            Atomics.sub(counts, EngineCount.Subscriptions, 1);
+            const owner = owners.get(subscription);
+            owners.delete(subscription);
+            if (owner !== undefined) this.#report(owner, subscription.id, -1, 0);
+        });
         return subscription;
     }
 

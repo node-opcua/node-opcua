@@ -8,7 +8,7 @@
  * a client that comes back through another front finds its session there, moved over.
  */
 import type { Worker } from "node:worker_threads";
-import type { ISessionContext } from "node-opcua-address-space";
+import type { ISessionBase, ISessionContext, ISubscriptionBase } from "node-opcua-address-space";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { make_warningLog } from "node-opcua-debug";
 import { decodeExtensionObject } from "node-opcua-extension-object";
@@ -29,6 +29,20 @@ import { ResolvedRolesContext } from "./resolved_roles_context.js";
 
 const warningLog = make_warningLog("front_sessions");
 
+/**
+ * the session as the context of its requests sees it, here: the record of the session, whose
+ * Subscriptions live in a session worker. A ConditionRefresh run here checks the Subscription it
+ * names (and the MonitoredItem of a ConditionRefresh2) against the ids the worker reported.
+ */
+function contextSessionOf(session: ServerSession, subscriptions: Map<number, Set<number>>): ISessionBase {
+    const contextSession = Object.create(session) as ISessionBase;
+    contextSession.getSubscription = (subscriptionId: number): ISubscriptionBase | null => {
+        const items = subscriptions.get(subscriptionId);
+        return items ? { id: subscriptionId, getMonitoredItem: (itemId: number) => (items.has(itemId) ? { itemId } : null) } : null;
+    };
+    return contextSession;
+}
+
 function securityOf(descriptor: ChannelSecurityDescriptor): SessionChannelSecurity {
     return {
         securityMode: descriptor.securityMode as MessageSecurityMode,
@@ -44,6 +58,10 @@ interface Entry {
     activation: SessionActivation | null;
     /** the session worker hosting its subscriptions; -1 without session workers */
     worker: number;
+    /** its Subscriptions in the worker, by id: the ids of their MonitoredItems */
+    subscriptions: Map<number, Set<number>>;
+    /** the session as the contexts of its requests see it: its Subscriptions are the worker's (see contextSessionOf) */
+    contextSession: ISessionBase;
 }
 
 export class FrontSessions {
@@ -124,12 +142,14 @@ export class FrontSessions {
         session.sessionName = record.sessionName;
         session.endpoint = record.endpoint ? decodeStructure(record.endpoint, new EndpointDescription()) : undefined;
         session.remoteChannelSecurity = securityOf(record.security);
-        session.sessionContext = new ResolvedRolesContext(session, []);
+        const subscriptions = new Map<number, Set<number>>();
+        const contextSession = contextSessionOf(session, subscriptions);
+        session.sessionContext = new ResolvedRolesContext(contextSession, []);
         let worker = -1;
         for (let k = 0; k < this.#workers.length; k++) {
             if (worker < 0 || this.#workerLoad[k] < this.#workerLoad[worker]) worker = k;
         }
-        const entry: Entry = { session, front, record, activation: null, worker };
+        const entry: Entry = { session, front, record, activation: null, worker, subscriptions, contextSession };
         this.#entries.set(record.token, entry);
         if (worker >= 0) this.#workerLoad[worker]++;
         session.once("session_closed", (_session: ServerSession, deleteSubscriptions: boolean) =>
@@ -151,7 +171,7 @@ export class FrontSessions {
             : undefined;
         session.remoteChannelSecurity = securityOf(activation.security);
         session.sessionContext = new ResolvedRolesContext(
-            session,
+            entry.contextSession,
             activation.roles.map((role) => resolveNodeId(role))
         );
         session.setLocaleIds(activation.localeIds);
@@ -193,6 +213,22 @@ export class FrontSessions {
             }
         }
         if (rejected + securityRejected + rejectedRequests > 0) this.publishCounts();
+    }
+
+    /** the Subscriptions and MonitoredItems a session worker created or deleted, by session token */
+    public subscriptionsChanged(changes: [string, number, number, number][]): void {
+        for (const [token, subscriptionId, itemId, added] of changes) {
+            const subscriptions = this.#entries.get(token)?.subscriptions;
+            if (!subscriptions) continue;
+            if (itemId < 0) {
+                if (added) subscriptions.set(subscriptionId, subscriptions.get(subscriptionId) ?? new Set());
+                else subscriptions.delete(subscriptionId);
+            } else {
+                const items = subscriptions.get(subscriptionId);
+                if (added) items?.add(itemId);
+                else items?.delete(itemId);
+            }
+        }
     }
 
     /** a front goes on with a session another front holds: that one gives it up */

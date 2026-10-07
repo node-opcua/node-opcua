@@ -13,6 +13,7 @@
  * A percent deadband reads the EURange property: the front watches it from the first use, so
  * that a new range applies to the next value.
  */
+
 import { EventEmitter } from "node:events";
 import type { ISessionContext } from "node-opcua-address-space";
 import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
@@ -23,7 +24,7 @@ import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { EventFilterResult } from "node-opcua-types";
 import { Range } from "node-opcua-types";
 import { DataType, type Variant, type VariantOptions } from "node-opcua-variant";
-import type { CompactMonitorableNode } from "../monitorable_node.js";
+import type { CompactMonitorableNode, EventItemIdentity } from "../monitorable_node.js";
 import type { NodeDescription } from "./protocol.js";
 
 /** what a node asks of the backend of its front thread */
@@ -46,7 +47,8 @@ export interface FrontNodeHost {
         nodeId: NodeId,
         filter: EventFilter,
         context: ISessionContext | null,
-        onFields: (fields: Variant[]) => void
+        onFields: (fields: Variant[]) => void,
+        item?: EventItemIdentity
     ): () => void;
     /** the result of the filter of an event item, checked by the engine before the item was created */
     eventFilterResult(filter: EventFilter): EventFilterResult | undefined;
@@ -121,9 +123,10 @@ export class FrontMonitoredNode extends EventEmitter implements CompactMonitorab
     public subscribeEvents(
         filter: EventFilter,
         context: ISessionContext | null,
-        onFields: (fields: Variant[]) => void
+        onFields: (fields: Variant[]) => void,
+        item?: EventItemIdentity
     ): () => void {
-        return this.#host.subscribeEvents(this.nodeId, filter, context, onFields);
+        return this.#host.subscribeEvents(this.nodeId, filter, context, onFields, item);
     }
 
     public analyzeEventFilter(filter: EventFilter): EventFilterResult | undefined {

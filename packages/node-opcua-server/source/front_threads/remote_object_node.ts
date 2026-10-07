@@ -7,6 +7,7 @@
  * reports changes as they happen makes the worker watch it, and the engine pushes the values
  * written to it.
  */
+
 import { EventEmitter } from "node:events";
 import type { ISessionContext } from "node-opcua-address-space";
 import { AttributeIds, type NodeClass, QualifiedName } from "node-opcua-data-model";
@@ -16,7 +17,7 @@ import type { EventFilter } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
 import type { EventFilterResult } from "node-opcua-types";
 import { DataType, type Variant } from "node-opcua-variant";
-import type { CompactMonitorableNode } from "../monitorable_node.js";
+import type { CompactMonitorableNode, EventItemIdentity } from "../monitorable_node.js";
 
 /** what a node object asks of the worker it is monitored in */
 export interface RemoteObjectHost {
@@ -29,7 +30,8 @@ export interface RemoteObjectHost {
         nodeId: NodeId,
         filter: EventFilter,
         context: ISessionContext | null,
-        onFields: (fields: Variant[]) => void
+        onFields: (fields: Variant[]) => void,
+        item?: EventItemIdentity
     ): () => void;
     eventFilterResult(filter: EventFilter): EventFilterResult | undefined;
 }
@@ -89,9 +91,10 @@ export class RemoteObjectNode extends EventEmitter implements CompactMonitorable
     public subscribeEvents(
         filter: EventFilter,
         context: ISessionContext | null,
-        onFields: (fields: Variant[]) => void
+        onFields: (fields: Variant[]) => void,
+        item?: EventItemIdentity
     ): () => void {
-        return this.#host.subscribeEvents(this.nodeId, filter, context, onFields);
+        return this.#host.subscribeEvents(this.nodeId, filter, context, onFields, item);
     }
 
     public analyzeEventFilter(filter: EventFilter): EventFilterResult | undefined {
