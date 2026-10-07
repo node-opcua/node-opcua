@@ -16,7 +16,6 @@ import {
     type SharedValue,
     ValueKind
 } from "node-opcua-address-space-store";
-import { BinaryStream } from "node-opcua-binary-stream";
 import { AttributeIds, QualifiedName } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
@@ -42,7 +41,7 @@ import {
     type ReferenceDescription,
     type WriteValue
 } from "node-opcua-types";
-import { DataType, decodeVariant, Variant, VariantArrayType } from "node-opcua-variant";
+import { DataType, EncodedVariant, Variant, VariantArrayType } from "node-opcua-variant";
 import type { ICompactBackend } from "../compact_backend.js";
 import { FrontMonitoredNode, type FrontNodeHost } from "./front_node.js";
 import {
@@ -301,8 +300,8 @@ export class RemoteCompactBackend implements ICompactBackend, FrontNodeHost {
     #dataValueOf(v: SharedValue, context: ISessionContext | null, maxAge: number, ts: TimestampsToReturn): DataValue {
         let variant: Variant;
         if (v.encoded) {
-            // a string, an array: its binary encoding, copied out of the shared heap
-            variant = decodeVariant(new BinaryStream(Buffer.from(v.encoded.buffer, v.encoded.byteOffset, v.encoded.byteLength)));
+            // a string, an array: its binary encoding, copied out of the shared heap, goes into the response as it is
+            variant = new EncodedVariant(v.encoded);
         } else {
             variant = new Variant(null);
             variant.dataType = v.dataType as DataType;
