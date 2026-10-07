@@ -14,7 +14,7 @@ import {
     encodeUInt16,
     type UInt16
 } from "node-opcua-basic-types";
-import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream, type OutputBinaryStream } from "node-opcua-binary-stream";
 import { AttributeIds } from "node-opcua-data-model";
 import { coerceDateTime, getCurrentClock, type PreciseClock } from "node-opcua-date-time";
 import { make_errorLog } from "node-opcua-debug";
@@ -79,6 +79,12 @@ function getDataValue_EncodingByte(dataValue: DataValue): DataValueEncodingByte 
  * @param stream
  */
 export function encodeDataValue(dataValue: DataValue, stream: OutputBinaryStream): void {
+    if (dataValue instanceof EncodedDataValue && dataValue._bytes) {
+        // still the bytes it arrived as: written as they are, without decoding them first
+        const bytes = dataValue._bytes;
+        stream.writeArrayBuffer(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength);
+        return;
+    }
     const encodingMask = getDataValue_EncodingByte(dataValue);
     assert(Number.isFinite(encodingMask) && encodingMask >= 0 && encodingMask <= 0x3f);
     // write encoding byte
@@ -733,3 +739,58 @@ export declare interface DataValueT<T, DT extends DataType> extends DataValue {
 // biome-ignore lint/suspicious/noUnsafeDeclarationMerging: deliberate API shaping
 // biome-ignore lint/correctness/noUnusedVariables: T/DT are consumed by the merged interface above, not the empty class body
 export class DataValueT<T, DT extends DataType> extends DataValue {}
+
+/**
+ * a DataValue still in its binary encoding, as another thread or process sent it: encoding it again
+ * writes those bytes as they are. A server that only passes a value on (a front thread answering a
+ * Read with what its engine read) then never decodes it, which for a large array saves decoding it,
+ * copying it to align its elements, and encoding it again.
+ *
+ * Its fields are decoded the first time one of them is read or set; from then on it is an ordinary
+ * DataValue, encoded from its fields. Built by encodedDataValue(), never with `new`.
+ */
+export class EncodedDataValue extends DataValue {
+    /** the bytes not decoded yet; null once the fields have been decoded */
+    declare _bytes: Uint8Array | null;
+    declare _decoded: DataValue | null;
+}
+
+function decodedFieldsOf(dataValue: EncodedDataValue): DataValue {
+    if (!dataValue._decoded) {
+        const bytes = dataValue._bytes as Uint8Array;
+        dataValue._decoded = decodeDataValue(new BinaryStream(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength)));
+        dataValue._bytes = null;
+    }
+    return dataValue._decoded;
+}
+
+// the fields of an EncodedDataValue live in the DataValue it decodes to, behind these accessors
+// (a subclass cannot redeclare the fields of DataValue as accessors in TypeScript)
+for (const field of [
+    "value",
+    "statusCode",
+    "sourceTimestamp",
+    "sourcePicoseconds",
+    "serverTimestamp",
+    "serverPicoseconds"
+] as const) {
+    Object.defineProperty(EncodedDataValue.prototype, field, {
+        get(this: EncodedDataValue) {
+            return decodedFieldsOf(this)[field];
+        },
+        set(this: EncodedDataValue, value: unknown) {
+            (decodedFieldsOf(this) as unknown as Record<string, unknown>)[field] = value; // check-proto-pollution: ok - field is one of the six DataValue field names of the literal list above
+        },
+        configurable: true,
+        enumerable: true
+    });
+}
+
+/** a DataValue for the binary encoding of one DataValue, decoded only if one of its fields is used */
+export function encodedDataValue(bytes: Uint8Array): DataValue {
+    // Object.create: the constructor of DataValue would define the fields on the instance itself
+    const dataValue = Object.create(EncodedDataValue.prototype) as EncodedDataValue;
+    dataValue._bytes = bytes;
+    dataValue._decoded = null;
+    return dataValue;
+}
