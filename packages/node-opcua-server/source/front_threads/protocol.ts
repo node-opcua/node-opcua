@@ -471,8 +471,16 @@ export type EngineToFront =
     | { kind: "workerSessionClosed"; token: string; deleteSubscriptions: boolean }
     /** to a session worker: give subscription subscriptionId up to another worker, if it has it (subscriptionExported) */
     | { kind: "exportSubscription"; id: number; subscriptionId: number; identity: ITransferSessionIdentity }
-    /** another front takes this session over: answer with its state (sessionReleased) and drop it */
+    /**
+     * another front takes this session over: answer with its state (sessionReleased) and set it aside,
+     * still attached, until the engine says whether the other front activated it (forgetSession) or not
+     * (restoreSession)
+     */
     | { kind: "releaseSession"; id: number; token: string }
+    /** the session set aside by releaseSession was activated on another front: it is no longer this front's */
+    | { kind: "forgetSession"; token: string }
+    /** the ActivateSession that took the session set aside was refused: this front goes on with it */
+    | { kind: "restoreSession"; token: string }
     /**
      * to a session worker: a Server method about a Subscription of session `token` (subscription_methods.ts), the
      * engine's Call service having checked its arguments and permissions; `request` is a CallMethodRequest
@@ -492,6 +500,8 @@ export type FrontRequest =
     | { kind: "admitSession" }
     /** the room admitSession made is not used: the session closed before the engine heard of it */
     | { kind: "cancelAdmission" }
+    /** the ActivateSession that took this session from another front was refused: it goes back there */
+    | { kind: "returnSession"; token: string }
     /** answered with the index of the session worker that hosts the session's subscriptions */
     | { kind: "sessionCreated"; session: SessionRecord }
     | { kind: "sessionActivated"; activation: SessionActivation }

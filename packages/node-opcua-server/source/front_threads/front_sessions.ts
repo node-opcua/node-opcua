@@ -69,6 +69,8 @@ interface Entry {
     activation: SessionActivation | null;
     /** the session worker hosting its subscriptions; -1 without session workers */
     worker: number;
+    /** the front that set the session aside for `front` (take), until `front` activates it or gives it back */
+    lentFrom?: Worker;
     /** its Subscriptions in the worker, by id: the ids of their MonitoredItems */
     subscriptions: Map<number, Set<number>>;
     /** the session as the contexts of its requests see it: its Subscriptions are the worker's (see contextSessionOf) */
@@ -186,7 +188,17 @@ export class FrontSessions {
     public activated(front: Worker, activation: SessionActivation): void {
         const entry = this.#entries.get(activation.token);
         if (!entry) return;
-        entry.front = front;
+        if (entry.front !== front) {
+            // a front that no longer holds the session (another one took it since)
+            warningLog("front_sessions: an activation from a front that does not hold the session is ignored");
+            return;
+        }
+        if (entry.lentFrom) {
+            // taken over: the front it came from forgets it
+            const forget: EngineToFront = { kind: "forgetSession", token: activation.token };
+            entry.lentFrom.postMessage(forget);
+            entry.lentFrom = undefined;
+        }
         entry.activation = activation;
         const session = entry.session;
         session.userIdentityToken = activation.userIdentityToken
@@ -204,9 +216,13 @@ export class FrontSessions {
         this.publishCounts();
     }
 
-    public close(token: string, deleteSubscriptions: boolean, reason: ClosingReason): void {
+    public close(front: Worker, token: string, deleteSubscriptions: boolean, reason: ClosingReason): void {
         const entry = this.#entries.get(token);
         if (!entry) return;
+        if (entry.front !== front) {
+            // a CloseSession that crossed a take: the front that holds the session now goes on with it
+            return;
+        }
         // the front closed it itself: nothing to tell it
         this.#closing.set(token, "");
         this.#engine.closeSession(entry.session.authenticationToken, deleteSubscriptions, reason);
@@ -299,19 +315,40 @@ export class FrontSessions {
         call.resolve(decodeStructure(result, new CallMethodResult()));
     }
 
-    /** a front goes on with a session another front holds: that one gives it up */
+    /**
+     * a front goes on with a session another front holds: that one sets it aside and sends its state.
+     * The session is that front's again if the ActivateSession is refused (returned), and forgotten
+     * there once it is activated (activated).
+     */
     public async take(front: Worker, token: string): Promise<SessionState | null> {
         const entry = this.#entries.get(token);
-        if (!entry) return null;
-        if (entry.front === front) return null;
+        if (!entry || entry.front === front || entry.lentFrom) return null;
+        const owner = entry.front;
         const id = ++this.#releaseId;
-        const released = new Promise<SessionState | null>((resolve) => this.#releases.set(id, { front: entry.front, resolve }));
+        const released = new Promise<SessionState | null>((resolve) => this.#releases.set(id, { front: owner, resolve }));
         const release: EngineToFront = { kind: "releaseSession", id, token };
-        entry.front.postMessage(release);
-        const state = (await released) ?? { record: entry.record, activation: entry.activation, nonce: null, worker: entry.worker };
+        owner.postMessage(release);
+        const state = await released;
+        // closed meanwhile (the front that held it closes what it set aside), or already gone from that front
+        if (state === null || this.#entries.get(token) !== entry || entry.front !== owner) {
+            if (state !== null && this.#entries.get(token) === entry)
+                owner.postMessage({ kind: "restoreSession", token } satisfies EngineToFront);
+            return null;
+        }
         state.worker = entry.worker;
+        entry.lentFrom = owner;
         entry.front = front;
         return state;
+    }
+
+    /** the ActivateSession that took a session was refused: the front it came from goes on with it */
+    public returned(front: Worker, token: string): void {
+        const entry = this.#entries.get(token);
+        if (!entry || entry.front !== front || !entry.lentFrom) return;
+        const restore: EngineToFront = { kind: "restoreSession", token };
+        entry.lentFrom.postMessage(restore);
+        entry.front = entry.lentFrom;
+        entry.lentFrom = undefined;
     }
 
     public released(id: number, state: SessionState | null): void {
@@ -339,7 +376,13 @@ export class FrontSessions {
             release.resolve(null);
         }
         for (const [token, entry] of [...this.#entries]) {
+            if (entry.lentFrom === front) entry.lentFrom = undefined;
             if (entry.front !== front) continue;
+            if (entry.lentFrom) {
+                // taken by the front that ended, not activated there yet: back to the one it came from
+                this.returned(front, token);
+                continue;
+            }
             // no front to tell
             this.#closing.set(token, "");
             this.#engine.closeSession(entry.session.authenticationToken, false, "Terminated");
@@ -375,6 +418,10 @@ export class FrontSessions {
         // emitted from inside closeSession, before the engine counts the session out
         queueMicrotask(() => this.publishCounts());
         // closed here (timeout, room made for another): the front that holds it closes its own
+        if (entry?.lentFrom) {
+            // the front that set it aside closes its copy too
+            entry.lentFrom.postMessage({ kind: "sessionClosed", token, reason: reason || "Timeout" } satisfies EngineToFront);
+        }
         if (entry && reason !== "") {
             const closed: EngineToFront = { kind: "sessionClosed", token, reason: reason ?? "Timeout" };
             try {

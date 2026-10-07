@@ -122,6 +122,10 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
     readonly #backend: RemoteCompactBackend;
     protected readonly sessions = new Map<string, ServerSession>();
     // the session worker that hosts the subscriptions of each session, once the engine assigned it
+    // the sessions set aside for another front (releaseSession), until the engine says which front keeps them
+    readonly #lent = new Map<string, ServerSession>();
+    // the sessions taken from another front, until their ActivateSession is answered here
+    readonly #taken = new Set<string>();
     readonly #workerOf = new Map<string, Promise<number>>();
     // what prepareRead fetched from the engine for the items of a Read, until readSync takes it
     readonly #fetched = new WeakMap<object, DataValue>();
@@ -291,13 +295,22 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
 
     /** the engine closed this session (timeout, room made for another): the front closes its half */
     public sessionClosedByEngine(token: string, reason: string): void {
+        const lent = this.#lent.get(token);
+        if (lent) {
+            this.#lent.delete(token);
+            this.#workerOf.delete(token);
+            lent._detach_channel();
+        }
         const session = this.sessions.get(token);
         if (!session) return;
         this.#closedByEngine.add(token);
         void this.closeSession(session.authenticationToken, true, reason as ClosingReason);
     }
 
-    /** a session of this front another front goes on with: its state, and this front forgets it */
+    /**
+     * a session of this front another front goes on with: its state. The session is set aside, still
+     * attached to its channel, until the engine says whether the other front activated it (forgetSession)
+     */
     public releaseSession(token: string): SessionState | null {
         const session = this.sessions.get(token);
         if (!session) return null;
@@ -308,8 +321,38 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
             // the engine knows it too, and overwrites it
             worker: -1
         };
-        this.#drop(session);
+        this.sessions.delete(token);
+        this.#lent.set(token, session);
         return state;
+    }
+
+    /** the session set aside was activated on another front */
+    public forgetSession(token: string): void {
+        const session = this.#lent.get(token);
+        if (!session) return;
+        this.#lent.delete(token);
+        session._detach_channel();
+        this.#workerOf.delete(token);
+    }
+
+    /** the ActivateSession on another front was refused: this front goes on with the session it set aside */
+    public restoreSession(token: string): void {
+        const session = this.#lent.get(token);
+        if (!session) return;
+        this.#lent.delete(token);
+        this.sessions.set(token, session);
+    }
+
+    /**
+     * a session taken from another front whose ActivateSession was refused here: it goes back there,
+     * untouched, as a refused ActivateSession leaves a session of a single-thread server
+     */
+    public returnSession(session: ServerSession): void {
+        const token = session.authenticationToken.toString();
+        if (!this.#taken.delete(token)) return;
+        this.sessions.delete(token);
+        this.#workerOf.delete(token);
+        this.#tell({ kind: "returnSession", token });
     }
 
     /**
@@ -323,6 +366,7 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
         if (!state) return null;
         const session = this.sessionFrom(state.record, state.activation, server);
         session.nonce = state.nonce ? Buffer.from(state.nonce) : undefined;
+        this.#taken.add(state.record.token);
         this.#workerOf.set(state.record.token, Promise.resolve(state.worker));
         return session;
     }
@@ -366,6 +410,7 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
 
     /** an ActivateSession goes through: the engine learns the user (its roles) and the new channel */
     public sessionActivated(session: ServerSession): Promise<void> | undefined {
+        this.#taken.delete(session.authenticationToken.toString());
         const activation = this.activationOf(session);
         if (!activation) return undefined;
         return this.#channel.call<unknown>({ kind: "sessionActivated", activation }).then(() => undefined);
@@ -405,6 +450,7 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
     #drop(session: ServerSession): void {
         const token = session.authenticationToken.toString();
         this.sessions.delete(token);
+        this.#workerOf.delete(token);
         session._detach_channel();
     }
 

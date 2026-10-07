@@ -50,6 +50,12 @@ async function main(): Promise<void> {
             case "sessionClosed":
                 engine.sessionClosedByEngine(message.token, message.reason);
                 break;
+            case "forgetSession":
+                engine.forgetSession(message.token);
+                break;
+            case "restoreSession":
+                engine.restoreSession(message.token);
+                break;
             case "releaseSession": {
                 const released: FrontToEngine = {
                     kind: "sessionReleased",

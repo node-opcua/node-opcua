@@ -204,6 +204,7 @@ export class FrontThreadEngine {
         value: 0,
         admitSession: 0,
         cancelAdmission: 0,
+        returnSession: 0,
         watchObject: 0,
         watchEvents: 0,
         checkEventFilter: 0,
@@ -528,7 +529,10 @@ export class FrontThreadEngine {
                 this.#sessions.activated(worker, request.activation);
                 return null;
             case "closeSession":
-                this.#sessions.close(request.token, request.deleteSubscriptions, request.reason);
+                this.#sessions.close(worker, request.token, request.deleteSubscriptions, request.reason);
+                return null;
+            case "returnSession":
+                this.#sessions.returned(worker, request.token);
                 return null;
             case "takeSession":
                 return this.#sessions.take(worker, request.token);
@@ -999,6 +1003,7 @@ export class FrontThreadEngine {
             case "admitSession":
                 return false;
             case "cancelAdmission":
+            case "returnSession":
                 return null;
             case "watchObject":
             case "unwatchObject":
