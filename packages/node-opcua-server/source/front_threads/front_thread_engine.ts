@@ -31,8 +31,10 @@
  * sessions, subscriptions and server diagnostics.
  */
 import { Worker } from "node:worker_threads";
-import type { CompactAddressSpace } from "node-opcua-address-space";
+import { type CompactAddressSpace, SessionContext } from "node-opcua-address-space";
 import { type StoreNodeView, StoreServices, type StoreVariableView } from "node-opcua-address-space-store";
+import { BinaryStream } from "node-opcua-binary-stream";
+import { ServerState } from "node-opcua-common";
 import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
@@ -40,23 +42,37 @@ import { make_warningLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets as standardNodesets } from "node-opcua-nodesets";
 import { NumericRange } from "node-opcua-numeric-range";
-import { ReadRawModifiedDetails } from "node-opcua-service-history";
+import { HistoryReadRequest, ReadRawModifiedDetails } from "node-opcua-service-history";
 import { StatusCodes } from "node-opcua-status-code";
-import { BrowseDescription, BrowsePath, BrowseResult, CallMethodRequest, CallMethodResult, WriteValue } from "node-opcua-types";
+import {
+    BrowseDescription,
+    BrowsePath,
+    BrowseResult,
+    CallMethodRequest,
+    CallMethodResult,
+    ReadRequest,
+    WriteValue
+} from "node-opcua-types";
+import { decodeVariant, type Variant } from "node-opcua-variant";
 import { ServerEngine, type ServerEngineOptions } from "../server_engine.js";
+import { FrontSessions } from "./front_sessions.js";
 import {
     contextOf,
     type DescribeReply,
     decodeStructure,
     decodeStructures,
+    EngineCount,
+    type EngineServerState,
     type EngineToFront,
     encodeDataValues,
     encodeStructure,
+    encodeStructures,
     type FrontRequest,
     type FrontToEngine,
     type FrontWorkerData,
     type HistoryCheckReply,
     type NodeDescription,
+    type ServiceKind,
     transferablesOf,
     type ValueReply,
     WATCH
@@ -98,6 +114,14 @@ export interface FrontThreadsStartOptions {
     serverModuleData?: unknown;
     /** the front worker script, for a bundled deployment; this package's by default */
     workerScript?: string | URL;
+    /**
+     * true: each front is a FrontOPCUAServer, with no address space, sessions or diagnostics of
+     * its own, giving access to the one server of this engine. Under development: the fronts
+     * serve no subscriptions yet in this mode.
+     */
+    oneServer?: boolean;
+    /** true: front k listens on the port of its options + k, as where there is no SO_REUSEPORT, so that a client chooses its front */
+    ownPorts?: boolean;
 }
 
 /** a node the monitored items of one front or more listen to */
@@ -143,8 +167,18 @@ export class FrontThreadEngine {
         value: 0,
         call: 0,
         historyCheck: 0,
-        historyExtract: 0
+        historyExtract: 0,
+        admitSession: 0,
+        sessionCreated: 0,
+        sessionActivated: 0,
+        closeSession: 0,
+        takeSession: 0,
+        service: 0,
+        raiseEvent: 0
     };
+    /** the sessions of the fronts, kept by the server engine */
+    readonly #sessions: FrontSessions;
+    readonly #counts = new SharedArrayBuffer(EngineCount.Size * 4);
     readonly #watched = new Map<number, Watch>();
     readonly #outgoing = new Map<Worker, Outgoing>();
     #pushScheduled = false;
@@ -155,6 +189,7 @@ export class FrontThreadEngine {
     private constructor(serverEngine: ServerEngine, addressSpace: CompactAddressSpace, nodesets: string[]) {
         this.serverEngine = serverEngine;
         this.addressSpace = addressSpace;
+        this.#sessions = new FrontSessions(serverEngine, this.#counts);
         this.#nodesets = nodesets;
         this.#services = new StoreServices(addressSpace);
         addressSpace.onLink = (source, target) => this.#noteLink(source, target);
@@ -216,7 +251,7 @@ export class FrontThreadEngine {
         const descriptor = this.addressSpace.store.shareForReaders();
         this.#layoutShared = descriptor.layoutSeen;
         const workerScript = options.workerScript ?? new URL("./front_worker.js", import.meta.url);
-        const sharedPort = platformSharesPorts();
+        const sharedPort = platformSharesPorts() && !options.ownPorts;
         const fronts = Math.max(1, Math.floor(options.fronts ?? 1));
         if (!sharedPort && fronts > 1) {
             warningLog(
@@ -234,7 +269,8 @@ export class FrontThreadEngine {
                 serverModule: options.serverModule.toString(),
                 serverModuleData: options.serverModuleData,
                 front,
-                sharedPort
+                sharedPort,
+                server: options.oneServer ? this.#serverState() : undefined
             };
             const worker = new Worker(workerScript, { workerData: data });
             this.#fronts.push(worker);
@@ -246,6 +282,15 @@ export class FrontThreadEngine {
                         else if (message.kind === "requests") this.#answer(worker, message.ids, message.requests);
                         else if (message.kind === "watches") this.#applyWatches(worker, message.operations);
                         else if (message.kind === "changesDone") this.#changesDone(worker);
+                        else if (message.kind === "activity")
+                            this.#sessions.activity(
+                                message.seen,
+                                message.counters,
+                                message.rejected,
+                                message.securityRejected,
+                                message.rejectedRequests
+                            );
+                        else if (message.kind === "sessionReleased") this.#sessions.released(message.id, message.state);
                     });
                     worker.once("error", reject);
                     worker.once("exit", (code) => reject(new Error(`front ${front} exited with code ${code}`)));
@@ -254,6 +299,8 @@ export class FrontThreadEngine {
         }
         try {
             this.#endpointUrls.push(...(await Promise.all(ready)));
+            this.serverEngine.setServerState(ServerState.Running);
+            this.#sessions.publishCounts();
         } catch (err) {
             await this.shutdown();
             throw err;
@@ -266,6 +313,7 @@ export class FrontThreadEngine {
         this.#watched.clear();
         this.#outgoing.clear();
         const fronts = this.#fronts.splice(0);
+        this.#sessions.frontsGone();
         await Promise.all(
             fronts.map(
                 (worker) =>
@@ -291,7 +339,7 @@ export class FrontThreadEngine {
             this.requests[request.kind]++;
             wrote ||= request.kind === "write";
             try {
-                payloads[k] = this.#serve(request);
+                payloads[k] = this.#serve(request, worker);
             } catch (err) {
                 warningLog("front thread request failed", request.kind, (err as Error).message);
                 payloads[k] = this.#failure(request);
@@ -303,7 +351,14 @@ export class FrontThreadEngine {
         }
         if (payloads.some((payload) => payload instanceof Promise)) {
             // the batch is answered once its last answer is there (a Method that runs a while)
-            Promise.all(payloads).then((settled) => {
+            Promise.all(
+                payloads.map((payload, k) =>
+                    Promise.resolve(payload).catch((err: Error) => {
+                        warningLog("front thread request failed", requests[k].kind, err.message);
+                        return this.#failure(requests[k]);
+                    })
+                )
+            ).then((settled) => {
                 const reply: EngineToFront = { kind: "replies", ids, payloads: settled };
                 worker.postMessage(reply);
             });
@@ -313,9 +368,33 @@ export class FrontThreadEngine {
         worker.postMessage(reply, transferablesOf(payloads));
     }
 
-    #serve(request: FrontRequest): unknown {
+    #serve(request: FrontRequest, worker: Worker): unknown {
         const services = this.#services;
         switch (request.kind) {
+            case "admitSession":
+                return this.#sessions.admit();
+            case "sessionCreated":
+                this.#sessions.created(worker, request.session);
+                return null;
+            case "sessionActivated":
+                this.#sessions.activated(worker, request.activation);
+                return null;
+            case "closeSession":
+                this.#sessions.close(request.token, request.deleteSubscriptions, request.reason);
+                return null;
+            case "takeSession":
+                return this.#sessions.take(worker, request.token);
+            case "service":
+                return this.#runService(request.service, request.token, request.request);
+            case "raiseEvent": {
+                const server = this.serverEngine.addressSpace?.rootFolder.objects.server;
+                const fields: Record<string, Variant> = {};
+                for (const [name, bytes] of Object.entries(request.fields)) {
+                    fields[name] = decodeVariant(new BinaryStream(Buffer.from(bytes))); // check-proto-pollution: ok - names of event fields
+                }
+                server?.raiseEvent(request.eventType, fields);
+                return null;
+            }
             case "read": {
                 const context = contextOf(request.context);
                 const values = request.items.map((item) =>
@@ -606,9 +685,69 @@ export class FrontThreadEngine {
         });
     }
 
+    /** what a FrontOPCUAServer needs of the server engine */
+    #serverState(): EngineServerState {
+        const engine = this.serverEngine;
+        return {
+            serverCapabilities: { ...engine.serverCapabilities },
+            buildInfo: encodeStructure(engine.buildInfo),
+            isAuditing: engine.isAuditing,
+            counts: this.#counts
+        };
+    }
+
+    /** a service of the server engine, for a session of a front: its request and its results as their binary encoding */
+    async #runService(service: ServiceKind, token: string | null, bytes: Uint8Array): Promise<unknown> {
+        const engine = this.serverEngine;
+        const sessionContext = this.#sessions.contextOf(token);
+        if (token !== null && !sessionContext) {
+            throw new Error("the session is closed");
+        }
+        // TranslateBrowsePaths alone runs without a session
+        const context = sessionContext ?? SessionContext.defaultContext;
+        switch (service) {
+            case "read": {
+                const request = decodeStructure(bytes, new ReadRequest());
+                await new Promise<void>((resolve, reject) =>
+                    engine.prepareRead(context, request, (err) => (err ? reject(err) : resolve()))
+                );
+                return encodeDataValues(engine.readSync(context, request));
+            }
+            case "write": {
+                const statuses = await engine.write(context, decodeStructures(bytes, WriteValue.prototype));
+                return statuses.map((status) => status.value);
+            }
+            case "browse":
+                return encodeStructures(
+                    await engine.browseWithAutomaticExpansion(decodeStructures(bytes, BrowseDescription.prototype), context)
+                );
+            case "translate":
+                return encodeStructures(await engine.translateBrowsePaths(decodeStructures(bytes, BrowsePath.prototype)));
+            case "call": {
+                const results = await engine.call(context, decodeStructures(bytes, CallMethodRequest.prototype));
+                return encodeStructures(results.map((result) => new CallMethodResult(result)));
+            }
+            case "historyRead": {
+                const request = decodeStructure(bytes, new HistoryReadRequest());
+                await new Promise<void>((resolve) => engine.refreshValues(request.nodesToRead ?? [], 0, () => resolve()));
+                return encodeStructures(await engine.historyRead(context, request));
+            }
+        }
+    }
+
     /** a request that threw: the answer a front can still return to its client */
     #failure(request: FrontRequest): unknown {
         switch (request.kind) {
+            case "admitSession":
+                return false;
+            case "sessionCreated":
+            case "sessionActivated":
+            case "closeSession":
+            case "takeSession":
+            case "raiseEvent":
+                return null;
+            case "service":
+                return null;
             case "read":
                 return encodeDataValues(request.items.map(() => new DataValue({ statusCode: StatusCodes.BadInternalError })));
             case "write":

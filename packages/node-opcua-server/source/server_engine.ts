@@ -439,6 +439,8 @@ export interface CreateSessionOption {
     clientDescription?: ApplicationDescription;
     sessionTimeout?: number;
     server?: IServerBase;
+    /** the ids of a Session created elsewhere (a front thread) that this engine keeps the record of */
+    ids?: { nodeId: NodeId; authenticationToken: NodeId };
 }
 
 export type ClosingReason = "Timeout" | "Terminated" | "CloseSession" | "Forcing";
@@ -1789,6 +1791,20 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         return this.addressSpaceAccessor.historyRead(context, historyReadRequest);
     }
 
+    /**
+     * whether one more Session fits (OPC 10000-4 5.6.2): when the server is full, the oldest Session
+     * not activated yet is closed to make room, and a Session is refused only if none is
+     */
+    public async admitSession(): Promise<boolean> {
+        if (this.currentSessionCount >= this.serverCapabilities.maxSessions) {
+            const oldest = this.getOldestInactiveSession();
+            if (oldest) {
+                await this.closeSession(oldest.authenticationToken, false, "Forcing");
+            }
+        }
+        return this.currentSessionCount < this.serverCapabilities.maxSessions;
+    }
+
     public getOldestInactiveSession(): ServerSession | null {
         // search screwed or closed session first
         let tmp = Object.values(this._sessions).filter(
@@ -1855,6 +1871,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         // rolePolicyOverride and unresolvedPermissionPolicy from every real
         // session's SessionContext (see ServerSession's constructor).
         const session = new ServerSession(this, options.server, sessionTimeout);
+        if (options.ids) {
+            session.nodeId = options.ids.nodeId;
+            session.authenticationToken = options.ids.authenticationToken;
+        }
 
         /* c8 ignore next */
         doDebug && debugLog("createSession :sessionTimeout = ", session.sessionTimeout);

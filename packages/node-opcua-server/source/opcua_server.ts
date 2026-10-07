@@ -288,13 +288,6 @@ function moveSessionToChannel(session: ServerSession, channel: ServerSecureChann
     assert(session.channel?.channelId === channel.channelId);
 }
 
-async function _attempt_to_close_some_old_unactivated_session(server: OPCUAServerCore) {
-    const session = server.engine?.getOldestInactiveSession();
-    if (session) {
-        await server.engine?.closeSession(session.authenticationToken, false, "Forcing");
-    }
-}
-
 function getRequiredEndpointInfo(endpoint: EndpointDescription) {
     assert(endpoint instanceof EndpointDescription);
     // https://reference.opcfoundation.org/v104/Core/docs/Part4/5.6.2/
@@ -831,12 +824,11 @@ function validate_security_endpoint(
 
     if (endpoints.length === 0) {
         // we have a UrlMismatch here
-        const ua_server = server.engine.addressSpace?.rootFolder.objects.server;
         if (!request.endpointUrl?.match(/localhost/i) || OPCUAServer.requestExactEndpointUrl) {
             warningLog("Cannot find suitable endpoints in available endpoints. endpointUri =", request.endpointUrl);
         }
         if (server.isAuditing) {
-            ua_server?.raiseEvent("AuditUrlMismatchEventType", {
+            server.raiseEvent("AuditUrlMismatchEventType", {
                 severity: { dataType: "UInt16", value: AUDIT_SEVERITY_SECURITY_FAILURE },
                 endpointUrl: { dataType: DataType.String, value: request.endpointUrl }
             });
@@ -1941,12 +1933,11 @@ export abstract class OPCUAServerCore<
                         done(err);
                         return;
                     }
-                    if (!this.engine.addressSpace) {
-                        done(new Error("no addressSpace"));
+                    const failure = this.afterEngineInitialized();
+                    if (failure) {
+                        done(failure);
                         return;
                     }
-                    bindRoleSet(this.userManager, this.engine.addressSpace);
-                    ensurePublishSubscribeIsBrowsable(this.engine.addressSpace);
                     setImmediate(() => {
                         this.emit("post_initialize");
                         done();
@@ -1956,6 +1947,16 @@ export abstract class OPCUAServerCore<
             .catch((err) => {
                 done(err);
             });
+    }
+
+    /** what the server installs in the address space of its engine once loaded; an error if it cannot */
+    protected afterEngineInitialized(): Error | null {
+        if (!this.engine.addressSpace) {
+            return new Error("no addressSpace");
+        }
+        bindRoleSet(this.userManager, this.engine.addressSpace);
+        ensurePublishSubscribeIsBrowsable(this.engine.addressSpace);
+        return null;
     }
 
     /**
@@ -2657,12 +2658,7 @@ export abstract class OPCUAServerCore<
         // A Server application should limit the number of Sessions. To protect against misbehaving Clients and denial
         // of service attacks, the Server shall close the oldest Session that is not activated before reaching the
         // maximum number of supported Sessions
-        if (this.currentSessionCount >= this.engine.serverCapabilities.maxSessions) {
-            await _attempt_to_close_some_old_unactivated_session(this);
-        }
-
-        // check if session count hasn't reach the maximum allowed sessions
-        if (this.currentSessionCount >= this.engine.serverCapabilities.maxSessions) {
+        if (!(await this.engine.admitSession())) {
             return rejectConnection(this, StatusCodes.BadTooManySessions);
         }
 
@@ -3041,7 +3037,8 @@ export abstract class OPCUAServerCore<
                 // session is being reassigned to a new Channel,
                 // we shall verify that the certificate used to create the Session is the same as the current
                 // channel certificate.
-                const old_channel_cert_thumbprint = thumbprint(session.channel?.clientCertificate);
+                // the channel's own, or the one it had in the front thread it comes from
+                const old_channel_cert_thumbprint = thumbprint(session.channelSecurity?.clientCertificate);
                 const new_channel_cert_thumbprint = thumbprint(channel.clientCertificate);
 
                 if (old_channel_cert_thumbprint !== new_channel_cert_thumbprint) {
