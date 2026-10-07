@@ -219,6 +219,27 @@ export function openSecureChannelRefusalStatus(certificateStatus: StatusCode): S
 
 /**
  */
+/**
+ * how many bytes of responses a channel may have on their way out before it stops starting new
+ * requests: each request in progress counts at the size of the recent responses of its service
+ * on this channel, and what the socket has not sent yet counts as it is. A client pipelining reads
+ * of large values (32 reads of 8 MB on each of 10 channels) otherwise had every one of them built
+ * and held at once, which no machine has memory for.
+ */
+const CHANNEL_RESPONSE_BUDGET = 16 * 1024 * 1024;
+/** requests in progress on one channel, however small their responses */
+const MAX_REQUESTS_IN_PROGRESS = 64;
+/**
+ * what a request of a service not answered yet on the channel is expected to cost: the requests
+ * of a pipeline that arrive together then start a few at a time until the first answer tells
+ */
+const UNKNOWN_RESPONSE_ESTIMATE = CHANNEL_RESPONSE_BUDGET / 4;
+
+/** a PublishRequest waits at the server for notifications: it is never "in progress" */
+function isHeldByServer(message: Message): boolean {
+    return message.request.schema.name === "PublishRequest";
+}
+
 export class ServerSecureChannelLayer extends EventEmitter {
     public static throttleTime = 100;
     /**
@@ -370,6 +391,14 @@ export class ServerSecureChannelLayer extends EventEmitter {
     #open_secure_channel_onceClose: ((err: Error | null) => void) | null = null;
     #securityTokenTimeout: NodeJS.Timeout | null;
     #transactionsCount: number;
+    /** the requests started and not answered yet, with the bytes each is expected to answer */
+    readonly #inProgress = new Map<Message, number>();
+    #inProgressBytes = 0;
+    /** the requests received and not started yet, in order */
+    #waiting: Message[] = [];
+    /** the recent response size of each service on this channel (see CHANNEL_RESPONSE_BUDGET) */
+    readonly #responseEstimates = new Map<string, number>();
+    #drainScheduled = false;
     readonly #transport: ServerTCP_transport;
     #objectFactory?: ObjectFactory;
     #last_transaction_stats?: ServerTransactionStatistics;
@@ -834,10 +863,13 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         this.#messageChunker.securityMode = this.securityMode;
 
+        let responseBytes = 0;
         const chunkCallback = (chunk: Buffer | null) => {
             if (chunk) {
+                responseBytes += chunk.length;
                 this.#_send_chunk(chunk);
             } else {
+                this.#_responseSent(message, responseBytes);
                 /* c8 ignore next */
                 if (doPerfMonitoring) {
                     // record tick 3 : transaction completed.
@@ -891,6 +923,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 "send_response: failed to send ServiceFault, " + "aborting to prevent infinite recursion. " + "statusCode =",
                 statusCode.toString()
             );
+            // nothing will be sent for this request: it no longer holds a place
+            this.#_responseSent(message, 0);
             callback?.(new Error(`Failed to send ServiceFault: ${statusCode.toString()}`));
             return;
         }
@@ -1728,6 +1762,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
         ServerSecureChannelLayer.registry.unregister(this);
 
         this.#abort_has_been_called = true;
+        // the requests not started yet never will be
+        this.#waiting = [];
+        this.#inProgress.clear();
+        this.#inProgressBytes = 0;
 
         this.#_cleanup_pending_timers();
         /**
@@ -1825,9 +1863,75 @@ export class ServerSecureChannelLayer extends EventEmitter {
                  * It is up to one observer to call send_response or _send_ServiceFault_and_abort to complete
                  * the transaction.
                  */
-                this.emit("message", message);
+                this.#_admit(message);
             }
         }
+    }
+
+    /** starts the request now, or once the responses already on their way have made room */
+    #_admit(message: Message): void {
+        if (isHeldByServer(message)) {
+            this.emit("message", message);
+            return;
+        }
+        if (this.#waiting.length === 0 && this.#_canStart(message)) {
+            this.#_start(message);
+            return;
+        }
+        this.#waiting.push(message);
+        this.#_startWaiting();
+    }
+
+    #_estimate(message: Message): number {
+        return this.#responseEstimates.get(message.request.schema.name) ?? UNKNOWN_RESPONSE_ESTIMATE;
+    }
+
+    #_canStart(message: Message): boolean {
+        if (this.#transport.queuedBytes >= CHANNEL_RESPONSE_BUDGET) {
+            return false;
+        }
+        if (this.#inProgress.size === 0) {
+            return true;
+        }
+        return (
+            this.#inProgress.size < MAX_REQUESTS_IN_PROGRESS &&
+            this.#inProgressBytes + this.#_estimate(message) <= CHANNEL_RESPONSE_BUDGET
+        );
+    }
+
+    #_start(message: Message): void {
+        const estimate = this.#_estimate(message);
+        this.#inProgress.set(message, estimate);
+        this.#inProgressBytes += estimate;
+        this.emit("message", message);
+    }
+
+    #_startWaiting(): void {
+        while (this.#waiting.length > 0 && !this.aborted && this.#_canStart(this.#waiting[0])) {
+            this.#_start(this.#waiting.shift() as Message);
+        }
+        if (this.#waiting.length > 0 && !this.#drainScheduled && this.#transport.queuedBytes >= CHANNEL_RESPONSE_BUDGET) {
+            // nothing else wakes a channel whose socket is full and whose requests are all answered
+            this.#drainScheduled = true;
+            this.#transport.onceDrained(() => {
+                this.#drainScheduled = false;
+                this.#_startWaiting();
+            });
+        }
+    }
+
+    /** a response has been handed to the socket: `bytes` of it */
+    #_responseSent(message: Message, bytes: number): void {
+        const estimate = this.#inProgress.get(message);
+        if (estimate === undefined) {
+            return;
+        }
+        this.#inProgress.delete(message);
+        this.#inProgressBytes -= estimate;
+        const service = message.request.schema.name;
+        const previous = this.#responseEstimates.get(service);
+        this.#responseEstimates.set(service, previous === undefined ? bytes : previous * 0.75 + bytes * 0.25);
+        this.#_startWaiting();
     }
 
     /**
