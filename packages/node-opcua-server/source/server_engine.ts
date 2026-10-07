@@ -975,7 +975,9 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         this.addressSpaceAccessor = new AddressSpaceAccessor(this.addressSpace);
         if (options.compactAddressSpace) {
-            this.compactAddressSpace = AddressSpace.createCompact();
+            this.compactAddressSpace = AddressSpace.createCompact(
+                typeof options.compactAddressSpace === "object" ? options.compactAddressSpace : undefined
+            );
         }
 
         if (!options.skipOwnNamespace) {

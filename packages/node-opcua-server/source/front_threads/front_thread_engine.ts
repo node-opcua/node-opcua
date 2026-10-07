@@ -31,8 +31,7 @@
  * sessions, subscriptions and server diagnostics.
  */
 import { Worker } from "node:worker_threads";
-import { AddressSpace, type CompactAddressSpace } from "node-opcua-address-space";
-import { generateCompactAddressSpace } from "node-opcua-address-space/nodeJS.js";
+import type { CompactAddressSpace } from "node-opcua-address-space";
 import { type StoreNodeView, StoreServices, type StoreVariableView } from "node-opcua-address-space-store";
 import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
@@ -44,6 +43,7 @@ import { NumericRange } from "node-opcua-numeric-range";
 import { ReadRawModifiedDetails } from "node-opcua-service-history";
 import { StatusCodes } from "node-opcua-status-code";
 import { BrowseDescription, BrowsePath, BrowseResult, CallMethodRequest, CallMethodResult, WriteValue } from "node-opcua-types";
+import { ServerEngine, type ServerEngineOptions } from "../server_engine.js";
 import {
     contextOf,
     type DescribeReply,
@@ -72,6 +72,12 @@ export interface FrontThreadEngineOptions {
     nodesets?: string[];
     /** how many nodes the store is sized for at first */
     expectedNodes?: number;
+    /** the ApplicationUri of the server, which the fronts' certificates carry; its own namespace (1) derives from it */
+    applicationUri?: string;
+    /** the settings of the one server the fronts give access to (limits apply to all fronts together) */
+    buildInfo?: ServerEngineOptions["buildInfo"];
+    serverCapabilities?: ServerEngineOptions["serverCapabilities"];
+    isAuditing?: boolean;
 }
 
 export interface FrontThreadsStartOptions {
@@ -118,6 +124,8 @@ interface Outgoing {
 export class FrontThreadEngine {
     /** the model: build it here, before or after start() */
     public readonly addressSpace: CompactAddressSpace;
+    /** the server's engine: sessions, limits, the node objects of namespace 0; the store above is its compact space */
+    public readonly serverEngine: ServerEngine;
     readonly #services: StoreServices;
     readonly #nodesets: string[];
     readonly #compact = new Set<number>();
@@ -144,7 +152,8 @@ export class FrontThreadEngine {
     #syncScheduled = false;
     #anchorsChanged = false;
 
-    private constructor(addressSpace: CompactAddressSpace, nodesets: string[]) {
+    private constructor(serverEngine: ServerEngine, addressSpace: CompactAddressSpace, nodesets: string[]) {
+        this.serverEngine = serverEngine;
         this.addressSpace = addressSpace;
         this.#nodesets = nodesets;
         this.#services = new StoreServices(addressSpace);
@@ -156,14 +165,31 @@ export class FrontThreadEngine {
     /** an engine with its store loaded with the nodesets */
     public static async create(options: FrontThreadEngineOptions = {}): Promise<FrontThreadEngine> {
         const nodesets = options.nodesets ?? [standardNodesets.standard];
-        const addressSpace = AddressSpace.createCompact({ expectedNodes: options.expectedNodes ?? 8192, shared: true });
-        await generateCompactAddressSpace(addressSpace, nodesets);
-        return new FrontThreadEngine(addressSpace, nodesets);
+        const serverEngine = new ServerEngine({
+            applicationUri: options.applicationUri ?? "",
+            buildInfo: options.buildInfo,
+            serverCapabilities: options.serverCapabilities,
+            isAuditing: options.isAuditing
+        });
+        await new Promise<void>((resolve, reject) =>
+            serverEngine.initialize(
+                {
+                    nodeset_filename: nodesets,
+                    compactAddressSpace: { expectedNodes: options.expectedNodes ?? 8192, shared: true }
+                },
+                (err) => (err ? reject(err) : resolve())
+            )
+        );
+        const addressSpace = serverEngine.compactAddressSpace;
+        if (!addressSpace) {
+            throw new Error("FrontThreadEngine: the server engine has no compact address space");
+        }
+        return new FrontThreadEngine(serverEngine, addressSpace, nodesets);
     }
 
     /** a namespace of the model, served by the fronts from the shared store */
     public registerNamespace(namespaceUri: string): number {
-        const index = this.addressSpace.registerNamespace(namespaceUri);
+        const index = this.serverEngine.registerCompactNamespace(namespaceUri);
         this.#compact.add(index);
         this.addressSpace.publishNamespacePolicy();
         return index;
