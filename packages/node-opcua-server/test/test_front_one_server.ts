@@ -11,9 +11,16 @@ import {
 } from "node-opcua-client";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
+import type { NodeId } from "node-opcua-nodeid";
 import { constructEventFilter, ofType } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataChangeNotification, PublishRequest, type PublishResponse, type TransferSubscriptionsResponse } from "node-opcua-types";
+import {
+    CreateSubscriptionRequest,
+    DataChangeNotification,
+    PublishRequest,
+    type PublishResponse,
+    type TransferSubscriptionsResponse
+} from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { FrontThreadEngine } from "../dist/index.js";
@@ -439,6 +446,38 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         await empty.terminate();
         await other.close();
         await session.close();
+    });
+
+    it("refuses a subscription service sent with the token of a session of another channel", async () => {
+        const owner = await sessionOn(0);
+        const otherClient = await clientOn(0);
+        const other = await otherClient.createSession();
+        // the other connection sends a request with the owner's token, as one that read it on the wire would,
+        // straight on its channel (a ClientSession would repair itself by activating the owner's session there)
+        const internal = otherClient as unknown as {
+            performMessageTransaction(
+                request: CreateSubscriptionRequest,
+                callback: (err: Error | null, response?: unknown) => void
+            ): void;
+        };
+        const request = new CreateSubscriptionRequest({
+            requestHeader: { authenticationToken: (owner as unknown as { authenticationToken: NodeId }).authenticationToken },
+            requestedPublishingInterval: 100,
+            requestedLifetimeCount: 600,
+            requestedMaxKeepAliveCount: 10,
+            publishingEnabled: true
+        });
+        const response = await new Promise<unknown>((resolve) =>
+            internal.performMessageTransaction(request, (err, r) => resolve(err ?? r))
+        );
+        should(
+            String((response as { responseHeader?: { serviceResult: unknown } }).responseHeader?.serviceResult ?? response)
+        ).match(/BadSecureChannelIdInvalid/);
+        // the owner goes on as before
+        const value = await owner.read({ nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value });
+        should(value.statusCode).eql(StatusCodes.Good);
+        await other.close();
+        await owner.close();
     });
 
     it("runs the monitored item hooks of the application in the session worker", async () => {

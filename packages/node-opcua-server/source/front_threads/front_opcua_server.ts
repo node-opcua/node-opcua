@@ -12,7 +12,8 @@ import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stre
 import type { BaseUAObject } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import type { Message, Request, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
-import type { ActivateSessionRequest } from "node-opcua-types";
+import { StatusCodes } from "node-opcua-status-code";
+import { type ActivateSessionRequest, ServiceFault } from "node-opcua-types";
 import { encodeVariant, Variant, type VariantOptions } from "node-opcua-variant";
 import { OPCUAServerCore, type OPCUAServerOptions } from "../opcua_server.js";
 import type { ServerEngineOptions } from "../server_engine.js";
@@ -73,13 +74,16 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
             super.on_request(message, channel);
             return;
         }
-        const token = request.requestHeader.authenticationToken;
-        const session = this.engine.getSession(token);
-        if (!session) {
-            // answered here: BadSessionIdInvalid
-            super.on_request(message, channel);
+        // the checks of any service: an active session, on the channel it was activated on; else answered here
+        this.prepare(message, channel);
+        if (message.session_statusCode !== StatusCodes.Good) {
+            const fault = new ServiceFault({
+                responseHeader: { serviceResult: message.session_statusCode ?? StatusCodes.BadInternalError }
+            });
+            channel.send_response("MSG", fault, message);
             return;
         }
+        const token = request.requestHeader.authenticationToken;
         this.#remote
             .workerOf(token.toString())
             .then((worker) => {
