@@ -10,11 +10,18 @@
  * garbage. When the buffer is full the live slots are copied into new buffers, the per-node
  * columns too, and the layout moves: a reader still holding the old buffers reads a consistent
  * old state until it takes the new ones.
+ *
+ * The new buffer holds the live bytes and a quarter more, in steps of 64 KB: the room the next
+ * moved slots and new values take before the next compaction, which copies the live bytes once
+ * more. A larger reserve would compact less often, at the cost of memory that stays empty.
  */
 import { bufferOf, type ColumnSpace } from "./columns.js";
 
 const MIN_HEAP = 4096;
 const ALIGN = 8;
+const STEP = 65536;
+// the room a compaction leaves, as a fraction of the live bytes
+const RESERVE = 0.25;
 
 function slotFor(length: number): number {
     // some room to grow in place: a string that gets a little longer keeps its slot
@@ -73,6 +80,12 @@ export class SharedHeap {
         return this.#length[i];
     }
 
+    /** a copy of the bytes of node `i`, for the owner: what it decodes the value from */
+    public copy(i: number): Uint8Array {
+        const offset = this.#offset[i];
+        return this.#bytes.slice(offset, offset + this.#length[i]);
+    }
+
     /** room for node indexes below `nodes` */
     public resize(nodes: number): void {
         const space = this.#space;
@@ -98,8 +111,8 @@ export class SharedHeap {
     #compact(need: number): void {
         const space = this.#space;
         const nodes = this.#offset.length;
-        let size = MIN_HEAP;
-        while (size < (this.#top - this.#garbage + need) * 2) size *= 2;
+        const wanted = Math.ceil((this.#top - this.#garbage + need) * (1 + RESERVE));
+        const size = Math.max(MIN_HEAP, Math.ceil(wanted / STEP) * STEP);
         const bytes = space.allocate(Uint8Array, size);
         const offset = space.allocate(Int32Array, nodes);
         const length = space.allocate(Int32Array, nodes);

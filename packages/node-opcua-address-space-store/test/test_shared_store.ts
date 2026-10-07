@@ -198,6 +198,30 @@ describe("shared store: the columns of a store read from another thread", functi
         should(out.value).eql(4);
     });
 
+    it("keeps a string or an array as its bytes only, and gives the owner a copy decoded from them", () => {
+        const store = build(2);
+        const [text, array] = [0, 1].map((k) => store.find(numeric(1000 + k)));
+        store.values.setObject(text, DataType.String, { dataType: DataType.String, value: "pump" }, 0, 10, 20);
+        store.values.setObject(
+            array,
+            DataType.Double,
+            { dataType: DataType.Double, arrayType: VariantArrayType.Array, value: new Float64Array([1, 2, 3]) },
+            0,
+            10,
+            20
+        );
+        should(store.values.objectCount).eql(0, "no object beside the bytes");
+        should((store.values.get(text).value as { value: string }).value).eql("pump");
+        const first = (store.values.get(array).value as { value: Float64Array }).value;
+        should([...first]).eql([1, 2, 3]);
+        // the decoded array is a copy: changing it changes neither the store nor the next read
+        first[0] = 99;
+        should([...(store.values.get(array).value as { value: Float64Array }).value]).eql([1, 2, 3]);
+        const out = fresh();
+        should(new SharedStoreReader(store.shareForReaders()).readValue(array, out)).eql(SharedReadStatus.Good);
+        should([...(decoded(out).value as Float64Array)]).eql([1, 2, 3]);
+    });
+
     it("compacts the heap into new buffers: a reader holding the old ones leaves the strings to the owner", () => {
         const nodes = 50;
         const store = build(nodes);

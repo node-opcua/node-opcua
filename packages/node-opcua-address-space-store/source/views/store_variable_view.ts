@@ -231,14 +231,14 @@ export class StoreVariableView extends StoreNodeView {
         if (scalar && (typeof v === "number" || typeof v === "boolean")) {
             values.setScalar(this.index, variant.dataType, v, statusCode, sourceTimestamp, serverTimestamp);
         } else {
-            values.setObject(
-                this.index,
-                variant.dataType,
-                { dataType: variant.dataType, arrayType: variant.arrayType, dimensions: variant.dimensions, value: v },
-                statusCode,
-                sourceTimestamp,
-                serverTimestamp
-            );
+            const written = { dataType: variant.dataType, arrayType: variant.arrayType, dimensions: variant.dimensions, value: v };
+            values.setObject(this.index, variant.dataType, written, statusCode, sourceTimestamp, serverTimestamp);
+            if (values.encodedLength(this.index) > 0) {
+                // a shared store keeps only the bytes: the value just written spares the notifications
+                // and the next reads a decode
+                this.#dataValue = valueDataValue(values, this.index, written);
+                this.#dataValueVersion = values.version(this.index);
+            }
         }
         // what a monitored item delivered on change listens to, as on the node objects; a view
         // with listeners is the one every writer of this node reaches (see ViewCache)

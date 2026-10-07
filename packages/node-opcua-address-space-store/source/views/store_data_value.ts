@@ -14,7 +14,8 @@ import { type AttributeReader, ReadStatus } from "../attribute_reader.js";
 import { ValueKind, type ValueStore } from "../value_store.js";
 
 /** the Value of node `i` as the columns hold it: BadWaitingForInitialData when nothing was ever set */
-export function valueDataValue(values: ValueStore, i: number): DataValue {
+/** `written`: the object of the value as it was just written, which spares decoding it again */
+export function valueDataValue(values: ValueStore, i: number, written?: unknown): DataValue {
     const kind = values.kind(i);
     if (kind === ValueKind.None) {
         const status = values.statusCode(i);
@@ -22,12 +23,12 @@ export function valueDataValue(values: ValueStore, i: number): DataValue {
             statusCode: status === 0 ? StatusCodes.BadWaitingForInitialData : coerceStatusCode(status)
         });
     }
-    const stored = values.get(i);
+    const stored = values.get(i, written === undefined);
     // field by field: a null-constructed Variant skips the coercion and the checks, which the
     // columns went through when the value was stored; same for the DataValue
     const variant = new Variant(null);
     if (kind === ValueKind.Object) {
-        const o = stored.value as {
+        const o = (written ?? stored.value) as {
             dataType: DataType;
             arrayType?: VariantArrayType;
             dimensions?: number[] | null;
