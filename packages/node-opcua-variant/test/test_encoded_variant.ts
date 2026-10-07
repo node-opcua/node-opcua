@@ -1,7 +1,7 @@
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
 import { LocalizedText } from "node-opcua-data-model";
 import should from "should";
-import { DataType, EncodedVariant, encodeVariant, decodeVariant, sameVariant, Variant, VariantArrayType } from "../dist/index.js";
+import { DataType, decodeVariant, EncodedVariant, encodeVariant, sameVariant, Variant, VariantArrayType } from "../dist/index.js";
 
 function bytesOf(variant: Variant): Uint8Array {
     const size = new BinaryStreamSizeCalculator();
@@ -14,7 +14,10 @@ function bytesOf(variant: Variant): Uint8Array {
 
 const samples: [string, Variant][] = [
     ["a string", new Variant({ dataType: DataType.String, value: "centrifugal pump" })],
-    ["a double array", new Variant({ dataType: DataType.Double, arrayType: VariantArrayType.Array, value: new Float64Array([1, 2.5, 3]) })],
+    [
+        "a double array",
+        new Variant({ dataType: DataType.Double, arrayType: VariantArrayType.Array, value: new Float64Array([1, 2.5, 3]) })
+    ],
     [
         "a matrix",
         new Variant({
@@ -24,7 +27,10 @@ const samples: [string, Variant][] = [
             value: new Int32Array([1, 2, 3, 4])
         })
     ],
-    ["a localized text", new Variant({ dataType: DataType.LocalizedText, value: new LocalizedText({ text: "pump", locale: "en" }) })],
+    [
+        "a localized text",
+        new Variant({ dataType: DataType.LocalizedText, value: new LocalizedText({ text: "pump", locale: "en" }) })
+    ],
     ["a string array", new Variant({ dataType: DataType.String, arrayType: VariantArrayType.Array, value: ["a", "b"] })]
 ];
 

@@ -12,8 +12,8 @@
  */
 import { BinaryStream, type OutputBinaryStream } from "node-opcua-binary-stream";
 import type { DataType } from "./DataType_enum.js";
-import { decodeVariant, Variant } from "./variant.js";
 import { VariantArrayType } from "./VariantArrayType_enum.js";
+import { decodeVariant, Variant } from "./variant.js";
 
 const ARRAY_VALUES = 0x80;
 const ARRAY_DIMENSIONS = 0x40;

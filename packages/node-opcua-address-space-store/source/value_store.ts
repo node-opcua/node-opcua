@@ -18,7 +18,14 @@ import { DataType, decodeVariant, encodeVariant, Variant, VariantArrayType, type
 import { bufferOf, type Column, ColumnSpace, type ColumnType } from "./columns.js";
 import { SharedHeap, type SharedHeapBuffers } from "./shared_heap.js";
 
-/** the binary encoding of a value for the readers of other threads; null for what they cannot decode */
+/**
+ * the largest encoding kept in the shared heap: a larger value (a large array) stays an object with the
+ * owner, which hands its buffer over to the reader that asks, rather than copy it into the heap on every
+ * write, out of it on every read, and again at every compaction
+ */
+const MAX_SHARED_ENCODING = 64 * 1024;
+
+/** the binary encoding of a value for the readers of other threads; null for what they cannot decode, or too large */
 function encodedForReaders(value: unknown, dataType: DataType): Uint8Array | null {
     if (dataType === DataType.ExtensionObject || dataType === DataType.Variant || dataType === DataType.DiagnosticInfo) {
         return null;
@@ -27,6 +34,7 @@ function encodedForReaders(value: unknown, dataType: DataType): Uint8Array | nul
         const variant = variantOf(value);
         const size = new BinaryStreamSizeCalculator();
         encodeVariant(variant, size);
+        if (size.length > MAX_SHARED_ENCODING) return null;
         if (scratch.length < size.length) scratch = Buffer.alloc(Math.max(size.length, scratch.length * 2));
         encodeVariant(variant, new BinaryStream(scratch));
         // the bytes are copied into the heap before the next encoding reuses the scratch buffer
