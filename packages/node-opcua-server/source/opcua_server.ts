@@ -187,7 +187,8 @@ import {
     OPCUAServerEndPoint,
     parseOpcTcpUrl
 } from "./server_end_point.js";
-import { type ClosingReason, type CreateSessionOption, ServerEngine } from "./server_engine.js";
+import { type ClosingReason, type CreateSessionOption, ServerEngine, type ServerEngineOptions } from "./server_engine.js";
+import type { IServerEngineForServer } from "./server_engine_interface.js";
 import type { ServerSession } from "./server_session.js";
 import type { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription } from "./server_subscription.js";
 import { makeUserManager, type UAUserManagerBase, type UserManagerOptions } from "./user_manager.js";
@@ -286,7 +287,7 @@ function moveSessionToChannel(session: ServerSession, channel: ServerSecureChann
     assert(session.channel?.channelId === channel.channelId);
 }
 
-async function _attempt_to_close_some_old_unactivated_session(server: OPCUAServer) {
+async function _attempt_to_close_some_old_unactivated_session(server: OPCUAServerCore) {
     const session = server.engine?.getOldestInactiveSession();
     if (session) {
         await server.engine?.closeSession(session.authenticationToken, false, "Forcing");
@@ -325,7 +326,7 @@ function getRequiredEndpointInfo(endpoint: EndpointDescription) {
 //            This value is the applicationUri from the EndpointDescription which is the applicationUri for the
 //            underlying Server. The type EndpointDescription is defined in 7.10.
 
-function _serverEndpointsForCreateSessionResponse(server: OPCUAServer, endpointUrl: string | null, serverUri: string | null) {
+function _serverEndpointsForCreateSessionResponse(server: OPCUAServerCore, endpointUrl: string | null, serverUri: string | null) {
     serverUri = null; // unused then
 
     // https://reference.opcfoundation.org/v104/Core/docs/Part4/5.6.2/
@@ -659,8 +660,8 @@ function isMonitoringModeValid(monitoringMode: MonitoringMode): boolean {
     return monitoringMode !== MonitoringMode.Invalid && monitoringMode <= MonitoringMode.Reporting;
 }
 
-function _installRegisterServerManager(self: OPCUAServer) {
-    assert(self instanceof OPCUAServer);
+function _installRegisterServerManager(self: OPCUAServerCore) {
+    assert(self instanceof OPCUAServerCore);
     assert(!self.registerServerManager);
 
     /* c8 ignore next */
@@ -769,7 +770,7 @@ function validate_applicationUri(channel: ServerSecureChannelLayer, request: Cre
  * none, so it stays null.
  */
 function raiseAuditCreateSessionFailure(
-    server: OPCUAServer,
+    server: OPCUAServerCore,
     request: CreateSessionRequest,
     channel: ServerSecureChannelLayer,
     statusCode: StatusCode
@@ -802,7 +803,7 @@ function raiseAuditCreateSessionFailure(
 }
 
 function validate_security_endpoint(
-    server: OPCUAServer,
+    server: OPCUAServerCore,
     request: CreateSessionRequest,
     channel: ServerSecureChannelLayer
 ): {
@@ -1447,8 +1448,15 @@ export interface OPCUAServerEvents {
  * await server.shutdown();
  * ```
  */
-export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
-    public engine!: ServerEngine;
+/**
+ * The services of an OPC UA server over an engine: the ServerEngine of this thread for an OPCUAServer, or one
+ * that forwards to an engine elsewhere. What the services ask of the engine is IServerEngineForServer.
+ * The static settings (OPCUAServer.defaultShutdownTimeout, ...) are read from OPCUAServer, where users set them.
+ */
+export abstract class OPCUAServerCore<
+    E extends IServerEngineForServer = IServerEngineForServer
+> extends OPCUABaseServer<OPCUAServerEvents> {
+    public engine!: E;
     public registerServerMethod: RegisterServerMethod;
     public discoveryServerEndpointUrl!: string;
     public registerServerManager?: IRegisterServerManager;
@@ -1458,8 +1466,6 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
     #reverseConnectManager?: ReverseConnectManager;
     /** Set once shutdown() has been requested; lets repeated/concurrent calls share one outcome instead of racing. @internal */
     #shutdownPromise?: Promise<void>;
-
-    static defaultShutdownTimeout = 100; // 250 ms
 
     public toJSON(): Record<string, unknown> {
         return {
@@ -1479,15 +1485,6 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
     public [Symbol.for("nodejs.util.inspect.custom")](): string {
         return this.toString();
     }
-    /**
-     * if requestExactEndpointUrl is set to true the server will only accept createSession that have a endpointUrl that strictly matches
-     * one of the provided endpoint.
-     * This mean that if the server expose a endpoint with url such as opc.tcp://MYHOSTNAME:1234, client will not be able to reach the server
-     * with the ip address of the server.
-     * requestExactEndpointUrl = true => emulates the Prosys Server behavior
-     * requestExactEndpointUrl = false => emulates the Unified Automation behavior.
-     */
-    static requestExactEndpointUrl: boolean = g_requestExactEndpointUrl;
     /**
      * total number of bytes written  by the server since startup
      */
@@ -1711,14 +1708,6 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         return { hostnames, ips };
     }
 
-    public static registry = new ObjectRegistry();
-    public static fallbackSessionName = "Client didn't provide a meaningful sessionName ...";
-    /**
-     * the maximum number of subscription that can be created per server
-     * @deprecated
-     */
-    public static deprecated_MAX_SUBSCRIPTION = 50;
-
     /**
      * the maximum number of concurrent sessions allowed on the server
      */
@@ -1840,7 +1829,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
             // to check => this.serverInfo.applicationName = this.serverInfo.productName || buildInfo.productName;
 
             // note: applicationUri is handled in a special way
-            this.engine = new ServerEngine({
+            this.engine = this.createEngine({
                 applicationUri: () => this.serverInfo.applicationUri || "",
                 buildInfo,
                 isAuditing: options.isAuditing,
@@ -2263,7 +2252,8 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         clientCertificate: Certificate,
         clientNonce: Nonce
     ): Promise<SignatureData | undefined> {
-        const isOverridden = Object.getPrototypeOf(this).computeServerSignature !== OPCUAServer.prototype.computeServerSignature;
+        const isOverridden =
+            Object.getPrototypeOf(this).computeServerSignature !== OPCUAServerCore.prototype.computeServerSignature;
         if (isOverridden) {
             return this.computeServerSignature(channel, clientCertificate, clientNonce);
         }
@@ -2650,7 +2640,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         // and failed Service invocations [...] The CreateSession service shall generate
         // AuditCreateSessionEventType events". Every refusal below goes through here, so each failed
         // request raises exactly one, with Status false.
-        function rejectConnection(server: OPCUAServer, statusCode: StatusCode): void {
+        function rejectConnection(server: OPCUAServerCore, statusCode: StatusCode): void {
             raiseAuditCreateSessionFailure(server, request, channel, statusCode);
             server.engine.incrementSecurityRejectedSessionCount();
 
@@ -2983,7 +2973,7 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         // and failed Service invocations"; OPC 10000-5 v1.05.06 §6.4.10: ActivateSession raises an
         // AuditActivateSessionEventType. Every refusal below goes through here, so each failed
         // request raises exactly one, with Status false.
-        function rejectConnection(server: OPCUAServer, statusCode: StatusCode): void {
+        function rejectConnection(server: OPCUAServerCore, statusCode: StatusCode): void {
             raiseAuditActivateSessionEventType.call(server, session, request.requestHeader.auditEntryId ?? "", {
                 statusCode,
                 userIdentityToken: request.userIdentityToken as UserIdentityToken | null,
@@ -4655,6 +4645,35 @@ export class OPCUAServer extends OPCUABaseServer<OPCUAServerEvents> {
         await super.initializeCM();
         await this.userCertificateManager.initialize();
     }
+
+    /** the engine the services run on, created once the endpoints can be described */
+    protected abstract createEngine(options: ServerEngineOptions): E;
+}
+
+/** the OPC UA server, with its engine and address space in this thread */
+export class OPCUAServer extends OPCUAServerCore<ServerEngine> {
+    static defaultShutdownTimeout = 100; // 250 ms
+
+    /**
+     * if requestExactEndpointUrl is set to true the server will only accept createSession that have a endpointUrl that strictly matches
+     * one of the provided endpoint.
+     * This mean that if the server expose a endpoint with url such as opc.tcp://MYHOSTNAME:1234, client will not be able to reach the server
+     * with the ip address of the server.
+     * requestExactEndpointUrl = true => emulates the Prosys Server behavior
+     * requestExactEndpointUrl = false => emulates the Unified Automation behavior.
+     */
+    static requestExactEndpointUrl: boolean = g_requestExactEndpointUrl;
+    public static registry = new ObjectRegistry();
+    public static fallbackSessionName = "Client didn't provide a meaningful sessionName ...";
+    /**
+     * the maximum number of subscription that can be created per server
+     * @deprecated
+     */
+    public static deprecated_MAX_SUBSCRIPTION = 50;
+
+    protected createEngine(options: ServerEngineOptions): ServerEngine {
+        return new ServerEngine(options);
+    }
 }
 
 const userIdentityTokenPasswordRemoved = (userIdentityToken?: UserIdentityToken): UserIdentityToken => {
@@ -4698,7 +4717,7 @@ interface ActivateSessionAuditFailure {
  * known Session: OPC 10000-5 v1.05.06 §6.4.7 "If no session context exists [...] the SessionId shall be null."
  */
 function raiseAuditActivateSessionEventType(
-    this: OPCUAServer,
+    this: OPCUAServerCore,
     session: ServerSession | null | undefined,
     auditEntryId: string,
     failure?: ActivateSessionAuditFailure
@@ -4919,5 +4938,5 @@ export interface RaiseAuditCertificateRevokedEventData extends RaiseAuditCertifi
 export interface RaiseAuditCertificateMismatchEventData extends RaiseAuditCertificateEventData {}
 
 const opts = { multiArgs: false };
-OPCUAServer.prototype.initialize = withCallback(OPCUAServer.prototype.initialize, opts);
-OPCUAServer.prototype.shutdown = withCallback(OPCUAServer.prototype.shutdown, opts);
+OPCUAServerCore.prototype.initialize = withCallback(OPCUAServerCore.prototype.initialize, opts);
+OPCUAServerCore.prototype.shutdown = withCallback(OPCUAServerCore.prototype.shutdown, opts);
