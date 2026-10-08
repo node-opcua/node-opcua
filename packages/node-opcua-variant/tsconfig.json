@@ -23,6 +23,9 @@
             "path": "../node-opcua-data-model"
         },
         {
+            "path": "../node-opcua-extension-object"
+        },
+        {
             "path": "../node-opcua-debug"
         },
         {

@@ -23,13 +23,13 @@
         "node-opcua-data-model": "2.186.10",
         "node-opcua-debug": "2.186.7",
         "node-opcua-enum": "2.186.7",
+        "node-opcua-extension-object": "2.186.7",
         "node-opcua-factory": "2.186.7",
         "node-opcua-nodeid": "2.186.7",
         "node-opcua-utils": "2.186.7"
     },
     "devDependencies": {
         "node-opcua-benchmarker": "2.186.7",
-        "node-opcua-extension-object": "2.186.7",
         "node-opcua-numeric-range": "2.186.7",
         "node-opcua-packet-analyzer": "2.186.7",
         "node-opcua-status-code": "2.186.7"
