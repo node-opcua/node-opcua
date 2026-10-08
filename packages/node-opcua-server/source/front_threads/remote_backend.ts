@@ -17,9 +17,9 @@ import {
     type SharedValue,
     ValueKind
 } from "node-opcua-address-space-store";
-import { BinaryStream } from "node-opcua-binary-stream";
+import type { OutputBinaryStream } from "node-opcua-binary-stream";
 import { AttributeIds } from "node-opcua-data-model";
-import { DataValue, encodedDataValue, TimestampsToReturn } from "node-opcua-data-value";
+import { DataValue, EncodedDataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { encodeHighAccuracyDateTime, getCurrentClock } from "node-opcua-date-time";
 import { NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
@@ -119,8 +119,11 @@ const SCALAR_SIZE: Record<number, number> = {
     [DataType.Double]: 8
 };
 
-function writeScalar(stream: BinaryStream, dataType: DataType, value: number): void {
+function writeScalar(stream: OutputBinaryStream, dataType: DataType, value: number): void {
     switch (dataType) {
+        case DataType.Boolean:
+            stream.writeUInt8(value !== 0 ? 1 : 0);
+            break;
         case DataType.SByte:
             stream.writeInt8(value);
             break;
@@ -144,6 +147,69 @@ function writeScalar(stream: BinaryStream, dataType: DataType, value: number): v
             break;
         default:
             stream.writeDouble(value);
+    }
+}
+
+/**
+ * a value read in place, as the fields of the store: encodeDataValue() writes it from them (the same mask,
+ * fields and timestamps as from a DataValue), and its DataValue fields are made only if one is used
+ */
+class InPlaceDataValue extends EncodedDataValue {
+    declare $encoded: Uint8Array | null;
+    declare $dataType: DataType;
+    declare $number: number;
+    declare $statusCode: number;
+    declare $source: boolean;
+    declare $sourceTime: number;
+    declare $sourcePicoseconds: number;
+    declare $server: boolean;
+    declare $serverTime: number;
+    declare $serverPicoseconds: number;
+
+    public override _writeEncoded(stream: OutputBinaryStream): void {
+        const encoded = this.$encoded;
+        const hasValue = encoded ? (encoded[0] & 0x3f) !== DataType.Null : true;
+        let mask = hasValue ? 0x01 : 0;
+        if (this.$statusCode !== 0) mask |= 0x02;
+        if (this.$source) mask |= 0x04;
+        if (this.$source && this.$sourcePicoseconds % 100000) mask |= 0x10;
+        if (this.$server) mask |= 0x08;
+        if (this.$server && this.$serverPicoseconds % 100000) mask |= 0x20;
+        stream.writeUInt8(mask);
+        if (encoded) {
+            if (hasValue) stream.writeArrayBuffer(encoded.buffer as ArrayBuffer, encoded.byteOffset, encoded.byteLength);
+        } else {
+            stream.writeUInt8(this.$dataType);
+            writeScalar(stream, this.$dataType, this.$number);
+        }
+        if (mask & 0x02) stream.writeUInt32(this.$statusCode);
+        if (this.$source) encodeHighAccuracyDateTime(new Date(this.$sourceTime), this.$sourcePicoseconds, stream);
+        if (mask & 0x10) stream.writeUInt16(Math.floor((this.$sourcePicoseconds % 100000) / 10));
+        if (this.$server) encodeHighAccuracyDateTime(new Date(this.$serverTime), this.$serverPicoseconds, stream);
+        if (mask & 0x20) stream.writeUInt16(Math.floor((this.$serverPicoseconds % 100000) / 10));
+    }
+
+    public override _decodeFields(): DataValue {
+        const dataValue = new DataValue(null);
+        if (this.$encoded) {
+            dataValue.value = encodedVariant(this.$encoded);
+        } else {
+            const variant = new Variant(null);
+            variant.dataType = this.$dataType;
+            variant.arrayType = VariantArrayType.Scalar;
+            variant.value = this.$dataType === DataType.Boolean ? this.$number !== 0 : this.$number;
+            dataValue.value = variant;
+        }
+        dataValue.statusCode = this.$statusCode === 0 ? StatusCodes.Good : coerceStatusCode(this.$statusCode);
+        if (this.$source) {
+            dataValue.sourceTimestamp = new Date(this.$sourceTime);
+            dataValue.sourcePicoseconds = this.$sourcePicoseconds;
+        }
+        if (this.$server) {
+            dataValue.serverTimestamp = new Date(this.$serverTime);
+            dataValue.serverPicoseconds = this.$serverPicoseconds;
+        }
+        return dataValue;
     }
 }
 
@@ -211,56 +277,40 @@ export class RemoteCompactBackend implements FrontNodeHost {
             return new DataValue({ statusCode: StatusCodes.BadResourceUnavailable });
         }
         const ts = timestampsToReturn ?? TimestampsToReturn.Source;
-        return this.#encodedDataValueOf(v, context, maxAge, ts) ?? this.#dataValueOf(v, context, maxAge, ts);
+        return this.#inPlaceDataValueOf(v, context, maxAge, ts) ?? this.#dataValueOf(v, context, maxAge, ts);
     }
 
     /**
-     * the DataValue #dataValueOf() makes, encoded straight from the columns of the store into the bytes the
-     * response carries (an EncodedDataValue): no DataValue nor Variant is made for it. Null for a type left
-     * to the generic encoder.
+     * the DataValue #dataValueOf() makes, as an InPlaceDataValue: the fields of the store, written into the
+     * response by encodeDataValue() without a DataValue nor a Variant made for them. Null for a type left
+     * to #dataValueOf().
      */
-    #encodedDataValueOf(v: SharedValue, context: ISessionContext | null, maxAge: number, ts: TimestampsToReturn): DataValue | null {
+    #inPlaceDataValueOf(v: SharedValue, context: ISessionContext | null, maxAge: number, ts: TimestampsToReturn): DataValue | null {
         const encoded = v.encoded;
         if (!encoded && !(v.kind === ValueKind.Boolean || (v.kind === ValueKind.Number && SCALAR_SIZE[v.dataType] > 0))) {
             return null;
         }
-        const source = ts === TimestampsToReturn.Source || ts === TimestampsToReturn.Both;
-        const server = ts === TimestampsToReturn.Server || ts === TimestampsToReturn.Both;
-        let serverTime = 0;
-        let serverPicoseconds = 0;
-        if (server) {
+        const value = Object.create(InPlaceDataValue.prototype) as InPlaceDataValue;
+        value._bytes = null;
+        value._decoded = null;
+        value.$encoded = encoded;
+        value.$dataType = v.kind === ValueKind.Boolean ? DataType.Boolean : v.dataType;
+        value.$number = v.kind === ValueKind.Boolean ? (v.value !== 0 ? 1 : 0) : (v.value as number);
+        value.$statusCode = v.statusCode;
+        value.$source = ts === TimestampsToReturn.Source || ts === TimestampsToReturn.Both;
+        value.$sourceTime = v.sourceTimestamp;
+        value.$sourcePicoseconds = v.sourcePicoseconds;
+        value.$server = ts === TimestampsToReturn.Server || ts === TimestampsToReturn.Both;
+        value.$serverTime = 0;
+        value.$serverPicoseconds = 0;
+        if (value.$server) {
             // as the engine answers it: the time of the read when the stored one is older than MaxAge
             const now = context?.currentTime ?? getCurrentClock();
             const stale = maxAge < MAX_AGE_CACHED && now.timestamp.getTime() - v.serverTimestamp > maxAge;
-            serverTime = stale ? now.timestamp.getTime() : v.serverTimestamp;
-            serverPicoseconds = stale ? now.picoseconds : v.serverPicoseconds;
+            value.$serverTime = stale ? now.timestamp.getTime() : v.serverTimestamp;
+            value.$serverPicoseconds = stale ? now.picoseconds : v.serverPicoseconds;
         }
-        // the encoding mask of a DataValue, as encodeDataValue() computes it
-        const hasValue = encoded ? (encoded[0] & 0x3f) !== DataType.Null : true;
-        let mask = hasValue ? 0x01 : 0;
-        if (v.statusCode !== 0) mask |= 0x02;
-        if (source) mask |= 0x04;
-        if (source && v.sourcePicoseconds % 100000) mask |= 0x10;
-        if (server) mask |= 0x08;
-        if (server && serverPicoseconds % 100000) mask |= 0x20;
-        const variantSize = encoded ? encoded.byteLength : 1 + (v.kind === ValueKind.Boolean ? 1 : SCALAR_SIZE[v.dataType]);
-        const stream = new BinaryStream(1 + (hasValue ? variantSize : 0) + 4 + 10 + 10);
-        stream.writeUInt8(mask);
-        if (encoded) {
-            if (hasValue) stream.writeArrayBuffer(encoded.buffer as ArrayBuffer, encoded.byteOffset, encoded.byteLength);
-        } else if (v.kind === ValueKind.Boolean) {
-            stream.writeUInt8(DataType.Boolean);
-            stream.writeUInt8(v.value !== 0 ? 1 : 0);
-        } else {
-            stream.writeUInt8(v.dataType);
-            writeScalar(stream, v.dataType, v.value as number);
-        }
-        if (mask & 0x02) stream.writeUInt32(v.statusCode);
-        if (source) encodeHighAccuracyDateTime(new Date(v.sourceTimestamp), v.sourcePicoseconds, stream);
-        if (mask & 0x10) stream.writeUInt16(Math.floor((v.sourcePicoseconds % 100000) / 10));
-        if (server) encodeHighAccuracyDateTime(new Date(serverTime), serverPicoseconds, stream);
-        if (mask & 0x20) stream.writeUInt16(Math.floor((serverPicoseconds % 100000) / 10));
-        return encodedDataValue(stream.buffer.subarray(0, stream.length));
+        return value;
     }
 
     #dataValueOf(v: SharedValue, context: ISessionContext | null, maxAge: number, ts: TimestampsToReturn): DataValue {
