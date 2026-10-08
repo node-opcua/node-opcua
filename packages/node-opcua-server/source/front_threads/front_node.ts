@@ -14,21 +14,19 @@
  * that a new range applies to the next value.
  */
 
-import { EventEmitter } from "node:events";
 import type { ISessionContext } from "node-opcua-address-space";
 import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
-import type { EventFilter } from "node-opcua-service-filter";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
-import type { EventFilterResult } from "node-opcua-types";
 import { Range } from "node-opcua-types";
-import { DataType, type Variant, type VariantOptions } from "node-opcua-variant";
-import type { CompactMonitorableNode, EventItemIdentity } from "../monitorable_node.js";
+import { DataType, type VariantOptions } from "node-opcua-variant";
+import type { CompactMonitorableNode } from "../monitorable_node.js";
+import { MonitoredNodeBase, type NodeEventSource } from "./front_node_base.js";
 import type { NodeDescription } from "./protocol.js";
 
 /** what a node asks of the backend of its front thread */
-export interface FrontNodeHost {
+export interface FrontNodeHost extends NodeEventSource {
     /** false once the node is deleted (or its index given to another node) */
     isAlive(node: FrontMonitoredNode): boolean;
     /** true when every session may read the node's value: no permission rule, readable access levels */
@@ -42,16 +40,6 @@ export interface FrontNodeHost {
     attributeFor(context: ISessionContext | null, node: FrontMonitoredNode, attributeId: AttributeIds): DataValue | undefined;
     watch(node: FrontMonitoredNode): void;
     unwatch(node: FrontMonitoredNode): void;
-    /** the events of the node, filtered by the engine for an item */
-    subscribeEvents(
-        nodeId: NodeId,
-        filter: EventFilter,
-        context: ISessionContext | null,
-        onFields: (fields: Variant[]) => void,
-        item?: EventItemIdentity
-    ): () => void;
-    /** the result of the filter of an event item, checked by the engine before the item was created */
-    eventFilterResult(filter: EventFilter): EventFilterResult | undefined;
 }
 
 function good(value: VariantOptions): DataValue {
@@ -61,11 +49,7 @@ function bad(statusCode: StatusCode): DataValue {
     return new DataValue({ statusCode });
 }
 
-export class FrontMonitoredNode extends EventEmitter implements CompactMonitorableNode {
-    public readonly nodeId: NodeId;
-    public readonly nodeClass: NodeClass;
-    public readonly browseName: QualifiedName;
-    public readonly dataType?: NodeId;
+export class FrontMonitoredNode extends MonitoredNodeBase implements CompactMonitorableNode {
     public readonly index: number;
     public readonly generation: number;
     readonly #host: FrontNodeHost;
@@ -82,33 +66,24 @@ export class FrontMonitoredNode extends EventEmitter implements CompactMonitorab
     // the newest value seen and its version word; -1: none yet
     #version = -1;
     #last: DataValue | null = null;
-    #watching = false;
     #disposed = false;
 
     constructor(host: FrontNodeHost, nodeId: NodeId, description: NodeDescription, trusted = false) {
-        super();
+        super(
+            host,
+            nodeId,
+            description.nodeClass as NodeClass,
+            new QualifiedName({ namespaceIndex: description.namespaceIndex, name: description.name }),
+            description.dataType ? resolveNodeId(description.dataType) : undefined
+        );
         this.#host = host;
         this.#trusted = trusted;
-        this.nodeId = nodeId;
         this.index = description.index;
         this.generation = description.generation;
-        this.nodeClass = description.nodeClass as NodeClass;
-        this.browseName = new QualifiedName({ namespaceIndex: description.namespaceIndex, name: description.name });
-        this.dataType = description.dataType ? resolveNodeId(description.dataType) : undefined;
         this.#euRange = description.euRange;
         this.#euRangeNode = description.euRangeNode;
         this.#isNumber = description.isNumber;
-        this.on("newListener", (event: string | symbol) => {
-            if (event === "value_changed" && !this.#watching && !this.#disposed) {
-                this.#watching = true;
-                this.#host.watch(this);
-            }
-        });
         this.on("removeListener", (event: string | symbol) => {
-            if (event === "value_changed" && this.#watching && this.listenerCount("value_changed") === 0) {
-                this.#watching = false;
-                this.#host.unwatch(this);
-            }
             // every monitored item listens to "dispose" until it ends
             if (event === "dispose" && this.listenerCount("dispose") === 0) {
                 this.#stopWatchingRange();
@@ -116,21 +91,20 @@ export class FrontMonitoredNode extends EventEmitter implements CompactMonitorab
         });
     }
 
+    protected startWatching(): void {
+        this.#host.watch(this);
+    }
+
+    protected stopWatching(): void {
+        this.#host.unwatch(this);
+    }
+
+    protected override canWatch(): boolean {
+        return !this.#disposed;
+    }
+
     public get minimumSamplingInterval(): number {
         return this.#host.minimumSamplingInterval(this);
-    }
-
-    public subscribeEvents(
-        filter: EventFilter,
-        context: ISessionContext | null,
-        onFields: (fields: Variant[]) => void,
-        item?: EventItemIdentity
-    ): () => void {
-        return this.#host.subscribeEvents(this.nodeId, filter, context, onFields, item);
-    }
-
-    public analyzeEventFilter(filter: EventFilter): EventFilterResult | undefined {
-        return this.#host.eventFilterResult(filter);
     }
 
     public isNumberDataType(): boolean {
@@ -190,17 +164,9 @@ export class FrontMonitoredNode extends EventEmitter implements CompactMonitorab
 
     public readAttribute(context: ISessionContext | null, attributeId: AttributeIds): DataValue {
         this.#context = context;
+        const described = this.describedAttribute(attributeId);
+        if (described) return described;
         switch (attributeId) {
-            case AttributeIds.NodeId:
-                return good({ dataType: DataType.NodeId, value: this.nodeId });
-            case AttributeIds.NodeClass:
-                return good({ dataType: DataType.Int32, value: this.nodeClass });
-            case AttributeIds.BrowseName:
-                return good({ dataType: DataType.QualifiedName, value: this.browseName });
-            case AttributeIds.DataType:
-                return this.dataType
-                    ? good({ dataType: DataType.NodeId, value: this.dataType })
-                    : bad(StatusCodes.BadAttributeIdInvalid);
             case AttributeIds.MinimumSamplingInterval:
                 return this.nodeClass === NodeClass.Variable
                     ? good({ dataType: DataType.Double, value: this.minimumSamplingInterval })
