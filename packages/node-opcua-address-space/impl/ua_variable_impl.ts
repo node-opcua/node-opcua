@@ -2293,26 +2293,24 @@ type f3<T, D, R> = (this: T, data: D, callback: (err: Error | null, r?: R) => vo
 function turn_sync_to_async<T, D, R>(f: f1<T, D, R> | f2<T, D, R> | f3<T, D, R>, numberOfArgs: number): f3<T, D, R> {
     if (f.length <= numberOfArgs) {
         return function (this: T, data: D, callback: (err: Error | null, r?: R) => void) {
-            new Promise<R>((resolve, reject) => {
-                try {
-                    // const ff1 = f as f1<T, D, R>;
-                    const ff2 = f as f2<T, D, R>;
-                    const r: R | Promise<R> = ff2.call(this, data);
-                    if (r instanceof Promise) {
-                        r.then(resolve, reject);
-                    } else {
-                        resolve(r);
-                    }
-                } catch (err) {
-                    reject(err);
-                }
-            })
-                .then((r) => {
-                    callback(null, r);
-                })
-                .catch((err) => {
-                    callback(err as Error);
-                });
+            const ff2 = f as f2<T, D, R>;
+            let r: R | Promise<R>;
+            try {
+                r = ff2.call(this, data);
+            } catch (err) {
+                callback(err as Error);
+                return;
+            }
+            if (r instanceof Promise) {
+                r.then(
+                    (value) => callback(null, value),
+                    (err) => callback(err as Error)
+                );
+                return;
+            }
+            // a synchronous function answers at once: a Write of such Variables completes without waiting
+            // a turn per value, under one permission cache for the whole request
+            callback(null, r);
         };
     } else {
         assert(f.length === numberOfArgs + 1);
