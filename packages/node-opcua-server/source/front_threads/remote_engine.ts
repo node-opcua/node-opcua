@@ -13,7 +13,7 @@ import { EventEmitter } from "node:events";
 import type { AddressSpace, IServerBase, ISessionContext } from "node-opcua-address-space";
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
 import type { ServerState } from "node-opcua-common";
-import { type DataValue, TimestampsToReturn } from "node-opcua-data-value";
+import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { decodeExtensionObject, encodeExtensionObject } from "node-opcua-extension-object";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { encodedNodesToWrite } from "node-opcua-secure-channel";
@@ -129,6 +129,8 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
     // the sessions taken from another front, until their ActivateSession is answered here
     readonly #taken = new Set<string>();
     readonly #workerOf = new Map<string, Promise<number>>();
+    // the store index of each item of a Read (prepareRead), until readSync reads them
+    readonly #inPlace = new WeakMap<ReadRequestOptions, Int32Array>();
     // what prepareRead fetched from the engine for the items of a Read, until readSync takes it
     readonly #fetched = new WeakMap<object, DataValue>();
     // the activity of the sessions in this turn, sent to the engine at its end
@@ -539,11 +541,19 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
 
     public prepareRead(context: ISessionContext, readRequest: ReadRequestOptions, callback: (err?: Error | null) => void): void {
         const nodesToRead = (readRequest.nodesToRead ?? []) as ReadValueIdOptions[];
-        const remote = nodesToRead.filter((nodeToRead) => !this.#backend.canReadInPlace(nodeToRead));
-        if (remote.length === 0) {
+        // the node of each item in the shared store, found once for readSync; -1 for those the engine reads
+        const indexes = new Int32Array(nodesToRead.length);
+        let remoteCount = 0;
+        for (let k = 0; k < nodesToRead.length; k++) {
+            indexes[k] = this.#backend.inPlaceIndex(nodesToRead[k]);
+            if (indexes[k] < 0) remoteCount++;
+        }
+        this.#inPlace.set(readRequest, indexes);
+        if (remoteCount === 0) {
             callback();
             return;
         }
+        const remote = nodesToRead.filter((_nodeToRead, k) => indexes[k] < 0);
         const request = new ReadRequest({
             nodesToRead: remote,
             maxAge: readRequest.maxAge ?? 0,
@@ -562,13 +572,19 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
     public readSync(context: ISessionContext, readRequest: ReadRequestOptions): DataValue[] {
         const nodesToRead = (readRequest.nodesToRead ?? []) as ReadValueIdOptions[];
         const maxAge = readRequest.maxAge ?? 0;
-        return nodesToRead.map((nodeToRead) => {
+        const indexes = this.#inPlace.get(readRequest);
+        this.#inPlace.delete(readRequest);
+        const backend = this.#backend;
+        return nodesToRead.map((nodeToRead, k) => {
             const fetched = this.#fetched.get(nodeToRead);
             if (fetched) {
                 this.#fetched.delete(nodeToRead);
                 return fetched;
             }
-            return this.#backend.read(context, nodeToRead, maxAge, readRequest.timestampsToReturn);
+            const i = indexes ? indexes[k] : backend.inPlaceIndex(nodeToRead);
+            return i >= 0
+                ? backend.readAt(i, context, maxAge, readRequest.timestampsToReturn)
+                : new DataValue({ statusCode: StatusCodes.BadResourceUnavailable });
         });
     }
 
