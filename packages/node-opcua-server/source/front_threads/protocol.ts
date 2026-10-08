@@ -9,11 +9,12 @@
 import type { MessagePort } from "node:worker_threads";
 import type { ISessionContext } from "node-opcua-address-space";
 import type { SharedStoreDescriptor } from "node-opcua-address-space-store";
+import { decodeExpandedNodeId, encodeExpandedNodeId } from "node-opcua-basic-types";
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
 import type { TimestampsToReturn } from "node-opcua-data-value";
 import { type DataValue, decodeDataValue, encodeDataValue, encodedDataValue } from "node-opcua-data-value";
 import { decodeExtensionObject, encodeExtensionObject } from "node-opcua-extension-object";
-import type { BaseUAObject } from "node-opcua-factory";
+import { type BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import {
     EventFieldList,
@@ -103,6 +104,29 @@ export function transferablesOf(payloads: unknown[]): ArrayBuffer[] {
 }
 /** below this, a copy costs less than detaching the buffer */
 const TRANSFER_THRESHOLD = 64 * 1024;
+
+/**
+ * a request or a response as a secure channel carries it: the NodeId of its binary encoding, then its
+ * fields. What a front receives (encodedBodyOf) and sends (EncodedResponse) without decoding it again.
+ */
+export function encodeMessageBody(value: BaseUAObject): Uint8Array {
+    const encoding = value.schema.encodingDefaultBinary;
+    if (!encoding) throw new Error(`${value.schema.name} has no binary encoding`);
+    const size = new BinaryStreamSizeCalculator();
+    encodeExpandedNodeId(encoding, size);
+    value.encode(size);
+    const stream = new BinaryStream(size.length);
+    encodeExpandedNodeId(encoding, stream);
+    value.encode(stream);
+    return exact(stream, size.length);
+}
+
+export function decodeMessageBody<T>(bytes: Uint8Array): T {
+    const stream = new BinaryStream(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength));
+    const value = getStandardDataTypeFactory().constructObject(decodeExpandedNodeId(stream));
+    value.decode(stream);
+    return value as T;
+}
 
 /** an OPC UA structure with its type: a request or a response, decoded back into its own class */
 export function encodeExtensionObjectBytes(value: BaseUAObject): Uint8Array {
@@ -291,7 +315,8 @@ export type FrontToWorker =
     | { kind: "channelClosed"; channel: number };
 
 /** a response for the front to send on its channel, as an ExtensionObject's binary encoding */
-export type WorkerToFront = { kind: "response"; id: number; response: Uint8Array };
+/** the response to a forwarded request, encodeMessageBody(); `name` its schema's */
+export type WorkerToFront = { kind: "response"; id: number; response: Uint8Array; name: string };
 
 /** the engine-wide counts a front reads without asking, in an Int32Array the engine alone writes */
 export enum EngineCount {

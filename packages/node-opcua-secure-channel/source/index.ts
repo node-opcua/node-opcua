@@ -4,6 +4,7 @@
 
 export * from "./client/client_secure_channel_layer.js";
 export * from "./common.js";
+export * from "./encoded_message_body.js";
 export * from "./encoded_nodes_to_write.js";
 export * from "./key_object.js";
 export * from "./message_builder.js";
