@@ -785,7 +785,16 @@ export function encodeNumericRange(numericRange: NumericRange, stream: OutputBin
 
 export function decodeNumericRange(stream: BinaryStream, _value?: NumericRange): NumericRange {
     const str = decodeString(stream);
+    // no IndexRange, the case of almost every ReadValueId: what new NumericRange(null) makes, without its checks
+    if (str === null) return emptyNumericRange();
     return new NumericRange(str);
+}
+
+function emptyNumericRange(): NumericRange {
+    const range = Object.create(NumericRange.prototype) as { type: NumericRangeType; value: unknown };
+    range.type = NumericRangeType.Empty;
+    range.value = "<invalid>";
+    return range as unknown as NumericRange;
 }
 
 function coerceNumericRange(value: string | NumericRange | null | undefined | number[]): NumericRange {

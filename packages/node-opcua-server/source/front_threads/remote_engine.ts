@@ -130,7 +130,8 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
     readonly #taken = new Set<string>();
     readonly #workerOf = new Map<string, Promise<number>>();
     // the store index of each item of a Read (prepareRead), until readSync reads them
-    readonly #inPlace = new WeakMap<ReadRequestOptions, Int32Array>();
+    #inPlaceRead: ReadRequestOptions | null = null;
+    #inPlace = new Int32Array(128);
     // what prepareRead fetched from the engine for the items of a Read, until readSync takes it
     readonly #fetched = new WeakMap<object, DataValue>();
     // the activity of the sessions in this turn, sent to the engine at its end
@@ -541,19 +542,23 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
 
     public prepareRead(context: ISessionContext, readRequest: ReadRequestOptions, callback: (err?: Error | null) => void): void {
         const nodesToRead = (readRequest.nodesToRead ?? []) as ReadValueIdOptions[];
-        // the node of each item in the shared store, found once for readSync; -1 for those the engine reads
-        const indexes = new Int32Array(nodesToRead.length);
+        // the node of each item in the shared store, found once for readSync; -1 for those the engine reads.
+        // Kept for the Read prepared last: readSync follows at once unless the engine reads some items
+        if (this.#inPlace.length < nodesToRead.length) this.#inPlace = new Int32Array(nodesToRead.length);
+        const indexes = this.#inPlace;
         let remoteCount = 0;
         for (let k = 0; k < nodesToRead.length; k++) {
             indexes[k] = this.#backend.inPlaceIndex(nodesToRead[k]);
             if (indexes[k] < 0) remoteCount++;
         }
-        this.#inPlace.set(readRequest, indexes);
+        this.#inPlaceRead = readRequest;
         if (remoteCount === 0) {
             callback();
             return;
         }
         const remote = nodesToRead.filter((_nodeToRead, k) => indexes[k] < 0);
+        // another Read may be prepared before the engine answers: this one finds its nodes again in readSync
+        this.#inPlaceRead = null;
         const request = new ReadRequest({
             nodesToRead: remote,
             maxAge: readRequest.maxAge ?? 0,
@@ -572,8 +577,8 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
     public readSync(context: ISessionContext, readRequest: ReadRequestOptions): DataValue[] {
         const nodesToRead = (readRequest.nodesToRead ?? []) as ReadValueIdOptions[];
         const maxAge = readRequest.maxAge ?? 0;
-        const indexes = this.#inPlace.get(readRequest);
-        this.#inPlace.delete(readRequest);
+        const indexes = this.#inPlaceRead === readRequest ? this.#inPlace : undefined;
+        this.#inPlaceRead = null;
         const backend = this.#backend;
         return nodesToRead.map((nodeToRead, k) => {
             const fetched = this.#fetched.get(nodeToRead);
