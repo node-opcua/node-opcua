@@ -122,21 +122,28 @@ const SCALAR_SIZE: Record<number, number> = {
 function writeScalar(stream: BinaryStream, dataType: DataType, value: number): void {
     switch (dataType) {
         case DataType.SByte:
-            return stream.writeInt8(value);
+            stream.writeInt8(value);
+            break;
         case DataType.Byte:
-            return stream.writeUInt8(value);
+            stream.writeUInt8(value);
+            break;
         case DataType.Int16:
-            return stream.writeInt16(value);
+            stream.writeInt16(value);
+            break;
         case DataType.UInt16:
-            return stream.writeUInt16(value);
+            stream.writeUInt16(value);
+            break;
         case DataType.Int32:
-            return stream.writeInteger(value);
+            stream.writeInteger(value);
+            break;
         case DataType.UInt32:
-            return stream.writeUInt32(value);
+            stream.writeUInt32(value);
+            break;
         case DataType.Float:
-            return stream.writeFloat(value);
+            stream.writeFloat(value);
+            break;
         default:
-            return stream.writeDouble(value);
+            stream.writeDouble(value);
     }
 }
 
