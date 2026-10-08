@@ -561,7 +561,7 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         };
         await activateAnother();
         await new Promise((resolve) => setTimeout(resolve, 500));
-        should(eventTypes).not.containEql("ns=0;i=2075", "an anonymous session receives no audit event");
+        should(eventTypes.includes("ns=0;i=2075")).eql(false, "an anonymous session receives no audit event");
 
         const changed = await client.changeSessionIdentity(session, {
             type: UserTokenType.UserName,
@@ -572,7 +572,7 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         await activateAnother();
         const end = Date.now() + 5000;
         while (!eventTypes.includes("ns=0;i=2075") && Date.now() < end) await new Promise((resolve) => setTimeout(resolve, 50));
-        should(eventTypes).containEql("ns=0;i=2075", "the same session as SecurityAdmin receives them");
+        should(eventTypes.includes("ns=0;i=2075")).eql(true, "the same session as SecurityAdmin receives them");
         await subscription.terminate();
         await session.close();
     });
