@@ -3,7 +3,7 @@
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.186.7",
+    "version": "2.187.0",
     "description": "pure nodejs OPCUA SDK - module date-time",
     "scripts": {
         "build": "tsc -b",
@@ -16,13 +16,13 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.186.7",
-        "node-opcua-binary-stream": "2.186.7",
-        "node-opcua-utils": "2.186.7"
+        "node-opcua-binary-stream": "2.187.0",
+        "node-opcua-utils": "2.187.0"
     },
     "devDependencies": {
         "bignumber.js": "^11.1.5",
         "long": "5.3.2",
-        "node-opcua-benchmarker": "2.186.7",
+        "node-opcua-benchmarker": "2.187.0",
         "node-opcua-debug": "2.186.7"
     },
     "author": "Etienne Rossignon",

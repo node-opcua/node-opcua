@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-schemas",
     "type": "module",
-    "version": "2.186.10",
+    "version": "2.187.0",
     "description": "pure nodejs OPCUA SDK - module schemas",
     "main": "dist/source/index.js",
     "types": "dist/source/index.d.ts",
@@ -19,19 +19,19 @@
     "dependencies": {
         "chalk": "6.0.1",
         "node-opcua-assert": "2.186.7",
-        "node-opcua-binary-stream": "2.186.7",
+        "node-opcua-binary-stream": "2.187.0",
         "node-opcua-debug": "2.186.7",
-        "node-opcua-extension-object": "2.186.7",
-        "node-opcua-factory": "2.186.7",
-        "node-opcua-nodeid": "2.186.7",
-        "node-opcua-variant": "2.186.10",
-        "node-opcua-xml2json": "2.186.7"
+        "node-opcua-extension-object": "2.187.0",
+        "node-opcua-factory": "2.187.0",
+        "node-opcua-nodeid": "2.187.0",
+        "node-opcua-variant": "2.187.0",
+        "node-opcua-xml2json": "2.187.0"
     },
     "devDependencies": {
-        "node-opcua-data-model": "2.186.10",
-        "node-opcua-packet-analyzer": "2.186.7",
+        "node-opcua-data-model": "2.187.0",
+        "node-opcua-packet-analyzer": "2.187.0",
         "node-opcua-test-helpers": "2.184.0",
-        "node-opcua-utils": "2.186.7"
+        "node-opcua-utils": "2.187.0"
     },
     "devPeerDependencies": {
         "node-opcua": "2.156.0"

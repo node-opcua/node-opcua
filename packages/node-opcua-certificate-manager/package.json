@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-certificate-manager",
     "type": "module",
-    "version": "2.186.17",
+    "version": "2.187.0",
     "description": "pure nodejs OPCUA SDK - module certificate-manager",
     "scripts": {
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo certificates",
@@ -29,12 +29,12 @@
     "dependencies": {
         "env-paths": "4.0.0",
         "node-opcua-assert": "2.186.7",
-        "node-opcua-common": "2.186.17",
+        "node-opcua-common": "2.187.0",
         "node-opcua-crypto": "6.2.0",
         "node-opcua-debug": "2.186.7",
         "node-opcua-object-registry": "2.186.7",
         "node-opcua-pki": "7.1.0",
-        "node-opcua-status-code": "2.186.7",
+        "node-opcua-status-code": "2.187.0",
         "thenify-ex": "4.4.0"
     },
     "devDependencies": {

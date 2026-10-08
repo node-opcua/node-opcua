@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-utils",
     "type": "module",
-    "version": "2.186.7",
+    "version": "2.187.0",
     "description": "pure nodejs OPCUA SDK - module utils",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
