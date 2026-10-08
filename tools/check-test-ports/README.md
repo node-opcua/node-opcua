@@ -55,6 +55,17 @@ object propagates transitively through calls and modules, and following it would
 resolving variables across files. Forbidding it instead means the declarations are a
 complete picture, and a reader finds a file's port by looking at the top of it.
 
+### What it reads as a port
+
+- a name starting with `port` or ending with `Port`, in any case (`serverPort`, `TEST_PORT`),
+  optionally followed by digits (`case1Port1`, `TEST_PORT_2`);
+- declared with `const`/`let`/`var`, or as a class field (`public readonly sourcePort = 2225`,
+  `static port = 2225`, `#port = 2225`);
+- any other assignment of a literal (`this.port = 2225`, a bare field `port = 2225`) is counted
+  and reported as an inline literal;
+- a derivation from a declared port (`port + 1`, `TEST_PORT + 1`, `1 + BASE_PORT`) is resolved to
+  the port it binds, so it can collide.
+
 ## What it reports
 
 | kind | meaning | fails build |
