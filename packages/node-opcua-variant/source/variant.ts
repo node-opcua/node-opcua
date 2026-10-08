@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-variant
  */
+
 import { assert } from "node-opcua-assert";
 import {
     coerceInt64,
@@ -24,6 +25,7 @@ import {
 import type { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { LocalizedText, QualifiedName } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
+import { OpaqueStructure } from "node-opcua-extension-object";
 import {
     BaseUAObject,
     buildStructuredType,
@@ -141,6 +143,11 @@ function cloneVariantElement(dataType: DataType, value: unknown): unknown {
         case DataType.Variant:
             return value instanceof Variant ? value.clone() : value;
         case DataType.ExtensionObject: {
+            // a structure of a type not known here, kept as its encoded body: its constructor takes (nodeId, buffer),
+            // not the object to copy, which made a structure without a body
+            if (value instanceof OpaqueStructure) {
+                return new OpaqueStructure(value.nodeId, Buffer.from(value.buffer));
+            }
             const extensionObject = value as { constructor: new (options: unknown) => unknown };
             return extensionObject?.constructor ? new extensionObject.constructor(value) : value;
         }
@@ -324,6 +331,11 @@ export class Variant extends BaseUAObject {
     }
     public isValid(): boolean {
         return isValidVariant(this.arrayType, this.dataType, this.value, this.dimensions);
+    }
+
+    /** the binary encoding the Variant is kept as (EncodedVariant); null for a Variant of fields */
+    public get encoded(): Uint8Array | null {
+        return null;
     }
 
     public clone(): Variant {
@@ -1316,6 +1328,13 @@ export function sameVariant(v1: Variant, v2: Variant): boolean {
     }
     if ((!v1 && v2) || (v1 && !v2)) {
         return false;
+    }
+    // two Variants still kept as their encoding: the same bytes are the same value, compared without
+    // decoding them (a thread may hold the encoding of a structure whose type it does not know)
+    const e1 = v1.encoded;
+    const e2 = v2.encoded;
+    if (e1 && e2) {
+        return Buffer.from(e1.buffer, e1.byteOffset, e1.byteLength).equals(Buffer.from(e2.buffer, e2.byteOffset, e2.byteLength));
     }
     if (v1.arrayType !== v2.arrayType) {
         return false;

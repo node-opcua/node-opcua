@@ -34,8 +34,13 @@ export class EncodedVariant extends Variant {
     }
 
     /** the encoding as it is, or null once the Variant was changed */
-    public get encoded(): Uint8Array | null {
+    public override get encoded(): Uint8Array | null {
         return this._bytes;
+    }
+
+    /** a copy that is still these bytes: the encoding is never changed in place, a write detaches it */
+    public override clone(): Variant {
+        return this._bytes ? encodedVariant(this._bytes) : (this._decoded as Variant).clone();
     }
 
     public override encode(stream: OutputBinaryStream): void {
