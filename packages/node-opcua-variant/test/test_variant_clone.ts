@@ -1,7 +1,9 @@
+import { BinaryStream } from "node-opcua-binary-stream";
 import { LocalizedText, QualifiedName } from "node-opcua-data-model";
-import { coerceNodeId, type NodeId } from "node-opcua-nodeid";
+import { OpaqueStructure } from "node-opcua-extension-object";
+import { coerceNodeId, type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import should from "should";
-import { DataType, sameVariant, Variant, VariantArrayType } from "../dist/index.js";
+import { DataType, encodeVariant, sameVariant, Variant, VariantArrayType } from "../dist/index.js";
 
 //
 // Variant.clone() has to be a true deep copy. The server records a clone of every sampled
@@ -251,5 +253,23 @@ describe("sameVariant on scalar object values", () => {
         const b = new Variant({ dataType: DataType.NodeId, value: coerceNodeId("ns=1;i=43") });
 
         sameVariant(a, b).should.eql(false);
+    });
+});
+
+describe("Variant.clone of a structure of a type not known here", () => {
+    it("keeps the NodeId and the body of an OpaqueStructure, and encodes as the original", () => {
+        const opaque = new OpaqueStructure(resolveNodeId("ns=3;i=5011"), Buffer.from([1, 2, 3, 4, 5]));
+        const variant = new Variant({ dataType: DataType.ExtensionObject, value: opaque });
+        const copy = variant.clone();
+        should(copy.value).not.equal(opaque);
+        should(copy.value).be.instanceOf(OpaqueStructure);
+        should((copy.value as OpaqueStructure).nodeId.toString()).eql("ns=3;i=5011");
+        should(Array.from((copy.value as OpaqueStructure).buffer)).eql([1, 2, 3, 4, 5]);
+        const encode = (v: Variant) => {
+            const stream = new BinaryStream(64);
+            encodeVariant(v, stream);
+            return Array.from(stream.buffer.subarray(0, stream.length));
+        };
+        should(encode(copy)).eql(encode(variant));
     });
 });
