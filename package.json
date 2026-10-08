@@ -100,16 +100,11 @@
   "bugs": {
     "url": "https://github.com/node-opcua/node-opcua/issues"
   },
-  "workspaces": [
-    "tools/*",
-    "packages/*",
-    "packages_extra/*"
-  ],
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.15",
     "@types/mocha": "^10.0.10",
-    "@types/node": "26.6.3",
+    "@types/node": "26.6.4",
     "app-module-path": "^2.2.0",
     "bignumber.js": "^11.1.5",
     "c8": "12.0.0",
@@ -131,7 +126,7 @@
     "node": ">=22.13.0",
     "pnpm": ">=11.0.0"
   },
-  "packageManager": "pnpm@12.9.1",
+  "packageManager": "pnpm@12.10.1",
   "dependenciesMeta": {
     "*": {
       "injected": true
@@ -165,8 +160,8 @@
     "long": "5.3.2",
     "memfs": "^4.80.0",
     "mocha-clean": "^1.0.0",
-    "node-opcua-crypto": "6.1.4",
-    "node-opcua-pki": "7.0.4",
+    "node-opcua-crypto": "6.2.0",
+    "node-opcua-pki": "7.1.0",
     "rimraf": "^6.1.3",
     "semver": "^7.8.5",
     "sinon": "^22.1.0",
