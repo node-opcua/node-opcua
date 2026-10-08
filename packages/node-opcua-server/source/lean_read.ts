@@ -15,14 +15,13 @@ import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
 import type { Message, ServerSecureChannelLayer } from "node-opcua-secure-channel";
 import { ReadRequest, ReadResponse } from "node-opcua-types";
-import type { ServerSession } from "./server_session.js";
+import { type LeanSessions, leanMessage, readLeanRequestHeader } from "./lean_request.js";
 
 /** ReadRequest_Encoding_DefaultBinary */
 const READ_REQUEST = 631;
 
 /** what a server gives the lean Read: its sessions, its limit, and how it reads the Value of a node */
-export interface LeanReadHost<T> {
-    getSession(authenticationToken: NodeId, activeOnly?: boolean): ServerSession | null;
+export interface LeanReadHost<T> extends LeanSessions {
     readonly maxNodesPerRead: number;
     /** what read() takes for the Value of this node; null for a node left to the normal path */
     itemOf(nodeId: NodeId): T | null;
@@ -43,28 +42,13 @@ export function leanRead<T>(
     try {
         const stream = new BinaryStream(body);
         stream.length = offset;
-        // RequestHeader
-        const authenticationToken = decodeNodeId(stream);
-        stream.length += 8; // timestamp
-        const requestHandle = stream.readUInt32();
-        const returnDiagnostics = stream.readUInt32();
-        const auditEntryId = stream.readInteger();
-        if (auditEntryId > 0) stream.length += auditEntryId;
-        stream.length += 4; // timeoutHint
-        // additionalHeader: an ExtensionObject without a body (NodeId i=0, no encoding)
-        if (body[stream.length] !== 0 || body[stream.length + 1] !== 0 || body[stream.length + 2] !== 0) return false;
-        stream.length += 3;
+        const header = readLeanRequestHeader(host, channel, stream);
+        if (!header) return false;
         const maxAge = stream.readDouble();
         const timestampsToReturn = stream.readUInt32();
         const count = stream.readInteger();
         if (!(maxAge >= 0) || timestampsToReturn > 3 || count <= 0) return false;
         if (host.maxNodesPerRead > 0 && count > host.maxNodesPerRead) return false;
-
-        // the checks of prepare() and _apply_on_SessionObject(): an active session, of this channel
-        const session = host.getSession(authenticationToken, true);
-        if (!session || session.status !== "active" || session.channel !== channel || session.channelId !== channel.channelId) {
-            return false;
-        }
 
         const items: T[] = new Array(count);
         for (let k = 0; k < count; k++) {
@@ -79,16 +63,14 @@ export function leanRead<T>(
         }
         if (stream.length !== body.length) return false;
 
+        const session = header.session;
         session.keepAlive?.();
         session.incrementTotalRequestCount();
         const results = host.read(session.sessionContext, items, maxAge, timestampsToReturn as TimestampsToReturn);
         const response = new ReadResponse(null);
         response.results = results;
         session.incrementRequestTotalCounter("Read");
-        // what send_response takes from a request: its handle, its diagnostics, the name of its service
-        const request = { requestHeader: { requestHandle, returnDiagnostics }, schema: ReadRequest.schema };
-        const message = { channel, request, requestId, securityHeader, session } as unknown as Message;
-        channel.send_response("MSG", response, message);
+        channel.send_response("MSG", response, leanMessage(channel, header, ReadRequest.schema, requestId, securityHeader));
         return true;
     } catch {
         return false;

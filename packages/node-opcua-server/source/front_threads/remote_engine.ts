@@ -614,6 +614,12 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
         return statuses.map((value) => coerceStatusCode(value));
     }
 
+    /** a Write of WriteValues as the client encoded them (their count, then them), to the engine as they are */
+    public async writeEncoded(context: ISessionContext, nodesToWrite: Uint8Array): Promise<StatusCode[]> {
+        const statuses = await this.#service<number[]>("write", context, nodesToWrite);
+        return statuses.map((value) => coerceStatusCode(value));
+    }
+
     public async browseWithAutomaticExpansion(
         nodesToBrowse: BrowseDescription[],
         context: ISessionContext

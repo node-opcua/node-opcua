@@ -24,6 +24,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { type ActivateSessionRequest, ServiceFault } from "node-opcua-types";
 import { encodeVariant, Variant, type VariantOptions } from "node-opcua-variant";
 import { type LeanReadHost, leanRead } from "../lean_read.js";
+import { type LeanWriteHost, leanWrite } from "../lean_write.js";
 import { OPCUAServerCore, type OPCUAServerOptions } from "../opcua_server.js";
 import type { OPCUAServerEndPoint } from "../server_end_point.js";
 import type { ServerEngineOptions } from "../server_engine.js";
@@ -93,9 +94,19 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
             read: (context, items, maxAge, timestampsToReturn) =>
                 items.map((i) => backend.readAt(i, context, maxAge, timestampsToReturn))
         };
+        const writeHost: LeanWriteHost = {
+            getSession: host.getSession,
+            get maxNodesPerWrite() {
+                return remote.serverCapabilities.operationLimits.maxNodesPerWrite ?? 0;
+            },
+            // the engine decodes and writes them, as for a Write forwarded the usual way
+            write: (context, nodesToWrite) => remote.writeEncoded(context, nodesToWrite)
+        };
         return (channel, typeId, body, offset, requestId, securityHeader) =>
             // a listener of "request" sees every request: it gets them decoded
-            this.listenerCount("request") === 0 && leanRead(host, channel, typeId, body, offset, requestId, securityHeader);
+            this.listenerCount("request") === 0 &&
+            (leanRead(host, channel, typeId, body, offset, requestId, securityHeader) ||
+                leanWrite(writeHost, channel, typeId, body, offset, requestId, securityHeader));
     }
 
     /** a session taken from another front for this ActivateSession goes back there */

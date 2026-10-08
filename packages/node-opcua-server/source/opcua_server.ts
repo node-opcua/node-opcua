@@ -42,6 +42,7 @@ import type { MethodResult } from "node-opcua-address-space-base";
 import type { StoreAddressSpaceOptions } from "node-opcua-address-space-store";
 import { assert } from "node-opcua-assert";
 import type { ByteString, UAString } from "node-opcua-basic-types";
+import { BinaryStream } from "node-opcua-binary-stream";
 import { getDefaultCertificateManager, type OPCUACertificateManager } from "node-opcua-certificate-manager";
 import {
     DiskCertificateKeyPairProvider,
@@ -160,7 +161,8 @@ import {
     MonitoringMode,
     ServiceFault,
     type UserIdentityToken,
-    type UserTokenPolicy
+    type UserTokenPolicy,
+    WriteValue
 } from "node-opcua-types";
 import { isNullOrUndefined, matchUri, randomBytes } from "node-opcua-utils";
 import { DataType, type Variant, VariantArrayType } from "node-opcua-variant";
@@ -172,6 +174,7 @@ import type { IChannelData } from "./i_channel_data.js";
 import type { IRegisterServerManager } from "./i_register_server_manager.js";
 import type { ISocketData } from "./i_socket_data.js";
 import { type LeanReadHost, leanRead } from "./lean_read.js";
+import { type LeanWriteHost, leanWrite } from "./lean_write.js";
 import type { INodeFinder } from "./monitorable_node.js";
 import { MonitoredItem } from "./monitored_item.js";
 import { ensurePublishSubscribeIsBrowsable } from "./publish_subscribe_structure.js";
@@ -3209,7 +3212,7 @@ export abstract class OPCUAServerCore<
      * none here, FrontOPCUAServer answers the Reads it serves in place
      */
     protected leanRequestHandler(): OPCUAServerEndPoint["leanRequestHandler"] {
-        const engine = this.engine as unknown as Pick<ServerEngine, "addressSpace" | "serverCapabilities" | "readSync">;
+        const engine = this.engine as unknown as Pick<ServerEngine, "addressSpace" | "serverCapabilities" | "readSync" | "write">;
         const host: LeanReadHost<NodeId> = {
             getSession: (token, activeOnly) => this.getSession(token, activeOnly),
             get maxNodesPerRead() {
@@ -3232,9 +3235,29 @@ export abstract class OPCUAServerCore<
                     nodesToRead: items.map((nodeId) => ({ nodeId, attributeId: AttributeIds.Value }))
                 })
         };
+        const writeHost: LeanWriteHost = {
+            getSession: host.getSession,
+            get maxNodesPerWrite() {
+                return engine.serverCapabilities.operationLimits.maxNodesPerWrite ?? 0;
+            },
+            // the WriteValues, decoded as the normal path does, written by the engine as there
+            write: (context, nodesToWrite, count) => {
+                const stream = new BinaryStream(Buffer.from(nodesToWrite.buffer, nodesToWrite.byteOffset, nodesToWrite.byteLength));
+                stream.length = 4;
+                const writeValues: WriteValue[] = new Array(count);
+                for (let k = 0; k < count; k++) {
+                    const writeValue = new WriteValue();
+                    writeValue.decode(stream);
+                    writeValues[k] = writeValue;
+                }
+                return engine.write(context, writeValues);
+            }
+        };
         return (channel, typeId, body, offset, requestId, securityHeader) =>
             // a listener of "request" sees every request: it gets them decoded
-            this.listenerCount("request") === 0 && leanRead(host, channel, typeId, body, offset, requestId, securityHeader);
+            this.listenerCount("request") === 0 &&
+            (leanRead(host, channel, typeId, body, offset, requestId, securityHeader) ||
+                leanWrite(writeHost, channel, typeId, body, offset, requestId, securityHeader));
     }
 
     /** an ActivateSession refused: the session stays as it was (FrontOPCUAServer gives back one it took) */
