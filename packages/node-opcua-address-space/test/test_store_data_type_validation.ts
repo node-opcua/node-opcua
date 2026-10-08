@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
-import { StoreAddressSpace, type StoreVariableView } from "node-opcua-address-space-store";
+import { ACCEPTED_TYPES_KNOWN, StoreAddressSpace, type StoreVariableView } from "node-opcua-address-space-store";
 import { DataValue } from "node-opcua-data-value";
+import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { ServerStatusDataType } from "node-opcua-types";
@@ -24,6 +25,41 @@ describe("store data type validation: what a Variable's DataType accepts on a wr
         }
         should(consumer.finish().unresolved).eql(0);
         space.registerNamespace("urn:test:datatypes");
+    });
+
+    it("publishes what each DataType accepts as a mask that answers as accepts() does", async () => {
+        const resolver = space.dataTypes;
+        const dataTypes = {
+            Double: 11,
+            Int32: 6,
+            Number: 26,
+            Integer: 27,
+            UInteger: 28,
+            BaseDataType: 24,
+            String: 12,
+            ByteString: 15,
+            ServerState: 852,
+            Structure: 22,
+            ServerStatusDataType: 862
+        };
+        resolver.publishAcceptedTypes();
+        for (const [name, id] of Object.entries(dataTypes)) {
+            const dataType = space.store.find(resolveNodeId(`ns=0;i=${id}`));
+            const mask = space.store.nodes.acceptedTypes(dataType);
+            should((mask & ACCEPTED_TYPES_KNOWN) !== 0).eql(true, `${name} published`);
+            for (let builtIn = 1; builtIn <= 25; builtIn++) {
+                should(((mask >>> builtIn) & 1) === 1).eql(
+                    resolver.accepts(dataType, builtIn, false),
+                    `${name} / ${DataType[builtIn]}`
+                );
+            }
+        }
+        // a change of the DataTypes clears what was published at once, and publishes it again right after
+        const double = space.store.find(resolveNodeId("ns=0;i=11"));
+        resolver.invalidate();
+        should(space.store.nodes.acceptedTypes(double)).eql(0);
+        await Promise.resolve();
+        should((space.store.nodes.acceptedTypes(double) & ACCEPTED_TYPES_KNOWN) !== 0).eql(true);
     });
 
     it("takes the built-in type and refuses another", () => {

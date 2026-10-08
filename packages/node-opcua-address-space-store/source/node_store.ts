@@ -59,6 +59,7 @@ export interface RolePermissionEntry {
 /** the accessRestrictions column value for a node that declares none */
 export const INHERITED_ACCESS_RESTRICTIONS = 0xff;
 /** flag bits a reader in another thread looks at */
+export const HISTORIZING = 1;
 export const OWN_ROLE_PERMISSIONS = 32;
 export const BOUND = 64;
 
@@ -93,6 +94,8 @@ export class NodeStore {
     #accessRestrictions: Uint8Array; // flags, or INHERITED_ACCESS_RESTRICTIONS
     // how many nodes have occupied each index: a view remembers the one it was built for
     #generation: Uint16Array;
+    // for a DataType node: the built-in Variant types a Variable of that DataType accepts (see DataTypeResolver.acceptedTypes)
+    #acceptedTypes: Uint32Array;
     // the indexes of deleted nodes, taken again by the next additions
     #free: number[] = [];
     // the few nodes that declare RolePermissions (557 of the 5,476 nodes of the standard nodeset)
@@ -127,6 +130,7 @@ export class NodeStore {
         this.#inverseName = a(Int32Array);
         this.#accessRestrictions = a(Uint8Array).fill(INHERITED_ACCESS_RESTRICTIONS);
         this.#generation = a(Uint16Array);
+        this.#acceptedTypes = a(Uint32Array);
     }
 
     /** the columns a reader in another thread needs to read a Value (see SharedStoreReader) */
@@ -140,6 +144,8 @@ export class NodeStore {
             flags: bufferOf(this.#flags),
             minimumSamplingInterval: bufferOf(this.#minimumSamplingInterval),
             generation: bufferOf(this.#generation),
+            dataType: bufferOf(this.#dataType),
+            acceptedTypes: bufferOf(this.#acceptedTypes),
             index: this.byNodeId.exportShared(),
             strings: this.strings.exportShared()
         };
@@ -341,8 +347,15 @@ export class NodeStore {
     }
     /** a Variable bound to a getter or setter: its value is the owner's to answer */
     public setHistorizing(i: number, historizing: boolean): void {
-        if (historizing) this.#flags[i] |= 1;
-        else this.#flags[i] &= ~1;
+        if (historizing) this.#flags[i] |= HISTORIZING;
+        else this.#flags[i] &= ~HISTORIZING;
+    }
+    /** of a DataType node: its accepted types, 0 when not worked out (see DataTypeResolver.acceptedTypes) */
+    public acceptedTypes(i: number): number {
+        return Atomics.load(this.#acceptedTypes, i);
+    }
+    public setAcceptedTypes(i: number, mask: number): void {
+        Atomics.store(this.#acceptedTypes, i, mask);
     }
     public setAccessLevels(i: number, accessLevel: number, userAccessLevel: number): void {
         this.#accessLevel[i] = accessLevel; // check-proto-pollution: ok - typed array, node index
@@ -406,6 +419,7 @@ export class NodeStore {
         this.#flags = resized(this.#flags, n, Uint8Array);
         this.#inverseName = resized(this.#inverseName, n, Int32Array);
         this.#generation = resized(this.#generation, n, Uint16Array);
+        this.#acceptedTypes = resized(this.#acceptedTypes, n, Uint32Array);
         const restrictions = resized(this.#accessRestrictions, n, Uint8Array);
         if (n > this.#accessRestrictions.length) {
             restrictions.fill(INHERITED_ACCESS_RESTRICTIONS, this.#accessRestrictions.length);
@@ -425,6 +439,10 @@ export interface SharedNodeBuffers {
     minimumSamplingInterval: SharedArrayBuffer;
     /** moves each time a node index is deleted: what tells a node from the next one at its index */
     generation: SharedArrayBuffer;
+    /** the DataType of each Variable, as a node index */
+    dataType: SharedArrayBuffer;
+    /** of each DataType node: the built-in Variant types its Variables accept (see DataTypeResolver.acceptedTypes) */
+    acceptedTypes: SharedArrayBuffer;
     index: SharedIndexBuffers;
     strings: SharedArenaBuffers;
 }

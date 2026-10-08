@@ -7,6 +7,7 @@
  * and verifyVariantCompatibility), answered on indexes and remembered per DataType.
  */
 
+import { NodeClass } from "node-opcua-data-model";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 import type { CompactStore } from "./compact_store.js";
@@ -32,12 +33,19 @@ export enum ResolvedType {
     Unknown = -4
 }
 
+/** in an accepted types mask: set once the mask is worked out; bit k is the built-in type k (Null never) */
+export const ACCEPTED_TYPES_KNOWN = 0x80000000;
+
 export class DataTypeResolver {
     readonly #store: CompactStore;
     // by DataType node index; built-in types are their own answer
     readonly #resolved = new Map<number, number>();
     // the node index of each built-in type, by DataType value
     #builtIn: Int32Array | null = null;
+    // the DataType nodes whose accepted types are in the store, to clear when the types change
+    readonly #published = new Set<number>();
+    #publishing = false;
+    #republishScheduled = false;
 
     constructor(store: CompactStore) {
         this.#store = store;
@@ -47,6 +55,45 @@ export class DataTypeResolver {
     public invalidate(): void {
         this.#resolved.clear();
         this.#builtIn = null;
+        // a reader in another thread must not use an answer of the former types: cleared now, worked out again soon
+        for (const dataType of this.#published) this.#store.nodes.setAcceptedTypes(dataType, 0);
+        this.#published.clear();
+        if (this.#publishing && !this.#republishScheduled) {
+            this.#republishScheduled = true;
+            queueMicrotask(() => {
+                this.#republishScheduled = false;
+                this.publishAcceptedTypes();
+            });
+        }
+    }
+
+    /**
+     * the built-in Variant types a Variable of DataType `dataType` accepts from a client (accepts(), without
+     * Null), as a mask kept in the store: bit k for the built-in type k, and ACCEPTED_TYPES_KNOWN. What a
+     * thread without this resolver tests before writing a value itself; 0 for no DataType node.
+     */
+    public acceptedTypes(dataType: number): number {
+        if (dataType === NO_NODE) return 0;
+        const nodes = this.#store.nodes;
+        const known = nodes.acceptedTypes(dataType);
+        if (known !== 0) return known;
+        let mask = ACCEPTED_TYPES_KNOWN;
+        for (let builtIn = 1; builtIn <= 25; builtIn++) {
+            if (this.accepts(dataType, builtIn as DataType, false)) mask |= 1 << builtIn;
+        }
+        mask >>>= 0;
+        nodes.setAcceptedTypes(dataType, mask);
+        this.#published.add(dataType);
+        return mask;
+    }
+
+    /** the accepted types of every DataType node, in the store; kept up to date from now on */
+    public publishAcceptedTypes(): void {
+        this.#publishing = true;
+        const nodes = this.#store.nodes;
+        for (let i = 0; i < nodes.count; i++) {
+            if (!nodes.isDeleted(i) && nodes.nodeClass(i) === NodeClass.DataType) this.acceptedTypes(i);
+        }
     }
 
     /** the built-in DataType a DataType node stands for, or a ResolvedType marker */

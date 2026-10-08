@@ -19,8 +19,9 @@
 import { NodeClass } from "node-opcua-data-model";
 import { type NodeId, NodeIdType } from "node-opcua-nodeid";
 import { NAMESPACE_DEFAULT_RESTRICTIONS, NAMESPACE_DEFAULT_ROLE_PERMISSIONS, type SharedStoreDescriptor } from "./compact_store.js";
+import { ACCEPTED_TYPES_KNOWN } from "./data_type_resolver.js";
 import { NO_NODE, NodeIdIndex } from "./node_id_index.js";
-import { BOUND, INHERITED_ACCESS_RESTRICTIONS, OWN_ROLE_PERMISSIONS } from "./node_store.js";
+import { BOUND, HISTORIZING, INHERITED_ACCESS_RESTRICTIONS, OWN_ROLE_PERMISSIONS } from "./node_store.js";
 import { ValueKind } from "./value_store.js";
 
 const FREE = 0;
@@ -70,6 +71,8 @@ export class SharedStoreReader {
     readonly #namespacePolicy: Uint8Array;
     readonly #minimumSamplingInterval: Float32Array;
     readonly #generation: Uint16Array;
+    readonly #nodeDataType: Int32Array;
+    readonly #acceptedTypes: Uint32Array;
     // the NodeId index
     readonly #ns: Uint16Array;
     readonly #kind: Uint8Array;
@@ -110,6 +113,8 @@ export class SharedStoreReader {
         this.#namespacePolicy = new Uint8Array(descriptor.namespacePolicy);
         this.#minimumSamplingInterval = new Float32Array(n.minimumSamplingInterval);
         this.#generation = new Uint16Array(n.generation);
+        this.#nodeDataType = new Int32Array(n.dataType);
+        this.#acceptedTypes = new Uint32Array(n.acceptedTypes);
         this.#ns = new Uint16Array(n.index.ns);
         this.#kind = new Uint8Array(n.index.kind);
         this.#word = new Uint32Array(n.index.word);
@@ -219,6 +224,22 @@ export class SharedStoreReader {
     }
 
     /** the Value of node `i` into `out`, under the node's seqlock */
+    /**
+     * true when a Variant of built-in type `variantType` may be written to Variable `i`, as the owner's
+     * DataType check would answer; false when this thread cannot tell (the owner has not worked it out)
+     */
+    public acceptsForWrite(i: number, variantType: number): boolean {
+        const dataType = this.#nodeDataType[i];
+        if (dataType < 0 || variantType <= 0 || variantType > 25) return false;
+        const mask = Atomics.load(this.#acceptedTypes, dataType);
+        return (mask & ACCEPTED_TYPES_KNOWN) !== 0 && (mask & (1 << variantType)) !== 0;
+    }
+
+    /** true when Variable `i` is historized: its values also go to its historian, on the owner */
+    public isHistorized(i: number): boolean {
+        return (this.#flags[i] & HISTORIZING) !== 0;
+    }
+
     public readValue(i: number, out: SharedValue): SharedReadStatus {
         if (i === NO_NODE || (this.#flags[i] & DELETED) !== 0) {
             return SharedReadStatus.NotFound;

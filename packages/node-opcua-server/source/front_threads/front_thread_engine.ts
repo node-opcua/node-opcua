@@ -263,6 +263,8 @@ export class FrontThreadEngine {
                 if (mirror.mirrored > 0) served.push(index);
             }
         }
+        // what a Variable of each DataType accepts, for the threads that read the store without a resolver
+        this.addressSpace.dataTypes.publishAcceptedTypes();
         const descriptor = this.addressSpace.store.shareForReaders();
         this.#layoutShared = descriptor.layoutSeen;
         const workerScript = options.workerScript ?? new URL("./front_worker.js", import.meta.url);
