@@ -20,7 +20,7 @@ import {
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
-import { type NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { type EventFilter, EventFilter as EventFilterClass } from "node-opcua-service-filter";
 import { coerceStatusCode, StatusCodes } from "node-opcua-status-code";
@@ -146,14 +146,8 @@ export class RemoteCompactBackend implements FrontNodeHost {
         this.#reader = new SharedStoreReader(descriptor);
     }
 
-    /** whether read() answers this item from the shared store, without the engine */
-    public canReadInPlace(nodeToRead: ReadValueIdOptions): boolean {
-        if (!this.namespaces.has(resolveNodeId(nodeToRead.nodeId ?? "").namespace)) return false;
-        return this.#inPlace(nodeToRead) >= 0;
-    }
-
-    /** the node index when its Value can be served here, else -1 */
-    #inPlace(nodeToRead: ReadValueIdOptions): number {
+    /** the index of the node whose Value readAt() serves from the shared store, without the engine; -1 when it cannot */
+    public inPlaceIndex(nodeToRead: ReadValueIdOptions): number {
         if (nodeToRead.attributeId !== AttributeIds.Value) return -1;
         const range = nodeToRead.indexRange as NumericRange | undefined;
         if (range && !range.isEmpty()) return -1;
@@ -161,21 +155,18 @@ export class RemoteCompactBackend implements FrontNodeHost {
         if (encoding?.name) return -1;
         const reader = this.#reader;
         if (!reader.isCurrent()) return -1;
-        const i = reader.find(resolveNodeId(nodeToRead.nodeId ?? ""));
+        // a decoded request holds NodeIds already
+        const nodeId = nodeToRead.nodeId instanceof NodeId ? nodeToRead.nodeId : resolveNodeId(nodeToRead.nodeId ?? "");
+        if (!this.namespaces.has(nodeId.namespace)) return -1;
+        const i = reader.find(nodeId);
         return reader.canServe(i) ? i : -1;
     }
 
-    /** one item of a Read that canReadInPlace() accepted */
-    public read(
-        context: ISessionContext | null,
-        nodeToRead: ReadValueIdOptions,
-        maxAge: number,
-        timestampsToReturn?: TimestampsToReturn
-    ): DataValue {
-        const i = this.#inPlace(nodeToRead);
+    /** the Value of the node at index `i` (inPlaceIndex), as one item of a Read */
+    public readAt(i: number, context: ISessionContext | null, maxAge: number, timestampsToReturn?: TimestampsToReturn): DataValue {
         const v = this.#value;
-        if (i < 0 || this.#reader.readValue(i, v) !== SharedReadStatus.Good) {
-            // the value changed kind (or the columns moved) since canReadInPlace() was asked
+        if (this.#reader.readValue(i, v) !== SharedReadStatus.Good) {
+            // the value changed kind (or the columns moved) since inPlaceIndex() was asked
             return new DataValue({ statusCode: StatusCodes.BadResourceUnavailable });
         }
         return this.#dataValueOf(v, context, maxAge, timestampsToReturn ?? TimestampsToReturn.Source);
