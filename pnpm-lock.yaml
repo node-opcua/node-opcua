@@ -7,153 +7,153 @@ importers:
     configDependencies: {}
     packageManagerDependencies:
       pnpm:
-        specifier: 12.9.1
-        version: 12.9.1
+        specifier: 12.10.1
+        version: 12.10.1
 
 packages:
 
-  '@pnpm/exe.android-arm64@12.9.1':
-    resolution: {integrity: sha512-Hgm1XdqMTfBC8PdGLL+NjZWv4xyi7D6XNrN9fb24XGYlyTBmUtdCefKnCLmHujShRD8BEO1zqM30SNcKBDLysw==}
+  '@pnpm/exe.android-arm64@12.10.1':
+    resolution: {integrity: sha512-CVTlHPwNvadQCJD9bGSMzWIhFX8QpjtqC2c27dhdnn/9iKzEjZ3qL62o3gHpKbIuo6qn4WxTKRoaokgNdReBig==}
     cpu: [arm64]
     os: [android]
 
-  '@pnpm/exe.android-x64@12.9.1':
-    resolution: {integrity: sha512-WDGCe6jZRVZP3RC/q6hOkZylkPkIQIi1/GcrR/d/YzbihhAHXCczrk+UYnV5TgbsEnAYO7Cx+2rX3nfhHvy24w==}
+  '@pnpm/exe.android-x64@12.10.1':
+    resolution: {integrity: sha512-NFiYLIaodY7da0XIebwcU3JoP7IK/lzF7zgKSSP+9H+QcFnQ1GDfBkuBKCYJzZ+Xu0WH54neIPLBBCaOjaaauA==}
     cpu: [x64]
     os: [android]
 
-  '@pnpm/exe.darwin-arm64@12.9.1':
-    resolution: {integrity: sha512-+7iiEEBgYN9szPWUnAuN6eOVMTI6Hrki5bcuC9n9xl9tTnT53Tpxpo45Hml+W4IrAU0d+Tmd0sPnVIbX59PD6w==}
+  '@pnpm/exe.darwin-arm64@12.10.1':
+    resolution: {integrity: sha512-0O8tdQ8ijlPJudXspLMTcitMkdBEz6uUflazL5uQE0WMs85oQIp0U+5hfEktMFB64QqEhjqlvvujTwbzdr9oMg==}
     cpu: [arm64]
     os: [darwin]
 
-  '@pnpm/exe.darwin-x64@12.9.1':
-    resolution: {integrity: sha512-SK7TxJiR12GbJZGffRFHItkc+Mx+99v6xMMJ9/X//8NwWV1wo17a2bwfGI8qZpl17YwsrmPEFOOqhzE1GIlrtQ==}
+  '@pnpm/exe.darwin-x64@12.10.1':
+    resolution: {integrity: sha512-ud+1/uZOKEo8P/AsPynOJc/LNwfI0j6WwCElibj71rU9l4nIBnsSn+wWTIPZPkZ4BBSH5+82azSnAARMyJ1lNA==}
     cpu: [x64]
     os: [darwin]
 
-  '@pnpm/exe.freebsd-x64@12.9.1':
-    resolution: {integrity: sha512-4AjLk6uvTs2iO6wMit2hcxJ2M32xb7OV5SNFk+w6G8/NzcjcMB7ENEpyeXyLiP0kcnp8uaCGUct2NfrLCJ35eQ==}
+  '@pnpm/exe.freebsd-x64@12.10.1':
+    resolution: {integrity: sha512-mj9PE5rf8uAfQQ2K66HSATMSut+lNiB4eSqFd5+azFVCMnxNSy/32xpZQJT21PhnN3Y4qbK+iKHe5nWAxSuRhw==}
     cpu: [x64]
     os: [freebsd]
 
-  '@pnpm/exe.linux-arm64-musl@12.9.1':
-    resolution: {integrity: sha512-dZL2ES1ckDWM9v+EtxoOklZ0WNdtayooi9iLiDUubopudX3zXPNR2mlrxBRgjbDgECOndQen2SmyxL5eZiBuKw==}
+  '@pnpm/exe.linux-arm64-musl@12.10.1':
+    resolution: {integrity: sha512-xba+00wZJ8Um6rBJJjWl88uJj0tydB8dtomvjlCLvi0uL32vpa9CRP8Vv26FIXvbiZ1bo2RCzYt/eChxJVV52w==}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@pnpm/exe.linux-arm64@12.9.1':
-    resolution: {integrity: sha512-cx+uF6xqwEtm7B8NV+1ve0xBg9gcuzQZ5R+0WgOWvKG/h978UljS6BgWs1ipIGuGgUdeVhm3PKmBltXIcczLXA==}
+  '@pnpm/exe.linux-arm64@12.10.1':
+    resolution: {integrity: sha512-oBdMp69ScC9UnniG4qZAQVr2fBDSXjm4yk/72vkEVyrlwS23yMxcRQl7Qdo3sgXPAygY6TWnPRKm4rXzjoyW7w==}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@pnpm/exe.linux-ppc64@12.9.1':
-    resolution: {integrity: sha512-MpjPsy4XR17zAtLziQZfsN+wveWa/bUJggZtwfo3+SuyRmXnSvVkFD4+v8/3RTWyYaM6mwLUTjZDJ+g3urL+ew==}
+  '@pnpm/exe.linux-ppc64@12.10.1':
+    resolution: {integrity: sha512-Yyb3wu09h3c7mLme270uHFiVaAIUHC411Ru9LIU2BKUIstrGlXa9OqqVWoXaRgYRdFdOFknkwG7GNn6ygwLbnw==}
     cpu: [ppc64]
     os: [linux]
     libc: [glibc]
 
-  '@pnpm/exe.linux-riscv64@12.9.1':
-    resolution: {integrity: sha512-Oo67TKqqH+Bno+L6X7Xyorwp1QG82zKIkL0vbo1x2kcPTDiyPbdM+d6lIs4+hzeB1KHT5FDoGzZj2dad7Ft+eg==}
+  '@pnpm/exe.linux-riscv64@12.10.1':
+    resolution: {integrity: sha512-PdkeUFFkybknnGkWP0H22eMpIiS4OZXL5BcQzF4lh+vmrW3IaC2HOkbANKgot/PKO0Kl77pzA/6PKFxgbgfXIQ==}
     cpu: [riscv64]
     os: [linux]
     libc: [glibc]
 
-  '@pnpm/exe.linux-s390x@12.9.1':
-    resolution: {integrity: sha512-QAD5FRCdW36HfD58BV7DoDm6z8yv+GgSqcUV1+ERwYjpVQuG6ZTpf5o0x3KDas8eTLIW7MLYVdDdlAurWeArEg==}
+  '@pnpm/exe.linux-s390x@12.10.1':
+    resolution: {integrity: sha512-1okKuHKJwJPAbofDxfhZWAUxEWtee4ZSf7Pah8kcvocaJkf2WxFJ5KVTiNIvDml5GLidDQsgf7Pcf/WHbCak7Q==}
     cpu: [s390x]
     os: [linux]
     libc: [glibc]
 
-  '@pnpm/exe.linux-x64-musl@12.9.1':
-    resolution: {integrity: sha512-mQDhBsGqcTkrLQM4q5igmRFcr6EAl4UM/FGawY+0CWGcqPpUmYUvDy9LHy80xxkHIWVJ886gvvso2XOjfav1Jw==}
+  '@pnpm/exe.linux-x64-musl@12.10.1':
+    resolution: {integrity: sha512-e6IqzVNkPa7srFKJKnY23uWJ+qz0LaRWiTUo/sHfFXRRMRzB5uNOr6qWWip/jqhdGwU91n9J7LrEYZ6e0tRczw==}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@pnpm/exe.linux-x64@12.9.1':
-    resolution: {integrity: sha512-+M5N74hM4fc87AAckxx/UIW+dUnWf2eko+HchJs/NZUxehLhekNyMI/GNaNXlvd+kWR+97XXBD51XRkkNiUtrA==}
+  '@pnpm/exe.linux-x64@12.10.1':
+    resolution: {integrity: sha512-ZByV0DRgWzGaDSjT5ddRBASdwz+r/qPMYh7o6RGmPQjtRGNFbSl94xY2DcAM8mqCOZJUUDtAXQ+wpBXcdpKlkg==}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@pnpm/exe.win32-arm64@12.9.1':
-    resolution: {integrity: sha512-mI28C2wxobrDi6x1OYhBRyG10hnDq/4sEIyy5RzoX6LB4kLuv6K/d25HOpMwlW20cuM4M72k9NZpOdcmUxMbEA==}
+  '@pnpm/exe.win32-arm64@12.10.1':
+    resolution: {integrity: sha512-I7QZHcjioG7orFeCRUFUHByJ1G0zFPnAlaGGyrUvb6MGkv5oeNwNPl7t+Gp+7zHfnMcgLGJ1a+Wfim0IDw3lOw==}
     cpu: [arm64]
     os: [win32]
 
-  '@pnpm/exe.win32-x64@12.9.1':
-    resolution: {integrity: sha512-SWoDMT0oD7NrDSIoPpkKD09D9fAQKNjwFZ3lezlCUhAfXxMv70zsfrNT2/P+GoCK2kefXF9OysUZkH1l5vvvfA==}
+  '@pnpm/exe.win32-x64@12.10.1':
+    resolution: {integrity: sha512-4WJFdp58EKlCj0zLobrXU0vpszSZIr4X/3y/uNbAQqGW0zE+VdruZB0gFc3L2kzsUzVwTYbaCn+XEhnCYSAlTg==}
     cpu: [x64]
     os: [win32]
 
-  pnpm@12.9.1:
-    resolution: {integrity: sha512-BrBV//XNINwSeB3hc87TMQzglRvy7GICEaFgRdVETVyTpmMhB2TvKaZTphBFm6A2jw50+E2AxUcjz5Wq57wNbQ==}
+  pnpm@12.10.1:
+    resolution: {integrity: sha512-ukCjfrGjcNYP6oxM8dNkwTvMzvUY6YrSvO6VT1OdONo3RY5YJho/pV4GUjRQ6g//+fSXsTW+QfLBXBZCusrObA==}
     engines: {node: '>=18.*'}
     hasBin: true
 
 snapshots:
 
-  '@pnpm/exe.android-arm64@12.9.1':
+  '@pnpm/exe.android-arm64@12.10.1':
     optional: true
 
-  '@pnpm/exe.android-x64@12.9.1':
+  '@pnpm/exe.android-x64@12.10.1':
     optional: true
 
-  '@pnpm/exe.darwin-arm64@12.9.1':
+  '@pnpm/exe.darwin-arm64@12.10.1':
     optional: true
 
-  '@pnpm/exe.darwin-x64@12.9.1':
+  '@pnpm/exe.darwin-x64@12.10.1':
     optional: true
 
-  '@pnpm/exe.freebsd-x64@12.9.1':
+  '@pnpm/exe.freebsd-x64@12.10.1':
     optional: true
 
-  '@pnpm/exe.linux-arm64-musl@12.9.1':
+  '@pnpm/exe.linux-arm64-musl@12.10.1':
     optional: true
 
-  '@pnpm/exe.linux-arm64@12.9.1':
+  '@pnpm/exe.linux-arm64@12.10.1':
     optional: true
 
-  '@pnpm/exe.linux-ppc64@12.9.1':
+  '@pnpm/exe.linux-ppc64@12.10.1':
     optional: true
 
-  '@pnpm/exe.linux-riscv64@12.9.1':
+  '@pnpm/exe.linux-riscv64@12.10.1':
     optional: true
 
-  '@pnpm/exe.linux-s390x@12.9.1':
+  '@pnpm/exe.linux-s390x@12.10.1':
     optional: true
 
-  '@pnpm/exe.linux-x64-musl@12.9.1':
+  '@pnpm/exe.linux-x64-musl@12.10.1':
     optional: true
 
-  '@pnpm/exe.linux-x64@12.9.1':
+  '@pnpm/exe.linux-x64@12.10.1':
     optional: true
 
-  '@pnpm/exe.win32-arm64@12.9.1':
+  '@pnpm/exe.win32-arm64@12.10.1':
     optional: true
 
-  '@pnpm/exe.win32-x64@12.9.1':
+  '@pnpm/exe.win32-x64@12.10.1':
     optional: true
 
-  pnpm@12.9.1:
+  pnpm@12.10.1:
     optionalDependencies:
-      '@pnpm/exe.android-arm64': 12.9.1
-      '@pnpm/exe.android-x64': 12.9.1
-      '@pnpm/exe.darwin-arm64': 12.9.1
-      '@pnpm/exe.darwin-x64': 12.9.1
-      '@pnpm/exe.freebsd-x64': 12.9.1
-      '@pnpm/exe.linux-arm64': 12.9.1
-      '@pnpm/exe.linux-arm64-musl': 12.9.1
-      '@pnpm/exe.linux-ppc64': 12.9.1
-      '@pnpm/exe.linux-riscv64': 12.9.1
-      '@pnpm/exe.linux-s390x': 12.9.1
-      '@pnpm/exe.linux-x64': 12.9.1
-      '@pnpm/exe.linux-x64-musl': 12.9.1
-      '@pnpm/exe.win32-arm64': 12.9.1
-      '@pnpm/exe.win32-x64': 12.9.1
+      '@pnpm/exe.android-arm64': 12.10.1
+      '@pnpm/exe.android-x64': 12.10.1
+      '@pnpm/exe.darwin-arm64': 12.10.1
+      '@pnpm/exe.darwin-x64': 12.10.1
+      '@pnpm/exe.freebsd-x64': 12.10.1
+      '@pnpm/exe.linux-arm64': 12.10.1
+      '@pnpm/exe.linux-arm64-musl': 12.10.1
+      '@pnpm/exe.linux-ppc64': 12.10.1
+      '@pnpm/exe.linux-riscv64': 12.10.1
+      '@pnpm/exe.linux-s390x': 12.10.1
+      '@pnpm/exe.linux-x64': 12.10.1
+      '@pnpm/exe.linux-x64-musl': 12.10.1
+      '@pnpm/exe.win32-arm64': 12.10.1
+      '@pnpm/exe.win32-x64': 12.10.1
 
 ---
 lockfileVersion: '9.0'
@@ -255,11 +255,11 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-pki:
-        specifier: 7.0.4
-        version: 7.0.4
+        specifier: 7.1.0
+        version: 7.1.0
       rimraf:
         specifier: ^6.1.3
         version: 6.1.3
@@ -310,8 +310,8 @@ importers:
         specifier: ^10.0.10
         version: 10.0.10
       '@types/node':
-        specifier: 26.6.3
-        version: 26.6.3
+        specifier: 26.6.4
+        version: 26.6.4
       app-module-path:
         specifier: ^2.2.0
         version: 2.2.0
@@ -412,8 +412,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-data-access:
         specifier: 2.186.10
         version: link:../node-opcua-data-access
@@ -556,8 +556,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-data-access:
         specifier: 2.186.10
         version: link:../node-opcua-data-access
@@ -677,8 +677,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-data-model:
         specifier: 2.186.10
         version: link:../node-opcua-data-model
@@ -1115,8 +1115,8 @@ importers:
         specifier: 2.186.17
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-debug:
         specifier: 2.186.7
         version: link:../node-opcua-debug
@@ -1124,8 +1124,8 @@ importers:
         specifier: 2.186.7
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 7.0.4
-        version: 7.0.4
+        specifier: 7.1.0
+        version: 7.1.0
       node-opcua-status-code:
         specifier: 2.186.7
         version: link:../node-opcua-status-code
@@ -1201,8 +1201,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-data-model:
         specifier: 2.186.10
         version: link:../node-opcua-data-model
@@ -1231,8 +1231,8 @@ importers:
         specifier: 2.186.7
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 7.0.4
-        version: 7.0.4
+        specifier: 7.1.0
+        version: 7.1.0
       node-opcua-pseudo-session:
         specifier: 2.186.17
         version: link:../node-opcua-pseudo-session
@@ -1337,8 +1337,8 @@ importers:
         specifier: 2.186.17
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-debug:
         specifier: 2.186.7
         version: link:../node-opcua-debug
@@ -1534,8 +1534,8 @@ importers:
         specifier: 2.186.7
         version: link:../node-opcua-assert
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-status-code:
         specifier: 2.186.7
         version: link:../node-opcua-status-code
@@ -1552,8 +1552,8 @@ importers:
   packages/node-opcua-convert-nodeset-to-javascript:
     dependencies:
       case-anything:
-        specifier: 3.1.6
-        version: 3.1.6
+        specifier: 3.1.7
+        version: 3.1.7
       chalk:
         specifier: 6.0.1
         version: 6.0.1
@@ -1779,8 +1779,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-debug:
         specifier: 2.186.7
         version: link:../node-opcua-debug
@@ -1812,8 +1812,8 @@ importers:
         specifier: 2.186.17
         version: link:../node-opcua-nodeset-machinery-result
       node-opcua-pki:
-        specifier: 7.0.4
-        version: 7.0.4
+        specifier: 7.1.0
+        version: 7.1.0
       node-opcua-server:
         specifier: 2.186.17
         version: link:../node-opcua-server
@@ -2035,8 +2035,8 @@ importers:
         specifier: 2.186.10
         version: link:../node-opcua-variant
       typescript-5:
-        specifier: npm:typescript@5.9.3
-        version: typescript@5.9.3
+        specifier: npm:typescript@7.0.2
+        version: typescript@7.0.2
     devDependencies:
       node-opcua-packet-analyzer:
         specifier: 2.186.7
@@ -2123,7 +2123,7 @@ importers:
     dependencies:
       '@inquirer/prompts':
         specifier: 8.7.3
-        version: 8.7.3(@types/node@26.6.3)
+        version: 8.7.3(@types/node@26.6.4)
       command-line-args:
         specifier: 6.0.2
         version: 6.0.2
@@ -3390,8 +3390,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-data-model:
         specifier: 2.186.10
         version: link:../node-opcua-data-model
@@ -3439,7 +3439,7 @@ importers:
     dependencies:
       '@inquirer/prompts':
         specifier: 8.7.3
-        version: 8.7.3(@types/node@26.6.3)
+        version: 8.7.3(@types/node@26.6.4)
       commander:
         specifier: ^15.0.0
         version: 15.0.0
@@ -3512,8 +3512,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-nodeid:
         specifier: 2.186.7
         version: link:../node-opcua-nodeid
@@ -3682,14 +3682,14 @@ importers:
         specifier: 2.186.17
         version: link:../node-opcua-client-proxy
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-packet-analyzer:
         specifier: 2.186.7
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 7.0.4
-        version: 7.0.4
+        specifier: 7.1.0
+        version: 7.1.0
       node-opcua-server-configuration:
         specifier: 2.186.17
         version: link:../node-opcua-server-configuration
@@ -3773,8 +3773,8 @@ importers:
         specifier: 2.186.17
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-debug:
         specifier: 2.186.7
         version: link:../node-opcua-debug
@@ -3891,8 +3891,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-data-model:
         specifier: 2.186.10
         version: link:../node-opcua-data-model
@@ -3927,8 +3927,8 @@ importers:
         specifier: 2.186.7
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 7.0.4
-        version: 7.0.4
+        specifier: 7.1.0
+        version: 7.1.0
       node-opcua-secure-channel:
         specifier: 2.186.17
         version: link:../node-opcua-secure-channel
@@ -4048,8 +4048,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-data-model:
         specifier: 2.186.10
         version: link:../node-opcua-data-model
@@ -4066,8 +4066,8 @@ importers:
         specifier: 2.186.7
         version: link:../node-opcua-nodeid
       node-opcua-pki:
-        specifier: 7.0.4
-        version: 7.0.4
+        specifier: 7.1.0
+        version: 7.1.0
       node-opcua-pseudo-session:
         specifier: 2.186.17
         version: link:../node-opcua-pseudo-session
@@ -4130,8 +4130,8 @@ importers:
         specifier: 2.186.17
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 6.1.4
-        version: 6.1.4
+        specifier: 6.2.0
+        version: 6.2.0
       node-opcua-debug:
         specifier: 2.186.7
         version: link:../node-opcua-debug
@@ -4161,8 +4161,8 @@ importers:
         version: 4.4.0
     devDependencies:
       node-opcua-pki:
-        specifier: 7.0.4
-        version: 7.0.4
+        specifier: 7.1.0
+        version: 7.1.0
 
   packages/node-opcua-service-browse:
     dependencies:
@@ -4804,20 +4804,20 @@ importers:
   tools/check-c8-ignore:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@5.9.3
-        version: typescript@5.9.3
+        specifier: npm:typescript@7.0.2
+        version: typescript@7.0.2
 
   tools/check-cjs-globals:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@5.9.3
-        version: typescript@5.9.3
+        specifier: npm:typescript@7.0.2
+        version: typescript@7.0.2
 
   tools/check-construction-cast:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@5.9.3
-        version: typescript@5.9.3
+        specifier: npm:typescript@7.0.2
+        version: typescript@7.0.2
 
   tools/check-debug-log: {}
 
@@ -4826,34 +4826,34 @@ importers:
   tools/check-dirname:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@5.9.3
-        version: typescript@5.9.3
+        specifier: npm:typescript@7.0.2
+        version: typescript@7.0.2
 
   tools/check-engines: {}
 
   tools/check-entry-points:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@5.9.3
-        version: typescript@5.9.3
+        specifier: npm:typescript@7.0.2
+        version: typescript@7.0.2
 
   tools/check-erasable:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@5.9.3
-        version: typescript@5.9.3
+        specifier: npm:typescript@7.0.2
+        version: typescript@7.0.2
 
   tools/check-import-cycles:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@5.9.3
-        version: typescript@5.9.3
+        specifier: npm:typescript@7.0.2
+        version: typescript@7.0.2
 
   tools/check-import-extension:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@5.9.3
-        version: typescript@5.9.3
+        specifier: npm:typescript@7.0.2
+        version: typescript@7.0.2
 
   tools/check-mocharc: {}
 
@@ -4862,8 +4862,8 @@ importers:
   tools/check-no-tla:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@5.9.3
-        version: typescript@5.9.3
+        specifier: npm:typescript@7.0.2
+        version: typescript@7.0.2
 
   tools/check-pack: {}
 
@@ -4872,22 +4872,22 @@ importers:
   tools/check-proto-pollution:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@5.9.3
-        version: typescript@5.9.3
+        specifier: npm:typescript@7.0.2
+        version: typescript@7.0.2
 
   tools/check-short-circuit-assertion:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@5.9.3
-        version: typescript@5.9.3
+        specifier: npm:typescript@7.0.2
+        version: typescript@7.0.2
 
   tools/check-test-ports: {}
 
   tools/esm-convert:
     devDependencies:
       typescript-5:
-        specifier: npm:typescript@5.9.3
-        version: typescript@5.9.3
+        specifier: npm:typescript@7.0.2
+        version: typescript@7.0.2
 
   tools/fix-tsconfigs:
     dependencies:
@@ -4898,8 +4898,8 @@ importers:
   tools/scan-dependencies:
     devDependencies:
       '@types/node':
-        specifier: 26.6.3
-        version: 26.6.3
+        specifier: 26.6.4
+        version: 26.6.4
       tsx:
         specifier: ^4.23.15
         version: 4.23.15
@@ -5563,6 +5563,9 @@ packages:
   '@types/node@26.6.3':
     resolution: {integrity: sha512-dsqMQQoeTLqu9wynDD00q573mNzso3IdQOAfHRJqLCcmCFPoGo9A1bDpUcv/9tnKpErQWv9uKeGfl37EIS02Yg==}
 
+  '@types/node@26.6.4':
+    resolution: {integrity: sha512-ldVPDCzj7fsaGZrLB0NuHuTvJcsNasysBAqMolr/cgxrLd1xbqxIr3XJiPnHHJUCxj5sNF1vnRj9aWnrVh5Jcg==}
+
   '@types/semver@7.8.0':
     resolution: {integrity: sha512-1mAINjtQCXXeLkJ9ehXkwOcBpqtLxiVtKhpUf83DdRNdQKV0iXZpaHYqRr7nj+wvxuJzoAmAwXI+sCNMv1CzLQ==}
 
@@ -5821,8 +5824,8 @@ packages:
     resolution: {integrity: sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg==}
     engines: {node: '>= 0.4'}
 
-  case-anything@3.1.6:
-    resolution: {integrity: sha512-fA2EY9RHLRSQlfQmgvvRiywq01KzA402tCW8tSbD6hVAFpZI+2987yj/CoHYH9misHBvTLpNUk8d1fq+QoG+vw==}
+  case-anything@3.1.7:
+    resolution: {integrity: sha512-52UPzAJDZgxaNsYK4kvmov1kVaAfPc+OU2j0OSUZWbdWMuJd7Axi94XWSfSuafMd7K9avhsEnU6W6rXJdAd+Ug==}
     engines: {node: '>=18'}
 
   chalk-template@0.4.0:
@@ -6371,16 +6374,16 @@ packages:
     resolution: {integrity: sha512-Z3lTE9pLaJF47NyMhd4ww1yFTAP8YhYI8SleJiHzM46Fgpm5cnNzSl9XfzFNqbaz+VlJrIj3fXQ4DeN1Rjm6cw==}
     engines: {node: '>=18'}
 
-  node-opcua-crypto@6.1.4:
-    resolution: {integrity: sha512-tsQN8m4Weg7bS8wbWvB8C9BODK+Gjs4HKXGOFsOtLjFbXX4IEPosOyFRVS9rwOZWudcOHg6Yq/HPlnHsVrHkqQ==}
+  node-opcua-crypto@6.2.0:
+    resolution: {integrity: sha512-EX24n3hcvit2RP0C/AUeA3lcWFSkWv49fgKOZ7FflyyJ77w7tcrjr5CUV0ulE4XB0Ca2rP1cvSUlLqb95IQScg==}
     peerDependencies:
       node-opcua-crypto-web: ^6.0.0
     peerDependenciesMeta:
       node-opcua-crypto-web:
         optional: true
 
-  node-opcua-pki@7.0.4:
-    resolution: {integrity: sha512-wtnGiI+i4BGtNWCcfzHSdozvTpohHBiDHg5fx6Ye8+QXaZt+R7pNFSaSYbaE1le4ZC8GvASnaBaUcBub0sSJow==}
+  node-opcua-pki@7.1.0:
+    resolution: {integrity: sha512-VD3Fbq+29hqQu2vRH6/p/+MnVX4JRjtEB/Z2g3uylmHLQmZraF0sU/DQCUGDWth3KhP46h7fSnyaYuikTmTTOA==}
     hasBin: true
 
   node-xml@1.0.2:
@@ -6732,11 +6735,6 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  typescript@5.9.3:
-    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
-    engines: {node: '>=14.17'}
-    hasBin: true
-
   typescript@7.0.2:
     resolution: {integrity: sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==}
     engines: {node: '>=16.20.0'}
@@ -7023,122 +7021,122 @@ snapshots:
 
   '@inquirer/ansi@2.0.9': {}
 
-  '@inquirer/checkbox@5.2.6(@types/node@26.6.3)':
+  '@inquirer/checkbox@5.2.6(@types/node@26.6.4)':
     dependencies:
       '@inquirer/ansi': 2.0.9
-      '@inquirer/core': 12.0.4(@types/node@26.6.3)
+      '@inquirer/core': 12.0.4(@types/node@26.6.4)
       '@inquirer/figures': 2.0.9
-      '@inquirer/type': 4.2.0(@types/node@26.6.3)
+      '@inquirer/type': 4.2.0(@types/node@26.6.4)
     optionalDependencies:
-      '@types/node': 26.6.3
+      '@types/node': 26.6.4
 
-  '@inquirer/confirm@6.3.3(@types/node@26.6.3)':
+  '@inquirer/confirm@6.3.3(@types/node@26.6.4)':
     dependencies:
-      '@inquirer/core': 12.0.4(@types/node@26.6.3)
-      '@inquirer/type': 4.2.0(@types/node@26.6.3)
+      '@inquirer/core': 12.0.4(@types/node@26.6.4)
+      '@inquirer/type': 4.2.0(@types/node@26.6.4)
     optionalDependencies:
-      '@types/node': 26.6.3
+      '@types/node': 26.6.4
 
-  '@inquirer/core@12.0.4(@types/node@26.6.3)':
+  '@inquirer/core@12.0.4(@types/node@26.6.4)':
     dependencies:
       '@inquirer/ansi': 2.0.9
       '@inquirer/figures': 2.0.9
-      '@inquirer/type': 4.2.0(@types/node@26.6.3)
+      '@inquirer/type': 4.2.0(@types/node@26.6.4)
       cli-width: 4.1.0
       fast-wrap-ansi: 0.2.2
       mute-stream: 3.0.0
       signal-exit: 4.1.0
     optionalDependencies:
-      '@types/node': 26.6.3
+      '@types/node': 26.6.4
 
-  '@inquirer/editor@5.3.4(@types/node@26.6.3)':
+  '@inquirer/editor@5.3.4(@types/node@26.6.4)':
     dependencies:
-      '@inquirer/core': 12.0.4(@types/node@26.6.3)
-      '@inquirer/external-editor': 3.0.6(@types/node@26.6.3)
-      '@inquirer/type': 4.2.0(@types/node@26.6.3)
+      '@inquirer/core': 12.0.4(@types/node@26.6.4)
+      '@inquirer/external-editor': 3.0.6(@types/node@26.6.4)
+      '@inquirer/type': 4.2.0(@types/node@26.6.4)
     optionalDependencies:
-      '@types/node': 26.6.3
+      '@types/node': 26.6.4
 
-  '@inquirer/expand@5.1.6(@types/node@26.6.3)':
+  '@inquirer/expand@5.1.6(@types/node@26.6.4)':
     dependencies:
-      '@inquirer/core': 12.0.4(@types/node@26.6.3)
-      '@inquirer/type': 4.2.0(@types/node@26.6.3)
+      '@inquirer/core': 12.0.4(@types/node@26.6.4)
+      '@inquirer/type': 4.2.0(@types/node@26.6.4)
     optionalDependencies:
-      '@types/node': 26.6.3
+      '@types/node': 26.6.4
 
-  '@inquirer/external-editor@3.0.6(@types/node@26.6.3)':
+  '@inquirer/external-editor@3.0.6(@types/node@26.6.4)':
     dependencies:
       chardet: 2.2.0
       iconv-lite: 0.7.3
     optionalDependencies:
-      '@types/node': 26.6.3
+      '@types/node': 26.6.4
 
   '@inquirer/figures@2.0.9': {}
 
-  '@inquirer/input@5.1.7(@types/node@26.6.3)':
+  '@inquirer/input@5.1.7(@types/node@26.6.4)':
     dependencies:
-      '@inquirer/core': 12.0.4(@types/node@26.6.3)
-      '@inquirer/type': 4.2.0(@types/node@26.6.3)
+      '@inquirer/core': 12.0.4(@types/node@26.6.4)
+      '@inquirer/type': 4.2.0(@types/node@26.6.4)
     optionalDependencies:
-      '@types/node': 26.6.3
+      '@types/node': 26.6.4
 
-  '@inquirer/number@4.2.4(@types/node@26.6.3)':
+  '@inquirer/number@4.2.4(@types/node@26.6.4)':
     dependencies:
-      '@inquirer/core': 12.0.4(@types/node@26.6.3)
-      '@inquirer/type': 4.2.0(@types/node@26.6.3)
+      '@inquirer/core': 12.0.4(@types/node@26.6.4)
+      '@inquirer/type': 4.2.0(@types/node@26.6.4)
     optionalDependencies:
-      '@types/node': 26.6.3
+      '@types/node': 26.6.4
 
-  '@inquirer/password@5.2.3(@types/node@26.6.3)':
-    dependencies:
-      '@inquirer/ansi': 2.0.9
-      '@inquirer/core': 12.0.4(@types/node@26.6.3)
-      '@inquirer/type': 4.2.0(@types/node@26.6.3)
-    optionalDependencies:
-      '@types/node': 26.6.3
-
-  '@inquirer/prompts@8.7.3(@types/node@26.6.3)':
-    dependencies:
-      '@inquirer/checkbox': 5.2.6(@types/node@26.6.3)
-      '@inquirer/confirm': 6.3.3(@types/node@26.6.3)
-      '@inquirer/editor': 5.3.4(@types/node@26.6.3)
-      '@inquirer/expand': 5.1.6(@types/node@26.6.3)
-      '@inquirer/input': 5.1.7(@types/node@26.6.3)
-      '@inquirer/number': 4.2.4(@types/node@26.6.3)
-      '@inquirer/password': 5.2.3(@types/node@26.6.3)
-      '@inquirer/rawlist': 5.3.6(@types/node@26.6.3)
-      '@inquirer/search': 4.3.4(@types/node@26.6.3)
-      '@inquirer/select': 5.2.6(@types/node@26.6.3)
-    optionalDependencies:
-      '@types/node': 26.6.3
-
-  '@inquirer/rawlist@5.3.6(@types/node@26.6.3)':
-    dependencies:
-      '@inquirer/core': 12.0.4(@types/node@26.6.3)
-      '@inquirer/type': 4.2.0(@types/node@26.6.3)
-    optionalDependencies:
-      '@types/node': 26.6.3
-
-  '@inquirer/search@4.3.4(@types/node@26.6.3)':
-    dependencies:
-      '@inquirer/core': 12.0.4(@types/node@26.6.3)
-      '@inquirer/figures': 2.0.9
-      '@inquirer/type': 4.2.0(@types/node@26.6.3)
-    optionalDependencies:
-      '@types/node': 26.6.3
-
-  '@inquirer/select@5.2.6(@types/node@26.6.3)':
+  '@inquirer/password@5.2.3(@types/node@26.6.4)':
     dependencies:
       '@inquirer/ansi': 2.0.9
-      '@inquirer/core': 12.0.4(@types/node@26.6.3)
-      '@inquirer/figures': 2.0.9
-      '@inquirer/type': 4.2.0(@types/node@26.6.3)
+      '@inquirer/core': 12.0.4(@types/node@26.6.4)
+      '@inquirer/type': 4.2.0(@types/node@26.6.4)
     optionalDependencies:
-      '@types/node': 26.6.3
+      '@types/node': 26.6.4
 
-  '@inquirer/type@4.2.0(@types/node@26.6.3)':
+  '@inquirer/prompts@8.7.3(@types/node@26.6.4)':
+    dependencies:
+      '@inquirer/checkbox': 5.2.6(@types/node@26.6.4)
+      '@inquirer/confirm': 6.3.3(@types/node@26.6.4)
+      '@inquirer/editor': 5.3.4(@types/node@26.6.4)
+      '@inquirer/expand': 5.1.6(@types/node@26.6.4)
+      '@inquirer/input': 5.1.7(@types/node@26.6.4)
+      '@inquirer/number': 4.2.4(@types/node@26.6.4)
+      '@inquirer/password': 5.2.3(@types/node@26.6.4)
+      '@inquirer/rawlist': 5.3.6(@types/node@26.6.4)
+      '@inquirer/search': 4.3.4(@types/node@26.6.4)
+      '@inquirer/select': 5.2.6(@types/node@26.6.4)
     optionalDependencies:
-      '@types/node': 26.6.3
+      '@types/node': 26.6.4
+
+  '@inquirer/rawlist@5.3.6(@types/node@26.6.4)':
+    dependencies:
+      '@inquirer/core': 12.0.4(@types/node@26.6.4)
+      '@inquirer/type': 4.2.0(@types/node@26.6.4)
+    optionalDependencies:
+      '@types/node': 26.6.4
+
+  '@inquirer/search@4.3.4(@types/node@26.6.4)':
+    dependencies:
+      '@inquirer/core': 12.0.4(@types/node@26.6.4)
+      '@inquirer/figures': 2.0.9
+      '@inquirer/type': 4.2.0(@types/node@26.6.4)
+    optionalDependencies:
+      '@types/node': 26.6.4
+
+  '@inquirer/select@5.2.6(@types/node@26.6.4)':
+    dependencies:
+      '@inquirer/ansi': 2.0.9
+      '@inquirer/core': 12.0.4(@types/node@26.6.4)
+      '@inquirer/figures': 2.0.9
+      '@inquirer/type': 4.2.0(@types/node@26.6.4)
+    optionalDependencies:
+      '@types/node': 26.6.4
+
+  '@inquirer/type@4.2.0(@types/node@26.6.4)':
+    optionalDependencies:
+      '@types/node': 26.6.4
 
   '@istanbuljs/schema@0.1.6': {}
 
@@ -7447,7 +7445,7 @@ snapshots:
 
   '@types/bonjour@3.5.13':
     dependencies:
-      '@types/node': 26.6.3
+      '@types/node': 26.6.4
 
   '@types/command-line-args@5.2.3': {}
 
@@ -7455,7 +7453,7 @@ snapshots:
 
   '@types/dns-packet@5.6.5':
     dependencies:
-      '@types/node': 26.6.3
+      '@types/node': 26.6.4
 
   '@types/istanbul-lib-coverage@2.0.6': {}
 
@@ -7474,9 +7472,13 @@ snapshots:
   '@types/multicast-dns@7.2.4':
     dependencies:
       '@types/dns-packet': 5.6.5
-      '@types/node': 26.6.3
+      '@types/node': 26.6.4
 
   '@types/node@26.6.3':
+    dependencies:
+      undici-types: 8.9.0
+
+  '@types/node@26.6.4':
     dependencies:
       undici-types: 8.9.0
 
@@ -7664,7 +7666,7 @@ snapshots:
       call-bind-apply-helpers: 1.0.2
       get-intrinsic: 1.3.0
 
-  case-anything@3.1.6: {}
+  case-anything@3.1.7: {}
 
   chalk-template@0.4.0:
     dependencies:
@@ -8204,7 +8206,7 @@ snapshots:
       emojilib: 2.4.0
       skin-tone: 2.0.0
 
-  node-opcua-crypto@6.1.4:
+  node-opcua-crypto@6.2.0:
     dependencies:
       '@peculiar/asn1-cms': 2.10.0
       '@peculiar/asn1-pfx': 2.10.0
@@ -8218,7 +8220,7 @@ snapshots:
       reflect-metadata: 0.2.2
       sshpk: 1.18.0
 
-  node-opcua-pki@7.0.4:
+  node-opcua-pki@7.1.0:
     dependencies:
       '@ster5/global-mutex': 3.3.0
       byline: 5.0.0
@@ -8226,7 +8228,7 @@ snapshots:
       chokidar: 4.0.3
       command-line-args: 6.0.2
       command-line-usage: 7.0.4
-      node-opcua-crypto: 6.1.4
+      node-opcua-crypto: 6.2.0
       yauzl: 3.4.0
     transitivePeerDependencies:
       - '@75lb/nature'
@@ -8558,8 +8560,6 @@ snapshots:
   type-detect@4.1.0: {}
 
   typescript@5.6.1-rc: {}
-
-  typescript@5.9.3: {}
 
   typescript@7.0.2:
     optionalDependencies:
