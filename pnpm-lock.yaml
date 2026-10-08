@@ -4685,6 +4685,9 @@ importers:
       node-opcua-enum:
         specifier: 2.186.7
         version: link:../node-opcua-enum
+      node-opcua-extension-object:
+        specifier: 2.186.7
+        version: link:../node-opcua-extension-object
       node-opcua-factory:
         specifier: 2.186.7
         version: link:../node-opcua-factory
@@ -4698,9 +4701,6 @@ importers:
       node-opcua-benchmarker:
         specifier: 2.186.7
         version: link:../node-opcua-benchmarker
-      node-opcua-extension-object:
-        specifier: 2.186.7
-        version: link:../node-opcua-extension-object
       node-opcua-numeric-range:
         specifier: 2.186.7
         version: link:../node-opcua-numeric-range
