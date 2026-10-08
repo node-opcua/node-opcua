@@ -7,7 +7,7 @@ import { NumericRange } from "node-opcua-numeric-range";
 import { ReadRequest, type ReadResponse, type ReadValueIdOptions, WriteRequest } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
-import { leanRead } from "../dist/front_threads/lean_read.js";
+import { leanRead } from "../dist/lean_read.js";
 
 type LeanReadArgs = Parameters<typeof leanRead>;
 
@@ -20,7 +20,7 @@ function bodyOf(request: ReadRequest | WriteRequest): { body: Buffer; offset: nu
     return { body: Buffer.from(stream.buffer.subarray(0, stream.length)), offset };
 }
 
-describe("leanRead: a Read of items served in place, answered from the bytes of the request", () => {
+describe("leanRead: a Read of Values answered from the bytes of the request", () => {
     const token = new NodeId(NodeIdType.BYTESTRING, Buffer.alloc(32, 7), 1);
     const store = new Map<string, number>([
         ["ns=2;i=1001", 11],
@@ -53,13 +53,12 @@ describe("leanRead: a Read of items served in place, answered from the bytes of 
             getSession: (authenticationToken: NodeId) =>
                 !options.noSession && authenticationToken.toString() === token.toString() ? session : null,
             maxNodesPerRead: options.maxNodesPerRead ?? 0,
-            backend: {
-                inPlaceIndex: (item: ReadValueIdOptions) => store.get((item.nodeId as NodeId).toString()) ?? -1,
-                readAt: (i: number, _context: unknown, maxAge: number, timestampsToReturn: number) => {
+            itemOf: (nodeId: NodeId) => store.get(nodeId.toString()) ?? null,
+            read: (_context: unknown, items: number[], maxAge: number, timestampsToReturn: number) =>
+                items.map((i) => {
                     readAtCalls.push({ i, maxAge, timestampsToReturn });
                     return new DataValue({ value: { dataType: DataType.Int32, value: i } });
-                }
-            }
+                })
         };
         const run = (request: ReadRequest | WriteRequest) => {
             const { body, offset } = bodyOf(request);

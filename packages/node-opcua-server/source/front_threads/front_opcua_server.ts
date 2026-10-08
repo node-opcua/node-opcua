@@ -9,6 +9,7 @@
 import type { MessagePort } from "node:worker_threads";
 import type { EventTypeLike, RaiseEventData, UAObjectType } from "node-opcua-address-space";
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
+import { AttributeIds } from "node-opcua-data-model";
 import type { BaseUAObject } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import {
@@ -22,12 +23,12 @@ import {
 import { StatusCodes } from "node-opcua-status-code";
 import { type ActivateSessionRequest, ServiceFault } from "node-opcua-types";
 import { encodeVariant, Variant, type VariantOptions } from "node-opcua-variant";
+import { type LeanReadHost, leanRead } from "../lean_read.js";
 import { OPCUAServerCore, type OPCUAServerOptions } from "../opcua_server.js";
 import type { OPCUAServerEndPoint } from "../server_end_point.js";
 import type { ServerEngineOptions } from "../server_engine.js";
 import type { ServerSession } from "../server_session.js";
 import { EncodedResponse } from "./encoded_response.js";
-import { type LeanReadHost, leanRead } from "./lean_read.js";
 import { encodeMessageBody, type FrontToWorker, type WorkerToFront } from "./protocol.js";
 import type { RemoteEngine } from "./remote_engine.js";
 import { tokenKeyOf } from "./token_key.js";
@@ -78,12 +79,19 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
     /** the Reads of items served in place are answered from the bytes of the request */
     protected override leanRequestHandler(): OPCUAServerEndPoint["leanRequestHandler"] {
         const remote = this.#remote;
-        const host: LeanReadHost = {
+        const backend = remote.backend;
+        const host: LeanReadHost<number> = {
             getSession: (token, activeOnly) => this.getSession(token, activeOnly),
             get maxNodesPerRead() {
                 return remote.serverCapabilities.operationLimits.maxNodesPerRead ?? 0;
             },
-            backend: remote.backend
+            // the index of the node in the shared store, for the nodes read in place
+            itemOf: (nodeId) => {
+                const i = backend.inPlaceIndex({ nodeId, attributeId: AttributeIds.Value });
+                return i < 0 ? null : i;
+            },
+            read: (context, items, maxAge, timestampsToReturn) =>
+                items.map((i) => backend.readAt(i, context, maxAge, timestampsToReturn))
         };
         return (channel, typeId, body, offset, requestId, securityHeader) =>
             // a listener of "request" sees every request: it gets them decoded
