@@ -1,34 +1,37 @@
 /**
  * @module node-opcua-server
  */
-// A Read whose items a front serves in place, answered from the bytes of the request: no ReadRequest,
-// RequestHeader, ReadValueId nor NodeId of an item is made. Anything else (another attribute, an index
-// range, a data encoding, a node the engine reads, a session or channel that is not right) returns false
-// and the request is decoded and served as any other, which reports what is wrong.
+// A Read of Values its server reads at once, answered from the bytes of the request: no ReadRequest,
+// RequestHeader nor ReadValueId is made, and the service dispatch is skipped. Anything else (another
+// attribute, an index range, a data encoding, a node its host leaves to the normal path, a session or
+// channel that is not right) returns false and the request is decoded and served as any other, which
+// reports what is wrong.
+
+import type { ISessionContext } from "node-opcua-address-space-base";
 import { decodeNodeId } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { AttributeIds } from "node-opcua-data-model";
-import type { DataValue } from "node-opcua-data-value";
+import type { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
 import type { Message, ServerSecureChannelLayer } from "node-opcua-secure-channel";
 import { ReadRequest, ReadResponse } from "node-opcua-types";
-import type { ServerSession } from "../server_session.js";
-import type { RemoteCompactBackend } from "./remote_backend.js";
+import type { ServerSession } from "./server_session.js";
 
 /** ReadRequest_Encoding_DefaultBinary */
 const READ_REQUEST = 631;
 
-export interface LeanReadHost {
+/** what a server gives the lean Read: its sessions, its limit, and how it reads the Value of a node */
+export interface LeanReadHost<T> {
     getSession(authenticationToken: NodeId, activeOnly?: boolean): ServerSession | null;
     readonly maxNodesPerRead: number;
-    readonly backend: RemoteCompactBackend;
+    /** what read() takes for the Value of this node; null for a node left to the normal path */
+    itemOf(nodeId: NodeId): T | null;
+    /** the Values of the items, in their order */
+    read(context: ISessionContext, items: T[], maxAge: number, timestampsToReturn: TimestampsToReturn): DataValue[];
 }
 
-const item = { nodeId: null as unknown as NodeId, attributeId: AttributeIds.Value };
-let indexes = new Int32Array(128);
-
-export function leanRead(
-    host: LeanReadHost,
+export function leanRead<T>(
+    host: LeanReadHost<T>,
     channel: ServerSecureChannelLayer,
     typeId: number,
     body: Buffer,
@@ -63,25 +66,22 @@ export function leanRead(
             return false;
         }
 
-        if (indexes.length < count) indexes = new Int32Array(count * 2);
-        const backend = host.backend;
+        const items: T[] = new Array(count);
         for (let k = 0; k < count; k++) {
-            item.nodeId = decodeNodeId(stream);
+            const nodeId = decodeNodeId(stream);
             if (stream.readUInt32() !== AttributeIds.Value) return false;
             if (stream.readInteger() > 0) return false; // an indexRange
             stream.length += 2; // dataEncoding: namespace
             if (stream.readInteger() > 0) return false; // dataEncoding: a name
-            const i = backend.inPlaceIndex(item);
-            if (i < 0) return false;
-            indexes[k] = i;
+            const item = host.itemOf(nodeId);
+            if (item === null) return false;
+            items[k] = item;
         }
         if (stream.length !== body.length) return false;
 
         session.keepAlive?.();
         session.incrementTotalRequestCount();
-        const context = session.sessionContext;
-        const results: DataValue[] = new Array(count);
-        for (let k = 0; k < count; k++) results[k] = backend.readAt(indexes[k], context, maxAge, timestampsToReturn);
+        const results = host.read(session.sessionContext, items, maxAge, timestampsToReturn as TimestampsToReturn);
         const response = new ReadResponse(null);
         response.results = results;
         session.incrementRequestTotalCounter("Read");
@@ -92,7 +92,5 @@ export function leanRead(
         return true;
     } catch {
         return false;
-    } finally {
-        item.nodeId = null as unknown as NodeId;
     }
 }

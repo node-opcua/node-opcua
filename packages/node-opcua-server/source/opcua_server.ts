@@ -171,6 +171,7 @@ import { Factory } from "./factory.js";
 import type { IChannelData } from "./i_channel_data.js";
 import type { IRegisterServerManager } from "./i_register_server_manager.js";
 import type { ISocketData } from "./i_socket_data.js";
+import { type LeanReadHost, leanRead } from "./lean_read.js";
 import type { INodeFinder } from "./monitorable_node.js";
 import { MonitoredItem } from "./monitored_item.js";
 import { ensurePublishSubscribeIsBrowsable } from "./publish_subscribe_structure.js";
@@ -3208,7 +3209,32 @@ export abstract class OPCUAServerCore<
      * none here, FrontOPCUAServer answers the Reads it serves in place
      */
     protected leanRequestHandler(): OPCUAServerEndPoint["leanRequestHandler"] {
-        return undefined;
+        const engine = this.engine as unknown as Pick<ServerEngine, "addressSpace" | "serverCapabilities" | "readSync">;
+        const host: LeanReadHost<NodeId> = {
+            getSession: (token, activeOnly) => this.getSession(token, activeOnly),
+            get maxNodesPerRead() {
+                return engine.serverCapabilities.operationLimits.maxNodesPerRead ?? 0;
+            },
+            // a Variable read at once: not one whose value is refreshed asynchronously first (prepareRead)
+            itemOf: (nodeId) => {
+                const node = engine.addressSpace?.findNode(nodeId);
+                if (!node || node.nodeClass !== NodeClass.Variable) return null;
+                const { refreshFunc, _refreshFuncWrapsGetter } = node as unknown as {
+                    refreshFunc?: unknown;
+                    _refreshFuncWrapsGetter?: boolean;
+                };
+                return typeof refreshFunc === "function" && !_refreshFuncWrapsGetter ? null : nodeId;
+            },
+            read: (context, items, maxAge, timestampsToReturn) =>
+                engine.readSync(context, {
+                    maxAge,
+                    timestampsToReturn,
+                    nodesToRead: items.map((nodeId) => ({ nodeId, attributeId: AttributeIds.Value }))
+                })
+        };
+        return (channel, typeId, body, offset, requestId, securityHeader) =>
+            // a listener of "request" sees every request: it gets them decoded
+            this.listenerCount("request") === 0 && leanRead(host, channel, typeId, body, offset, requestId, securityHeader);
     }
 
     /** an ActivateSession refused: the session stays as it was (FrontOPCUAServer gives back one it took) */
