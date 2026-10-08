@@ -98,8 +98,8 @@ import { ServerSidePublishEngine } from "./server_publish_engine.js";
 import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions.js";
 import { ServerSession } from "./server_session.js";
 import { Subscription } from "./server_subscription.js";
-import { getTransferSessionIdentity, sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer.js";
 import { getMonitoredItemsId, resendData, setSubscriptionDurable } from "./subscription_methods.js";
+import { transferSubscriptionToSession } from "./subscription_transfer.js";
 
 const debugLog = make_debugLog("server_engine");
 const errorLog = make_errorLog("server_engine");
@@ -1940,66 +1940,9 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
         }
 
-        // check that the destination session is operating on behalf of the same user as the session
-        // that owns the subscription (OPC UA Part 4 §5.13.7). When the subscription has been orphaned
-        // its owning session is gone, so we rely on the identity snapshot retained at orphaning time.
-        const sourceIdentity = subscription.$session
-            ? getTransferSessionIdentity(subscription.$session)
-            : subscription.$transferSessionIdentity;
-        if (
-            !sessionsCompatibleForTransfer(sourceIdentity, session, {
-                allowAnonymousTransferOnUnsecuredChannel: this.allowAnonymousSubscriptionTransferOnUnsecuredChannel
-            })
-        ) {
-            return new TransferResult({ statusCode: StatusCodes.BadUserAccessDenied });
-        }
-
-        // update diagnostics
-        subscription.subscriptionDiagnostics.transferRequestCount++;
-
-        // now check that new session has sufficient right
-        // if (session.authenticationToken.toString() !== subscription.authenticationToken.toString()) {
-        //     warningLog("ServerEngine#transferSubscription => BadUserAccessDenied");
-        //     return new TransferResult({ statusCode: StatusCodes.BadUserAccessDenied });
-        // }
-        if (session.publishEngine === (subscription.publishEngine as unknown)) {
-            // subscription is already in this session !!
-            return new TransferResult({ statusCode: StatusCodes.BadNothingToDo });
-        }
-        if (session === subscription.$session) {
-            // subscription is already in this session !!
-            return new TransferResult({ statusCode: StatusCodes.BadNothingToDo });
-        }
-
-        // The number of times the subscription has been transferred to an alternate client.
-        subscription.subscriptionDiagnostics.transferredToAltClientCount++;
-        // The number of times the subscription has been transferred to an alternate session for the same client.
-        subscription.subscriptionDiagnostics.transferredToSameClientCount++;
-
-        if (subscription.$session) {
-            subscription.$session._unexposeSubscriptionDiagnostics(subscription);
-        }
-
-        subscription.$session = session;
-
-        await ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
-
-        session._exposeSubscriptionDiagnostics(subscription);
-
-        assert(subscription.publishEngine === session.publishEngine);
-        // assert(session.publishEngine.subscriptionCount === nbSubscriptionBefore + 1);
-
-        const result = new TransferResult({
-            availableSequenceNumbers: subscription.getAvailableSequenceNumbers(),
-            statusCode: StatusCodes.Good
+        return transferSubscriptionToSession(subscription, session, sendInitialValues, {
+            allowAnonymousTransferOnUnsecuredChannel: this.allowAnonymousSubscriptionTransferOnUnsecuredChannel
         });
-
-        // c8 ignore next
-        if (doDebug) {
-            debugLog("TransferResult", result.toString());
-        }
-
-        return result;
     }
 
     /**

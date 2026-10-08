@@ -40,6 +40,7 @@ import { ServerSidePublishEngine } from "../server_publish_engine.js";
 import { ServerSidePublishEngineForOrphanSubscription } from "../server_publish_engine_for_orphan_subscriptions.js";
 import type { ServerSession } from "../server_session.js";
 import { type DeleteMonitoredItemHook, Subscription, type SubscriptionTransferState } from "../server_subscription.js";
+import { ownerIdentityOf, transferSubscriptionToSession } from "../subscription_transfer.js";
 
 type ServerOptionsFactory = (
     data: unknown,
@@ -49,8 +50,7 @@ type ServerOptionsFactory = (
 import {
     getTransferSessionIdentity,
     type ITransferSessionIdentity,
-    identitiesCompatibleForTransfer,
-    sessionsCompatibleForTransfer
+    identitiesCompatibleForTransfer
 } from "../sessions_compatible_for_transfer.js";
 import { subscriptionMethods } from "../subscription_methods.js";
 import {
@@ -339,31 +339,11 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         if (!subscription) {
             return this.#takeFromAnotherWorker(session, subscriptionId, sendInitialValues);
         }
-        const sourceIdentity = subscription.$session
-            ? getTransferSessionIdentity(subscription.$session)
-            : subscription.$transferSessionIdentity;
-        if (
-            !sessionsCompatibleForTransfer(sourceIdentity, session, {
-                allowAnonymousTransferOnUnsecuredChannel: this.#allowAnonymousTransfer
-            })
-        ) {
-            return new TransferResult({ statusCode: StatusCodes.BadUserAccessDenied });
-        }
-        subscription.subscriptionDiagnostics.transferRequestCount++;
-        if (session.publishEngine === (subscription.publishEngine as unknown) || session === subscription.$session) {
-            return new TransferResult({ statusCode: StatusCodes.BadNothingToDo });
-        }
-        subscription.subscriptionDiagnostics.transferredToAltClientCount++;
-        subscription.subscriptionDiagnostics.transferredToSameClientCount++;
-        subscription.$session?._unexposeSubscriptionDiagnostics(subscription);
-        subscription.$session = session;
-        await ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
-        session._exposeSubscriptionDiagnostics(subscription);
-        this.#reown(subscription, session);
-        return new TransferResult({
-            availableSequenceNumbers: subscription.getAvailableSequenceNumbers(),
-            statusCode: StatusCodes.Good
+        const result = await transferSubscriptionToSession(subscription, session, sendInitialValues, {
+            allowAnonymousTransferOnUnsecuredChannel: this.#allowAnonymousTransfer
         });
+        if (result.statusCode.isGood()) this.#reown(subscription, session);
+        return result;
     }
 
     async #takeFromAnotherWorker(
@@ -393,11 +373,8 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
     public exportSubscription(subscriptionId: number, dest: ITransferSessionIdentity): TransferredSubscription | number | null {
         const subscription = this.#findSubscription(subscriptionId);
         if (!subscription) return null;
-        const sourceIdentity = subscription.$session
-            ? getTransferSessionIdentity(subscription.$session)
-            : subscription.$transferSessionIdentity;
         if (
-            !identitiesCompatibleForTransfer(sourceIdentity, dest, {
+            !identitiesCompatibleForTransfer(ownerIdentityOf(subscription), dest, {
                 allowAnonymousTransferOnUnsecuredChannel: this.#allowAnonymousTransfer
             })
         ) {
