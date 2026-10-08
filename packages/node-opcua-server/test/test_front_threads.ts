@@ -53,6 +53,19 @@ function setFromSource(engine: FrontThreadEngine, nodeId: string, value: Variant
 
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** the scalar types a front encodes straight from the store, with a value of each */
+const SCALARS: [string, number | boolean][] = [
+    ["Boolean", true],
+    ["SByte", -5],
+    ["Byte", 200],
+    ["Int16", -300],
+    ["UInt16", 60000],
+    ["Int32", -70000],
+    ["UInt32", 4000000000],
+    ["Float", 1.5],
+    ["Double", 2.25]
+];
+
 const BIG_ELEMENTS = 1024 * 1024;
 /** an Int32 array whose elements say which one it is: element i is seed + i */
 function bigArray(seed: number): Int32Array {
@@ -136,6 +149,16 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             valueRank: 1,
             value: { dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: new Int32Array([3, 1, 4]) }
         });
+        // one Variable of each type a front encodes itself when it reads it in place
+        for (const [type, value] of SCALARS) {
+            space.addVariable({
+                nodeId: `ns=${ns};s=Type${type}`,
+                browseName: `Type${type}`,
+                componentOf: bulk,
+                dataType: type,
+                value: { dataType: DataType[type as keyof typeof DataType] as DataType, value }
+            });
+        }
         await engine.start({
             fronts: 2,
             serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
@@ -169,6 +192,33 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             should(value.statusCode).eql(StatusCodes.Good);
         }
         should(engine.serviceRequests.read).eql(before);
+    });
+
+    it("reads a scalar of each type in place as the engine has it, timestamps and status included", async () => {
+        setFromSource(engine, `ns=${ns};s=TypeInt16`, { dataType: DataType.Int16, value: -300 });
+        const uncertain = engine.addressSpace.findNode(`ns=${ns};s=TypeUInt16`) as unknown as {
+            setValueFromSource(value: VariantLike, statusCode: typeof StatusCodes.UncertainInitialValue): void;
+        };
+        uncertain.setValueFromSource({ dataType: DataType.UInt16, value: 60000 }, StatusCodes.UncertainInitialValue);
+        const before = engine.serviceRequests.read;
+        const values = await sessions[0].read(
+            SCALARS.map(([type]) => ({ nodeId: `ns=${ns};s=Type${type}`, attributeId: AttributeIds.Value })),
+            0
+        );
+        should(engine.serviceRequests.read).eql(before);
+        SCALARS.forEach(([type, value], k) => {
+            const dataValue = values[k];
+            const inEngine = (
+                engine.addressSpace.findNode(`ns=${ns};s=Type${type}`) as unknown as { readValue(): DataValue }
+            ).readValue();
+            should(dataValue.value.dataType).eql(DataType[type as keyof typeof DataType], type);
+            should(dataValue.value.value).eql(value, type);
+            should(dataValue.statusCode).eql(inEngine.statusCode, type);
+            should(dataValue.sourceTimestamp?.getTime()).eql(inEngine.sourceTimestamp?.getTime(), type);
+            should(dataValue.sourcePicoseconds).eql(inEngine.sourcePicoseconds, type);
+            should(dataValue.serverTimestamp).not.eql(null, type);
+        });
+        should(values[4].statusCode).eql(StatusCodes.UncertainInitialValue);
     });
 
     it("reads a value in place and the others through the engine", async () => {

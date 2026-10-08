@@ -17,15 +17,16 @@ import {
     type SharedValue,
     ValueKind
 } from "node-opcua-address-space-store";
+import { BinaryStream } from "node-opcua-binary-stream";
 import { AttributeIds } from "node-opcua-data-model";
-import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
-import { getCurrentClock } from "node-opcua-date-time";
+import { DataValue, encodedDataValue, TimestampsToReturn } from "node-opcua-data-value";
+import { encodeHighAccuracyDateTime, getCurrentClock } from "node-opcua-date-time";
 import { NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { type EventFilter, EventFilter as EventFilterClass } from "node-opcua-service-filter";
 import { coerceStatusCode, StatusCodes } from "node-opcua-status-code";
 import { EventFieldList, EventFilterResult, type MonitoredItemCreateRequest, type ReadValueIdOptions } from "node-opcua-types";
-import { type DataType, encodedVariant, Variant, VariantArrayType } from "node-opcua-variant";
+import { DataType, encodedVariant, Variant, VariantArrayType } from "node-opcua-variant";
 import type { EventItemIdentity } from "../monitorable_node.js";
 import { FrontMonitoredNode, type FrontNodeHost } from "./front_node.js";
 import {
@@ -106,6 +107,39 @@ export class EngineChannel {
     }
 }
 
+/** the bytes of a number of the store's number column, by its DataType; 0 for a type not written here */
+const SCALAR_SIZE: Record<number, number> = {
+    [DataType.SByte]: 1,
+    [DataType.Byte]: 1,
+    [DataType.Int16]: 2,
+    [DataType.UInt16]: 2,
+    [DataType.Int32]: 4,
+    [DataType.UInt32]: 4,
+    [DataType.Float]: 4,
+    [DataType.Double]: 8
+};
+
+function writeScalar(stream: BinaryStream, dataType: DataType, value: number): void {
+    switch (dataType) {
+        case DataType.SByte:
+            return stream.writeInt8(value);
+        case DataType.Byte:
+            return stream.writeUInt8(value);
+        case DataType.Int16:
+            return stream.writeInt16(value);
+        case DataType.UInt16:
+            return stream.writeUInt16(value);
+        case DataType.Int32:
+            return stream.writeInteger(value);
+        case DataType.UInt32:
+            return stream.writeUInt32(value);
+        case DataType.Float:
+            return stream.writeFloat(value);
+        default:
+            return stream.writeDouble(value);
+    }
+}
+
 export class RemoteCompactBackend implements FrontNodeHost {
     /** the namespaces whose live values the store holds: the model, and the engine's node objects it mirrors */
     public readonly namespaces: ReadonlySet<number>;
@@ -169,7 +203,57 @@ export class RemoteCompactBackend implements FrontNodeHost {
             // the value changed kind (or the columns moved) since inPlaceIndex() was asked
             return new DataValue({ statusCode: StatusCodes.BadResourceUnavailable });
         }
-        return this.#dataValueOf(v, context, maxAge, timestampsToReturn ?? TimestampsToReturn.Source);
+        const ts = timestampsToReturn ?? TimestampsToReturn.Source;
+        return this.#encodedDataValueOf(v, context, maxAge, ts) ?? this.#dataValueOf(v, context, maxAge, ts);
+    }
+
+    /**
+     * the DataValue #dataValueOf() makes, encoded straight from the columns of the store into the bytes the
+     * response carries (an EncodedDataValue): no DataValue nor Variant is made for it. Null for a type left
+     * to the generic encoder.
+     */
+    #encodedDataValueOf(v: SharedValue, context: ISessionContext | null, maxAge: number, ts: TimestampsToReturn): DataValue | null {
+        const encoded = v.encoded;
+        if (!encoded && !(v.kind === ValueKind.Boolean || (v.kind === ValueKind.Number && SCALAR_SIZE[v.dataType] > 0))) {
+            return null;
+        }
+        const source = ts === TimestampsToReturn.Source || ts === TimestampsToReturn.Both;
+        const server = ts === TimestampsToReturn.Server || ts === TimestampsToReturn.Both;
+        let serverTime = 0;
+        let serverPicoseconds = 0;
+        if (server) {
+            // as the engine answers it: the time of the read when the stored one is older than MaxAge
+            const now = context?.currentTime ?? getCurrentClock();
+            const stale = maxAge < MAX_AGE_CACHED && now.timestamp.getTime() - v.serverTimestamp > maxAge;
+            serverTime = stale ? now.timestamp.getTime() : v.serverTimestamp;
+            serverPicoseconds = stale ? now.picoseconds : v.serverPicoseconds;
+        }
+        // the encoding mask of a DataValue, as encodeDataValue() computes it
+        const hasValue = encoded ? (encoded[0] & 0x3f) !== DataType.Null : true;
+        let mask = hasValue ? 0x01 : 0;
+        if (v.statusCode !== 0) mask |= 0x02;
+        if (source) mask |= 0x04;
+        if (source && v.sourcePicoseconds % 100000) mask |= 0x10;
+        if (server) mask |= 0x08;
+        if (server && serverPicoseconds % 100000) mask |= 0x20;
+        const variantSize = encoded ? encoded.byteLength : 1 + (v.kind === ValueKind.Boolean ? 1 : SCALAR_SIZE[v.dataType]);
+        const stream = new BinaryStream(1 + (hasValue ? variantSize : 0) + 4 + 10 + 10);
+        stream.writeUInt8(mask);
+        if (encoded) {
+            if (hasValue) stream.writeArrayBuffer(encoded.buffer as ArrayBuffer, encoded.byteOffset, encoded.byteLength);
+        } else if (v.kind === ValueKind.Boolean) {
+            stream.writeUInt8(DataType.Boolean);
+            stream.writeUInt8(v.value !== 0 ? 1 : 0);
+        } else {
+            stream.writeUInt8(v.dataType);
+            writeScalar(stream, v.dataType, v.value as number);
+        }
+        if (mask & 0x02) stream.writeUInt32(v.statusCode);
+        if (source) encodeHighAccuracyDateTime(new Date(v.sourceTimestamp), v.sourcePicoseconds, stream);
+        if (mask & 0x10) stream.writeUInt16(Math.floor((v.sourcePicoseconds % 100000) / 10));
+        if (server) encodeHighAccuracyDateTime(new Date(serverTime), serverPicoseconds, stream);
+        if (mask & 0x20) stream.writeUInt16(Math.floor((serverPicoseconds % 100000) / 10));
+        return encodedDataValue(stream.buffer.subarray(0, stream.length));
     }
 
     #dataValueOf(v: SharedValue, context: ISessionContext | null, maxAge: number, ts: TimestampsToReturn): DataValue {
