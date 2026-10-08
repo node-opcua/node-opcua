@@ -17,7 +17,7 @@ import { isRefreshBracketEvent } from "../condition_refresh_bracket.js";
 import { checkWhereClauseOnAdressSpace } from "../filter/check_where_clause_on_address_space.js";
 import type { ServerEngine } from "../server_engine.js";
 import type { FrontSessions } from "./front_sessions.js";
-import { decodeStructure, type EngineToFront, encodeDataValues, encodeStructures, type FrontRequest } from "./protocol.js";
+import { decodeStructure, type EngineToFront, encodeMonitoredValues, encodeStructures, type FrontRequest } from "./protocol.js";
 import { RolesContext } from "./resolved_roles_context.js";
 import { TurnBatches } from "./turn_batches.js";
 
@@ -42,7 +42,7 @@ export class EventWatches {
             target.postMessage({
                 kind: "objectChanges",
                 nodeIds: changes.nodeIds,
-                values: encodeDataValues(changes.values)
+                values: encodeMonitoredValues(changes.values)
             } satisfies EngineToFront)
     );
 

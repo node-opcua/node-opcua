@@ -32,6 +32,7 @@ import { FrontMonitoredNode, type FrontNodeHost } from "./front_node.js";
 import {
     type DescribeReply,
     decodeDataValues,
+    decodeMonitoredValues,
     decodeStructure,
     decodeStructures,
     describeContext,
@@ -449,7 +450,7 @@ export class RemoteCompactBackend implements FrontNodeHost {
             index: node.index,
             generation: node.generation
         });
-        return { dataValue: decodeDataValues(reply.value)[0], version: reply.version };
+        return { dataValue: decodeMonitoredValues(reply.value)[0], version: reply.version };
     }
 
     public minimumSamplingInterval(node: FrontMonitoredNode): number {
@@ -494,7 +495,7 @@ export class RemoteCompactBackend implements FrontNodeHost {
 
     /** values the engine pushed for the watched nodes, in the order they were written */
     public receiveChanges(indexes: number[], versions: number[], values: Uint8Array): void {
-        const dataValues = decodeDataValues(values);
+        const dataValues = decodeMonitoredValues(values);
         for (let k = 0; k < indexes.length; k++) {
             const watchers = this.#watchers.get(indexes[k]);
             if (watchers === undefined) continue;
