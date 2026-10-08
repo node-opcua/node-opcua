@@ -1387,6 +1387,15 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             return; // we just want to ignore here ...
         }
         this.oldDataValue = badDataUnavailable;
+        if (
+            this.itemToMonitor.attributeId === AttributeIds.EventNotifier &&
+            (this.node as Partial<CompactMonitorableNode>).subscribeEvents
+        ) {
+            // events filtered where they are raised (another thread): the watch is asked for at once, before
+            // the client hears of the item and can call ConditionRefresh for its subscription
+            this.__start_sampling(recordInitialValue);
+            return;
+        }
         setImmediate(() => this.__start_sampling(recordInitialValue));
     }
 
