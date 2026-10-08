@@ -190,6 +190,120 @@ describe("shared store: the columns of a store read from another thread", functi
         await worker.terminate();
     });
 
+    it("lets another thread write a number into a Variable any session may write, as the owner would", () => {
+        const store = build(4);
+        const i = store.find(numeric(1001));
+        const reader = new SharedStoreReader(store.shareForReaders());
+        should(reader.writableInPlace(i)).eql(true);
+        const before = store.values.version(i);
+        const version = reader.writeScalar(i, reader.generation(i), DataType.Int32, 42, 0, 5000, 6000);
+        should(version).eql(before + 2);
+        const stored = store.values.get(i);
+        should(stored.value).eql(42);
+        should(stored.dataType).eql(DataType.Int32);
+        should(stored.sourceTimestamp).eql(5000);
+        should(stored.serverTimestamp).eql(6000);
+        should(reader.writeScalar(i, reader.generation(i), DataType.Boolean, true, 0, 1, 1)).eql(before + 4);
+        should(store.values.get(i).value).eql(true);
+        // what stays the owner's to write
+        store.nodes.setBound(i, true);
+        should(reader.writableInPlace(i)).eql(false);
+        store.nodes.setBound(i, false);
+        store.nodes.setHistorizing(i, true);
+        should(reader.writableInPlace(i)).eql(false);
+        store.nodes.setHistorizing(i, false);
+        store.nodes.setAccessLevels(i, 3, 1);
+        should(reader.writableInPlace(i)).eql(false, "a user access level without CurrentWrite");
+        store.nodes.setAccessLevels(i, 3, 3);
+        store.values.setObject(i, DataType.String, { dataType: DataType.String, value: "x" }, 0, 1, 1);
+        should(reader.writableInPlace(i)).eql(false, "an object: its bytes are the owner's to lay out");
+    });
+
+    it("writes nothing in place once the node changed, holds an object, or the columns moved", () => {
+        const store = build(4);
+        const i = store.find(numeric(1002));
+        const reader = new SharedStoreReader(store.shareForReaders());
+        const generation = reader.generation(i);
+        const unchanged = () => {
+            should(store.values.version(i) % 2).eql(0, "released");
+            should(store.values.get(i).value).eql(2);
+        };
+        should(reader.writeScalar(i, generation + 1, DataType.Double, 9, 0, 1, 1)).eql(-1);
+        unchanged();
+        store.values.setObject(i, DataType.String, { dataType: DataType.String, value: "x" }, 0, 1, 1);
+        should(reader.writeScalar(i, generation, DataType.Double, 9, 0, 1, 1)).eql(-1);
+        store.values.setScalar(i, DataType.Double, 2, 0, 1, 1);
+        unchanged();
+        // the owner grows its columns: these buffers are no longer the store's
+        store.values.ensure(store.values.capacity * 2);
+        should(reader.writeScalar(i, generation, DataType.Double, 9, 0, 1, 1)).eql(-1);
+        unchanged();
+    });
+
+    it("releases a value a thread left half written, and marks it BadResourceUnavailable", () => {
+        const store = build(4);
+        const i = store.find(numeric(1003));
+        const version = new Uint32Array(store.shareForReaders().values.version);
+        Atomics.add(version, i, 1); // a writer claimed it, and never released it
+        should(store.values.releaseAbandoned(5)).eql(1);
+        should(Atomics.load(version, i) % 2).eql(0);
+        should(store.values.statusCode(i)).eql(0x80040000);
+        should(store.values.releaseAbandoned(5)).eql(0);
+    });
+
+    it("keeps values whole while a worker writes in place and the owner reads, and grows its columns under it", async () => {
+        const nodes = 2000;
+        const store = build(nodes);
+        const index = Array.from({ length: nodes }, (_, i) => store.find(numeric(1000 + i)));
+        const dist = pathToFileURL(path.join(here, "../dist/index.js")).href;
+        // the worker writes value v with both timestamps v, until the columns move under it
+        const code = `
+            const { workerData, parentPort } = require("node:worker_threads");
+            import(workerData.dist).then(({ SharedStoreReader }) => {
+                const reader = new SharedStoreReader(workerData.descriptor);
+                const generations = workerData.index.map((i) => reader.generation(i));
+                parentPort.postMessage("ready");
+                let v = 1, written = 0, refused = 0;
+                const stop = Date.now() + 3000;
+                while (Date.now() < stop && refused === 0) {
+                    for (let k = 0; k < workerData.index.length; k++) {
+                        v++;
+                        if (reader.writeScalar(workerData.index[k], generations[k], 11, v, 0, v, v) < 0) { refused++; break; }
+                        written++;
+                    }
+                }
+                parentPort.postMessage({ written, refused });
+            });`;
+        const descriptor = store.shareForReaders();
+        const worker = new Worker(code, { eval: true, workerData: { dist, descriptor, index } });
+        const result = new Promise<{ written: number; refused: number }>((resolve, reject) => {
+            worker.on("message", (message) => message !== "ready" && resolve(message));
+            worker.on("error", reject);
+        });
+        await new Promise((resolve) => worker.once("message", resolve));
+        const reader = new SharedStoreReader(descriptor);
+        const out = fresh();
+        let reads = 0;
+        let torn = 0;
+        const stop = Date.now() + 300;
+        while (Date.now() < stop) {
+            for (const i of index) {
+                if (reader.readValue(i, out) === SharedReadStatus.Good) {
+                    reads++;
+                    if (out.value !== out.sourceTimestamp && out.sourceTimestamp !== 1000) torn++;
+                }
+            }
+        }
+        store.values.ensure(store.values.capacity * 2);
+        const { written, refused } = await result;
+        await worker.terminate();
+        should(torn).eql(0);
+        should(reads).be.above(1000);
+        should(written).be.above(1000);
+        should(refused).eql(1, "the worker stopped writing once the columns moved");
+        for (const i of index) should(store.values.version(i) % 2).eql(0, "no value left held");
+    });
+
     it("reads consistent values from a worker thread while the owner writes", async () => {
         const nodes = 10000;
         const store = build(nodes);

@@ -17,14 +17,16 @@ import {
     type SharedValue,
     ValueKind
 } from "node-opcua-address-space-store";
+import { decodeNodeId, decodeString } from "node-opcua-basic-types";
 import type { OutputBinaryStream } from "node-opcua-binary-stream";
+import { BinaryStream } from "node-opcua-binary-stream";
 import { AttributeIds } from "node-opcua-data-model";
-import { DataValue, EncodedDataValue, TimestampsToReturn } from "node-opcua-data-value";
+import { DataValue, decodeDataValue, EncodedDataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { encodeHighAccuracyDateTime, getCurrentClock } from "node-opcua-date-time";
 import { NodeId, type NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { type EventFilter, EventFilter as EventFilterClass } from "node-opcua-service-filter";
-import { coerceStatusCode, StatusCodes } from "node-opcua-status-code";
+import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { EventFieldList, EventFilterResult, type MonitoredItemCreateRequest, type ReadValueIdOptions } from "node-opcua-types";
 import { DataType, encodedVariant, Variant, VariantArrayType } from "node-opcua-variant";
 import type { EventItemIdentity } from "../monitorable_node.js";
@@ -107,6 +109,19 @@ export class EngineChannel {
         return true;
     }
 }
+
+/** the built-in types a front writes into the store itself: those the store keeps as a number or a boolean */
+const IN_PLACE_TYPES = new Set<DataType>([
+    DataType.Boolean,
+    DataType.SByte,
+    DataType.Byte,
+    DataType.Int16,
+    DataType.UInt16,
+    DataType.Int32,
+    DataType.UInt32,
+    DataType.Float,
+    DataType.Double
+]);
 
 /** the bytes of a number of the store's number column, by its DataType; 0 for a type not written here */
 const SCALAR_SIZE: Record<number, number> = {
@@ -252,6 +267,79 @@ export class RemoteCompactBackend implements FrontNodeHost {
     /** the engine reallocated columns: the new buffers */
     public setDescriptor(descriptor: SharedStoreDescriptor): void {
         this.#reader = new SharedStoreReader(descriptor);
+    }
+
+    /**
+     * a Write whose values are all numbers or booleans of Variables this front may write itself (see
+     * SharedStoreReader.writableInPlace and acceptsForWrite), written into the store here, without the engine:
+     * the statuses, all Good. Null when one of them is not: the engine writes the whole request, as before.
+     * `nodesToWrite` is the WriteValues as the client encoded them (their count, then them).
+     */
+    public writeInPlace(nodesToWrite: Uint8Array, count: number): StatusCode[] | null {
+        const reader = this.#reader;
+        if (!reader.isCurrent()) return null;
+        const stream = new BinaryStream(Buffer.from(nodesToWrite.buffer, nodesToWrite.byteOffset, nodesToWrite.byteLength));
+        stream.length = 4;
+        const indexes = new Array<number>(count);
+        const generations = new Array<number>(count);
+        const dataValues = new Array<DataValue>(count);
+        for (let k = 0; k < count; k++) {
+            const nodeId = decodeNodeId(stream);
+            if (stream.readUInt32() !== AttributeIds.Value) return null;
+            const indexRange = decodeString(stream);
+            const dataValue = decodeDataValue(stream);
+            const variant = dataValue.value;
+            if (indexRange || !variant || variant.arrayType !== VariantArrayType.Scalar || !IN_PLACE_TYPES.has(variant.dataType)) {
+                return null;
+            }
+            // namespace 0 stays with the engine: a write there may change what it enforces (NamespaceMetadata)
+            if (nodeId.namespace === 0 || !this.namespaces.has(nodeId.namespace)) return null;
+            const i = reader.find(nodeId);
+            if (!reader.writableInPlace(i) || !reader.acceptsForWrite(i, variant.dataType)) return null;
+            indexes[k] = i;
+            generations[k] = reader.generation(i);
+            dataValues[k] = dataValue;
+        }
+        if (stream.length !== stream.buffer.length) return null;
+        // as the engine stores a client's value: its source timestamp or now, the server timestamp now
+        const now = getCurrentClock().timestamp.getTime();
+        const statuses = new Array<StatusCode>(count);
+        for (let k = 0; k < count; k++) {
+            const dataValue = dataValues[k];
+            const version = reader.writeScalar(
+                indexes[k],
+                generations[k],
+                dataValue.value.dataType,
+                dataValue.value.value as number | boolean,
+                dataValue.statusCode.value,
+                dataValue.sourceTimestamp ? dataValue.sourceTimestamp.getTime() : now,
+                now
+            );
+            if (version < 0) {
+                // the store changed under this request: the engine writes all of it (the values written here
+                // again, which is harmless), and is still told of those written
+                return null;
+            }
+            this.#noteWritten(indexes[k], version);
+            statuses[k] = StatusCodes.Good;
+        }
+        return statuses;
+    }
+
+    #written: { indexes: number[]; versions: number[] } | null = null;
+
+    /** the engine is told once per turn of the values written here, to tell their listeners */
+    #noteWritten(index: number, version: number): void {
+        if (!this.#written) {
+            this.#written = { indexes: [], versions: [] };
+            setImmediate(() => {
+                const written = this.#written;
+                this.#written = null;
+                if (written) this.#channel.send({ kind: "written", ...written });
+            });
+        }
+        this.#written.indexes.push(index);
+        this.#written.versions.push(version);
     }
 
     /** the index of the node whose Value readAt() serves from the shared store, without the engine; -1 when it cannot */

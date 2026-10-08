@@ -90,6 +90,9 @@ export interface StoredValue {
     serverPicoseconds: number;
 }
 
+/** StatusCodes.BadResourceUnavailable: a value a thread left half written */
+const BAD_RESOURCE_UNAVAILABLE = 0x80040000;
+
 export class ValueStore {
     #kind: Uint8Array;
     #dataType: Uint8Array;
@@ -360,8 +363,45 @@ export class ValueStore {
         else this.#version[i] += 1;
     }
 
+    /**
+     * after a thread that wrote values in place has ended: a value it left claimed (odd) is released, and
+     * marked BadResourceUnavailable until the next write, so that readers and writers do not wait for it
+     * forever. A write holds a value for well under a microsecond: one still held after `patience` ms is
+     * abandoned. Returns how many were released.
+     */
+    public releaseAbandoned(patience = 10): number {
+        if (!this.#space.shared) return 0;
+        return this.#settleWriters(patience);
+    }
+
+    #settleWriters(patience: number): number {
+        const version = this.#version;
+        const deadline = Date.now() + patience;
+        let released = 0;
+        for (let i = 0; i < version.length; i++) {
+            let held = Atomics.load(version, i);
+            while ((held & 1) !== 0) {
+                if (Date.now() > deadline && Atomics.compareExchange(version, i, held, held + 1) === held) {
+                    this.#begin(i);
+                    this.#statusCode[i] = BAD_RESOURCE_UNAVAILABLE;
+                    this.#end(i);
+                    released++;
+                    break;
+                }
+                held = Atomics.load(version, i);
+            }
+        }
+        return released;
+    }
+
     #resize(n: number): void {
         const space = this.#space;
+        if (space.shared) {
+            // a writer in another thread checks the layout around its claim: once it moved, nothing more is
+            // written into these columns, and the writes already under way end before they are copied
+            Atomics.add(space.layout, 0, 1);
+            this.#settleWriters(50);
+        }
         const resized = <T extends Column>(col: T, length: number, Type: ColumnType<T>) => space.resized(col, length, Type);
         this.#kind = resized(this.#kind, n, Uint8Array);
         this.#dataType = resized(this.#dataType, n, Uint8Array);

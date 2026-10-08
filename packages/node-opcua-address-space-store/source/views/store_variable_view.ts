@@ -240,6 +240,20 @@ export class StoreVariableView extends StoreNodeView {
                 this.#dataValueVersion = values.version(this.index);
             }
         }
+        this.#stored();
+    }
+
+    /**
+     * a value another thread wrote into the store (see SharedStoreReader.writeScalar), at `version`: what
+     * follows a write here follows it too, unless the value was written again since (that write tells its own)
+     */
+    public changedElsewhere(version: number): void {
+        if (this.space.store.values.version(this.index) === version) {
+            this.#stored();
+        }
+    }
+
+    #stored(): void {
         // what a monitored item delivered on change listens to, as on the node objects; a view
         // with listeners is the one every writer of this node reaches (see ViewCache)
         if (this.hasListeners()) {
