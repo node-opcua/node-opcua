@@ -136,6 +136,8 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
     public prepareSamplingOf: ((context: ISessionContext, monitoredItem: MonitoredItem) => void) | null = null;
     // the session each subscription was last reported under, and the reports of this turn (see #report)
     readonly #owners = new Map<Subscription, string>();
+    // the subscriptions being rebuilt here from another worker: no other transfer takes them half built
+    readonly #adopting = new Set<number>();
     #changes: [string, number, number, number][] = [];
 
     constructor(state: EngineServerState, channel: EngineChannel, backend: RemoteCompactBackend) {
@@ -335,6 +337,9 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         if (subscriptionId <= 0) {
             return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
         }
+        if (this.#adopting.has(subscriptionId)) {
+            return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
+        }
         const subscription = this.#findSubscription(subscriptionId);
         if (!subscription) {
             return this.#takeFromAnotherWorker(session, subscriptionId, sendInitialValues);
@@ -362,6 +367,10 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         if (typeof taken === "number") {
             return new TransferResult({ statusCode: coerceStatusCode(taken) });
         }
+        if (!this.#alive(session)) {
+            // closed while the other worker gave the subscription up: it ends with the session
+            return new TransferResult({ statusCode: StatusCodes.BadSessionIdInvalid });
+        }
         return this.#adoptSubscription(session, decodeTransferState(taken), sendInitialValues);
     }
 
@@ -371,6 +380,8 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
      * here. Null when this worker does not hold it.
      */
     public exportSubscription(subscriptionId: number, dest: ITransferSessionIdentity): TransferredSubscription | number | null {
+        // being rebuilt here: not exported half built
+        if (this.#adopting.has(subscriptionId)) return null;
         const subscription = this.#findSubscription(subscriptionId);
         if (!subscription) return null;
         if (
@@ -399,11 +410,24 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
      * their ids, and its sequence numbers. Its items sample their current values, as they do when
      * created: the first Publish carries them when sendInitialValues, else they are only the baseline.
      */
+    #alive(session: ServerSession): boolean {
+        return this.sessions.get(session.authenticationToken.toString()) === session;
+    }
+
     async #adoptSubscription(
         session: ServerSession,
         state: SubscriptionTransferState,
         sendInitialValues: boolean
     ): Promise<TransferResult> {
+        this.#adopting.add(state.id);
+        try {
+            return await this.#rebuild(session, state, sendInitialValues);
+        } finally {
+            this.#adopting.delete(state.id);
+        }
+    }
+
+    async #rebuild(session: ServerSession, state: SubscriptionTransferState, sendInitialValues: boolean): Promise<TransferResult> {
         // a Good_SubscriptionTransferred still waiting there for this id, from when the subscription left this session
         (session.publishEngine as unknown as ServerSidePublishEngine)._purge_dangling_subscription(state.id);
         const subscription = session.createSubscription(
@@ -422,6 +446,11 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         subscription.on("monitoredItem", (monitoredItem: MonitoredItem) => this.prepareSamplingOf?.(context, monitoredItem));
         const requests = state.monitoredItems.map((item) => item.request);
         await this.prepareMonitoredItems(context, requests);
+        if (!this.#alive(session)) {
+            // the session closed while its items were prepared
+            subscription.terminate();
+            return new TransferResult({ statusCode: StatusCodes.BadSessionIdInvalid });
+        }
         for (const item of state.monitoredItems) {
             const { monitoredItem, createResult } = subscription.preCreateMonitoredItem(
                 this.nodeFinder,
