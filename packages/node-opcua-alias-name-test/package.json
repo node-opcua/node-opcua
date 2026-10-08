@@ -11,10 +11,6 @@
         "lint": "biome check --no-errors-on-unmatched .",
         "format": "biome check --write --no-errors-on-unmatched ."
     },
-    "devEngines": {
-        "node": ">=18.x",
-        "npm": ">=10.x"
-    },
     "devDependencies": {
         "commander": "^15.0.0",
         "node-opcua-address-space": "2.186.17",

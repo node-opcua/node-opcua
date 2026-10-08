@@ -18,10 +18,6 @@
     "bin": {
         "node-opcua-versions": "./dist/cli.js"
     },
-    "devEngines": {
-        "node": ">=18.x",
-        "npm": ">=10.x"
-    },
     "dependencies": {
         "commander": "^15.0.0"
     },

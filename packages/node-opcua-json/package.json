@@ -48,10 +48,6 @@
             ]
         }
     },
-    "devEngines": {
-        "node": ">=18.x",
-        "npm": ">=10.x"
-    },
     "dependencies": {
         "node-opcua-basic-types": "2.186.7",
         "node-opcua-data-model": "2.186.10",
