@@ -32,18 +32,9 @@
  * Experimental.
  */
 
-import type { EventEmitter } from "node:events";
 import { MessageChannel, type MessagePort, Worker } from "node:worker_threads";
-import {
-    type CompactAddressSpace,
-    type IConditionRefreshScopeHolder,
-    type IEventData,
-    type ISessionContext,
-    SessionContext,
-    type UAMethod,
-    type UAObjectType
-} from "node-opcua-address-space";
-import { type StoreNodeView, StoreServices, type StoreVariableView } from "node-opcua-address-space-store";
+import type { CompactAddressSpace, ISessionContext, UAMethod, UAObjectType } from "node-opcua-address-space";
+import { StoreServices, type StoreVariableView } from "node-opcua-address-space-store";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ServerState } from "node-opcua-common";
 import { AttributeIds, NodeClass } from "node-opcua-data-model";
@@ -51,42 +42,26 @@ import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { make_warningLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets as standardNodesets } from "node-opcua-nodesets";
-import { checkSelectClauses, EventFilter, extractEventFields } from "node-opcua-service-filter";
-import { HistoryReadRequest } from "node-opcua-service-history";
+import { checkSelectClauses, EventFilter } from "node-opcua-service-filter";
 import { type CallbackT, StatusCodes } from "node-opcua-status-code";
-import {
-    BrowseDescription,
-    BrowsePath,
-    CallMethodRequest,
-    CallMethodResult,
-    type CallMethodResultOptions,
-    ContentFilterResult,
-    EventFieldList,
-    EventFilterResult,
-    ReadRequest,
-    WriteValue
-} from "node-opcua-types";
+import { type CallMethodResultOptions, ContentFilterResult, EventFilterResult } from "node-opcua-types";
 import { decodeVariant, type Variant } from "node-opcua-variant";
-import { canReceiveEvent } from "../audit_event_permissions.js";
-import { isRefreshBracketEvent } from "../condition_refresh_bracket.js";
-import { checkWhereClauseOnAdressSpace } from "../filter/check_where_clause_on_address_space.js";
 import { ServerEngine, type ServerEngineOptions } from "../server_engine.js";
 import type { ITransferSessionIdentity } from "../sessions_compatible_for_transfer.js";
 import { subscriptionMethods } from "../subscription_methods.js";
+import { EngineServices } from "./engine_services.js";
+import { EventWatches } from "./event_watches.js";
 import { FrontSessions } from "./front_sessions.js";
 import { mirrorNodeObjects } from "./node_object_mirror.js";
 import {
     contextOf,
     type DescribeReply,
     decodeStructure,
-    decodeStructures,
-    decodeStructuresWith,
     EngineCount,
     type EngineServerState,
     type EngineToFront,
     encodeDataValues,
     encodeStructure,
-    encodeStructures,
     type FrontRequest,
     type FrontToEngine,
     type FrontWorkerData,
@@ -95,16 +70,11 @@ import {
     type SessionWorkerData,
     type TransferredSubscription,
     transferablesOf,
-    type ValueReply,
-    WATCH
+    type ValueReply
 } from "./protocol.js";
-import { RolesContext } from "./resolved_roles_context.js";
-import { TurnBatches } from "./turn_batches.js";
+import { ValueWatches } from "./value_watches.js";
 
 const warningLog = make_warningLog("front_thread_engine");
-
-/** the changes waiting for a busy front beyond which only the latest value of each node is kept */
-const MAX_WAITING_CHANGES = 1000;
 
 export interface FrontThreadEngineOptions {
     /** the nodesets of the engine, in this order; the standard nodeset by default */
@@ -151,27 +121,6 @@ export interface FrontThreadsStartOptions {
     ownPorts?: boolean;
 }
 
-/** a node the monitored items of one front or more listen to */
-interface Watch {
-    generation: number;
-    view: StoreNodeView;
-    fronts: Set<Worker>;
-    onChange: (dataValue: DataValue) => void;
-    onDispose: () => void;
-}
-
-/** what goes to a front at the end of the turn */
-interface Outgoing {
-    indexes: number[];
-    versions: number[];
-    values: DataValue[];
-    disposed: number[];
-    /** a "changes" message the front has not finished with */
-    inFlight: boolean;
-    /** while one is in flight: where each node's last waiting value is, to replace it once too many wait */
-    waiting: Map<number, number>;
-}
-
 export class FrontThreadEngine {
     /** the model: build it here, before or after start() */
     public readonly addressSpace: CompactAddressSpace;
@@ -191,27 +140,6 @@ export class FrontThreadEngine {
     readonly #gone = new Set<Worker>();
     #stopping = false;
     #exportId = 0;
-    // the event items of each worker: their filter evaluated here, on the node objects
-    readonly #eventWatches = new Map<Worker, Map<number, { stop: () => void }>>();
-    readonly #eventsOut = new TurnBatches<Worker, { ids: number[]; lists: EventFieldList[] }>(
-        () => ({ ids: [], lists: [] }),
-        (target, events) =>
-            target.postMessage({ kind: "events", ids: events.ids, fields: encodeStructures(events.lists) } satisfies EngineToFront)
-    );
-    readonly #objectWatches = new Map<
-        string,
-        { node: EventEmitter; workers: Set<Worker>; listener: (dataValue: DataValue) => void }
-    >();
-    // the values of the watched node objects, one message per worker and turn of the event loop
-    readonly #objectChanges = new TurnBatches<Worker, { nodeIds: string[]; values: DataValue[] }>(
-        () => ({ nodeIds: [], values: [] }),
-        (target, changes) =>
-            target.postMessage({
-                kind: "objectChanges",
-                nodeIds: changes.nodeIds,
-                values: encodeDataValues(changes.values)
-            } satisfies EngineToFront)
-    );
     readonly #endpointUrls: string[] = [];
     /** the requests the fronts and the session workers sent, by kind */
     public readonly requests = {
@@ -245,9 +173,9 @@ export class FrontThreadEngine {
     /** the sessions of the fronts, kept by the server engine */
     readonly #sessions: FrontSessions;
     readonly #counts = new SharedArrayBuffer(EngineCount.Size * 4);
-    readonly #watched = new Map<number, Watch>();
-    readonly #outgoing = new Map<Worker, Outgoing>();
-    #pushScheduled = false;
+    readonly #values: ValueWatches;
+    readonly #events: EventWatches;
+    readonly #engineServices: EngineServices;
     #layoutShared = -1;
     #syncScheduled = false;
 
@@ -258,6 +186,9 @@ export class FrontThreadEngine {
         this.addressSpace = addressSpace;
         this.#sessions = new FrontSessions(serverEngine, this.#counts);
         this.#services = new StoreServices(addressSpace);
+        this.#values = new ValueWatches(addressSpace);
+        this.#events = new EventWatches(serverEngine, this.#sessions);
+        this.#engineServices = new EngineServices(serverEngine, this.#sessions, addressSpace);
         // a column moved (nodes added, the heap of strings and arrays compacted): the fronts get the new buffers
         addressSpace.store.space.onRelayout = () => this.#scheduleSync();
     }
@@ -408,8 +339,8 @@ export class FrontThreadEngine {
                     resolve(message.endpointUrl);
                 } else if (message.kind === "failed") reject(new Error(`${name}: ${message.message}`));
                 else if (message.kind === "requests") this.#answer(worker, message.ids, message.requests);
-                else if (message.kind === "watches") this.#applyWatches(worker, message.operations);
-                else if (message.kind === "changesDone") this.#changesDone(worker);
+                else if (message.kind === "watches") this.#values.apply(worker, message.operations);
+                else if (message.kind === "changesDone") this.#values.changesDone(worker);
                 else if (message.kind === "activity")
                     this.#sessions.activity(
                         message.seen,
@@ -457,29 +388,17 @@ export class FrontThreadEngine {
                 pending.resolve(null);
             }
         }
-        for (const watch of this.#eventWatches.get(worker)?.values() ?? []) watch.stop();
-        this.#eventWatches.delete(worker);
-        this.#eventsOut.delete(worker);
-        for (const nodeId of [...this.#objectWatches.keys()]) this.#unwatchObject(worker, nodeId);
-        this.#objectChanges.delete(worker);
-        for (const [index, watch] of [...this.#watched]) {
-            if (!watch.fronts.delete(worker) || watch.fronts.size > 0) continue;
-            this.#watched.delete(index);
-            this.#stopListening(watch);
-        }
-        this.#outgoing.delete(worker);
+        this.#events.workerGone(worker);
+        this.#values.workerGone(worker);
     }
 
     /** the fronts close their sessions and stop listening, then end */
     public async shutdown(): Promise<void> {
         this.#stopping = true;
-        for (const watch of this.#watched.values()) this.#stopListening(watch);
-        this.#watched.clear();
-        this.#outgoing.clear();
+        this.#values.stopAll();
         const fronts = [...this.#fronts.splice(0), ...this.#sessionWorkers.splice(0)];
         for (const stop of this.#mirrors.splice(0)) stop();
-        for (const watches of this.#eventWatches.values()) for (const watch of watches.values()) watch.stop();
-        this.#eventWatches.clear();
+        this.#events.stopAll();
         this.#sessions.frontsGone();
         await Promise.all(
             fronts.map(
@@ -554,7 +473,7 @@ export class FrontThreadEngine {
             case "takeSubscription":
                 return this.#takeSubscription(worker, request.subscriptionId, request.identity);
             case "service":
-                return this.#runService(request.service, request.token, request.request);
+                return this.#engineServices.run(request.service, request.token, request.request);
             case "checkEventFilter": {
                 const server = this.serverEngine.addressSpace?.rootFolder.objects.server;
                 if (!server) return null;
@@ -567,17 +486,16 @@ export class FrontThreadEngine {
                 return encodeStructure(result);
             }
             case "watchEvents":
-                this.#watchEvents(worker, request);
+                this.#events.watchEvents(worker, request);
                 return null;
             case "unwatchEvents":
-                this.#eventWatches.get(worker)?.get(request.id)?.stop();
-                this.#eventWatches.get(worker)?.delete(request.id);
+                this.#events.unwatchEvents(worker, request.id);
                 return null;
             case "watchObject":
-                this.#watchObject(worker, request.nodeId);
+                this.#events.watchObject(worker, request.nodeId);
                 return null;
             case "unwatchObject":
-                this.#unwatchObject(worker, request.nodeId);
+                this.#events.unwatchObject(worker, request.nodeId);
                 return null;
             case "raiseEvent": {
                 const server = this.serverEngine.addressSpace?.rootFolder.objects.server;
@@ -665,219 +583,6 @@ export class FrontThreadEngine {
         };
     }
 
-    // ---- the nodes the fronts watch
-
-    #applyWatches(worker: Worker, operations: number[]): void {
-        for (let k = 0; k + 2 < operations.length; k += 3) {
-            if (operations[k] === WATCH) this.#watch(worker, operations[k + 1], operations[k + 2]);
-            else this.#unwatch(worker, operations[k + 1], operations[k + 2]);
-        }
-    }
-
-    #watch(worker: Worker, index: number, generation: number): void {
-        const nodes = this.addressSpace.store.nodes;
-        let watch = this.#watched.get(index);
-        if (
-            (watch !== undefined && watch.generation !== generation) ||
-            index >= nodes.count ||
-            nodes.isDeleted(index) ||
-            nodes.generation(index) !== generation
-        ) {
-            // the node the front holds is gone
-            this.#outgoingTo(worker).disposed.push(index);
-            this.#schedulePush();
-            return;
-        }
-        if (watch === undefined) {
-            const view = this.addressSpace.viewOf(index);
-            const created: Watch = {
-                generation,
-                view,
-                fronts: new Set(),
-                onChange: (dataValue: DataValue) => {
-                    for (const front of created.fronts) this.#queue(front, index, dataValue);
-                },
-                onDispose: () => {
-                    // the view is gone with the node: its listeners go with it
-                    this.#watched.delete(index);
-                    for (const front of created.fronts) this.#outgoingTo(front).disposed.push(index);
-                    this.#schedulePush();
-                }
-            };
-            view.on("value_changed", created.onChange);
-            view.on("dispose", created.onDispose);
-            this.#watched.set(index, created);
-            watch = created;
-        }
-        watch.fronts.add(worker);
-        // the value now: the front may have read it in place before this watch, and missed a write since
-        if (view_isVariable(watch.view)) {
-            this.#queue(worker, index, watch.view.readValue(null));
-        }
-    }
-
-    #unwatch(worker: Worker, index: number, generation: number): void {
-        const watch = this.#watched.get(index);
-        if (watch === undefined || watch.generation !== generation || !watch.fronts.delete(worker) || watch.fronts.size > 0) {
-            return;
-        }
-        this.#watched.delete(index);
-        this.#stopListening(watch);
-    }
-
-    #stopListening(watch: Watch): void {
-        watch.view.removeListener("value_changed", watch.onChange as (...args: unknown[]) => void);
-        watch.view.removeListener("dispose", watch.onDispose);
-    }
-
-    #outgoingTo(worker: Worker): Outgoing {
-        let outgoing = this.#outgoing.get(worker);
-        if (outgoing === undefined) {
-            outgoing = { indexes: [], versions: [], values: [], disposed: [], inFlight: false, waiting: new Map() };
-            this.#outgoing.set(worker, outgoing);
-        }
-        return outgoing;
-    }
-
-    #queue(worker: Worker, index: number, dataValue: DataValue): void {
-        const outgoing = this.#outgoingTo(worker);
-        const version = this.addressSpace.store.values.version(index);
-        if (outgoing.inFlight) {
-            const at = outgoing.waiting.get(index);
-            if (at !== undefined && outgoing.indexes.length >= MAX_WAITING_CHANGES) {
-                // the front has fallen behind: the newer value replaces the last one waiting
-                outgoing.versions[at] = version; // check-proto-pollution: ok - numeric array position
-                outgoing.values[at] = dataValue; // check-proto-pollution: ok - numeric array position
-                return;
-            }
-            outgoing.waiting.set(index, outgoing.indexes.length);
-        }
-        outgoing.indexes.push(index);
-        outgoing.versions.push(version);
-        outgoing.values.push(dataValue);
-        this.#schedulePush();
-    }
-
-    #changesDone(worker: Worker): void {
-        const outgoing = this.#outgoing.get(worker);
-        if (outgoing === undefined) return;
-        outgoing.inFlight = false;
-        outgoing.waiting.clear();
-        if (outgoing.indexes.length > 0) this.#schedulePush();
-    }
-
-    /** the changes of this turn, one message per front, after the replies of the turn */
-    #schedulePush(): void {
-        if (this.#pushScheduled) return;
-        this.#pushScheduled = true;
-        setImmediate(() => {
-            this.#pushScheduled = false;
-            for (const [worker, outgoing] of this.#outgoing) {
-                if (outgoing.indexes.length > 0 && !outgoing.inFlight) {
-                    const changes: EngineToFront = {
-                        kind: "changes",
-                        indexes: outgoing.indexes,
-                        versions: outgoing.versions,
-                        values: encodeDataValues(outgoing.values)
-                    };
-                    worker.postMessage(changes);
-                    outgoing.indexes = [];
-                    outgoing.versions = [];
-                    outgoing.values = [];
-                    outgoing.inFlight = true;
-                }
-                if (outgoing.disposed.length > 0) {
-                    const disposed: EngineToFront = { kind: "disposed", indexes: outgoing.disposed };
-                    worker.postMessage(disposed);
-                    outgoing.disposed = [];
-                }
-            }
-        });
-    }
-
-    /**
-     * the events of a node object for an event item of a worker: filtered here, where the address
-     * space is, with the item's filter and the roles of its session; the selected fields go to the worker
-     */
-    #watchEvents(worker: Worker, request: Extract<FrontRequest, { kind: "watchEvents" }>): void {
-        const { id, subscriptionId, monitoredItemId } = request;
-        const addressSpace = this.serverEngine.addressSpace;
-        const node = addressSpace?.findNode(request.nodeId) as unknown as EventEmitter | null;
-        if (!addressSpace || !node) return;
-        const filter = decodeStructure(request.filter, new EventFilter());
-        const described = new RolesContext(request.context);
-        const token = request.token;
-        const listener = (eventData: IEventData) => {
-            // a ConditionRefresh in progress goes to the items of the Subscription it names (OPC 10000-9 5.5.7, 5.5.8),
-            // its bracket whatever their filter (4.5), as MonitoredItem does where the events are raised
-            const scope = (addressSpace as Partial<IConditionRefreshScopeHolder>)._condition_refresh_scope;
-            const forThisItem =
-                !!scope &&
-                scope.subscription.id === subscriptionId &&
-                (scope.monitoredItemId === undefined || scope.monitoredItemId === monitoredItemId);
-            if (scope && !forThisItem) return;
-            const bracket = forThisItem && isRefreshBracketEvent(eventData);
-            // the roles of the session now: they change when it is activated again with another user
-            const context = (token !== null && this.#sessions.contextOf(token)) || described;
-            if (!bracket && !canReceiveEvent(context, addressSpace, eventData)) return;
-            if (
-                !bracket &&
-                filter.whereClause &&
-                !checkWhereClauseOnAdressSpace(addressSpace, SessionContext.defaultContext, filter.whereClause, eventData)
-            ) {
-                return;
-            }
-            const eventFields = extractEventFields(SessionContext.defaultContext, filter.selectClauses ?? [], eventData);
-            this.#queueEvent(worker, id, new EventFieldList({ clientHandle: 0, eventFields }));
-        };
-        node.on("event", listener);
-        let watches = this.#eventWatches.get(worker);
-        if (!watches) {
-            watches = new Map();
-            this.#eventWatches.set(worker, watches);
-        }
-        watches.set(id, { stop: () => node.removeListener("event", listener) });
-    }
-
-    #queueEvent(worker: Worker, id: number, list: EventFieldList): void {
-        const out = this.#eventsOut.of(worker);
-        out.ids.push(id);
-        out.lists.push(list);
-    }
-
-    /** a node object a session worker monitors: the values written to it go to that worker */
-    #watchObject(worker: Worker, nodeId: string): void {
-        let watch = this.#objectWatches.get(nodeId);
-        if (!watch) {
-            const node = this.serverEngine.addressSpace?.findNode(nodeId) as unknown as EventEmitter | null;
-            if (!node) return;
-            const workers = new Set<Worker>();
-            const listener = (dataValue: DataValue) => {
-                for (const target of workers) this.#queueObjectChange(target, nodeId, dataValue);
-            };
-            node.on("value_changed", listener);
-            watch = { node, workers, listener };
-            this.#objectWatches.set(nodeId, watch);
-        }
-        watch.workers.add(worker);
-    }
-
-    #unwatchObject(worker: Worker, nodeId: string): void {
-        const watch = this.#objectWatches.get(nodeId);
-        if (!watch) return;
-        watch.workers.delete(worker);
-        if (watch.workers.size === 0) {
-            watch.node.removeListener("value_changed", watch.listener);
-            this.#objectWatches.delete(nodeId);
-        }
-    }
-
-    #queueObjectChange(worker: Worker, nodeId: string, dataValue: DataValue): void {
-        const queued = this.#objectChanges.of(worker);
-        queued.nodeIds.push(nodeId);
-        queued.values.push(dataValue);
-    }
-
     /**
      * GetMonitoredItems, ResendData and SetSubscriptionDurable act on a Subscription: for a session of the
      * fronts, its session worker runs them, after the Call service checked them here as any method
@@ -939,48 +644,6 @@ export class FrontThreadEngine {
         };
     }
 
-    /** a service of the server engine, for a session of a front: its request and its results as their binary encoding */
-    async #runService(service: ServiceKind, token: string | null, bytes: Uint8Array): Promise<unknown> {
-        const engine = this.serverEngine;
-        const sessionContext = this.#sessions.contextOf(token);
-        if (token !== null && !sessionContext) {
-            throw new Error("the session is closed");
-        }
-        // TranslateBrowsePaths alone runs without a session
-        const context = sessionContext ?? SessionContext.defaultContext;
-        switch (service) {
-            case "read": {
-                const request = decodeStructure(bytes, new ReadRequest());
-                await new Promise<void>((resolve, reject) =>
-                    engine.prepareRead(context, request, (err) => (err ? reject(err) : resolve()))
-                );
-                return encodeDataValues(engine.readSync(context, request));
-            }
-            case "write": {
-                const statuses = await engine.write(context, decodeStructures(bytes, WriteValue.prototype));
-                // a namespace default may have been written (NamespaceMetadata): the readers apply it from now on
-                this.addressSpace.publishNamespacePolicy();
-                return statuses.map((status) => status.value);
-            }
-            case "browse":
-                return encodeStructures(
-                    await engine.browseWithAutomaticExpansion(decodeStructures(bytes, BrowseDescription.prototype), context)
-                );
-            case "translate":
-                // a BrowsePath decodes into the RelativePath its constructor makes
-                return encodeStructures(await engine.translateBrowsePaths(decodeStructuresWith(bytes, () => new BrowsePath())));
-            case "call": {
-                const results = await engine.call(context, decodeStructures(bytes, CallMethodRequest.prototype));
-                return encodeStructures(results.map((result) => new CallMethodResult(result)));
-            }
-            case "historyRead": {
-                const request = decodeStructure(bytes, new HistoryReadRequest());
-                await new Promise<void>((resolve) => engine.refreshValues(request.nodesToRead ?? [], 0, () => resolve()));
-                return encodeStructures(await engine.historyRead(context, request));
-            }
-        }
-    }
-
     /** a request that threw: the answer a front can still return to its client */
     #failure(request: FrontRequest): unknown {
         switch (request.kind) {
@@ -1040,10 +703,6 @@ export class FrontThreadEngine {
                 for (const message of messages) worker.postMessage(message);
         });
     }
-}
-
-function view_isVariable(view: StoreNodeView): view is StoreVariableView {
-    return view.nodeClass === NodeClass.Variable;
 }
 
 /** the platforms where several sockets may listen on one port, the kernel spreading the connections */
