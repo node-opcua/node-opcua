@@ -249,3 +249,36 @@ describe("MessageChunker single-pass encoding", () => {
         ]);
     });
 });
+
+describe("MessageChunker: a MSG without security, written as one chunk without the chunk managers", () => {
+    async function chunksOf(fast: boolean, response: ReadResponse, chunkSize: number): Promise<Buffer[]> {
+        const chunker = new MessageChunker({ securityMode: MessageSecurityMode.None });
+        const chunks: Buffer[] = [];
+        const collect = (chunk: Buffer | null) => {
+            if (chunk) chunks.push(Buffer.from(chunk));
+        };
+        // the asynchronous form still goes through the chunk managers: the reference
+        const status = fast
+            ? chunker.chunkSecureMessage("MSG", makeOptions(chunkSize), response, collect)
+            : await chunker.chunkSecureMessageAsync("MSG", makeOptions(chunkSize), response, collect);
+        should(status).eql(StatusCodes.Good);
+        return chunks;
+    }
+
+    it("writes the same chunk, byte for byte, as the chunk managers", async () => {
+        const response = makeReadResponse(10);
+        const fast = await chunksOf(true, response, ONE_CHUNK);
+        const reference = await chunksOf(false, response, ONE_CHUNK);
+        should(fast.length).eql(1);
+        should(Buffer.compare(fast[0], reference[0])).eql(0);
+    });
+
+    it("hands a message larger than a chunk to the chunk managers, the same chunks", async () => {
+        const response = makeReadResponse(2000);
+        const fast = await chunksOf(true, response, ONE_CHUNK);
+        const reference = await chunksOf(false, response, ONE_CHUNK);
+        should(fast.length).be.greaterThan(1);
+        should(fast.length).eql(reference.length);
+        for (let k = 0; k < fast.length; k++) should(Buffer.compare(fast[k], reference[k])).eql(0);
+    });
+});
