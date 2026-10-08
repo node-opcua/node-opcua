@@ -7,7 +7,7 @@ import { BinaryStream, BinaryStreamMaxSizeExceededError } from "node-opcua-binar
 import type { Mode } from "node-opcua-chunkmanager";
 import { make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { BaseUAObject } from "node-opcua-factory";
-import { MessageSecurityMode } from "node-opcua-service-secure-channel";
+import { MessageSecurityMode, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { timestamp } from "node-opcua-utils";
 
@@ -17,6 +17,9 @@ import {
     type SecurityHeader
 } from "./secure_message_chunk_manager.js";
 import { SequenceNumberGenerator } from "./sequence_number_generator.js";
+
+/** a single MSG chunk without security: message header (12), symmetric security header (4), sequence header (8) */
+const PLAIN_HEADERS_SIZE = 24;
 
 const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
 const errorLog = make_errorLog("secure_channel");
@@ -152,19 +155,11 @@ export class MessageChunker {
      * callback — the part {@link chunkSecureMessage} and
      * {@link chunkSecureMessageAsync} share.
      */
-    #_encode_and_prepare(
-        msgType: string,
-        params: ChunkMessageParameters,
-        message: BaseUAObject,
-        messageChunkCallback: MessageCallbackFunc
-    ): { statusCode: StatusCode; chunkManager: SecureMessageChunkManager | null; stream: BinaryStream; messageLength: number } {
-        const failed = (statusCode: StatusCode) => ({
-            statusCode,
-            chunkManager: null,
-            stream: null as unknown as BinaryStream,
-            messageLength: 0
-        });
-
+    /**
+     * the message encoded (its encodingDefaultBinary, then its fields) after `prefix` bytes left for the
+     * headers of a single chunk (see chunkSecureMessage); null with the StatusCode of a refusal
+     */
+    #encode(message: BaseUAObject, prefix: number): { stream: BinaryStream; messageLength: number } | StatusCode {
         const encodingDefaultBinary = message.schema.encodingDefaultBinary;
         if (!encodingDefaultBinary) {
             throw new Error(`message schema ${message.schema.name} has no encodingDefaultBinary`);
@@ -178,25 +173,54 @@ export class MessageChunker {
         // Growth is capped at the negotiated maximum message size, so encoding before the
         // oversize check cannot be used to make us allocate without bound.
         const ceiling = this.maxMessageSize > 0 ? this.maxMessageSize : MessageChunker.defaultMaxMessageSize;
-        const stream = this.#takeEncodeBuffer(ceiling);
+        const stream = this.#takeEncodeBuffer(ceiling + prefix);
+        stream.length = prefix;
         try {
             encodeExpandedNodeId(encodingDefaultBinary, stream);
             message.encode(stream);
         } catch (err) {
             if (err instanceof BinaryStreamMaxSizeExceededError) {
                 errorLog(`[NODE-OPCUA-E11] ${message.schema.name}: ${err.message}`);
-                return failed(StatusCodes.BadTcpMessageTooLarge);
+                return StatusCodes.BadTcpMessageTooLarge;
             }
             throw err;
         }
-        const messageLength = stream.length;
+        const messageLength = stream.length - prefix;
         // remember the size so the next message on this channel usually fits without growing,
         // up to the size of buffer worth keeping: a rare large message grows its buffer instead
         this.#messageSizeHint = Math.min(
             Math.max(MessageChunker.minimumMessageSizeHint, messageLength),
             MessageChunker.maxRetainedEncodeBufferSize
         );
+        return { stream, messageLength };
+    }
 
+    #_encode_and_prepare(
+        msgType: string,
+        params: ChunkMessageParameters,
+        message: BaseUAObject,
+        messageChunkCallback: MessageCallbackFunc
+    ): { statusCode: StatusCode; chunkManager: SecureMessageChunkManager | null; stream: BinaryStream; messageLength: number } {
+        const encoded = this.#encode(message, 0);
+        if (!("stream" in encoded)) {
+            return { statusCode: encoded, chunkManager: null, stream: null as unknown as BinaryStream, messageLength: 0 };
+        }
+        return this.#prepare(msgType, params, encoded.stream, encoded.messageLength, messageChunkCallback);
+    }
+
+    #prepare(
+        msgType: string,
+        params: ChunkMessageParameters,
+        stream: BinaryStream,
+        messageLength: number,
+        messageChunkCallback: MessageCallbackFunc
+    ): { statusCode: StatusCode; chunkManager: SecureMessageChunkManager | null; stream: BinaryStream; messageLength: number } {
+        const failed = (statusCode: StatusCode) => ({
+            statusCode,
+            chunkManager: null,
+            stream: null as unknown as BinaryStream,
+            messageLength: 0
+        });
         const { statusCode, chunkManager } = this.prepareChunk(msgType, params, messageLength);
         if (statusCode !== StatusCodes.Good) {
             return failed(statusCode);
@@ -241,6 +265,13 @@ export class MessageChunker {
         message: BaseUAObject,
         messageChunkCallback: MessageCallbackFunc
     ): StatusCode {
+        if (
+            msgType === "MSG" &&
+            this.securityMode === MessageSecurityMode.None &&
+            params.securityHeader instanceof SymmetricAlgorithmSecurityHeader
+        ) {
+            return this.#chunkPlainMessage(params, params.securityHeader.tokenId, message, messageChunkCallback);
+        }
         const { statusCode, chunkManager, stream, messageLength } = this.#_encode_and_prepare(
             msgType,
             params,
@@ -256,6 +287,62 @@ export class MessageChunker {
         chunkManager.write(stream.buffer, messageLength);
         this.#recycleEncodeBuffer(stream);
         chunkManager.end();
+        return StatusCodes.Good;
+    }
+
+    /**
+     * a MSG of a channel without security, as most responses are: encoded after room for its headers and,
+     * when it fits one chunk, sent as that chunk, its headers written in place (OPC 10000-6 6.7.2: message
+     * header, symmetric security header, sequence header) without the chunk managers. A larger message is
+     * chunked by them as any other.
+     */
+    #chunkPlainMessage(
+        params: ChunkMessageParameters,
+        tokenId: number,
+        message: BaseUAObject,
+        messageChunkCallback: MessageCallbackFunc
+    ): StatusCode {
+        const encoded = this.#encode(message, PLAIN_HEADERS_SIZE);
+        if (!("stream" in encoded)) return encoded;
+        const { stream, messageLength } = encoded;
+        const chunkSize = params.securityOptions.chunkSize || 8192;
+        const total = PLAIN_HEADERS_SIZE + messageLength;
+        if (total > chunkSize || (this.maxMessageSize > 0 && messageLength > this.maxMessageSize)) {
+            const { statusCode, chunkManager } = this.#prepare("MSG", params, stream, messageLength, messageChunkCallback);
+            if (statusCode !== StatusCodes.Good || !chunkManager) {
+                return statusCode;
+            }
+            chunkManager.write(stream.buffer.subarray(PLAIN_HEADERS_SIZE), messageLength);
+            this.#recycleEncodeBuffer(stream);
+            chunkManager.end();
+            return StatusCodes.Good;
+        }
+        // the chunk leaves this thread with the transport: its own buffer, the encode buffer is reused
+        const chunk = Buffer.allocUnsafe(total);
+        stream.buffer.copy(chunk, 0, 0, total);
+        this.#recycleEncodeBuffer(stream);
+        chunk[0] = 0x4d; // M
+        chunk[1] = 0x53; // S
+        chunk[2] = 0x47; // G
+        chunk[3] = 0x46; // F: the final chunk
+        chunk.writeUInt32LE(total, 4);
+        chunk.writeUInt32LE(params.channelId, 8);
+        chunk.writeUInt32LE(tokenId, 12);
+        chunk.writeUInt32LE(this.#sequenceNumberGenerator.next(), 16);
+        chunk.writeUInt32LE(params.securityOptions.requestId, 20);
+        if (doTraceChunk) {
+            console.log(
+                timestamp(),
+                "   <$$ ",
+                "MSG",
+                "nbChunk =   1",
+                `totalLength = ${total.toString().padStart(8)}`,
+                "l=",
+                messageLength.toString().padStart(6)
+            );
+        }
+        messageChunkCallback(chunk);
+        messageChunkCallback(null);
         return StatusCodes.Good;
     }
 
