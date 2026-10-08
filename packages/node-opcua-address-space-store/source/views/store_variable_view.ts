@@ -12,7 +12,7 @@ import { getCurrentClock } from "node-opcua-date-time";
 import { NodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
-import { DataType, sameVariant, Variant, VariantArrayType, type VariantLike } from "node-opcua-variant";
+import { DataType, encodedVariant, sameVariant, Variant, VariantArrayType, type VariantLike } from "node-opcua-variant";
 import { ResolvedType } from "../data_type_resolver.js";
 import { NO_NODE } from "../node_id_index.js";
 import { ValueKind } from "../value_store.js";
@@ -243,13 +243,26 @@ export class StoreVariableView extends StoreNodeView {
         // what a monitored item delivered on change listens to, as on the node objects; a view
         // with listeners is the one every writer of this node reaches (see ViewCache)
         if (this.hasListeners()) {
-            this.emit("value_changed", this.#dataValueFromColumns().clone());
+            this.emit("value_changed", this.#changedDataValue());
         }
         // a historized Variable: the value goes to its historian, as on the node objects
         const historian = this.space.historians.get(this.index);
         if (historian) {
-            historian.push(this.#dataValueFromColumns().clone()).catch(() => undefined);
+            historian.push(this.#changedDataValue()).catch(() => undefined);
         }
+    }
+
+    /**
+     * what the listeners of a change get: a copy of the value. A structure kept in the shared heap goes as
+     * its bytes (an EncodedVariant, decoded only if read), not as a deep copy of the object made at each write
+     */
+    #changedDataValue(): DataValue {
+        const values = this.space.store.values;
+        const encoded = values.dataType(this.index) === DataType.ExtensionObject ? values.encodedCopy(this.index) : null;
+        if (!encoded) return this.#dataValueFromColumns().clone();
+        const dataValue = valueDataValue(values, this.index, { dataType: DataType.Null, value: null });
+        dataValue.value = encodedVariant(encoded);
+        return dataValue;
     }
 
     /** the value through a callback, as the node objects offer it to the samplers; nothing here waits */
