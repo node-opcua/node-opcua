@@ -352,6 +352,8 @@ export interface SubscriptionTransferState {
     priority: number;
     nextSequenceNumber: number;
     sentNotificationMessages: NotificationMessage[];
+    /** the data changes and events collected for the client and not published yet (takePendingNotifications) */
+    pendingNotifications?: { monitoredItemId: number; notification: QueueItem }[];
     monitoredItems: {
         monitoredItemId: number;
         timestampsToReturn: TimestampsToReturn;
@@ -1369,6 +1371,28 @@ export class Subscription extends EventEmitter {
                 })
             }))
         };
+    }
+
+    /**
+     * the data changes and events of its items not published yet, taken out of this subscription: they go
+     * with it to the session of another thread, whose first Publish carries them (requeueNotifications)
+     */
+    public takePendingNotifications(): { monitoredItemId: number; notification: QueueItem }[] {
+        this._harvestMonitoredItems();
+        const ofAnItem = (e: InternalNotification) =>
+            e.monitoredItemId !== undefined && !(e.notification instanceof StatusChangeNotification);
+        const taken: { monitoredItemId: number; notification: QueueItem }[] = [];
+        for (const e of this._pending_notifications.values()) {
+            if (ofAnItem(e))
+                taken.push({ monitoredItemId: e.monitoredItemId as number, notification: e.notification as QueueItem });
+        }
+        this._pending_notifications.filterOut(ofAnItem);
+        return taken;
+    }
+
+    /** the notifications another thread took (takePendingNotifications), to publish as if collected here */
+    public requeueNotifications(notifications: { monitoredItemId: number; notification: QueueItem }[]): void {
+        for (const { monitoredItemId, notification } of notifications) this._addNotificationMessage(notification, monitoredItemId);
     }
 
     /** a subscription carried over from another thread: its sequence numbers and the messages not acknowledged */
