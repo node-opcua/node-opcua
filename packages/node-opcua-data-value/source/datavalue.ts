@@ -79,10 +79,15 @@ function getDataValue_EncodingByte(dataValue: DataValue): DataValueEncodingByte 
  * @param stream
  */
 export function encodeDataValue(dataValue: DataValue, stream: OutputBinaryStream): void {
-    if (dataValue instanceof EncodedDataValue && dataValue._bytes) {
-        // still the bytes it arrived as: written as they are, without decoding them first
+    if (dataValue instanceof EncodedDataValue && !dataValue._decoded) {
         const bytes = dataValue._bytes;
-        stream.writeArrayBuffer(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength);
+        if (bytes) {
+            // still the bytes it arrived as: written as they are, without decoding them first
+            stream.writeArrayBuffer(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength);
+        } else {
+            // a value kept in another form: written from it, without making its fields
+            dataValue._writeEncoded(stream);
+        }
         return;
     }
     const encodingMask = getDataValue_EncodingByte(dataValue);
@@ -753,12 +758,25 @@ export class EncodedDataValue extends DataValue {
     /** the bytes not decoded yet; null once the fields have been decoded */
     declare _bytes: Uint8Array | null;
     declare _decoded: DataValue | null;
+
+    /**
+     * a subclass that keeps the value in another form than bytes (its _bytes null) writes its encoding
+     * from there, as encodeDataValue() would from the fields, until they are made (_decodeFields)
+     */
+    public _writeEncoded(_stream: OutputBinaryStream): void {
+        throw new Error("EncodedDataValue: no bytes and no _writeEncoded() of its own");
+    }
+
+    /** the fields, made the first time one is used: decoded from the bytes, or by a subclass from its own form */
+    public _decodeFields(): DataValue {
+        const bytes = this._bytes as Uint8Array;
+        return decodeDataValue(new BinaryStream(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength)));
+    }
 }
 
 function decodedFieldsOf(dataValue: EncodedDataValue): DataValue {
     if (!dataValue._decoded) {
-        const bytes = dataValue._bytes as Uint8Array;
-        dataValue._decoded = decodeDataValue(new BinaryStream(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength)));
+        dataValue._decoded = dataValue._decodeFields();
         dataValue._bytes = null;
     }
     return dataValue._decoded;
