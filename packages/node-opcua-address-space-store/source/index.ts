@@ -16,7 +16,7 @@ export {
     packedKey,
     type SharedStoreDescriptor
 } from "./compact_store.js";
-export { DataTypeResolver, ResolvedType } from "./data_type_resolver.js";
+export { ACCEPTED_TYPES_KNOWN, DataTypeResolver, ResolvedType } from "./data_type_resolver.js";
 export { NO_NODE, NodeIdIndex } from "./node_id_index.js";
 export { NO_STRING, type NodeRecord, NodeStore, type RolePermissionEntry, type SharedNodeBuffers } from "./node_store.js";
 export { ReferenceTable } from "./reference_table.js";

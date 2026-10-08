@@ -340,11 +340,20 @@ export class ValueStore {
     }
 
     // the version word is the seqlock of the value: odd while a write is in progress. In a
-    // shared store the increments are atomic, so that a reader in another thread sees them
-    // ordered with the field writes between them
+    // shared store the changes are atomic, so that a reader in another thread sees them
+    // ordered with the field writes between them, and a write begins by claiming the slot:
+    // from an even version to the next odd one, waiting while another thread holds it, so
+    // that writers in several threads never interleave their fields
     #begin(i: number): void {
-        if (this.#space.shared) Atomics.add(this.#version, i, 1);
-        else this.#version[i] += 1;
+        if (!this.#space.shared) {
+            this.#version[i] += 1;
+            return;
+        }
+        const version = this.#version;
+        for (;;) {
+            const current = Atomics.load(version, i);
+            if ((current & 1) === 0 && Atomics.compareExchange(version, i, current, current + 1) === current) return;
+        }
     }
     #end(i: number): void {
         if (this.#space.shared) Atomics.add(this.#version, i, 1);

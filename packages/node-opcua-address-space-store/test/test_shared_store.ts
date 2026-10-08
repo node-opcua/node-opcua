@@ -6,7 +6,15 @@ import { LocalizedText, NodeClass } from "node-opcua-data-model";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import { DataType, decodeVariant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import { CompactStore, NO_NODE, SharedReadStatus, SharedStoreReader, type SharedValue, ValueKind } from "../source/index.js";
+import {
+    ACCEPTED_TYPES_KNOWN,
+    CompactStore,
+    NO_NODE,
+    SharedReadStatus,
+    SharedStoreReader,
+    type SharedValue,
+    ValueKind
+} from "../source/index.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const numeric = (i: number) => new NodeId(NodeIdType.NUMERIC, i, 1);
@@ -122,6 +130,64 @@ describe("shared store: the columns of a store read from another thread", functi
         const again = new SharedStoreReader(store.shareForReaders());
         should(again.isCurrent()).eql(true);
         should(again.find(numeric(9099))).eql(store.find(numeric(9099)));
+    });
+
+    it("tells another thread what a Variable's DataType accepts, and whether it is historized", () => {
+        const store = build(2);
+        const dataType = store.addNode({
+            nodeId: numeric(5000),
+            nodeClass: NodeClass.DataType,
+            browseName: "SomeDouble",
+            browseNameNamespace: 1
+        });
+        const variable = store.addNode({
+            nodeId: numeric(5001),
+            nodeClass: NodeClass.Variable,
+            browseName: "V",
+            browseNameNamespace: 1,
+            accessLevel: 3,
+            dataType
+        });
+        const reader = new SharedStoreReader(store.shareForReaders());
+        // nothing worked out yet: this thread cannot tell, so it says no
+        should(reader.acceptsForWrite(variable, DataType.Double)).eql(false);
+        store.nodes.setAcceptedTypes(dataType, (ACCEPTED_TYPES_KNOWN | (1 << DataType.Double)) >>> 0);
+        should(reader.acceptsForWrite(variable, DataType.Double)).eql(true);
+        should(reader.acceptsForWrite(variable, DataType.String)).eql(false);
+        should(reader.acceptsForWrite(variable, DataType.Null)).eql(false);
+        should(reader.isHistorized(variable)).eql(false);
+        store.nodes.setHistorizing(variable, true);
+        should(reader.isHistorized(variable)).eql(true);
+    });
+
+    it("makes a write wait while another thread holds the value, so that two writers never interleave", async () => {
+        const store = build(4);
+        const i = store.find(numeric(1000));
+        const descriptor = store.shareForReaders();
+        // the worker claims the value as a writer does (even to odd), holds it 150 ms, then releases it
+        const code = `
+            const { workerData, parentPort } = require("node:worker_threads");
+            const version = new Uint32Array(workerData.version);
+            const held = Atomics.load(version, workerData.i);
+            if (Atomics.compareExchange(version, workerData.i, held, held + 1) !== held) throw new Error("not claimed");
+            parentPort.postMessage({ held });
+            Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 150);
+            Atomics.add(version, workerData.i, 1);`;
+        const worker = new Worker(code, { eval: true, workerData: { version: descriptor.values.version, i } });
+        const { held } = await new Promise<{ held: number }>((resolve, reject) => {
+            worker.once("message", resolve);
+            worker.once("error", reject);
+        });
+        const started = Date.now();
+        store.values.setScalar(i, DataType.Double, 7, 0, 1, 1);
+        // the owner's write waited for the release, then claimed and released the value in turn
+        should(Date.now() - started).be.aboveOrEqual(100);
+        const reader = new SharedStoreReader(descriptor);
+        const out = fresh();
+        should(reader.readValue(i, out)).eql(SharedReadStatus.Good);
+        should(out.value).eql(7);
+        should(out.version).eql(held + 4);
+        await worker.terminate();
     });
 
     it("reads consistent values from a worker thread while the owner writes", async () => {
