@@ -223,6 +223,11 @@ export class MessageBuilder extends MessageBuilderBase {
     public securityHeader?: SecurityHeader;
 
     protected id: string;
+    /**
+     * @internal a MSG request its server answers from its bytes, without its objects: called with the
+     * numeric id of its type (namespace 0), the message body and the offset of its fields; true when it did
+     */
+    public rawRequestHandler: ((typeId: number, body: Buffer, offset: number) => boolean) | null = null;
     readonly #objectFactory: ObjectFactory;
     #previousSequenceNumber: number;
     readonly #derivedKeyProvider: IDerivedKeyProvider;
@@ -436,6 +441,16 @@ export class MessageBuilder extends MessageBuilderBase {
                 StatusCodes2.BadTcpInternalError,
                 `decodeExpandedNodeId ${types.isNativeError(err) ? err.message : ""}`
             );
+        }
+
+        if (
+            this.rawRequestHandler &&
+            msgType === "MSG" &&
+            id.namespace === 0 &&
+            typeof id.value === "number" &&
+            this.rawRequestHandler(id.value, fullMessageBody, requestHeaderStart)
+        ) {
+            return true;
         }
 
         if (!this.#objectFactory.hasConstructor(id)) {

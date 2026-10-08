@@ -122,6 +122,19 @@ export interface ServerSecureChannelParent {
      * unchanged.
      */
     adjustCertificateStatus?(statusCode: StatusCode, certificate: Certificate): StatusCode | Promise<StatusCode>;
+
+    /**
+     * @internal a MSG request answered from its bytes (see MessageBuilder.rawRequestHandler): true when the
+     * handler sent the response; false and the request is decoded and served as any other
+     */
+    leanRequestHandler?(
+        channel: ServerSecureChannelLayer,
+        typeId: number,
+        body: Buffer,
+        offset: number,
+        requestId: number,
+        securityHeader: SecurityHeader
+    ): boolean;
 }
 
 export interface ServerSecureChannelLayerOptions {
@@ -1017,6 +1030,23 @@ export class ServerSecureChannelLayer extends EventEmitter {
             maxChunkCount: this.#transport.maxChunkCount,
             maxMessageSize: this.#transport.maxMessageSize
         });
+        const lean = this.#parent?.leanRequestHandler;
+        if (lean) {
+            const parent = this.#parent as ServerSecureChannelParent;
+            const builder = this.#messageBuilder;
+            builder.rawRequestHandler = (typeId, body, offset) => {
+                const securityHeader = builder.securityHeader;
+                const sequenceHeader = builder.sequenceHeader;
+                if (!(securityHeader instanceof SymmetricAlgorithmSecurityHeader) || !sequenceHeader) return false;
+                // the checks #_on_common_message makes of any MSG: a failure goes that way, to be reported there
+                const securityToken = this.#tokenStack.getToken(securityHeader.tokenId);
+                if (!securityToken || builder.channelId !== securityToken.channelId) return false;
+                // the admission of #_admit: a request answered at once must not overtake those waiting for room,
+                // nor add to a transport already holding the response budget
+                if (this.#waiting.length > 0 || this.#transport.queuedBytes >= CHANNEL_RESPONSE_BUDGET) return false;
+                return lean.call(parent, this, typeId, body, offset, sequenceHeader.requestId, securityHeader);
+            };
+        }
         // c8 ignore next
         if (doDebug) {
             debugLog(" this.transport.maxChunkCount", this.#transport.maxChunkCount);

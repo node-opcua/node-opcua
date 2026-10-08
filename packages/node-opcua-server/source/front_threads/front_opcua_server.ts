@@ -23,9 +23,11 @@ import { StatusCodes } from "node-opcua-status-code";
 import { type ActivateSessionRequest, ServiceFault } from "node-opcua-types";
 import { encodeVariant, Variant, type VariantOptions } from "node-opcua-variant";
 import { OPCUAServerCore, type OPCUAServerOptions } from "../opcua_server.js";
+import type { OPCUAServerEndPoint } from "../server_end_point.js";
 import type { ServerEngineOptions } from "../server_engine.js";
 import type { ServerSession } from "../server_session.js";
 import { EncodedResponse } from "./encoded_response.js";
+import { type LeanReadHost, leanRead } from "./lean_read.js";
 import { encodeMessageBody, type FrontToWorker, type WorkerToFront } from "./protocol.js";
 import type { RemoteEngine } from "./remote_engine.js";
 import { tokenKeyOf } from "./token_key.js";
@@ -71,6 +73,21 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
         this.#workers = workers;
         for (const port of workers) port.on("message", (message: WorkerToFront) => this.#answered(message));
         this.on("session_activated", (session: ServerSession) => this.#announce(session));
+    }
+
+    /** the Reads of items served in place are answered from the bytes of the request */
+    protected override leanRequestHandler(): OPCUAServerEndPoint["leanRequestHandler"] {
+        const remote = this.#remote;
+        const host: LeanReadHost = {
+            getSession: (token, activeOnly) => this.getSession(token, activeOnly),
+            get maxNodesPerRead() {
+                return remote.serverCapabilities.operationLimits.maxNodesPerRead ?? 0;
+            },
+            backend: remote.backend
+        };
+        return (channel, typeId, body, offset, requestId, securityHeader) =>
+            // a listener of "request" sees every request: it gets them decoded
+            this.listenerCount("request") === 0 && leanRead(host, channel, typeId, body, offset, requestId, securityHeader);
     }
 
     /** a session taken from another front for this ActivateSession goes back there */

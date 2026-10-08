@@ -326,6 +326,8 @@ const preregisterAbortListeners = new WeakMap<ServerSecureChannelLayer, () => vo
  *   see OPCUA Release 1.03 part 4 page 108 7.1 ApplicationDescription
  */
 export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureChannelParent {
+    /** @internal see ServerSecureChannelParent.leanRequestHandler: set by the server that has one */
+    public leanRequestHandler?: ServerSecureChannelParent["leanRequestHandler"];
     /**
      * the tcp port
      */
