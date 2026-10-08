@@ -1,4 +1,98 @@
 
+Faster Read, Write and sampling, and less memory per node
+=========================================================
+
+  - a Read or a Write whose items the server can serve at once is answered from the bytes of the
+    request: no ReadRequest, WriteRequest, RequestHeader or ReadValueId is built and the service
+    dispatch is skipped. The session checks, access rights, timestamps, maxAge and service counters
+    are those of the normal path; anything else (another attribute, an index range, a data encoding,
+    a Variable refreshed asynchronously before it is read, an unknown node, registered nodes, a
+    listener of the server's `"request"` event) is decoded and served as before.
+  - the Read and Write paths no longer build a promise, a PseudoSession or a NodeId string per item,
+    resolve Roles and namespace defaults once per request, and find the session of a request from
+    the bytes of its token. Sampling resolves permissions once per pass and samples every item of an
+    interval in one pass.
+  - a response that fits one chunk on a channel without security is written in place, and the chunks
+    a tick produces leave in one socket write.
+  - nodes take less heap: optional fields take no slot until set (100,000 Variables added to the
+    standard nodeset: 2,635 to 2,469 bytes per node), references are indexed in an array, a
+    defaulted display name stays a string, setters share one callback wrapper.
+  - measured on a 4-core Gemini Lake mini PC (server on 2 cores, open62541 C client), node-opcua
+    2.186.17 against this release: pipelined Reads of one value about 3,700 to 10,000-20,000 calls/s,
+    Reads of 1000 values 38 to about 440 calls/s, Writes of 1000 values 20 to about 80 calls/s. With
+    front threads (below) Reads of 1000 values reach about 1,400 calls/s and Writes about 500.
+  - **behaviour change** a parent stops exposing children created at runtime as JavaScript
+    properties past its first thousand of them (`folder.tag12345`); every child stays reachable
+    through `getChildByName()` and Browse. A parent with a hundred thousand children no longer slows
+    every access to it.
+
+SignAndEncrypt: node-opcua-crypto 6.2.0, node-opcua-pki 7.1.0
+=============================================================
+
+  - node-opcua-crypto 6.2.0 signs and encrypts each chunk with KeyObjects made once per derived key,
+    instead of handing node:crypto the key bytes, which Node.js checked and wrapped on every call.
+    Measured with SignAndEncrypt (Basic256Sha256): Reads of one 10 KB value +47%, Reads of
+    1000 x 10 KB values +29%, server CPU per small read 1.1 to 0.67 ms.
+
+A channel admits requests as fast as their responses leave
+==========================================================
+
+  - **behaviour change** a channel starts a request only while the requests in progress, each counted
+    at the recent response size of its service, and what its socket has not sent yet stay within
+    16 MB; the others wait their turn on that channel. A client pipelining Reads of large values used
+    to have every response built and held at once (10 channels x 32 Reads of 8 MB took a server past
+    3 GB). PublishRequests are never held back.
+  - the transport reports a malformed or unexpected handshake reply (an ACK below the Part 6 minimum
+    buffer sizes, a reply to HEL that is neither ACK nor ERR) as a connection failure instead of
+    asserting in the socket data handler, which ended the client process. node-opcua-assert is no
+    longer a dependency of node-opcua-transport.
+  - the packet assembler of a connection is kept when its limits change during the handshake.
+
+Compact address space and front threads (new, experimental)
+==========================================================
+
+  - `OPCUAServerOptions.compactAddressSpace` adds a compact store next to the node objects: nodes,
+    references, strings and values in typed columns (`node-opcua-address-space-store`).
+    `server.engine.registerCompactNamespace(uri)` registers a namespace served from it, where the
+    application adds its nodes; Read, Write, Browse, Translate, monitored items, Methods and history
+    work on its nodes, and the rest of the address space is unchanged.
+  - `FrontThreadEngine` (node-opcua-server) serves one server from several threads: an engine thread
+    owns the address space and the record of every session, front threads hold the channels and
+    answer the values of the store in place, and session workers host the subscriptions
+    (TransferSubscriptions, ConditionRefresh, GetMonitoredItems, ResendData, SetSubscriptionDurable
+    and the monitored item hooks included). Every front shows the same address space, sessions and
+    diagnostics. Limits, build info and auditing are set on `FrontThreadEngine.create()`; the
+    server's own namespace (1) derives from the `applicationUri`, and `registerNamespace()` declares
+    a namespace of the model served from the store. Measured on the same mini PC: 44,000 Reads of one value per second with 2 fronts on 2
+    cores, against about 20,000 for a single-thread server.
+  - structures travel between threads as their binary encoding: `EncodedVariant`
+    (`encodedVariant(bytes)`, node-opcua-variant) and `EncodedDataValue` (node-opcua-data-value)
+    keep a value in the encoding it arrived in and decode it only when it is read.
+  - `diagnosticsNamespaceUri` (OPCUAServerOptions, `FrontThreadEngine.create()`) puts the nodes the
+    server creates while it runs (Sessions, their diagnostics, the diagnostics of their
+    Subscriptions) in a namespace of their own; without it they stay in namespace 1, as before.
+
+Fixes
+=====
+
+  - **behaviour change** a namespace's default access restrictions are applied. The check looked up
+    a `defaultAccessRestriction` child of the NamespaceMetadata object while the property is
+    `DefaultAccessRestrictions`, so every node without AccessRestrictions of its own was treated as
+    unrestricted. The value given to `Namespace.setDefaultAccessRestrictions()` now applies too when
+    there is no metadata. A server that declared default restrictions on a namespace now enforces
+    them.
+  - sampling ticks stay on a fixed grid (`start + k * interval`) instead of `setInterval`, which never
+    made up lateness: at 10 ms an idle server sampled 98 to 99 times per second instead of 100.
+  - a cloned `OpaqueStructure` keeps its body (`Variant.clone` dropped its NodeId and bytes).
+  - a Session closed while its user is being checked is not activated.
+  - node-opcua-date-time no longer depends on `long` at run time.
+
+New nodesets
+============
+
+  - the UAFX nodesets (FX Data, AC, CM 1.00.04): `node-opcua-nodeset-fx-data`,
+    `node-opcua-nodeset-fxac` and `node-opcua-nodeset-fxcm`.
+
 A node keeps the `<Documentation>` link and the `<Category>` elements of its nodeset
 ==================================================================================
 
