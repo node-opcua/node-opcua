@@ -8,6 +8,7 @@
  * every session (limits, diagnostics, timeout); the front keeps the half of a session its channel
  * needs (nonce, signatures, the requests in flight).
  */
+
 import { EventEmitter } from "node:events";
 import type { AddressSpace, IServerBase, ISessionContext } from "node-opcua-address-space";
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
@@ -61,6 +62,7 @@ import {
     type SessionState
 } from "./protocol.js";
 import type { EngineChannel, RemoteCompactBackend } from "./remote_backend.js";
+import { tokenKeyOf } from "./token_key.js";
 
 function bytesOfExtensionObject(token: UserIdentityToken | undefined): Uint8Array | null {
     if (!token) return null;
@@ -82,7 +84,7 @@ function securityOf(session: ServerSession): ChannelSecurityDescriptor {
 
 function tokenOf(context: ISessionContext | null): string | null {
     const session = context?.session as { authenticationToken?: NodeId } | undefined;
-    return session?.authenticationToken ? session.authenticationToken.toString() : null;
+    return session?.authenticationToken ? tokenKeyOf(session.authenticationToken) : null;
 }
 
 /** the half of a session a front keeps: what it does goes to the engine's record of it, once a turn */
@@ -91,19 +93,19 @@ class FrontSession extends ServerSession {
     constructor(engine: RemoteEngine, server: IServerBase, sessionTimeout: number) {
         super(engine, server, sessionTimeout);
         this.#engine = engine;
-        this.watchedElsewhere(() => engine.noteActivity(this.authenticationToken.toString(), null, 0));
+        this.watchedElsewhere(() => engine.noteActivity(tokenKeyOf(this.authenticationToken), null, 0));
     }
     public override incrementTotalRequestCount(): void {
         super.incrementTotalRequestCount();
-        this.#engine.noteActivity(this.authenticationToken.toString(), "", 0);
+        this.#engine.noteActivity(tokenKeyOf(this.authenticationToken), "", 0);
     }
     public override incrementRequestTotalCounter(counterName: string): void {
         super.incrementRequestTotalCounter(counterName);
-        this.#engine.noteActivity(this.authenticationToken.toString(), counterName, 0);
+        this.#engine.noteActivity(tokenKeyOf(this.authenticationToken), counterName, 0);
     }
     public override incrementRequestErrorCounter(counterName: string): void {
         super.incrementRequestErrorCounter(counterName);
-        this.#engine.noteActivity(this.authenticationToken.toString(), counterName, 1);
+        this.#engine.noteActivity(tokenKeyOf(this.authenticationToken), counterName, 1);
     }
 }
 
@@ -237,9 +239,9 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
         const sessionTimeout = options?.sessionTimeout || 1000;
         this.clientDescription = options?.clientDescription || new ApplicationDescription({});
         const session = new FrontSession(this, options?.server ?? {}, sessionTimeout);
-        this.sessions.set(session.authenticationToken.toString(), session);
+        this.sessions.set(tokenKeyOf(session.authenticationToken), session);
         // the server names the session, gives it its endpoint and its channel before it answers
-        const token = session.authenticationToken.toString();
+        const token = tokenKeyOf(session.authenticationToken);
         this.#workerOf.set(
             token,
             new Promise<number>((resolve) =>
@@ -258,7 +260,7 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
 
     public getSession(authenticationToken: NodeId, activeOnly?: boolean): ServerSession | null {
         if (!authenticationToken) return null;
-        const session = this.sessions.get(authenticationToken.toString());
+        const session = this.sessions.get(tokenKeyOf(authenticationToken));
         if (!session) return null;
         if (activeOnly && session.status !== "active") return null;
         return session;
@@ -280,7 +282,7 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
         reason: ClosingReason,
         auditEntryId?: string
     ): Promise<void> {
-        const token = authenticationToken.toString();
+        const token = tokenKeyOf(authenticationToken);
         const session = this.sessions.get(token);
         if (!session) {
             throw new Error(`cannot find session with this authenticationToken ${token}`);
@@ -348,7 +350,7 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
      * untouched, as a refused ActivateSession leaves a session of a single-thread server
      */
     public returnSession(session: ServerSession): void {
-        const token = session.authenticationToken.toString();
+        const token = tokenKeyOf(session.authenticationToken);
         if (!this.#taken.delete(token)) return;
         this.sessions.delete(token);
         this.#workerOf.delete(token);
@@ -362,7 +364,10 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
     public async takeSession(authenticationToken: NodeId, server: IServerBase): Promise<ServerSession | null> {
         const known = this.getSession(authenticationToken);
         if (known) return known;
-        const state = await this.#channel.call<SessionState | null>({ kind: "takeSession", token: authenticationToken.toString() });
+        const state = await this.#channel.call<SessionState | null>({
+            kind: "takeSession",
+            token: tokenKeyOf(authenticationToken)
+        });
         if (!state) return null;
         const session = this.sessionFrom(state.record, state.activation, server);
         session.nonce = state.nonce ? Buffer.from(state.nonce) : undefined;
@@ -410,7 +415,7 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
 
     /** an ActivateSession goes through: the engine learns the user (its roles) and the new channel */
     public sessionActivated(session: ServerSession): Promise<void> | undefined {
-        this.#taken.delete(session.authenticationToken.toString());
+        this.#taken.delete(tokenKeyOf(session.authenticationToken));
         const activation = this.activationOf(session);
         if (!activation) return undefined;
         return this.#channel.call<unknown>({ kind: "sessionActivated", activation }).then(() => undefined);
@@ -419,7 +424,7 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
     public recordOf(session: ServerSession): SessionRecord {
         return {
             nodeId: session.nodeId.toString(),
-            token: session.authenticationToken.toString(),
+            token: tokenKeyOf(session.authenticationToken),
             sessionTimeout: session.sessionTimeout,
             sessionName: session.sessionName,
             clientDescription: encodeStructure(session.clientDescription ?? new ApplicationDescription({})),
@@ -431,7 +436,7 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
     public activationOf(session: ServerSession): SessionActivation | null {
         if (session.status !== "active") return null;
         return {
-            token: session.authenticationToken.toString(),
+            token: tokenKeyOf(session.authenticationToken),
             roles: session.sessionContext.getCurrentUserRoles().map((role) => role.toString()),
             userIdentityToken: bytesOfExtensionObject(session.userIdentityToken),
             localeIds: [...session.localeIds],
@@ -448,7 +453,7 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
 
     /** forgets a session without closing it: it lives on with the engine */
     #drop(session: ServerSession): void {
-        const token = session.authenticationToken.toString();
+        const token = tokenKeyOf(session.authenticationToken);
         this.sessions.delete(token);
         this.#workerOf.delete(token);
         session._detach_channel();
