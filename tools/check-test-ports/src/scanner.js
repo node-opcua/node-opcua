@@ -130,26 +130,46 @@ export const SUGGEST_FLOOR = 5000;
 export const DYNAMIC_OK = "check-test-ports: dynamic-ok";
 
 /**
- * An identifier naming a port: starts with "port" or ends with "Port". Deliberately not
- * a substring match - "transportTimeout" contains "port" and is not one.
+ * An identifier naming a port: starts with "port" or ends with "Port", optionally
+ * followed by a number (`case1Port1`, `TEST_PORT_2`). Deliberately not a substring match -
+ * "transportTimeout" contains "port" and is not one. Every pattern using it is
+ * case-insensitive, so `TEST_PORT` and `GDS_PORT` are names too. Only digits may follow:
+ * a letter suffix would let `transport_timeout` in.
  */
-const PORT_IDENTIFIER = "(?:port[A-Za-z0-9_]*|[A-Za-z0-9_]*Port)";
+const PORT_IDENTIFIER = "(?:port[A-Za-z0-9_]*|[A-Za-z0-9_]*Port(?:_?[0-9]+)?)";
+
+/** `: number`, `?: number` - TypeScript lets a type sit between the name and the value */
+const TYPE_ANNOTATION = "(?:[?!]?\\s*:\\s*[A-Za-z0-9_.<>[\\]|\\s]+?)?";
+
+/** a port value as written: digits, optionally with numeric separators */
+const VALUE = "(\\d[\\d_]{0,6})\\b";
 
 /**
  * The declaration form the convention asks for.
  *
- * The optional `: number` matters: TypeScript lets the type sit between the name and the
- * value, and `const port: number = 2345` is the same declaration as `const port = 2345`.
- * Without it the scanner would read the file, find no port, and report the file as
- * binding nothing - the worst kind of miss, because it looks like a clean result.
+ * The optional `: number` matters: `const port: number = 2345` is the same declaration as
+ * `const port = 2345`. Without it the scanner would read the file, find no port, and
+ * report the file as binding nothing - the worst kind of miss, because it looks like a
+ * clean result.
+ *
+ * A class field is a declaration too: `public readonly sourcePort = 2225`, `static port =
+ * 2225`, `#port = 2225`. A test written around a class keeps its port there, and missing
+ * it was the same silent miss.
  */
 const DECLARATION = new RegExp(
-    `\\b(?:const|let|var)\\s+(${PORT_IDENTIFIER})\\s*(?::\\s*[A-Za-z0-9_.<>[\\]|\\s]+?)?\\s*=\\s*(\\d[\\d_]{0,6})\\b`,
+    `(?:\\b(?:const|let|var)\\s+|\\b(?:(?:public|private|protected|static|readonly|override)\\s+)+|#)(${PORT_IDENTIFIER})\\s*${TYPE_ANNOTATION}\\s*=\\s*${VALUE}`,
     "gi"
 );
 
-/** a port literal written anywhere else - what the convention forbids */
-const INLINE = [new RegExp(`\\b${PORT_IDENTIFIER}\\s*:\\s*(\\d[\\d_]{0,6})\\b`, "gi"), /\.listen\(\s*(\d[\d_]{0,6})\b/g];
+/**
+ * A port literal written anywhere else - what the convention forbids: an options object,
+ * a listen() call, or an assignment that is not a declaration (`this.port = 2225`, a bare
+ * class field `port = 2225`, `options.port = 2225`). An assignment found inside a
+ * declaration is skipped by the caller, so a declaration is not reported twice.
+ */
+// `=(?![=>])` keeps out `port == 2225`, `port === 2225` and an arrow `port => ...`
+const ASSIGNMENT = new RegExp(`\\b${PORT_IDENTIFIER}\\s*${TYPE_ANNOTATION}\\s*=(?![=>])\\s*${VALUE}`, "gi");
+const INLINE = [new RegExp(`\\b${PORT_IDENTIFIER}\\s*:\\s*${VALUE}`, "gi"), /\.listen\(\s*(\d[\d_]{0,6})\b/g, ASSIGNMENT];
 
 /**
  * A port derived from another one: `port + 1`, `basePort + i`, `port++`.
@@ -167,12 +187,18 @@ const INLINE = [new RegExp(`\\b${PORT_IDENTIFIER}\\s*:\\s*(\\d[\\d_]{0,6})\\b`, 
  *
  * A counter is excluded: `matchingListenPort++` ends in "Port" but binds nothing. Only a
  * name that also appears as a declared port constant in the same file is reported.
+ *
+ * Case-insensitive like the declaration: `TEST_PORT + 1` is as derived as `basePort + 1`.
+ * Missing it once hid two files on one TCP port, `TEST_PORT + 1` in one equalling the
+ * other's `TEST_PORT`.
  */
 const COMPUTED = [
-    // groups: name, operator, operand - the operand is captured so that a literal
-    // offset can be resolved to the port actually bound
-    new RegExp(`\\b(${PORT_IDENTIFIER})\\s*([+-])\\s*([A-Za-z0-9_]+)`, "g"),
-    new RegExp(`\\b(${PORT_IDENTIFIER})\\s*(\\+\\+|--|\\+=|-=)()`, "g")
+    // groups: name, op, operand - the operand is captured so that a literal offset can
+    // be resolved to the port actually bound
+    new RegExp(`\\b(?<name>${PORT_IDENTIFIER})\\s*(?<op>[+-])\\s*(?<operand>[A-Za-z0-9_]+)`, "gi"),
+    new RegExp(`\\b(?<name>${PORT_IDENTIFIER})\\s*(?<op>\\+\\+|--|\\+=|-=)`, "gi"),
+    // the offset written first: `1 + TEST_PORT`
+    new RegExp(`(?<![\\w.])(?<operand>\\d[\\d_]*)\\s*(?<op>\\+)\\s*(?<name>${PORT_IDENTIFIER})\\b`, "gi")
 ];
 
 function walk(dir, out) {
@@ -247,15 +273,20 @@ export function scan(root = repoRoot, options = {}) {
             // an ephemeral port this file has declared deliberate
             const dynamicOk = rawText.includes(DYNAMIC_OK) || (i > 0 && lines[i - 1].includes(DYNAMIC_OK));
 
+            // spans of the declarations on this line, so the assignment pattern in
+            // INLINE does not report a declaration a second time
+            const declared = [];
             DECLARATION.lastIndex = 0;
             while ((m = DECLARATION.exec(text)) !== null) {
+                declared.push([m.index, m.index + m[0].length]);
                 const port = toNumber(m[2]);
                 if (port === 0) {
                     // `let matchingListenPort = 0` is a counter being initialised, not a
                     // port being bound - the name ends in "Port" but nothing listens on
-                    // it. Only a const says "this is the port, and it is dynamic"; a
-                    // let/var starting at zero is almost always about to be assigned.
-                    if (/\bconst\b/.test(m[0])) {
+                    // it. Only a const (or a readonly field) says "this is the port, and
+                    // it is dynamic"; anything else starting at zero is almost always
+                    // about to be assigned.
+                    if (/\b(?:const|readonly)\b/i.test(m[0])) {
                         dynamic.push({ rel, line, text: text.trim() });
                     }
                 } else if (port >= PRIVILEGED_CEILING) {
@@ -267,16 +298,22 @@ export function scan(root = repoRoot, options = {}) {
             for (const re of COMPUTED) {
                 re.lastIndex = 0;
                 while ((m = re.exec(text)) !== null) {
-                    computedHere.push({ rel, line, name: m[1], op: m[2], operand: m[3], text: text.trim() });
+                    const { name, op, operand = "" } = m.groups;
+                    computedHere.push({ rel, line, name, op, operand, text: text.trim() });
                 }
             }
 
             for (const re of INLINE) {
                 re.lastIndex = 0;
                 while ((m = re.exec(text)) !== null) {
+                    const at = m.index;
+                    if (declared.some(([start, end]) => at >= start && at < end)) {
+                        continue;
+                    }
                     const port = toNumber(m[1]);
                     if (port === 0) {
-                        if (!dynamicOk) {
+                        // `matchingListenPort = 0` resets a counter; it binds nothing
+                        if (!dynamicOk && re !== ASSIGNMENT) {
                             dynamic.push({ rel, line, text: text.trim() });
                         }
                         continue;

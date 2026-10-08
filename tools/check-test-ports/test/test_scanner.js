@@ -445,3 +445,142 @@ test("the command line takes --root, --package-roots and --test-dirs, and the pa
     assert.match(blind, /no collisions/, "a flag overrides the key");
     fs.rmSync(dir, { recursive: true, force: true });
 });
+
+// --- false negatives found applying the gate to another repository -----------------
+//
+// Each of these made a file that really binds fixed ports report clean. One of them hid a
+// real TCP collision: `TEST_PORT + 1` in one file equalled `TEST_PORT` in another.
+
+test("a class field is a declaration, whatever its modifiers", () => {
+    const dir = tempTree({
+        "packages/a/test/fields.ts": `
+class Fixture {
+    public readonly sourcePort = 7101;
+    readonly targetPort = 7102;
+    private static port: number = 7103;
+    static otherPort = 7104;
+    #hiddenPort = 7105;
+    protected override destPort = 7106;
+}
+`,
+        "packages/b/test/same.ts": "const port = 7101;\n"
+    });
+    const r = analyze(dir);
+    assert.deepEqual([...r.ports.keys()].sort(), [7101, 7102, 7103, 7104, 7105, 7106]);
+    assert.deepEqual(r.inline, [], "a declared field is not an inline literal");
+    assert.deepEqual(r.collisions.map(([p]) => p), [7101]);
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("an assignment that is not a declaration is reported, not ignored", () => {
+    const dir = tempTree({
+        "packages/a/test/assign.ts": `
+class Fixture {
+    listenPort = 7201;
+    constructor() { this.port = 7202; }
+}
+options.serverPort = 7203;
+`
+    });
+    const r = analyze(dir);
+    assert.deepEqual(r.inline.map((d) => d.port).sort(), [7201, 7202, 7203]);
+    assert.deepEqual([...r.ports.keys()].sort(), [7201, 7202, 7203], "still counted, so still collides");
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("class fields and assignments that are not ports stay unmatched", () => {
+    const dir = tempTree({
+        "packages/a/test/near_miss.ts": `
+class Fixture {
+    readonly transportTimeout = 30000;
+    private reportInterval = 9999;
+    static exportCount = 5555;
+    public readonly supportedVersion = 4840;
+    private matchingListenPort = 0;
+}
+matchingListenPort = 0;
+if (port === 7301) {}
+if (port == 7302) {}
+const f = port => 7303;
+`
+    });
+    const r = analyze(dir);
+    assert.deepEqual([...r.ports.keys()], []);
+    assert.deepEqual(r.inline, []);
+    assert.deepEqual(r.dynamic, [], "a zero-initialised counter field or reset is not a port 0 bind");
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("a readonly field set to zero is a dynamic port, like a const", () => {
+    const dir = tempTree({ "packages/a/test/zero.ts": "class F {\n    readonly port = 0;\n}\n" });
+    assert.equal(analyze(dir).dynamic.length, 1);
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("a port derived from an UPPER_CASE constant is resolved and can collide", () => {
+    const dir = tempTree({
+        "packages/a/test/compression.ts": `
+const TEST_PORT = 7401;
+const BASE_PORT = 7410;
+const config = {
+    transport: { type: "tcp", port: TEST_PORT + 1 },
+    other: { port: 1 + BASE_PORT }
+};
+`,
+        "packages/b/test/encryption.ts": "const TEST_PORT = 7402;\n"
+    });
+    const r = analyze(dir);
+    const derived = r.computed.filter((c) => c.rel === "packages/a/test/compression.ts");
+    assert.deepEqual(derived.map((c) => [c.name, c.resolved]).sort(), [["BASE_PORT", 7411], ["TEST_PORT", 7402]]);
+    assert.deepEqual(r.collisions.map(([p]) => p), [7402], "TEST_PORT + 1 collides with the other file's TEST_PORT");
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("UPPER_CASE constants that are not ports are not derivations", () => {
+    const dir = tempTree({
+        "packages/a/test/near_miss.ts": `
+const TRANSPORT_TIMEOUT = 3000;
+const REPORT_INTERVAL = 9999;
+const EXPORT_COUNT = 5555;
+wait(TRANSPORT_TIMEOUT + 1);
+wait(REPORT_INTERVAL - 1);
+wait(1 + EXPORT_COUNT);
+`
+    });
+    const r = analyze(dir);
+    assert.deepEqual([...r.ports.keys()], []);
+    assert.deepEqual(r.computed, []);
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("a port name may carry a numeric suffix after Port", () => {
+    const dir = tempTree({
+        "packages/a/test/cases.ts": `
+const case1Port1 = 7501;
+const case1Port2: number = 7502;
+const TEST_PORT_2 = 7503;
+start({ port: case1Port1 + 10 });
+`,
+        "packages/b/test/other.ts": "const port = 7511;\n"
+    });
+    const r = analyze(dir);
+    assert.deepEqual([...r.ports.keys()].sort(), [7501, 7502, 7503, 7511]);
+    assert.deepEqual(r.collisions.map(([p]) => p), [7511], "case1Port1 + 10 binds 7511");
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("a numeric suffix does not let non-port names in", () => {
+    const dir = tempTree({
+        "packages/a/test/near_miss.ts": `
+const transport_timeout = 3000;
+const report_interval = 9999;
+const exportCount1 = 5555;
+const supportedVersion2 = 4841;
+const transportTimeout = 30000;
+`
+    });
+    const r = analyze(dir);
+    assert.deepEqual([...r.ports.keys()], []);
+    assert.deepEqual(r.inline, []);
+    fs.rmSync(dir, { recursive: true, force: true });
+});
