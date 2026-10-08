@@ -3,9 +3,9 @@ import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
-import { StatusCodes } from "node-opcua-status-code";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import type { WriteValueOptions } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
+import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { AddressSpace, SessionContext, type UAVariable } from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
@@ -22,6 +22,39 @@ describe("testing the StatusCode returned when a Variable write is rejected", ()
     });
     after(() => {
         addressSpace.dispose();
+    });
+
+    it("should answer a write to a synchronous setter before writeValue returns, and to a promised one when it settles", async () => {
+        const namespace = addressSpace.getOwnNamespace();
+        const bound = (browseName: string, set: () => StatusCode | Promise<StatusCode>) =>
+            namespace.addVariable({
+                browseName,
+                dataType: DataType.Double,
+                organizedBy: addressSpace.rootFolder.objects,
+                value: { get: () => new Variant({ dataType: DataType.Double, value: 0 }), set }
+            }) as UAVariable;
+        const write = (variable: UAVariable) => {
+            let answer: StatusCode | null = null;
+            variable.writeValue(
+                context,
+                new DataValue({ value: { dataType: DataType.Double, value: 1 } }),
+                null,
+                (_err, statusCode) => {
+                    answer = statusCode ?? null;
+                }
+            );
+            return answer as StatusCode | null;
+        };
+        // a Write of many such Variables completes in one synchronous run, under one permission cache
+        should(write(bound("SyncSetter", () => StatusCodes.Good))).eql(StatusCodes.Good);
+        should(write(bound("RefusingSetter", () => StatusCodes.BadOutOfRange))).eql(StatusCodes.BadOutOfRange);
+        // a setter that returns a Promise answers when it settles, not before
+        let settle: (statusCode: StatusCode) => void = () => undefined;
+        const promised = bound("PromisedSetter", () => new Promise<StatusCode>((resolve) => (settle = resolve)));
+        should(write(promised)).eql(null);
+        const later = promised.writeValue(context, new DataValue({ value: { dataType: DataType.Double, value: 2 } }));
+        settle(StatusCodes.Good);
+        should(await later).eql(StatusCodes.Good);
     });
 
     it("should reject a Value write with BadUserAccessDenied when UserAccessLevel withholds CurrentWrite", async () => {
