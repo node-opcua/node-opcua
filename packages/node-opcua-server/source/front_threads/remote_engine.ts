@@ -144,6 +144,11 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
     // sessions this front closed because the engine did: not to be closed there again
     readonly #closedByEngine = new Set<string>();
 
+    /** the store this front reads in place */
+    public get backend(): RemoteCompactBackend {
+        return this.#backend;
+    }
+
     constructor(state: EngineServerState, channel: EngineChannel, backend: RemoteCompactBackend) {
         super();
         this.serverCapabilities = new ServerCapabilities(state.serverCapabilities);

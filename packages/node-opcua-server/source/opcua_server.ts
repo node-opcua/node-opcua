@@ -1883,6 +1883,7 @@ export abstract class OPCUAServerCore<
                 endPoint.on("message", (message: Message, channel: ServerSecureChannelLayer) => {
                     this.on_request(message, channel);
                 });
+                endPoint.leanRequestHandler = this.leanRequestHandler();
 
                 // endPoint.on("error", (err: Error) => {
                 //     errorLog("OPCUAServer endpoint error", err);
@@ -3199,6 +3200,14 @@ export abstract class OPCUAServerCore<
      * the session is active wherever the server is read from. Nothing to wait for here.
      */
     protected recordActivation(_session: ServerSession): Promise<void> | undefined {
+        return undefined;
+    }
+
+    /**
+     * @internal the requests this server answers from their bytes (see ServerSecureChannelParent.leanRequestHandler):
+     * none here, FrontOPCUAServer answers the Reads it serves in place
+     */
+    protected leanRequestHandler(): OPCUAServerEndPoint["leanRequestHandler"] {
         return undefined;
     }
 
