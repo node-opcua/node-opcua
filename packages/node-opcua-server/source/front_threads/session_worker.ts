@@ -56,8 +56,8 @@ import {
 import { subscriptionMethods } from "../subscription_methods.js";
 import {
     type ChannelSecurityDescriptor,
-    decodeDataValues,
     decodeMessageBody,
+    decodeMonitoredValues,
     decodeStructure,
     decodeTransferState,
     EngineCount,
@@ -652,7 +652,7 @@ async function main(): Promise<void> {
                 backend.receiveEvents(message.ids, message.fields);
                 break;
             case "objectChanges":
-                engine.objectsChanged(message.nodeIds, decodeDataValues(message.values));
+                engine.objectsChanged(message.nodeIds, decodeMonitoredValues(message.values));
                 break;
             case "workerSessionClosed":
                 void engine.drop(message.token, message.deleteSubscriptions);

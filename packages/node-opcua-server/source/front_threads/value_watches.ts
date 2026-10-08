@@ -10,7 +10,7 @@ import type { CompactAddressSpace } from "node-opcua-address-space";
 import type { StoreNodeView, StoreVariableView } from "node-opcua-address-space-store";
 import { NodeClass } from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
-import { type EngineToFront, encodeDataValues, WATCH } from "./protocol.js";
+import { type EngineToFront, encodeMonitoredValues, WATCH } from "./protocol.js";
 
 /** the changes waiting for a busy front beyond which only the latest value of each node is kept */
 const MAX_WAITING_CHANGES = 1000;
@@ -175,7 +175,7 @@ export class ValueWatches {
                         kind: "changes",
                         indexes: outgoing.indexes,
                         versions: outgoing.versions,
-                        values: encodeDataValues(outgoing.values)
+                        values: encodeMonitoredValues(outgoing.values)
                     };
                     worker.postMessage(changes);
                     outgoing.indexes = [];

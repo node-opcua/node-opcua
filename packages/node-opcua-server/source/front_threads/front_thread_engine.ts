@@ -61,6 +61,7 @@ import {
     type EngineServerState,
     type EngineToFront,
     encodeDataValues,
+    encodeMonitoredValues,
     encodeStructure,
     type FrontRequest,
     type FrontToEngine,
@@ -528,14 +529,17 @@ export class FrontThreadEngine {
                 const store = this.addressSpace.store;
                 if (store.nodes.isDeleted(request.index) || store.nodes.generation(request.index) !== request.generation) {
                     const gone: ValueReply = {
-                        value: encodeDataValues([new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown })]),
+                        value: encodeMonitoredValues([new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown })]),
                         version: -1
                     };
                     return gone;
                 }
                 const view = this.addressSpace.viewOf(request.index) as StoreVariableView;
                 const dataValue = view.readValue(contextOf(request.context));
-                const reply: ValueReply = { value: encodeDataValues([dataValue]), version: store.values.version(request.index) };
+                const reply: ValueReply = {
+                    value: encodeMonitoredValues([dataValue]),
+                    version: store.values.version(request.index)
+                };
                 return reply;
             }
         }
@@ -676,7 +680,7 @@ export class FrontThreadEngine {
             }
             case "value": {
                 const reply: ValueReply = {
-                    value: encodeDataValues([new DataValue({ statusCode: StatusCodes.BadInternalError })]),
+                    value: encodeMonitoredValues([new DataValue({ statusCode: StatusCodes.BadInternalError })]),
                     version: 0
                 };
                 return reply;

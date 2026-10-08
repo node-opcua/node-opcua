@@ -12,7 +12,7 @@ import type { SharedStoreDescriptor } from "node-opcua-address-space-store";
 import { decodeExpandedNodeId, encodeExpandedNodeId } from "node-opcua-basic-types";
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
 import type { TimestampsToReturn } from "node-opcua-data-value";
-import { type DataValue, decodeDataValue, encodeDataValue, encodedDataValue } from "node-opcua-data-value";
+import { DataValue, decodeDataValue, encodeDataValue, encodedDataValue } from "node-opcua-data-value";
 import { decodeExtensionObject, encodeExtensionObject } from "node-opcua-extension-object";
 import { type BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
@@ -23,6 +23,7 @@ import {
     MonitoredItemNotification,
     NotificationMessage
 } from "node-opcua-types";
+import { DataType, encodedVariant, encodeVariant } from "node-opcua-variant";
 import type { SubscriptionTransferState } from "../server_subscription.js";
 import type { ITransferSessionIdentity } from "../sessions_compatible_for_transfer.js";
 
@@ -224,6 +225,60 @@ export function encodeDataValues(values: DataValue[]): Uint8Array {
         encodeDataValue(values[i], stream);
     }
     return exact(stream, size.length);
+}
+
+/**
+ * DataValues for the monitored items of another thread: each one as its fields without the value, then
+ * the encoding of its Variant, kept as it is there (EncodedVariant). A structure of a companion
+ * specification then reaches the client as it was encoded, from a thread that knows nothing of its type.
+ */
+export function encodeMonitoredValues(values: DataValue[]): Uint8Array {
+    const envelopes = values.map((dataValue) => {
+        const envelope = new DataValue(null);
+        envelope.statusCode = dataValue.statusCode;
+        envelope.sourceTimestamp = dataValue.sourceTimestamp;
+        envelope.sourcePicoseconds = dataValue.sourcePicoseconds;
+        envelope.serverTimestamp = dataValue.serverTimestamp;
+        envelope.serverPicoseconds = dataValue.serverPicoseconds;
+        return envelope;
+    });
+    const size = new BinaryStreamSizeCalculator();
+    size.writeUInt32(values.length);
+    const variantLengths: number[] = new Array(values.length);
+    for (let i = 0; i < values.length; i++) {
+        encodeDataValue(envelopes[i], size);
+        const start = size.length;
+        const value = values[i].value;
+        if (value && value.dataType !== DataType.Null) encodeVariant(value, size);
+        variantLengths[i] = size.length - start;
+        size.writeUInt32(0);
+    }
+    const stream = new BinaryStream(size.length);
+    stream.writeUInt32(values.length);
+    for (let i = 0; i < values.length; i++) {
+        encodeDataValue(envelopes[i], stream);
+        stream.writeUInt32(variantLengths[i]);
+        if (variantLengths[i] > 0) encodeVariant(values[i].value, stream);
+    }
+    return exact(stream, size.length);
+}
+
+export function decodeMonitoredValues(bytes: Uint8Array): DataValue[] {
+    const buffer = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const stream = new BinaryStream(buffer);
+    const count = stream.readUInt32();
+    const values: DataValue[] = new Array(count);
+    for (let i = 0; i < count; i++) {
+        const dataValue = decodeDataValue(stream);
+        const length = stream.readUInt32();
+        if (length > 0) {
+            // a copy: the message's buffer is not kept with the value
+            dataValue.value = encodedVariant(new Uint8Array(buffer.subarray(stream.length, stream.length + length)));
+            stream.length += length;
+        }
+        values[i] = dataValue;
+    }
+    return values;
 }
 
 export function decodeDataValues(bytes: Uint8Array): DataValue[] {

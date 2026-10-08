@@ -13,6 +13,7 @@ import {
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
 import { constructEventFilter, ofType } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
 import {
@@ -26,7 +27,7 @@ import {
     StatusChangeNotification,
     type TransferSubscriptionsResponse
 } from "node-opcua-types";
-import { DataType, Variant } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import { FrontThreadEngine } from "../dist/index.js";
 
@@ -605,6 +606,197 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         const end = Date.now() + 5000;
         while (Atomics.load(counts, 1) - deleted0 < 2 && Date.now() < end) await new Promise((resolve) => setTimeout(resolve, 20));
         should(Atomics.load(counts, 1) - deleted0).eql(2, "onDeleteMonitoredItem for the item of the closed session");
+    });
+});
+
+describe("FrontThreadEngine, one server: large structures of a companion specification (AutoID)", function () {
+    this.timeout(180000);
+    const autoIdPort = 5845;
+    let engine: FrontThreadEngine;
+    let ns: number;
+    let constructScan: (sightings: number, antenna: number) => unknown;
+    const clients: OPCUAClient[] = [];
+
+    before(async () => {
+        engine = await FrontThreadEngine.create({
+            applicationUri: "urn:test:autoid",
+            nodesets: [nodesets.standard, nodesets.di, nodesets.autoId]
+        });
+        ns = engine.registerNamespace("urn:test:autoid:readers");
+        const addressSpace = engine.serverEngine.addressSpace;
+        if (!addressSpace) throw new Error("no address space");
+        const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
+        const rfidScanResult = addressSpace.findDataType("RfidScanResult", nsAutoId);
+        if (!rfidScanResult) throw new Error("cannot find RfidScanResult");
+        // a scan with `sightings` RfidSightings: what an RFID reader reports, at the size of a busy gate
+        constructScan = (sightings: number, antenna: number) =>
+            addressSpace.constructExtensionObject(rfidScanResult, {
+                scanData: { epc: { pC: 12, uId: Buffer.from("E2801160600002054D4C3A2B"), xpC_W1: 10, xpC_W2: 12 } },
+                timestamp: new Date(2026, 9, 8),
+                location: {
+                    local: {
+                        x: 100,
+                        y: 200,
+                        z: 300,
+                        timestamp: new Date(2026, 9, 8),
+                        dilutionOfPrecision: 0.01,
+                        usefulPrecicision: 2
+                    }
+                },
+                sighting: Array.from({ length: sightings }, (_, k) => ({
+                    antenna,
+                    strength: -40 - (k % 30),
+                    timestamp: new Date(2026, 9, 8, 0, 0, k % 60),
+                    currentPowerLevel: k
+                }))
+            });
+        const objects = engine.addressSpace.findNode("ns=0;i=85") as never;
+        engine.addressSpace.addVariable({
+            nodeId: `ns=${ns};s=Gate`,
+            browseName: "Gate",
+            organizedBy: objects,
+            dataType: rfidScanResult.nodeId,
+            accessLevel: 3,
+            userAccessLevel: 3,
+            value: { dataType: DataType.ExtensionObject, value: constructScan(2000, 1) }
+        });
+        engine.addressSpace.addVariable({
+            nodeId: `ns=${ns};s=Gates`,
+            browseName: "Gates",
+            organizedBy: objects,
+            dataType: rfidScanResult.nodeId,
+            valueRank: 1,
+            accessLevel: 3,
+            userAccessLevel: 3,
+            value: {
+                dataType: DataType.ExtensionObject,
+                arrayType: VariantArrayType.Array,
+                value: Array.from({ length: 20 }, (_, k) => constructScan(100, k))
+            }
+        });
+        await engine.start({
+            fronts: 2,
+            ownPorts: true,
+            sessionWorkers: 2,
+            serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
+            serverModuleData: { port: autoIdPort }
+        });
+    });
+    after(async () => {
+        for (const client of clients) await client.disconnect();
+        await engine.shutdown();
+    });
+
+    async function sessionOn(front: number): Promise<ClientSession> {
+        const client = OPCUAClient.create({ endpointMustExist: false, connectionStrategy: { maxRetry: 0 } });
+        await client.connect(`opc.tcp://localhost:${autoIdPort + front}`);
+        clients.push(client);
+        return client.createSession();
+    }
+
+    type Scan = { constructor: { name: string }; sighting: { antenna: number; currentPowerLevel: number }[] };
+
+    it("monitors a large RfidScanResult and an array of them through a session worker, and reads them through either front", async () => {
+        const session = await sessionOn(0);
+        const subscription = ClientSubscription.create(session, {
+            requestedPublishingInterval: 50,
+            requestedLifetimeCount: 600,
+            requestedMaxKeepAliveCount: 10,
+            publishingEnabled: true
+        });
+        await new Promise<void>((resolve) => subscription.once("started", () => resolve()));
+        const monitor = async (nodeId: string) => {
+            const values: DataValue[] = [];
+            const item = ClientMonitoredItem.create(
+                subscription,
+                { nodeId, attributeId: AttributeIds.Value },
+                { samplingInterval: 0, queueSize: 10 },
+                TimestampsToReturn.Both
+            );
+            item.on("changed", (dataValue: DataValue) => values.push(dataValue));
+            await new Promise<void>((resolve, reject) => {
+                item.once("initialized", () => resolve());
+                item.once("err", (message: string) => reject(new Error(message)));
+            });
+            return values;
+        };
+        const gate = await monitor(`ns=${ns};s=Gate`);
+        const gates = await monitor(`ns=${ns};s=Gates`);
+        const waitFor = async (condition: () => boolean, what: string) => {
+            // the first values of a type wait for the client to learn its definition from the server
+            const end = Date.now() + 20000;
+            while (!condition() && Date.now() < end) await new Promise((resolve) => setTimeout(resolve, 20));
+            should(condition()).eql(true, what);
+        };
+        await waitFor(() => gate.length > 0 && gates.length > 0, "the initial values");
+        const first = gate[0].value.value as Scan;
+        should(first.constructor.name).eql("RfidScanResult");
+        should(first.sighting.length).eql(2000);
+        should((gates[0].value.value as Scan[]).length).eql(20);
+
+        // the engine writes new scans: pushed to the session worker, published to the client
+        const setFromSource = (nodeId: string, value: unknown, arrayType = VariantArrayType.Scalar) =>
+            (engine.addressSpace.findNode(nodeId) as unknown as { setValueFromSource(value: unknown): void }).setValueFromSource({
+                dataType: DataType.ExtensionObject,
+                arrayType,
+                value
+            });
+        setFromSource(`ns=${ns};s=Gate`, constructScan(3000, 7));
+        setFromSource(
+            `ns=${ns};s=Gates`,
+            Array.from({ length: 20 }, (_, k) => constructScan(100, 100 + k)),
+            VariantArrayType.Array
+        );
+        await waitFor(() => (gate.at(-1)?.value.value as Scan | undefined)?.sighting?.length === 3000, "the new scan");
+        await waitFor(
+            () => (gates.at(-1)?.value.value as Scan[] | undefined)?.[19]?.sighting?.[0]?.antenna === 119,
+            "the new scans"
+        );
+        const last = gate.at(-1)?.value.value as Scan;
+        should(last.sighting[2999].antenna).eql(7);
+        should(last.sighting[2999].currentPowerLevel).eql(2999);
+
+        // the same values read through the other front
+        const other = await sessionOn(1);
+        const [read, readArray] = await other.read([
+            { nodeId: `ns=${ns};s=Gate`, attributeId: AttributeIds.Value },
+            { nodeId: `ns=${ns};s=Gates`, attributeId: AttributeIds.Value }
+        ]);
+        should((read.value.value as Scan).sighting.length).eql(3000);
+        should((readArray.value.value as Scan[])[19].sighting[99].antenna).eql(119);
+
+        // a client writes a large scan through the other front: the engine stores it, the item sees it
+        const rfidScanResult = engine.serverEngine.addressSpace?.findDataType(
+            "RfidScanResult",
+            engine.serverEngine.addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/")
+        );
+        const written = await other.constructExtensionObject(rfidScanResult?.nodeId as NodeId, {
+            scanData: { epc: { pC: 1, uId: Buffer.from("0102030405060708"), xpC_W1: 0, xpC_W2: 0 } },
+            timestamp: new Date(2026, 9, 9),
+            sighting: Array.from({ length: 1500 }, (_, k) => ({
+                antenna: 42,
+                strength: -50,
+                timestamp: new Date(2026, 9, 9),
+                currentPowerLevel: k
+            }))
+        });
+        const status = await other.write({
+            nodeId: `ns=${ns};s=Gate`,
+            attributeId: AttributeIds.Value,
+            value: new DataValue({ value: { dataType: DataType.ExtensionObject, value: written } })
+        });
+        should(status).eql(StatusCodes.Good);
+        await waitFor(
+            () => (gate.at(-1)?.value.value as Scan | undefined)?.sighting?.[0]?.antenna === 42,
+            "the scan written by a client"
+        );
+        const received = gate.at(-1)?.value.value as Scan | undefined;
+        should(received?.sighting.length).eql(1500);
+        const [readBack] = await session.read([{ nodeId: `ns=${ns};s=Gate`, attributeId: AttributeIds.Value }]);
+        should((readBack.value.value as Scan).sighting[1499].currentPowerLevel).eql(1499);
+        await subscription.terminate();
+        await other.close();
+        await session.close();
     });
 });
 
