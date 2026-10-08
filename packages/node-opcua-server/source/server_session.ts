@@ -761,6 +761,12 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         delete this._registeredNodes[node.nodeId.toString()];
     }
 
+    /** whether the client registered nodes on this session (RegisterNodes): their aliases name them in its requests */
+    public hasRegisteredNodes(): boolean {
+        for (const _ in this._registeredNodes) return true;
+        return false;
+    }
+
     public resolveRegisteredNode(aliasNodeId: NodeId): NodeId {
         if (aliasNodeId.namespace !== registeredNodeNameSpace) {
             return aliasNodeId; // not a registered Node

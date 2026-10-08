@@ -4,10 +4,12 @@ import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { type ExpandedNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
-import { ReadRequest, type ReadResponse, type ReadValueIdOptions, WriteRequest } from "node-opcua-types";
+import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { ReadRequest, type ReadResponse, type ReadValueIdOptions, WriteRequest, type WriteResponse } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import should from "should";
 import { leanRead } from "../dist/lean_read.js";
+import { leanWrite } from "../dist/lean_write.js";
 
 type LeanReadArgs = Parameters<typeof leanRead>;
 
@@ -121,4 +123,91 @@ describe("leanRead: a Read of Values answered from the bytes of the request", ()
             should(counters).eql({ keepAlive: 0, total: 0, read: [] });
         });
     }
+});
+
+describe("leanWrite: a Write answered from the bytes of the request", () => {
+    const token = new NodeId(NodeIdType.BYTESTRING, Buffer.alloc(32, 9), 1);
+    type LeanWriteArgs = Parameters<typeof leanWrite>;
+
+    function setup(options: { registered?: boolean; maxNodesPerWrite?: number } = {}) {
+        const sent: { response: WriteResponse }[] = [];
+        const channel = { channelId: 5, send_response: (_msgType: string, response: WriteResponse) => sent.push({ response }) };
+        const session = {
+            status: "active",
+            channel,
+            channelId: 5,
+            sessionContext: {},
+            keepAlive: () => undefined,
+            incrementTotalRequestCount: () => undefined,
+            incrementRequestTotalCounter: () => undefined,
+            incrementRequestErrorCounter: () => undefined,
+            hasRegisteredNodes: () => options.registered === true
+        };
+        const written: { bytes: Uint8Array; count: number }[] = [];
+        const settle: ((results: StatusCode[]) => void)[] = [];
+        const host = {
+            getSession: () => session,
+            maxNodesPerWrite: options.maxNodesPerWrite ?? 0,
+            write: (_context: unknown, bytes: Uint8Array, count: number) => {
+                written.push({ bytes, count });
+                return new Promise<StatusCode[]>((resolve) => settle.push(resolve));
+            }
+        };
+        const run = (request: WriteRequest | ReadRequest) => {
+            const { body, offset } = bodyOf(request);
+            return leanWrite(
+                host as unknown as LeanWriteArgs[0],
+                channel as unknown as LeanWriteArgs[1],
+                request.schema.encodingDefaultBinary?.value as number,
+                body,
+                offset,
+                7,
+                {} as LeanWriteArgs[6]
+            );
+        };
+        return { run, sent, written, settle };
+    }
+    const writeRequest = (count: number) =>
+        new WriteRequest({
+            requestHeader: { authenticationToken: token, requestHandle: 9 },
+            nodesToWrite: Array.from({ length: count }, (_, k) => ({
+                nodeId: `ns=2;i=${1001 + k}`,
+                attributeId: AttributeIds.Value,
+                value: { value: { dataType: DataType.Double, value: k } }
+            }))
+        });
+
+    it("hands the WriteValues as they were encoded to the host, and answers with its statuses", async () => {
+        const { run, sent, written, settle } = setup();
+        const request = writeRequest(2);
+        should(run(request)).eql(true);
+        should(written.length).eql(1);
+        should(written[0].count).eql(2);
+        // the bytes after the RequestHeader: the count, then the WriteValues
+        const { body } = bodyOf(request);
+        should(Buffer.from(written[0].bytes).equals(body.subarray(body.length - written[0].bytes.length))).eql(true);
+        settle[0]([StatusCodes.Good, StatusCodes.BadNotWritable]);
+        await new Promise((resolve) => setImmediate(resolve));
+        should(sent.map((s) => s.response.results?.map((r) => r.name))).eql([["Good", "BadNotWritable"]]);
+    });
+
+    for (const [what, request, options] of [
+        ["no items", () => writeRequest(0), {}],
+        ["more items than maxNodesPerWrite", () => writeRequest(3), { maxNodesPerWrite: 2 }],
+        ["a session with registered nodes", () => writeRequest(1), { registered: true }],
+        ["another service", () => new ReadRequest({ requestHeader: { authenticationToken: token }, nodesToRead: [] }), {}]
+    ] as [string, () => WriteRequest | ReadRequest, Parameters<typeof setup>[0]][]) {
+        it(`leaves to the normal path a request with ${what}`, () => {
+            const { run, written } = setup(options);
+            should(run(request())).eql(false);
+            should(written.length).eql(0);
+        });
+    }
+
+    it("leaves to the normal path the Writes of a channel beyond 64 in progress", () => {
+        const { run, written } = setup();
+        for (let k = 0; k < 64; k++) should(run(writeRequest(1))).eql(true);
+        should(run(writeRequest(1))).eql(false);
+        should(written.length).eql(64);
+    });
 });
