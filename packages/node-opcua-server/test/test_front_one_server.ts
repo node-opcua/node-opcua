@@ -23,6 +23,7 @@ import {
     DataChangeNotification,
     PublishRequest,
     type PublishResponse,
+    StatusChangeNotification,
     type TransferSubscriptionsResponse
 } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
@@ -832,6 +833,49 @@ describe("FrontThreadEngine, one server: TransferSubscriptions between sessions 
         }
         throw new Error(`value ${value} not received`);
     }
+
+    it("moves a subscription to another worker with what it has not published, on sequence numbers of its own, and back", async () => {
+        // two sessions in a row go to the two workers
+        const [first, second] = [await sessionOn(0), await sessionOn(1)];
+        const id = await subscribe(first);
+        await receives(first, second, 101);
+        // a value the item collected, not published yet
+        await second.write({
+            nodeId: `ns=${ns};s=Level`,
+            attributeId: AttributeIds.Value,
+            value: new DataValue({ value: new Variant({ dataType: DataType.Double, value: 102 }) })
+        });
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        should((await transferTo(second, id, false)).results?.[0].statusCode).eql(StatusCodes.Good);
+        const transferred = (response: PublishResponse) =>
+            (response.notificationMessage.notificationData ?? []).some(
+                (data) => data instanceof StatusChangeNotification && data.status.equals(StatusCodes.GoodSubscriptionTransferred)
+            );
+        const values = (response: PublishResponse) =>
+            (response.notificationMessage.notificationData ?? []).flatMap((data) =>
+                data instanceof DataChangeNotification ? (data.monitoredItems ?? []).map((item) => item.value.value.value) : []
+            );
+        // the old session hears of the transfer, the new one gets the value collected before it
+        const old = await publish(first);
+        should(transferred(old)).eql(true);
+        const next = await publish(second);
+        should(values(next)).containEql(102);
+        should(next.notificationMessage.sequenceNumber).not.eql(old.notificationMessage.sequenceNumber);
+        // away to the first session and straight back: no Good_SubscriptionTransferred left for the second
+        should((await transferTo(first, id)).results?.[0].statusCode).eql(StatusCodes.Good);
+        should((await transferTo(second, id)).results?.[0].statusCode).eql(StatusCodes.Good);
+        await second.write({
+            nodeId: `ns=${ns};s=Level`,
+            attributeId: AttributeIds.Value,
+            value: new DataValue({ value: new Variant({ dataType: DataType.Double, value: 103 }) })
+        });
+        for (let k = 0; k < 20; k++) {
+            const response = await publish(second);
+            should(transferred(response)).eql(false, "a stale Good_SubscriptionTransferred");
+            if (values(response).includes(103)) break;
+        }
+        for (const session of [first, second]) await session.close();
+    });
 
     it("gives MonitoredItems ids unique across the session workers, kept unique after a transfer", async () => {
         // two sessions in a row go to the two workers (least loaded first)

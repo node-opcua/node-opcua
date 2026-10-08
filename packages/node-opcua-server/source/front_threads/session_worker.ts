@@ -403,8 +403,15 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         ) {
             return StatusCodes.BadUserAccessDenied.value;
         }
-        const state = subscription.exportTransferState();
+        // what its items collected and the client has not received goes with it to the new session
+        const pending = subscription.takePendingNotifications();
+        // the old session hears of the transfer (Good_SubscriptionTransferred) on a sequence number of its own: now when
+        // a Publish waits, else later, from the same numbers, so the new session starts after it
+        const statusLater = !subscription.publishEngine?.pendingPublishRequestCount;
         subscription.notifyTransfer();
+        const state = subscription.exportTransferState();
+        if (statusLater) state.nextSequenceNumber += 1;
+        state.pendingNotifications = pending;
         (subscription.publishEngine as unknown as ServerSidePublishEngine | null)?.detach_subscription(subscription);
         subscription.terminate();
         return encodeTransferState(state);
@@ -420,6 +427,8 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         state: SubscriptionTransferState,
         sendInitialValues: boolean
     ): Promise<TransferResult> {
+        // a Good_SubscriptionTransferred still waiting there for this id, from when the subscription left this session
+        (session.publishEngine as unknown as ServerSidePublishEngine)._purge_dangling_subscription(state.id);
         const subscription = session.createSubscription(
             {
                 requestedPublishingInterval: state.publishingInterval,
@@ -452,6 +461,7 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
             const monitoredItem = subscription.getMonitoredItem(item.monitoredItemId);
             for (const linked of item.linkedItems) monitoredItem?.addLinkItem(linked);
         }
+        subscription.requeueNotifications(state.pendingNotifications ?? []);
         return new TransferResult({
             availableSequenceNumbers: subscription.getAvailableSequenceNumbers(),
             statusCode: StatusCodes.Good

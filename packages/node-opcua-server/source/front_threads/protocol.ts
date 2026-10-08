@@ -15,7 +15,13 @@ import { type DataValue, decodeDataValue, encodeDataValue, encodedDataValue } fr
 import { decodeExtensionObject, encodeExtensionObject } from "node-opcua-extension-object";
 import type { BaseUAObject } from "node-opcua-factory";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { MessageSecurityMode, MonitoredItemCreateRequest, NotificationMessage } from "node-opcua-types";
+import {
+    EventFieldList,
+    MessageSecurityMode,
+    MonitoredItemCreateRequest,
+    MonitoredItemNotification,
+    NotificationMessage
+} from "node-opcua-types";
 import type { SubscriptionTransferState } from "../server_subscription.js";
 import type { ITransferSessionIdentity } from "../sessions_compatible_for_transfer.js";
 
@@ -375,11 +381,24 @@ export interface TransferredSubscription {
     sentNotificationMessages: Uint8Array;
     /** the MonitoredItemCreateRequests of its items, encodeStructures() of them, in the order of items */
     requests: Uint8Array;
+    /** its data changes not published yet (MonitoredItemNotifications) and the items they are of */
+    pendingData: Uint8Array;
+    pendingDataItems: number[];
+    /** its events not published yet (EventFieldLists) and the items they are of */
+    pendingEvents: Uint8Array;
+    pendingEventItems: number[];
     items: { monitoredItemId: number; timestampsToReturn: number; linkedItems: number[] }[];
 }
 
 export function encodeTransferState(state: SubscriptionTransferState): TransferredSubscription {
+    const pending = state.pendingNotifications ?? [];
+    const data = pending.filter((p) => p.notification instanceof MonitoredItemNotification);
+    const events = pending.filter((p) => p.notification instanceof EventFieldList);
     return {
+        pendingData: encodeStructures(data.map((p) => p.notification)),
+        pendingDataItems: data.map((p) => p.monitoredItemId),
+        pendingEvents: encodeStructures(events.map((p) => p.notification)),
+        pendingEventItems: events.map((p) => p.monitoredItemId),
         id: state.id,
         publishingInterval: state.publishingInterval,
         lifeTimeCount: state.lifeTimeCount,
@@ -410,6 +429,16 @@ export function decodeTransferState(transferred: TransferredSubscription): Subsc
         priority: transferred.priority,
         nextSequenceNumber: transferred.nextSequenceNumber,
         sentNotificationMessages: decodeStructuresWith(transferred.sentNotificationMessages, () => new NotificationMessage()),
+        pendingNotifications: [
+            ...decodeStructuresWith(transferred.pendingData, () => new MonitoredItemNotification()).map((notification, k) => ({
+                monitoredItemId: transferred.pendingDataItems[k],
+                notification
+            })),
+            ...decodeStructuresWith(transferred.pendingEvents, () => new EventFieldList()).map((notification, k) => ({
+                monitoredItemId: transferred.pendingEventItems[k],
+                notification
+            }))
+        ],
         monitoredItems: transferred.items.map((item, k) => ({
             monitoredItemId: item.monitoredItemId,
             timestampsToReturn: item.timestampsToReturn as TimestampsToReturn,
