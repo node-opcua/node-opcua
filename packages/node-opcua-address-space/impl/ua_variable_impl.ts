@@ -256,6 +256,9 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
      */
     declare public _refreshFuncWrapsGetter?: boolean;
     declare public __waiting_callbacks?: CallbackT<DataValue>[];
+    // the variant types already found to fit the DataType below (bit k: DataType k), set on the first write
+    declare private _validatedForDataType?: NodeId;
+    declare private _validatedVariantTypes?: number;
     declare private __satisfy_waiting_callbacks?: (err: Error | null, dataValue?: DataValue) => void;
 
     get typeDefinitionObj(): UAVariableType {
@@ -1908,7 +1911,27 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     }
 
     public _validate_DataType(variantDataType: DataType): boolean {
-        return validateDataTypeCorrectness(this.addressSpace, this.dataType, variantDataType, /* allow Nulls */ false, this.nodeId);
+        // every write of a Variable checks the same variant type against the same DataType: a check that
+        // passed is remembered while the DataType stays the same; a refusal is always checked again
+        const bit = variantDataType >= 0 && variantDataType < 31 ? 1 << variantDataType : 0;
+        if (bit && this._validatedForDataType === this.dataType && ((this._validatedVariantTypes ?? 0) & bit) !== 0) {
+            return true;
+        }
+        const valid = validateDataTypeCorrectness(
+            this.addressSpace,
+            this.dataType,
+            variantDataType,
+            /* allow Nulls */ false,
+            this.nodeId
+        );
+        if (valid && bit) {
+            if (this._validatedForDataType !== this.dataType) {
+                this._validatedForDataType = this.dataType;
+                this._validatedVariantTypes = 0;
+            }
+            this._validatedVariantTypes = (this._validatedVariantTypes ?? 0) | bit;
+        }
+        return valid;
     }
 
     public _internal_set_value(value: Variant): void {
