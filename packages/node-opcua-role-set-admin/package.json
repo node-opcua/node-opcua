@@ -13,10 +13,6 @@
     "bin": {
         "role-set-admin": "./dist/cli.js"
     },
-    "devEngines": {
-        "node": ">=18.x",
-        "npm": ">=10.x"
-    },
     "engines": {
         "node": ">=22.13.0"
     },

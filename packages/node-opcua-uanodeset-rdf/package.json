@@ -32,10 +32,6 @@
             "default": "./dist/address_space.js"
         }
     },
-    "devEngines": {
-        "node": ">=18.x",
-        "npm": ">=10.x"
-    },
     "dependencies": {
         "node-opcua-address-space": "2.186.17",
         "node-opcua-data-model": "2.186.10",

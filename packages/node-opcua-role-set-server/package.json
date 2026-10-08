@@ -12,10 +12,6 @@
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "devEngines": {
-        "node": ">=18.x",
-        "npm": ">=10.x"
-    },
     "engines": {
         "node": ">=22.13.0"
     },
