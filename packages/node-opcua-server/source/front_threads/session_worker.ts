@@ -57,13 +57,13 @@ import { subscriptionMethods } from "../subscription_methods.js";
 import {
     type ChannelSecurityDescriptor,
     decodeDataValues,
-    decodeExtensionObjectBytes,
+    decodeMessageBody,
     decodeStructure,
     decodeTransferState,
     EngineCount,
     type EngineServerState,
     type EngineToFront,
-    encodeExtensionObjectBytes,
+    encodeMessageBody,
     encodeStructure,
     encodeTransferState,
     type FrontToEngine,
@@ -104,10 +104,14 @@ class WorkerChannel extends EventEmitter {
     public send_response(_messageType: string, response: Response, message: Message, callback?: () => void): void {
         // a response for a channel the front closed (a Publish answered at the session's close) goes nowhere
         if (!this.aborted) {
+            // what the front's channel would set: the front sends these bytes as they are
+            response.responseHeader.requestHandle = message.request.requestHeader.requestHandle;
+            if (message.request.requestHeader.returnDiagnostics === 0) response.responseHeader.serviceDiagnostics = null;
             const answer: WorkerToFront = {
                 kind: "response",
                 id: message.requestId,
-                response: encodeExtensionObjectBytes(response as unknown as BaseUAObject)
+                response: encodeMessageBody(response as unknown as BaseUAObject),
+                name: response.schema.name
             };
             this.#port.postMessage(answer);
         }
@@ -577,7 +581,7 @@ class SessionWorkerServer extends OPCUAServerCore<WorkerEngine> {
             session._attach_channel(channel as unknown as ServerSecureChannelLayer);
         }
         const message: Message = {
-            request: decodeExtensionObjectBytes(forwarded.request),
+            request: decodeMessageBody(forwarded.request),
             requestId: forwarded.id,
             // not read by the subscription services
             securityHeader: null as unknown as SecurityHeader

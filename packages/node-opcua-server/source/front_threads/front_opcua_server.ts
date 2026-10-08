@@ -11,14 +11,22 @@ import type { EventTypeLike, RaiseEventData, UAObjectType } from "node-opcua-add
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
 import type { BaseUAObject } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
-import type { Message, Request, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
+import {
+    encodedBodyOf,
+    type Message,
+    type Request,
+    type Response,
+    retainEncodedBodies,
+    type ServerSecureChannelLayer
+} from "node-opcua-secure-channel";
 import { StatusCodes } from "node-opcua-status-code";
 import { type ActivateSessionRequest, ServiceFault } from "node-opcua-types";
 import { encodeVariant, Variant, type VariantOptions } from "node-opcua-variant";
 import { OPCUAServerCore, type OPCUAServerOptions } from "../opcua_server.js";
 import type { ServerEngineOptions } from "../server_engine.js";
 import type { ServerSession } from "../server_session.js";
-import { decodeExtensionObjectBytes, encodeExtensionObjectBytes, type FrontToWorker, type WorkerToFront } from "./protocol.js";
+import { EncodedResponse } from "./encoded_response.js";
+import { encodeMessageBody, type FrontToWorker, type WorkerToFront } from "./protocol.js";
 import type { RemoteEngine } from "./remote_engine.js";
 import { tokenKeyOf } from "./token_key.js";
 
@@ -57,6 +65,8 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
 
     constructor(options: OPCUAServerOptions, engine: RemoteEngine, workers: MessagePort[]) {
         super(options);
+        // the channel keeps the bytes of the requests this front forwards to a session worker
+        if (workers.length > 0) retainEncodedBodies(SUBSCRIPTION_SERVICES);
         this.#remote = engine;
         this.#workers = workers;
         for (const port of workers) port.on("message", (message: WorkerToFront) => this.#answered(message));
@@ -110,7 +120,8 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
                         securityPolicy: channel.securityPolicy,
                         clientCertificate: channel.clientCertificate ? new Uint8Array(channel.clientCertificate) : null
                     },
-                    request: encodeExtensionObjectBytes(request as unknown as BaseUAObject)
+                    // as the request arrived, when the channel kept it; encoded again otherwise
+                    request: encodedBodyOf(request) ?? encodeMessageBody(request as unknown as BaseUAObject)
                 };
                 this.#workers[worker].postMessage(forwarded);
             })
@@ -134,8 +145,9 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
         const pending = this.#pending.get(message.id);
         if (!pending) return;
         this.#pending.delete(message.id);
-        const response = decodeExtensionObjectBytes<Response>(message.response);
-        pending.channel.send_response("MSG", response, pending.message);
+        // sent as the worker encoded it, not decoded here
+        const response = new EncodedResponse(message.response, message.name);
+        pending.channel.send_response("MSG", response as unknown as Response, pending.message);
     }
 
     /** a channel that closes: the session workers drop what they hold for it (its Publish requests) */

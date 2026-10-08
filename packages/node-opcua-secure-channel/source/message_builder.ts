@@ -28,6 +28,7 @@ import {
 import { decodeStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { doTraceChunk, MessageBuilderBase, type MessageBuilderBaseOptions, StatusCodes2 } from "node-opcua-transport";
 import { timestamp } from "node-opcua-utils";
+import { retainEncodedBody } from "./encoded_message_body.js";
 
 import { retainEncodedNodesToWrite } from "./encoded_nodes_to_write.js";
 import { SymmetricAlgorithmSecurityHeader } from "./secure_channel_service.js";
@@ -450,6 +451,7 @@ export class MessageBuilder extends MessageBuilderBase {
             return this._report_error(StatusCodes.BadNotSupported, `cannot construct object with nodeID ${id}`);
         } else {
             if (this.#_safe_decode_message_body(fullMessageBody, objMessage, binaryStream)) {
+                retainEncodedBody(objMessage, objMessage.schema.name, fullMessageBody);
                 const nodesToWrite = (objMessage as { nodesToWrite?: unknown[] | null }).nodesToWrite;
                 if (objMessage.schema.name === "WriteRequest" && nodesToWrite && nodesToWrite.length > 0) {
                     try {
