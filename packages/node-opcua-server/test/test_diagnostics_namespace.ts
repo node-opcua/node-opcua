@@ -5,6 +5,7 @@ import should from "should";
 import { OPCUAServer } from "../dist/index.js";
 
 const port = 5841;
+const plainPort = 5842;
 const diagnosticsNamespaceUri = "urn:test:diagnostics-namespace:runtime";
 
 describe("diagnosticsNamespaceUri: the nodes the server creates while it runs, in a namespace of their own", function () {
@@ -60,7 +61,7 @@ describe("diagnosticsNamespaceUri: the nodes the server creates while it runs, i
     });
 
     it("keeps them in the server's own namespace when not given", async () => {
-        const plain = new OPCUAServer({ port: port + 1, nodeset_filename: [nodesets.standard] });
+        const plain = new OPCUAServer({ port: plainPort, nodeset_filename: [nodesets.standard] });
         await plain.initialize();
         await plain.start();
         const other = OPCUAClient.create({ endpointMustExist: false, connectionStrategy: { maxRetry: 0 } });

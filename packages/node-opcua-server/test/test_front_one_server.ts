@@ -31,7 +31,10 @@ import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import { FrontThreadEngine } from "../dist/index.js";
 
+// the fronts of an engine listen on consecutive ports, from the one it is given
 const port = 5836;
+const secondFrontPort = 5837;
+const frontPorts = [port, secondFrontPort];
 // one address for both fronts, as SO_REUSEPORT gives: each new connection goes to the next front in turn
 const sharedPort = 5839;
 
@@ -83,14 +86,14 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         await engine.shutdown();
     });
 
-    /** a client connected to front k (each front listens on port + k) */
+    /** a client connected to front k (frontPorts[k]) */
     async function clientOn(front: number, requestedSessionTimeout?: number): Promise<OPCUAClient> {
         const client = OPCUAClient.create({
             endpointMustExist: false,
             connectionStrategy: { maxRetry: 0 },
             requestedSessionTimeout
         });
-        await client.connect(`opc.tcp://localhost:${port + front}`);
+        await client.connect(`opc.tcp://localhost:${frontPorts[front]}`);
         clients.push(client);
         return client;
     }
@@ -169,7 +172,7 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
     });
 
     it("lets a session go on through the other front (ActivateSession on a new channel)", async () => {
-        const proxy = roundRobin([port, port + 1]);
+        const proxy = roundRobin(frontPorts);
         await new Promise<void>((resolve) => proxy.listen(sharedPort, resolve));
         const connectShared = async () => {
             const client = OPCUAClient.create({ endpointMustExist: false, connectionStrategy: { maxRetry: 0 } });
@@ -612,6 +615,8 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
 describe("FrontThreadEngine, one server: large structures of a companion specification (AutoID)", function () {
     this.timeout(180000);
     const autoIdPort = 5845;
+    const autoIdSecondPort = 5846;
+    const autoIdPorts = [autoIdPort, autoIdSecondPort];
     let engine: FrontThreadEngine;
     let ns: number;
     let constructScan: (sightings: number, antenna: number) => unknown;
@@ -689,7 +694,7 @@ describe("FrontThreadEngine, one server: large structures of a companion specifi
 
     async function sessionOn(front: number): Promise<ClientSession> {
         const client = OPCUAClient.create({ endpointMustExist: false, connectionStrategy: { maxRetry: 0 } });
-        await client.connect(`opc.tcp://localhost:${autoIdPort + front}`);
+        await client.connect(`opc.tcp://localhost:${autoIdPorts[front]}`);
         clients.push(client);
         return client.createSession();
     }
@@ -920,7 +925,9 @@ describe("FrontThreadEngine, one server: one module as the front worker and its 
 
 describe("FrontThreadEngine, one server: TransferSubscriptions between sessions of the session workers", function () {
     this.timeout(120000);
-    const transferPort = 5840;
+    const transferPort = 5847;
+    const transferSecondPort = 5848;
+    const transferPorts = [transferPort, transferSecondPort];
     let engine: FrontThreadEngine;
     let ns: number;
     const clients: OPCUAClient[] = [];
@@ -959,7 +966,7 @@ describe("FrontThreadEngine, one server: TransferSubscriptions between sessions 
     type RawSession = ClientSession & ClientSessionRawSubscriptionService & ClientSessionPublishService;
     async function sessionOn(front: number): Promise<RawSession> {
         const client = OPCUAClient.create({ endpointMustExist: false, connectionStrategy: { maxRetry: 0 } });
-        await client.connect(`opc.tcp://localhost:${transferPort + front}`);
+        await client.connect(`opc.tcp://localhost:${transferPorts[front]}`);
         clients.push(client);
         return (await client.createSession()) as RawSession;
     }
