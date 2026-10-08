@@ -99,8 +99,12 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
             get maxNodesPerWrite() {
                 return remote.serverCapabilities.operationLimits.maxNodesPerWrite ?? 0;
             },
-            // the engine decodes and writes them, as for a Write forwarded the usual way
-            write: (context, nodesToWrite) => remote.writeEncoded(context, nodesToWrite)
+            // numbers and booleans of Variables any session may write: written here, the engine told after;
+            // anything else: the engine decodes and writes them, as for a Write forwarded the usual way
+            write: (context, nodesToWrite, count) => {
+                const inPlace = backend.writeInPlace(nodesToWrite, count);
+                return inPlace ? Promise.resolve(inPlace) : remote.writeEncoded(context, nodesToWrite);
+            }
         };
         return (channel, typeId, body, offset, requestId, securityHeader) =>
             // a listener of "request" sees every request: it gets them decoded

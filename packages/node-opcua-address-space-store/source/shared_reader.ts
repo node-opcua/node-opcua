@@ -28,6 +28,7 @@ const FREE = 0;
 const EMPTY = -1;
 const DELETED = 4;
 const CURRENT_READ = 1;
+const CURRENT_WRITE = 2;
 
 /** what a read of a value from another thread ends with */
 export enum SharedReadStatus {
@@ -223,7 +224,6 @@ export class SharedStoreReader {
         return this.#permitsAll(i);
     }
 
-    /** the Value of node `i` into `out`, under the node's seqlock */
     /**
      * true when a Variant of built-in type `variantType` may be written to Variable `i`, as the owner's
      * DataType check would answer; false when this thread cannot tell (the owner has not worked it out)
@@ -240,6 +240,65 @@ export class SharedStoreReader {
         return (this.#flags[i] & HISTORIZING) !== 0;
     }
 
+    /**
+     * true when this thread may write the Value of node `i` itself, for any session: a Variable every session
+     * may write (CurrentWrite in its access levels, no permission rule, see isOpen), no setter, not historized,
+     * holding a number or a boolean. Anything else is the owner's to write.
+     */
+    public writableInPlace(i: number): boolean {
+        if (i === NO_NODE || this.#nodeClass[i] !== NodeClass.Variable) return false;
+        if ((this.#flags[i] & (BOUND | HISTORIZING)) !== 0) return false;
+        if ((this.#accessLevel[i] & CURRENT_WRITE) === 0 || (this.#userAccessLevel[i] & CURRENT_WRITE) === 0) return false;
+        const kind = this.#valueKind[i];
+        return (kind === ValueKind.Number || kind === ValueKind.Boolean) && this.#permitsAll(i);
+    }
+
+    /**
+     * write a number or a boolean into node `i`, from this thread, as the owner's setScalar does: claim the
+     * value (see ValueStore), write its fields, release it. `generation` is the one seen when the node was
+     * found. Returns the version written, for the owner to tell its listeners; -1 when nothing was written
+     * (the columns moved, the node changed or holds something else): the owner must write it
+     */
+    public writeScalar(
+        i: number,
+        generation: number,
+        dataType: number,
+        value: number | boolean,
+        statusCode: number,
+        sourceTimestamp: number,
+        serverTimestamp: number
+    ): number {
+        if (!this.isCurrent()) return -1;
+        const version = this.#version;
+        let claimed: number;
+        for (;;) {
+            claimed = Atomics.load(version, i);
+            if ((claimed & 1) === 0 && Atomics.compareExchange(version, i, claimed, claimed + 1) === claimed) break;
+        }
+        // held: the owner may have moved the columns, reused the index or stored an object meanwhile
+        const kind = this.#valueKind[i];
+        if (
+            !this.isCurrent() ||
+            this.#generation[i] !== generation ||
+            (this.#flags[i] & DELETED) !== 0 ||
+            (kind !== ValueKind.Number && kind !== ValueKind.Boolean)
+        ) {
+            Atomics.add(version, i, 1);
+            return -1;
+        }
+        this.#valueKind[i] = typeof value === "boolean" ? ValueKind.Boolean : ValueKind.Number;
+        this.#dataType[i] = dataType;
+        this.#number[i] = typeof value === "boolean" ? (value ? 1 : 0) : value;
+        this.#statusCode[i] = statusCode;
+        this.#sourceTimestamp[i] = sourceTimestamp;
+        this.#sourcePicoseconds[i] = 0;
+        this.#serverTimestamp[i] = serverTimestamp;
+        this.#serverPicoseconds[i] = 0;
+        Atomics.add(version, i, 1);
+        return claimed + 2;
+    }
+
+    /** the Value of node `i` into `out`, under the node's seqlock */
     public readValue(i: number, out: SharedValue): SharedReadStatus {
         if (i === NO_NODE || (this.#flags[i] & DELETED) !== 0) {
             return SharedReadStatus.NotFound;

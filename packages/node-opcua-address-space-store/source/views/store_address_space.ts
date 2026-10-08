@@ -203,6 +203,19 @@ export class StoreAddressSpace {
     }
 
     /** the view of a node index: the one in the cache, or a new one */
+    /**
+     * values other threads wrote into the store, with the version each wrote: their listeners and historians
+     * are told, as after a write here. A node without a view has no listener
+     */
+    public changedElsewhere(indexes: readonly number[], versions: readonly number[]): void {
+        for (let k = 0; k < indexes.length; k++) {
+            const view = this.#views.get(indexes[k]);
+            if (view instanceof StoreVariableView) {
+                view.changedElsewhere(versions[k]);
+            }
+        }
+    }
+
     public viewOf(index: number): StoreNodeView {
         let view = this.#views.get(index);
         if (view === undefined) {

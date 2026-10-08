@@ -663,6 +663,8 @@ export type FrontToEngine =
     | { kind: "watches"; operations: number[] }
     /** the last "changes" message was delivered: the engine may send the next one */
     | { kind: "changesDone" }
+    /** values the front wrote into the store itself, with the version each got: the engine tells their listeners */
+    | { kind: "written"; indexes: number[]; versions: number[] }
     /**
      * what the sessions of the front did in a turn of the event loop: the sessions seen (their
      * watchdog), the service counters (token, counter name or "" for the total, 1 for an error), the

@@ -373,6 +373,42 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
         }
     });
 
+    it("writes a number in place, without the engine, and every connection reads it at once", async () => {
+        const before = engine.serviceRequests.write;
+        await write(sessions[2], `ns=${ns};s=Speed`, new Variant({ dataType: DataType.Double, value: 9 }));
+        should(engine.serviceRequests.write).eql(before, "written by the front itself");
+        for (const session of sessions) {
+            const value = await session.read({ nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value });
+            should(value.value.value).eql(9);
+        }
+        // a request with one value the front does not write itself (a string): all of it goes to the engine
+        const statuses = await sessions[2].write([
+            {
+                nodeId: `ns=${ns};s=Speed`,
+                attributeId: AttributeIds.Value,
+                value: new DataValue({ value: new Variant({ dataType: DataType.Double, value: 42 }) })
+            },
+            {
+                nodeId: `ns=${ns};s=Name`,
+                attributeId: AttributeIds.Value,
+                value: new DataValue({ value: new Variant({ dataType: DataType.String, value: "pump" }) })
+            }
+        ]);
+        should(statuses).eql([StatusCodes.Good, StatusCodes.Good]);
+        should(engine.serviceRequests.write).eql(before + 1);
+        // a refused type is still refused: the engine answers it
+        const [refused] = await sessions[2].write([
+            {
+                nodeId: `ns=${ns};s=Speed`,
+                attributeId: AttributeIds.Value,
+                value: new DataValue({ value: new Variant({ dataType: DataType.Boolean, value: true }) })
+            }
+        ]);
+        should(refused).eql(StatusCodes.BadTypeMismatch);
+        const speed = await sessions[0].read({ nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value });
+        should(speed.value.value).eql(42);
+    });
+
     it("reads a large array through the engine, many times at once, unchanged", async () => {
         const before = engine.serviceRequests.read;
         const values = await Promise.all(
