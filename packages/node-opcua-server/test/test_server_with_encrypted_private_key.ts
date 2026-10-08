@@ -17,7 +17,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import { OPCUAServer } from "../source/index.js";
 
-const testPort1 = 12066;
+const testPort1 = 12073;
 const testPort2 = 12067;
 const testPort3 = 12068;
 
