@@ -41,6 +41,7 @@ import { ServerSidePublishEngineForOrphanSubscription } from "../server_publish_
 import type { ServerSession } from "../server_session.js";
 import { type DeleteMonitoredItemHook, Subscription, type SubscriptionTransferState } from "../server_subscription.js";
 import { ownerIdentityOf, transferSubscriptionToSession } from "../subscription_transfer.js";
+import { TurnBatches } from "./turn_batches.js";
 
 type ServerOptionsFactory = (
     data: unknown,
@@ -138,7 +139,12 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
     readonly #owners = new Map<Subscription, string>();
     // the subscriptions being rebuilt here from another worker: no other transfer takes them half built
     readonly #adopting = new Set<number>();
-    #changes: [string, number, number, number][] = [];
+    // a microtask, not the end of the turn: the ids are known to the engine before the client hears of an item
+    readonly #changes = new TurnBatches<0, [string, number, number, number][]>(
+        () => [],
+        (_engine, changes) => this.#channel.send({ kind: "subscriptionChanges", changes }),
+        queueMicrotask
+    );
 
     constructor(state: EngineServerState, channel: EngineChannel, backend: RemoteCompactBackend) {
         super(state, channel, backend);
@@ -266,14 +272,7 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
      * message per turn, whatever the number of items created.
      */
     #report(token: string, subscriptionId: number, itemId: number, added: 0 | 1): void {
-        if (this.#changes.length === 0) {
-            queueMicrotask(() => {
-                const changes = this.#changes;
-                this.#changes = [];
-                this.#channel.send({ kind: "subscriptionChanges", changes });
-            });
-        }
-        this.#changes.push([token, subscriptionId, itemId, added]);
+        this.#changes.of(0).push([token, subscriptionId, itemId, added]);
     }
 
     /** the subscription, with its items, now belongs to `session` (a TransferSubscriptions in this worker) */

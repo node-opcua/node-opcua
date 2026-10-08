@@ -31,6 +31,7 @@
  *
  * Experimental.
  */
+
 import type { EventEmitter } from "node:events";
 import { MessageChannel, type MessagePort, Worker } from "node:worker_threads";
 import {
@@ -98,6 +99,7 @@ import {
     WATCH
 } from "./protocol.js";
 import { RolesContext } from "./resolved_roles_context.js";
+import { TurnBatches } from "./turn_batches.js";
 
 const warningLog = make_warningLog("front_thread_engine");
 
@@ -191,12 +193,25 @@ export class FrontThreadEngine {
     #exportId = 0;
     // the event items of each worker: their filter evaluated here, on the node objects
     readonly #eventWatches = new Map<Worker, Map<number, { stop: () => void }>>();
-    readonly #eventsOut = new Map<Worker, { ids: number[]; lists: EventFieldList[] }>();
+    readonly #eventsOut = new TurnBatches<Worker, { ids: number[]; lists: EventFieldList[] }>(
+        () => ({ ids: [], lists: [] }),
+        (target, events) =>
+            target.postMessage({ kind: "events", ids: events.ids, fields: encodeStructures(events.lists) } satisfies EngineToFront)
+    );
     readonly #objectWatches = new Map<
         string,
         { node: EventEmitter; workers: Set<Worker>; listener: (dataValue: DataValue) => void }
     >();
-    readonly #objectChanges = new Map<Worker, { nodeIds: string[]; values: DataValue[] }>();
+    // the values of the watched node objects, one message per worker and turn of the event loop
+    readonly #objectChanges = new TurnBatches<Worker, { nodeIds: string[]; values: DataValue[] }>(
+        () => ({ nodeIds: [], values: [] }),
+        (target, changes) =>
+            target.postMessage({
+                kind: "objectChanges",
+                nodeIds: changes.nodeIds,
+                values: encodeDataValues(changes.values)
+            } satisfies EngineToFront)
+    );
     readonly #endpointUrls: string[] = [];
     /** the requests the fronts and the session workers sent, by kind */
     public readonly requests = {
@@ -825,20 +840,7 @@ export class FrontThreadEngine {
     }
 
     #queueEvent(worker: Worker, id: number, list: EventFieldList): void {
-        let out = this.#eventsOut.get(worker);
-        if (!out) {
-            out = { ids: [], lists: [] };
-            this.#eventsOut.set(worker, out);
-            if (this.#eventsOut.size === 1) {
-                setImmediate(() => {
-                    for (const [target, events] of this.#eventsOut) {
-                        const message: EngineToFront = { kind: "events", ids: events.ids, fields: encodeStructures(events.lists) };
-                        target.postMessage(message);
-                    }
-                    this.#eventsOut.clear();
-                });
-            }
-        }
+        const out = this.#eventsOut.of(worker);
         out.ids.push(id);
         out.lists.push(list);
     }
@@ -870,28 +872,10 @@ export class FrontThreadEngine {
         }
     }
 
-    /** the values of the watched node objects, one message per worker and turn of the event loop */
     #queueObjectChange(worker: Worker, nodeId: string, dataValue: DataValue): void {
-        let queued = this.#objectChanges.get(worker);
-        if (!queued) {
-            queued = { nodeIds: [], values: [] };
-            this.#objectChanges.set(worker, queued);
-            if (this.#objectChanges.size === 1) setImmediate(() => this.#flushObjectChanges());
-        }
+        const queued = this.#objectChanges.of(worker);
         queued.nodeIds.push(nodeId);
         queued.values.push(dataValue);
-    }
-
-    #flushObjectChanges(): void {
-        for (const [target, changes] of this.#objectChanges) {
-            const message: EngineToFront = {
-                kind: "objectChanges",
-                nodeIds: changes.nodeIds,
-                values: encodeDataValues(changes.values)
-            };
-            target.postMessage(message);
-        }
-        this.#objectChanges.clear();
     }
 
     /**
