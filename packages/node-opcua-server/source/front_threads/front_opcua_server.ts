@@ -20,6 +20,7 @@ import type { ServerEngineOptions } from "../server_engine.js";
 import type { ServerSession } from "../server_session.js";
 import { decodeExtensionObjectBytes, encodeExtensionObjectBytes, type FrontToWorker, type WorkerToFront } from "./protocol.js";
 import type { RemoteEngine } from "./remote_engine.js";
+import { tokenKeyOf } from "./token_key.js";
 
 function variantBytes(value: VariantOptions | Variant): Uint8Array {
     const variant = value instanceof Variant ? value : new Variant(value);
@@ -90,7 +91,7 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
         }
         const token = request.requestHeader.authenticationToken;
         this.#remote
-            .workerOf(token.toString())
+            .workerOf(tokenKeyOf(token))
             .then((worker) => {
                 if (worker < 0) {
                     super.on_request(message, channel);
@@ -102,7 +103,7 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
                 const forwarded: FrontToWorker = {
                     kind: "request",
                     id,
-                    token: token.toString(),
+                    token: tokenKeyOf(token),
                     channel: channel.channelId ?? 0,
                     security: {
                         securityMode: channel.securityMode,
@@ -118,7 +119,7 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
 
     /** the session worker learns the session as activated, before any of its subscription requests */
     #announce(session: ServerSession): void {
-        const token = session.authenticationToken.toString();
+        const token = tokenKeyOf(session.authenticationToken);
         const activation = this.#remote.activationOf(session);
         if (!activation) return;
         const record = this.#remote.recordOf(session);

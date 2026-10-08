@@ -392,7 +392,7 @@ export class FrontSessions {
     /** a session worker ended: its pending calls fail, its sessions close (their subscriptions went with it), no new session goes there */
     public workerGone(index: number): void {
         if (index < 0 || index >= this.#workerLoad.length) return;
-        this.#workerLoad[index] = Number.POSITIVE_INFINITY;
+        this.#workerLoad[index] = Number.POSITIVE_INFINITY; // check-proto-pollution: ok - numeric index into an array
         for (const [id, call] of this.#calls) {
             if (call.worker !== index) continue;
             this.#calls.delete(id);
