@@ -25,9 +25,12 @@ import { SharedHeap, type SharedHeapBuffers } from "./shared_heap.js";
  */
 const MAX_SHARED_ENCODING = 64 * 1024;
 
-/** the binary encoding of a value for the readers of other threads; null for what they cannot decode, or too large */
+/**
+ * the binary encoding of a value for the readers of other threads; null for what they cannot use, or too
+ * large. A structure goes too: the other threads pass its bytes on without decoding them, whatever its type.
+ */
 function encodedForReaders(value: unknown, dataType: DataType): Uint8Array | null {
-    if (dataType === DataType.ExtensionObject || dataType === DataType.Variant || dataType === DataType.DiagnosticInfo) {
+    if (dataType === DataType.Variant || dataType === DataType.DiagnosticInfo) {
         return null;
     }
     try {
@@ -229,9 +232,14 @@ export class ValueStore {
         this.#serverTimestamp[i] = serverTimestamp;
         this.#serverPicoseconds[i] = serverPicoseconds;
         if (encoded && this.#heap) {
-            // the bytes are the only copy: the owner decodes them when it reads the value
             this.#heap.write(i, encoded);
-            this.#objects.delete(i);
+            if (dataType === DataType.ExtensionObject) {
+                // the owner keeps the structure too: its type may be one only the address space can decode
+                this.#objects.set(i, value);
+            } else {
+                // the bytes are the only copy: the owner decodes them when it reads the value
+                this.#objects.delete(i);
+            }
         } else {
             this.#objects.set(i, value);
             this.#heap?.clear(i);
@@ -313,6 +321,11 @@ export class ValueStore {
             serverTimestamp: this.#serverTimestamp[i],
             serverPicoseconds: this.#serverPicoseconds[i]
         };
+    }
+
+    /** a copy of the encoding of value `i` in the shared heap; null when it has none */
+    public encodedCopy(i: number): Uint8Array | null {
+        return this.#heap && this.#heap.length(i) > 0 ? this.#heap.copy(i) : null;
     }
 
     /** a value kept as bytes only (a shared store): decoded from a copy, an array must not alias the heap */
