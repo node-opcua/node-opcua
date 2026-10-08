@@ -8,32 +8,20 @@
  * written to it.
  */
 
-import { EventEmitter } from "node:events";
 import type { ISessionContext } from "node-opcua-address-space";
 import { AttributeIds, type NodeClass, QualifiedName } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import type { NodeId } from "node-opcua-nodeid";
-import type { EventFilter } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
-import type { EventFilterResult } from "node-opcua-types";
-import { DataType, type Variant } from "node-opcua-variant";
-import type { CompactMonitorableNode, EventItemIdentity } from "../monitorable_node.js";
+import type { CompactMonitorableNode } from "../monitorable_node.js";
+import { MonitoredNodeBase, type NodeEventSource } from "./front_node_base.js";
 
 /** what a node object asks of the worker it is monitored in */
-export interface RemoteObjectHost {
+export interface RemoteObjectHost extends NodeEventSource {
     /** the value as the engine reads it for this session */
     readValue(context: ISessionContext | null, node: RemoteObjectNode): Promise<DataValue>;
     watch(node: RemoteObjectNode): void;
     unwatch(node: RemoteObjectNode): void;
-    /** the events of the node, filtered by the engine for an item */
-    subscribeEvents(
-        nodeId: NodeId,
-        filter: EventFilter,
-        context: ISessionContext | null,
-        onFields: (fields: Variant[]) => void,
-        item?: EventItemIdentity
-    ): () => void;
-    eventFilterResult(filter: EventFilter): EventFilterResult | undefined;
 }
 
 /** the attributes the engine read of the node when an item was created on it */
@@ -47,37 +35,23 @@ export interface RemoteObjectDescription {
 // the built-in numeric DataTypes (SByte to Double), what a deadband applies to
 const NUMBER_TYPES = new Set([2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
-export class RemoteObjectNode extends EventEmitter implements CompactMonitorableNode {
-    public readonly nodeId: NodeId;
-    public readonly nodeClass: NodeClass;
-    public readonly browseName: QualifiedName;
-    public readonly dataType?: NodeId;
+export class RemoteObjectNode extends MonitoredNodeBase implements CompactMonitorableNode {
     public readonly minimumSamplingInterval: number;
     readonly #host: RemoteObjectHost;
     #last: DataValue | null = null;
-    #watching = false;
 
     constructor(host: RemoteObjectHost, nodeId: NodeId, description: RemoteObjectDescription) {
-        super();
+        super(host, nodeId, description.nodeClass, description.browseName, description.dataType ?? undefined);
         this.#host = host;
-        this.nodeId = nodeId;
-        this.nodeClass = description.nodeClass;
-        this.browseName = description.browseName;
-        this.dataType = description.dataType ?? undefined;
         this.minimumSamplingInterval = description.minimumSamplingInterval;
-        // an item reporting changes listens to value_changed: the engine then pushes the node's values
-        this.on("newListener", (event: string) => {
-            if (event === "value_changed" && !this.#watching) {
-                this.#watching = true;
-                this.#host.watch(this);
-            }
-        });
-        this.on("removeListener", (event: string) => {
-            if (event === "value_changed" && this.#watching && this.listenerCount("value_changed") === 0) {
-                this.#watching = false;
-                this.#host.unwatch(this);
-            }
-        });
+    }
+
+    protected startWatching(): void {
+        this.#host.watch(this);
+    }
+
+    protected stopWatching(): void {
+        this.#host.unwatch(this);
     }
 
     public isNumberDataType(): boolean {
@@ -88,36 +62,11 @@ export class RemoteObjectNode extends EventEmitter implements CompactMonitorable
         return null;
     }
 
-    public subscribeEvents(
-        filter: EventFilter,
-        context: ISessionContext | null,
-        onFields: (fields: Variant[]) => void,
-        item?: EventItemIdentity
-    ): () => void {
-        return this.#host.subscribeEvents(this.nodeId, filter, context, onFields, item);
-    }
-
-    public analyzeEventFilter(filter: EventFilter): EventFilterResult | undefined {
-        return this.#host.eventFilterResult(filter);
-    }
-
     public readAttribute(_context: ISessionContext | null, attributeId: AttributeIds): DataValue {
-        switch (attributeId) {
-            case AttributeIds.NodeId:
-                return new DataValue({ value: { dataType: DataType.NodeId, value: this.nodeId } });
-            case AttributeIds.NodeClass:
-                return new DataValue({ value: { dataType: DataType.Int32, value: this.nodeClass } });
-            case AttributeIds.BrowseName:
-                return new DataValue({ value: { dataType: DataType.QualifiedName, value: this.browseName } });
-            case AttributeIds.DataType:
-                return this.dataType
-                    ? new DataValue({ value: { dataType: DataType.NodeId, value: this.dataType } })
-                    : new DataValue({ statusCode: StatusCodes.BadAttributeIdInvalid });
-            case AttributeIds.Value:
-                return this.#last ?? new DataValue({ statusCode: StatusCodes.BadWaitingForInitialData });
-            default:
-                return new DataValue({ statusCode: StatusCodes.BadAttributeIdInvalid });
+        if (attributeId === AttributeIds.Value) {
+            return this.#last ?? new DataValue({ statusCode: StatusCodes.BadWaitingForInitialData });
         }
+        return this.describedAttribute(attributeId) ?? new DataValue({ statusCode: StatusCodes.BadAttributeIdInvalid });
     }
 
     public readValueAsync(context: ISessionContext | null, callback: (err: Error | null, dataValue?: DataValue) => void): void {
