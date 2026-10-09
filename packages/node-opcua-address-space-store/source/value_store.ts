@@ -23,7 +23,8 @@ import { SharedHeap, type SharedHeapBuffers } from "./shared_heap.js";
  * owner, which hands its buffer over to the reader that asks, rather than copy it into the heap on every
  * write, out of it on every read, and again at every compaction
  */
-const MAX_SHARED_ENCODING = 64 * 1024;
+/** the largest encoding the shared heap keeps: a larger value is kept as an object, the owner's to read */
+export const MAX_SHARED_ENCODING = 64 * 1024;
 
 /**
  * the binary encoding of a value for the readers of other threads; null for what they cannot use, or too

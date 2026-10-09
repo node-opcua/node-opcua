@@ -12,6 +12,7 @@ import { isUtf8 } from "node:buffer";
 import type { MessagePort } from "node:worker_threads";
 import type { ISessionContext } from "node-opcua-address-space";
 import {
+    MAX_SHARED_ENCODING,
     SharedReadStatus,
     type SharedStoreDescriptor,
     SharedStoreReader,
@@ -128,18 +129,68 @@ function isInPlaceType(dataType: number): boolean {
     return dataType === DataType.Boolean || (SCALAR_SIZE[dataType] ?? 0) > 0;
 }
 
-/**
- * a built-in type a front writes into the store itself as the bytes the client sent: one the store keeps
- * as its encoding in the shared heap, and whose encoding needs no decoding to be checked
- */
+/** a String or a ByteString: a length, then that many bytes */
 function isBytesType(dataType: number): boolean {
     return dataType === DataType.String || dataType === DataType.ByteString;
 }
 
+/** the bytes of an element of an array a front writes as bytes, by its built-in type: those of fixed size */
+const ELEMENT_SIZE: Record<number, number> = {
+    ...SCALAR_SIZE,
+    [DataType.Boolean]: 1,
+    [DataType.Int64]: 8,
+    [DataType.UInt64]: 8,
+    [DataType.DateTime]: 8,
+    [DataType.Guid]: 16,
+    [DataType.StatusCode]: 4
+};
+
+/**
+ * the end of the String or ByteString encoded at `at`; -1 when it is not whole, is null and `allowNull` is
+ * false, or is a String the engine would decode with replacement characters (it stores what it decoded)
+ */
+function stringEnd(bytes: Buffer, at: number, dataType: number, allowNull: boolean): number {
+    if (at + 4 > bytes.length) return -1;
+    const length = bytes.readInt32LE(at);
+    if (length < 0) return allowNull ? at + 4 : -1;
+    const end = at + 4 + length;
+    if (end > bytes.length) return -1;
+    if (dataType === DataType.String && !isUtf8(bytes.subarray(at + 4, end))) return -1;
+    return end;
+}
+
+/**
+ * the end of the Variant encoded at `at` when a front writes it into the store as its bytes (the encoding
+ * the shared heap keeps): a scalar String or ByteString (not null), or an array of one dimension (not null)
+ * of numbers, booleans, DateTimes, Guids, StatusCodes, Strings or ByteStrings; -1 for anything else
+ */
+function bytesVariantEnd(bytes: Buffer, at: number): number {
+    if (at >= bytes.length) return -1;
+    const encodingByte = bytes[at];
+    const dataType = encodingByte & VARIANT_TYPE_MASK;
+    if ((encodingByte & VARIANT_DIMENSIONS) !== 0) return -1;
+    if ((encodingByte & VARIANT_ARRAY) === 0) {
+        return isBytesType(dataType) ? stringEnd(bytes, at + 1, dataType, false) : -1;
+    }
+    if (at + 5 > bytes.length) return -1;
+    const count = bytes.readInt32LE(at + 1);
+    if (count < 0) return -1;
+    const size = ELEMENT_SIZE[dataType] ?? 0;
+    if (size > 0) {
+        const end = at + 5 + count * size;
+        return end <= bytes.length ? end : -1;
+    }
+    if (!isBytesType(dataType)) return -1;
+    let end = at + 5;
+    for (let k = 0; k < count && end >= 0; k++) end = stringEnd(bytes, end, dataType, true);
+    return end;
+}
+
 /** DataValue encoding mask: a value follows */
 const DATA_VALUE_HAS_VALUE = 0x01;
-/** Variant encoding byte: the array bits, and the built-in type */
-const VARIANT_ARRAY_BITS = 0xc0;
+/** Variant encoding byte: an array, its dimensions, and the built-in type */
+const VARIANT_ARRAY = 0x80;
+const VARIANT_DIMENSIONS = 0x40;
 const VARIANT_TYPE_MASK = 0x3f;
 
 function writeScalar(stream: OutputBinaryStream, dataType: DataType, value: number): void {
@@ -314,24 +365,21 @@ export class RemoteCompactBackend implements FrontNodeHost {
             if (at + 1 >= bytes.length || (bytes[at] & DATA_VALUE_HAS_VALUE) === 0) return null;
             const variantByte = bytes[at + 1];
             const variantType = variantByte & VARIANT_TYPE_MASK;
-            if ((variantByte & VARIANT_ARRAY_BITS) !== 0) return null;
+            const array = (variantByte & VARIANT_ARRAY) !== 0;
             let encoding: Uint8Array | null = null;
-            if (isInPlaceType(variantType)) {
+            if (!array && isInPlaceType(variantType)) {
                 if (!reader.writableInPlace(i)) return null;
-            } else if (isBytesType(variantType)) {
-                if (!reader.writableAsBytes(i) || at + 6 > bytes.length) return null;
-                // the encoding byte, the length, the bytes; a null string or ByteString stays with the engine
-                const length = bytes.readInt32LE(at + 2);
-                if (length < 0 || at + 6 + length > bytes.length) return null;
-                // a string the engine would decode with replacement characters: the engine stores what it decoded
-                if (variantType === DataType.String && !isUtf8(bytes.subarray(at + 6, at + 6 + length))) return null;
-                encoding = bytes.subarray(at + 1, at + 6 + length);
             } else {
-                return null;
+                // a string or an array: its encoding, as the client sent it, is what the heap keeps; one larger
+                // than the heap takes is kept as an object by the engine
+                const end = bytesVariantEnd(bytes, at + 1);
+                if (end < 0 || end - (at + 1) > MAX_SHARED_ENCODING || !reader.writableAsBytes(i)) return null;
+                encoding = bytes.subarray(at + 1, end);
             }
             if (!reader.acceptsForWrite(i, variantType)) return null;
             const dataValue = decodeDataValue(stream);
-            if (dataValue.value.dataType !== variantType || dataValue.value.arrayType !== VariantArrayType.Scalar) return null;
+            const arrayType = array ? VariantArrayType.Array : VariantArrayType.Scalar;
+            if (dataValue.value.dataType !== variantType || dataValue.value.arrayType !== arrayType) return null;
             encodings[k] = encoding;
             indexes[k] = i;
             generations[k] = reader.generation(i);
