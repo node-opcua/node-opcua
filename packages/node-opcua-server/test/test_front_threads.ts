@@ -754,3 +754,196 @@ describe("FrontThreadEngine: the number of fronts", function () {
         }
     });
 });
+
+// the port of the concurrent in-place writes below
+const concurrentWritesPort = 5850;
+
+describe("FrontThreadEngine: many connections write the same compact Variables in place while the columns grow", function () {
+    this.timeout(120000);
+    // a value says who wrote it, and the timestamp it was written with says the same: a read that returns
+    // a value and a timestamp from two different writers is torn
+    const EPOCH = Date.UTC(2026, 0, 1);
+    const WRITERS_PER_FRONT = 3;
+    const VARIABLES = ["Double0", "Double1", "Int32_0"];
+    const RUN_MS = 5000;
+
+    let engine: FrontThreadEngine;
+    let ns: number;
+    const clients: OPCUAClient[] = [];
+    const sessions: ClientSession[] = [];
+    /** the front of each session */
+    const frontOf: number[] = [];
+
+    const nodeId = (name: string) => `ns=${ns};s=${name}`;
+    const encode = (writer: number, seq: number) => writer * 100000 + seq;
+    const dataTypeOf = (name: string) => (name.startsWith("Int32") ? DataType.Int32 : DataType.Double);
+    const inEngine = (name: string): DataValue =>
+        (engine.addressSpace.findNode(nodeId(name)) as unknown as { readValue(): DataValue }).readValue();
+    /** null when the DataValue is consistent: its timestamp is the one its value was written with */
+    const tornness = (dataValue: DataValue): string | null => {
+        const value = dataValue.value.value as number;
+        const timestamp = dataValue.sourceTimestamp?.getTime();
+        return timestamp === EPOCH + value
+            ? null
+            : `value ${value} with sourceTimestamp ${timestamp === undefined ? "none" : timestamp - EPOCH}`;
+    };
+
+    before(async () => {
+        engine = await FrontThreadEngine.create({ serverCapabilities: { minSupportedSampleRate: 0 } });
+        ns = engine.registerNamespace("urn:test:front-threads-concurrent-writes");
+        const space = engine.addressSpace;
+        const folder = space.addFolder(space.findNode("ns=0;i=85") as never, "Shared");
+        for (const name of VARIABLES) {
+            const dataType = dataTypeOf(name);
+            const variable = space.addVariable({
+                nodeId: nodeId(name),
+                browseName: name,
+                componentOf: folder,
+                dataType: DataType[dataType],
+                value: { dataType, value: 0 }
+            });
+            variable.setValueFromSource({ dataType, value: 0 }, StatusCodes.Good, new Date(EPOCH));
+        }
+        await engine.start({
+            fronts: 2,
+            serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
+            serverModuleData: { port: concurrentWritesPort }
+        });
+        // the clients go round the endpoints: one per front elsewhere than Linux, spread by the kernel there
+        for (let k = 0; k < 2 * WRITERS_PER_FRONT; k++) {
+            const client = OPCUAClient.create({ endpointMustExist: false, connectionStrategy: { maxRetry: 0 } });
+            const url = new URL(engine.endpointUrls[k % engine.endpointUrls.length]);
+            await client.connect(`opc.tcp://localhost:${url.port}`);
+            clients.push(client);
+            sessions.push(await client.createSession());
+            frontOf.push(k % engine.endpointUrls.length);
+        }
+    });
+    after(async () => {
+        for (const session of sessions) await session.close();
+        for (const client of clients) await client.disconnect();
+        await engine.shutdown();
+    });
+
+    it("keeps a value and its timestamp together, and ends with one value everywhere", async () => {
+        const space = engine.addressSpace;
+        const folder = space.findNode(nodeId(VARIABLES[0]))?.parent as never;
+        const writesBefore = engine.serviceRequests.write;
+
+        // one item on Double0 behind each front
+        const subscriptions: ClientSubscription[] = [];
+        const monitored: { values: DataValue[]; item: ClientMonitoredItem }[] = [];
+        for (const k of [0, 1]) {
+            const subscription = await sessions[k].createSubscription2({
+                requestedPublishingInterval: 20,
+                requestedMaxKeepAliveCount: 10,
+                requestedLifetimeCount: 1000,
+                publishingEnabled: true
+            });
+            subscriptions.push(subscription);
+            monitored.push(
+                await monitor(
+                    subscription,
+                    { nodeId: nodeId("Double0"), attributeId: AttributeIds.Value },
+                    { samplingInterval: 10, queueSize: 100000, discardOldest: true }
+                )
+            );
+        }
+        should(frontOf[0]).not.eql(frontOf[1], "the two items are behind two fronts");
+
+        const violations: string[] = [];
+        const badStatuses: string[] = [];
+        let writes = 0;
+        let reads = 0;
+        let running = true;
+
+        // a request of BATCH values, spread over the Variables: two fronts then hit the same value at the same time
+        const BATCH = 100;
+        const client = async (session: ClientSession, writer: number) => {
+            for (let seq = 1; running && seq + BATCH < 100000; seq += BATCH) {
+                const names: string[] = [];
+                const nodesToWrite = [];
+                for (let k = 0; k < BATCH; k++) {
+                    const name = VARIABLES[(seq + k + writer) % VARIABLES.length];
+                    const dataType = dataTypeOf(name);
+                    const value = encode(writer, seq + k);
+                    names.push(name);
+                    nodesToWrite.push({
+                        nodeId: nodeId(name),
+                        attributeId: AttributeIds.Value,
+                        value: new DataValue({ value: new Variant({ dataType, value }), sourceTimestamp: new Date(EPOCH + value) })
+                    });
+                }
+                const statuses = await session.write(nodesToWrite);
+                writes += BATCH;
+                statuses.forEach((status, k) => {
+                    if (status !== StatusCodes.Good) badStatuses.push(`${names[k]}: ${status.toString()}`);
+                });
+            }
+        };
+
+        // reads of the same Variables, BATCH times each, while the others write
+        const reader = async (session: ClientSession) => {
+            const nodesToRead = Array.from({ length: BATCH * VARIABLES.length }, (_, k) => ({
+                nodeId: nodeId(VARIABLES[k % VARIABLES.length]),
+                attributeId: AttributeIds.Value
+            }));
+            while (running) {
+                for (const dataValue of await session.read(nodesToRead)) {
+                    reads++;
+                    const torn = dataValue.statusCode.isGood() ? tornness(dataValue) : `status ${dataValue.statusCode.toString()}`;
+                    if (torn) violations.push(torn);
+                }
+            }
+        };
+
+        // the engine adds nodes meanwhile: the columns of the value store grow and move again and again
+        let added = 0;
+        const grow = async () => {
+            while (running) {
+                for (let k = 0; k < 100; k++, added++) {
+                    space.addVariable({
+                        nodeId: `ns=${ns};i=${200000 + added}`,
+                        browseName: `G${added}`,
+                        componentOf: folder,
+                        dataType: "Int32",
+                        value: { dataType: DataType.Int32, value: added }
+                    });
+                }
+                await pause(25);
+            }
+        };
+
+        const stop = pause(RUN_MS).then(() => {
+            running = false;
+        });
+        await Promise.all([stop, grow(), ...sessions.map((session, k) => client(session, k + 1)), ...sessions.map(reader)]);
+
+        should(badStatuses).eql([]);
+        should(violations).eql([]);
+        should(writes).be.above(50, "the clients made progress");
+        should(reads).be.above(1500);
+        should(added).be.above(1500, "the columns grew during the run");
+        // most writes were made in place: the engine saw only those it was handed back
+        should(engine.serviceRequests.write - writesBefore).be.below(writes / 2);
+
+        // once the writers stopped: one value for everybody
+        await pause(300);
+        for (const name of VARIABLES) {
+            const final = inEngine(name);
+            should(tornness(final)).eql(null, `${name} in the engine`);
+            for (const session of sessions) {
+                const read = await session.read({ nodeId: nodeId(name), attributeId: AttributeIds.Value });
+                should(tornness(read)).eql(null, name);
+                should(read.value.value).eql(final.value.value, `${name} seen from a front`);
+            }
+        }
+        const finalValue = inEngine("Double0").value.value;
+        for (const { values } of monitored) {
+            await until(() => values.length > 0 && values[values.length - 1].value.value === finalValue, "the last value reported");
+            for (const dataValue of values) should(tornness(dataValue)).eql(null);
+        }
+        for (const { item } of monitored) await item.terminate();
+        for (const subscription of subscriptions) await subscription.terminate();
+    });
+});
