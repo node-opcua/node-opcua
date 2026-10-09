@@ -5,6 +5,7 @@
  * application bound to it; its writes into the columns, with a version bump the samplers see.
  */
 
+import type { EventEmitter } from "node:events";
 import type { ISessionContext } from "node-opcua-address-space-base";
 import { AttributeIds, isValidDataEncoding, type QualifiedNameLike } from "node-opcua-data-model";
 import { DataValue, extractRange } from "node-opcua-data-value";
@@ -19,6 +20,9 @@ import { ValueKind } from "../value_store.js";
 import type { StoreAddressSpace } from "./store_address_space.js";
 import { deniedDataValue, valueDataValue } from "./store_data_value.js";
 import { StoreNodeView, type VariableBinding } from "./store_node_view.js";
+
+/** a listener as EventEmitter takes it */
+type Listener = Parameters<EventEmitter["addListener"]>[1];
 
 export class StoreVariableView extends StoreNodeView {
     // the DataValue built for the value's version: handed out again until the value moves
@@ -246,15 +250,15 @@ export class StoreVariableView extends StoreNodeView {
     }
 
     // the store knows whether the value is listened to: a thread writing it in place then tells this view
-    public override addListener(event: string | symbol, listener: (...args: any[]) => void): this {
+    public override addListener(event: string | symbol, listener: Listener): this {
         super.addListener(event, listener);
         this.listenersChanged();
         return this;
     }
-    public override on(event: string | symbol, listener: (...args: any[]) => void): this {
+    public override on(event: string | symbol, listener: Listener): this {
         return this.addListener(event, listener);
     }
-    public override prependListener(event: string | symbol, listener: (...args: any[]) => void): this {
+    public override prependListener(event: string | symbol, listener: Listener): this {
         super.prependListener(event, listener);
         this.listenersChanged();
         return this;
