@@ -590,6 +590,19 @@ function _merge_base_declaration(
     // c8 ignore next
     doTrace && traceLog(extraInfo.pad(), "merging base declaration ", fullPath2(baseDeclaration), " into ", fullPath2(clonedNode));
     _register_existing_children(baseDeclaration, clonedNode, extraInfo);
+    // a member the clone already reaches without aggregating it (OPC 30500 LADS: Operational
+    // organizes its state machine's Stop) is present as well: cloned again from the base
+    // declaration, it was a second Stop, or "already registered" with symbolic names
+    const aggregates = clonedNode.addressSpace.findReferenceType("Aggregates");
+    for (const reference of clonedNode.findReferencesEx("HierarchicalReferences", BrowseDirection.Forward)) {
+        const referenceType = clonedNode.addressSpace.findReferenceType(reference.referenceType);
+        if (!referenceType || (aggregates && referenceType.isSubtypeOf(aggregates))) continue;
+        const member = reference.node ?? clonedNode.addressSpace.findNode(reference.nodeId);
+        if (member)
+            browseNameMap.add(
+                `${clonedNode.nodeId.toString()}(${clonedNode.browseName.toString()})/${member.browseName.toString()}`
+            );
+    }
     _clone_hierarchical_references(
         baseDeclaration as UAObject | UAVariable | UAMethod,
         clonedNode as UAObject | UAVariable | UAMethod,
