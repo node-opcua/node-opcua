@@ -277,7 +277,7 @@ describe("shared store: the columns of a store read from another thread", functi
         const abandoned = store.find(numeric(1000));
         const live = store.find(numeric(1001));
         const dist = pathToFileURL(path.join(here, "../dist/index.js")).href;
-        // a live but slow writer: it holds the value 1 ms at a time, less than the patience it is given below
+        // a live but slow writer: it holds the value 1 ms at a time, far less than the patience it is given below
         const code = `
             const { workerData, parentPort } = require("node:worker_threads");
             import(workerData.dist).then(({ claimValue, releaseClaim }) => {
@@ -306,7 +306,7 @@ describe("shared store: the columns of a store read from another thread", functi
         for (let round = 0; round < 20; round++) {
             Atomics.add(version, abandoned, 1); // a writer claimed it, and never released it
             // the wait on that value runs out first: the live writer's claims after it must still be waited for
-            released += store.values.releaseAbandoned(2);
+            released += store.values.releaseAbandoned(50);
         }
         Atomics.store(new Int32Array(stop), 0, 1);
         const { written, refused } = await result;

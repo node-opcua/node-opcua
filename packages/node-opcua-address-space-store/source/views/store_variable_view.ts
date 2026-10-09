@@ -11,7 +11,7 @@ import { DataValue, extractRange } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 import { NodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
-import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, encodedVariant, sameVariant, Variant, VariantArrayType, type VariantLike } from "node-opcua-variant";
 import { ResolvedType } from "../data_type_resolver.js";
 import { NO_NODE } from "../node_id_index.js";
@@ -24,6 +24,8 @@ export class StoreVariableView extends StoreNodeView {
     // the DataValue built for the value's version: handed out again until the value moves
     #dataValue: DataValue | undefined;
     #dataValueVersion = -1;
+    // the version of the last value told to the listeners: an older one written elsewhere comes too late
+    #toldVersion = -1;
 
     constructor(space: StoreAddressSpace, index: number) {
         super(space, index);
@@ -243,26 +245,67 @@ export class StoreVariableView extends StoreNodeView {
         this.#stored();
     }
 
+    // the store knows whether the value is listened to: a thread writing it in place then tells this view
+    public override addListener(event: string | symbol, listener: (...args: any[]) => void): this {
+        super.addListener(event, listener);
+        this.listenersChanged();
+        return this;
+    }
+    public override on(event: string | symbol, listener: (...args: any[]) => void): this {
+        return this.addListener(event, listener);
+    }
+    public override prependListener(event: string | symbol, listener: (...args: any[]) => void): this {
+        super.prependListener(event, listener);
+        this.listenersChanged();
+        return this;
+    }
+    protected override listenersChanged(): void {
+        const nodes = this.space.store.nodes;
+        const watched = this.listenerCount("value_changed") > 0;
+        if (nodes.isWatched(this.index) !== watched) nodes.setWatched(this.index, watched);
+    }
+
     /**
-     * a value another thread wrote into the store (see SharedStoreReader.writeScalar), at `version`: what
-     * follows a write here follows it too, unless the value was written again since (that write tells its own)
+     * a number or a boolean another thread wrote into the store (see SharedStoreReader.writeScalar), at
+     * `version`: its listeners are told that value, as after a write here, even when it was written again
+     * since; not when a newer value was told already (the change comes too late, it would go back in time)
      */
-    public changedElsewhere(version: number): void {
-        if (this.space.store.values.version(this.index) === version) {
-            this.#stored();
-        }
+    public changedElsewhere(
+        version: number,
+        dataType: DataType,
+        value: number,
+        statusCode: number,
+        sourceTimestamp: number,
+        serverTimestamp: number
+    ): void {
+        if (version <= this.#toldVersion) return;
+        this.#tell(version, () => {
+            const dataValue = new DataValue({
+                value: new Variant({ dataType, value: dataType === DataType.Boolean ? value !== 0 : value }),
+                sourceTimestamp: new Date(sourceTimestamp),
+                serverTimestamp: new Date(serverTimestamp)
+            });
+            dataValue.statusCode = statusCode === 0 ? StatusCodes.Good : coerceStatusCode(statusCode);
+            return dataValue;
+        });
     }
 
     #stored(): void {
+        this.#tell(this.space.store.values.version(this.index), () => this.#changedDataValue());
+    }
+
+    #tell(version: number, changed: () => DataValue): void {
+        this.#toldVersion = version;
         // what a monitored item delivered on change listens to, as on the node objects; a view
-        // with listeners is the one every writer of this node reaches (see ViewCache)
+        // with listeners is the one every writer of this node reaches (see ViewCache). The version
+        // goes along: the value may be older than the store's, for a change written elsewhere
         if (this.hasListeners()) {
-            this.emit("value_changed", this.#changedDataValue());
+            this.emit("value_changed", changed(), version);
         }
         // a historized Variable: the value goes to its historian, as on the node objects
         const historian = this.space.historians.get(this.index);
         if (historian) {
-            historian.push(this.#changedDataValue()).catch(() => undefined);
+            historian.push(changed()).catch(() => undefined);
         }
     }
 

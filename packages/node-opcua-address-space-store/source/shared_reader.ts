@@ -21,7 +21,7 @@ import { type NodeId, NodeIdType } from "node-opcua-nodeid";
 import { NAMESPACE_DEFAULT_RESTRICTIONS, NAMESPACE_DEFAULT_ROLE_PERMISSIONS, type SharedStoreDescriptor } from "./compact_store.js";
 import { ACCEPTED_TYPES_KNOWN } from "./data_type_resolver.js";
 import { NO_NODE, NodeIdIndex } from "./node_id_index.js";
-import { BOUND, HISTORIZING, INHERITED_ACCESS_RESTRICTIONS, OWN_ROLE_PERMISSIONS } from "./node_store.js";
+import { BOUND, HISTORIZING, INHERITED_ACCESS_RESTRICTIONS, OWN_ROLE_PERMISSIONS, WATCHED } from "./node_store.js";
 import { claimValue, releaseClaim, type ScalarColumns, ValueKind, writeScalarFields } from "./value_store.js";
 
 const FREE = 0;
@@ -249,6 +249,11 @@ export class SharedStoreReader {
     /** true when Variable `i` is historized: its values also go to its historian, on the owner */
     public isHistorized(i: number): boolean {
         return (this.#flags[i] & HISTORIZING) !== 0;
+    }
+
+    /** true when something on the owner listens to the changes of Variable `i`: a value written here is to be told */
+    public isWatched(i: number): boolean {
+        return (this.#flags[i] & WATCHED) !== 0;
     }
 
     /**

@@ -20,7 +20,7 @@ interface Watch {
     generation: number;
     view: StoreNodeView;
     fronts: Set<Worker>;
-    onChange: (dataValue: DataValue) => void;
+    onChange: (dataValue: DataValue, version?: number) => void;
     onDispose: () => void;
 }
 
@@ -99,8 +99,8 @@ export class ValueWatches {
                 generation,
                 view,
                 fronts: new Set(),
-                onChange: (dataValue: DataValue) => {
-                    for (const front of created.fronts) this.#queue(front, index, dataValue);
+                onChange: (dataValue: DataValue, version?: number) => {
+                    for (const front of created.fronts) this.#queue(front, index, dataValue, version);
                 },
                 onDispose: () => {
                     // the view is gone with the node: its listeners go with it
@@ -144,9 +144,9 @@ export class ValueWatches {
         return outgoing;
     }
 
-    #queue(worker: Worker, index: number, dataValue: DataValue): void {
+    /** `version`: the one of `dataValue` (a change written elsewhere may be older than the store's), else the store's */
+    #queue(worker: Worker, index: number, dataValue: DataValue, version = this.#addressSpace.store.values.version(index)): void {
         const outgoing = this.#outgoingTo(worker);
-        const version = this.#addressSpace.store.values.version(index);
         if (outgoing.inFlight) {
             const at = outgoing.waiting.get(index);
             if (at !== undefined && outgoing.indexes.length >= MAX_WAITING_CHANGES) {
