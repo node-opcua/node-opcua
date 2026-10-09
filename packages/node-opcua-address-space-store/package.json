@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-address-space-store",
     "type": "module",
-    "version": "2.187.0",
+    "version": "2.187.1",
     "description": "pure nodejs OPCUA SDK - module address-space-store: nodes, references and strings in typed columns",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

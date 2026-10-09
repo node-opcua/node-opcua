@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-address-space",
     "type": "module",
-    "version": "2.187.0",
+    "version": "2.187.1",
     "description": "pure nodejs OPCUA SDK - module address-space",
     "main": "./dist/api/index.js",
     "types": "./dist/api/index.d.ts",
@@ -24,7 +24,7 @@
         "chalk": "6.0.1",
         "dequeue": "^1.0.5",
         "node-opcua-address-space-base": "2.187.0",
-        "node-opcua-address-space-store": "2.187.0",
+        "node-opcua-address-space-store": "2.187.1",
         "node-opcua-assert": "2.186.7",
         "node-opcua-basic-types": "2.187.0",
         "node-opcua-binary-stream": "2.187.0",
