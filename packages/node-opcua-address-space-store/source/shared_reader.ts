@@ -18,11 +18,13 @@
  */
 import { NodeClass } from "node-opcua-data-model";
 import { type NodeId, NodeIdType } from "node-opcua-nodeid";
+import { DataType } from "node-opcua-variant";
 import { NAMESPACE_DEFAULT_RESTRICTIONS, NAMESPACE_DEFAULT_ROLE_PERMISSIONS, type SharedStoreDescriptor } from "./compact_store.js";
 import { ACCEPTED_TYPES_KNOWN } from "./data_type_resolver.js";
 import { NO_NODE, NodeIdIndex } from "./node_id_index.js";
 import { BOUND, HISTORIZING, INHERITED_ACCESS_RESTRICTIONS, OWN_ROLE_PERMISSIONS, WATCHED } from "./node_store.js";
-import { claimValue, releaseClaim, type ScalarColumns, ValueKind, writeScalarFields } from "./value_store.js";
+import { leaveSlot, slotFor, takeSlot } from "./shared_heap.js";
+import { claimValue, releaseClaim, type ScalarColumns, ValueKind, writeScalarFields, writeValueFields } from "./value_store.js";
 
 const FREE = 0;
 const EMPTY = -1;
@@ -101,6 +103,8 @@ export class SharedStoreReader {
     readonly #heapBytes: Uint8Array;
     readonly #heapOffset: Int32Array;
     readonly #heapLength: Int32Array;
+    readonly #heapCapacity: Int32Array;
+    readonly #heapState: Int32Array;
 
     constructor(descriptor: SharedStoreDescriptor) {
         this.#layout = new Int32Array(descriptor.layout);
@@ -150,6 +154,8 @@ export class SharedStoreReader {
         this.#heapBytes = new Uint8Array(v.heap.bytes);
         this.#heapOffset = new Int32Array(v.heap.offset);
         this.#heapLength = new Int32Array(v.heap.length);
+        this.#heapCapacity = new Int32Array(v.heap.capacity);
+        this.#heapState = new Int32Array(v.heap.state);
     }
 
     /**
@@ -257,16 +263,85 @@ export class SharedStoreReader {
     }
 
     /**
+     * true when this thread may write the Value of node `i` as bytes (see writeBytes), for any session: a
+     * Variable every session may write, no setter, not historized, nothing on the owner listening to its
+     * changes (a change written here would have to be told with its bytes), holding a value the store keeps
+     * as bytes only (in the heap, not an ExtensionObject: the owner keeps that one decoded too)
+     */
+    public writableAsBytes(i: number): boolean {
+        if (!this.#writableByAll(i) || (this.#flags[i] & WATCHED) !== 0) return false;
+        return this.#valueKind[i] === ValueKind.Object && this.#heapLength[i] > 0 && this.#dataType[i] !== DataType.ExtensionObject;
+    }
+
+    /** a Variable every session may write: CurrentWrite in its access levels, no permission rule, no setter, not historized */
+    #writableByAll(i: number): boolean {
+        if (i === NO_NODE || this.#nodeClass[i] !== NodeClass.Variable) return false;
+        if ((this.#flags[i] & (BOUND | HISTORIZING)) !== 0) return false;
+        if ((this.#accessLevel[i] & CURRENT_WRITE) === 0 || (this.#userAccessLevel[i] & CURRENT_WRITE) === 0) return false;
+        return this.#permitsAll(i);
+    }
+
+    /**
+     * write a value given as its binary encoding (a Variant, as the heap keeps it) into node `i`, from this
+     * thread, as the owner's setObject does: claim the value, write its bytes into its slot (or a new one,
+     * taken at the top of the heap, when they do not fit), its fields, release it. `generation` is the one
+     * seen when the node was found. Returns the version written; -1 when nothing was written (the columns
+     * moved, the heap is full, the node changed or holds something else): the owner must write it
+     */
+    public writeBytes(
+        i: number,
+        generation: number,
+        dataType: number,
+        bytes: Uint8Array,
+        statusCode: number,
+        sourceTimestamp: number,
+        serverTimestamp: number
+    ): number {
+        if (!this.isCurrent()) return -1;
+        const version = this.#version;
+        const claimed = claimValue(version, i);
+        // held: the owner may have moved the columns or the heap, reused the index or stored something else
+        if (
+            !this.isCurrent() ||
+            this.#generation[i] !== generation ||
+            (this.#flags[i] & DELETED) !== 0 ||
+            this.#valueKind[i] !== ValueKind.Object ||
+            this.#heapLength[i] <= 0 ||
+            this.#dataType[i] === DataType.ExtensionObject
+        ) {
+            releaseClaim(version, i, claimed);
+            return -1;
+        }
+        const length = bytes.length;
+        const capacity = this.#heapCapacity[i];
+        if (length > capacity) {
+            const wanted = slotFor(length);
+            const offset = takeSlot(this.#heapState, this.#heapBytes, wanted);
+            if (offset < 0) {
+                // the heap is full: the owner compacts it, writing this value
+                releaseClaim(version, i, claimed);
+                return -1;
+            }
+            leaveSlot(this.#heapState, capacity);
+            this.#heapOffset[i] = offset; // check-proto-pollution: ok - typed array, node index
+            this.#heapCapacity[i] = wanted; // check-proto-pollution: ok - typed array, node index
+        }
+        this.#heapBytes.set(bytes, this.#heapOffset[i]);
+        this.#heapLength[i] = length; // check-proto-pollution: ok - typed array, node index
+        writeValueFields(this.#scalar, i, ValueKind.Object, dataType, 0, statusCode, sourceTimestamp, serverTimestamp, 0, 0);
+        // taken over (this thread held it too long): another writer owns the value now
+        return releaseClaim(version, i, claimed) ? claimed + 1 : -1;
+    }
+
+    /**
      * true when this thread may write the Value of node `i` itself, for any session: a Variable every session
      * may write (CurrentWrite in its access levels, no permission rule, see isOpen), no setter, not historized,
      * holding a number or a boolean. Anything else is the owner's to write.
      */
     public writableInPlace(i: number): boolean {
-        if (i === NO_NODE || this.#nodeClass[i] !== NodeClass.Variable) return false;
-        if ((this.#flags[i] & (BOUND | HISTORIZING)) !== 0) return false;
-        if ((this.#accessLevel[i] & CURRENT_WRITE) === 0 || (this.#userAccessLevel[i] & CURRENT_WRITE) === 0) return false;
+        if (!this.#writableByAll(i)) return false;
         const kind = this.#valueKind[i];
-        return (kind === ValueKind.Number || kind === ValueKind.Boolean) && this.#permitsAll(i);
+        return kind === ValueKind.Number || kind === ValueKind.Boolean;
     }
 
     /**

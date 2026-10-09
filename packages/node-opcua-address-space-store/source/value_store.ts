@@ -154,9 +154,37 @@ export function writeScalarFields(
     sourcePicoseconds: number,
     serverPicoseconds: number
 ): void {
-    c.kind[i] = typeof value === "boolean" ? ValueKind.Boolean : ValueKind.Number;
+    const boolean = typeof value === "boolean";
+    writeValueFields(
+        c,
+        i,
+        boolean ? ValueKind.Boolean : ValueKind.Number,
+        dataType,
+        boolean ? (value ? 1 : 0) : value,
+        statusCode,
+        sourceTimestamp,
+        serverTimestamp,
+        sourcePicoseconds,
+        serverPicoseconds
+    );
+}
+
+/** the fields of a value, written under the claim of value `i`; `number` is 0 for a value kept as an object */
+export function writeValueFields(
+    c: ScalarColumns,
+    i: number,
+    kind: ValueKind,
+    dataType: number,
+    number: number,
+    statusCode: number,
+    sourceTimestamp: number,
+    serverTimestamp: number,
+    sourcePicoseconds: number,
+    serverPicoseconds: number
+): void {
+    c.kind[i] = kind;
     c.dataType[i] = dataType;
-    c.number[i] = typeof value === "boolean" ? (value ? 1 : 0) : value;
+    c.number[i] = number;
     c.statusCode[i] = statusCode;
     c.sourceTimestamp[i] = sourceTimestamp;
     c.sourcePicoseconds[i] = sourcePicoseconds;
@@ -194,6 +222,15 @@ export class ValueStore {
         this.#serverPicoseconds = space.allocate(Uint16Array, n);
         this.#version = space.allocate(Uint32Array, n);
         this.#heap = space.shared ? new SharedHeap(space, n) : null;
+        if (this.#heap) {
+            // a writer in another thread checks the layout around its claim: once it moved, nothing more is
+            // written into the heap, and the writes already under way end before it is compacted; the value
+            // the owner is writing meanwhile is its own
+            this.#heap.beforeCompact = (writing) => {
+                Atomics.add(space.layout, 0, 1);
+                this.#settleWriters(50, writing);
+            };
+        }
         this.#gatherScalarColumns();
     }
 
@@ -316,14 +353,18 @@ export class ValueStore {
         // encoded before the write begins: the seqlock is held for the copy only
         const encoded = this.#heap ? encodedForReaders(value, dataType) : null;
         this.#begin(i);
-        this.#kind[i] = ValueKind.Object;
-        this.#dataType[i] = dataType;
-        this.#number[i] = 0;
-        this.#statusCode[i] = statusCode;
-        this.#sourceTimestamp[i] = sourceTimestamp;
-        this.#sourcePicoseconds[i] = sourcePicoseconds;
-        this.#serverTimestamp[i] = serverTimestamp;
-        this.#serverPicoseconds[i] = serverPicoseconds;
+        writeValueFields(
+            this.#scalar,
+            i,
+            ValueKind.Object,
+            dataType,
+            0,
+            statusCode,
+            sourceTimestamp,
+            serverTimestamp,
+            sourcePicoseconds,
+            serverPicoseconds
+        );
         if (encoded && this.#heap) {
             this.#heap.write(i, encoded);
             if (dataType === DataType.ExtensionObject) {
@@ -389,42 +430,81 @@ export class ValueStore {
      * non-scalar value, which a shared store would decode, for a caller that has it already
      */
     public get(i: number, withObject = true): StoredValue {
-        const kind = this.#kind[i] as ValueKind;
+        // a shared store: another thread may write the value meanwhile (see SharedStoreReader.writeScalar,
+        // writeBytes): its fields and bytes are read under the value's seqlock, and decoded after
+        const version = this.#space.shared ? this.#version : null;
+        let kind: ValueKind;
         let value: unknown;
-        switch (kind) {
-            case ValueKind.Number:
-                value = this.#number[i];
-                break;
-            case ValueKind.Boolean:
-                value = this.#number[i] !== 0;
-                break;
-            case ValueKind.Object:
-                value = withObject ? (this.#objects.get(i) ?? this.#decoded(i)) : undefined;
-                break;
-            default:
-                value = undefined;
+        let bytes: Uint8Array | null;
+        let stored: StoredValue;
+        for (;;) {
+            const before = version ? this.#writtenVersion(i) : 0;
+            kind = this.#kind[i] as ValueKind;
+            bytes = null;
+            switch (kind) {
+                case ValueKind.Number:
+                    value = this.#number[i];
+                    break;
+                case ValueKind.Boolean:
+                    value = this.#number[i] !== 0;
+                    break;
+                case ValueKind.Object:
+                    value = withObject ? this.#objects.get(i) : undefined;
+                    if (withObject && value === undefined && this.#heap && this.#heap.length(i) > 0) bytes = this.#heap.copy(i);
+                    break;
+                default:
+                    value = undefined;
+            }
+            stored = {
+                kind,
+                dataType: this.#dataType[i] as DataType,
+                value,
+                statusCode: this.#statusCode[i],
+                sourceTimestamp: this.#sourceTimestamp[i],
+                sourcePicoseconds: this.#sourcePicoseconds[i],
+                serverTimestamp: this.#serverTimestamp[i],
+                serverPicoseconds: this.#serverPicoseconds[i]
+            };
+            if (!version || Atomics.load(version, i) === before) break;
         }
-        return {
-            kind,
-            dataType: this.#dataType[i] as DataType,
-            value,
-            statusCode: this.#statusCode[i],
-            sourceTimestamp: this.#sourceTimestamp[i],
-            sourcePicoseconds: this.#sourcePicoseconds[i],
-            serverTimestamp: this.#serverTimestamp[i],
-            serverPicoseconds: this.#serverPicoseconds[i]
-        };
+        // a value kept as bytes only: decoded from the copy, an array must not alias the heap
+        if (bytes) stored.value = decodeVariant(new BinaryStream(Buffer.from(bytes)));
+        return stored;
     }
 
     /** a copy of the encoding of value `i` in the shared heap; null when it has none */
     public encodedCopy(i: number): Uint8Array | null {
-        return this.#heap && this.#heap.length(i) > 0 ? this.#heap.copy(i) : null;
+        const heap = this.#heap;
+        if (!heap) return null;
+        for (;;) {
+            const before = this.#writtenVersion(i);
+            const bytes = heap.length(i) > 0 ? heap.copy(i) : null;
+            if (Atomics.load(this.#version, i) === before) return bytes;
+        }
     }
 
-    /** a value kept as bytes only (a shared store): decoded from a copy, an array must not alias the heap */
-    #decoded(i: number): Variant | undefined {
-        if (!this.#heap || this.#heap.length(i) === 0) return undefined;
-        return decodeVariant(new BinaryStream(Buffer.from(this.#heap.copy(i))));
+    /**
+     * the version of value `i` once no write holds it (even), for a read under its seqlock. A claim held
+     * longer than a write can take was left by a thread that ended: the value is taken over and marked
+     * BadResourceUnavailable (see releaseAbandoned), as a write would take it over
+     */
+    #writtenVersion(i: number): number {
+        const version = this.#version;
+        const now = Atomics.load(version, i);
+        if ((now & 1) === 0) return now;
+        let held = now;
+        let since = Date.now();
+        for (;;) {
+            const current = Atomics.load(version, i);
+            if ((current & 1) === 0) return current;
+            if (current !== held) {
+                held = current;
+                since = Date.now();
+            } else if (Date.now() - since > CLAIM_PATIENCE_MS && Atomics.compareExchange(version, i, held, held + 2) === held) {
+                this.#statusCode[i] = BAD_RESOURCE_UNAVAILABLE;
+                Atomics.add(version, i, 1);
+            }
+        }
     }
 
     /** how many values are kept as objects */
@@ -456,10 +536,11 @@ export class ValueStore {
         return this.#settleWriters(patience);
     }
 
-    #settleWriters(patience: number): number {
+    #settleWriters(patience: number, except = -1): number {
         const version = this.#version;
         let released = 0;
         for (let i = 0; i < version.length; i++) {
+            if (i === except) continue;
             let held = Atomics.load(version, i);
             // each claim has its own patience: one a live thread just took is waited for, never taken
             let deadline = Date.now() + patience;

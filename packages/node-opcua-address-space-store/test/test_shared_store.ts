@@ -34,6 +34,32 @@ const fresh = (): SharedValue => ({
 });
 const decoded = (out: SharedValue) => decodeVariant(new BinaryStream(Buffer.from(out.encoded ?? new Uint8Array())));
 
+/** a scalar String or ByteString Variant as its binary encoding: the encoding byte, the length, the bytes */
+function encodedScalar(dataType: DataType, bytes: Uint8Array): Uint8Array {
+    const out = new Uint8Array(5 + bytes.length);
+    out[0] = dataType;
+    new DataView(out.buffer).setInt32(1, bytes.length, true);
+    out.set(bytes, 5);
+    return out;
+}
+const encodedString = (text: string) => encodedScalar(DataType.String, Buffer.from(text, "utf8"));
+
+/** a store whose Variables hold strings, kept as bytes in the shared heap */
+function buildStrings(nodes: number, text = "abc"): CompactStore {
+    const store = new CompactStore({ expectedNodes: nodes, shared: true });
+    for (let i = 0; i < nodes; i++) {
+        const index = store.addNode({
+            nodeId: numeric(1000 + i),
+            nodeClass: NodeClass.Variable,
+            browseName: `S${i}`,
+            browseNameNamespace: 1,
+            accessLevel: 3
+        });
+        store.values.setObject(index, DataType.String, { dataType: DataType.String, value: text }, 0, 1000, 2000);
+    }
+    return store;
+}
+
 function build(nodes: number): CompactStore {
     const store = new CompactStore({ expectedNodes: nodes, shared: true });
     for (let i = 0; i < nodes; i++) {
@@ -315,6 +341,194 @@ describe("shared store: the columns of a store read from another thread", functi
         should(written).be.above(10);
         should(refused).eql(0, "no claim of the live writer was taken over");
         for (let i = 0; i < 4; i++) should(store.values.version(i) % 2).eql(0, "no value left held");
+    });
+
+    it("lets another thread write a string as its bytes, in its slot or in a new one at the top of the heap", () => {
+        const store = buildStrings(4);
+        const i = store.find(numeric(1001));
+        const reader = new SharedStoreReader(store.shareForReaders());
+        should(reader.writableAsBytes(i)).eql(true);
+        const text = (stored: { value: unknown }) => (stored.value as { value: unknown }).value;
+        // the same length: the slot the value has
+        const used = store.values.heapSize;
+        const before = store.values.version(i);
+        should(reader.writeBytes(i, reader.generation(i), DataType.String, encodedString("abd"), 0, 5000, 6000)).eql(before + 2);
+        should(store.values.heapSize).eql(used, "written in its slot");
+        const stored = store.values.get(i);
+        should(text(stored)).eql("abd");
+        should(stored.dataType).eql(DataType.String);
+        should(stored.sourceTimestamp).eql(5000);
+        should(stored.serverTimestamp).eql(6000);
+        // longer than its slot: a new slot, the old one garbage
+        const longer = "a string much longer than the first one";
+        should(reader.writeBytes(i, reader.generation(i), DataType.String, encodedString(longer), 0, 1, 1)).be.above(0);
+        should(store.values.heapSize).be.above(used, "a new slot at the top");
+        should(text(store.values.get(i))).eql(longer);
+        const out = fresh();
+        should(reader.readValue(i, out)).eql(SharedReadStatus.Good);
+        should(decoded(out).value).eql(longer);
+        // a ByteString, where the DataType takes it
+        const bytes = Buffer.from([1, 2, 3, 255]);
+        should(
+            reader.writeBytes(i, reader.generation(i), DataType.ByteString, encodedScalar(DataType.ByteString, bytes), 0, 1, 1)
+        ).be.above(0);
+        should(Buffer.from(text(store.values.get(i)) as Buffer)).eql(bytes);
+        // what stays the owner's to write
+        store.nodes.setWatched(i, true);
+        should(reader.writableAsBytes(i)).eql(false, "a value the owner listens to: its change is told with the value");
+        store.nodes.setWatched(i, false);
+        store.values.setScalar(i, DataType.Double, 1, 0, 1, 1);
+        should(reader.writableAsBytes(i)).eql(false, "a number: written as a number (see writeScalar)");
+        should(reader.writeBytes(i, reader.generation(i), DataType.String, encodedString("x"), 0, 1, 1)).eql(-1);
+        should(store.values.get(i).value).eql(1);
+        store.values.setObject(i, DataType.ExtensionObject, { dataType: DataType.ExtensionObject, value: null }, 0, 1, 1);
+        should(reader.writableAsBytes(i)).eql(false, "a structure: the owner keeps it decoded too");
+    });
+
+    it("leaves a string that does not fit the heap to the owner, who compacts the heap writing it", () => {
+        const store = buildStrings(4);
+        const i = store.find(numeric(1002));
+        const reader = new SharedStoreReader(store.shareForReaders());
+        const large = "x".repeat(60000);
+        should(reader.writeBytes(i, reader.generation(i), DataType.String, encodedString(large), 0, 1, 1)).eql(-1);
+        should(store.values.version(i) % 2).eql(0, "released");
+        should((store.values.get(i).value as { value: unknown }).value).eql("abc", "unchanged");
+        store.values.setObject(i, DataType.String, { dataType: DataType.String, value: large }, 0, 1, 1);
+        should(reader.isCurrent()).eql(false, "the heap moved: this reader's buffers are old");
+        should((store.values.get(i).value as { value: unknown }).value).eql(large);
+    });
+
+    it("compacts the heap only once a value another thread is writing is whole, and keeps that value", async () => {
+        const store = buildStrings(4);
+        const i = store.find(numeric(1001));
+        const dist = pathToFileURL(path.join(here, "../dist/index.js")).href;
+        // the worker writes "xyz" over "abc" in the value's slot, as writeBytes does, slowly: one byte, 30 ms, the rest
+        const code = `
+            const { workerData, parentPort } = require("node:worker_threads");
+            import(workerData.dist).then(({ claimValue, releaseClaim }) => {
+                const { values } = workerData.descriptor;
+                const version = new Uint32Array(values.version);
+                const bytes = new Uint8Array(values.heap.bytes);
+                const offset = new Int32Array(values.heap.offset)[workerData.i];
+                const claimed = claimValue(version, workerData.i);
+                bytes[offset + 5] = 0x78;
+                parentPort.postMessage("claimed");
+                Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 30);
+                bytes[offset + 6] = 0x79;
+                bytes[offset + 7] = 0x7a;
+                releaseClaim(version, workerData.i, claimed);
+                parentPort.postMessage("released");
+            });`;
+        const worker = new Worker(code, { eval: true, workerData: { dist, descriptor: store.shareForReaders(), i } });
+        try {
+            await new Promise((resolve, reject) => {
+                worker.once("message", resolve);
+                worker.once("error", reject);
+            });
+            // a value larger than the heap's room: the owner compacts it, while the worker holds its claim
+            const own = store.addNode({
+                nodeId: numeric(5000),
+                nodeClass: NodeClass.Variable,
+                browseName: "Own",
+                browseNameNamespace: 1
+            });
+            store.values.setObject(own, DataType.String, { dataType: DataType.String, value: "o".repeat(60000) }, 0, 1, 1);
+            should((store.values.get(i).value as { value: unknown }).value).eql("xyz", "the value the worker wrote, whole");
+        } finally {
+            await worker.terminate();
+        }
+    });
+
+    it("keeps strings whole while a worker writes them in place and the owner reads them and compacts the heap", async () => {
+        const nodes = 64;
+        const store = buildStrings(nodes);
+        const index = Array.from({ length: nodes }, (_, k) => store.find(numeric(1000 + k)));
+        const dist = pathToFileURL(path.join(here, "../dist/index.js")).href;
+        // the worker writes strings "<n>:" followed by n % 61 dashes, of lengths that change, until stopped,
+        // taking new buffers when the owner compacted the heap
+        const code = `
+            const { workerData, parentPort } = require("node:worker_threads");
+            import(workerData.dist).then(({ SharedStoreReader }) => {
+                const stop = new Int32Array(workerData.stop);
+                const encode = (text) => {
+                    const bytes = Buffer.from(text, "utf8");
+                    const out = new Uint8Array(5 + bytes.length);
+                    out[0] = 12;
+                    new DataView(out.buffer).setInt32(1, bytes.length, true);
+                    out.set(bytes, 5);
+                    return out;
+                };
+                let reader = null, generations = null;
+                parentPort.on("message", (descriptor) => {
+                    reader = new SharedStoreReader(descriptor);
+                    generations = workerData.index.map((i) => reader.generation(i));
+                });
+                parentPort.postMessage("ready");
+                let n = 0, written = 0, refused = 0;
+                const loop = () => {
+                    for (let round = 0; round < 200 && reader; round++) {
+                        for (let k = 0; k < workerData.index.length; k++) {
+                            n++;
+                            const text = n + ":" + "-".repeat(n % 61);
+                            if (reader.writeBytes(workerData.index[k], generations[k], 12, encode(text), 0, n, n) < 0) refused++;
+                            else written++;
+                        }
+                    }
+                    if (Atomics.load(stop, 0) === 0) setImmediate(loop);
+                    else parentPort.postMessage({ written, refused });
+                };
+                loop();
+            });`;
+        const stop = new SharedArrayBuffer(4);
+        const worker = new Worker(code, { eval: true, workerData: { dist, index, stop } });
+        const result = new Promise<{ written: number; refused: number }>((resolve, reject) => {
+            worker.on("message", (message) => message !== "ready" && resolve(message));
+            worker.on("error", reject);
+        });
+        await new Promise((resolve) => worker.once("message", resolve));
+        worker.postMessage(store.shareForReaders());
+        // the owner reads the strings, and writes ever larger ones into a node of its own, which fills the
+        // heap again and again: each compaction gives the worker new buffers to take
+        const own = store.addNode({
+            nodeId: numeric(5000),
+            nodeClass: NodeClass.Variable,
+            browseName: "Own",
+            browseNameNamespace: 1
+        });
+        let reads = 0;
+        let torn = 0;
+        let compactions = 0;
+        let size = 0;
+        const until = Date.now() + 1500;
+        try {
+            while (Date.now() < until) {
+                for (const i of index) {
+                    const value = (store.values.get(i).value as { value: string }).value;
+                    reads++;
+                    if (value === "abc") continue;
+                    const [count, dashes] = value.split(":");
+                    if (dashes.length !== Number(count) % 61) torn++;
+                }
+                const layout = store.shareForReaders().layoutSeen;
+                size = (size + 4096) % 40000;
+                store.values.setObject(own, DataType.String, { dataType: DataType.String, value: "o".repeat(size) }, 0, 1, 1);
+                if (store.shareForReaders().layoutSeen !== layout) {
+                    compactions++;
+                    worker.postMessage(store.shareForReaders());
+                }
+                await new Promise((resolve) => setImmediate(resolve));
+            }
+        } finally {
+            Atomics.store(new Int32Array(stop), 0, 1);
+        }
+        const { written, refused } = await result;
+        await worker.terminate();
+        should(torn).eql(0);
+        should(reads).be.above(1000);
+        should(written).be.above(1000);
+        should(compactions).be.above(2, "the heap compacted under the writer");
+        should(refused).be.above(0, "the writer left values to the owner once the heap moved");
+        for (const i of index) should(store.values.version(i) % 2).eql(0, "no value left held");
     });
 
     it("keeps values whole while a worker writes in place and the owner reads, and grows its columns under it", async () => {
