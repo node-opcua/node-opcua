@@ -2,7 +2,7 @@
     "name": "node-opcua-client-crawler",
     "type": "module",
     "private": true,
-    "version": "2.187.1",
+    "version": "2.187.2",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "deprecated": true,
@@ -19,7 +19,7 @@
         "async": "^3.2.6",
         "chalk": "6.0.1",
         "node-opcua-assert": "2.186.7",
-        "node-opcua-client": "2.187.1",
+        "node-opcua-client": "2.187.2",
         "node-opcua-data-model": "2.187.0",
         "node-opcua-data-value": "2.187.0",
         "node-opcua-debug": "2.186.7",
@@ -29,7 +29,7 @@
         "thenify-ex": "4.4.0"
     },
     "devDependencies": {
-        "node-opcua-address-space": "2.187.1",
+        "node-opcua-address-space": "2.187.2",
         "node-opcua-constants": "2.185.0"
     },
     "author": "Etienne Rossignon",
