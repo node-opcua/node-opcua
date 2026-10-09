@@ -16,14 +16,15 @@ import { ValueKind, type ValueStore } from "../value_store.js";
 /** the Value of node `i` as the columns hold it: BadWaitingForInitialData when nothing was ever set */
 /** `written`: the object of the value as it was just written, which spares decoding it again */
 export function valueDataValue(values: ValueStore, i: number, written?: unknown): DataValue {
-    const kind = values.kind(i);
+    // one read of the columns: another thread may write the value between two (see ValueStore.get)
+    const stored = values.get(i, written === undefined);
+    const kind = stored.kind;
     if (kind === ValueKind.None) {
-        const status = values.statusCode(i);
+        const status = stored.statusCode;
         return new DataValue({
             statusCode: status === 0 ? StatusCodes.BadWaitingForInitialData : coerceStatusCode(status)
         });
     }
-    const stored = values.get(i, written === undefined);
     // field by field: a null-constructed Variant skips the coercion and the checks, which the
     // columns went through when the value was stored; same for the DataValue
     const variant = new Variant(null);

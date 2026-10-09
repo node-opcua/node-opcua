@@ -8,6 +8,7 @@
  * filtered by the engine.
  */
 
+import { isUtf8 } from "node:buffer";
 import type { MessagePort } from "node:worker_threads";
 import type { ISessionContext } from "node-opcua-address-space";
 import {
@@ -125,6 +126,14 @@ const SCALAR_SIZE: Record<number, number> = {
 /** a built-in type a front writes into the store itself: one the store keeps as a number or a boolean */
 function isInPlaceType(dataType: number): boolean {
     return dataType === DataType.Boolean || (SCALAR_SIZE[dataType] ?? 0) > 0;
+}
+
+/**
+ * a built-in type a front writes into the store itself as the bytes the client sent: one the store keeps
+ * as its encoding in the shared heap, and whose encoding needs no decoding to be checked
+ */
+function isBytesType(dataType: number): boolean {
+    return dataType === DataType.String || dataType === DataType.ByteString;
 }
 
 /** DataValue encoding mask: a value follows */
@@ -268,9 +277,11 @@ export class RemoteCompactBackend implements FrontNodeHost {
     }
 
     /**
-     * a Write whose values are all numbers or booleans of Variables this front may write itself (see
-     * SharedStoreReader.writableInPlace and acceptsForWrite), written into the store here, without the engine:
-     * the statuses, all Good. Null when one of them is not: the engine writes the whole request, as before.
+     * a Write whose values are all numbers or booleans, strings or ByteStrings of Variables this front may
+     * write itself (see SharedStoreReader.writableInPlace, writableAsBytes and acceptsForWrite), written into
+     * the store here, without the engine: the statuses, all Good. Null when one of them is not: the engine
+     * writes the whole request, as before. A string or a ByteString goes into the store as the bytes of its
+     * Variant, as the client encoded it: the store keeps that same encoding.
      * `nodesToWrite` is the WriteValues as the client encoded them (their count, then them); `forward` sends
      * such bytes to the engine, for the values the store refused once this front had started writing.
      */
@@ -288,6 +299,8 @@ export class RemoteCompactBackend implements FrontNodeHost {
         const generations = new Array<number>(count);
         const starts = new Array<number>(count);
         const dataValues = new Array<DataValue>(count);
+        // the encoding of a string or a ByteString: a view into the request, written before this returns
+        const encodings = new Array<Uint8Array | null>(count);
         for (let k = 0; k < count; k++) {
             starts[k] = stream.length;
             const nodeId = decodeNodeId(stream);
@@ -296,16 +309,30 @@ export class RemoteCompactBackend implements FrontNodeHost {
             // namespace 0 stays with the engine: a write there may change what it enforces (NamespaceMetadata)
             if (nodeId.namespace === 0 || !this.namespaces.has(nodeId.namespace)) return null;
             const i = reader.find(nodeId);
-            if (!reader.writableInPlace(i)) return null;
             // a scalar of a type written here, seen before the value is decoded
             const at = stream.length;
             if (at + 1 >= bytes.length || (bytes[at] & DATA_VALUE_HAS_VALUE) === 0) return null;
             const variantByte = bytes[at + 1];
             const variantType = variantByte & VARIANT_TYPE_MASK;
-            if ((variantByte & VARIANT_ARRAY_BITS) !== 0 || !isInPlaceType(variantType)) return null;
+            if ((variantByte & VARIANT_ARRAY_BITS) !== 0) return null;
+            let encoding: Uint8Array | null = null;
+            if (isInPlaceType(variantType)) {
+                if (!reader.writableInPlace(i)) return null;
+            } else if (isBytesType(variantType)) {
+                if (!reader.writableAsBytes(i) || at + 6 > bytes.length) return null;
+                // the encoding byte, the length, the bytes; a null string or ByteString stays with the engine
+                const length = bytes.readInt32LE(at + 2);
+                if (length < 0 || at + 6 + length > bytes.length) return null;
+                // a string the engine would decode with replacement characters: the engine stores what it decoded
+                if (variantType === DataType.String && !isUtf8(bytes.subarray(at + 6, at + 6 + length))) return null;
+                encoding = bytes.subarray(at + 1, at + 6 + length);
+            } else {
+                return null;
+            }
             if (!reader.acceptsForWrite(i, variantType)) return null;
             const dataValue = decodeDataValue(stream);
             if (dataValue.value.dataType !== variantType || dataValue.value.arrayType !== VariantArrayType.Scalar) return null;
+            encodings[k] = encoding;
             indexes[k] = i;
             generations[k] = reader.generation(i);
             dataValues[k] = dataValue;
@@ -316,15 +343,27 @@ export class RemoteCompactBackend implements FrontNodeHost {
         const statuses = new Array<StatusCode>(count);
         for (let k = 0; k < count; k++) {
             const dataValue = dataValues[k];
-            const version = reader.writeScalar(
-                indexes[k],
-                generations[k],
-                dataValue.value.dataType,
-                dataValue.value.value as number | boolean,
-                dataValue.statusCode.value,
-                dataValue.sourceTimestamp ? dataValue.sourceTimestamp.getTime() : now,
-                now
-            );
+            const sourceTimestamp = dataValue.sourceTimestamp ? dataValue.sourceTimestamp.getTime() : now;
+            const encoding = encodings[k];
+            const version = encoding
+                ? reader.writeBytes(
+                      indexes[k],
+                      generations[k],
+                      dataValue.value.dataType,
+                      encoding,
+                      dataValue.statusCode.value,
+                      sourceTimestamp,
+                      now
+                  )
+                : reader.writeScalar(
+                      indexes[k],
+                      generations[k],
+                      dataValue.value.dataType,
+                      dataValue.value.value as number | boolean,
+                      dataValue.statusCode.value,
+                      sourceTimestamp,
+                      now
+                  );
             if (version < 0) {
                 // the store changed under this request: the values written here stay as answered, the engine
                 // writes the others (their bytes follow one another, from this one on)
@@ -335,7 +374,8 @@ export class RemoteCompactBackend implements FrontNodeHost {
                 this.#tellWritten();
                 return forward(rest).then((others) => written.concat(others));
             }
-            if (reader.isWatched(indexes[k])) this.#noteWritten(indexes[k], version, dataValue, now);
+            // a value written as bytes has no listener on the engine (see writableAsBytes)
+            if (!encoding && reader.isWatched(indexes[k])) this.#noteWritten(indexes[k], version, dataValue, now);
             statuses[k] = StatusCodes.Good;
         }
         this.#tellWritten();

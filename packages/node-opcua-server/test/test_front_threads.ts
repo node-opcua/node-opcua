@@ -373,7 +373,7 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
         }
     });
 
-    it("writes a number in place, without the engine, and every connection reads it at once", async () => {
+    it("writes a number or a string in place, without the engine, and every connection reads it at once", async () => {
         const before = engine.serviceRequests.write;
         await write(sessions[2], `ns=${ns};s=Speed`, new Variant({ dataType: DataType.Double, value: 9 }));
         should(engine.serviceRequests.write).eql(before, "written by the front itself");
@@ -381,7 +381,16 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             const value = await session.read({ nodeId: `ns=${ns};s=Speed`, attributeId: AttributeIds.Value });
             should(value.value.value).eql(9);
         }
-        // a request with one value the front does not write itself (a string): all of it goes to the engine
+        // a string, as the bytes the client sent: in its slot of the shared heap, or a new one when longer
+        for (const name of ["pomp", "a centrifugal pump with a much longer name", "pump"]) {
+            await write(sessions[2], `ns=${ns};s=Name`, new Variant({ dataType: DataType.String, value: name }));
+            for (const session of sessions) {
+                const value = await session.read({ nodeId: `ns=${ns};s=Name`, attributeId: AttributeIds.Value });
+                should(value.value.value).eql(name);
+            }
+        }
+        should(engine.serviceRequests.write).eql(before, "the strings written by the front itself");
+        // a request with one value the front does not write itself (an array): all of it goes to the engine
         const statuses = await sessions[2].write([
             {
                 nodeId: `ns=${ns};s=Speed`,
@@ -389,9 +398,15 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
                 value: new DataValue({ value: new Variant({ dataType: DataType.Double, value: 42 }) })
             },
             {
-                nodeId: `ns=${ns};s=Name`,
+                nodeId: `ns=${ns};s=Levels`,
                 attributeId: AttributeIds.Value,
-                value: new DataValue({ value: new Variant({ dataType: DataType.String, value: "pump" }) })
+                value: new DataValue({
+                    value: new Variant({
+                        dataType: DataType.Int32,
+                        arrayType: VariantArrayType.Array,
+                        value: new Int32Array([3, 1, 4])
+                    })
+                })
             }
         ]);
         should(statuses).eql([StatusCodes.Good, StatusCodes.Good]);
