@@ -26,6 +26,7 @@ export { StringArena } from "./string_arena.js";
 export {
     CLAIM_PATIENCE_MS,
     claimValue,
+    MAX_SHARED_ENCODING,
     releaseClaim,
     type SharedValueBuffers,
     type StoredValue,

@@ -10,6 +10,7 @@ import {
 import { AttributeIds, BrowseDirection, NodeClass, QualifiedName, ResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { resolveNodeId } from "node-opcua-nodeid";
+import { NumericRange } from "node-opcua-numeric-range";
 import { DataChangeFilter, DataChangeTrigger, DeadbandType } from "node-opcua-service-subscription";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
@@ -373,7 +374,7 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
         }
     });
 
-    it("writes a number or a string in place, without the engine, and every connection reads it at once", async () => {
+    it("writes a number, a string or an array in place, without the engine, and every connection reads it at once", async () => {
         const before = engine.serviceRequests.write;
         await write(sessions[2], `ns=${ns};s=Speed`, new Variant({ dataType: DataType.Double, value: 9 }));
         should(engine.serviceRequests.write).eql(before, "written by the front itself");
@@ -389,8 +390,24 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
                 should(value.value.value).eql(name);
             }
         }
-        should(engine.serviceRequests.write).eql(before, "the strings written by the front itself");
-        // a request with one value the front does not write itself (an array): all of it goes to the engine
+        // an array, as the bytes the client sent, longer than its slot then back
+        for (const levels of [
+            [5, 6, 7, 8, 9, 10, 11, 12],
+            [3, 1, 4]
+        ]) {
+            const array = new Variant({
+                dataType: DataType.Int32,
+                arrayType: VariantArrayType.Array,
+                value: new Int32Array(levels)
+            });
+            await write(sessions[2], `ns=${ns};s=Levels`, array);
+            for (const session of sessions) {
+                const value = await session.read({ nodeId: `ns=${ns};s=Levels`, attributeId: AttributeIds.Value });
+                should(Array.from(value.value.value as Int32Array)).eql(levels);
+            }
+        }
+        should(engine.serviceRequests.write).eql(before, "the strings and arrays written by the front itself");
+        // a request with one value the front does not write itself (a part of an array): all of it goes to the engine
         const statuses = await sessions[2].write([
             {
                 nodeId: `ns=${ns};s=Speed`,
@@ -400,17 +417,21 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             {
                 nodeId: `ns=${ns};s=Levels`,
                 attributeId: AttributeIds.Value,
+                indexRange: new NumericRange("1"),
                 value: new DataValue({
-                    value: new Variant({
-                        dataType: DataType.Int32,
-                        arrayType: VariantArrayType.Array,
-                        value: new Int32Array([3, 1, 4])
-                    })
+                    value: new Variant({ dataType: DataType.Int32, arrayType: VariantArrayType.Array, value: new Int32Array([1]) })
                 })
             }
         ]);
         should(statuses).eql([StatusCodes.Good, StatusCodes.Good]);
         should(engine.serviceRequests.write).eql(before + 1);
+        // a string larger than the shared heap keeps: the engine writes it, and keeps it as an object
+        const large = "L".repeat(70000);
+        await write(sessions[2], `ns=${ns};s=Name`, new Variant({ dataType: DataType.String, value: large }));
+        should(engine.serviceRequests.write).eql(before + 2);
+        const read = await sessions[0].read({ nodeId: `ns=${ns};s=Name`, attributeId: AttributeIds.Value });
+        should(read.value.value).eql(large);
+        await write(sessions[2], `ns=${ns};s=Name`, new Variant({ dataType: DataType.String, value: "pump" }));
         // a refused type is still refused: the engine answers it
         const [refused] = await sessions[2].write([
             {
