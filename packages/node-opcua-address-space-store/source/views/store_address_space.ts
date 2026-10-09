@@ -216,11 +216,12 @@ export class StoreAddressSpace {
     }
 
     /**
-     * numbers and booleans other threads wrote into the store, WRITTEN_FIELDS numbers each (see WrittenField):
+     * values other threads wrote into the store, WRITTEN_FIELDS numbers each (see WrittenField), and for
+     * each the encoding of a value written as bytes (a string, an array), null for a number or a boolean:
      * their listeners are told, as after a write here. A node without a view has no listener
      */
-    public changedElsewhere(written: readonly number[]): void {
-        for (let at = 0; at + WRITTEN_FIELDS <= written.length; at += WRITTEN_FIELDS) {
+    public changedElsewhere(written: readonly number[], encodings?: readonly (Uint8Array | null)[]): void {
+        for (let at = 0, k = 0; at + WRITTEN_FIELDS <= written.length; at += WRITTEN_FIELDS, k++) {
             const view = this.#views.get(written[at + WrittenField.Index]);
             if (view instanceof StoreVariableView) {
                 view.changedElsewhere(
@@ -229,7 +230,8 @@ export class StoreAddressSpace {
                     written[at + WrittenField.Value],
                     written[at + WrittenField.StatusCode],
                     written[at + WrittenField.SourceTimestamp],
-                    written[at + WrittenField.ServerTimestamp]
+                    written[at + WrittenField.ServerTimestamp],
+                    encodings?.[k] ?? null
                 );
             }
         }

@@ -280,12 +280,16 @@ export class StoreVariableView extends StoreNodeView {
         value: number,
         statusCode: number,
         sourceTimestamp: number,
-        serverTimestamp: number
+        serverTimestamp: number,
+        encoding: Uint8Array | null = null
     ): void {
         if (version <= this.#toldVersion) return;
         this.#tell(version, () => {
             const dataValue = new DataValue({
-                value: new Variant({ dataType, value: dataType === DataType.Boolean ? value !== 0 : value }),
+                // a value written as bytes goes as its encoding, decoded only if a listener reads it
+                value: encoding
+                    ? encodedVariant(encoding)
+                    : new Variant({ dataType, value: dataType === DataType.Boolean ? value !== 0 : value }),
                 sourceTimestamp: new Date(sourceTimestamp),
                 serverTimestamp: new Date(serverTimestamp)
             });

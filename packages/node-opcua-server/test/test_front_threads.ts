@@ -616,6 +616,26 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             await item.terminate();
         });
 
+        it("reports every string written in place to a watched node, in order, without the engine writing it", async () => {
+            const { item, values } = await monitor(
+                subscriptions[1],
+                { nodeId: `ns=${ns};s=Name`, attributeId: AttributeIds.Value },
+                { samplingInterval: 0, queueSize: 100, discardOldest: true }
+            );
+            await until(() => values.length >= 1, "the initial value");
+            const before = engine.serviceRequests.write;
+            // lengths that change: some in the value's slot, some in a new one
+            const names = Array.from({ length: 12 }, (_, k) => `name-${k}-${"x".repeat((k * 7) % 23)}`);
+            for (let k = 0; k < names.length; k++) {
+                await write(sessions[1 + (k % 3)], `ns=${ns};s=Name`, new Variant({ dataType: DataType.String, value: names[k] }));
+            }
+            await until(() => values.some((v) => v.value.value === names[names.length - 1]), "the last string");
+            should(engine.serviceRequests.write).eql(before, "written by the fronts themselves");
+            should(values.slice(1).map((v) => v.value.value)).eql(names, "one notification per write, in order");
+            await item.terminate();
+            await write(sessions[1], `ns=${ns};s=Name`, new Variant({ dataType: DataType.String, value: "pump" }));
+        });
+
         it("monitors an attribute other than the Value", async () => {
             const { item, values } = await monitor(
                 subscriptions[2],

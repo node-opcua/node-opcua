@@ -264,12 +264,11 @@ export class SharedStoreReader {
 
     /**
      * true when this thread may write the Value of node `i` as bytes (see writeBytes), for any session: a
-     * Variable every session may write, no setter, not historized, nothing on the owner listening to its
-     * changes (a change written here would have to be told with its bytes), holding a value the store keeps
-     * as bytes only (in the heap, not an ExtensionObject: the owner keeps that one decoded too)
+     * Variable every session may write, no setter, not historized, holding a value the store keeps as bytes
+     * only (in the heap, not an ExtensionObject: the owner keeps that one decoded too)
      */
     public writableAsBytes(i: number): boolean {
-        if (!this.#writableByAll(i) || (this.#flags[i] & WATCHED) !== 0) return false;
+        if (!this.#writableByAll(i)) return false;
         return this.#valueKind[i] === ValueKind.Object && this.#heapLength[i] > 0 && this.#dataType[i] !== DataType.ExtensionObject;
     }
 

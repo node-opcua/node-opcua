@@ -375,7 +375,7 @@ describe("shared store: the columns of a store read from another thread", functi
         should(Buffer.from(text(store.values.get(i)) as Buffer)).eql(bytes);
         // what stays the owner's to write
         store.nodes.setWatched(i, true);
-        should(reader.writableAsBytes(i)).eql(false, "a value the owner listens to: its change is told with the value");
+        should(reader.writableAsBytes(i)).eql(true, "a value the owner listens to: the writer tells it, with the bytes");
         store.nodes.setWatched(i, false);
         store.values.setScalar(i, DataType.Double, 1, 0, 1, 1);
         should(reader.writableAsBytes(i)).eql(false, "a number: written as a number (see writeScalar)");
