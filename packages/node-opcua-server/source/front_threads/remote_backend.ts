@@ -374,8 +374,7 @@ export class RemoteCompactBackend implements FrontNodeHost {
                 this.#tellWritten();
                 return forward(rest).then((others) => written.concat(others));
             }
-            // a value written as bytes has no listener on the engine (see writableAsBytes)
-            if (!encoding && reader.isWatched(indexes[k])) this.#noteWritten(indexes[k], version, dataValue, now);
+            if (reader.isWatched(indexes[k])) this.#noteWritten(indexes[k], version, dataValue, now, encoding);
             statuses[k] = StatusCodes.Good;
         }
         this.#tellWritten();
@@ -384,9 +383,13 @@ export class RemoteCompactBackend implements FrontNodeHost {
 
     // the values written here that the engine listens to, each as it was written (WrittenField)
     #written: number[] = [];
+    // one per value of #written: the encoding of a value written as bytes, null for a number or a boolean
+    #encodings: (Uint8Array | null)[] = [];
 
-    #noteWritten(index: number, version: number, dataValue: DataValue, now: number): void {
-        const value = dataValue.value.value as number | boolean;
+    #noteWritten(index: number, version: number, dataValue: DataValue, now: number, encoding: Uint8Array | null): void {
+        const value = encoding ? 0 : (dataValue.value.value as number | boolean);
+        // a copy: the encoding is a view into the request, which a message would carry whole
+        this.#encodings.push(encoding ? encoding.slice() : null);
         this.#written.push(
             index,
             version,
@@ -406,8 +409,10 @@ export class RemoteCompactBackend implements FrontNodeHost {
     #tellWritten(): void {
         if (this.#written.length === 0) return;
         const written = this.#written;
+        const encodings = this.#encodings;
         this.#written = [];
-        this.#channel.send({ kind: "written", written });
+        this.#encodings = [];
+        this.#channel.send({ kind: "written", written, encodings });
     }
 
     /** the index of the node whose Value readAt() serves from the shared store, without the engine; -1 when it cannot */
