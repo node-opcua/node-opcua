@@ -93,6 +93,77 @@ export interface StoredValue {
 /** StatusCodes.BadResourceUnavailable: a value a thread left half written */
 const BAD_RESOURCE_UNAVAILABLE = 0x80040000;
 
+/**
+ * how long a writer waits for a value another thread holds before taking it over: a write holds a value
+ * for well under a microsecond, so a claim held this long belongs to a thread that ended in the middle of it
+ */
+export const CLAIM_PATIENCE_MS = 500;
+
+/**
+ * claim value `i` of a shared version column for a write: from an even version to the next odd one,
+ * waiting while another thread holds it. A claim still held after `patience` ms is taken over (the
+ * version moves by two, so that the release of the former holder fails). Returns the version claimed (odd).
+ */
+export function claimValue(version: Uint32Array, i: number, patience = CLAIM_PATIENCE_MS): number {
+    let held = -1;
+    let since = 0;
+    let spins = 0;
+    for (;;) {
+        const current = Atomics.load(version, i);
+        if ((current & 1) === 0) {
+            if (Atomics.compareExchange(version, i, current, current + 1) === current) return current + 1;
+            continue;
+        }
+        if (current !== held) {
+            // another holder, or the same one again: its own patience
+            held = current;
+            since = Date.now();
+            spins = 0;
+        } else if ((++spins & 1023) === 0 && Date.now() - since > patience) {
+            if (Atomics.compareExchange(version, i, current, current + 2) === current) return current + 2;
+        }
+    }
+}
+
+/** release the claim `claimed` of value `i`; false when it was taken over meanwhile: what was written is not the value */
+export function releaseClaim(version: Uint32Array, i: number, claimed: number): boolean {
+    return Atomics.compareExchange(version, i, claimed, claimed + 1) === claimed;
+}
+
+/** the columns a number or a boolean is written into, by the owner and by a thread writing in place */
+export interface ScalarColumns {
+    kind: Uint8Array;
+    dataType: Uint8Array;
+    number: Float64Array;
+    statusCode: Uint32Array;
+    sourceTimestamp: Float64Array;
+    sourcePicoseconds: Uint16Array;
+    serverTimestamp: Float64Array;
+    serverPicoseconds: Uint16Array;
+}
+
+/** the fields of a number or a boolean, written under the claim of value `i` */
+export function writeScalarFields(
+    c: ScalarColumns,
+    i: number,
+    dataType: number,
+    value: number | boolean,
+    statusCode: number,
+    sourceTimestamp: number,
+    serverTimestamp: number,
+    sourcePicoseconds: number,
+    serverPicoseconds: number
+): void {
+    c.kind[i] = typeof value === "boolean" ? ValueKind.Boolean : ValueKind.Number;
+    c.dataType[i] = dataType;
+    c.number[i] = typeof value === "boolean" ? (value ? 1 : 0) : value;
+    c.statusCode[i] = statusCode;
+    c.sourceTimestamp[i] = sourceTimestamp;
+    c.sourcePicoseconds[i] = sourcePicoseconds;
+    c.serverTimestamp[i] = serverTimestamp;
+    c.serverPicoseconds[i] = serverPicoseconds;
+}
+
 export class ValueStore {
     #kind: Uint8Array;
     #dataType: Uint8Array;
@@ -103,6 +174,8 @@ export class ValueStore {
     #sourcePicoseconds: Uint16Array; // picoseconds / 100000, the resolution a Date cannot hold
     #serverPicoseconds: Uint16Array;
     #version: Uint32Array;
+    // the scalar columns above, as writeScalarFields takes them
+    #scalar!: ScalarColumns;
     readonly #objects = new Map<number, unknown>();
     readonly #space: ColumnSpace;
     // the objects as bytes, for the readers of other threads: a shared store only
@@ -121,6 +194,20 @@ export class ValueStore {
         this.#serverPicoseconds = space.allocate(Uint16Array, n);
         this.#version = space.allocate(Uint32Array, n);
         this.#heap = space.shared ? new SharedHeap(space, n) : null;
+        this.#gatherScalarColumns();
+    }
+
+    #gatherScalarColumns(): void {
+        this.#scalar = {
+            kind: this.#kind,
+            dataType: this.#dataType,
+            number: this.#number,
+            statusCode: this.#statusCode,
+            sourceTimestamp: this.#sourceTimestamp,
+            sourcePicoseconds: this.#sourcePicoseconds,
+            serverTimestamp: this.#serverTimestamp,
+            serverPicoseconds: this.#serverPicoseconds
+        };
     }
 
     /** the columns a reader in another thread reads values from (see SharedStoreReader) */
@@ -199,14 +286,17 @@ export class ValueStore {
         serverPicoseconds = 0
     ): void {
         this.#begin(i);
-        this.#kind[i] = typeof value === "boolean" ? ValueKind.Boolean : ValueKind.Number;
-        this.#dataType[i] = dataType;
-        this.#number[i] = typeof value === "boolean" ? (value ? 1 : 0) : value;
-        this.#statusCode[i] = statusCode;
-        this.#sourceTimestamp[i] = sourceTimestamp;
-        this.#sourcePicoseconds[i] = sourcePicoseconds;
-        this.#serverTimestamp[i] = serverTimestamp;
-        this.#serverPicoseconds[i] = serverPicoseconds;
+        writeScalarFields(
+            this.#scalar,
+            i,
+            dataType,
+            value,
+            statusCode,
+            sourceTimestamp,
+            serverTimestamp,
+            sourcePicoseconds,
+            serverPicoseconds
+        );
         this.#objects.delete(i);
         this.#heap?.clear(i);
         this.#end(i);
@@ -344,19 +434,11 @@ export class ValueStore {
 
     // the version word is the seqlock of the value: odd while a write is in progress. In a
     // shared store the changes are atomic, so that a reader in another thread sees them
-    // ordered with the field writes between them, and a write begins by claiming the slot:
-    // from an even version to the next odd one, waiting while another thread holds it, so
-    // that writers in several threads never interleave their fields
+    // ordered with the field writes between them, and a write begins by claiming the slot
+    // (see claimValue), so that writers in several threads never interleave their fields
     #begin(i: number): void {
-        if (!this.#space.shared) {
-            this.#version[i] += 1;
-            return;
-        }
-        const version = this.#version;
-        for (;;) {
-            const current = Atomics.load(version, i);
-            if ((current & 1) === 0 && Atomics.compareExchange(version, i, current, current + 1) === current) return;
-        }
+        if (this.#space.shared) claimValue(this.#version, i);
+        else this.#version[i] += 1;
     }
     #end(i: number): void {
         if (this.#space.shared) Atomics.add(this.#version, i, 1);
@@ -366,8 +448,8 @@ export class ValueStore {
     /**
      * after a thread that wrote values in place has ended: a value it left claimed (odd) is released, and
      * marked BadResourceUnavailable until the next write, so that readers and writers do not wait for it
-     * forever. A write holds a value for well under a microsecond: one still held after `patience` ms is
-     * abandoned. Returns how many were released.
+     * forever. A write holds a value for well under a microsecond: one held by the same claim for `patience`
+     * ms is abandoned. Returns how many were released.
      */
     public releaseAbandoned(patience = 10): number {
         if (!this.#space.shared) return 0;
@@ -376,19 +458,23 @@ export class ValueStore {
 
     #settleWriters(patience: number): number {
         const version = this.#version;
-        const deadline = Date.now() + patience;
         let released = 0;
         for (let i = 0; i < version.length; i++) {
             let held = Atomics.load(version, i);
+            // each claim has its own patience: one a live thread just took is waited for, never taken
+            let deadline = Date.now() + patience;
             while ((held & 1) !== 0) {
-                if (Date.now() > deadline && Atomics.compareExchange(version, i, held, held + 1) === held) {
-                    this.#begin(i);
+                if (Date.now() > deadline && Atomics.compareExchange(version, i, held, held + 2) === held) {
                     this.#statusCode[i] = BAD_RESOURCE_UNAVAILABLE;
                     this.#end(i);
                     released++;
                     break;
                 }
-                held = Atomics.load(version, i);
+                const now = Atomics.load(version, i);
+                if (now !== held) {
+                    held = now;
+                    deadline = Date.now() + patience;
+                }
             }
         }
         return released;
@@ -413,6 +499,7 @@ export class ValueStore {
         this.#serverPicoseconds = resized(this.#serverPicoseconds, n, Uint16Array);
         this.#version = resized(this.#version, n, Uint32Array);
         this.#heap?.resize(n);
+        this.#gatherScalarColumns();
     }
 }
 

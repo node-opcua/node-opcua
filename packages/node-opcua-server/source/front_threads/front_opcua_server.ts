@@ -102,8 +102,8 @@ export class FrontOPCUAServer extends OPCUAServerCore<RemoteEngine> {
             // numbers and booleans of Variables any session may write: written here, the engine told after;
             // anything else: the engine decodes and writes them, as for a Write forwarded the usual way
             write: (context, nodesToWrite, count) => {
-                const inPlace = backend.writeInPlace(nodesToWrite, count);
-                return inPlace ? Promise.resolve(inPlace) : remote.writeEncoded(context, nodesToWrite);
+                const forward = (bytes: Uint8Array) => remote.writeEncoded(context, bytes);
+                return backend.writeInPlace(nodesToWrite, count, forward) ?? forward(nodesToWrite);
             }
         };
         return (channel, typeId, body, offset, requestId, securityHeader) =>

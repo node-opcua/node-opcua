@@ -202,7 +202,6 @@ export class StoreAddressSpace {
         return index === NO_NODE ? null : this.viewOf(index);
     }
 
-    /** the view of a node index: the one in the cache, or a new one */
     /**
      * values other threads wrote into the store, with the version each wrote: their listeners and historians
      * are told, as after a write here. A node without a view has no listener
@@ -216,6 +215,7 @@ export class StoreAddressSpace {
         }
     }
 
+    /** the view of a node index: the one in the cache, or a new one */
     public viewOf(index: number): StoreNodeView {
         let view = this.#views.get(index);
         if (view === undefined) {

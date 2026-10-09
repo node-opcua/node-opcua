@@ -110,19 +110,6 @@ export class EngineChannel {
     }
 }
 
-/** the built-in types a front writes into the store itself: those the store keeps as a number or a boolean */
-const IN_PLACE_TYPES = new Set<DataType>([
-    DataType.Boolean,
-    DataType.SByte,
-    DataType.Byte,
-    DataType.Int16,
-    DataType.UInt16,
-    DataType.Int32,
-    DataType.UInt32,
-    DataType.Float,
-    DataType.Double
-]);
-
 /** the bytes of a number of the store's number column, by its DataType; 0 for a type not written here */
 const SCALAR_SIZE: Record<number, number> = {
     [DataType.SByte]: 1,
@@ -134,6 +121,17 @@ const SCALAR_SIZE: Record<number, number> = {
     [DataType.Float]: 4,
     [DataType.Double]: 8
 };
+
+/** a built-in type a front writes into the store itself: one the store keeps as a number or a boolean */
+function isInPlaceType(dataType: number): boolean {
+    return dataType === DataType.Boolean || (SCALAR_SIZE[dataType] ?? 0) > 0;
+}
+
+/** DataValue encoding mask: a value follows */
+const DATA_VALUE_HAS_VALUE = 0x01;
+/** Variant encoding byte: the array bits, and the built-in type */
+const VARIANT_ARRAY_BITS = 0xc0;
+const VARIANT_TYPE_MASK = 0x3f;
 
 function writeScalar(stream: OutputBinaryStream, dataType: DataType, value: number): void {
     switch (dataType) {
@@ -273,34 +271,46 @@ export class RemoteCompactBackend implements FrontNodeHost {
      * a Write whose values are all numbers or booleans of Variables this front may write itself (see
      * SharedStoreReader.writableInPlace and acceptsForWrite), written into the store here, without the engine:
      * the statuses, all Good. Null when one of them is not: the engine writes the whole request, as before.
-     * `nodesToWrite` is the WriteValues as the client encoded them (their count, then them).
+     * `nodesToWrite` is the WriteValues as the client encoded them (their count, then them); `forward` sends
+     * such bytes to the engine, for the values the store refused once this front had started writing.
      */
-    public writeInPlace(nodesToWrite: Uint8Array, count: number): StatusCode[] | null {
+    public writeInPlace(
+        nodesToWrite: Uint8Array,
+        count: number,
+        forward: (nodesToWrite: Uint8Array) => Promise<StatusCode[]>
+    ): Promise<StatusCode[]> | null {
         const reader = this.#reader;
         if (!reader.isCurrent()) return null;
-        const stream = new BinaryStream(Buffer.from(nodesToWrite.buffer, nodesToWrite.byteOffset, nodesToWrite.byteLength));
+        const bytes = Buffer.from(nodesToWrite.buffer, nodesToWrite.byteOffset, nodesToWrite.byteLength);
+        const stream = new BinaryStream(bytes);
         stream.length = 4;
         const indexes = new Array<number>(count);
         const generations = new Array<number>(count);
+        const starts = new Array<number>(count);
         const dataValues = new Array<DataValue>(count);
         for (let k = 0; k < count; k++) {
+            starts[k] = stream.length;
             const nodeId = decodeNodeId(stream);
             if (stream.readUInt32() !== AttributeIds.Value) return null;
-            const indexRange = decodeString(stream);
-            const dataValue = decodeDataValue(stream);
-            const variant = dataValue.value;
-            if (indexRange || !variant || variant.arrayType !== VariantArrayType.Scalar || !IN_PLACE_TYPES.has(variant.dataType)) {
-                return null;
-            }
+            if (decodeString(stream)) return null; // an IndexRange
             // namespace 0 stays with the engine: a write there may change what it enforces (NamespaceMetadata)
             if (nodeId.namespace === 0 || !this.namespaces.has(nodeId.namespace)) return null;
             const i = reader.find(nodeId);
-            if (!reader.writableInPlace(i) || !reader.acceptsForWrite(i, variant.dataType)) return null;
+            if (!reader.writableInPlace(i)) return null;
+            // a scalar of a type written here, seen before the value is decoded
+            const at = stream.length;
+            if (at + 1 >= bytes.length || (bytes[at] & DATA_VALUE_HAS_VALUE) === 0) return null;
+            const variantByte = bytes[at + 1];
+            const variantType = variantByte & VARIANT_TYPE_MASK;
+            if ((variantByte & VARIANT_ARRAY_BITS) !== 0 || !isInPlaceType(variantType)) return null;
+            if (!reader.acceptsForWrite(i, variantType)) return null;
+            const dataValue = decodeDataValue(stream);
+            if (dataValue.value.dataType !== variantType || dataValue.value.arrayType !== VariantArrayType.Scalar) return null;
             indexes[k] = i;
             generations[k] = reader.generation(i);
             dataValues[k] = dataValue;
         }
-        if (stream.length !== stream.buffer.length) return null;
+        if (stream.length !== bytes.length) return null;
         // as the engine stores a client's value: its source timestamp or now, the server timestamp now
         const now = getCurrentClock().timestamp.getTime();
         const statuses = new Array<StatusCode>(count);
@@ -316,14 +326,18 @@ export class RemoteCompactBackend implements FrontNodeHost {
                 now
             );
             if (version < 0) {
-                // the store changed under this request: the engine writes all of it (the values written here
-                // again, which is harmless), and is still told of those written
-                return null;
+                // the store changed under this request: the values written here stay as answered, the engine
+                // writes the others (their bytes follow one another, from this one on)
+                const rest = new Uint8Array(4 + bytes.length - starts[k]);
+                new DataView(rest.buffer).setInt32(0, count - k, true);
+                rest.set(bytes.subarray(starts[k]), 4);
+                const written = statuses.slice(0, k);
+                return forward(rest).then((others) => written.concat(others));
             }
             this.#noteWritten(indexes[k], version);
             statuses[k] = StatusCodes.Good;
         }
-        return statuses;
+        return Promise.resolve(statuses);
     }
 
     #written: { indexes: number[]; versions: number[] } | null = null;
