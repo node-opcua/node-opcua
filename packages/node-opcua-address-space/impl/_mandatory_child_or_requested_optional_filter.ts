@@ -26,9 +26,12 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
     private readonly references: UAReference[];
     private readonly copyAlsoAllOptionals: boolean = false;
     /**
-     * the clone is an instance declaration of a type (instantiate() inside a type): the
-     * placeholders its type declares are part of it, as the ModelCompiler emits them
-     * (OPC 10000-100 DI DeviceType/DeviceTypeImage/<ImageIdentifier>). An instance never takes one.
+     * the clone is an instance declaration of a type (instantiate() inside a type): it takes the
+     * placeholders of its type that `optionals` requests, and only those. The ModelCompiler emits
+     * a placeholder in an instance declaration when the design declares it (OPC 10000-100 DI
+     * DeviceType/DeviceTypeImage/<ImageIdentifier>), not every placeholder of the member's type
+     * (DI TopologyElementType/Identification carries no <GroupIdentifier>). An instance never
+     * takes one.
      */
     private readonly keepPlaceholders: boolean = false;
 
@@ -86,7 +89,7 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
                 return this.copyAlsoAllOptionals || (node.browseName?.name || "") in this.optionalsMap;
             case "OptionalPlaceholder":
             case "MandatoryPlaceholder":
-                return this.keepPlaceholders;
+                return this.keepPlaceholders && (node.browseName?.name || "") in this.optionalsMap;
             default:
                 return false; // ignored
         }
