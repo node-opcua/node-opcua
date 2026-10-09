@@ -9,7 +9,9 @@ import should from "should";
 import {
     ACCEPTED_TYPES_KNOWN,
     CompactStore,
+    claimValue,
     NO_NODE,
+    releaseClaim,
     SharedReadStatus,
     SharedStoreReader,
     type SharedValue,
@@ -249,6 +251,70 @@ describe("shared store: the columns of a store read from another thread", functi
         should(Atomics.load(version, i) % 2).eql(0);
         should(store.values.statusCode(i)).eql(0x80040000);
         should(store.values.releaseAbandoned(5)).eql(0);
+    });
+
+    it("takes over a claim held longer than a write can take, and the former holder's release then fails", () => {
+        const store = build(4);
+        const i = store.find(numeric(1000));
+        const version = new Uint32Array(store.shareForReaders().values.version);
+        const first = claimValue(version, i);
+        const started = Date.now();
+        const second = claimValue(version, i, 20);
+        should(Date.now() - started).be.aboveOrEqual(20);
+        should(second).eql(first + 2, "the claim moved by two: still held, by the new writer");
+        should(releaseClaim(version, i, first)).eql(false, "the former holder learns it no longer holds the value");
+        should(releaseClaim(version, i, second)).eql(true);
+        should(Atomics.load(version, i) % 2).eql(0);
+        // a writer left the value claimed: the owner's write waits, takes it over, and stores its value
+        claimValue(version, i);
+        store.values.setScalar(i, DataType.Double, 5, 0, 1, 1);
+        should(store.values.get(i).value).eql(5);
+        should(Atomics.load(version, i) % 2).eql(0);
+    });
+
+    it("releases an abandoned value without taking the value a live writer holds meanwhile", async () => {
+        const store = build(4);
+        const abandoned = store.find(numeric(1000));
+        const live = store.find(numeric(1001));
+        const dist = pathToFileURL(path.join(here, "../dist/index.js")).href;
+        // a live but slow writer: it holds the value 1 ms at a time, less than the patience it is given below
+        const code = `
+            const { workerData, parentPort } = require("node:worker_threads");
+            import(workerData.dist).then(({ claimValue, releaseClaim }) => {
+                const version = new Uint32Array(workerData.version);
+                const stop = new Int32Array(workerData.stop);
+                parentPort.postMessage("ready");
+                let written = 0, refused = 0;
+                while (Atomics.load(stop, 0) === 0) {
+                    const claimed = claimValue(version, workerData.live);
+                    const until = performance.now() + 1;
+                    while (performance.now() < until);
+                    if (releaseClaim(version, workerData.live, claimed)) written++;
+                    else refused++;
+                }
+                parentPort.postMessage({ written, refused });
+            });`;
+        const stop = new SharedArrayBuffer(4);
+        const version = new Uint32Array(store.shareForReaders().values.version);
+        const worker = new Worker(code, { eval: true, workerData: { dist, version: version.buffer, live, stop } });
+        const result = new Promise<{ written: number; refused: number }>((resolve, reject) => {
+            worker.on("message", (message) => message !== "ready" && resolve(message));
+            worker.on("error", reject);
+        });
+        await new Promise((resolve) => worker.once("message", resolve));
+        let released = 0;
+        for (let round = 0; round < 20; round++) {
+            Atomics.add(version, abandoned, 1); // a writer claimed it, and never released it
+            // the wait on that value runs out first: the live writer's claims after it must still be waited for
+            released += store.values.releaseAbandoned(2);
+        }
+        Atomics.store(new Int32Array(stop), 0, 1);
+        const { written, refused } = await result;
+        await worker.terminate();
+        should(released).eql(20);
+        should(written).be.above(10);
+        should(refused).eql(0, "no claim of the live writer was taken over");
+        for (let i = 0; i < 4; i++) should(store.values.version(i) % 2).eql(0, "no value left held");
     });
 
     it("keeps values whole while a worker writes in place and the owner reads, and grows its columns under it", async () => {

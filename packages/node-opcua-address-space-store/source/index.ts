@@ -23,7 +23,15 @@ export { ReferenceTable } from "./reference_table.js";
 export { ReferenceTypeHierarchy } from "./reference_type_hierarchy.js";
 export { SharedReadStatus, SharedStoreReader, type SharedValue } from "./shared_reader.js";
 export { StringArena } from "./string_arena.js";
-export { type SharedValueBuffers, type StoredValue, ValueKind, ValueStore } from "./value_store.js";
+export {
+    CLAIM_PATIENCE_MS,
+    claimValue,
+    releaseClaim,
+    type SharedValueBuffers,
+    type StoredValue,
+    ValueKind,
+    ValueStore
+} from "./value_store.js";
 export { StoreAddressSpace, type StoreAddressSpaceOptions } from "./views/store_address_space.js";
 export { attributeDataValue, deniedDataValue, valueDataValue } from "./views/store_data_value.js";
 export { type StoreMethodHandler, StoreMethodView } from "./views/store_method_view.js";

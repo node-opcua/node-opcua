@@ -22,7 +22,7 @@ import { NAMESPACE_DEFAULT_RESTRICTIONS, NAMESPACE_DEFAULT_ROLE_PERMISSIONS, typ
 import { ACCEPTED_TYPES_KNOWN } from "./data_type_resolver.js";
 import { NO_NODE, NodeIdIndex } from "./node_id_index.js";
 import { BOUND, HISTORIZING, INHERITED_ACCESS_RESTRICTIONS, OWN_ROLE_PERMISSIONS } from "./node_store.js";
-import { ValueKind } from "./value_store.js";
+import { claimValue, releaseClaim, type ScalarColumns, ValueKind, writeScalarFields } from "./value_store.js";
 
 const FREE = 0;
 const EMPTY = -1;
@@ -96,6 +96,7 @@ export class SharedStoreReader {
     readonly #sourcePicoseconds: Uint16Array;
     readonly #serverPicoseconds: Uint16Array;
     readonly #version: Uint32Array;
+    readonly #scalar: ScalarColumns;
     // the shared heap: the objects as their binary encoding
     readonly #heapBytes: Uint8Array;
     readonly #heapOffset: Int32Array;
@@ -136,6 +137,16 @@ export class SharedStoreReader {
         this.#sourcePicoseconds = new Uint16Array(v.sourcePicoseconds);
         this.#serverPicoseconds = new Uint16Array(v.serverPicoseconds);
         this.#version = new Uint32Array(v.version);
+        this.#scalar = {
+            kind: this.#valueKind,
+            dataType: this.#dataType,
+            number: this.#number,
+            statusCode: this.#statusCode,
+            sourceTimestamp: this.#sourceTimestamp,
+            sourcePicoseconds: this.#sourcePicoseconds,
+            serverTimestamp: this.#serverTimestamp,
+            serverPicoseconds: this.#serverPicoseconds
+        };
         this.#heapBytes = new Uint8Array(v.heap.bytes);
         this.#heapOffset = new Int32Array(v.heap.offset);
         this.#heapLength = new Int32Array(v.heap.length);
@@ -270,11 +281,7 @@ export class SharedStoreReader {
     ): number {
         if (!this.isCurrent()) return -1;
         const version = this.#version;
-        let claimed: number;
-        for (;;) {
-            claimed = Atomics.load(version, i);
-            if ((claimed & 1) === 0 && Atomics.compareExchange(version, i, claimed, claimed + 1) === claimed) break;
-        }
+        const claimed = claimValue(version, i);
         // held: the owner may have moved the columns, reused the index or stored an object meanwhile
         const kind = this.#valueKind[i];
         if (
@@ -283,19 +290,12 @@ export class SharedStoreReader {
             (this.#flags[i] & DELETED) !== 0 ||
             (kind !== ValueKind.Number && kind !== ValueKind.Boolean)
         ) {
-            Atomics.add(version, i, 1);
+            releaseClaim(version, i, claimed);
             return -1;
         }
-        this.#valueKind[i] = typeof value === "boolean" ? ValueKind.Boolean : ValueKind.Number;
-        this.#dataType[i] = dataType;
-        this.#number[i] = typeof value === "boolean" ? (value ? 1 : 0) : value;
-        this.#statusCode[i] = statusCode;
-        this.#sourceTimestamp[i] = sourceTimestamp;
-        this.#sourcePicoseconds[i] = 0;
-        this.#serverTimestamp[i] = serverTimestamp;
-        this.#serverPicoseconds[i] = 0;
-        Atomics.add(version, i, 1);
-        return claimed + 2;
+        writeScalarFields(this.#scalar, i, dataType, value, statusCode, sourceTimestamp, serverTimestamp, 0, 0);
+        // taken over (this thread held it too long): another writer owns the value now
+        return releaseClaim(version, i, claimed) ? claimed + 1 : -1;
     }
 
     /** the Value of node `i` into `out`, under the node's seqlock */
