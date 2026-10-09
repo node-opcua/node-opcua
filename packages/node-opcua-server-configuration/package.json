@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-server-configuration",
-    "version": "2.187.2",
+    "version": "2.187.3",
     "description": "pure nodejs OPCUA SDK - module server-configuration",
     "scripts": {
         "build": "tsc -b",
@@ -18,7 +18,7 @@
     "dependencies": {
         "chalk": "6.0.1",
         "memfs": "^4.80.0",
-        "node-opcua-address-space": "2.187.2",
+        "node-opcua-address-space": "2.187.3",
         "node-opcua-address-space-base": "2.187.0",
         "node-opcua-assert": "2.186.7",
         "node-opcua-basic-types": "2.187.0",
@@ -29,13 +29,13 @@
         "node-opcua-crypto": "6.2.0",
         "node-opcua-data-model": "2.187.0",
         "node-opcua-debug": "2.186.7",
-        "node-opcua-file-transfer": "2.187.2",
+        "node-opcua-file-transfer": "2.187.3",
         "node-opcua-hostname": "2.184.0",
         "node-opcua-nodeid": "2.187.0",
         "node-opcua-pki": "7.1.0",
         "node-opcua-pseudo-session": "2.187.0",
         "node-opcua-secure-channel": "2.187.0",
-        "node-opcua-server": "2.187.2",
+        "node-opcua-server": "2.187.3",
         "node-opcua-service-translate-browse-path": "2.187.0",
         "node-opcua-status-code": "2.187.0",
         "node-opcua-types": "2.187.0",
@@ -44,7 +44,7 @@
     },
     "devDependencies": {
         "bcryptjs": "3.0.3",
-        "node-opcua-client": "2.187.2",
+        "node-opcua-client": "2.187.3",
         "node-opcua-data-value": "2.187.0",
         "node-opcua-leak-detector": "2.186.7",
         "node-opcua-nodesets": "2.187.0"
