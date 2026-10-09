@@ -242,13 +242,6 @@ export class NodeIdManager {
         };
 
         const buildUpName2 = (nodeId: NodeId, suffix: string) => {
-            // a parent registered under a name of its own (`X__2`) passes that name on to its members
-            if (nodeId.namespace === this.namespaceIndex && nodeId.identifierType === NodeIdType.NUMERIC) {
-                const registered = this._nameOfId.get(nodeId.value as number);
-                if (registered !== undefined) {
-                    return registered + suffix;
-                }
-            }
             const namespaceIndex = nodeId.namespace;
             let name = "";
             let n: BaseNode | null = this.addressSpace.findNode(nodeId);
@@ -256,6 +249,16 @@ export class NodeIdManager {
                 const e = prepareName(n.browseName) + suffix;
                 name = compose(e, name);
                 n = n.parentNodeId ? this.addressSpace.findNode(n.parentNodeId) : null;
+            }
+            // a parent registered under a name of its own (`X__2`) passes that name on to its
+            // members. A parent hanging from another namespace is registered with that chain in
+            // front (`OPCBinary_TypeDictionary`), which its members never carry, as the
+            // ModelCompiler spells them (`TypeDictionary_NamespaceUri`)
+            if (nodeId.namespace === this.namespaceIndex && nodeId.identifierType === NodeIdType.NUMERIC) {
+                const registered = this._nameOfId.get(nodeId.value as number);
+                if (registered !== undefined && !(registered + suffix).endsWith(`_${name}`)) {
+                    return registered + suffix;
+                }
             }
             return name;
         };
