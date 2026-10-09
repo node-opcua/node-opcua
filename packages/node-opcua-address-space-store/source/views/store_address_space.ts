@@ -103,6 +103,19 @@ class ViewCache {
     }
 }
 
+/** a value another thread wrote into the store, as numbers (see StoreAddressSpace.changedElsewhere) */
+export enum WrittenField {
+    Index = 0,
+    Version = 1,
+    DataType = 2,
+    /** a boolean as 1 or 0 */
+    Value = 3,
+    StatusCode = 4,
+    SourceTimestamp = 5,
+    ServerTimestamp = 6
+}
+export const WRITTEN_FIELDS = 7;
+
 export class StoreAddressSpace {
     public readonly store: CompactStore;
     public readonly browser: Browser;
@@ -203,14 +216,21 @@ export class StoreAddressSpace {
     }
 
     /**
-     * values other threads wrote into the store, with the version each wrote: their listeners and historians
-     * are told, as after a write here. A node without a view has no listener
+     * numbers and booleans other threads wrote into the store, WRITTEN_FIELDS numbers each (see WrittenField):
+     * their listeners are told, as after a write here. A node without a view has no listener
      */
-    public changedElsewhere(indexes: readonly number[], versions: readonly number[]): void {
-        for (let k = 0; k < indexes.length; k++) {
-            const view = this.#views.get(indexes[k]);
+    public changedElsewhere(written: readonly number[]): void {
+        for (let at = 0; at + WRITTEN_FIELDS <= written.length; at += WRITTEN_FIELDS) {
+            const view = this.#views.get(written[at + WrittenField.Index]);
             if (view instanceof StoreVariableView) {
-                view.changedElsewhere(versions[k]);
+                view.changedElsewhere(
+                    written[at + WrittenField.Version],
+                    written[at + WrittenField.DataType],
+                    written[at + WrittenField.Value],
+                    written[at + WrittenField.StatusCode],
+                    written[at + WrittenField.SourceTimestamp],
+                    written[at + WrittenField.ServerTimestamp]
+                );
             }
         }
     }

@@ -138,6 +138,7 @@ export class StoreNodeView extends EventEmitter {
 
     public override removeListener(event: string | symbol, listener: (...args: unknown[]) => void): this {
         super.removeListener(event, listener);
+        this.listenersChanged();
         this.#afterListenerRemoved();
         return this;
     }
@@ -146,9 +147,12 @@ export class StoreNodeView extends EventEmitter {
     }
     public override removeAllListeners(event?: string | symbol): this {
         super.removeAllListeners(event);
+        this.listenersChanged();
         this.#afterListenerRemoved();
         return this;
     }
+    /** after a listener was added or removed */
+    protected listenersChanged(): void {}
     #afterListenerRemoved(): void {
         if (this.lastUse === -1 && !this.hasListeners()) {
             this.space.forgetView(this);

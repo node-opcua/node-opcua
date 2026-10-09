@@ -62,6 +62,8 @@ export const INHERITED_ACCESS_RESTRICTIONS = 0xff;
 export const HISTORIZING = 1;
 export const OWN_ROLE_PERMISSIONS = 32;
 export const BOUND = 64;
+/** a Variable whose value changes something listens to on the owner: a thread writing it in place tells the owner */
+export const WATCHED = 128;
 
 export class NodeStore {
     public readonly strings: StringArena;
@@ -367,6 +369,13 @@ export class NodeStore {
     }
     public isBound(i: number): boolean {
         return (this.#flags[i] & BOUND) !== 0;
+    }
+    public setWatched(i: number, watched: boolean): void {
+        if (watched) this.#flags[i] |= WATCHED;
+        else this.#flags[i] &= ~WATCHED;
+    }
+    public isWatched(i: number): boolean {
+        return (this.#flags[i] & WATCHED) !== 0;
     }
 
     /** after a bulk load: drop the growth slack of every column */

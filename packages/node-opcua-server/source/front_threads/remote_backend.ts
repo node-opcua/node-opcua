@@ -332,28 +332,42 @@ export class RemoteCompactBackend implements FrontNodeHost {
                 new DataView(rest.buffer).setInt32(0, count - k, true);
                 rest.set(bytes.subarray(starts[k]), 4);
                 const written = statuses.slice(0, k);
+                this.#tellWritten();
                 return forward(rest).then((others) => written.concat(others));
             }
-            this.#noteWritten(indexes[k], version);
+            if (reader.isWatched(indexes[k])) this.#noteWritten(indexes[k], version, dataValue, now);
             statuses[k] = StatusCodes.Good;
         }
+        this.#tellWritten();
         return Promise.resolve(statuses);
     }
 
-    #written: { indexes: number[]; versions: number[] } | null = null;
+    // the values written here that the engine listens to, each as it was written (WrittenField)
+    #written: number[] = [];
 
-    /** the engine is told once per turn of the values written here, to tell their listeners */
-    #noteWritten(index: number, version: number): void {
-        if (!this.#written) {
-            this.#written = { indexes: [], versions: [] };
-            setImmediate(() => {
-                const written = this.#written;
-                this.#written = null;
-                if (written) this.#channel.send({ kind: "written", ...written });
-            });
-        }
-        this.#written.indexes.push(index);
-        this.#written.versions.push(version);
+    #noteWritten(index: number, version: number, dataValue: DataValue, now: number): void {
+        const value = dataValue.value.value as number | boolean;
+        this.#written.push(
+            index,
+            version,
+            dataValue.value.dataType,
+            typeof value === "boolean" ? (value ? 1 : 0) : value,
+            dataValue.statusCode.value,
+            dataValue.sourceTimestamp ? dataValue.sourceTimestamp.getTime() : now,
+            now
+        );
+    }
+
+    /**
+     * the engine is told of the watched values a Write wrote here before the client has its answer: a
+     * later Write of the same value, through another front, is then told after it, and every listener
+     * gets every value, in order
+     */
+    #tellWritten(): void {
+        if (this.#written.length === 0) return;
+        const written = this.#written;
+        this.#written = [];
+        this.#channel.send({ kind: "written", written });
     }
 
     /** the index of the node whose Value readAt() serves from the shared store, without the engine; -1 when it cannot */

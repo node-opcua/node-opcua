@@ -347,7 +347,7 @@ export class FrontThreadEngine {
                 else if (message.kind === "requests") this.#answer(worker, message.ids, message.requests);
                 else if (message.kind === "watches") this.#values.apply(worker, message.operations);
                 else if (message.kind === "changesDone") this.#values.changesDone(worker);
-                else if (message.kind === "written") this.addressSpace.changedElsewhere(message.indexes, message.versions);
+                else if (message.kind === "written") this.addressSpace.changedElsewhere(message.written);
                 else if (message.kind === "activity")
                     this.#sessions.activity(
                         message.seen,
