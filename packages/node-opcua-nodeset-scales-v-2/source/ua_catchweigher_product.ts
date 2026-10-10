@@ -19,6 +19,10 @@ import type { UAWeighingItem } from "./ua_weighing_item.js";
  */
 export interface UACatchweigherProduct_Base extends UAProduct_Base {
    // PlaceHolder for $Zones$
+    /**
+     * addZone
+     * Adds a zone to the zone array.
+     */
     addZone?: UAMethod;
     lastItem?: UAWeighingItem;
     /**
@@ -43,6 +47,10 @@ export interface UACatchweigherProduct_Base extends UAProduct_Base {
      * item is measured.
      */
     presetWidth?: UAAnalogUnit<any, any>;
+    /**
+     * removeZone
+     * Removes a zone from the zone array.
+     */
     removeZone?: UAMethod;
     targetThroughput?: UATargetItem<any, any>;
 }

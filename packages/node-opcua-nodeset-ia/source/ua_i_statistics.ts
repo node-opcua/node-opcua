@@ -15,6 +15,11 @@ import type { DataType } from "node-opcua-variant";
  * |isAbstract      |true                                                        |
  */
 export interface UAIStatistics_Base extends UABaseInterface_Base {
+    /**
+     * resetStatistics
+     * Restarts all statistical data, including a reset
+     * of the StartTime to the current time.
+     */
     resetStatistics?: UAMethod;
     /**
      * startTime

@@ -19,7 +19,15 @@ import type { UAMeasuredItem } from "./ua_measured_item.js";
  */
 export interface UALossInWeightScale_Base extends UAContinuousScale_Base {
     binWeight?: UAMeasuredItem<any, any>;
+    /**
+     * dischargeStart
+     * Starts a discharging process.
+     */
     dischargeStart: UAMethod;
+    /**
+     * dischargeStop
+     * Stops a discharging process.
+     */
     dischargeStop: UAMethod;
     /**
      * discharging
@@ -30,7 +38,15 @@ export interface UALossInWeightScale_Base extends UAContinuousScale_Base {
     hopperFillLevel: UAAnalogUnit<any, any>;
     hopperWeight: UAMeasuredItem<any, any>;
     refilling: UAProperty<boolean, DataType.Boolean>;
+    /**
+     * refillStart
+     * Starts a refilling process.
+     */
     refillStart: UAMethod;
+    /**
+     * refillStop
+     * Stops a refilling process.
+     */
     refillStop: UAMethod;
 }
 export interface UALossInWeightScale extends UAContinuousScale, UALossInWeightScale_Base {}

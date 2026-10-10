@@ -66,6 +66,13 @@ export interface UAFeederModule_Base extends UAComponent_Base {
      * Defines the minimal possible speed of the feeder.
      */
     minimalFeederSpeed?: UAAnalogUnit<any, any>;
+    /**
+     * setFeederSpeed
+     * Allows to set a new value for the speed of the
+     * feeder system. The OPC UA server must check if
+     * the value is between the minimal and maximum
+     * allowed speed and if the unit is allowed.
+     */
     setFeederSpeed?: UAMethod;
 }
 export interface UAFeederModule extends Omit<UAComponent, "identification">, UAFeederModule_Base {}

@@ -18,6 +18,12 @@ import type { UAMeasuredItem } from "./ua_measured_item.js";
  * |isAbstract      |false                                                       |
  */
 export interface UATotalizer_Base {
+    /**
+     * resetTotalizer
+     * Resets the TotalizedValue of this totalizer
+     * object. Only useful if reset is not related to a
+     * period of time.
+     */
     resetTotalizer?: UAMethod;
     /**
      * totalizedValue

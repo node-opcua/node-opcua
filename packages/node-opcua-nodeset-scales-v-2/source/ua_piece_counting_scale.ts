@@ -36,7 +36,16 @@ export interface UAPieceCountingScale_Base extends UAScaleDevice_Base {
      */
     referenceOptimisationRange?: UAAnalogItem<any, any>;
     setNumberOfReferencePieces: UAMethod;
+    /**
+     * setReferencePieceWeight
+     * Sets the value for the ReferencePieceWeight
+     * (product-specific data).
+     */
     setReferencePieceWeight: UAMethod;
+    /**
+     * startReference
+     * Triggers the reference weighing process.
+     */
     startReference?: UAMethod;
 }
 export interface UAPieceCountingScale extends Omit<UAScaleDevice, "productionPreset">, UAPieceCountingScale_Base {}

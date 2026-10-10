@@ -17,6 +17,11 @@ import type { DataType } from "node-opcua-variant";
  * |isAbstract      |false                                                       |
  */
 export interface UAProductionPreset_Base {
+    /**
+     * addProduct
+     * Creates an object with the JobType from the
+     * address space.
+     */
     addProduct?: UAMethod;
     currentProducts?: UABaseDataVariable<UAString[], DataType.String>;
     deselectProduct?: UAMethod;
@@ -26,6 +31,11 @@ export interface UAProductionPreset_Base {
      * Products Object.
      */
     products?: UAFolder;
+    /**
+     * removeProduct
+     * Removes an object with the JobType from the
+     * address space.
+     */
     removeProduct?: UAMethod;
     selectProduct?: UAMethod;
     switchProduct?: UAMethod;

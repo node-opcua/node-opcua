@@ -26,6 +26,21 @@ export interface UAResultManagement_Base {
      */
     defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
     getLatestResult?: UAMethod;
+    /**
+     * getResultById
+     * The server shall return to each client requesting
+     * result data a system-wide unique handle
+     * identifying the result set / client combination.
+     * This handle should be used by the client to
+     * indicate to the server that the result data is no
+     * longer needed, allowing the server to optimize
+     * its resource handling.
+     * If the instance of ResultManagementType does not
+     * support the ReleaseResultHandle Method, the
+     * resultHandle should always be set to 0.
+     * If the error is set to a value other than 0, the
+     * resultHandle may be set to 0.
+     */
     getResultById?: UAMethod;
     getResultIdListFiltered?: UAMethod;
     releaseResultHandle?: UAMethod;
