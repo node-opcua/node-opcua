@@ -16,7 +16,11 @@ import type { StoreMethodView } from "./store_method_view.js";
 import type { StoreNodeView, VariableBinding } from "./store_node_view.js";
 import type { StoreVariableView } from "./store_variable_view.js";
 
-type NodeRef = StoreNodeView | NodeIdLike;
+/**
+ * a node named by its view or its NodeId. `null` is accepted so that the answer of findNode() can be
+ * passed as it is; it is reported as an error naming the option, never taken as "no node"
+ */
+type NodeRef = StoreNodeView | NodeIdLike | null;
 
 export interface StoreAddNodeOptions {
     browseName: QualifiedNameLike;
@@ -168,10 +172,19 @@ export class StoreNodeBuilder {
         const nodeId = options.nodeId ? resolveNodeId(options.nodeId) : this.#allocate(namespace);
         const browseName = coerceBrowseName(options.browseName, namespace);
         const displayName = textOf(options.displayName);
+        // every node it names is resolved before the node is added: an unknown or null reference
+        // throws without leaving a node behind
+        const componentOf = this.#optional("componentOf", options.componentOf);
+        const propertyOf = this.#optional("propertyOf", options.propertyOf);
+        const organizedBy = this.#optional("organizedBy", options.organizedBy);
+        const typeDefinition = this.#optional("typeDefinition", options.typeDefinition);
+        const references = (options.references ?? []).map((r) => ({
+            referenceType: resolveNodeId(r.referenceType),
+            forward: r.isForward ?? true,
+            target: this.#required("references[].nodeId", r.nodeId)
+        }));
         // the parent the object namespace declares: the aggregating one
-        const parentRef = options.componentOf ?? options.propertyOf;
-        const parent = parentRef ? this.#index(parentRef) : undefined;
-        const typeDefinition = options.typeDefinition ? this.#index(options.typeDefinition) : undefined;
+        const parent = componentOf ?? propertyOf;
         const index = store.addNode({
             nodeId,
             nodeClass,
@@ -190,11 +203,11 @@ export class StoreNodeBuilder {
             space.onLink?.(source, target);
         };
         if (typeDefinition !== undefined) link(index, HAS_TYPE_DEFINITION, true, typeDefinition);
-        if (options.componentOf) link(this.#index(options.componentOf), HAS_COMPONENT, true, index);
-        if (options.propertyOf) link(this.#index(options.propertyOf), HAS_PROPERTY, true, index);
-        if (options.organizedBy) link(this.#index(options.organizedBy), ORGANIZES, true, index);
-        for (const r of options.references ?? []) {
-            link(index, resolveNodeId(r.referenceType), r.isForward ?? true, this.#index(r.nodeId));
+        if (componentOf !== undefined) link(componentOf, HAS_COMPONENT, true, index);
+        if (propertyOf !== undefined) link(propertyOf, HAS_PROPERTY, true, index);
+        if (organizedBy !== undefined) link(organizedBy, ORGANIZES, true, index);
+        for (const r of references) {
+            link(index, r.referenceType, r.forward, r.target);
         }
         if (nodeClass === NodeClass.ReferenceType) {
             space.browser.refresh();
@@ -214,8 +227,23 @@ export class StoreNodeBuilder {
         }
     }
 
+    /** the index of an option's node, undefined when the option is not given; null is an error */
+    #optional(option: string, ref: NodeRef | undefined): number | undefined {
+        return ref === undefined ? undefined : this.#required(option, ref);
+    }
+
+    #required(option: string, ref: NodeRef): number {
+        if (ref === null) {
+            throw new Error(`StoreAddressSpace: ${option} is null (did findNode() find nothing?)`);
+        }
+        return this.#index(ref);
+    }
+
     #index(ref: NodeRef): number {
-        if (typeof ref === "object" && ref !== null && "index" in ref && typeof (ref as StoreNodeView).index === "number") {
+        if (ref === null) {
+            throw new Error("StoreAddressSpace: a node reference is null (did findNode() find nothing?)");
+        }
+        if (typeof ref === "object" && "index" in ref && typeof (ref as StoreNodeView).index === "number") {
             return (ref as StoreNodeView).index;
         }
         const nodeId = resolveNodeId(ref as NodeIdLike);
