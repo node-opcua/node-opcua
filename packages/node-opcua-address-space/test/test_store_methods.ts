@@ -40,7 +40,7 @@ describe("store methods: Call on a Method of the compact address space", functio
         ns = space.registerNamespace("urn:test:methods");
         services = new StoreServices(space);
         const objects = space.findNode("ns=0;i=85");
-        pump = space.addObject({ nodeId: `ns=${ns};s=Pump`, browseName: "Pump", organizedBy: objects ?? undefined }).nodeId;
+        pump = space.addObject({ nodeId: `ns=${ns};s=Pump`, browseName: "Pump", organizedBy: objects }).nodeId;
         start = space.addMethod({
             nodeId: `ns=${ns};s=Pump.Start`,
             browseName: "Start",
