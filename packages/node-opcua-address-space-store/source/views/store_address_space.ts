@@ -282,9 +282,12 @@ export class StoreAddressSpace {
      * one historianFactory makes (the last values in memory).
      */
     public installHistoricalDataNode(
-        variable: StoreVariableView | NodeId | string,
+        variable: StoreVariableView | NodeId | string | null,
         options: IHistoricalDataNodeOptions = {}
     ): IVariableHistorian {
+        if (variable === null) {
+            throw new Error("installHistoricalDataNode: the variable is null (did findNode() find nothing?)");
+        }
         const index =
             typeof variable === "object" && "index" in variable ? variable.index : this.store.find(resolveNodeId(variable));
         if (index === NO_NODE || this.store.nodes.nodeClass(index) !== NodeClass.Variable) {
@@ -310,22 +313,22 @@ export class StoreAddressSpace {
     public addMethod(options: StoreAddMethodOptions): StoreMethodView {
         return this.#builder.addMethod(options);
     }
-    public addFolder(parent: StoreNodeView | NodeId | string, options: StoreAddNodeOptions | string): StoreNodeView {
+    public addFolder(parent: StoreNodeView | NodeId | string | null, options: StoreAddNodeOptions | string): StoreNodeView {
         return this.#builder.addFolder(parent, options);
     }
     /** both ends written; false when the reference is there already */
     public addReference(
-        source: StoreNodeView | NodeId | string,
+        source: StoreNodeView | NodeId | string | null,
         referenceType: NodeId | string,
-        target: StoreNodeView | NodeId | string,
+        target: StoreNodeView | NodeId | string | null,
         forward = true
     ): boolean {
         return this.#builder.addReference(source, referenceType, target, forward);
     }
     public removeReference(
-        source: StoreNodeView | NodeId | string,
+        source: StoreNodeView | NodeId | string | null,
         referenceType: NodeId | string,
-        target: StoreNodeView | NodeId | string,
+        target: StoreNodeView | NodeId | string | null,
         forward = true
     ): boolean {
         return this.#builder.removeReference(source, referenceType, target, forward);
@@ -335,7 +338,7 @@ export class StoreAddressSpace {
      * forget a node: gone for clients at once, with its references from both ends; its index
      * goes to the next node added. A view the application still holds answers isDisposed()
      */
-    public deleteNode(node: StoreNodeView | NodeId | string | number): void {
+    public deleteNode(node: StoreNodeView | NodeId | string | number | null): void {
         const index = typeof node === "number" ? node : this.#builder.indexOf(node);
         const view = this.#views.get(index);
         const nodeClass = this.store.nodes.nodeClass(index);
