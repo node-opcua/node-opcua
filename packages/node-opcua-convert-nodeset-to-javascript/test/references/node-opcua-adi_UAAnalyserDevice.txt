@@ -33,11 +33,43 @@ export interface UAAnalyserDevice_methodSet extends UAObject { // Object
       setConfiguration: UAMethod;
       getConfigDataDigest: UAMethod;
       compareConfigDataDigest: UAMethod;
+      /**
+       * resetAllChannels
+       * Reset all AnalyserChannels belonging to this
+       * AnalyserDevice.
+       */
       resetAllChannels: UAMethod;
+      /**
+       * startAllChannels
+       * Start all AnalyserChannels belonging to this
+       * AnalyserDevice.
+       */
       startAllChannels: UAMethod;
+      /**
+       * stopAllChannels
+       * Stop all AnalyserChannels belonging to this
+       * AnalyserDevice.
+       */
       stopAllChannels: UAMethod;
+      /**
+       * abortAllChannels
+       * Abort all AnalyserChannels belonging to this
+       * AnalyserDevice.
+       */
       abortAllChannels: UAMethod;
+      /**
+       * gotoOperating
+       * AnalyserDeviceStateMachine to go to Operating
+       * state, forcing all AnalyserChannels to leave the
+       * SlaveMode state and go to the Operating state.
+       */
       gotoOperating: UAMethod;
+      /**
+       * gotoMaintenance
+       * AnalyserDeviceStateMachine to go to Maintenance
+       * state, forcing all AnalyserChannels to SlaveMode
+       * state.
+       */
       gotoMaintenance: UAMethod;
 }
 export interface UAAnalyserDevice_identification extends UAFunctionalGroup { // Object

@@ -15,7 +15,15 @@ import type { UAMethod, UAObject } from "node-opcua-address-space-base";
  */
 export interface UARecipeManagement_Base {
    // PlaceHolder for $Recipe_no$
+    /**
+     * addRecipe
+     * Method to add an additional recipe of RecipeType.
+     */
     addRecipe?: UAMethod;
+    /**
+     * removeRecipe
+     * Method to remove a recipe of RecipeType.
+     */
     removeRecipe?: UAMethod;
 }
 export interface UARecipeManagement extends UAObject, UARecipeManagement_Base {}

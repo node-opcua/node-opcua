@@ -27,6 +27,10 @@ export interface UALaboratoryScale_Base extends UASimpleScale_Base {
      * Defines if a calibration procedure is running.
      */
     calibrationRunning?: UAProperty<boolean, DataType.Boolean>;
+    /**
+     * closeDraftShields
+     * Method to close a certain or all draft shields.
+     */
     closeDraftShields?: UAMethod;
     /**
      * draftShieldLeftClosed
@@ -49,10 +53,32 @@ export interface UALaboratoryScale_Base extends UASimpleScale_Base {
      * Defines if a levelling process is running.
      */
     levelingRunning?: UAProperty<boolean, DataType.Boolean>;
+    /**
+     * openDraftShields
+     * Method to open a certain or all draft shields.
+     */
     openDraftShields?: UAMethod;
+    /**
+     * startCalibration
+     * Method to start the automatic calibration
+     * procedure.
+     */
     startCalibration?: UAMethod;
+    /**
+     * startIonisator
+     * Method to start the ionization process.
+     */
     startIonisator?: UAMethod;
+    /**
+     * startLeveling
+     * Method to start the automatic leveling procedure
+     * of the scale.
+     */
     startLeveling?: UAMethod;
+    /**
+     * stopIonisator
+     * Method to stop the ionization process.
+     */
     stopIonisator?: UAMethod;
 }
 export interface UALaboratoryScale extends UASimpleScale, UALaboratoryScale_Base {}

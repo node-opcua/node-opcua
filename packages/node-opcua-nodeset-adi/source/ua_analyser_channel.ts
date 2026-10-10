@@ -34,17 +34,62 @@ export interface UAAnalyserChannel_parameterSet extends UAObject { // Object
       activeStream: UADataItem<UAString, DataType.String>;
 }
 export interface UAAnalyserChannel_methodSet extends UAObject { // Object
+      /**
+       * gotoOperating
+       * Transitions the AnalyserChannel to Operating mode.
+       */
       gotoOperating: UAMethod;
+      /**
+       * gotoMaintenance
+       * Transitions the AnalyserChannel to Maintenance
+       * mode.
+       */
       gotoMaintenance: UAMethod;
       startSingleAcquisition: UAMethod;
+      /**
+       * reset
+       * Causes transition to the Resetting state.
+       */
       reset: UAMethod;
+      /**
+       * start
+       * Causes transition to the Starting state.
+       */
       start: UAMethod;
+      /**
+       * stop
+       * Causes transition to the Stopping state.
+       */
       stop: UAMethod;
+      /**
+       * hold
+       * Causes transition to the Holding state.
+       */
       hold: UAMethod;
+      /**
+       * unhold
+       * Causes transition to the Unholding state.
+       */
       unhold: UAMethod;
+      /**
+       * suspend
+       * Causes transition to the Suspending state.
+       */
       suspend: UAMethod;
+      /**
+       * unsuspend
+       * Causes transition to the Unsuspending state.
+       */
       unsuspend: UAMethod;
+      /**
+       * abort
+       * Causes transition to the Aborting state.
+       */
       abort: UAMethod;
+      /**
+       * clear
+       * Causes transition to the Clearing state.
+       */
       clear: UAMethod;
 }
 export interface UAAnalyserChannel_configuration extends UAFunctionalGroup { // Object

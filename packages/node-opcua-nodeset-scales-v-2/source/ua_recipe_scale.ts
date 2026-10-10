@@ -13,9 +13,17 @@ import type { UAScaleDevice, UAScaleDevice_Base } from "./ua_scale_device.js";
 // ----- this file has been automatically generated - do not edit
 
 export interface UARecipeScale_recipes extends Omit<UARecipeManagement, "addRecipe"|"$Recipe_no$"|"removeRecipe"> { // Object
+      /**
+       * addRecipe
+       * Method to add an additional recipe of RecipeType.
+       */
       addRecipe?: UAMethod;
    // PlaceHolder for $Recipe_no$
       recipeUpload?: UATemporaryFileTransfer;
+      /**
+       * removeRecipe
+       * Method to remove a recipe of RecipeType.
+       */
       removeRecipe?: UAMethod;
 }
 /**

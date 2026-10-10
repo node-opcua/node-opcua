@@ -76,7 +76,16 @@ export interface UAPieceCountingProduct_Base extends UAProduct_Base {
      * counted related to the ReferencePieceWeight.
      */
     registeredPieceCount: UABaseDataVariable<any, any>;
+    /**
+     * setTargetItemCount
+     * Set the number of TargetItemCount.
+     */
     setTargetItemCount?: UAMethod;
+    /**
+     * setTargetPieceCount
+     * Sets the value of TargetPieceCount. See
+     * TargetPieceCount.
+     */
     setTargetPieceCount?: UAMethod;
     /**
      * settlingTime
