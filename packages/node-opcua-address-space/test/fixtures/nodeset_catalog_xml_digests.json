@@ -11,8 +11,8 @@
   },
   "adi": {
     "uri": "http://opcfoundation.org/UA/ADI/",
-    "length": 418072,
-    "sha1": "8f219ec3b58562e5be2adc0a224cc1d20cb9fc5c"
+    "length": 420501,
+    "sha1": "a14644f0d39b12dd683a74087304afd9a35935f7"
   },
   "autoId": {
     "uri": "http://opcfoundation.org/UA/AutoID/",
@@ -31,8 +31,8 @@
   },
   "amb": {
     "uri": "http://opcfoundation.org/UA/AMB/",
-    "length": 77885,
-    "sha1": "81103c8d5156485f10236493deb2e948c2944629"
+    "length": 78112,
+    "sha1": "9a0d817156351c55f8e935375d8e5c1a668821c9"
   },
   "gds": {
     "uri": "http://opcfoundation.org/UA/GDS/",
@@ -56,8 +56,8 @@
   },
   "machineryResult": {
     "uri": "http://opcfoundation.org/UA/Machinery/Result/",
-    "length": 139384,
-    "sha1": "6fc4d06e211dac3b85fdda5cbd968f998c12e416"
+    "length": 139934,
+    "sha1": "7e263fd1db70c347f83c6427a38d0fa10a4feb2b"
   },
   "machinery": {
     "uri": "http://opcfoundation.org/UA/Machinery/",
@@ -66,8 +66,8 @@
   },
   "ia": {
     "uri": "http://opcfoundation.org/UA/IA/",
-    "length": 102280,
-    "sha1": "f7a753c76345bddddd302b052063efd49c758e9d"
+    "length": 102402,
+    "sha1": "29df715a2cfad6e821a7c3e4661a0d942e54242c"
   },
   "machineTool": {
     "uri": "http://opcfoundation.org/UA/MachineTool/",
@@ -91,8 +91,8 @@
   },
   "ijtBase": {
     "uri": "http://opcfoundation.org/UA/IJT/Base/",
-    "length": 1005761,
-    "sha1": "63c0718ed620053ddf701fda5b2792331a56e947"
+    "length": 1018399,
+    "sha1": "75b1f95973eed3c8f1bb3837717c5a0dd238508c"
   },
   "tightening": {
     "uri": "http://opcfoundation.org/UA/IJT/Tightening/",
@@ -141,8 +141,8 @@
   },
   "scales": {
     "uri": "http://opcfoundation.org/UA/Scales/V2/",
-    "length": 828608,
-    "sha1": "1820939190cf0c9287d89dd2a877f857a1a19625"
+    "length": 830941,
+    "sha1": "b9ea76486cdd43abf3405d9543e083c81a7c8217"
   },
   "i4aas": {
     "uri": "http://opcfoundation.org/UA/I4AAS/",

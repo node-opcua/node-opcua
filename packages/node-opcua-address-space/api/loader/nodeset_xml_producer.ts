@@ -309,13 +309,7 @@ export function makeXmlNodesetRecordReader(): XmlNodesetRecordReader {
             this.obj.methodDeclarationId = nodeIdOrNull(attrs.MethodDeclarationId);
         },
         ...emit,
-        parser: {
-            DisplayName: displayName_parser,
-            Category: category_parser,
-            Documentation: documentation_parser,
-            References: references_parser,
-            RolePermissions: role_permissions_parser
-        }
+        parser: common_parser
     };
 
     const state_UAView = {

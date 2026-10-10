@@ -664,7 +664,8 @@ export class NodesetRecordApplier implements NodesetRecordConsumer {
                         ...this.common(record),
                         parentNodeId: this.translateOrNull(record.parentNodeId),
                         methodDeclarationId: this.translateOrNull(record.methodDeclarationId),
-                        displayName: record.displayName
+                        displayName: record.displayName,
+                        description: record.description
                     } as CreateNodeOptions,
                     record
                 );
