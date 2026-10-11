@@ -20,21 +20,32 @@ async function readAll(folder: string): Promise<Buffer[]> {
     for (const f of files) {
         const file = path.join(folder, f);
         const ext = path.extname(file);
-        if (ext === ".der" || ext === ".pem") {
-            const chain = await readCertificateChainAsync(file);
-            // Return the full chain as a single ByteString.
-            // When addTrustedCertificateFromChain stores a chain-on-disk
-            // (leaf + issuer CAs in a single PEM), we preserve that
-            // chain so clients reading the TrustList can use it for
-            // chain-building.
-            const concatenated = Buffer.concat(chain);
-            results.push(concatenated);
-        } else if (ext === ".crl") {
-            // Strict validation: only accept valid CRL files
-            const buf = await readCertificateRevocationList(file);
-            results.push(buf);
-        } else {
-            errorLog(" unknown extension on file ", f);
+        try {
+            if (ext === ".der" || ext === ".pem") {
+                const chain = await readCertificateChainAsync(file);
+                // Return the full chain as a single ByteString.
+                // When addTrustedCertificateFromChain stores a chain-on-disk
+                // (leaf + issuer CAs in a single PEM), we preserve that
+                // chain so clients reading the TrustList can use it for
+                // chain-building.
+                const concatenated = Buffer.concat(chain);
+                results.push(concatenated);
+            } else if (ext === ".crl") {
+                // Strict validation: only accept valid CRL files
+                const buf = await readCertificateRevocationList(file);
+                results.push(buf);
+            } else {
+                errorLog(" unknown extension on file ", f);
+            }
+        } catch (err) {
+            // The certificate manager moves files between folders at any
+            // time (trust, reject, withdraw). A file listed by readdir and
+            // gone before it is read is no longer in this list: skip it
+            // rather than failing the whole TrustList Open.
+            if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+                continue;
+            }
+            throw err;
         }
     }
     return results;
