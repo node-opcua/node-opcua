@@ -29,6 +29,12 @@ export interface EndpointCriteria {
 export interface ResolutionContext {
     applicationUri?: string | null;
     securityMode?: MessageSecurityMode;
+    /**
+     * True when the client certificate was admitted only by a relaxation of
+     * the Server's checks (NoConfiguration), not because the Server trusts it.
+     * The Application and TrustedApplication criteria then never match.
+     */
+    clientCertificateTrustRelaxed?: boolean;
     endpointUrl?: string;
     securityPolicyUri?: string;
     transportProfileUri?: string;

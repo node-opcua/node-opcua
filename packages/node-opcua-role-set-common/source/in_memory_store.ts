@@ -8,12 +8,24 @@ import {
     AnonymousIdentityToken,
     IdentityCriteriaType,
     IdentityMappingRuleType,
+    MessageSecurityMode,
     UserNameIdentityToken,
     X509IdentityToken
 } from "node-opcua-types";
 
 import type { AnyUserIdentityToken, IIdentityMappingStore } from "./identity_mapping_store.js";
-import { matchX509Subject } from "./x509_subject.js";
+import type { ResolutionContext } from "./role_restriction_store.js";
+import { WellKnownRoleIds } from "./well_known_role_ids.js";
+import { type MatchX509SubjectOptions, matchX509Subject } from "./x509_subject.js";
+
+export interface InMemoryIdentityMappingStoreOptions {
+    /**
+     * Let an `X509Subject` rule written as a plain Common Name match on the CN
+     * alone (see {@link MatchX509SubjectOptions.acceptCommonNameOnly}). Off by
+     * default: OPC 10000-18 §4.4.3 requires the full ordered DN.
+     */
+    acceptCommonNameOnlyX509Subject?: boolean;
+}
 
 /**
  * In-memory implementation of {@link IIdentityMappingStore}.
@@ -23,6 +35,11 @@ import { matchX509Subject } from "./x509_subject.js";
  */
 export class InMemoryIdentityMappingStore implements IIdentityMappingStore {
     private readonly _map = new Map<string, IdentityMappingRuleType[]>();
+    private readonly _subjectOptions: MatchX509SubjectOptions;
+
+    constructor(options: InMemoryIdentityMappingStoreOptions = {}) {
+        this._subjectOptions = { acceptCommonNameOnly: options.acceptCommonNameOnlyX509Subject === true };
+    }
 
     public addIdentity(roleId: NodeId, rule: IdentityMappingRuleType): boolean {
         const key = roleId.toString();
@@ -83,11 +100,18 @@ export class InMemoryIdentityMappingStore implements IIdentityMappingStore {
         return result;
     }
 
-    public resolveRoles(token: AnyUserIdentityToken): NodeId[] {
+    public resolveRoles(token: AnyUserIdentityToken, context?: ResolutionContext): NodeId[] {
         const matched: NodeId[] = [];
         for (const [key, rules] of this._map) {
+            const privileged = isPrivilegedRoleKey(key);
             for (const rule of rules) {
-                if (matchesRule(rule, token)) {
+                // AddIdentity refuses a TrustedApplication rule on an administrative
+                // Role, but one persisted before that check, or added in code,
+                // would give the Role to every trusted Client: never match it.
+                if (privileged && rule.criteriaType === IdentityCriteriaType.TrustedApplication) {
+                    continue;
+                }
+                if (matchesRule(rule, token, context, this._subjectOptions)) {
                     const roleId = resolveNodeId(key);
                     if (!matched.find((r) => sameNodeId(r, roleId))) {
                         matched.push(roleId);
@@ -112,15 +136,47 @@ function isX509(token: unknown): token is X509IdentityToken {
     return token instanceof X509IdentityToken;
 }
 
+/** SecurityAdmin and ConfigureAdmin, keyed as the store keys them. */
+const PRIVILEGED_ROLE_KEYS = new Set([WellKnownRoleIds.SecurityAdmin.toString(), WellKnownRoleIds.ConfigureAdmin.toString()]);
+function isPrivilegedRoleKey(key: string): boolean {
+    return PRIVILEGED_ROLE_KEYS.has(key);
+}
+
 /**
- * Check if a single identity mapping rule matches a user identity token.
+ * §4.4.3 for the application criteria: the Client Certificate is trusted by
+ * the Server (not merely admitted by a NoConfiguration relaxation) and the
+ * Session uses a Sign or SignAndEncrypt SecureChannel.
+ */
+function isTrustedSignedClient(context: ResolutionContext | undefined): context is ResolutionContext {
+    if (!context || context.clientCertificateTrustRelaxed === true) {
+        return false;
+    }
+    return context.securityMode === MessageSecurityMode.Sign || context.securityMode === MessageSecurityMode.SignAndEncrypt;
+}
+
+/**
+ * Check if a single identity mapping rule matches a user identity token and,
+ * for the application criteria, the Session's SecureChannel.
  *
- * For `X509Subject` criteria, see {@link matchX509Subject}: both the full
- * ordered DN format (OPC 10000-18 §4.4.3) and a plain Common Name are accepted.
+ * For `X509Subject` criteria, see {@link matchX509Subject}: the full ordered DN
+ * format (OPC 10000-18 §4.4.3); a plain Common Name only when the store opts in.
+ *
+ * `Application` and `TrustedApplication` (§4.4.3) are about the client
+ * application: "The Client Certificate shall be trusted by the Server and the
+ * Session shall use at least a signed communication channel." The server
+ * validated that certificate at OpenSecureChannel; `context.applicationUri` is
+ * the URI it carries. A certificate admitted only because the server relaxed
+ * its checks (NoConfiguration, Application Setup) carries a URI nobody
+ * vouched for, so these rules never match it.
  *
  * @see OPC 10000-18 §4.4 IdentityMappingRuleType
  */
-function matchesRule(rule: IdentityMappingRuleType, token: AnyUserIdentityToken): boolean {
+function matchesRule(
+    rule: IdentityMappingRuleType,
+    token: AnyUserIdentityToken,
+    context: ResolutionContext | undefined,
+    subjectOptions: MatchX509SubjectOptions
+): boolean {
     switch (rule.criteriaType) {
         case IdentityCriteriaType.Anonymous:
             return isAnonymous(token);
@@ -150,11 +206,19 @@ function matchesRule(rule: IdentityMappingRuleType, token: AnyUserIdentityToken)
                     token.certificateData instanceof Buffer ? token.certificateData : Buffer.from(token.certificateData);
                 const info = exploreCertificate(certBuffer);
                 const subject = info.tbsCertificate.subject ?? {};
-                return matchX509Subject(rule.criteria ?? "", subject);
+                return matchX509Subject(rule.criteria ?? "", subject, subjectOptions);
             } catch {
                 return false;
             }
         }
+
+        case IdentityCriteriaType.Application: {
+            const expected = (rule.criteria ?? "").trim();
+            return expected !== "" && isTrustedSignedClient(context) && (context.applicationUri ?? "") === expected;
+        }
+
+        case IdentityCriteriaType.TrustedApplication:
+            return isTrustedSignedClient(context) && !!context.applicationUri;
 
         default:
             return false;

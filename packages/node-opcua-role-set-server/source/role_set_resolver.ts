@@ -28,7 +28,7 @@ export class RoleSetResolver {
     ) {}
 
     public resolveRoles(userIdentityToken: AnyUserIdentityToken, context?: ResolutionContext): NodeId[] {
-        const roles = this.store.resolveRoles(userIdentityToken);
+        const roles = this.store.resolveRoles(userIdentityToken, context);
         if (!this.restrictionStore || !context) {
             return roles;
         }

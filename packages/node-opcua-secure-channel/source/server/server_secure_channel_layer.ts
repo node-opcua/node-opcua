@@ -359,6 +359,19 @@ export class ServerSecureChannelLayer extends EventEmitter {
     public get clientCertificate(): Certificate | null {
         return this.#clientCertificate;
     }
+
+    /**
+     * True when the client certificate failed the certificate manager's check
+     * and was admitted only because the parent relaxed it
+     * (`adjustCertificateStatus`, e.g. NoConfiguration during Application
+     * Setup). Such a certificate is not one the Server trusts: the
+     * Application and TrustedApplication identity criteria of OPC 10000-18
+     * §4.4.3 must not grant a Role on it.
+     */
+    public get clientCertificateTrustRelaxed(): boolean {
+        return this.#clientCertificateTrustRelaxed;
+    }
+    #clientCertificateTrustRelaxed = false;
     /**
      * the channel message security mode
      */
@@ -1011,8 +1024,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
         // Allow the parent (e.g. OPCUAServerEndPoint) to relax
         // certain certificate errors based on application-level
         // policy (e.g. NoConfiguration state during GDS onboarding).
+        this.#clientCertificateTrustRelaxed = false;
         if (statusCode.isNotGood() && this.#parent?.adjustCertificateStatus) {
             statusCode = await this.#parent.adjustCertificateStatus(statusCode, certificate);
+            this.#clientCertificateTrustRelaxed = statusCode.isGood();
         }
         return statusCode;
     }

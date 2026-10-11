@@ -20,6 +20,11 @@ export interface ITransportSettings {
 }
 export interface IChannelBase {
     clientCertificate: Certificate | null;
+    /**
+     * True when the client certificate was admitted only by a relaxation of the
+     * Server's checks (e.g. NoConfiguration), not because the Server trusts it.
+     */
+    readonly clientCertificateTrustRelaxed?: boolean;
     // clientNonce: Buffer | null;
     securityMode: MessageSecurityMode;
     securityPolicy: string;

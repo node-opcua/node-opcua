@@ -145,6 +145,8 @@ export interface IRoleResolutionContext {
     securityPolicyUri?: string;
     /** Endpoint URL used by the Session, if known. */
     endpointUrl?: string;
+    /** True when the Client certificate was admitted only by a relaxation (not trusted). */
+    clientCertificateTrustRelaxed?: boolean;
 }
 
 /**
@@ -641,8 +643,35 @@ export class SessionContext implements ISessionContext {
             // null => fall through to default resolution
         }
 
-        if (username === "anonymous") {
-            return anonymous();
+        // OPC 10000-18 §4.4: add what the registered role resolvers grant.
+        const addResolvedRoles = (rolesNodeId: NodeId[]): NodeId[] => {
+            if (this.server?.roleResolvers && this.session?.userIdentityToken) {
+                const resolutionContext: IRoleResolutionContext = {
+                    applicationUri: this.clientApplicationUri,
+                    securityMode: this.session.channel?.securityMode,
+                    securityPolicyUri: this.session.channel?.securityPolicy,
+                    endpointUrl: this.endpointUrl ?? undefined,
+                    clientCertificateTrustRelaxed: this.session.channel?.clientCertificateTrustRelaxed === true
+                };
+                for (const resolver of this.server.roleResolvers) {
+                    const extra = resolver.resolveRoles(this.session.userIdentityToken, resolutionContext);
+                    for (const r of extra) {
+                        if (!rolesNodeId.find((e) => sameNodeId(e, r))) {
+                            rolesNodeId.push(r);
+                        }
+                    }
+                }
+            }
+            return rolesNodeId;
+        };
+
+        if (userIdentityToken instanceof AnonymousIdentityToken) {
+            // By token type, not by name: a user called "anonymous" is not one.
+            // The resolvers are asked too: the Application and TrustedApplication
+            // criteria (§4.4.3) grant a Role to an anonymous Session on the
+            // strength of its client certificate, and an Anonymous rule a
+            // SecurityAdmin added applies to it. Never AuthenticatedUser.
+            return addResolvedRoles(anonymous());
         }
         if (!this.server?.userManager) {
             return anonymous();
@@ -654,25 +683,7 @@ export class SessionContext implements ISessionContext {
             return anonymous();
         }
 
-        const rolesNodeId = this.server.userManager.getUserRoles(username) || [];
-
-        // OPC 10000-18 §4.4: check registered role resolvers
-        if (this.server.roleResolvers && this.session?.userIdentityToken) {
-            const resolutionContext: IRoleResolutionContext = {
-                applicationUri: this.clientApplicationUri,
-                securityMode: this.session.channel?.securityMode,
-                securityPolicyUri: this.session.channel?.securityPolicy,
-                endpointUrl: this.endpointUrl ?? undefined
-            };
-            for (const resolver of this.server.roleResolvers) {
-                const extra = resolver.resolveRoles(this.session.userIdentityToken, resolutionContext);
-                for (const r of extra) {
-                    if (!rolesNodeId.find((e) => sameNodeId(e, r))) {
-                        rolesNodeId.push(r);
-                    }
-                }
-            }
-        }
+        const rolesNodeId = addResolvedRoles(this.server.userManager.getUserRoles(username) || []);
 
         if (rolesNodeId.findIndex((r) => r.namespace === 0 && r.value === WellKnownRoles.AuthenticatedUser) < 0) {
             rolesNodeId.push(resolveNodeId(WellKnownRoles.AuthenticatedUser));

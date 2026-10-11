@@ -6,6 +6,8 @@
  * Already covered by concrete tests (NOT repeated here):
  *   - identity criteria, X509 full-DN, duplicate detection
  *       → role-set-common/test/test_x509_subject.ts, test_identity_mapping_store.ts
+ *   - Application and TrustedApplication criteria, §4.4.3
+ *       → role-set-test/test/test_application_criteria_integration.ts
  *   - AddIdentity/RemoveIdentity: encrypted channel, immutability, weak-rule &
  *     duplicate rejection, SecurityAdmin authorization
  *       → role-set-server/test/test_bind_role_methods.ts
@@ -56,8 +58,6 @@ describe("E2E backlog: Custom Role management — AddRole / RemoveRole (§4.2)",
 // SessionContext surfaces the endpoint URL (role-set-test/test_role_set_integration.ts).
 
 describe("E2E backlog: Additional identity criteria types (§4.4.4)", () => {
-    it("grants a role via TrustedApplication criteria over a signed channel");
-    it("grants a role via Application (ApplicationUri) criteria");
     it("grants a role via JWT Role / GroupId criteria");
 });
 

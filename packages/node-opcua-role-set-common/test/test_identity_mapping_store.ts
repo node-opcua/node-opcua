@@ -1,17 +1,27 @@
-import "should";
 import path from "node:path";
-import { exploreCertificate, makeSHA1Thumbprint, readCertificate } from "node-opcua-crypto";
+import {
+    CertificatePurpose,
+    convertPEMtoDER,
+    createSelfSignedCertificate,
+    exploreCertificate,
+    generateKeyPair,
+    makeSHA1Thumbprint,
+    readCertificate
+} from "node-opcua-crypto";
 import { makeNodeId, sameNodeId } from "node-opcua-nodeid";
 import { samplesCertificateFolder } from "node-opcua-test-helpers";
 import {
     AnonymousIdentityToken,
     IdentityCriteriaType,
     IdentityMappingRuleType,
+    MessageSecurityMode,
     UserNameIdentityToken,
     X509IdentityToken
 } from "node-opcua-types";
+import should from "should";
 import { InMemoryIdentityMappingStore } from "../source/in_memory_store.js";
 import { WellKnownRoleIds } from "../source/well_known_role_ids.js";
+import { canonicalizeX509Subject, certificateSubjectPairs, type X509SubjectName } from "../source/x509_subject.js";
 
 describe("InMemoryIdentityMappingStore", () => {
     let store: InMemoryIdentityMappingStore;
@@ -216,29 +226,31 @@ describe("InMemoryIdentityMappingStore", () => {
 
     describe("X509Subject criteria", () => {
         let certBuffer: Buffer;
-        let subjectCN: string;
+        let subjectDN: string;
 
         before(async () => {
             const certPath = path.join(samplesCertificateFolder, "client_cert_2048.pem");
             try {
                 certBuffer = await readCertificate(certPath);
                 const info = exploreCertificate(certBuffer);
-                subjectCN = info.tbsCertificate.subject?.commonName ?? "";
+                subjectDN = canonicalizeX509Subject(
+                    certificateSubjectPairs(info.tbsCertificate.subject as unknown as X509SubjectName)
+                );
             } catch {
                 certBuffer = Buffer.alloc(0);
-                subjectCN = "";
+                subjectDN = "";
             }
         });
 
         it("should resolve matching X509Subject", function () {
-            if (!certBuffer.length || !subjectCN) {
+            if (!certBuffer.length || !subjectDN) {
                 this.skip();
             }
             store.addIdentity(
                 WellKnownRoleIds.ConfigureAdmin,
                 new IdentityMappingRuleType({
                     criteriaType: IdentityCriteriaType.X509Subject,
-                    criteria: subjectCN
+                    criteria: subjectDN
                 })
             );
             const token = new X509IdentityToken({ certificateData: certBuffer });
@@ -261,6 +273,37 @@ describe("InMemoryIdentityMappingStore", () => {
             const token = new X509IdentityToken({ certificateData: certBuffer });
             const roles = store.resolveRoles(token);
             roles.should.have.length(0);
+        });
+
+        it("should NOT resolve a CN-only X509Subject rule unless the store opts in", async () => {
+            // Its own certificate, not the sample one: this case must always run.
+            const { privateKey } = await generateKeyPair(2048);
+            const { cert } = await createSelfSignedCertificate({
+                privateKey,
+                subject: "CN=Jane Doe/O=Elsewhere",
+                purpose: CertificatePurpose.ForUserAuthentication,
+                validity: 30
+            });
+            const token = new X509IdentityToken({ certificateData: convertPEMtoDER(cert) });
+            const rule = new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.X509Subject, criteria: "Jane Doe" });
+
+            store.addIdentity(WellKnownRoleIds.ConfigureAdmin, rule);
+            should(store.resolveRoles(token)).have.length(0);
+
+            const lenient = new InMemoryIdentityMappingStore({ acceptCommonNameOnlyX509Subject: true });
+            lenient.addIdentity(WellKnownRoleIds.ConfigureAdmin, rule);
+            should(lenient.resolveRoles(token)).have.length(1);
+
+            // The full DN, as §4.4.3 writes it, matches with the default store.
+            const strict = new InMemoryIdentityMappingStore();
+            strict.addIdentity(
+                WellKnownRoleIds.ConfigureAdmin,
+                new IdentityMappingRuleType({
+                    criteriaType: IdentityCriteriaType.X509Subject,
+                    criteria: 'CN="Jane Doe"/O="Elsewhere"'
+                })
+            );
+            should(strict.resolveRoles(token)).have.length(1);
         });
 
         it("should NOT resolve X509Subject for non-X509 token", () => {
@@ -387,6 +430,74 @@ describe("InMemoryIdentityMappingStore", () => {
             const rules2 = store.getIdentitiesForRole(WellKnownRoleIds.SecurityAdmin);
             rules1.should.not.equal(rules2); // different array instances
             rules1.should.have.length(1);
+        });
+    });
+    describe("Application and TrustedApplication criteria (OPC 10000-18 §4.4.3)", () => {
+        const APP = "urn:example:console";
+        const anonymous = new AnonymousIdentityToken();
+        const signed = { applicationUri: APP, securityMode: MessageSecurityMode.SignAndEncrypt };
+
+        it("Application grants the Session whose client certificate carries the ApplicationUri, on a signed channel", () => {
+            store.addIdentity(
+                WellKnownRoleIds.SecurityAdmin,
+                new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.Application, criteria: APP })
+            );
+            should(store.resolveRoles(anonymous, signed).map((r) => r.toString())).eql([WellKnownRoleIds.SecurityAdmin.toString()]);
+            should(store.resolveRoles(anonymous, { ...signed, securityMode: MessageSecurityMode.Sign })).have.length(1);
+        });
+
+        it("Application does NOT grant another ApplicationUri, an unsigned channel, or a call without context", () => {
+            store.addIdentity(
+                WellKnownRoleIds.SecurityAdmin,
+                new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.Application, criteria: APP })
+            );
+            should(store.resolveRoles(anonymous, { ...signed, applicationUri: "urn:example:other" })).have.length(0);
+            should(store.resolveRoles(anonymous, { ...signed, securityMode: MessageSecurityMode.None })).have.length(0);
+            should(store.resolveRoles(anonymous, { securityMode: MessageSecurityMode.SignAndEncrypt })).have.length(0);
+            should(store.resolveRoles(anonymous)).have.length(0);
+        });
+
+        it("Application with an empty criteria matches nothing", () => {
+            store.addIdentity(
+                WellKnownRoleIds.SecurityAdmin,
+                new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.Application, criteria: "" })
+            );
+            should(store.resolveRoles(anonymous, { ...signed, applicationUri: "" })).have.length(0);
+        });
+
+        it("neither criteria matches a client certificate admitted only by a relaxation (NoConfiguration)", () => {
+            store.addIdentity(
+                WellKnownRoleIds.SecurityAdmin,
+                new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.Application, criteria: APP })
+            );
+            store.addIdentity(
+                WellKnownRoleIds.Operator,
+                new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.TrustedApplication, criteria: "" })
+            );
+            should(store.resolveRoles(anonymous, { ...signed, clientCertificateTrustRelaxed: true })).have.length(0);
+            should(store.resolveRoles(anonymous, { ...signed, clientCertificateTrustRelaxed: false })).have.length(2);
+        });
+
+        it("a TrustedApplication rule on SecurityAdmin or ConfigureAdmin never matches, however it got into the store", () => {
+            for (const role of [WellKnownRoleIds.SecurityAdmin, WellKnownRoleIds.ConfigureAdmin]) {
+                store.addIdentity(
+                    role,
+                    new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.TrustedApplication, criteria: "" })
+                );
+            }
+            should(store.resolveRoles(anonymous, signed)).have.length(0);
+        });
+
+        it("TrustedApplication grants any client with a certificate on a signed channel, and nothing else", () => {
+            store.addIdentity(
+                WellKnownRoleIds.Operator,
+                new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.TrustedApplication, criteria: "" })
+            );
+            should(store.resolveRoles(anonymous, signed)).have.length(1);
+            should(store.resolveRoles(anonymous, { ...signed, applicationUri: "urn:example:other" })).have.length(1);
+            should(store.resolveRoles(anonymous, { ...signed, securityMode: MessageSecurityMode.None })).have.length(0);
+            should(store.resolveRoles(anonymous, { securityMode: MessageSecurityMode.SignAndEncrypt })).have.length(0);
+            should(store.resolveRoles(anonymous)).have.length(0);
         });
     });
 });
