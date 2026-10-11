@@ -521,13 +521,15 @@ describe("shared store: the columns of a store read from another thread", functi
         } finally {
             Atomics.store(new Int32Array(stop), 0, 1);
         }
-        const { written, refused } = await result;
+        const { written } = await result;
         await worker.terminate();
         should(torn).eql(0);
         should(reads).be.above(1000);
         should(written).be.above(1000);
         should(compactions).be.above(2, "the heap compacted under the writer");
-        should(refused).be.above(0, "the writer left values to the owner once the heap moved");
+        // whether a write of the worker meets a compaction depends on how the threads are scheduled: a busy
+        // machine may run the worker only between them. That case is the deterministic test above
+        // ("compacts the heap only once a value another thread is writing is whole")
         for (const i of index) should(store.values.version(i) % 2).eql(0, "no value left held");
     });
 
