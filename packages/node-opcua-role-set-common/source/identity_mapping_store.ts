@@ -3,6 +3,7 @@
  */
 import type { NodeId } from "node-opcua-nodeid";
 import type { AnonymousIdentityToken, IdentityMappingRuleType, UserNameIdentityToken, X509IdentityToken } from "node-opcua-types";
+import type { ResolutionContext } from "./role_restriction_store.js";
 
 /**
  * Union of all user identity token types (OPC 10000-4).
@@ -37,6 +38,13 @@ export interface IIdentityMappingStore {
     /** Get all role NodeIds that have at least one mapping. */
     getRoleIds(): NodeId[];
 
-    /** Resolve which roles are granted by a user identity token. */
-    resolveRoles(token: AnyUserIdentityToken): NodeId[];
+    /**
+     * Resolve which roles are granted by a user identity token.
+     *
+     * `context` describes the Session's SecureChannel (client ApplicationUri,
+     * security mode). Without it, the `Application` and `TrustedApplication`
+     * criteria (OPC 10000-18 §4.4.3) never match: they are about the client
+     * application, not the user token.
+     */
+    resolveRoles(token: AnyUserIdentityToken, context?: ResolutionContext): NodeId[];
 }

@@ -16,7 +16,7 @@ import {
     WellKnownRoleIds,
     writeArchive
 } from "node-opcua-role-set-common";
-import { AnonymousIdentityToken, IdentityCriteriaType, IdentityMappingRuleType } from "node-opcua-types";
+import { AnonymousIdentityToken, IdentityCriteriaType, IdentityMappingRuleType, MessageSecurityMode } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
 import { type IServerForRoleSet, installRoleSet } from "../source/install_role_set.js";
@@ -39,6 +39,19 @@ describe("RoleSetResolver", () => {
         const roles = resolver.resolveRoles(new AnonymousIdentityToken());
         roles.should.have.length(1);
         sameNodeId(roles[0], WellKnownRoleIds.Observer).should.be.true();
+    });
+
+    it("should pass the Session's context to the store, so an Application rule can match", () => {
+        const store = new InMemoryIdentityMappingStore();
+        store.addIdentity(
+            WellKnownRoleIds.SecurityAdmin,
+            new IdentityMappingRuleType({ criteriaType: IdentityCriteriaType.Application, criteria: "urn:example:console" })
+        );
+        const resolver = new RoleSetResolver(store);
+        const token = new AnonymousIdentityToken();
+        const context = { applicationUri: "urn:example:console", securityMode: MessageSecurityMode.SignAndEncrypt };
+        should(resolver.resolveRoles(token, context).map((r) => r.toString())).eql([WellKnownRoleIds.SecurityAdmin.toString()]);
+        should(resolver.resolveRoles(token)).have.length(0);
     });
 
     it("should return empty for non-matching token", () => {

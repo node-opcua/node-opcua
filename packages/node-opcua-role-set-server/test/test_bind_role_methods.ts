@@ -366,6 +366,37 @@ describe("bind_role_methods — weak criteria on administrative roles (OPC 10000
         should(result.statusCode).equal(StatusCodes.BadRequestNotAllowed);
     });
 
+    it("should reject a TrustedApplication rule on the SecurityAdmin role: it names no application", async () => {
+        const store = new InMemoryIdentityMappingStore();
+        const handler = makeAddIdentityHandler({ store });
+        const context = makeContext([WellKnownRoleIds.SecurityAdmin]);
+        const mockMethod = makeMockMethod(WellKnownRoleIds.SecurityAdmin);
+        const inputArgs = makeRuleVariant(IdentityCriteriaType.TrustedApplication, "");
+        const result = await handler.call(mockMethod, inputArgs, context);
+        should(result.statusCode).equal(StatusCodes.BadRequestNotAllowed);
+    });
+
+    it("should allow an Application rule naming an ApplicationUri on the SecurityAdmin role", async () => {
+        const store = new InMemoryIdentityMappingStore();
+        const handler = makeAddIdentityHandler({ store });
+        const context = makeContext([WellKnownRoleIds.SecurityAdmin]);
+        const mockMethod = makeMockMethod(WellKnownRoleIds.SecurityAdmin);
+        const inputArgs = makeRuleVariant(IdentityCriteriaType.Application, "urn:example:console");
+        const result = await handler.call(mockMethod, inputArgs, context);
+        should(result.statusCode).equal(StatusCodes.Good);
+    });
+
+    it("should reject an Application rule with no ApplicationUri", async () => {
+        const store = new InMemoryIdentityMappingStore();
+        const handler = makeAddIdentityHandler({ store });
+        const context = makeContext([WellKnownRoleIds.SecurityAdmin]);
+        const mockMethod = makeMockMethod(WellKnownRoleIds.Operator);
+        const inputArgs = makeRuleVariant(IdentityCriteriaType.Application, "  ");
+        const result = await handler.call(mockMethod, inputArgs, context);
+        should(result.statusCode).equal(StatusCodes.BadInvalidArgument);
+        should(store.getIdentitiesForRole(WellKnownRoleIds.Operator)).have.length(0);
+    });
+
     it("should allow a UserName rule on the SecurityAdmin role", async () => {
         const store = new InMemoryIdentityMappingStore();
         const handler = makeAddIdentityHandler({ store });

@@ -21,7 +21,7 @@ export {
     saveToBinaryFile
 } from "./binary_persistence.js";
 export type { AnyUserIdentityToken, IIdentityMappingStore } from "./identity_mapping_store.js";
-export { InMemoryIdentityMappingStore } from "./in_memory_store.js";
+export { InMemoryIdentityMappingStore, type InMemoryIdentityMappingStoreOptions } from "./in_memory_store.js";
 export {
     BcryptHasher,
     defaultHasherRegistry,
@@ -60,6 +60,7 @@ export { WellKnownRoleIds, WellKnownRoles } from "./well_known_role_ids.js";
 export {
     canonicalizeX509Subject,
     certificateSubjectPairs,
+    type MatchX509SubjectOptions,
     matchX509Subject,
     parseX509SubjectCriteria,
     X509_SUBJECT_ORDER,

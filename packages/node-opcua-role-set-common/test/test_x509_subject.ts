@@ -1,5 +1,5 @@
-import "should";
 import { convertPEMtoDER, exploreCertificate } from "node-opcua-crypto";
+import should from "should";
 import {
     canonicalizeX509Subject,
     certificateSubjectPairs,
@@ -95,12 +95,16 @@ describe("x509_subject — OPC 10000-18 §4.4.3 subject criteria (Table 10)", ()
     });
 
     describe("matchX509Subject — legacy CN-only format", () => {
-        it("should match a plain Common Name", () => {
-            matchX509Subject("Jane Doe", { commonName: "Jane Doe" }).should.be.true();
+        it("should NOT match a plain Common Name by default: §4.4.3 requires the full DN", () => {
+            should(matchX509Subject("Jane Doe", { commonName: "Jane Doe" })).eql(false);
+            // the case that made it a hole: any certificate with that CN, whatever else it says
+            should(matchX509Subject("Jane Doe", { commonName: "Jane Doe", organizationName: "Elsewhere" })).eql(false);
         });
 
-        it("should NOT match a different Common Name", () => {
-            matchX509Subject("Someone Else", { commonName: "Jane Doe" }).should.be.false();
+        it("should match a plain Common Name only when the caller opts in", () => {
+            should(matchX509Subject("Jane Doe", { commonName: "Jane Doe" }, { acceptCommonNameOnly: true })).eql(true);
+            should(matchX509Subject("Someone Else", { commonName: "Jane Doe" }, { acceptCommonNameOnly: true })).eql(false);
+            should(matchX509Subject("", { commonName: "" }, { acceptCommonNameOnly: true })).eql(false);
         });
     });
     describe("certificateSubjectPairs — driven by a REAL certificate", () => {

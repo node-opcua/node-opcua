@@ -8,13 +8,14 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import "should";
-
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { OPCUAClient } from "node-opcua-client";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { OPCUAServer, type OPCUAServerEndPoint } from "node-opcua-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { ServerState } from "node-opcua-types";
+import should from "should";
 
 import { installPushCertificateManagementOnServer } from "../../dist/index.js";
 import { initializeHelpers } from "../helpers/fake_certificate_authority.js";
@@ -111,6 +112,59 @@ describe("NoConfiguration certificate relaxation", function (this: Mocha.Suite) 
             );
             (await hook(StatusCodes.BadCertificateChainIncomplete, fakeCert)).should.eql(StatusCodes.BadCertificateChainIncomplete);
         } finally {
+            await server.shutdown();
+        }
+    });
+
+    it("NCR-3 the SecureChannel says when its client certificate was admitted only by the relaxation", async () => {
+        // OPC 10000-18 §4.4.3: the Application and TrustedApplication criteria
+        // need a client certificate the Server trusts. A certificate the
+        // NoConfiguration hook admitted is not one: the channel must say so.
+        const certificateManager = await createTestCertificateManager(_folder);
+        const server = new OPCUAServer({
+            port,
+            serverCertificateManager: certificateManager,
+            userCertificateManager: certificateManager,
+            allowAnonymous: true
+        });
+        await server.initialize();
+        await installPushCertificateManagementOnServer(server);
+        server.setServerState(ServerState.NoConfiguration);
+        await server.start();
+
+        const clientPki = path.join(_folder, `ClientPKI_${Math.random().toString(36).slice(2, 10)}`);
+        const clientCertificateManager = new OPCUACertificateManager({
+            rootFolder: clientPki,
+            automaticallyAcceptUnknownCertificate: true
+        });
+        await clientCertificateManager.initialize();
+        const relaxedOf = async (): Promise<boolean | undefined> => {
+            const client = OPCUAClient.create({
+                clientCertificateManager,
+                securityMode: MessageSecurityMode.SignAndEncrypt,
+                securityPolicy: SecurityPolicy.Basic256Sha256,
+                endpointMustExist: false,
+                connectionStrategy: { maxRetry: 0 }
+            });
+            await client.connect(server.getEndpointUrl());
+            const session = await client.createSession();
+            try {
+                const [serverSession] = server.engine.getSessions();
+                return (serverSession.channel as { clientCertificateTrustRelaxed?: boolean } | undefined)
+                    ?.clientCertificateTrustRelaxed;
+            } finally {
+                await session.close();
+                await client.disconnect();
+            }
+        };
+        try {
+            // Unknown to the server: admitted by the relaxation, and flagged.
+            should(await relaxedOf()).eql(true);
+            // Trusted for real (the relaxation also wrote it to trusted/, provisionally):
+            // the next channel's check passes on its own, and nothing is flagged.
+            should(await relaxedOf()).eql(false);
+        } finally {
+            await clientCertificateManager.dispose();
             await server.shutdown();
         }
     });

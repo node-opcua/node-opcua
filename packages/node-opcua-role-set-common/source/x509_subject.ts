@@ -105,22 +105,33 @@ export function certificateSubjectPairs(subject: X509SubjectName): Array<[string
     return pairs;
 }
 
+export interface MatchX509SubjectOptions {
+    /**
+     * Also accept a plain Common Name as the criteria, compared against the
+     * certificate's `commonName` only. Not OPC 10000-18 §4.4.3, and weaker: the
+     * rule then matches every trusted certificate with that CN, whatever its
+     * other attributes. Off by default.
+     */
+    acceptCommonNameOnly?: boolean;
+}
+
 /**
  * Test whether an `X509Subject` criteria matches a certificate subject.
  *
- * Two criteria formats are accepted:
- * - the full ordered DN format (e.g. `CN="Jane Doe"/O="ACME"`), in which case
- *   **every** mappable subject attribute present in the certificate must be
- *   present in the criteria and vice-versa;
- * - a plain Common Name string (legacy/simplified), compared against the
- *   certificate's `commonName` only.
+ * The criteria is the full ordered DN of OPC 10000-18 §4.4.3 (e.g.
+ * `CN="Jane Doe"/O="ACME"`): **every** mappable subject attribute present in
+ * the certificate must be present in the criteria and vice-versa. A plain
+ * Common Name matches only with {@link MatchX509SubjectOptions.acceptCommonNameOnly}.
  */
-export function matchX509Subject(criteria: string, subject: X509SubjectName): boolean {
+export function matchX509Subject(criteria: string, subject: X509SubjectName, options: MatchX509SubjectOptions = {}): boolean {
     const trimmed = (criteria ?? "").trim();
     if (/[A-Za-z]+\s*=\s*"/.test(trimmed)) {
         return (
             canonicalizeX509Subject(certificateSubjectPairs(subject)) === canonicalizeX509Subject(parseX509SubjectCriteria(trimmed))
         );
+    }
+    if (!options.acceptCommonNameOnly || trimmed === "") {
+        return false;
     }
     return (subject.commonName ?? "") === trimmed;
 }

@@ -39,9 +39,17 @@ function isPrivilegedRole(roleId: NodeId): boolean {
     return sameNodeId(roleId, WellKnownRoleIds.SecurityAdmin) || sameNodeId(roleId, WellKnownRoleIds.ConfigureAdmin);
 }
 
-/** True for weak criteria that must not be granted to administrative Roles. */
+/**
+ * True for weak criteria that must not be granted to administrative Roles.
+ * TrustedApplication is one: it names no application, so it would give the
+ * Role to every Client whose certificate the Server trusts.
+ */
 function isWeakCriteria(criteriaType: IdentityCriteriaType): boolean {
-    return criteriaType === IdentityCriteriaType.Anonymous || criteriaType === IdentityCriteriaType.AuthenticatedUser;
+    return (
+        criteriaType === IdentityCriteriaType.Anonymous ||
+        criteriaType === IdentityCriteriaType.AuthenticatedUser ||
+        criteriaType === IdentityCriteriaType.TrustedApplication
+    );
 }
 
 /**
@@ -119,8 +127,11 @@ export function makeAddIdentityHandler(options: BindRoleMethodsOptions) {
             // well-known immutable Roles cannot be changed (§4.3)
             statusCode = StatusCodes.BadRequestNotAllowed;
         } else if (isWeakCriteria(rule.criteriaType) && isPrivilegedRole(roleNode.nodeId)) {
-            // refuse weak (Anonymous/AuthenticatedUser) rules on administrative Roles (§4.4.5)
+            // refuse weak (Anonymous/AuthenticatedUser/TrustedApplication) rules on administrative Roles (§4.4.5)
             statusCode = StatusCodes.BadRequestNotAllowed;
+        } else if (rule.criteriaType === IdentityCriteriaType.Application && !(rule.criteria ?? "").trim()) {
+            // an Application rule names an ApplicationUri (§4.4.3): an empty one would match nothing
+            statusCode = StatusCodes.BadInvalidArgument;
         } else {
             // duplicate rule is reported as Bad_AlreadyExists
             statusCode = store.addIdentity(roleNode.nodeId, rule) ? StatusCodes.Good : StatusCodes.BadAlreadyExists;
