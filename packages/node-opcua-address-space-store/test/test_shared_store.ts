@@ -401,19 +401,29 @@ describe("shared store: the columns of a store read from another thread", functi
     it("compacts the heap only once a value another thread is writing is whole, and keeps that value", async () => {
         const store = buildStrings(4);
         const i = store.find(numeric(1001));
+        // the node the owner fills the heap with, added before the worker starts: no column moves after
+        const own = store.addNode({
+            nodeId: numeric(5000),
+            nodeClass: NodeClass.Variable,
+            browseName: "Own",
+            browseNameNamespace: 1
+        });
         const dist = pathToFileURL(path.join(here, "../dist/index.js")).href;
-        // the worker writes "xyz" over "abc" in the value's slot, as writeBytes does, slowly: one byte, 30 ms, the rest
+        // the worker writes "xyz" over "abc" in the value's slot, as writeBytes does: one byte, then the rest
+        // once the owner has begun its compaction (the layout moved), whatever the time the owner took to begin
         const code = `
             const { workerData, parentPort } = require("node:worker_threads");
             import(workerData.dist).then(({ claimValue, releaseClaim }) => {
-                const { values } = workerData.descriptor;
+                const { values, layout, layoutSeen } = workerData.descriptor;
                 const version = new Uint32Array(values.version);
                 const bytes = new Uint8Array(values.heap.bytes);
                 const offset = new Int32Array(values.heap.offset)[workerData.i];
                 const claimed = claimValue(version, workerData.i);
                 bytes[offset + 5] = 0x78;
                 parentPort.postMessage("claimed");
-                Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 30);
+                const moved = new Int32Array(layout);
+                const giveUp = Date.now() + 10000;
+                while (Atomics.load(moved, 0) === layoutSeen && Date.now() < giveUp);
                 bytes[offset + 6] = 0x79;
                 bytes[offset + 7] = 0x7a;
                 releaseClaim(version, workerData.i, claimed);
@@ -426,12 +436,6 @@ describe("shared store: the columns of a store read from another thread", functi
                 worker.once("error", reject);
             });
             // a value larger than the heap's room: the owner compacts it, while the worker holds its claim
-            const own = store.addNode({
-                nodeId: numeric(5000),
-                nodeClass: NodeClass.Variable,
-                browseName: "Own",
-                browseNameNamespace: 1
-            });
             store.values.setObject(own, DataType.String, { dataType: DataType.String, value: "o".repeat(60000) }, 0, 1, 1);
             should((store.values.get(i).value as { value: unknown }).value).eql("xyz", "the value the worker wrote, whole");
         } finally {
