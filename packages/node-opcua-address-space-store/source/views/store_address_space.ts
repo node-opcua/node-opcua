@@ -9,6 +9,7 @@
 
 import type { IHistoricalDataNodeOptions, IVariableHistorian, IVariableHistorianOptions } from "node-opcua-address-space-base";
 import { AccessLevelFlag, NodeClass } from "node-opcua-data-model";
+import type { DataValue } from "node-opcua-data-value";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { AttributeReader } from "../attribute_reader.js";
 import { Browser } from "../browser.js";
@@ -103,6 +104,9 @@ class ViewCache {
     }
 }
 
+/** the changes of a node kept while a watch is pending: a watch takes a few turns to be registered */
+const MAX_RECENT_CHANGES = 1000;
+
 /** a value another thread wrote into the store, as numbers (see StoreAddressSpace.changedElsewhere) */
 export enum WrittenField {
     Index = 0,
@@ -135,6 +139,8 @@ export class StoreAddressSpace {
     /** what a session may read: the access restrictions and role permissions of the nodes */
     public readonly permissions: StorePermissions;
     readonly #views: ViewCache;
+    // while a watch begun in another thread is pending (see CompactStore.beginWatch): the changes told, by node
+    readonly #recentChanges = new Map<number, { version: number; dataValue: DataValue }[]>();
     readonly #builder: StoreNodeBuilder;
 
     constructor(options: StoreAddressSpaceOptions = {}) {
@@ -222,7 +228,9 @@ export class StoreAddressSpace {
      */
     public changedElsewhere(written: readonly number[], encodings?: readonly (Uint8Array | null)[]): void {
         for (let at = 0, k = 0; at + WRITTEN_FIELDS <= written.length; at += WRITTEN_FIELDS, k++) {
-            const view = this.#views.get(written[at + WrittenField.Index]);
+            // a node without a view has no listener; while a watch is pending, its change is kept for it
+            const index = written[at + WrittenField.Index];
+            const view = this.store.watchesPending ? this.viewOf(index) : this.#views.get(index);
             if (view instanceof StoreVariableView) {
                 view.changedElsewhere(
                     written[at + WrittenField.Version],
@@ -235,6 +243,29 @@ export class StoreAddressSpace {
                 );
             }
         }
+    }
+
+    /**
+     * a change told to the listeners of node `index`, at `version`: kept while a watch begun in another
+     * thread is pending, for that watch to replay (see recentChanges); forgotten once none is
+     */
+    public noteChange(index: number, version: number, dataValue: DataValue): void {
+        if (!this.store.watchesPending) {
+            if (this.#recentChanges.size > 0) this.#recentChanges.clear();
+            return;
+        }
+        let changes = this.#recentChanges.get(index);
+        if (changes === undefined) {
+            changes = [];
+            this.#recentChanges.set(index, changes);
+        }
+        if (changes.length >= MAX_RECENT_CHANGES) changes.shift();
+        changes.push({ version, dataValue });
+    }
+
+    /** the changes of node `index` told while a watch was pending, oldest first */
+    public recentChanges(index: number): readonly { version: number; dataValue: DataValue }[] {
+        return this.#recentChanges.get(index) ?? [];
     }
 
     /** the view of a node index: the one in the cache, or a new one */

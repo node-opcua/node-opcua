@@ -34,6 +34,8 @@ export interface SharedStoreDescriptor {
     namespacePolicy: SharedArrayBuffer;
     nodes: SharedNodeBuffers;
     values: SharedValueBuffers;
+    /** the watches other threads started that the owner has not registered yet (see CompactStore.beginWatch) */
+    watches: SharedArrayBuffer;
 }
 
 /** a reference declared before its target existed: resolved by `resolvePending()` */
@@ -55,6 +57,8 @@ export class CompactStore {
 
     /** where the columns live: ordinary or shared buffers */
     public readonly space: ColumnSpace;
+    // the watches other threads started that this thread has not registered yet: never reallocated
+    readonly #watches: Int32Array;
     /**
      * per namespace index, the defaults a reader in another thread cannot evaluate itself:
      * NAMESPACE_DEFAULT_RESTRICTIONS, NAMESPACE_DEFAULT_ROLE_PERMISSIONS. Kept by the owner
@@ -70,6 +74,7 @@ export class CompactStore {
         this.references.setTargetNameKey((target) => this.nodes.browseNameId(target));
         this.values = new ValueStore(expected, this.space);
         this.namespacePolicy = this.space.allocate(Uint8Array, 65536);
+        this.#watches = this.space.allocate(Int32Array, 1);
     }
 
     /**
@@ -86,8 +91,26 @@ export class CompactStore {
             layoutSeen: Atomics.load(this.space.layout, 0),
             namespacePolicy: this.namespacePolicy.buffer as SharedArrayBuffer,
             nodes: this.nodes.exportShared(),
-            values: this.values.exportShared()
+            values: this.values.exportShared(),
+            watches: this.#watches.buffer as SharedArrayBuffer
         };
+    }
+
+    /**
+     * a thread of a monitored item that reports changes started watching a value, before its client has the
+     * item: until the owner registers that watch (endWatch), the writers of other threads tell the owner of
+     * every value they write in place, and the owner keeps the changes it tells, to replay them to the watch
+     */
+    public beginWatch(): void {
+        Atomics.add(this.#watches, 0, 1);
+    }
+    /** the owner registered a watch begun in another thread */
+    public endWatch(): void {
+        if (Atomics.sub(this.#watches, 0, 1) <= 0) Atomics.store(this.#watches, 0, 0);
+    }
+    /** true while a watch begun in another thread is not registered yet */
+    public get watchesPending(): boolean {
+        return Atomics.load(this.#watches, 0) > 0;
     }
 
     public get nodeCount(): number {

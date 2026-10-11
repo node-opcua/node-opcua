@@ -679,6 +679,8 @@ export class RemoteCompactBackend implements FrontNodeHost {
         if (watchers === undefined) {
             watchers = new Set();
             this.#watchers.set(node.index, watchers);
+            // at once: a value another front writes before the engine registers the watch is told then
+            this.#reader.beginWatch();
             this.#operation(WATCH, node);
         }
         watchers.add(node);

@@ -104,6 +104,7 @@ export class SharedStoreReader {
     readonly #heapOffset: Int32Array;
     readonly #heapLength: Int32Array;
     readonly #heapCapacity: Int32Array;
+    readonly #watches: Int32Array;
     readonly #heapState: Int32Array;
 
     constructor(descriptor: SharedStoreDescriptor) {
@@ -155,6 +156,7 @@ export class SharedStoreReader {
         this.#heapOffset = new Int32Array(v.heap.offset);
         this.#heapLength = new Int32Array(v.heap.length);
         this.#heapCapacity = new Int32Array(v.heap.capacity);
+        this.#watches = new Int32Array(descriptor.watches);
         this.#heapState = new Int32Array(v.heap.state);
     }
 
@@ -257,9 +259,20 @@ export class SharedStoreReader {
         return (this.#flags[i] & HISTORIZING) !== 0;
     }
 
-    /** true when something on the owner listens to the changes of Variable `i`: a value written here is to be told */
+    /**
+     * true when a value written here into Variable `i` is to be told to the owner: something on the owner
+     * listens to its changes, or a watch begun in a thread is not registered yet (see beginWatch)
+     */
     public isWatched(i: number): boolean {
-        return (this.#flags[i] & WATCHED) !== 0;
+        return (this.#flags[i] & WATCHED) !== 0 || Atomics.load(this.#watches, 0) > 0;
+    }
+
+    /**
+     * this thread starts watching a value for a monitored item, before its client has the item: see
+     * CompactStore.beginWatch. The owner ends it when it registers the watch
+     */
+    public beginWatch(): void {
+        Atomics.add(this.#watches, 0, 1);
     }
 
     /**
