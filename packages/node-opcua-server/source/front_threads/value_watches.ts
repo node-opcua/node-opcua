@@ -49,8 +49,13 @@ export class ValueWatches {
     /** the watch and unwatch operations a worker sent, three numbers each */
     public apply(worker: Worker, operations: number[]): void {
         for (let k = 0; k + 2 < operations.length; k += 3) {
-            if (operations[k] === WATCH) this.#watch(worker, operations[k + 1], operations[k + 2]);
-            else this.#unwatch(worker, operations[k + 1], operations[k + 2]);
+            if (operations[k] === WATCH) {
+                this.#watch(worker, operations[k + 1], operations[k + 2]);
+                // the worker began this watch before its client had the item (see CompactStore.beginWatch)
+                this.#addressSpace.store.endWatch();
+            } else {
+                this.#unwatch(worker, operations[k + 1], operations[k + 2]);
+            }
         }
     }
 
@@ -115,6 +120,11 @@ export class ValueWatches {
             watch = created;
         }
         watch.fronts.add(worker);
+        // the changes told since the worker began this watch, in order: the front keeps those newer than
+        // the value it has (see FrontMonitoredNode.deliver)
+        for (const { version, dataValue } of this.#addressSpace.recentChanges(index)) {
+            this.#queue(worker, index, dataValue, version);
+        }
         // the value now: the front may have read it in place before this watch, and missed a write since
         if (view_isVariable(watch.view)) {
             this.#queue(worker, index, watch.view.readValue(null));

@@ -304,6 +304,10 @@ export class StoreVariableView extends StoreNodeView {
 
     #tell(version: number, changed: () => DataValue): void {
         this.#toldVersion = version;
+        // a watch begun in another thread and not registered yet replays it (see CompactStore.beginWatch)
+        if (this.space.store.watchesPending) {
+            this.space.noteChange(this.index, version, changed());
+        }
         // what a monitored item delivered on change listens to, as on the node objects; a view
         // with listeners is the one every writer of this node reaches (see ViewCache). The version
         // goes along: the value may be older than the store's, for a change written elsewhere
