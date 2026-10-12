@@ -51,7 +51,7 @@ import {
     type RoleMappingRuleChangedAudit
 } from "./bind_role_methods.js";
 import { hardenAdminOnly } from "./harden.js";
-import { RoleSetResolver } from "./role_set_resolver.js";
+import { RoleSetResolver, type RoleSetResolverOptions } from "./role_set_resolver.js";
 import { checkEncryptedChannel, checkSecurityAdminAccess } from "./security_checks.js";
 import { asString } from "./variant_args.js";
 
@@ -111,6 +111,8 @@ export interface InstallRoleSetOptions {
      * keeping a single source of truth. Persisted mappings (if any) are merged in.
      */
     store?: IIdentityMappingStore;
+    /** See {@link RoleSetResolverOptions.excludeToken}. */
+    excludeToken?: RoleSetResolverOptions["excludeToken"];
 }
 
 export interface InstallRoleSetResult {
@@ -165,7 +167,7 @@ export async function installRoleSet(server: IServerForRoleSet, options?: Instal
         deserializeRestrictions(restrictionStore, archive.restrictions);
     }
 
-    const resolver = new RoleSetResolver(store, restrictionStore);
+    const resolver = new RoleSetResolver(store, restrictionStore, { excludeToken: options?.excludeToken });
     server.roleResolvers ??= [];
     server.roleResolvers.push(resolver);
 
