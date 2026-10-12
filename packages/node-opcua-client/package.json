@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-client",
     "type": "module",
-    "version": "2.187.3",
+    "version": "2.187.4",
     "description": "pure nodejs OPCUA SDK - module client",
     "scripts": {
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo certificates",
@@ -65,11 +65,11 @@
     },
     "devDependencies": {
         "dequeue": "^1.0.5",
-        "node-opcua-address-space": "2.187.3",
+        "node-opcua-address-space": "2.187.4",
         "node-opcua-binary-stream": "2.187.0",
         "node-opcua-factory": "2.187.0",
         "node-opcua-leak-detector": "2.186.7",
-        "node-opcua-nodesets": "2.187.0",
+        "node-opcua-nodesets": "2.187.4",
         "node-opcua-test-helpers": "2.184.0"
     },
     "eslintConfig": {
