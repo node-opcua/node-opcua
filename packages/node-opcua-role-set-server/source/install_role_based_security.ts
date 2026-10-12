@@ -35,7 +35,7 @@ import {
     type SerializedUserRecord,
     validateUserConfiguration
 } from "node-opcua-role-set-common";
-import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask } from "node-opcua-types";
+import { IdentityCriteriaType, IdentityMappingRuleType, UserConfigurationMask, UserNameIdentityToken } from "node-opcua-types";
 import { type InstallRoleSetResult, type IServerForRoleSet, installRoleSet } from "./install_role_set.js";
 import {
     type InstallUserManagementResult,
@@ -224,7 +224,24 @@ export async function createRoleBasedSecurity(options?: CreateRoleBasedSecurityO
                 });
             }
 
-            const roleSet = await installRoleSet(server, { store: identityStore, persistence });
+            // A user who must change the password gets only Anonymous from the
+            // userManager; the resolver reads the same store and must not give
+            // the mapped Roles back. Read live: they return once it is changed.
+            const mustChangePassword = (token: unknown): boolean =>
+                token instanceof UserNameIdentityToken &&
+                userStore
+                    .getUsers()
+                    .some(
+                        (u) =>
+                            u.userName === token.userName &&
+                            (u.userConfiguration & UserConfigurationMask.MustChangePassword) ===
+                                UserConfigurationMask.MustChangePassword
+                    );
+            const roleSet = await installRoleSet(server, {
+                store: identityStore,
+                persistence,
+                excludeToken: mustChangePassword
+            });
             if (installOptions?.userManagement === false) {
                 // Deliberately no UserManagement Object. Credentials still work:
                 // the userManager bridge authenticates from userStore either way.
