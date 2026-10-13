@@ -579,3 +579,124 @@ describe("ChunkManager chunk buffer sizing without encryption", () => {
         }
     });
 });
+
+describe("ChunkManager chunk buffer sizing with symmetric encryption", () => {
+    // header 8 | sequence header 8 | body | padding byte | padding | signature 4, the encrypted area
+    // (sequence header to signature) a multiple of the 16-byte block; encryption keeps the size, as AES does
+    const headerSize = 8;
+    const sequenceHeaderSize = 8;
+    const signatureLength = 4;
+    const block = 16;
+
+    function patterned(length: number, seed = 0): Buffer {
+        const buffer = Buffer.alloc(length);
+        for (let i = 0; i < length; i++) {
+            buffer[i] = (i + seed) % 251;
+        }
+        return buffer;
+    }
+
+    function encryptingManager(chunkSize: number): ChunkManager {
+        return new ChunkManager(Mode.SignAndEncrypt, {
+            chunkSize,
+            headerSize,
+            sequenceHeaderSize,
+            signatureLength,
+            cipherBlockSize: block,
+            plainBlockSize: block,
+            encryptBufferFunc: no_encrypt_block,
+            signBufferFunc: computeFakeSignature,
+            writeHeaderFunc: writeFakeHeader,
+            writeSequenceHeaderFunc: writeFakeSequenceHeader
+        });
+    }
+
+    function collect(chunkManager: ChunkManager): Buffer[] {
+        const chunks: Buffer[] = [];
+        chunkManager.on("chunk", (chunk: Buffer) => chunks.push(chunk));
+        return chunks;
+    }
+
+    function allocatedSizes(action: () => void): number[] {
+        const sizes: number[] = [];
+        const allocUnsafe = Buffer.allocUnsafe;
+        Buffer.allocUnsafe = (size: number) => {
+            sizes.push(size);
+            return allocUnsafe(size);
+        };
+        try {
+            action();
+        } finally {
+            Buffer.allocUnsafe = allocUnsafe;
+        }
+        return sizes;
+    }
+
+    /** the body of a chunk laid out as above, its padding checked */
+    function bodyOf(chunk: Buffer): Buffer {
+        const paddingByte = chunk[chunk.length - signatureLength - 1];
+        const bodyEnd = chunk.length - signatureLength - 1 - paddingByte;
+        const padding = chunk.subarray(bodyEnd, chunk.length - signatureLength);
+        should(padding.every((value) => value === paddingByte)).eql(true, "every padding byte holds the padding count");
+        should((chunk.length - headerSize) % block).eql(0, "the encrypted area is whole blocks");
+        should(chunk.subarray(chunk.length - signatureLength).toString("hex")).eql("cccccccc");
+        return chunk.subarray(headerSize + sequenceHeaderSize, bodyEnd);
+    }
+
+    for (const [bodyLength, padding] of [
+        [100, 15],
+        [3, 0],
+        [4, 15],
+        [5000, 11]
+    ]) {
+        it(`a ${bodyLength}-byte message (${padding} padding bytes) does not allocate a chunkSize buffer`, () => {
+            const chunkManager = encryptingManager(65536);
+            const chunks = collect(chunkManager);
+            const body = patterned(bodyLength);
+
+            const sizes = allocatedSizes(() => {
+                chunkManager.write(body, body.length);
+                chunkManager.end();
+            });
+
+            should(chunks.length).eql(1);
+            should(chunks[0].length).eql(headerSize + sequenceHeaderSize + bodyLength + 1 + padding + signatureLength);
+            // the chunk, sized to the message and its padding, and nothing larger
+            should(Math.max(...sizes)).be.belowOrEqual(headerSize + sequenceHeaderSize + bodyLength + block + 2 + signatureLength);
+            should(bodyOf(chunks[0]).equals(body)).eql(true);
+        });
+    }
+
+    it("grows the chunk when a message is written in several pieces", () => {
+        const chunkManager = encryptingManager(65536);
+        const chunks = collect(chunkManager);
+        const pieces = [patterned(100, 1), patterned(5000, 2), patterned(20000, 3)];
+
+        const sizes = allocatedSizes(() => {
+            for (const piece of pieces) {
+                chunkManager.write(piece, piece.length);
+            }
+            chunkManager.end();
+        });
+
+        should(chunks.length).eql(1);
+        should(bodyOf(chunks[0]).equals(Buffer.concat(pieces))).eql(true);
+        should(Math.max(...sizes)).be.below(65536);
+    });
+
+    it("still splits a message that does not fit in one chunk", () => {
+        const chunkManager = encryptingManager(8192);
+        const chunks = collect(chunkManager);
+        const body = patterned(20000);
+
+        chunkManager.write(body, 100);
+        chunkManager.write(body.subarray(100), body.length - 100);
+        chunkManager.end();
+
+        should(chunks.length).eql(Math.ceil(20000 / chunkManager.maxBodySize));
+        for (const chunk of chunks) {
+            should(chunk.length).be.belowOrEqual(8192);
+        }
+        should(Buffer.concat(chunks.map(bodyOf)).equals(body)).eql(true);
+    });
+});
