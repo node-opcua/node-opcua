@@ -22,17 +22,25 @@ export interface SecurityTokenAndDerivedKeys {
     derivedKeys: DerivedKeys1 | null;
 }
 
-function hasTokenReallyExpired(token: ISecurityToken): boolean {
-    const now = new Date();
-    const age = now.getTime() - (token.createdAt?.getTime() ?? 0);
-    return age > token.revisedLifetime * 1.25;
+/** the time after which a token is refused: 25% after the end of its revised lifetime */
+function tokenDeadline(token: ISecurityToken): number {
+    return (token.createdAt?.getTime() ?? 0) + token.revisedLifetime * 1.25;
+}
+
+interface TokenEntry extends SecurityTokenAndDerivedKeys {
+    /** tokenDeadline, computed once: the keys of every chunk are looked up, and Date objects add up */
+    deadline: number;
+}
+
+function hasTokenReallyExpired(entry: TokenEntry): boolean {
+    return Date.now() > entry.deadline;
 }
 
 export interface IDerivedKeyProvider {
     getDerivedKey(tokenId: number): DerivedKeys | null;
 }
 export class TokenStack {
-    #tokenStack: SecurityTokenAndDerivedKeys[] = [];
+    #tokenStack: TokenEntry[] = [];
 
     #clientKeyProvider: IDerivedKeyProvider;
     #serverKeyProvider: IDerivedKeyProvider;
@@ -69,7 +77,8 @@ export class TokenStack {
         assert(_tokenStack.length === 0 || _tokenStack[0].securityToken.tokenId !== securityToken.tokenId);
         _tokenStack.push({
             derivedKeys,
-            securityToken
+            securityToken,
+            deadline: tokenDeadline(securityToken)
         });
         /* c8 ignore next */
         if (doDebug) {
@@ -88,7 +97,7 @@ export class TokenStack {
         const token = this.#tokenStack.find((a) => a.securityToken.tokenId === tokenId);
         if (!token) return null;
 
-        if (hasTokenReallyExpired(token.securityToken)) {
+        if (hasTokenReallyExpired(token)) {
             return null;
         }
         return token.derivedKeys;
@@ -106,7 +115,7 @@ export class TokenStack {
         // Walk backwards — newest tokens are at the end
         for (let i = this.#tokenStack.length - 1; i >= 0; i--) {
             const entry = this.#tokenStack[i];
-            if (!hasTokenReallyExpired(entry.securityToken) && entry.derivedKeys) {
+            if (!hasTokenReallyExpired(entry) && entry.derivedKeys) {
                 return {
                     tokenId: entry.securityToken.tokenId,
                     derivedKeys: entry.derivedKeys
@@ -118,6 +127,6 @@ export class TokenStack {
 
     public removeOldTokens() {
         // remove all expired tokens
-        this.#tokenStack = this.#tokenStack.filter((token) => !hasTokenReallyExpired(token.securityToken));
+        this.#tokenStack = this.#tokenStack.filter((token) => !hasTokenReallyExpired(token));
     }
 }
