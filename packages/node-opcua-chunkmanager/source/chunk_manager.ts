@@ -242,19 +242,21 @@ export class ChunkManager extends EventEmitter {
     /**
      * make sure the current chunk can hold `bodyBytes` of body.
      *
-     * Padding and encryption can grow a chunk up to `chunkSize`, so with encryption the chunk is
-     * always allocated at full size. Without it, the finished chunk is exactly
-     * header + sequence header + body + signature: a small message (a Read response is a few hundred
-     * bytes) must not allocate a whole `chunkSize` buffer, which is 64 KB with the usual transport
-     * settings and is then kept alive by the socket until the write completes.
+     * The finished chunk is header + sequence header + body + signature, plus, with encryption, the
+     * padding: a small message (a Read response is a few hundred bytes) must not allocate a whole
+     * `chunkSize` buffer, which is 64 KB with the usual transport settings, and the size the peer
+     * asked for: up to megabytes. Symmetric encryption (every MSG chunk) does not grow the data, so
+     * the room for the padding, under one block plus its one or two length bytes, is enough.
+     * Asymmetric encryption (OpenSecureChannel) does grow it: that rare chunk keeps the full size.
      */
     #ensureChunkCapacity(bodyBytes: number) {
-        if (this.plainBlockSize > 0) {
+        if (this.plainBlockSize > 0 && this.cipherBlockSize !== this.plainBlockSize) {
             this.#chunk = this.#chunk || Buffer.allocUnsafe(this.chunkSize);
             return;
         }
-        // bodyBytes <= maxBodySize, so `needed` never exceeds chunkSize
-        const needed = this.#dataOffset + bodyBytes + this.signatureLength;
+        const paddingRoom = this.plainBlockSize > 0 ? this.plainBlockSize + 2 : 0;
+        // bodyBytes <= maxBodySize, which leaves room for the padding and the signature in chunkSize
+        const needed = Math.min(this.chunkSize, this.#dataOffset + bodyBytes + paddingRoom + this.signatureLength);
         if (!this.#chunk) {
             this.#chunk = Buffer.allocUnsafe(needed);
         } else if (this.#chunk.length < needed) {
