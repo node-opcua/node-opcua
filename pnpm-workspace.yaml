@@ -36,8 +36,8 @@ minimumReleaseAgeExclude:
   - '@biomejs/cli-linux-x64@2.4.16 || 2.5.15'
   - '@biomejs/cli-win32-arm64@2.4.16 || 2.5.15'
   - '@biomejs/cli-win32-x64@2.4.16 || 2.5.15'
-  - node-opcua-pki@6.18.0 || 6.19.0 || 6.19.1 || 6.20.0 || 6.21.0 || 6.22.0 || 7.0.0 || 7.0.1 || 7.0.2 || 7.0.3 || 7.0.4 || 7.1.0
-  - node-opcua-crypto@5.4.0 || 5.5.0 || 5.9.0 || 5.10.1 || 6.0.0 || 6.1.2 || 6.1.3 || 6.1.4 || 6.2.0
+  - node-opcua-pki@6.18.0 || 6.19.0 || 6.19.1 || 6.20.0 || 6.21.0 || 6.22.0 || 7.0.0 || 7.0.1 || 7.0.2 || 7.0.3 || 7.0.4 || 7.1.0 || 7.1.1
+  - node-opcua-crypto@5.4.0 || 5.5.0 || 5.9.0 || 5.10.1 || 6.0.0 || 6.1.2 || 6.1.3 || 6.1.4 || 6.2.0 || 6.2.2
   - '@inquirer/checkbox@5.2.3 || 5.2.6'
   - '@inquirer/confirm@6.3.0 || 6.3.3'
   - '@inquirer/core@12.0.1 || 12.0.4'
@@ -63,13 +63,13 @@ minimumReleaseAgeExclude:
   - '@jsonjoy.com/fs-print@4.78.1'
   - '@jsonjoy.com/fs-snapshot@4.78.1'
   - memfs@4.78.1
-  - '@peculiar/asn1-cms@2.10.0'
-  - '@peculiar/asn1-pfx@2.10.0'
-  - '@peculiar/asn1-pkcs8@2.10.0'
-  - '@peculiar/asn1-pkcs9@2.10.0'
-  - '@peculiar/asn1-rsa@2.10.0'
-  - '@peculiar/asn1-x509-attr@2.10.0'
-  - '@peculiar/asn1-x509@2.10.0'
+  - '@peculiar/asn1-cms@2.10.0 || 2.11.0'
+  - '@peculiar/asn1-pfx@2.10.0 || 2.11.0'
+  - '@peculiar/asn1-pkcs8@2.10.0 || 2.11.0'
+  - '@peculiar/asn1-pkcs9@2.10.0 || 2.11.0'
+  - '@peculiar/asn1-rsa@2.10.0 || 2.11.0'
+  - '@peculiar/asn1-x509-attr@2.10.0 || 2.11.0'
+  - '@peculiar/asn1-x509@2.10.0 || 2.11.0'
   - chalk@6.0.1
   - mocha@12.0.3
   - publint@0.3.25
