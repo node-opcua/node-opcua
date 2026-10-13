@@ -46,6 +46,37 @@ describe("US-035: ISessionContext.clientCertificate / clientApplicationUri", () 
         should(ctx.clientApplicationUri).eql(applicationUri);
     });
 
+    it("reads the applicationUri once per certificate, and again from the certificate of another channel", async () => {
+        const makeCertificate = async (applicationUri: string) => {
+            const keyPair = await generateKeyPair();
+            const { cert } = await createSelfSignedCertificate({
+                privateKey: keyPair.privateKey,
+                subject: "CN=Test",
+                applicationUri,
+                dns: ["localhost"],
+                validity: 365,
+                purpose: CertificatePurpose.ForApplication
+            });
+            return convertPEMtoDER(cert);
+        };
+        const first = await makeCertificate("urn:test:first");
+        const second = await makeCertificate("urn:test:second");
+        const channel = {
+            clientCertificate: first,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: "",
+            getTransportSettings: () => ({ maxMessageSize: 0 })
+        };
+        const ctx = makeMockSessionContext({ channel });
+        should(ctx.clientApplicationUri).eql("urn:test:first");
+        // the same certificate is not parsed again: what it gave is kept, even if its bytes were to change
+        first.fill(0);
+        should(ctx.clientApplicationUri).eql("urn:test:first");
+        // the Session on another SecureChannel: that channel's certificate is read
+        channel.clientCertificate = second;
+        should(ctx.clientApplicationUri).eql("urn:test:second");
+    });
+
     it("should return null applicationUri for invalid certificate data", () => {
         const garbage = Buffer.from("not-a-valid-certificate");
         const ctx = makeMockSessionContext({ clientCertificate: garbage, securityMode: MessageSecurityMode.SignAndEncrypt });

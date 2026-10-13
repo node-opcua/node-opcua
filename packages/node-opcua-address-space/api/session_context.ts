@@ -473,6 +473,10 @@ export class SessionContext implements ISessionContext {
     public readonly requestHeader?: RequestHeader;
 
     #permissionCache: PermissionCache | null = null;
+    // the client certificate clientApplicationUri was read from, and what it gave: role resolution asks
+    // for it on every request, and parsing the certificate costs more than serving a Read
+    #applicationUriCertificate: Certificate | null = null;
+    #applicationUri: string | null = null;
 
     constructor(options?: SessionContextOptions) {
         options = options || {};
@@ -545,13 +549,21 @@ export class SessionContext implements ISessionContext {
         if (!cert) {
             return null;
         }
+        // read once per certificate: a Session moved to another SecureChannel brings another one
+        if (cert === this.#applicationUriCertificate) {
+            return this.#applicationUri;
+        }
+        let applicationUri: string | null = null;
         try {
             const info = exploreCertificate(cert);
             const san = info.tbsCertificate.extensions?.subjectAltName;
-            return san?.uniformResourceIdentifier?.[0] ?? null;
+            applicationUri = san?.uniformResourceIdentifier?.[0] ?? null;
         } catch {
-            return null;
+            applicationUri = null;
         }
+        this.#applicationUriCertificate = cert;
+        this.#applicationUri = applicationUri;
+        return applicationUri;
     }
 
     /** The URL of the Endpoint the Session was created on, or `null` if unknown. */
