@@ -780,8 +780,10 @@ export class MessageBuilder extends MessageBuilderBase {
             // replace decrypted buffer in initial buffer
             decryptedBuffer.copy(binaryStream.buffer, binaryStream.length);
 
-            // adjust length
-            binaryStream.buffer = binaryStream.buffer.subarray(0, binaryStream.length + decryptedBuffer.length);
+            // adjust length (symmetric decryption keeps it: no new view then)
+            if (decryptedBuffer.length !== buf.length) {
+                binaryStream.buffer = binaryStream.buffer.subarray(0, binaryStream.length + decryptedBuffer.length);
+            }
 
             /* c8 ignore next */
             if (doDebug) {
@@ -802,13 +804,13 @@ export class MessageBuilder extends MessageBuilderBase {
             );
         }
 
-        // remove signature
-        binaryStream.buffer = reduceLength(binaryStream.buffer, derivedKeys.signatureLength);
-
+        // remove the signature, and the padding (OPC 10000-6 6.7.2.5: its last byte is PaddingSize, symmetric
+        // blocks are 16 bytes, so no ExtraPaddingSize) in one view
+        let end = chunk.length - derivedKeys.signatureLength;
         if (this.securityMode === MessageSecurityMode.SignAndEncrypt) {
-            // remove padding
-            binaryStream.buffer = removePadding(binaryStream.buffer);
+            end -= chunk[end - 1] + 1;
         }
+        binaryStream.buffer = chunk.subarray(0, end);
 
         return true;
     }

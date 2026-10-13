@@ -6,7 +6,7 @@ import { EventEmitter } from "node:events";
 import { decodeStatusCode, decodeString, decodeUInt32 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 
-import { readMessageHeader, SequenceHeader } from "node-opcua-chunkmanager";
+import { readMessageHeader, readMessageHeaderFromBuffer, SequenceHeader } from "node-opcua-chunkmanager";
 import { hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { type MessageHeader, PacketAssembler, type PacketInfo } from "node-opcua-packet-assembler";
 import type { StatusCode } from "node-opcua-status-code";
@@ -21,7 +21,7 @@ const _debugLog = make_debugLog("MessageBuilder");
 const warningLog = make_warningLog("MessageBuilder");
 
 export function readRawMessageHeader(data: Buffer): PacketInfo {
-    const messageHeader = readMessageHeader(new BinaryStream(data));
+    const messageHeader = readMessageHeaderFromBuffer(data);
     return {
         extra: "",
         length: messageHeader.length,
@@ -354,7 +354,7 @@ export class MessageBuilderBase extends EventEmitter {
     #_feed_messageChunk(chunk: Buffer): boolean | Promise<boolean> {
         let messageHeader: ReturnType<typeof readMessageHeader>;
         try {
-            messageHeader = readMessageHeader(new BinaryStream(chunk));
+            messageHeader = readMessageHeaderFromBuffer(chunk);
         } catch (err) {
             // the packet assembler hands out chunks of at least 8 bytes, so this is not
             // expected; still, a bad chunk must not throw out of the socket data handler.
