@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-role-set-client",
     "type": "module",
-    "version": "2.187.5",
+    "version": "2.187.6",
     "description": "pure nodejs OPCUA SDK - client-side role-set management (OPC 10000-18)",
     "scripts": {
         "build": "tsc -b",
@@ -19,7 +19,7 @@
         "node-opcua-constants": "2.185.0",
         "node-opcua-data-model": "2.187.0",
         "node-opcua-nodeid": "2.187.0",
-        "node-opcua-pseudo-session": "2.187.5",
+        "node-opcua-pseudo-session": "2.187.6",
         "node-opcua-service-call": "2.187.0",
         "node-opcua-service-translate-browse-path": "2.187.0",
         "node-opcua-status-code": "2.187.0",
