@@ -83,7 +83,11 @@ export function resolveFullyQualifiedDomainName(str: string): string {
     }
     str = str.replace("%FQDN%", _fullyQualifiedDomainNameInCache);
     str = str.replace("{FQDN}", _fullyQualifiedDomainNameInCache);
-    str = str.replace("{hostname}", getHostname());
+    // os.hostname() is a system call: only when the placeholder is there (an endpoint URL is resolved
+    // on every request, and rarely holds it)
+    if (str.includes("{hostname}")) {
+        str = str.replace("{hostname}", getHostname());
+    }
     return str;
 }
 
