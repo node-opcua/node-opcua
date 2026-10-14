@@ -31,6 +31,7 @@ import {
     sameDataValue,
     sameStatusCode
 } from "node-opcua-data-value";
+import type { PreciseClock } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
@@ -1046,8 +1047,9 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     }
     /**
      * @private
+     * @param clock the time of the sampling tick, read once for every item it samples (read again when omitted)
      */
-    private _on_sampling_timer() {
+    private _on_sampling_timer(clock?: PreciseClock) {
         if (this.monitoringMode === MonitoringMode.Disabled) {
             return;
         }
@@ -1093,25 +1095,31 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
 
             this._is_sampling = true;
 
-            this.samplingFunc.call(this, sessionContext, this.oldDataValue, (err: Error | null, newDataValue?: DataValue) => {
-                if (!this._samplingId) {
-                    // item has been disposed. The monitored item has been disposed while the async sampling func
-                    // was taking place ... just ignore this
-                    return;
-                }
-                // c8 ignore next
-                if (err) {
-                    errorLog(" SAMPLING ERROR =>", err);
-                } else if (!newDataValue) {
-                    errorLog(" SAMPLING ERROR => samplingFunc completed without error but returned no dataValue");
-                } else {
-                    // only record value if source timestamp is newer
-                    // xx if (newDataValue && isSourceNewerThan(newDataValue, this.oldDataValue)) {
-                    this._on_value_changed(newDataValue);
-                    // xx }
-                }
-                this._is_sampling = false;
-            });
+            this.samplingFunc.call(
+                this,
+                sessionContext,
+                this.oldDataValue,
+                (err: Error | null, newDataValue?: DataValue) => {
+                    if (!this._samplingId) {
+                        // item has been disposed. The monitored item has been disposed while the async sampling func
+                        // was taking place ... just ignore this
+                        return;
+                    }
+                    // c8 ignore next
+                    if (err) {
+                        errorLog(" SAMPLING ERROR =>", err);
+                    } else if (!newDataValue) {
+                        errorLog(" SAMPLING ERROR => samplingFunc completed without error but returned no dataValue");
+                    } else {
+                        // only record value if source timestamp is newer
+                        // xx if (newDataValue && isSourceNewerThan(newDataValue, this.oldDataValue)) {
+                        this._on_value_changed(newDataValue);
+                        // xx }
+                    }
+                    this._is_sampling = false;
+                },
+                clock
+            );
         } else {
             /* c8 ignore next */
             // c8 ignore next

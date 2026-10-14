@@ -296,7 +296,12 @@ export interface UAVariable<T extends UAVariableEvents & ListenerSignature<T> = 
     readValue(context?: ISessionContext | null, indexRange?: NumericRange, dataEncoding?: QualifiedNameLike | null): DataValue;
 
     readValueAsync(context: ISessionContext | null): Promise<DataValue>;
-    readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>): void;
+    /**
+     * @param clock the time this read is made at, read from the clock when omitted: the server timestamp of a
+     *              value a refreshFunc hands back at once. A sampler that reads many variables in one pass reads
+     *              the clock once for all of them.
+     */
+    readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>, clock?: PreciseClock): void;
 
     isEnumeration(): boolean;
 

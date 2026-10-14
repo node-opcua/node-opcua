@@ -1,3 +1,4 @@
+import type { PreciseClock } from "node-opcua-date-time";
 import { MonitoringMode } from "node-opcua-types";
 import should from "should";
 import sinon from "sinon";
@@ -109,6 +110,39 @@ describe("node_sampler", () => {
             clock.tick(15);
             should(cacheCalls).eql(1);
             should(sampledInsideCache).eql([true, true]);
+
+            removeFromTimer(item1 as unknown as MonitoredItem);
+            removeFromTimer(item2 as unknown as MonitoredItem);
+        });
+
+        it("gives every item of a tick the same clock, read once for the tick", () => {
+            const seen: { id: number; clock?: PreciseClock }[] = [];
+            const makeItem = (id: number, context: object | null) => {
+                const item = fakeMonitoredItem(id, 10);
+                item._on_sampling_timer = (clock?: PreciseClock) => {
+                    item.samples++;
+                    seen.push({ id, clock });
+                };
+                item.getSessionContext = () => context;
+                return item;
+            };
+            // two session contexts: the items are sampled in two groups, still within one tick
+            const item1 = makeItem(31, null);
+            const item2 = makeItem(32, { withPermissionCache: <T>(action: () => T): T => action() });
+            item1._samplingId = appendToTimer(item1 as unknown as MonitoredItem);
+            item2._samplingId = appendToTimer(item2 as unknown as MonitoredItem);
+
+            clock.tick(15);
+            should(seen.map((s) => s.id)).eql([31, 32]);
+            const firstTick = seen[0].clock;
+            should(firstTick).not.be.undefined();
+            should(seen[1].clock).equal(firstTick);
+
+            clock.tick(10);
+            should(seen.length).eql(4);
+            should(seen[2].clock).equal(seen[3].clock);
+            should(seen[2].clock).not.equal(firstTick);
+            should((seen[2].clock as PreciseClock).timestamp.getTime()).be.above((firstTick as PreciseClock).timestamp.getTime());
 
             removeFromTimer(item1 as unknown as MonitoredItem);
             removeFromTimer(item2 as unknown as MonitoredItem);

@@ -1,3 +1,4 @@
+import type { PreciseClock } from "node-opcua-basic-types";
 import type { QualifiedNameLike } from "node-opcua-data-model";
 import type { DataValueT } from "node-opcua-data-value";
 import type { NumericRange } from "node-opcua-numeric-range";
@@ -14,7 +15,7 @@ export interface UAVariableT<T, DT extends DataType> extends UAVariable {
     ): DataValueT<T, DT>;
 
     readValueAsync(context: ISessionContext | null): Promise<DataValueT<T, DT>>;
-    readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValueT<T, DT>>): void;
+    readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValueT<T, DT>>, clock?: PreciseClock): void;
 
     writeValue(
         context: ISessionContext,
