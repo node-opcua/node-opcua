@@ -295,6 +295,8 @@ export class RemoteCompactBackend implements FrontNodeHost {
     #eventWatchId = 0;
     readonly #filterResults = new WeakMap<EventFilter, EventFilterResult>();
     readonly #eventWatches = new Map<number, (fields: Variant[]) => void>();
+    /** the watchEvents the engine has not acknowledged yet: until then, an event it raises misses the item */
+    readonly #pendingEventWatches = new Set<Promise<unknown>>();
     readonly #value: SharedValue = {
         dataType: 0,
         value: 0,
@@ -736,7 +738,8 @@ export class RemoteCompactBackend implements FrontNodeHost {
     ): () => void {
         const id = ++this.#eventWatchId;
         this.#eventWatches.set(id, onFields);
-        void this.#channel.call<unknown>({
+        // the engine replies once its listener is on the node (see eventWatchesRegistered)
+        const registered = this.#channel.call<unknown>({
             kind: "watchEvents",
             id,
             nodeId: nodeId.toString(),
@@ -746,10 +749,22 @@ export class RemoteCompactBackend implements FrontNodeHost {
             subscriptionId: item?.subscriptionId ?? 0,
             monitoredItemId: item?.monitoredItemId ?? 0
         });
+        this.#pendingEventWatches.add(registered);
+        void registered.then(() => this.#pendingEventWatches.delete(registered));
         return () => {
             this.#eventWatches.delete(id);
             void this.#channel.call<unknown>({ kind: "unwatchEvents", id });
         };
+    }
+
+    /**
+     * settles once the engine listens for the events of every event item subscribed so far: the reply to a
+     * CreateMonitoredItems waits for it, so an event raised once the client has its items reaches them.
+     * Undefined when nothing is pending.
+     */
+    public eventWatchesRegistered(): Promise<void> | undefined {
+        if (this.#pendingEventWatches.size === 0) return undefined;
+        return Promise.all(this.#pendingEventWatches).then(() => undefined);
     }
 
     /** the EventFilters of the event items to create, checked by the engine before the items are */

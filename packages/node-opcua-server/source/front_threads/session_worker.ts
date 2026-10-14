@@ -184,6 +184,11 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         return this.#backend.subscribeEvents(nodeId, filter, context, onFields, item);
     }
 
+    /** the engine listens for the events of the event items just made */
+    public override monitoredItemsReady(): Promise<void> | undefined {
+        return this.#backend.eventWatchesRegistered();
+    }
+
     public eventFilterResult(filter: EventFilter): EventFilterResult | undefined {
         return this.#backend.eventFilterResult(filter);
     }
@@ -471,6 +476,8 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
             for (const linked of item.linkedItems) monitoredItem?.addLinkItem(linked);
         }
         subscription.requeueNotifications(state.pendingNotifications ?? []);
+        const ready = this.monitoredItemsReady();
+        if (ready) await ready;
         return new TransferResult({
             availableSequenceNumbers: subscription.getAvailableSequenceNumbers(),
             statusCode: StatusCodes.Good

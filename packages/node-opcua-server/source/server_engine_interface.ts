@@ -44,6 +44,7 @@ export interface IServerEngineForServer
         | "deleteOrphanSubscription"
         | "transferSubscription"
         | "prepareMonitoredItems"
+        | "monitoredItemsReady"
         | "nodeFinder"
         // services on the address space
         | "readSync"
