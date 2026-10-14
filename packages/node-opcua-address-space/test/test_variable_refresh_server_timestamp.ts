@@ -54,7 +54,9 @@ describe("UAVariable refreshed by a refreshFunc without server timestamps", () =
     it("stamps each refreshed value with the time the server obtained it", async () => {
         const first = await variable.readValueAsync(context);
         await pause(20);
+        const before = Date.now();
         const second = await variable.readValueAsync(context);
+        const after = Date.now();
 
         should(second.value.value).eql(first.value.value + 1);
         should(first.serverTimestamp).be.instanceOf(Date);
@@ -62,8 +64,10 @@ describe("UAVariable refreshed by a refreshFunc without server timestamps", () =
         const firstServerTime = (first.serverTimestamp as Date).getTime();
         const secondServerTime = (second.serverTimestamp as Date).getTime();
         should(secondServerTime - firstServerTime).be.aboveOrEqual(15);
-        // the server timestamp of a value obtained now is not older than its source timestamp
-        should(secondServerTime).be.aboveOrEqual((second.sourceTimestamp as Date).getTime());
+        // the clock read for the refresh: taken when the read is made, so it may precede the source timestamp
+        // the refreshFunc stamps by the time the refreshFunc takes
+        should(secondServerTime).be.aboveOrEqual(before);
+        should(secondServerTime).be.belowOrEqual(after);
     });
 
     it("stamps a value that the refreshFunc hands over later with the time it arrived", async () => {

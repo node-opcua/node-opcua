@@ -273,6 +273,9 @@ function d(timestamp: Date | null, picoseconds: number): string {
     return timestamp ? `${timestamp.toISOString()} $ ${toMicroNanoPico(picoseconds)}` : "null"; // + "  " + (this.serverTimestamp ? this.serverTimestamp.getTime() :"-");
 }
 const emptyObject = {};
+// passed as options by the code of this module that sets the value of the new DataValue itself (clone,
+// apply_timestamps): the constructor then makes no placeholder Variant
+const withoutValue: DataValueOptions = {};
 
 export class DataValue extends BaseUAObject {
     /**
@@ -310,13 +313,14 @@ export class DataValue extends BaseUAObject {
         // means "explicitly empty" and reports Bad, while a missing argument keeps the
         // historical Good default. Widening this test without keeping them apart would
         // silently flip the default status code of every `new DataValue()` in the SDK.
-        if (options === null || options === undefined) {
-            this.statusCode = options === null ? StatusCodes.Bad : StatusCodes.Good;
+        if (options === null || options === undefined || options === withoutValue) {
+            this.statusCode = options === undefined ? StatusCodes.Good : StatusCodes.Bad;
             this.sourceTimestamp = null;
             this.sourcePicoseconds = 0;
             this.serverTimestamp = null;
             this.serverPicoseconds = 0;
-            this.value = new Variant(null);
+            // withoutValue: the caller sets the value next, so no placeholder Variant is made for it
+            this.value = options === withoutValue ? (null as unknown as Variant) : new Variant(null);
             return;
         }
         options = options || emptyObject;
@@ -381,7 +385,7 @@ export class DataValue extends BaseUAObject {
         // The other fields are copied exactly as the constructor would: statusCode is
         // already a StatusCode, and the timestamps are already Date | null, so the coercion
         // being skipped here is a no-op on both.
-        const dataValue = new DataValue(null);
+        const dataValue = new DataValue(withoutValue);
         dataValue.value = this.value ? this.value.clone() : new Variant(null);
         dataValue.statusCode = this.statusCode;
         dataValue.sourceTimestamp = this.sourceTimestamp;
@@ -414,9 +418,8 @@ export function apply_timestamps(
     timestampsToReturn: TimestampsToReturn,
     attributeId: AttributeIds
 ): DataValue {
-    // `new DataValue({ value: undefined })` builds a fully initialised Null Variant that
-    // apply_timestamps_into throws away; the null form skips that.
-    return apply_timestamps_into(new DataValue(null), dataValue, timestampsToReturn, attributeId);
+    // apply_timestamps_into sets the value: no Variant is made for the new DataValue before that
+    return apply_timestamps_into(new DataValue(withoutValue), dataValue, timestampsToReturn, attributeId);
 }
 
 /**
