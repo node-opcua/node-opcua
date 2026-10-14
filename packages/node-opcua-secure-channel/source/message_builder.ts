@@ -649,7 +649,9 @@ export class MessageBuilder extends MessageBuilderBase {
                 );
             }
 
-            const applyDecryptedBuffer = (decryptedBuffer: Buffer): boolean => {
+            // the receiver's key size sets the plain block: above 256 bytes (keys larger than 2048 bits)
+            // the padding ends with an ExtraPaddingSize byte (OPC 10000-6 6.7.2.5)
+            const applyDecryptedBuffer = (decryptedBuffer: Buffer, modulusLength: number): boolean => {
                 // replace decrypted buffer in initial buffer
                 decryptedBuffer.copy(binaryStream.buffer, binaryStream.length);
                 // adjust length
@@ -663,15 +665,25 @@ export class MessageBuilder extends MessageBuilderBase {
                     const thumbprint = makeSHA1Thumbprint(asymmetricAlgorithmSecurityHeader.senderCertificate);
                     debugLog("Certificate thumbprint:", thumbprint.toString("hex"));
                 }
-                return this.#_decrypt_OPN_tail(binaryStream, asymmetricAlgorithmSecurityHeader, cryptoFactory, true);
+                const plainBlockSize = modulusLength - cryptoFactory.blockPaddingSize;
+                return this.#_decrypt_OPN_tail(
+                    binaryStream,
+                    asymmetricAlgorithmSecurityHeader,
+                    cryptoFactory,
+                    true,
+                    plainBlockSize
+                );
             };
 
             if (typeof keyOperations.decryptBlockSync !== "function" || typeof keyOperations.getKeyMetadataSync !== "function") {
                 // remote (async-only) key-operations provider: decrypt through
                 // its asynchronous interface — the chunk pump holds later
                 // chunks in order while this settles
-                return asymmetricDecryptWithKeyOps(cryptoFactory, buf, keyOperations).then(
-                    (decryptedBuffer) => applyDecryptedBuffer(decryptedBuffer),
+                return Promise.all([
+                    asymmetricDecryptWithKeyOps(cryptoFactory, buf, keyOperations),
+                    keyOperations.getKeyMetadata()
+                ]).then(
+                    ([decryptedBuffer, { modulusLength }]) => applyDecryptedBuffer(decryptedBuffer, modulusLength),
                     (err: Error) =>
                         // Cannot asymmetrically decrypt, may be the certificate used by the other party to encrypt
                         // this package is wrong
@@ -681,7 +693,7 @@ export class MessageBuilder extends MessageBuilderBase {
 
             try {
                 const decryptedBuffer = asymmetricDecryptWithKeyOpsSync(cryptoFactory, buf, keyOperations);
-                return applyDecryptedBuffer(decryptedBuffer);
+                return applyDecryptedBuffer(decryptedBuffer, keyOperations.getKeyMetadataSync().modulusLength);
             } catch (err) {
                 // Cannot asymmetrically decrypt, may be the certificate used by the other party to encrypt
                 // this package is wrong
@@ -703,7 +715,8 @@ export class MessageBuilder extends MessageBuilderBase {
         binaryStream: BinaryStream,
         asymmetricAlgorithmSecurityHeader: AsymmetricAlgorithmSecurityHeader,
         cryptoFactory: CryptoFactory,
-        wasEncrypted: boolean
+        wasEncrypted: boolean,
+        plainBlockSize = 0
     ): boolean {
         const chunk = binaryStream.buffer;
 
@@ -729,7 +742,7 @@ export class MessageBuilder extends MessageBuilderBase {
 
         // remove padding
         if (wasEncrypted) {
-            binaryStream.buffer = removePadding(binaryStream.buffer);
+            binaryStream.buffer = removePadding(binaryStream.buffer, plainBlockSize);
         }
 
         return true; // success
