@@ -1,3 +1,20 @@
+Secure channel: one chunk writer for every message
+==================================================
+
+  - every message a secure channel sends (MSG, CLO and OpenSecureChannel, under None, Sign and
+    SignAndEncrypt, with a local or a remote HSM/KMS key) is written by a `SecureChunkWriter`: one
+    call per message, no event, the same bytes on the wire (ADR 0001). Basic256Sha256 Reads: about
+    +12% on a 4-core benchmark machine (open62541 C client).
+  - a message chunked while an OpenSecureChannel waits for a remote signature now leaves after it, in
+    sequence number order; a remote signing failure no longer leaves part of a message on the wire.
+  - fix: an OpenSecureChannel message of several chunks, encrypted for an RSA key larger than 2048
+    bits, is read correctly (its ExtraPaddingSize byte was taken for the padding size).
+  - `ChunkManager`, `SecureMessageChunkManager` and `MessageChunker.prepareChunk` are deprecated:
+    node-opcua no longer uses them; they will be removed in the next major version.
+  - **behaviour change** `MessageChunker.chunkSecureMessage` refuses an asynchronous signer
+    (`signBufferAsyncFunc`) with BadInternalError instead of delivering its chunks late; use
+    `chunkSecureMessageAsync`.
+
 
 Faster Read, Write and sampling, and less memory per node
 =========================================================
@@ -17,7 +34,7 @@ Faster Read, Write and sampling, and less memory per node
   - nodes take less heap: optional fields take no slot until set (100,000 Variables added to the
     standard nodeset: 2,635 to 2,469 bytes per node), references are indexed in an array, a
     defaulted display name stays a string, setters share one callback wrapper.
-  - measured on a 4-core Gemini Lake mini PC (server on 2 cores, open62541 C client), node-opcua
+  - measured on a 4-core benchmark machine (server on 2 cores, open62541 C client), node-opcua
     2.186.17 against this release: pipelined Reads of one value about 3,700 to 10,000-20,000 calls/s,
     Reads of 1000 values 38 to about 440 calls/s, Writes of 1000 values 20 to about 80 calls/s. With
     front threads (below) Reads of 1000 values reach about 1,400 calls/s and Writes about 500.
@@ -63,7 +80,7 @@ Compact address space and front threads (new, experimental)
     and the monitored item hooks included). Every front shows the same address space, sessions and
     diagnostics. Limits, build info and auditing are set on `FrontThreadEngine.create()`; the
     server's own namespace (1) derives from the `applicationUri`, and `registerNamespace()` declares
-    a namespace of the model served from the store. Measured on the same mini PC: 44,000 Reads of one value per second with 2 fronts on 2
+    a namespace of the model served from the store. Measured on the same machine: 44,000 Reads of one value per second with 2 fronts on 2
     cores, against about 20,000 for a single-thread server.
   - structures travel between threads as their binary encoding: `EncodedVariant`
     (`encodedVariant(bytes)`, node-opcua-variant) and `EncodedDataValue` (node-opcua-data-value)
