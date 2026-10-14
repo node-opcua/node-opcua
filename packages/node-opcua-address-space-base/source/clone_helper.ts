@@ -2,7 +2,7 @@ import { assert } from "node-opcua-assert";
 import { ReferenceTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass, type QualifiedName } from "node-opcua-data-model";
 import { checkDebugFlag, make_errorLog } from "node-opcua-debug";
-import { makeNodeId, type NodeIdLike, sameNodeId } from "node-opcua-nodeid";
+import { makeNodeId, type NodeId, type NodeIdLike, sameNodeId } from "node-opcua-nodeid";
 import type { IAddressSpace } from "./address_space.js";
 import type { BaseNode } from "./base_node.js";
 import type { UAMethod } from "./ua_method.js";
@@ -190,6 +190,38 @@ function followPath(node: BaseNode, path: QualifiedName[]): UAConcrete | null {
 
 type Context = Map<string, CloneInfo>;
 
+const aggregatingParent = (node: BaseNode): BaseNode | null =>
+    node.findReferencesExAsObject("Aggregates", BrowseDirection.Inverse)[0] ?? null;
+
+/**
+ * the candidate whose clone shares the deepest ancestor with `near`: when sibling instance
+ * declarations of one type clone the same originals (OPC 30500 LADS functions in one
+ * FunctionSet), the clone in the same subtree of the instance
+ */
+function nearestClone(candidates: CloneInfo[], near: BaseNode): CloneInfo | null {
+    if (candidates.length <= 1) return candidates[0] ?? null;
+    const depthOf = new Map<BaseNode, number>();
+    let depth = 0;
+    for (let node: BaseNode | null = near; node; node = aggregatingParent(node)) {
+        depthOf.set(node, depth++);
+    }
+    let best: CloneInfo | null = null;
+    let bestDistance = Number.POSITIVE_INFINITY;
+    for (const candidate of candidates) {
+        for (let node: BaseNode | null = candidate.cloned; node; node = aggregatingParent(node)) {
+            const distance = depthOf.get(node);
+            if (distance !== undefined) {
+                if (distance < bestDistance) {
+                    best = candidate;
+                    bestDistance = distance;
+                }
+                break;
+            }
+        }
+    }
+    return best ?? candidates[0];
+}
+
 export class CloneHelper {
     public level = 0;
     /**
@@ -200,6 +232,11 @@ export class CloneHelper {
     private _context: Context | null = null;
     private _contextStack: Context[] = [];
     private readonly mapTypeInstanceChildren: Map<string, Map<string, CloneInfo>> = new Map();
+    /**
+     * every clone of an original, in every context: a context keeps one clone per original, and
+     * sibling declarations of one type overwrite each other there through their shared base
+     */
+    private readonly _clonesByOriginal: Map<string, CloneInfo[]> = new Map();
     private readonly _deferred: (() => void)[] = [];
     public pad(): string {
         return " ".padEnd(this.level * 2, " ");
@@ -285,6 +322,15 @@ export class CloneHelper {
         doTrace &&
             traceLog("registerClonedObject", "originalNode = ", fullPath2(originalNode), "clonedNode =", fullPath2(clonedNode));
 
+        const record = (info: CloneInfo) => {
+            const key = info.original.nodeId.toString();
+            const list = this._clonesByOriginal.get(key);
+            if (!list) {
+                this._clonesByOriginal.set(key, [info]);
+            } else if (!list.some((x) => x.cloned === info.cloned)) {
+                list.push(info);
+            }
+        };
         const insertShadow = (map: Map<string, CloneInfo>) => {
             // the same path on every supertype of every type that declares this node: what a
             // subtype re-declares shadows what its base declared
@@ -295,10 +341,9 @@ export class CloneHelper {
                     if (shadowChild) {
                         // c8 ignore next
                         doTrace && traceLog("shadowChild = ", fullPath2(shadowChild));
-                        map.set(shadowChild.nodeId.toString(), {
-                            cloned: clonedNode,
-                            original: shadowChild
-                        });
+                        const shadowInfo = { cloned: clonedNode, original: shadowChild };
+                        map.set(shadowChild.nodeId.toString(), shadowInfo);
+                        record(shadowInfo);
                     }
                     base = base.subtypeOfObj;
                 }
@@ -311,12 +356,16 @@ export class CloneHelper {
         }
         // also create  [Type+Instance] map
         // to do so we need to find the TypeDefinition of the originalNode
-        this._context.set(originalNode.nodeId.toString(), {
-            cloned: clonedNode,
-            original: originalNode
-        });
+        const info = { cloned: clonedNode, original: originalNode };
+        this._context.set(originalNode.nodeId.toString(), info);
+        record(info);
         insertShadow(this._context);
     }
+    /** the clone of `original` nearest to `near` in the instance, among every clone made of it */
+    public getNearestClone(original: NodeId, near: BaseNode): CloneInfo | null {
+        return nearestClone(this._clonesByOriginal.get(original.toString()) ?? [], near);
+    }
+
     public getCloned({
         originalParent,
         clonedParent,
@@ -510,7 +559,11 @@ export function reconstructFunctionalGroupType(extraInfo: CloneHelper) {
     for (const { original, cloned } of cloneInfoArray) {
         const organizedByArray = original.findReferencesEx("Organizes", BrowseDirection.Inverse);
         for (const ref of organizedByArray) {
-            const info = findImplementedObject(cloneInfoArray, ref);
+            // two sibling functions of one type (OPC 30500 LADS sensors in one FunctionSet) clone
+            // the same originals of their function type: the first clone of the flat list made
+            // every Operational organize the siblings' SensorValue as well. The group that belongs
+            // to this clone is the candidate closest to it in the instance.
+            const info = extraInfo.getNearestClone(ref.nodeId, cloned);
             if (!info) continue;
 
             const folder = info.original;
@@ -530,7 +583,7 @@ export function reconstructFunctionalGroupType(extraInfo: CloneHelper) {
             // may be we should check that the referenceType is a subtype of Organizes
             const alreadyExist = destFolder
                 .findReferences(ref.referenceType, !ref.isForward)
-                .find((r) => r.nodeId === cloned.nodeId);
+                .find((r) => sameNodeId(r.nodeId, cloned.nodeId));
             if (alreadyExist) {
                 continue;
             }
