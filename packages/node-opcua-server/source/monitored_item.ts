@@ -24,6 +24,7 @@ import type { DateTime, UInt32 } from "node-opcua-basic-types";
 import { AttributeIds, NodeClass, type QualifiedNameOptions } from "node-opcua-data-model";
 import {
     apply_timestamps,
+    apply_timestamps_into,
     coerceTimestampsToReturn,
     DataValue,
     extractRange,
@@ -1704,9 +1705,19 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         }
         this.oldDataValue = dataValue.clone();
 
+        // A queue of one only ever holds the newest notification (OPC 10000-4 5.12.1.5). While the one it
+        // holds has not been taken by a publish (extraction swaps in a new queue array), nothing else holds
+        // it, so the new sample is written into it rather than into a new notification: an item sampled
+        // faster than it is published otherwise made one notification per sample for one per publish.
+        const pending = this.queueSize === 1 && this.queue.length === 1 ? this.queue[0] : undefined;
+        const reused = pending instanceof MonitoredItemNotification && pending.value ? pending : null;
+        if (reused) {
+            reused.clientHandle = this.clientHandle;
+            apply_timestamps_into(reused.value, this.oldDataValue, this.timestampsToReturn, this.itemToMonitor.attributeId);
+        }
         // the notification is built first, and from the stamped DataValue: apply_timestamps hands
         // back a fresh DataValue, so clearing the bit below cannot reach the queued notification.
-        const notification = this._makeDataChangeNotification(this.oldDataValue);
+        const notification = reused ? null : this._makeDataChangeNotification(this.oldDataValue);
 
         // The SemanticsChanged bit marks one notification (OPC 10000-4 7.39); it is not a new state
         // of the value, which did not change at all. oldDataValue is the baseline the next sample is
@@ -1727,7 +1738,9 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             safeGuardRegister(this);
         }
 
-        this._enqueue_notification(notification);
+        if (notification) {
+            this._enqueue_notification(notification);
+        }
     }
 
     private _makeEventFieldList(eventFields: Variant[]): EventFieldList {

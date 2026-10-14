@@ -839,6 +839,53 @@ describe("Server Side MonitoredItem", () => {
         done();
     });
 
+    it("a queue of one writes each new sample into the notification it holds, never into one a publish took", () => {
+        const monitoredItem = createMonitoredItem({
+            clientHandle: 7,
+            samplingInterval: 10,
+            discardOldest: true,
+            queueSize: 1,
+            timestampsToReturn: TimestampsToReturn.Source,
+            monitoredItemId: 51
+        });
+        monitoredItem.$subscription = fakeSubscription;
+        monitoredItem.setNode(fakeNode);
+
+        const sample = (value: number, at: number) =>
+            new DataValue({
+                value: { dataType: DataType.UInt32, value },
+                sourceTimestamp: new Date(at),
+                serverTimestamp: new Date(at + 1)
+            });
+
+        monitoredItem._enqueue_value(sample(1000, 1000));
+        const held = monitoredItem.queue[0];
+        monitoredItem._enqueue_value(sample(1001, 2000));
+        monitoredItem._enqueue_value(sample(1002, 3000));
+        // the newest sample, in the same notification, stamped as the item asks (source timestamp only)
+        should(monitoredItem.queue.length).eql(1);
+        should(monitoredItem.queue[0]).equal(held);
+        should(held.clientHandle).eql(7);
+        should(held.value.value.value).eql(1002);
+        should(held.value.statusCode).eql(StatusCodes.Good);
+        should(held.value.sourceTimestamp).eql(new Date(3000));
+        should(held.value.serverTimestamp).eql(null);
+
+        // once a publish has taken it, a new sample goes into a new notification
+        const published = monitoredItem.extractMonitoredItemNotifications(true) as MonitoredItemNotification[];
+        should(published.length).eql(1);
+        should(published[0]).equal(held);
+        monitoredItem._enqueue_value(sample(1003, 4000));
+        should(monitoredItem.queue.length).eql(1);
+        should(monitoredItem.queue[0]).not.equal(held);
+        should(monitoredItem.queue[0].value.value.value).eql(1003);
+        should(held.value.value.value).eql(1002);
+        should(held.value.sourceTimestamp).eql(new Date(3000));
+
+        monitoredItem.terminate();
+        monitoredItem.dispose();
+    });
+
     it("StatusCode.Overflow bit should not be set when queuesize is 1. (discardOldest === false)", (done) => {
         const monitoredItem = createMonitoredItem({
             clientHandle: 1,
