@@ -587,6 +587,13 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             cb(null, dataValue);
             return;
         }
+        // a refreshed value without a server timestamp is stamped with the time the server obtained it
+        // (OPC 10000-4 7.11): the clock read for this refresh when the refreshFunc answers at once, a new
+        // one when it answers later. Left unset, it inherited the previous value's server timestamp, which
+        // never moved on.
+        const requestedAt = oldestDate.timestamp;
+        const requestedAtPicoseconds = oldestDate.picoseconds;
+        let answeredAtOnce = true;
         try {
             this.refreshFunc.call(this, (err: Error | null, dataValue?: DataValueLike) => {
                 // c8 ignore next
@@ -600,10 +607,22 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                     dataValue = { statusCode: StatusCodes.BadNoDataAvailable };
                 }
                 if (dataValue && dataValue !== this.$dataValue) {
-                    this._internal_set_dataValue(coerceDataValue(dataValue), null);
+                    const refreshed = coerceDataValue(dataValue);
+                    if (!refreshed.serverTimestamp) {
+                        if (answeredAtOnce) {
+                            refreshed.serverTimestamp = requestedAt;
+                            refreshed.serverPicoseconds = requestedAtPicoseconds;
+                        } else {
+                            const now = getCurrentClock();
+                            refreshed.serverTimestamp = now.timestamp;
+                            refreshed.serverPicoseconds = now.picoseconds;
+                        }
+                    }
+                    this._internal_set_dataValue(refreshed, null);
                 }
                 cb(err, this.$dataValue);
             });
+            answeredAtOnce = false;
         } catch (err) {
             errorLog("-------------- refresh call failed 2", this.browseName.toString(), this.nodeId.toString());
             errorLog(err);
