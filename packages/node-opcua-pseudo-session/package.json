@@ -18,7 +18,7 @@
         "node-opcua-assert": "2.186.7",
         "node-opcua-basic-types": "2.187.0",
         "node-opcua-constants": "2.185.0",
-        "node-opcua-crypto": "6.2.2",
+        "node-opcua-crypto": "6.2.3",
         "node-opcua-data-model": "2.187.0",
         "node-opcua-data-value": "2.187.0",
         "node-opcua-debug": "2.186.7",

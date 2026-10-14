@@ -166,7 +166,7 @@
             "node-opcua-xml2json": "2.187.0"
         },
         "external": {
-            "node-opcua-crypto": "6.2.2",
+            "node-opcua-crypto": "6.2.3",
             "node-opcua-pki": "7.1.1"
         }
     }

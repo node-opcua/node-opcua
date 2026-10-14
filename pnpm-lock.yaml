@@ -255,8 +255,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-pki:
         specifier: 7.1.1
         version: 7.1.1
@@ -412,8 +412,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-data-access:
         specifier: 2.187.0
         version: link:../node-opcua-data-access
@@ -556,8 +556,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-data-access:
         specifier: 2.187.0
         version: link:../node-opcua-data-access
@@ -677,8 +677,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-data-model:
         specifier: 2.187.0
         version: link:../node-opcua-data-model
@@ -1115,8 +1115,8 @@ importers:
         specifier: 2.187.7
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-debug:
         specifier: 2.186.7
         version: link:../node-opcua-debug
@@ -1201,8 +1201,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-data-model:
         specifier: 2.187.0
         version: link:../node-opcua-data-model
@@ -1337,8 +1337,8 @@ importers:
         specifier: 2.187.7
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-debug:
         specifier: 2.186.7
         version: link:../node-opcua-debug
@@ -1534,8 +1534,8 @@ importers:
         specifier: 2.186.7
         version: link:../node-opcua-assert
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-status-code:
         specifier: 2.187.0
         version: link:../node-opcua-status-code
@@ -1779,8 +1779,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-debug:
         specifier: 2.186.7
         version: link:../node-opcua-debug
@@ -3390,8 +3390,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-data-model:
         specifier: 2.187.0
         version: link:../node-opcua-data-model
@@ -3512,8 +3512,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-nodeid:
         specifier: 2.187.0
         version: link:../node-opcua-nodeid
@@ -3682,8 +3682,8 @@ importers:
         specifier: 2.187.7
         version: link:../node-opcua-client-proxy
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-packet-analyzer:
         specifier: 2.187.0
         version: link:../node-opcua-packet-analyzer
@@ -3773,8 +3773,8 @@ importers:
         specifier: 2.187.7
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-debug:
         specifier: 2.186.7
         version: link:../node-opcua-debug
@@ -3891,8 +3891,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-data-model:
         specifier: 2.187.0
         version: link:../node-opcua-data-model
@@ -4048,8 +4048,8 @@ importers:
         specifier: 2.185.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-data-model:
         specifier: 2.187.0
         version: link:../node-opcua-data-model
@@ -4130,8 +4130,8 @@ importers:
         specifier: 2.187.7
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 6.2.2
-        version: 6.2.2
+        specifier: 6.2.3
+        version: 6.2.3
       node-opcua-debug:
         specifier: 2.186.7
         version: link:../node-opcua-debug
@@ -6410,6 +6410,14 @@ packages:
       node-opcua-crypto-web:
         optional: true
 
+  node-opcua-crypto@6.2.3:
+    resolution: {integrity: sha512-hQzZWpBr3fisPOboTZkg+OfFoR4pTih/oJoHQPHRdE6uOlDNKsKtZBfIQVU/pJPNWZdzOBMYlo1KxkZ6jMrOVQ==}
+    peerDependencies:
+      node-opcua-crypto-web: ^6.0.0
+    peerDependenciesMeta:
+      node-opcua-crypto-web:
+        optional: true
+
   node-opcua-pki@7.1.1:
     resolution: {integrity: sha512-KDBgx+md/7qfgbxqQZN5PW5c4ayOQuIheuiWNHq8A9kRsiCCcn4BrbawzBjuXUmk0a9tqo3GhLcmE6EbLLLYhA==}
     hasBin: true
@@ -8296,6 +8304,20 @@ snapshots:
       skin-tone: 2.0.0
 
   node-opcua-crypto@6.2.2:
+    dependencies:
+      '@peculiar/asn1-cms': 2.11.0
+      '@peculiar/asn1-pfx': 2.11.0
+      '@peculiar/asn1-pkcs8': 2.11.0
+      '@peculiar/asn1-pkcs9': 2.11.0
+      '@peculiar/asn1-rsa': 2.11.0
+      '@peculiar/asn1-schema': 2.9.5
+      '@peculiar/asn1-x509': 2.11.0
+      '@peculiar/webcrypto': 1.7.1
+      '@peculiar/x509': 2.1.0
+      reflect-metadata: 0.2.2
+      sshpk: 1.18.0
+
+  node-opcua-crypto@6.2.3:
     dependencies:
       '@peculiar/asn1-cms': 2.11.0
       '@peculiar/asn1-pfx': 2.11.0
