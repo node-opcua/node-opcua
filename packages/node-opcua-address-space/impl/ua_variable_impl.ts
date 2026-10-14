@@ -255,7 +255,10 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
      * it, as the Read service does for the others, evaluates the getter twice for nothing.
      */
     declare public _refreshFuncWrapsGetter?: boolean;
-    declare public __waiting_callbacks?: CallbackT<DataValue>[];
+    // the read that started the refresh in progress, and the reads that came while it was (an array only then):
+    // a sampled variable is read once per sample, and one at a time
+    declare private __waiting_callback?: CallbackT<DataValue>;
+    declare private __more_waiting_callbacks?: CallbackT<DataValue>[];
     // the variant types already found to fit the DataType below (bit k: DataType k), set on the first write
     declare private _validatedForDataType?: NodeId;
     declare private _validatedVariantTypes?: number;
@@ -553,34 +556,18 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             this.verifyVariantCompatibility(this.$dataValue.value);
         }
 
-        const lessOrEqual = (a: PreciseClock, b: PreciseClock) => {
-            return (
-                a.timestamp.getTime() < b.timestamp.getTime() ||
-                (a.timestamp.getTime() === b.timestamp.getTime() && a.picoseconds <= b.picoseconds)
-            );
-        };
-
         if (!this.refreshFunc) {
             // no refresh func
             const dataValue = this.readValue();
             dataValue.serverTimestamp = oldestDate.timestamp;
             dataValue.serverPicoseconds = oldestDate.picoseconds;
-            const serverClock = coerceClock(dataValue.serverTimestamp, dataValue.serverPicoseconds);
-            if (lessOrEqual(oldestDate, serverClock)) {
-                cb(null, dataValue);
-                return;
-            } else {
-                // fake
-                cb(null, dataValue);
-                return;
-            }
+            cb(null, dataValue);
+            return;
         }
 
-        const c1 = this.$dataValue.serverTimestamp
-            ? coerceClock(this.$dataValue.serverTimestamp, this.$dataValue.serverPicoseconds)
-            : null;
-
-        if (c1 && lessOrEqual(oldestDate, c1)) {
+        // the value held is recent enough for this read: it is answered without a refresh
+        const held = this.$dataValue;
+        if (held.serverTimestamp && clockNotAfter(oldestDate, held.serverTimestamp, held.serverPicoseconds)) {
             const dataValue = this.readValue().clone();
             dataValue.serverTimestamp = oldestDate.timestamp;
             dataValue.serverPicoseconds = oldestDate.picoseconds;
@@ -1354,11 +1341,10 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     private _readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>, readAt?: PreciseClock): void {
         context = context || SessionContext.defaultContext;
 
-        this.__waiting_callbacks = this.__waiting_callbacks || [];
-        this.__waiting_callbacks.push(callback);
-
-        const _readValueAsync_in_progress = this.__waiting_callbacks.length >= 2;
-        if (_readValueAsync_in_progress) {
+        if (this.__waiting_callback) {
+            // a refresh is in progress: its value answers this read too
+            this.__more_waiting_callbacks ??= [];
+            this.__more_waiting_callbacks.push(callback);
             return;
         }
 
@@ -1366,6 +1352,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             callback?.(null, new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown }));
             return;
         }
+        this.__waiting_callback = callback;
 
         // runs once per sample of every monitored item, so nothing here allocates a closure or
         // binds a function: the denial (if any) is a StatusCode, and the callback that releases
@@ -1394,11 +1381,16 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         }
 
         this.__satisfy_waiting_callbacks ??= (err: Error | null, dataValue?: DataValue) => {
-            // now call all pending callbacks
-            const callbacks = this.__waiting_callbacks || [];
-            this.__waiting_callbacks = [];
-            for (const callback1 of callbacks) {
-                callback1.call(this, err, dataValue);
+            // now call all pending callbacks, in the order of the reads
+            const first = this.__waiting_callback;
+            const more = this.__more_waiting_callbacks;
+            this.__waiting_callback = undefined;
+            this.__more_waiting_callbacks = undefined;
+            first?.call(this, err, dataValue);
+            if (more) {
+                for (const callback1 of more) {
+                    callback1.call(this, err, dataValue);
+                }
             }
         };
         const satisfy_callbacks = this.__satisfy_waiting_callbacks;
@@ -2348,6 +2340,13 @@ function coerceDataValue(dataValue: DataValue | DataValueLike): DataValue {
         return dataValue;
     }
     return new DataValue(dataValue);
+}
+
+/** `clock` is not later than the time given as a Date and picoseconds (compared as they are, with no clock object made) */
+function clockNotAfter(clock: PreciseClock, timestamp: Date, picoseconds: number): boolean {
+    const a = clock.timestamp.getTime();
+    const b = timestamp.getTime();
+    return a < b || (a === b && clock.picoseconds <= (picoseconds || 0));
 }
 
 // variation #3 :
