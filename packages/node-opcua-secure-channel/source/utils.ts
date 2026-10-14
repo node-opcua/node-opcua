@@ -399,7 +399,17 @@ export function reduceLength(buffer: Buffer, byteToRemove: number): Buffer {
     return buffer.subarray(0, buffer.length - byteToRemove);
 }
 
-export function removePadding(buffer: Buffer): Buffer {
-    const nbPaddingBytes = buffer.readUInt8(buffer.length - 1) + 1;
-    return reduceLength(buffer, nbPaddingBytes);
+/**
+ * the buffer without its padding (OPC 10000-6 6.7.2.5): PaddingSize, then PaddingSize bytes each
+ * holding it, then, when the plain block is larger than 256 bytes (an RSA key larger than 2048
+ * bits), ExtraPaddingSize, the high byte of the padding length. The byte before the last is then a
+ * padding byte, or PaddingSize itself without padding: either way the low byte.
+ */
+export function removePadding(buffer: Buffer, plainBlockSize = 0): Buffer {
+    const last = buffer.readUInt8(buffer.length - 1);
+    if (plainBlockSize > 256) {
+        const nbPaddingBytes = buffer.readUInt8(buffer.length - 2) + 256 * last;
+        return reduceLength(buffer, nbPaddingBytes + 2);
+    }
+    return reduceLength(buffer, last + 1);
 }
