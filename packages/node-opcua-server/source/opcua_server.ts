@@ -61,6 +61,7 @@ import {
     RESPONSE_DIAGNOSTICS_MASK_ALL
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
+import type { PreciseClock } from "node-opcua-date-time";
 import { checkDebugFlag, dump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName, isIPAddress } from "node-opcua-hostname";
 import { NodeId } from "node-opcua-nodeid";
@@ -551,7 +552,8 @@ function monitoredItem_read_and_record_value(
     oldValue: DataValue,
     node: UAVariable,
     itemToMonitor: ReadValueId,
-    callback: (err: Error | null, dataValue?: DataValue) => void
+    callback: (err: Error | null, dataValue?: DataValue) => void,
+    _clock?: PreciseClock
 ) {
     assert(self instanceof MonitoredItem);
     assert(oldValue instanceof DataValue);
@@ -572,11 +574,12 @@ function monitoredItem_read_and_record_value_async(
     _oldValue: DataValue,
     node: UAVariable,
     _itemToMonitor: ReadValueId,
-    callback: (err: Error | null, dataValue?: DataValue) => void
+    callback: (err: Error | null, dataValue?: DataValue) => void,
+    clock?: PreciseClock
 ) {
     // runs on every sample of every monitored item, so it asserts nothing: it is only chosen by
     // build_scanning_node_function for the Value attribute of a node that has readValueAsync
-    node.readValueAsync(context, callback);
+    node.readValueAsync(context, callback, clock);
 }
 
 function build_scanning_node_function(nodeFinder: INodeFinder, itemToMonitor: ReadValueId): SamplingFunc {
@@ -615,9 +618,10 @@ function build_scanning_node_function(nodeFinder: INodeFinder, itemToMonitor: Re
             this: MonitoredItem,
             sessionContext: ISessionContext,
             oldDataValue: DataValue,
-            callback: (err: Error | null, dataValue?: DataValue) => void
+            callback: (err: Error | null, dataValue?: DataValue) => void,
+            clock?: PreciseClock
         ) {
-            monitoredItem_read_and_record_value_func(this, sessionContext, oldDataValue, node, itemToMonitor, callback);
+            monitoredItem_read_and_record_value_func(this, sessionContext, oldDataValue, node, itemToMonitor, callback, clock);
         };
     } else {
         // Attributes, other than the  Value  Attribute, are only monitored for a change in value.

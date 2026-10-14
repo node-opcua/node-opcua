@@ -2,6 +2,7 @@
  * @module node-opcua-server
  */
 import { assert } from "node-opcua-assert";
+import { getCurrentClock, type PreciseClock } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { MonitoringMode } from "node-opcua-types";
 import { hrtime } from "node-opcua-utils";
@@ -37,7 +38,7 @@ const timers: Record<string, ITimer> = {};
 const NS_PER_SEC = 1e9;
 
 interface MonitoredItemPriv {
-    _on_sampling_timer(): void;
+    _on_sampling_timer(clock?: PreciseClock): void;
     getSessionContext(): ISessionContext | null;
 }
 /**
@@ -102,10 +103,15 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
                 }
                 counter++;
             }
+            // one sampling instant for every item of the tick, as one Read stamps all its nodes with one time: the
+            // clock is read once here rather than once per item. getCurrentClock() hands out an object it updates
+            // in place on its next call, so the tick keeps a copy.
+            const now = getCurrentClock();
+            const clock: PreciseClock = { timestamp: now.timestamp, picoseconds: now.picoseconds };
             for (const [context, items] of groups) {
                 const sampleGroup = () => {
                     for (const item of items) {
-                        item._on_sampling_timer();
+                        item._on_sampling_timer(clock);
                     }
                 };
                 if (context?.withPermissionCache) {

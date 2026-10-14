@@ -1,4 +1,5 @@
 import { DataValue } from "node-opcua-data-value";
+import type { PreciseClock } from "node-opcua-date-time";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { DataType } from "node-opcua-variant";
 import should from "should";
@@ -37,6 +38,17 @@ describe("UAVariable refreshed by a refreshFunc without server timestamps", () =
     });
     after(() => {
         addressSpace.dispose();
+    });
+
+    it("stamps a refreshed value with the clock the read is made at, when one is given", async () => {
+        // what a sampler does: one clock for every variable it samples in a tick. Not in the future: a value
+        // stamped later than the clock of a read counts as fresh for it, and would be served from the cache.
+        const tick: PreciseClock = { timestamp: new Date(Date.now() - 10), picoseconds: 1234 };
+        const dataValue = await new Promise<DataValue>((resolve, reject) =>
+            variable.readValueAsync(context, (err, value) => (err ? reject(err) : resolve(value as DataValue)), tick)
+        );
+        should(dataValue.serverTimestamp).equal(tick.timestamp);
+        should(dataValue.serverPicoseconds).eql(1234);
     });
 
     it("stamps each refreshed value with the time the server obtained it", async () => {

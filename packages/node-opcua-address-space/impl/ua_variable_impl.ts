@@ -1333,13 +1333,17 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     /**
 
      */
-    public readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>): void;
+    public readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>, clock?: PreciseClock): void;
     public readValueAsync(context: ISessionContext | null): Promise<DataValue>;
-    public readValueAsync(context: ISessionContext | null, callback?: CallbackT<DataValue>): Promise<DataValue> | undefined {
+    public readValueAsync(
+        context: ISessionContext | null,
+        callback?: CallbackT<DataValue>,
+        clock?: PreciseClock
+    ): Promise<DataValue> | undefined {
         // written out rather than wrapped with thenify-ex: every sample of a monitored item comes
         // through here with a callback, and the generic wrapper forwarded it with apply(arguments)
         if (callback) {
-            this._readValueAsync(context, callback);
+            this._readValueAsync(context, callback, clock);
             return undefined;
         }
         return new Promise<DataValue>((resolve, reject) => {
@@ -1347,7 +1351,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         });
     }
 
-    private _readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>): void {
+    private _readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>, readAt?: PreciseClock): void {
         context = context || SessionContext.defaultContext;
 
         this.__waiting_callbacks = this.__waiting_callbacks || [];
@@ -1405,7 +1409,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                 // on a Bad result too (FEAT-34)
                 satisfy_callbacks(null, makeNowDataValue({ statusCode: denied }));
             } else if (typeof this.refreshFunc === "function") {
-                const clock = getCurrentClock();
+                const clock = readAt ?? getCurrentClock();
                 if (this.asyncRefresh === wrappedAsyncRefresh) {
                     // the thenified wrapper adds nothing when a callback is given
                     asyncRefreshImpl.call(this, clock, satisfy_callbacks);
@@ -2630,10 +2634,11 @@ export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl impl
     }
 
     public readValueAsync(context: ISessionContext | null): Promise<DataValueT<T, DT>>;
-    public readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValueT<T, DT>>): void;
+    public readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValueT<T, DT>>, clock?: PreciseClock): void;
     public readValueAsync(
         context: ISessionContext | null,
-        callback?: CallbackT<DataValueT<T, DT>>
+        callback?: CallbackT<DataValueT<T, DT>>,
+        clock?: PreciseClock
     ): Promise<DataValueT<T, DT>> | undefined {
         // forward the arguments we were actually given: the base method picks the promise or the
         // callback form from the callback it receives (writeValue below, still thenified, picks
@@ -2641,7 +2646,7 @@ export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl impl
         if (callback === undefined) {
             return super.readValueAsync(context) as Promise<DataValueT<T, DT>>;
         }
-        super.readValueAsync(context, callback as CallbackT<DataValue>);
+        super.readValueAsync(context, callback as CallbackT<DataValue>, clock);
         return undefined;
     }
 
