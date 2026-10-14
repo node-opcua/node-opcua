@@ -535,6 +535,10 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
         return undefined;
     }
 
+    public monitoredItemsReady(): Promise<void> | undefined {
+        return undefined;
+    }
+
     public get nodeFinder(): INodeFinder {
         throw new Error("FrontOPCUAServer: subscriptions are not served by this front yet");
     }

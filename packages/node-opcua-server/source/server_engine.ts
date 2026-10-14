@@ -2086,6 +2086,15 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         return undefined;
     }
 
+    /**
+     * once the items of a CreateMonitoredItems (or a SetMonitoringMode, a ModifyMonitoredItems) are made: what
+     * they must wait for before the client hears of them. Nothing here, where items sample this engine's nodes
+     * directly (a session worker waits for its engine to watch them).
+     */
+    public monitoredItemsReady(): Promise<void> | undefined {
+        return undefined;
+    }
+
     public refreshValues(
         nodesToRefresh: ReadValueId[] | HistoryReadValueId[],
         maxAge: number,

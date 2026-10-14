@@ -4083,6 +4083,11 @@ export abstract class OPCUAServerCore<
                         return createResult;
                     });
                 }
+                // a session worker's engine watches the items before the client hears of them
+                const ready = engine.monitoredItemsReady();
+                if (ready) {
+                    await ready;
+                }
                 const response = new CreateMonitoredItemsResponse({
                     responseHeader: { serviceResult: StatusCodes.Good },
                     results
@@ -4411,6 +4416,11 @@ export abstract class OPCUAServerCore<
                     const statusCode = monitoredItem.setMonitoringMode(monitoringMode);
                     return statusCode;
                 });
+                // an item that starts sampling is watched by a session worker's engine before the client hears of it
+                const ready = this.engine.monitoredItemsReady();
+                if (ready) {
+                    await ready;
+                }
 
                 const response = new SetMonitoringModeResponse({
                     results
