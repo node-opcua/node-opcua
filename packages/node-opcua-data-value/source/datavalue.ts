@@ -401,17 +401,6 @@ function w(n: number): string {
     return n.toString().padStart(3, "0");
 }
 
-function _partial_clone(dataValue: DataValue): DataValue {
-    // `new DataValue({ value: undefined })` builds a fully initialised Null Variant that
-    // the next line throws away; the null form skips that. The Variant is deliberately
-    // shared rather than copied - the caller only adjusts timestamps and the status code,
-    // which are DataValue fields, so the payload is never written through this alias.
-    const cloneDataValue = new DataValue(null);
-    cloneDataValue.value = dataValue.value;
-    cloneDataValue.statusCode = dataValue.statusCode;
-    return cloneDataValue;
-}
-
 /**
  * apply the provided timestampsToReturn flag to the dataValue and return a cloned dataValue
  * with the specified timestamps.
@@ -425,48 +414,67 @@ export function apply_timestamps(
     timestampsToReturn: TimestampsToReturn,
     attributeId: AttributeIds
 ): DataValue {
-    let cloneDataValue: DataValue | null = null;
+    // `new DataValue({ value: undefined })` builds a fully initialised Null Variant that
+    // apply_timestamps_into throws away; the null form skips that.
+    return apply_timestamps_into(new DataValue(null), dataValue, timestampsToReturn, attributeId);
+}
+
+/**
+ * {@link apply_timestamps} written into `target` instead of a new DataValue: `target` gets the status code and
+ * the Variant of `dataValue` and the timestamps `timestampsToReturn` asks for, whatever it held before. The
+ * Variant is shared rather than copied - only timestamps and the status code are adjusted, which are
+ * DataValue fields, so the payload is never written through this alias. `target` must be a DataValue
+ * nothing else holds.
+ */
+export function apply_timestamps_into(
+    target: DataValue,
+    dataValue: DataValue,
+    timestampsToReturn: TimestampsToReturn,
+    attributeId: AttributeIds
+): DataValue {
+    target.value = dataValue.value;
+    target.statusCode = dataValue.statusCode;
+    target.sourceTimestamp = null;
+    target.sourcePicoseconds = 0;
+    target.serverTimestamp = null;
+    target.serverPicoseconds = 0;
     let now: PreciseClock | null = null;
     // apply timestamps
     switch (timestampsToReturn) {
         case TimestampsToReturn.Neither:
-            cloneDataValue = cloneDataValue || _partial_clone(dataValue);
             break;
         case TimestampsToReturn.Server:
-            cloneDataValue = cloneDataValue || _partial_clone(dataValue);
-            cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
-            cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
-            if (!cloneDataValue.serverTimestamp) {
+            target.serverTimestamp = dataValue.serverTimestamp;
+            target.serverPicoseconds = dataValue.serverPicoseconds;
+            if (!target.serverTimestamp) {
                 now = now || getCurrentClock();
-                cloneDataValue.serverTimestamp = now.timestamp as DateTime;
-                cloneDataValue.serverPicoseconds = now.picoseconds;
+                target.serverTimestamp = now.timestamp as DateTime;
+                target.serverPicoseconds = now.picoseconds;
             }
             break;
         case TimestampsToReturn.Source:
-            cloneDataValue = cloneDataValue || _partial_clone(dataValue);
-            cloneDataValue.sourceTimestamp = dataValue.sourceTimestamp;
-            cloneDataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
+            target.sourceTimestamp = dataValue.sourceTimestamp;
+            target.sourcePicoseconds = dataValue.sourcePicoseconds;
             break;
         default:
             assert(timestampsToReturn === TimestampsToReturn.Both);
-            cloneDataValue = cloneDataValue || _partial_clone(dataValue);
-            cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
-            cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
+            target.serverTimestamp = dataValue.serverTimestamp;
+            target.serverPicoseconds = dataValue.serverPicoseconds;
             if (!dataValue.serverTimestamp) {
                 now = now || getCurrentClock();
-                cloneDataValue.serverTimestamp = now.timestamp as DateTime;
-                cloneDataValue.serverPicoseconds = now.picoseconds;
+                target.serverTimestamp = now.timestamp as DateTime;
+                target.serverPicoseconds = now.picoseconds;
             }
-            cloneDataValue.sourceTimestamp = dataValue.sourceTimestamp;
-            cloneDataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
+            target.sourceTimestamp = dataValue.sourceTimestamp;
+            target.sourcePicoseconds = dataValue.sourcePicoseconds;
             break;
     }
 
     // unset sourceTimestamp unless AttributeId is Value
     if (attributeId !== AttributeIds.Value) {
-        cloneDataValue.sourceTimestamp = null;
+        target.sourceTimestamp = null;
     }
-    return cloneDataValue;
+    return target;
 }
 
 /**
