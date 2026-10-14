@@ -88,6 +88,12 @@ export enum Mode {
     SignAndEncrypt = 3
 }
 
+/**
+ * Cuts a message into chunks, then pads, signs and encrypts each of them, emitting them as "chunk" events.
+ *
+ * Deprecated: node-opcua-secure-channel no longer uses it. Its SecureChunkWriter writes the same bytes,
+ * for every message type, with one call and no event (ADR 0001). To be removed in the next major version.
+ */
 export class ChunkManager extends EventEmitter {
     #signBufferFunc?: SignBufferFunc;
     #encryptBufferFunc?: EncryptBufferFunc;

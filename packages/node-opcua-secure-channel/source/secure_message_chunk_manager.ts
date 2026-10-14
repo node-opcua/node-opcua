@@ -39,6 +39,13 @@ export interface SecureMessageChunkManagerOptions {
     verifyBufferFunc?: VerifyBufferFunc;
 }
 
+/**
+ * A ChunkManager that writes the message, security and sequence headers of each chunk.
+ *
+ * Deprecated: use {@link SecureChunkWriter}, which writes the same bytes, for every message type
+ * (OpenSecureChannel and asynchronous signing included), with one call and no event (ADR 0001).
+ * MessageChunker no longer uses this class; to be removed in the next major version.
+ */
 export class SecureMessageChunkManager extends EventEmitter {
     #aborted: boolean;
     private readonly msgType: string;

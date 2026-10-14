@@ -10,6 +10,7 @@ export * from "./key_object.js";
 export * from "./message_builder.js";
 export * from "./message_header_to_string.js";
 export * from "./secure_channel_service.js";
+export * from "./secure_chunk_writer.js";
 export * from "./secure_message_chunk_manager.js";
 export * from "./security_policy.js";
 export * from "./sequence_number_generator.js";

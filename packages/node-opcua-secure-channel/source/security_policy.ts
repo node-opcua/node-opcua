@@ -902,19 +902,33 @@ export interface SecureMessageData {
     signBufferAsyncFunc?: SignBufferAsyncFunc;
     signatureLength: number;
 }
+/**
+ * the signing and encryption functions of a token's derived keys, made once per keys: a
+ * SecureChunkWriter recognises the token of the next message by them
+ */
+const symmetricFunctions = new WeakMap<DerivedKeys, { signBufferFunc: SignBufferFunc; encryptBufferFunc: EncryptBufferFunc }>();
+
 export function getOptionsForSymmetricSignAndEncrypt(
     securityMode: MessageSecurityMode,
     derivedKeys: DerivedKeys
 ): SecureMessageData {
     assert(securityMode !== MessageSecurityMode.None && securityMode !== MessageSecurityMode.Invalid);
+    let functions = symmetricFunctions.get(derivedKeys);
+    if (!functions) {
+        functions = {
+            signBufferFunc: (chunk) => makeMessageChunkSignatureWithDerivedKeys(chunk, derivedKeys),
+            encryptBufferFunc: (chunk) => encryptBufferWithDerivedKeys(chunk, derivedKeys)
+        };
+        symmetricFunctions.set(derivedKeys, functions);
+    }
     const options: SecureMessageData = {
         // for signing
         signatureLength: derivedKeys.signatureLength,
-        signBufferFunc: (chunk) => makeMessageChunkSignatureWithDerivedKeys(chunk, derivedKeys),
+        signBufferFunc: functions.signBufferFunc,
         // for encrypting
         cipherBlockSize: derivedKeys.encryptingBlockSize,
         plainBlockSize: derivedKeys.encryptingBlockSize,
-        encryptBufferFunc: (chunk) => encryptBufferWithDerivedKeys(chunk, derivedKeys)
+        encryptBufferFunc: functions.encryptBufferFunc
     };
     if (securityMode === MessageSecurityMode.Sign) {
         // we don't want to encrypt
