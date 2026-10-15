@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-address-space-store",
     "type": "module",
-    "version": "2.187.8",
+    "version": "2.187.9",
     "description": "pure nodejs OPCUA SDK - module address-space-store: nodes, references and strings in typed columns",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -16,16 +16,16 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-address-space-base": "2.187.8",
+        "node-opcua-address-space-base": "2.187.9",
         "node-opcua-binary-stream": "2.187.0",
         "node-opcua-constants": "2.185.0",
         "node-opcua-data-model": "2.187.0",
-        "node-opcua-data-value": "2.187.0",
+        "node-opcua-data-value": "2.187.9",
         "node-opcua-date-time": "2.187.0",
         "node-opcua-nodeid": "2.187.0",
         "node-opcua-numeric-range": "2.187.0",
         "node-opcua-status-code": "2.187.0",
-        "node-opcua-types": "2.187.0",
+        "node-opcua-types": "2.187.9",
         "node-opcua-variant": "2.187.0"
     },
     "author": "Etienne Rossignon",

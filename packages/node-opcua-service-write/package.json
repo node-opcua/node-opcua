@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-service-write",
     "type": "module",
-    "version": "2.187.0",
+    "version": "2.187.9",
     "description": "pure nodejs OPCUA SDK - module service-write",
     "scripts": {
         "test": "mocha",
@@ -16,11 +16,11 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-types": "2.187.0"
+        "node-opcua-types": "2.187.9"
     },
     "devDependencies": {
         "node-opcua-data-model": "2.187.0",
-        "node-opcua-data-value": "2.187.0",
+        "node-opcua-data-value": "2.187.9",
         "node-opcua-numeric-range": "2.187.0",
         "node-opcua-packet-analyzer": "2.187.0",
         "node-opcua-variant": "2.187.0"

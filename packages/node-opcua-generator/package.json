@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-generator",
     "type": "module",
-    "version": "2.187.0",
+    "version": "2.187.9",
     "description": "pure nodejs OPCUA SDK - module generator",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -23,7 +23,7 @@
         "node-opcua-binary-stream": "2.187.0",
         "node-opcua-constants": "2.185.0",
         "node-opcua-data-model": "2.187.0",
-        "node-opcua-data-value": "2.187.0",
+        "node-opcua-data-value": "2.187.9",
         "node-opcua-debug": "2.186.7",
         "node-opcua-enum": "2.187.0",
         "node-opcua-extension-object": "2.187.0",

@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-service-read",
     "type": "module",
-    "version": "2.187.0",
+    "version": "2.187.9",
     "description": "pure nodejs OPCUA SDK - module service-read",
     "scripts": {
         "build": "tsc -b",
@@ -17,9 +17,9 @@
     "dependencies": {
         "node-opcua-assert": "2.186.7",
         "node-opcua-data-model": "2.187.0",
-        "node-opcua-data-value": "2.187.0",
-        "node-opcua-service-secure-channel": "2.187.0",
-        "node-opcua-types": "2.187.0"
+        "node-opcua-data-value": "2.187.9",
+        "node-opcua-service-secure-channel": "2.187.9",
+        "node-opcua-types": "2.187.9"
     },
     "devDependencies": {
         "node-opcua-nodeid": "2.187.0",

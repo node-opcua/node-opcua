@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-service-browse",
     "type": "module",
-    "version": "2.187.0",
+    "version": "2.187.9",
     "description": "pure nodejs OPCUA SDK - module service-browse",
     "scripts": {
         "build": "tsc -b",
@@ -16,7 +16,7 @@
     },
     "dependencies": {
         "node-opcua-data-model": "2.187.0",
-        "node-opcua-types": "2.187.0"
+        "node-opcua-types": "2.187.9"
     },
     "devDependencies": {
         "node-opcua-date-time": "2.187.0",

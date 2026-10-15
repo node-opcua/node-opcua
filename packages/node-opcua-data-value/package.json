@@ -3,7 +3,7 @@
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.187.0",
+    "version": "2.187.9",
     "description": "pure nodejs OPCUA SDK - module data-value",
     "scripts": {
         "build": "tsc -b",
