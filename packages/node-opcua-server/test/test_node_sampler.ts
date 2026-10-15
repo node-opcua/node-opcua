@@ -3,7 +3,7 @@ import { MonitoringMode } from "node-opcua-types";
 import should from "should";
 import sinon from "sinon";
 import type { MonitoredItem } from "../source/index.js";
-import { appendToTimer, nextSamplingTick, removeFromTimer } from "../source/node_sampler.js";
+import { appendToTimer, itemsSampledPerClockRead, nextSamplingTick, removeFromTimer } from "../source/node_sampler.js";
 
 describe("node_sampler", () => {
     describe("nextSamplingTick", () => {
@@ -54,6 +54,9 @@ describe("node_sampler", () => {
                 samples: 0,
                 _on_sampling_timer() {
                     item.samples++;
+                },
+                _record_held_sample(_readAt: PreciseClock, _answeredAt: PreciseClock) {
+                    /* records nothing */
                 },
                 getSessionContext(): object | null {
                     return null;
@@ -115,37 +118,52 @@ describe("node_sampler", () => {
             removeFromTimer(item2 as unknown as MonitoredItem);
         });
 
-        it("gives every item of a tick the same clock, read once for the tick", () => {
-            const seen: { id: number; clock?: PreciseClock }[] = [];
-            const makeItem = (id: number, context: object | null) => {
-                const item = fakeMonitoredItem(id, 10);
-                item._on_sampling_timer = (clock?: PreciseClock) => {
+        it("reads the clock once per chunk of items, and records a chunk's values with the clock read once it has answered", () => {
+            type Event =
+                | { kind: "sample"; id: number; readAt?: PreciseClock; hold?: boolean }
+                | { kind: "record"; id: number; readAt: PreciseClock; answeredAt: PreciseClock };
+            const events: Event[] = [];
+            const count = itemsSampledPerClockRead + 2;
+            const items = Array.from({ length: count }, (_, id) => {
+                const item = fakeMonitoredItem(100 + id, 10);
+                item._on_sampling_timer = (readAt?: PreciseClock, hold?: boolean) => {
                     item.samples++;
-                    seen.push({ id, clock });
+                    events.push({ kind: "sample", id, readAt, hold });
                 };
-                item.getSessionContext = () => context;
+                item._record_held_sample = (readAt: PreciseClock, answeredAt: PreciseClock) => {
+                    events.push({ kind: "record", id, readAt, answeredAt });
+                };
+                item._samplingId = appendToTimer(item as unknown as MonitoredItem);
                 return item;
-            };
-            // two session contexts: the items are sampled in two groups, still within one tick
-            const item1 = makeItem(31, null);
-            const item2 = makeItem(32, { withPermissionCache: <T>(action: () => T): T => action() });
-            item1._samplingId = appendToTimer(item1 as unknown as MonitoredItem);
-            item2._samplingId = appendToTimer(item2 as unknown as MonitoredItem);
+            });
 
             clock.tick(15);
-            should(seen.map((s) => s.id)).eql([31, 32]);
-            const firstTick = seen[0].clock;
-            should(firstTick).not.be.undefined();
-            should(seen[1].clock).equal(firstTick);
+            should(events.length).eql(2 * count);
+            const firstChunk = events.slice(0, 2 * itemsSampledPerClockRead);
+            const secondChunk = events.slice(2 * itemsSampledPerClockRead);
+            for (const chunk of [firstChunk, secondChunk]) {
+                const size = chunk.length / 2;
+                const samples = chunk.slice(0, size);
+                const records = chunk.slice(size);
+                // every item of the chunk is sampled, holding its value, before any is recorded
+                should(samples.every((e) => e.kind === "sample" && e.hold === true)).eql(true);
+                should(records.every((e) => e.kind === "record")).eql(true);
+                // one clock to sample the chunk with, one read once it has answered to record it with
+                const readAt = samples[0].readAt;
+                should(readAt).not.be.undefined();
+                should(samples.every((e) => e.readAt === readAt)).eql(true);
+                const answeredAt = (records[0] as { answeredAt: PreciseClock }).answeredAt;
+                should(answeredAt).not.equal(readAt);
+                should(records.every((e) => e.kind === "record" && e.readAt === readAt && e.answeredAt === answeredAt)).eql(true);
+            }
+            // the second chunk is sampled with the clock read once the first had answered
+            should(secondChunk[0].readAt).equal(
+                (firstChunk[2 * itemsSampledPerClockRead - 1] as { answeredAt: PreciseClock }).answeredAt
+            );
 
-            clock.tick(10);
-            should(seen.length).eql(4);
-            should(seen[2].clock).equal(seen[3].clock);
-            should(seen[2].clock).not.equal(firstTick);
-            should((seen[2].clock as PreciseClock).timestamp.getTime()).be.above((firstTick as PreciseClock).timestamp.getTime());
-
-            removeFromTimer(item1 as unknown as MonitoredItem);
-            removeFromTimer(item2 as unknown as MonitoredItem);
+            for (const item of items) {
+                removeFromTimer(item as unknown as MonitoredItem);
+            }
         });
 
         it("samples every interval until the last item is removed", () => {

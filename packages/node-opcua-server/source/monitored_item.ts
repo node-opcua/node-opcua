@@ -497,6 +497,8 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     private _semantic_version: number;
     private _is_sampling = false;
     private _onSampled?: (err: Error | null, dataValue?: DataValue) => void;
+    private _holdSample = false;
+    private _heldSample?: DataValue;
     private _on_opcua_event_received_callback: ((eventData: IEventData) => void) | null = null;
     // what stops the events of a node that filters them itself (subscribeEvents)
     private _unsubscribeEvents: (() => void) | null = null;
@@ -1048,9 +1050,11 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     }
     /**
      * @private
-     * @param clock the time of the sampling tick, read once for every item it samples (read again when omitted)
+     * @param clock the clock read the sampler shares between the items it samples together (read again when omitted)
+     * @param hold  keep a value obtained at once for {@link _record_held_sample} instead of recording it: the
+     *              sampler stamps the values of its items with one clock read made once they have all answered
      */
-    private _on_sampling_timer(clock?: PreciseClock) {
+    private _on_sampling_timer(clock?: PreciseClock, hold?: boolean) {
         if (this.monitoringMode === MonitoringMode.Disabled) {
             return;
         }
@@ -1108,6 +1112,8 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                     errorLog(" SAMPLING ERROR =>", err);
                 } else if (!newDataValue) {
                     errorLog(" SAMPLING ERROR => samplingFunc completed without error but returned no dataValue");
+                } else if (this._holdSample) {
+                    this._heldSample = newDataValue;
                 } else {
                     // only record value if source timestamp is newer
                     // xx if (newDataValue && isSourceNewerThan(newDataValue, this.oldDataValue)) {
@@ -1116,12 +1122,38 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 }
                 this._is_sampling = false;
             };
+            // only a value obtained during this call is held: one that comes later is recorded when it comes
+            this._holdSample = hold === true;
             this.samplingFunc.call(this, sessionContext, this.oldDataValue, this._onSampled, clock);
+            this._holdSample = false;
         } else {
             /* c8 ignore next */
             // c8 ignore next
             doDebug && debugLog("_on_sampling_timer call but MonitoredItem has been terminated !!! ");
         }
+    }
+
+    /**
+     * @internal called by the sampler (node_sampler.ts)
+     * records the value held by {@link _on_sampling_timer}. A server timestamp that is the shared clock's (`readAt`,
+     * recognised by its Date) was stamped for the sampler: it becomes `answeredAt`, read once the items sampled
+     * together had all answered, so it is not earlier than a source timestamp taken while they answered. A server
+     * timestamp the value came with is left as it is.
+     */
+    public _record_held_sample(readAt: PreciseClock, answeredAt: PreciseClock): void {
+        const dataValue = this._heldSample;
+        if (!dataValue) {
+            return;
+        }
+        this._heldSample = undefined;
+        if (!this._samplingId) {
+            return; // disposed meanwhile
+        }
+        if (dataValue.serverTimestamp === readAt.timestamp) {
+            dataValue.serverTimestamp = answeredAt.timestamp;
+            dataValue.serverPicoseconds = answeredAt.picoseconds;
+        }
+        this._on_value_changed(dataValue);
     }
 
     private _stop_sampling() {

@@ -259,6 +259,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     // a sampled variable is read once per sample, and one at a time
     declare private __waiting_callback?: CallbackT<DataValue>;
     declare private __more_waiting_callbacks?: CallbackT<DataValue>[];
+    // set by _readValueAsync for the next asyncRefresh when its clock is shared by a sampler (see asyncRefresh)
+    declare private __sharedReadClock?: boolean;
     // the variant types already found to fit the DataType below (bit k: DataType k), set on the first write
     declare private _validatedForDataType?: NodeId;
     declare private _validatedVariantTypes?: number;
@@ -575,9 +577,13 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             return;
         }
         // a refreshed value without a server timestamp is stamped with the time the server obtained it
-        // (OPC 10000-4 7.11): the clock read for this refresh when the refreshFunc answers at once, a new
-        // one when it answers later. Left unset, it inherited the previous value's server timestamp, which
-        // never moved on.
+        // (OPC 10000-4 7.11), read from the clock once the refreshFunc has answered, so it is never earlier
+        // than a source timestamp the refreshFunc took. Left unset, it inherited the previous value's server
+        // timestamp, which never moved on. A sampler that reads many variables in one go shares one clock
+        // read between them: their values get that clock's Date (the sampler recognises it by identity and
+        // stamps them all with one clock read made once they have all answered).
+        const sharedClock = this.__sharedReadClock === true;
+        this.__sharedReadClock = false;
         const requestedAt = oldestDate.timestamp;
         const requestedAtPicoseconds = oldestDate.picoseconds;
         let answeredAtOnce = true;
@@ -596,7 +602,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                 if (dataValue && dataValue !== this.$dataValue) {
                     const refreshed = coerceDataValue(dataValue);
                     if (!refreshed.serverTimestamp) {
-                        if (answeredAtOnce) {
+                        if (answeredAtOnce && sharedClock) {
                             refreshed.serverTimestamp = requestedAt;
                             refreshed.serverPicoseconds = requestedAtPicoseconds;
                         } else {
@@ -1402,12 +1408,15 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                 satisfy_callbacks(null, makeNowDataValue({ statusCode: denied }));
             } else if (typeof this.refreshFunc === "function") {
                 const clock = readAt ?? getCurrentClock();
+                this.__sharedReadClock = readAt !== undefined;
                 if (this.asyncRefresh === wrappedAsyncRefresh) {
                     // the thenified wrapper adds nothing when a callback is given
                     asyncRefreshImpl.call(this, clock, satisfy_callbacks);
                 } else {
                     this.asyncRefresh(clock, satisfy_callbacks);
                 }
+                // consumed by asyncRefresh on entry; cleared here for an overridden one that never reads it
+                this.__sharedReadClock = false;
             } else {
                 assert(this.$dataValue instanceof DataValue);
                 satisfy_callbacks(null, this.readValue(context));
