@@ -236,7 +236,7 @@ function valueHasChanged(
     }
 }
 
-function timestampHasChanged(t1: DateTime, t2: DateTime): boolean {
+function dateHasChanged(t1: DateTime, t2: DateTime): boolean {
     if (!t1 || !t2) {
         // one of them is null/undefined: a change only if the other one is set
         return !!t1 !== !!t2;
@@ -269,7 +269,7 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
                 );
             }
             if (trigger === DataChangeTrigger.StatusValueTimestamp) {
-                debugLog("timestampHasChanged ", timestampHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp));
+                debugLog("dateHasChanged ", dateHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp));
             }
         } catch (err) {
             warningLog(err);
@@ -311,7 +311,7 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
             // So the SourceTimestamp is only a trigger when no Deadband is in effect.
             const deadbandInEffect = this.filter.deadbandType !== DeadbandType.None;
             return (
-                (!deadbandInEffect && timestampHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp)) ||
+                (!deadbandInEffect && dateHasChanged(newDataValue.sourceTimestamp, oldDataValue.sourceTimestamp)) ||
                 statusCodeHasChanged(newDataValue, oldDataValue) ||
                 valueHasChanged.call(this, newDataValue, oldDataValue, this.filter.deadbandType, this.filter.deadbandValue)
             );
