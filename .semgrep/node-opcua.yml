@@ -1,0 +1,26 @@
+rules:
+  - id: unbounded-alloc-from-decoded-length
+    languages: [typescript, javascript]
+    severity: WARNING
+    message: >
+      Buffer/Array allocated with a size read from the wire (a decoded
+      length/count field), with no upper-bound check before the call. An
+      attacker-controlled length here lets one crafted OPC UA message make
+      the server allocate an arbitrary amount of memory. Validate the value
+      against a maximum (e.g. the channel's max message size) before
+      allocating.
+    metadata:
+      category: security
+      cwe: 'CWE-789: Memory Allocation with Excessive Size Value'
+      references:
+        - https://cwe.mitre.org/data/definitions/789.html
+    patterns:
+      - pattern-either:
+          - pattern: Buffer.alloc($LEN)
+          - pattern: Buffer.allocUnsafe($LEN)
+          - pattern: new Array($LEN)
+      - metavariable-regex:
+          metavariable: $LEN
+          # Only flag when the size comes from something that reads like a
+          # decoded field (length/count/size), not a fixed or local constant.
+          regex: (?i).*(length|len|count|size|nb)$
