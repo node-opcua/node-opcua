@@ -110,14 +110,13 @@ describe("Testing Encoding/Decoding of custom extension objects ", () => {
         pojo.should.eql({
             UaTypeId: "ns=2;i=3007",
             CodeType: "Hello",
+            // 1.05 Verbose writes a Union as its selected field only (5.4.8)
             ScanData: {
-                SwitchField: 3,
-                Value: { PC: 0, UId: "SGVsbG8=", XPC_W1: 0, XPC_W2: 0 }
+                Epc: { PC: 0, UId: "SGVsbG8=", XPC_W1: 0, XPC_W2: 0 }
             },
             Timestamp: new Date("2018-12-23T00:00:00.000Z"),
             Location: {
-                SwitchField: 2,
-                Value: {
+                Local: {
                     X: 100,
                     Y: 200,
                     Z: 300,
