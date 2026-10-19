@@ -25,12 +25,13 @@
 import { DataValue } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataSetFieldContentMask } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
+import { DataType, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import {
     type DataValueJSON104,
     type DataValueJSON105,
     opcuaJsonDecodeDataValue,
+    opcuaJsonEncodeDataValue,
     opcuaJsonEncodeDataValueMQTT
 } from "../source/index.js";
 import { opcuaJsonEncodeDataValue104, opcuaJsonEncodeDataValue105 } from "../source/json_basic_encoding_decoding_data_value.js";
@@ -239,5 +240,55 @@ describe("JSON decode DataValue", () => {
         dataValue.statusCode.should.eql(StatusCodes.GoodDependentValueChanged);
         dataValue.serverPicoseconds.should.eql(100);
         dataValue.sourcePicoseconds.should.eql(200);
+    });
+});
+
+describe("JSON DataValue holding a matrix", () => {
+    const sourceTimestamp = new Date(Date.UTC(2026, 9, 19, 10, 0, 0));
+    const values = [1.5, 2.5, 3.5, 4.5, 5.5, 6.5];
+    const matrixDataValue = () =>
+        new DataValue({
+            value: { dataType: DataType.Float, arrayType: VariantArrayType.Matrix, dimensions: [2, 3], value: values },
+            sourceTimestamp
+        });
+
+    for (const scheme of [JsonEncodingScheme.Compact, JsonEncodingScheme.Verbose] as const) {
+        it(`round-trips a Float[2][3] with its SourceTimestamp - ${JsonEncodingScheme[scheme]}`, () => {
+            const json = JSON.parse(JSON.stringify(opcuaJsonEncodeDataValue(matrixDataValue(), scheme, namespaceArray)));
+            should(json.Dimensions).eql([2, 3]);
+            const back = opcuaJsonDecodeDataValue(json, fakeBuilder, namespaceArray);
+            should(back.value.arrayType).eql(VariantArrayType.Matrix);
+            should(back.value.dimensions).eql([2, 3]);
+            should(Array.from(back.value.value as Float32Array)).eql(values);
+            should(back.sourceTimestamp?.getTime()).eql(sourceTimestamp.getTime());
+        });
+    }
+
+    // the PubSub path shares the Variant encoder: a NonReversible matrix is nested there too
+    it("PubSub NonReversible, mask None: the field is the nested array", () => {
+        should(
+            opcuaJsonEncodeDataValueMQTT(
+                matrixDataValue(),
+                JsonEncodingScheme.DeprecatedNonReversible,
+                DataSetFieldContentMask.None
+            )
+        ).eql([
+            [1.5, 2.5, 3.5],
+            [4.5, 5.5, 6.5]
+        ]);
+    });
+
+    it("PubSub NonReversible, DataValue mask: Value is the nested array", () => {
+        const pojo = opcuaJsonEncodeDataValueMQTT(
+            matrixDataValue(),
+            JsonEncodingScheme.DeprecatedNonReversible,
+            DataSetFieldContentMask.SourceTimestamp
+        ) as DataValueJSON104;
+        should(pojo.Value).eql([
+            [1.5, 2.5, 3.5],
+            [4.5, 5.5, 6.5]
+        ]);
+        // the pojo holds a Date; what goes on the wire is its JSON text
+        should(JSON.parse(JSON.stringify(pojo)).SourceTimestamp).eql(sourceTimestamp.toISOString());
     });
 });
