@@ -17,7 +17,9 @@ import { addressSpaceToJsonLd, addressSpaceToJsonLdText, prefixOfNamespace } fro
 /** what the exporter produced when this test was written, for DI on top of the standard nodeset */
 // FEAT-53: an omitted DataType attribute now reads BaseDataType (i=24), not Null; the export
 // text carries that through wherever a DI field or VariableType had no explicit DataType.
-const DI_SHA1 = "1247042989a327578d772515243b7e334e7a6f58";
+// JSON 1.05 namespace URIs: Variable values name every namespace by URI, so the two DI
+// QualifiedName values and the Argument DataTypes (ns=1;i=333) now read nsu=…/DI/.
+const DI_SHA1 = "ae0df67f2f5418ad1c4144668d14b8bb99ce8213";
 
 type JsonLd = {
     "@context": Record<string, unknown>;

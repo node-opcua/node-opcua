@@ -219,7 +219,7 @@ export function modelToJsonLd(model: RdfModel, options: JsonLdOptions = {}): Rec
             name: node.browseName.name ?? ""
         };
 
-        variableFields(node, entry, (id) => {
+        variableFields(node, entry, model.namespaceUris, (id) => {
             const found = model.resolve(id);
             return found ? curie(found) : undefined;
         });
@@ -310,7 +310,12 @@ function rdfTypesOf(node: RdfNode, model: RdfModel, curie: (node: RdfNode) => st
     return typeDefinition ? [base, curie(typeDefinition)] : base;
 }
 
-function variableFields(node: RdfNode, entry: Record<string, unknown>, curieOfId: (nodeId: NodeId) => string | undefined): void {
+function variableFields(
+    node: RdfNode,
+    entry: Record<string, unknown>,
+    namespaceUris: string[],
+    curieOfId: (nodeId: NodeId) => string | undefined
+): void {
     if (node.nodeClass !== NodeClass.Variable && node.nodeClass !== NodeClass.VariableType) return;
     if (node.dataType) {
         const dataType = curieOfId(node.dataType);
@@ -319,7 +324,8 @@ function variableFields(node: RdfNode, entry: Record<string, unknown>, curieOfId
     if (node.valueRank !== undefined && node.valueRank !== -1) entry.valueRank = node.valueRank;
     if (node.arrayDimensions?.length) entry.arrayDimensions = node.arrayDimensions.join(",");
     if (node.value && node.value.dataType !== 0) {
-        entry.value = opcuaJsonEncodeVariant105(new Variant(node.value), JsonEncoderMode105.Verbose, []);
+        // with the namespace table, every NodeId and QualifiedName in the value names its namespace by URI
+        entry.value = opcuaJsonEncodeVariant105(new Variant(node.value), JsonEncoderMode105.Verbose, namespaceUris);
     }
 }
 
