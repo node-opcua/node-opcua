@@ -398,6 +398,17 @@ describe("JSON encode Variant", () => {
             });
             should(opcuaJsonEncodeVariant(empty, NonReversible, namespaceArray)).eql([[], []]);
         });
+        it("should keep the flat array when the dimensions do not match the element count (104 NonReversible)", () => {
+            // the Variant constructor refuses such a matrix, so make it inconsistent afterwards
+            const inconsistent = new Variant({
+                dataType: DataType.Int32,
+                arrayType: VariantArrayType.Matrix,
+                value: [1, 2, 3, 4],
+                dimensions: [2, 2]
+            });
+            inconsistent.dimensions = [2, 3];
+            should(opcuaJsonEncodeVariant(inconsistent, NonReversible, namespaceArray)).eql([1, 2, 3, 4]);
+        });
     });
 });
 describe("JSON decode Variant", () => {
