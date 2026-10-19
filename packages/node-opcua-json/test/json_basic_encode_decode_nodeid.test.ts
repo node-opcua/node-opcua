@@ -22,7 +22,7 @@
  * ==========================================================================
  */
 import "should";
-import { coerceNodeId, ExpandedNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, ExpandedNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import should from "should";
 import {
     opcuaJsonDecodeExpandedNodeId,
@@ -146,8 +146,9 @@ describe("JSON encode ExpandedNodeId - 105", () => {
             expected: "i=1"
         },
         {
+            // "http://hello;A" is the NamespaceUri, 3 the ServerIndex (no ServerArray to map it to an svu=)
             expandedNodeId: ExpandedNodeId.fromNodeId(coerceNodeId("ns=2;i=1"), "http://hello;A", 3),
-            expected: "svu=http://hello%3BA;ns=2;i=1"
+            expected: "svr=3;nsu=http://hello%3BA;i=1"
         }
     ].forEach(({ expandedNodeId, expected }) => {
         it(`should encode ExpandedNodeId ${expandedNodeId.toString()} as ${JSON.stringify(expected)} - Verbose`, () => {
@@ -253,7 +254,9 @@ describe("JSON decode NodeId", () => {
     it("should decode a nodeId when the namespace is not defined", () => {
         const namespaceArray: string[] = ["n0", "n1", "n2"];
         const nodeIdAsString = "nsu=http://unknownUri;i=12345";
-        opcuaJsonDecodeNodeId(nodeIdAsString, fakeBuilder, namespaceArray).toString().should.eql("ns=0;i=12345");
+        should(opcuaJsonDecodeNodeId(nodeIdAsString, fakeBuilder, namespaceArray)).eql(
+            new NodeId(NodeIdType.STRING, nodeIdAsString, 0)
+        );
     });
 
     // "ns=10;i=12345",

@@ -25,6 +25,8 @@ import { coerceNodeId, ExpandedNodeId, NodeId, NodeIdType } from "node-opcua-nod
 import type { ExtensionObjectBuilder } from "./json_basic_encoding_body_functor.js";
 import { JsonEncodingScheme } from "./json_encoding_scheme.js";
 
+const OPCUA_NAMESPACE_URI = "http://opcfoundation.org/UA/";
+
 // from https://reference.opcfoundation.org/Core/Part6/v105/docs/5.4
 
 // NodeId values shall be encoded as a JSON string using the format defined in
@@ -144,7 +146,7 @@ export function opcuaJsonEncodeNodeId104(
 export function opcuaJsonEncodeNodeIdAsString(value: NodeId, namespaceArray: string[]): string {
     const namespace = namespaceArray ? namespaceArray[value.namespace] : undefined;
     if (namespace) {
-        if (namespace === "http://opcfoundation.org/UA/") {
+        if (namespace === OPCUA_NAMESPACE_URI) {
             return `${nodeIdValueToString(value)}`;
         }
         const encodedNamespace = opcuaEncodeURIComponent(namespace);
@@ -158,13 +160,17 @@ export function opcuaJsonEncodeNodeIdAsString(value: NodeId, namespaceArray: str
     }
 }
 export function opcuaJsonEncodeExpandedNodeIdAsString(value: ExpandedNodeId, namespaceArray: string[]): string {
-    // const namespace = namespaceArray ? namespaceArray[value.namespace] : undefined;
-    let result = opcuaJsonEncodeNodeIdAsString(value, namespaceArray);
-
-    if (value.namespaceUri) {
-        const encodedNamespaceUri = opcuaEncodeURIComponent(value.namespaceUri);
-        result = `svu=${encodedNamespaceUri};${result}`;
-    } else if (value.serverIndex !== 0) {
+    // the NamespaceUri of an ExpandedNodeId names its namespace (nsu=); svu= is the URI of a
+    // server, which is only known through a ServerArray this encoder does not have
+    let result: string;
+    if (value.namespaceUri && value.namespaceUri !== OPCUA_NAMESPACE_URI) {
+        result = `nsu=${opcuaEncodeURIComponent(value.namespaceUri)};${nodeIdValueToString(value)}`;
+    } else if (value.namespaceUri) {
+        result = nodeIdValueToString(value);
+    } else {
+        result = opcuaJsonEncodeNodeIdAsString(value, namespaceArray);
+    }
+    if (value.serverIndex !== 0) {
         result = `svr=${value.serverIndex};${result}`;
     }
     return result;
@@ -265,43 +271,60 @@ export function opcuaDecodeURIComponent(value: string): string {
     });
 }
 
-function coerceNodeIdEx(nodeIdAsString: string, namespaceArray?: string[]): NodeId {
+function makeNodeIdFromString(identifierType: string, identifierValue: string, namespaceIndex: number, text: string): NodeId {
+    switch (identifierType) {
+        case "i=":
+            return new NodeId(NodeIdType.NUMERIC, parseInt(identifierValue, 10), namespaceIndex);
+        case "s=":
+            return new NodeId(NodeIdType.STRING, identifierValue, namespaceIndex);
+        case "g=":
+            return new NodeId(NodeIdType.GUID, identifierValue, namespaceIndex);
+        case "b=":
+            return new NodeId(NodeIdType.BYTESTRING, Buffer.from(identifierValue, "base64"), namespaceIndex);
+        default:
+            throw new Error(`Invalid NodeId format: ${text}`);
+    }
+}
+
+/**
+ * The NamespaceIndex of a NamespaceUri, or -1 when it cannot be mapped.
+ * The OPC UA namespace is index 0 whatever the table says.
+ */
+function namespaceUriToIndex(namespaceUri: string, namespaceArray?: string[]): number {
+    if (namespaceUri === OPCUA_NAMESPACE_URI) {
+        return 0;
+    }
+    return namespaceArray ? namespaceArray.indexOf(namespaceUri) : -1;
+}
+
+interface ParsedNodeIdString {
+    /** the NamespaceUri of the nsu= form, percent-decoded */
+    namespaceUri?: string;
+    identifierType: string;
+    identifierValue: string;
+}
+function parseNodeIdString(nodeIdAsString: string): ParsedNodeIdString | null {
     //nsu=tag:acme.com,2023:schemas:data#off%3B;b=M/RbKBsRVkePCePcx24oRA==
     const match = nodeIdAsString.match(/^(nsu=([^;]+);)?(g=|s=|i=|b=)(.*)$/);
-    if (match) {
-        const namespaceUri = match[2];
-        const identifierType = match[3];
-        const identifierValue = match[4];
+    if (!match) {
+        return null;
+    }
+    // A URI which has the RFC 3986 Percent - Encoding applied to it.
+    //   Any ‘;’ in the URI shall be percent encoded.
+    const namespaceUri = match[2] ? opcuaDecodeURIComponent(match[2]) : undefined;
+    return { namespaceUri, identifierType: match[3], identifierValue: match[4] };
+}
 
-        let namespaceIndex: number;
-        if (namespaceUri) {
-            if (!namespaceArray) {
-                namespaceIndex = 0; // NAMESPACE_NOT_FOUND
-            } else {
-                // A URI which has the RFC 3986 Percent - Encoding applied to it.
-                //   Any ‘;’ in the URI shall be percent encoded.
-                const decodedNamespaceUri = opcuaDecodeURIComponent(namespaceUri);
-                namespaceIndex = namespaceArray.indexOf(decodedNamespaceUri);
-                if (namespaceIndex < 0) {
-                    namespaceIndex = 0; // NAMESPACE_NOT_FOUND
-                }
-            }
-        } else {
-            namespaceIndex = 0;
+function coerceNodeIdEx(nodeIdAsString: string, namespaceArray?: string[]): NodeId {
+    const parsed = parseNodeIdString(nodeIdAsString);
+    if (parsed) {
+        const namespaceIndex = parsed.namespaceUri ? namespaceUriToIndex(parsed.namespaceUri, namespaceArray) : 0;
+        if (namespaceIndex < 0) {
+            // second abnormal state of 1.05 clause 5.4.2.10: NamespaceIndex 0, IdType String,
+            // and the JSON string as Identifier, so the node is not mistaken for one of namespace 0
+            return new NodeId(NodeIdType.STRING, nodeIdAsString, 0);
         }
-
-        switch (identifierType) {
-            case "i=":
-                return new NodeId(NodeIdType.NUMERIC, parseInt(identifierValue, 10), namespaceIndex);
-            case "s=":
-                return new NodeId(NodeIdType.STRING, identifierValue, namespaceIndex);
-            case "g=":
-                return new NodeId(NodeIdType.GUID, identifierValue, namespaceIndex);
-            case "b=":
-                return new NodeId(NodeIdType.BYTESTRING, Buffer.from(identifierValue, "base64"), namespaceIndex);
-            default:
-                throw new Error(`Invalid NodeId format: ${nodeIdAsString}`);
-        }
+        return makeNodeIdFromString(parsed.identifierType, parsed.identifierValue, namespaceIndex, nodeIdAsString);
     }
     // Fallback to coerceNodeId
     return coerceNodeId(nodeIdAsString);
@@ -367,6 +390,15 @@ export function opcuaJsonDecodeExpandedNodeId(
     builder?: ExtensionObjectBuilder | undefined,
     namespaceArray?: string[]
 ): ExpandedNodeId {
+    if (typeof pojoOrString === "string") {
+        // 1.05 clause 5.4.2.11: with a ServerIndex of 0, a NamespaceUri that cannot be mapped
+        // to an index is kept in the NamespaceUri field of the ExpandedNodeId
+        const parsed = parseNodeIdString(pojoOrString);
+        if (parsed?.namespaceUri && namespaceUriToIndex(parsed.namespaceUri, namespaceArray) < 0) {
+            const nodeId = makeNodeIdFromString(parsed.identifierType, parsed.identifierValue, 0, pojoOrString);
+            return ExpandedNodeId.fromNodeId(nodeId, parsed.namespaceUri, 0);
+        }
+    }
     const nodeId = opcuaJsonDecodeNodeId(pojoOrString, builder, namespaceArray);
     // the 1.05 string form carries svr=/svu=, which coerceNodeId does not parse; the 1.04 object
     // form carries ServerUri as the ServerIndex
