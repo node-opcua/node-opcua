@@ -336,13 +336,14 @@ describe("JSON encode Variant", () => {
             dimensions: [2, 3]
         });
         it("should encode a Variant Array of Float (104)", () => {
-            should(opcuaJsonEncodeVariant(variantMatrixOfFloat, NonReversible, namespaceArray)).eql({
-                Type: 10,
-                Dimensions: [2, 3],
-                Body: [3.140000104904175, 6.28000020980835, 42, 1, 2, 3]
-            });
+            // Part 6 Annex H.8 and H.9: NonReversible drops Type and Dimensions and nests the
+            // arrays, the outer array being the first dimension
+            should(opcuaJsonEncodeVariant(variantMatrixOfFloat, NonReversible, namespaceArray)).eql([
+                [3.140000104904175, 6.28000020980835, 42],
+                [1, 2, 3]
+            ]);
             JSON.stringify(opcuaJsonEncodeVariant(variantMatrixOfFloat, NonReversible, namespaceArray)).should.eql(
-                '{"Type":10,"Body":[3.140000104904175,6.28000020980835,42,1,2,3],"Dimensions":[2,3]}'
+                "[[3.140000104904175,6.28000020980835,42],[1,2,3]]"
             );
 
             should(opcuaJsonEncodeVariant(variantMatrixOfFloat, Reversible, namespaceArray)).eql({
@@ -352,21 +353,50 @@ describe("JSON encode Variant", () => {
             });
         });
         it("should encode a Variant Array of Float (105)", () => {
+            // Part 6 1.05 clause 5.4.2.17, Table 41: the field is Dimensions, not UaDimensions
             should(opcuaJsonEncodeVariant(variantMatrixOfFloat, JsonEncodingScheme.Compact, namespaceArray)).eql({
                 UaType: 10,
-                UaDimensions: [2, 3],
+                Dimensions: [2, 3],
                 Value: [3.140000104904175, 6.28000020980835, 42, 1, 2, 3]
             });
 
             JSON.stringify(opcuaJsonEncodeVariant(variantMatrixOfFloat, JsonEncodingScheme.Compact, namespaceArray)).should.eql(
-                '{"UaType":10,"Value":[3.140000104904175,6.28000020980835,42,1,2,3],"UaDimensions":[2,3]}'
+                '{"UaType":10,"Value":[3.140000104904175,6.28000020980835,42,1,2,3],"Dimensions":[2,3]}'
             );
 
             should(opcuaJsonEncodeVariant(variantMatrixOfFloat, JsonEncodingScheme.Verbose, namespaceArray)).eql({
                 UaType: DataType.Float,
                 Value: [3.140000104904175, 6.28000020980835, 42, 1, 2, 3],
-                UaDimensions: [2, 3]
+                Dimensions: [2, 3]
             });
+        });
+        it("should nest a 3-dimensional matrix, last index varying fastest (104 NonReversible)", () => {
+            // 5.2.2.16: the higher rank dimensions are serialized first
+            const cube = new Variant({
+                dataType: DataType.Int32,
+                arrayType: VariantArrayType.Matrix,
+                value: [1, 2, 3, 4, 5, 6, 7, 8],
+                dimensions: [2, 2, 2]
+            });
+            should(opcuaJsonEncodeVariant(cube, NonReversible, namespaceArray)).eql([
+                [
+                    [1, 2],
+                    [3, 4]
+                ],
+                [
+                    [5, 6],
+                    [7, 8]
+                ]
+            ]);
+        });
+        it("should keep the empty inner arrays of a matrix with a zero dimension (104 NonReversible)", () => {
+            const empty = new Variant({
+                dataType: DataType.Int32,
+                arrayType: VariantArrayType.Matrix,
+                value: [],
+                dimensions: [2, 0]
+            });
+            should(opcuaJsonEncodeVariant(empty, NonReversible, namespaceArray)).eql([[], []]);
         });
     });
 });
@@ -457,6 +487,30 @@ describe("JSON decode Variant", () => {
                     value: [3.140000104904175, 6.28000020980835, 42, 1, 2, 3]
                 })
             );
+        });
+        const expectedMatrix = new Variant({
+            dataType: DataType.Float,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [2, 3],
+            value: [3.140000104904175, 6.28000020980835, 42, 1, 2, 3]
+        });
+        it("should decode a 1.05 Variant Matrix with Dimensions (5.4.2.17)", () => {
+            should(
+                opcuaJsonDecodeVariant(
+                    { UaType: DataType.Float, Value: [3.140000104904175, 6.28000020980835, 42, 1, 2, 3], Dimensions: [2, 3] },
+                    fakeBuilder,
+                    namespaceArray
+                )
+            ).eql(expectedMatrix);
+        });
+        it("should still decode a 1.05 Variant Matrix with UaDimensions, as written by older encoders", () => {
+            should(
+                opcuaJsonDecodeVariant(
+                    { UaType: DataType.Float, Value: [3.140000104904175, 6.28000020980835, 42, 1, 2, 3], UaDimensions: [2, 3] },
+                    fakeBuilder,
+                    namespaceArray
+                )
+            ).eql(expectedMatrix);
         });
     });
 });
