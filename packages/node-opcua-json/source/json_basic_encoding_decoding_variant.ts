@@ -123,8 +123,17 @@ function body(variant: Variant, scheme: JsonEncodingScheme, namespaceArray?: str
  * Turn the flat elements of a matrix into nested JSON arrays, the outer array being the first
  * dimension (Part 6 Annex H.9). The flat order is the one of 5.2.2.16: the higher rank dimensions
  * are serialized first, so the last index varies fastest.
+ *
+ * Dimensions that do not account for every element (a Variant changed after construction) give
+ * back the flat array: every value is kept, rather than short or empty inner arrays.
  */
 function nestMatrix(flat: VariantJSONBodyScalar[], dimensions: number[]): unknown[] {
+    if (dimensions.reduce((a, b) => a * b, 1) !== flat.length) {
+        return flat;
+    }
+    return nest(flat, dimensions);
+}
+function nest(flat: VariantJSONBodyScalar[], dimensions: number[]): unknown[] {
     if (dimensions.length <= 1) {
         return flat;
     }
@@ -132,7 +141,7 @@ function nestMatrix(flat: VariantJSONBodyScalar[], dimensions: number[]): unknow
     const chunk = rest.reduce((a, b) => a * b, 1);
     const result: unknown[] = [];
     for (let i = 0; i < first; i++) {
-        result.push(nestMatrix(flat.slice(i * chunk, (i + 1) * chunk), rest));
+        result.push(nest(flat.slice(i * chunk, (i + 1) * chunk), rest));
     }
     return result;
 }
