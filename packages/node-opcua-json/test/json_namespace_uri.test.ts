@@ -179,9 +179,24 @@ describe("JSON 1.05 encoder and the NamespaceUri of an ExpandedNodeId", () => {
             const expanded = ExpandedNodeId.fromNodeId(coerceNodeId("ns=2;i=1"), "urn:acme", 0);
             should(opcuaJsonEncodeExpandedNodeId(expanded, scheme, serverA)).eql("nsu=urn:acme;i=1");
         });
-        it(`writes a ServerIndex as svr= - ${JsonEncodingScheme[scheme]}`, () => {
+        it(`writes a remote node's NamespaceIndex as ns=, not through the local table - ${JsonEncodingScheme[scheme]}`, () => {
+            // with a ServerIndex other than 0 the index belongs to the remote server's namespace
+            // table (OPC 10000-4: a remote node carries the absolute namespace URI), which this
+            // encoder does not have: the first abnormal state of 5.4.2.10
             const expanded = ExpandedNodeId.fromNodeId(coerceNodeId("ns=1;i=1"), undefined, 3);
-            should(opcuaJsonEncodeExpandedNodeId(expanded, scheme, serverA)).eql("svr=3;nsu=urn:acme;i=1");
+            should(opcuaJsonEncodeExpandedNodeId(expanded, scheme, serverA)).eql("svr=3;ns=1;i=1");
+        });
+        it(`writes a remote node's NamespaceUri as nsu= - ${JsonEncodingScheme[scheme]}`, () => {
+            const expanded = ExpandedNodeId.fromNodeId(coerceNodeId("ns=1;i=1"), "urn:remote", 3);
+            should(opcuaJsonEncodeExpandedNodeId(expanded, scheme, serverA)).eql("svr=3;nsu=urn:remote;i=1");
         });
     }
+    it("1.04 NonReversible keeps a remote node's NamespaceIndex as a number", () => {
+        const expanded = ExpandedNodeId.fromNodeId(coerceNodeId("ns=2;i=1"), undefined, 3);
+        should(opcuaJsonEncodeExpandedNodeId(expanded, JsonEncodingScheme.DeprecatedNonReversible, serverB)).eql({
+            Id: 1,
+            Namespace: 2,
+            ServerUri: 3
+        });
+    });
 });

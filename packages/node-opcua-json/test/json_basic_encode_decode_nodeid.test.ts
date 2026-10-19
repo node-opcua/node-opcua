@@ -170,15 +170,24 @@ describe("JSON encode ExpandedNodeId - 104", () => {
         should(opcuaJsonEncodeExpandedNodeId(withServer, Reversible, namespaceArray)).eql({ Id: 1, Namespace: 2, ServerUri: 3 });
         should(opcuaJsonEncodeExpandedNodeId(ExpandedNodeId.fromNodeId(coerceNodeId("ns=0;i=1")), Reversible)).eql({ Id: 1 });
     });
+    it("should write the NamespaceUri of the ExpandedNodeId - Reversible (1.04 Table 24, Annex H.3)", () => {
+        should(opcuaJsonEncodeExpandedNodeId(withUri, Reversible, namespaceArray)).eql({
+            IdType: 1,
+            Id: "abc",
+            Namespace: "http://hello"
+        });
+    });
     it("should write the NamespaceUri of the ExpandedNodeId - NonReversible", () => {
         should(opcuaJsonEncodeExpandedNodeId(withUri, NonReversible, namespaceArray)).eql({
             IdType: 1,
             Id: "abc",
             Namespace: "http://hello"
         });
+        // ServerIndex 3: the NamespaceIndex belongs to the remote server, the local table cannot
+        // name it, so it stays a number
         should(opcuaJsonEncodeExpandedNodeId(withServer, NonReversible, namespaceArray)).eql({
             Id: 1,
-            Namespace: "n2",
+            Namespace: 2,
             ServerUri: 3
         });
     });

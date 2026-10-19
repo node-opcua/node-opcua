@@ -167,7 +167,9 @@ export function opcuaJsonEncodeExpandedNodeIdAsString(value: ExpandedNodeId, nam
     } else if (value.namespaceUri) {
         result = nodeIdValueToString(value);
     } else {
-        result = opcuaJsonEncodeNodeIdAsString(value, namespaceArray);
+        // the NamespaceIndex of a remote node refers to the remote server's namespace table, which
+        // is not the local one: it stays an index (OPC 10000-4 7.16, OPC 10000-6 5.4.2.10)
+        result = opcuaJsonEncodeNodeIdAsString(value, value.serverIndex !== 0 ? [] : namespaceArray);
     }
     if (value.serverIndex !== 0) {
         result = `svr=${value.serverIndex};${result}`;
@@ -247,8 +249,11 @@ export function opcuaJsonEncodeExpandedNodeId104(
     scheme: JsonEncodingScheme,
     namespaceArray?: string[]
 ): NodeIdJSON104 {
-    const pojo = opcuaJsonEncodeNodeId104(value, scheme, namespaceArray);
-    if (value.namespaceUri && scheme === JsonEncodingScheme.DeprecatedNonReversible) {
+    // a remote node's NamespaceIndex is not in the local table: it stays a number
+    const pojo = opcuaJsonEncodeNodeId104(value, scheme, value.serverIndex !== 0 ? undefined : namespaceArray);
+    if (value.namespaceUri) {
+        // 1.04 Table 24, Annex H.3: a NamespaceUri that is specified is written as a JSON string,
+        // in the reversible form too
         pojo.Namespace = value.namespaceUri;
     }
     if (value.serverIndex !== 0) {
