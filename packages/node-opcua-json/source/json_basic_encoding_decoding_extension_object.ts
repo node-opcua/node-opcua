@@ -57,11 +57,22 @@ export interface ExtensionObjectJSON104 {
     UaTypeId?: never;
     UaBody?: never;
 }
+/**
+ * 1.05 clause 5.4.2.16: the fields of the Structure, with the UaTypeId field inserted among them.
+ * UaEncoding and UaBody only carry a UA Binary or UA XML body (Table 40).
+ */
 export interface ExtensionObjectJSON105 {
     UaTypeId: NodeIdJSON;
-    UaBody: Pojo;
+    /** 1 for a UA Binary UaBody, 2 for a UA XML one; omitted for a JSON encoded Structure */
+    UaEncoding?: 1 | 2;
+    /**
+     * A UA Binary or UA XML encoded Structure. node-opcua used to nest a JSON encoded Structure
+     * here: that form is still decoded.
+     */
+    UaBody?: Pojo | string;
     TypeId?: never;
     Body?: never;
+    [field: string]: unknown;
 }
 export type ExtensionObjectJSON = ExtensionObjectJSON104 | ExtensionObjectJSON105;
 
@@ -483,18 +494,9 @@ export function opcuaJsonEncodeExtensionObject(
                 };
             case JsonEncodingScheme.Verbose:
             case JsonEncodingScheme.Compact:
-                if ((body === undefined || body === null) && scheme === JsonEncodingScheme.Compact) {
-                    return {
-                        UaTypeId: typeId
-                    };
-                }
-                return {
-                    UaTypeId: typeId,
-                    UaBody: body
-                    // UaEncoding: 0, // always 0 for ExtensionObject in JSON  (omitted if Json)
-                    // use UaEncoding: 1 for binary encoding => Base64 encoded ByteString
-                    // use UaEncoding: 2 for binary encoding => string as XmlElement
-                };
+                // 1.05 clause 5.4.2.16: the fields of the Structure with UaTypeId inserted among
+                // them. UaEncoding and UaBody are for UA Binary or UA XML bodies only (Table 40).
+                return { UaTypeId: typeId, ...((body as Pojo | null | undefined) ?? {}) } as ExtensionObjectJSON105;
             default:
                 throw new Error(`Unknown JsonEncodingScheme ${scheme}`);
         }
@@ -533,6 +535,27 @@ function findStandardStructureInfoForJsonEncoding(encodingNodeId: NodeId): Struc
     return structureInfoByJsonEncoding.get(encodingNodeId.toString()) ?? null;
 }
 
+/**
+ * The fields of the Structure, from any of the forms a decoder can meet:
+ * 1.04 `{ TypeId, Body }`; the 1.05 form `{ UaTypeId, <fields> }` (clause 5.4.2.16); and
+ * `{ UaTypeId, UaBody: { <fields> } }`, which node-opcua wrote before it followed 5.4.2.16.
+ */
+function extensionObjectBody(pojo: ExtensionObjectJSON104 | ExtensionObjectJSON105): Pojo {
+    if (pojo.TypeId !== undefined) {
+        return pojo.Body as Pojo;
+    }
+    if (typeof pojo.UaBody === "string") {
+        throw new Error(
+            `ExtensionObject ${JSON.stringify(pojo.UaTypeId)}: a UA Binary or UA XML UaBody (UaEncoding ${pojo.UaEncoding}) cannot be decoded from JSON`
+        );
+    }
+    if (pojo.UaBody !== undefined && pojo.UaBody !== null) {
+        return pojo.UaBody as Pojo;
+    }
+    const { UaTypeId: _typeId, UaEncoding: _encoding, UaBody: _body, ...fields } = pojo as ExtensionObjectJSON105;
+    return fields as Pojo;
+}
+
 export function opcuaJsonDecodeExtensionObject(
     _pojo: ExtensionObjectJSON104 | ExtensionObjectJSON105,
     builder: ExtensionObjectBuilder,
@@ -542,7 +565,7 @@ export function opcuaJsonDecodeExtensionObject(
         return null;
     }
     const dataTypeNodeId = opcuaJsonDecodeNodeId(_pojo.TypeId || _pojo.UaTypeId, builder, namespaceArray);
-    const body = _pojo.Body || _pojo.UaBody;
+    const body = extensionObjectBody(_pojo);
 
     if (dataTypeNodeId.namespace === 0) {
         const factory = getStandardDataTypeFactory();

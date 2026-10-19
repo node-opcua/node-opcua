@@ -530,10 +530,8 @@ describe("JSON encode/decode Variant", () => {
     it("should encode and decode a Variant Byte", () => {
         const _pojo: ExtensionObjectJSON105 = {
             UaTypeId: "ns=1;i=1234",
-            UaBody: {
-                Field1: 42,
-                Field2: "42"
-            }
+            Field1: 42,
+            Field2: "42"
         };
     });
     it("should encode and decode a Variant Byte", () => {
@@ -588,20 +586,18 @@ describe("JSON encode/decode Variant with ExtensionObject", () => {
             UaType: 22,
             Value: {
                 UaTypeId: "i=862",
-                UaBody: {
-                    StartTime: new Date("2020-01-01 01:00:00.000 +0100"),
-                    CurrentTime: new Date("2020-01-01 02:00:00.000 +0100"),
-                    State: 0,
-                    BuildInfo: {
-                        ProductUri: "http://example.com/product",
-                        ManufacturerName: "Example Manufacturer",
-                        ProductName: "Example Product",
-                        SoftwareVersion: "1.0.0",
-                        BuildNumber: "12345",
-                        BuildDate: new Date("2020-01-01 01:00:00.000 +0100")
-                    },
-                    SecondsTillShutdown: 0
-                }
+                StartTime: new Date("2020-01-01 01:00:00.000 +0100"),
+                CurrentTime: new Date("2020-01-01 02:00:00.000 +0100"),
+                State: 0,
+                BuildInfo: {
+                    ProductUri: "http://example.com/product",
+                    ManufacturerName: "Example Manufacturer",
+                    ProductName: "Example Product",
+                    SoftwareVersion: "1.0.0",
+                    BuildNumber: "12345",
+                    BuildDate: new Date("2020-01-01 01:00:00.000 +0100")
+                },
+                SecondsTillShutdown: 0
             }
         });
     });
@@ -611,21 +607,19 @@ describe("JSON encode/decode Variant with ExtensionObject", () => {
             UaType: 22,
             Value: {
                 UaTypeId: "i=862",
-                UaBody: {
-                    BuildInfo: {
-                        BuildDate: new Date("2020-01-01T00:00:00.000Z"),
-                        BuildNumber: "12345",
-                        ManufacturerName: "Example Manufacturer",
-                        ProductName: "Example Product",
-                        ProductUri: "http://example.com/product",
-                        SoftwareVersion: "1.0.0"
-                    },
-                    CurrentTime: new Date("2020-01-01T01:00:00.000Z"),
-                    SecondsTillShutdown: 0,
-                    ShutdownReason: null,
-                    StartTime: new Date("2020-01-01T00:00:00.000Z"),
-                    State: 0
-                }
+                BuildInfo: {
+                    BuildDate: new Date("2020-01-01T00:00:00.000Z"),
+                    BuildNumber: "12345",
+                    ManufacturerName: "Example Manufacturer",
+                    ProductName: "Example Product",
+                    ProductUri: "http://example.com/product",
+                    SoftwareVersion: "1.0.0"
+                },
+                CurrentTime: new Date("2020-01-01T01:00:00.000Z"),
+                SecondsTillShutdown: 0,
+                ShutdownReason: null,
+                StartTime: new Date("2020-01-01T00:00:00.000Z"),
+                State: 0
             }
         });
     });

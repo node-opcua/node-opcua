@@ -45,7 +45,7 @@ import { fakeBuilder } from "./helper.js";
 const serverA = ["http://opcfoundation.org/UA/", "urn:acme"];
 const serverB = ["http://opcfoundation.org/UA/", "urn:other", "urn:acme"];
 
-type Json = Record<string, unknown> & { Value: Record<string, unknown> & { UaBody: Record<string, unknown> } };
+type Json = Record<string, unknown> & { Value: Record<string, unknown> };
 
 function argumentVariant() {
     return new Variant({
@@ -76,12 +76,12 @@ for (const scheme of [JsonEncodingScheme.Compact, JsonEncodingScheme.Verbose] as
     describe(`JSON ${JsonEncodingScheme[scheme]} (1.05) writes every namespace as a URI`, () => {
         it("a NodeId field of a structure", () => {
             const json = opcuaJsonEncodeVariant(argumentVariant(), scheme, serverA) as Json;
-            should(json.Value.UaBody.DataType).eql("nsu=urn:acme;i=5000");
+            should(json.Value.DataType).eql("nsu=urn:acme;i=5000");
         });
 
         it("a NodeId and a QualifiedName in a structure nested in a structure", () => {
             const json = opcuaJsonEncodeVariant(relativePathVariant(), scheme, serverA) as Json;
-            const element = (json.Value.UaBody.Elements as Record<string, unknown>[])[0];
+            const element = (json.Value.Elements as Record<string, unknown>[])[0];
             should(element.ReferenceTypeId).eql("nsu=urn:acme;i=7");
             should(element.TargetName).eql("nsu=urn:acme;Pump");
         });
