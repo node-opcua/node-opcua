@@ -1,23 +1,48 @@
-OPC UA JSON: namespaces by URI and matrices as Part 6 says
-=========================================================
+OPC UA JSON follows Part 6 1.04 and 1.05
+========================================
+
+Every decoder change is backward compatible: the forms node-opcua wrote before still decode. The
+**breaking** lines change what the encoders write.
 
   - the 1.05 encodings (Compact, Verbose) name the namespace of every NodeId, QualifiedName and
     ExpandedNodeId by its URI (`nsu=`) when a namespace table is given, inside structures too, so a
     payload decodes on a server whose namespace indexes differ (Part 6 5.4.2.10, 5.4.2.14).
+  - **breaking** a 1.05 Structure is its fields with `UaTypeId` among them, not
+    `{"UaTypeId","UaBody":{fields}}` (5.4.2.16, Table 40: `UaBody` only carries a UA Binary or UA
+    XML body, which the decoder refuses with a message).
+  - **breaking** a Union: 1.05 Compact `{"SwitchField",<FieldName>}`, 1.05 Verbose
+    `{<FieldName>}` (5.4.8), 1.04 NonReversible the selected value, `null` when none (Annex H.10).
+    1.04 Reversible keeps `{"SwitchField","Value"}`. node-opcua wrote that in all four encodings.
+  - **breaking** a Structure with optional fields carries an `EncodingMask` in 1.04 Reversible and
+    1.05 Compact (1.04 Table 33, 1.05 Table 46); Compact lost a field present with its default value.
+  - **breaking** the DataValue status field is `Status`, not `StatusCode` (1.04 Table 31, 1.05
+    Table 42). The decoder also reads `SourcePicoSeconds`/`ServerPicoSeconds`, the spelling of the
+    1.04 JSON and Binary tables; the encoder keeps `SourcePicoseconds`, the 1.05 spelling.
   - **breaking** a 1.05 QualifiedName is a JSON string (`Name`, `nsu=<uri>;Name`, or `<index>:Name`
-    when the URI is unknown), not the object `{"Name","Uri"}` (5.4.2.14). The decoder accepts both.
-  - **breaking** a 1.05 matrix carries `Dimensions`, not `UaDimensions` (5.4.2.17, Table 41). The
-    decoder accepts both. A consumer that validates 1.05 JSON against a schema listing only
-    `UaDimensions` (node-wot binding-opcua does) needs updating.
+    when the URI is unknown), not the object `{"Name","Uri"}` (5.4.2.14).
+  - **breaking** a 1.05 matrix carries `Dimensions`, not `UaDimensions` (5.4.2.17, Table 41). A
+    consumer that validates 1.05 JSON against a schema listing only `UaDimensions` (node-wot
+    binding-opcua does) needs updating.
   - **breaking** a matrix in the 1.04 NonReversible encoding is nested JSON arrays,
     `[[1,2,3],[4,5,6]]`, not `{"Type","Body","Dimensions"}` (Annex H.8, H.9). PubSub JSON messages
     that use the NonReversible field encoding change the same way (`opcuaJsonEncodeDataValueMQTT`).
+  - **behaviour change** the 1.04 Reversible `TypeId` of a standard Structure is its Default JSON
+    encoding Node (Range: `i=15375`, not `i=884`), as 1.04 Table 29 requires. Other namespaces keep
+    the DataType Node, which 1.05 Annex H.7 allows.
+  - **behaviour change** in 1.04 NonReversible, a NodeId or QualifiedName inside a Structure names a
+    namespace of index 2 or more by its URI, as at the top level (1.04 Tables 23 and 27).
   - an `nsu=` URI the decoder cannot map gives what Part 6 defines (NamespaceIndex 0 with the raw
     string as String identifier or as Name; kept in `namespaceUri` for an ExpandedNodeId), no longer
     a node of namespace 0 with the original identifier.
+  - fix: an ExpandedNodeId of a remote server (ServerIndex other than 0) keeps its NamespaceIndex
+    (`svr=3;ns=1;…`): that index belongs to the remote server's table, not the local one.
+  - fix: the NamespaceUri of an ExpandedNodeId is written as `nsu=`, not as the server URI `svu=`,
+    and as a JSON string in 1.04 Reversible too (1.04 Table 24, Annex H.3).
   - fix: a QualifiedName of namespace 0 is no longer dropped by the Compact encoding.
-  - fix: the NamespaceUri of an ExpandedNodeId is written as `nsu=`, not as the server URI `svu=`.
-  - the JSON-LD export of node-opcua-uanodeset-rdf writes Variable values with namespace URIs.
+  - the JSON-LD export of node-opcua-uanodeset-rdf writes Variable values with namespace URIs and
+    1.05 Structures.
+  - not done: a matrix field inside a Structure (1.05 Table 44): node-opcua structures keep such a
+    field as a one-dimensional array, so its dimensions are lost before any encoder runs.
 
 
 Secure channel: one chunk writer for every message
