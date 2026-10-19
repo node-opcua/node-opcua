@@ -461,7 +461,7 @@ function adaptBody(
         // istanbul ignore next
         if (value === undefined) {
             if (bitSet) {
-                pojo[field.name] = defaultFieldValue(field);
+                build(field, defaultFieldJson(field), findDecoder(field));
             }
             continue;
         }
@@ -470,13 +470,16 @@ function adaptBody(
     }
     return pojo;
 
-    /** The value of a present field that the CompactEncoding omitted because it was the default. */
-    function defaultFieldValue(field: FieldType): unknown {
+    /**
+     * The JSON of a present field that the CompactEncoding omitted because it had its default value;
+     * it is then decoded like any other field.
+     */
+    function defaultFieldJson(field: FieldType): unknown {
         if (field.isArray) {
             return [];
         }
         if (field.category === "complex") {
-            return findDecoder(field)?.({} as never, builder, namespaceArray);
+            return {};
         }
         if (field.category === "enumeration") {
             return 0;
