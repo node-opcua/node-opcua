@@ -49,7 +49,7 @@ describe("JSON encode DataValue", () => {
         const pojo = opcuaJsonEncodeDataValue104(dataValue, JsonEncoderMode104.Reversible, namespaceArray);
         // console.log(pojo);
         should(pojo).eql({
-            StatusCode: 1152,
+            Status: 1152,
             Value: {
                 Body: 1,
                 Type: 5
@@ -65,7 +65,7 @@ describe("JSON encode DataValue", () => {
         const pojo = opcuaJsonEncodeDataValue104(dataValue, JsonEncoderMode104.NonReversible, namespaceArray);
         // console.log(pojo);
         should(pojo).eql({
-            StatusCode: {
+            Status: {
                 Code: 1152,
                 Symbol: "Good"
             },
@@ -83,7 +83,7 @@ describe("JSON encode DataValue", () => {
         const pojo = opcuaJsonEncodeDataValue105(dataValue, JsonEncoderMode105.Verbose, namespaceArray);
         // console.log(pojo);
         should(pojo).eql({
-            StatusCode: {
+            Status: {
                 Code: 1152,
                 Symbol: "Good"
             },
@@ -100,7 +100,7 @@ describe("JSON encode DataValue", () => {
         const pojo = opcuaJsonEncodeDataValue105(dataValue, JsonEncoderMode105.Compact, namespaceArray);
         // console.log(pojo);
         should(pojo).eql({
-            StatusCode: {
+            Status: {
                 Code: 1152
                 // Symbol: "Good", no Symbol in CompactEncoding
             },
@@ -130,7 +130,7 @@ describe("JSON encode DataValueMQTT", () => {
         // console.log(pojo);
         // The DataValue structure field StatusCode is included in the DataSetMessages.
         // If this flag is set, the fields are represented as DataValue.
-        should(pojo).eql({ UaType: 0, StatusCode: { Code: 67305472 } }); //
+        should(pojo).eql({ UaType: 0, Status: { Code: 67305472 } }); //
     });
 
     it("should encode a DataValue - DeprecatedReversibleEncoding -  StatusCodes.GoodCascadeNotInvited", () => {
@@ -147,7 +147,7 @@ describe("JSON encode DataValueMQTT", () => {
         // If this flag is set, the fields are represented as DataValue.
         should(pojo).eql({
             Value: null,
-            StatusCode: 67305472
+            Status: 67305472
         }); //
     });
 
@@ -158,7 +158,7 @@ describe("JSON encode DataValueMQTT", () => {
         const pojo = opcuaJsonEncodeDataValueMQTT(dataValue, JsonEncodingScheme.Compact, DataSetFieldContentMask.StatusCode);
         // console.log(pojo);
         should(pojo).eql({
-            StatusCode: {
+            Status: {
                 Code: 2148073472
                 // Symbol: "BadUnknownResponse", // Symbol not encoded in CompactEncoding
             },
@@ -240,6 +240,49 @@ describe("JSON decode DataValue", () => {
         dataValue.statusCode.should.eql(StatusCodes.GoodDependentValueChanged);
         dataValue.serverPicoseconds.should.eql(100);
         dataValue.sourcePicoseconds.should.eql(200);
+    });
+    // the cases above use the names node-opcua wrote before (StatusCode, *Picoseconds in 1.04):
+    // they still decode. The cases below use the names of the specification.
+    it("should decode Status and the 1.04 SourcePicoSeconds / ServerPicoSeconds (1.04 Table 31 spelling, still decoded)", () => {
+        const dataValue = opcuaJsonDecodeDataValue(
+            {
+                Value: { Body: 3.14, Type: 11 },
+                Status: StatusCodes.GoodDependentValueChanged.value,
+                ServerPicoSeconds: 100,
+                SourcePicoSeconds: 200
+            } as DataValueJSON104,
+            fakeBuilder,
+            namespaceArray
+        );
+        should(dataValue.statusCode).eql(StatusCodes.GoodDependentValueChanged);
+        should(dataValue.serverPicoseconds).eql(100);
+        should(dataValue.sourcePicoseconds).eql(200);
+    });
+    it("should decode Status (1.05 Table 42)", () => {
+        const dataValue = opcuaJsonDecodeDataValue(
+            { UaType: 11, Value: 3.14, Status: { Code: StatusCodes.BadInternalError.value } } as DataValueJSON105,
+            fakeBuilder,
+            namespaceArray
+        );
+        should(dataValue.statusCode).eql(StatusCodes.BadInternalError);
+    });
+});
+
+describe("JSON DataValue field names per edition", () => {
+    const dataValue = () =>
+        new DataValue({
+            value: { dataType: DataType.Double, value: 1 },
+            statusCode: StatusCodes.BadInternalError,
+            serverPicoseconds: 100,
+            sourcePicoseconds: 200
+        });
+    it("1.04 writes Status and the Picoseconds spelling of 1.05 (1.04 Table 31 disagrees with its own XML schema)", () => {
+        const pojo = opcuaJsonEncodeDataValue(dataValue(), JsonEncodingScheme.DeprecatedReversible, namespaceArray);
+        should(Object.keys(pojo).sort()).eql(["ServerPicoseconds", "SourcePicoseconds", "Status", "Value"]);
+    });
+    it("1.05 writes Status, SourcePicoseconds and ServerPicoseconds (1.05 Table 42)", () => {
+        const pojo = opcuaJsonEncodeDataValue(dataValue(), JsonEncodingScheme.Compact, namespaceArray);
+        should(Object.keys(pojo).sort()).eql(["ServerPicoseconds", "SourcePicoseconds", "Status", "UaType", "Value"]);
     });
 });
 

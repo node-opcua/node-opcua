@@ -45,6 +45,12 @@ import {
 import { JsonEncoderMode104, JsonEncoderMode105, JsonEncodingScheme, toJsonEncodingScheme } from "./json_encoding_scheme.js";
 
 export interface DataValueStatusAndTimestamps {
+    /**
+     * The status associated with the value (1.04 Table 31, 1.05 Table 42).
+     * Not encoded if the value is Good (0).
+     */
+    Status?: StatusCodeJSON | number;
+    /** @deprecated written by node-opcua before it followed Tables 31 and 42; still decoded */
     StatusCode?: StatusCodeJSON | number;
 
     /**
@@ -53,20 +59,27 @@ export interface DataValueStatusAndTimestamps {
      */
     SourceTimestamp?: Date; // DateTime
     /**
-     * The number of 10 Picosecond intervals for the SourceTimestamp.
+     * The number of 10 Picosecond intervals for the SourceTimestamp (1.05 Table 42).
      * Not encoded if the value is 0.
      */
     SourcePicoseconds?: UInt16;
+    /**
+     * @deprecated decoded only. 1.04 Table 31 spells it so, while the XML schema of the same
+     * document and every table of 1.05 spell SourcePicoseconds, which is what is written.
+     */
+    SourcePicoSeconds?: UInt16;
     /**
      * The server timestamp associated with the value.
      * Not encoded if the value is DateTime.MinValue.
      */
     ServerTimestamp?: Date;
     /**
-     * The number of 10 Picosecond intervals for the ServerTimestamp.
+     * The number of 10 Picosecond intervals for the ServerTimestamp (1.05 Table 42).
      * Not encoded if the value is 0.
      */
     ServerPicoseconds?: UInt16;
+    /** @deprecated decoded only: the 1.04 Table 31 spelling of ServerPicoseconds (see SourcePicoSeconds). */
+    ServerPicoSeconds?: UInt16;
 }
 
 // https://reference.opcfoundation.org/Core/Part6/v104/docs/5.4.2.18
@@ -100,16 +113,16 @@ function _setTimestampsAndStatusCode(
         // https://reference.opcfoundation.org/Core/Part6/v105/docs/5.4
         switch (mode) {
             case JsonEncodingScheme.DeprecatedNonReversible:
-                pojo.StatusCode = opcuaJsonEncodeStatusCode104(dataValue.statusCode, JsonEncoderMode104.NonReversible);
+                pojo.Status = opcuaJsonEncodeStatusCode104(dataValue.statusCode, JsonEncoderMode104.NonReversible);
                 break;
             case JsonEncodingScheme.DeprecatedReversible:
-                pojo.StatusCode = opcuaJsonEncodeStatusCode104(dataValue.statusCode, JsonEncoderMode104.Reversible);
+                pojo.Status = opcuaJsonEncodeStatusCode104(dataValue.statusCode, JsonEncoderMode104.Reversible);
                 break;
             case JsonEncodingScheme.Verbose:
-                pojo.StatusCode = opcuaJsonEncodeStatusCode105(dataValue.statusCode, JsonEncoderMode105.Verbose);
+                pojo.Status = opcuaJsonEncodeStatusCode105(dataValue.statusCode, JsonEncoderMode105.Verbose);
                 break;
             case JsonEncodingScheme.Compact:
-                pojo.StatusCode = opcuaJsonEncodeStatusCode105(dataValue.statusCode, JsonEncoderMode105.Compact);
+                pojo.Status = opcuaJsonEncodeStatusCode105(dataValue.statusCode, JsonEncoderMode105.Compact);
                 break;
             default:
                 throw new Error("Invalid JsonEncodingScheme");
@@ -117,11 +130,15 @@ function _setTimestampsAndStatusCode(
     }
 }
 function _decodeTimestampsAndStatusCodeJson(pojo: DataValueStatusAndTimestamps, dataValueOpt: DataValueOptions) {
-    if (pojo.ServerPicoseconds) {
-        dataValueOpt.serverPicoseconds = pojo.ServerPicoseconds;
+    // both spellings of each field are accepted: the 1.04 one, the 1.05 one, and StatusCode,
+    // which node-opcua wrote before it followed Tables 31 and 42
+    const serverPicoseconds = pojo.ServerPicoseconds ?? pojo.ServerPicoSeconds;
+    if (serverPicoseconds) {
+        dataValueOpt.serverPicoseconds = serverPicoseconds;
     }
-    if (pojo.SourcePicoseconds) {
-        dataValueOpt.sourcePicoseconds = pojo.SourcePicoseconds;
+    const sourcePicoseconds = pojo.SourcePicoseconds ?? pojo.SourcePicoSeconds;
+    if (sourcePicoseconds) {
+        dataValueOpt.sourcePicoseconds = sourcePicoseconds;
     }
     if (pojo.ServerTimestamp) {
         dataValueOpt.serverTimestamp = new Date(pojo.ServerTimestamp);
@@ -129,8 +146,9 @@ function _decodeTimestampsAndStatusCodeJson(pojo: DataValueStatusAndTimestamps, 
     if (pojo.SourceTimestamp) {
         dataValueOpt.sourceTimestamp = new Date(pojo.SourceTimestamp);
     }
-    if (pojo.StatusCode) {
-        dataValueOpt.statusCode = opcuaJsonDecodeStatusCode(pojo.StatusCode);
+    const status = pojo.Status ?? pojo.StatusCode;
+    if (status) {
+        dataValueOpt.statusCode = opcuaJsonDecodeStatusCode(status);
     }
 }
 
