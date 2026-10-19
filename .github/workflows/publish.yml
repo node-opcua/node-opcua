@@ -62,13 +62,25 @@ jobs:
       - name: Publish
         # --concurrency 1: avoids OIDC token request collisions with provenance.
         # node-opcua-versions is marked private in the repository, so this pass skips it.
+        #
+        # Retried: when Rekor (Sigstore's transparency log) stores a provenance entry but
+        # answers after npm's 5 s timeout, npm uploads it again and gets "409 an
+        # equivalent entry already exists" (TLOG_CREATE_ENTRY_ERROR), which fails the
+        # publish. Retrying is safe: from-package only publishes the versions missing
+        # from the registry, and a new attempt signs anew.
         run: |
-          npx lerna publish from-package \
-            --yes \
-            --dist-tag ${{ github.event.inputs.dist-tag }} \
-            --concurrency 1
+          for attempt in 1 2 3; do
+            npx lerna publish from-package \
+              --yes \
+              --dist-tag "$DIST_TAG" \
+              --concurrency 1 && exit 0
+            echo "::warning::lerna publish failed (attempt $attempt of 3)"
+            [ "$attempt" = 3 ] || sleep 60
+          done
+          exit 1
         env:
           NPM_CONFIG_PROVENANCE: true
+          DIST_TAG: ${{ github.event.inputs.dist-tag }}
 
       - name: Publish node-opcua-versions last
         # The release matrix goes out after every other package of the release: its
@@ -77,12 +89,18 @@ jobs:
         # --include-private lifts the private flag for this one package, for this pass:
         # lerna keeps a private package only when its exact name is listed (or "*",
         # which must never be used here), so the test, fixture and playground packages
-        # that are private stay unpublished.
+        # that are private stay unpublished. Retried as the step above, for the same reason.
         run: |
-          npx lerna publish from-package \
-            --yes \
-            --include-private node-opcua-versions \
-            --dist-tag ${{ github.event.inputs.dist-tag }} \
-            --concurrency 1
+          for attempt in 1 2 3; do
+            npx lerna publish from-package \
+              --yes \
+              --include-private node-opcua-versions \
+              --dist-tag "$DIST_TAG" \
+              --concurrency 1 && exit 0
+            echo "::warning::lerna publish failed (attempt $attempt of 3)"
+            [ "$attempt" = 3 ] || sleep 60
+          done
+          exit 1
         env:
           NPM_CONFIG_PROVENANCE: true
+          DIST_TAG: ${{ github.event.inputs.dist-tag }}
