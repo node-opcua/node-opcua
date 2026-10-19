@@ -206,13 +206,12 @@ export function makeBody(
     namespaceArray?: string[]
 ): Pojo | undefined {
     const switchField = (extensionObject as ExtensionObjectWithOptionalSwitchField).switchField;
-    const isUnion = switchField !== undefined;
+    const fields = getAllExtensionObjectFields(extensionObject);
+    if (switchField !== undefined && isUnionSchema(fields)) {
+        return makeUnionBody(extensionObject, fields, switchField, scheme, namespaceArray);
+    }
 
     const pojo: Pojo = {};
-    if (isUnion) {
-        pojo.SwitchField = switchField;
-    }
-    const fields = getAllExtensionObjectFields(extensionObject);
 
     let allAreDefault = true;
 
@@ -220,7 +219,7 @@ export function makeBody(
         const value = (extensionObject as unknown as Record<string, unknown>)[field.name];
         const encoder = findEncoder(field);
 
-        const fieldName = isUnion ? "Value" : field.originalName;
+        const fieldName = field.originalName;
 
         // istanbul ignore next
         if (!encoder) {
@@ -260,6 +259,55 @@ export function makeBody(
         return undefined;
     }
     return pojo;
+}
+
+/** A Union schema has one field per choice, each with a switchValue, beside the switch field. */
+function isUnionSchema(fields: FieldType[]): boolean {
+    return fields.some((field) => field.switchValue !== undefined);
+}
+
+/**
+ * A Union, in the shape of each encoding:
+ * - 1.04 Reversible (Table 34, Annex H.10): `{ SwitchField, Value }`, nothing when the switch is 0;
+ * - 1.04 NonReversible (Annex H.10): the value of the current field, null when the switch is 0;
+ * - 1.05 Compact (5.4.8, Table 48): `{ SwitchField, <FieldName> }`, `{}` when the switch is 0;
+ * - 1.05 Verbose (5.4.8): `{ <FieldName> }`, `{}` when the switch is 0.
+ */
+function makeUnionBody(
+    extensionObject: ExtensionObject,
+    fields: FieldType[],
+    switchField: number,
+    scheme: JsonEncodingScheme,
+    namespaceArray?: string[]
+): Pojo | undefined {
+    const field = fields.find((f) => f.switchValue === switchField);
+    if (!field) {
+        return scheme === JsonEncodingScheme.DeprecatedNonReversible ? (null as unknown as Pojo) : {};
+    }
+    const encoder = findEncoder(field);
+    // istanbul ignore next
+    if (!encoder) {
+        errorLog("cannot find encoder for field", field);
+        return {};
+    }
+    const value = (extensionObject as unknown as Record<string, unknown>)[field.name];
+    const encoded = field.isArray
+        ? ((value as unknown[] | null | undefined) ?? []).map((a) =>
+              a !== undefined && a !== null ? encoder(a, scheme, namespaceArray) : null
+          )
+        : value === undefined || value === null
+          ? null
+          : encoder(value, scheme, namespaceArray);
+    switch (scheme) {
+        case JsonEncodingScheme.DeprecatedReversible:
+            return { SwitchField: switchField, Value: encoded } as Pojo;
+        case JsonEncodingScheme.DeprecatedNonReversible:
+            return encoded as Pojo;
+        case JsonEncodingScheme.Compact:
+            return { SwitchField: switchField, [field.originalName]: encoded } as Pojo;
+        default:
+            return { [field.originalName]: encoded } as Pojo;
+    }
 }
 
 function isDefault(field: FieldType, value: unknown): boolean {
@@ -372,13 +420,21 @@ function adaptBody(
 
     const pojo: Pojo = {};
     const allFields = getAllExtensionObjectFields1(schema);
-    const isUnion = body.SwitchField !== undefined;
 
-    if (isUnion) {
-        const field = allFields[body.SwitchField as number];
-        const value = body.Value || body[field.originalName];
-        const decoder = findDecoder(field);
-        build(field, value, decoder);
+    if (isUnionSchema(allFields)) {
+        // every form is accepted: { SwitchField, Value } (1.04), { SwitchField, <FieldName> }
+        // (1.05 Compact), { <FieldName> } (1.05 Verbose) and {} (no field selected)
+        const choices = allFields.filter((f) => f.switchValue !== undefined);
+        const switchValue = body.SwitchField as number | undefined;
+        const field =
+            switchValue !== undefined
+                ? choices.find((f) => f.switchValue === switchValue)
+                : choices.find((f) => body[f.originalName] !== undefined);
+        if (!field) {
+            return pojo;
+        }
+        const value = body[field.originalName] !== undefined ? body[field.originalName] : body.Value;
+        build(field, value, findDecoder(field));
         return pojo;
     }
     for (const field of allFields) {
@@ -486,7 +542,8 @@ export function opcuaJsonEncodeExtensionObject(
         const typeId = opcuaJsonEncodeNodeId(typeNodeId, scheme, namespaceArray);
         switch (scheme) {
             case JsonEncodingScheme.DeprecatedNonReversible:
-                return body || {};
+                // null stays null: a Union with no field selected (Annex H.10)
+                return body === undefined ? {} : (body as Pojo);
             case JsonEncodingScheme.DeprecatedReversible:
                 return {
                     TypeId: typeId,
