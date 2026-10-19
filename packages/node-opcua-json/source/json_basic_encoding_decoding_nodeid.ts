@@ -24,8 +24,7 @@
 import { coerceNodeId, ExpandedNodeId, NodeId, NodeIdType } from "node-opcua-nodeid"; // -nodeid";
 import type { ExtensionObjectBuilder } from "./json_basic_encoding_body_functor.js";
 import { JsonEncodingScheme } from "./json_encoding_scheme.js";
-
-const OPCUA_NAMESPACE_URI = "http://opcfoundation.org/UA/";
+import { OPCUA_NAMESPACE_URI } from "./json_opcua_namespace.js";
 
 // from https://reference.opcfoundation.org/Core/Part6/v105/docs/5.4
 
