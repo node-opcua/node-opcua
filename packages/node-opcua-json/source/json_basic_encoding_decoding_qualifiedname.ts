@@ -31,16 +31,39 @@ export interface QualifiedNameJSON {
     /** The NamespaceIndex component of the QualifiedName encoded as a JSON number. */
     Uri?: string | number;
 }
+const OPCUA_NAMESPACE_URI = "http://opcfoundation.org/UA/";
+
+/**
+ * The string form of Part 6 1.05 clause 5.1.12 (Table 7): no prefix in the OPC UA namespace,
+ * `nsu=<uri>;<name>` otherwise, and `<index>:<name>` only when the index has no known URI.
+ */
+function qualifiedNameToString(qualifiedName: QualifiedName, namespaceArray?: string[]): string {
+    const name = qualifiedName.name || "";
+    const namespaceIndex = qualifiedName.namespaceIndex || 0;
+    if (namespaceIndex === 0) {
+        return name;
+    }
+    const namespaceUri = namespaceArray?.[namespaceIndex];
+    if (!namespaceUri) {
+        return `${namespaceIndex}:${name}`;
+    }
+    return `nsu=${opcuaEncodeURIComponent(namespaceUri)};${name}`;
+}
+
 export function opcuaJsonEncodeQualifiedName(
     qualifiedName: QualifiedName,
     scheme = JsonEncodingScheme.Compact,
     namespaceArray?: string[]
-): QualifiedNameJSON | undefined {
-    if (!qualifiedName.name || !qualifiedName.namespaceIndex) {
+): QualifiedNameJSON | string | undefined {
+    if (!qualifiedName.name && !qualifiedName.namespaceIndex) {
         if (scheme === JsonEncodingScheme.Compact) {
             // Compact encoding does not encode empty QualifiedName
             return undefined;
         }
+    }
+    if (scheme === JsonEncodingScheme.Compact || scheme === JsonEncodingScheme.Verbose) {
+        // 1.05 clause 5.4.2.14: a JSON string, the NamespaceIndex form only on an encoding error
+        return qualifiedNameToString(qualifiedName, namespaceArray);
     }
     const pojo: QualifiedNameJSON = {
         Name: qualifiedName.name || ""
@@ -70,22 +93,10 @@ export function opcuaJsonEncodeQualifiedNameAsString(
     scheme = JsonEncodingScheme.Compact,
     namespaceArray?: string[]
 ): string {
-    const pojo = opcuaJsonEncodeQualifiedName(qualifiedName, scheme, namespaceArray);
-    if (!pojo) {
+    if (!qualifiedName.name && !qualifiedName.namespaceIndex && scheme === JsonEncodingScheme.Compact) {
         return "";
     }
-    if (!pojo.Uri) {
-        // if Uri is not defined, it means namespaceIndex is 0
-        return pojo.Name;
-    }
-
-    const namespaceIndex = typeof pojo.Uri === "number" ? (pojo.Uri as number) : namespaceArray?.indexOf(pojo.Uri);
-    if (namespaceIndex !== undefined && namespaceIndex >= 0) {
-        const namespaceUri = namespaceArray ? namespaceArray[namespaceIndex] : pojo.Uri;
-        const encodedUri = opcuaEncodeURIComponent(namespaceUri as string);
-        return `nsu=${encodedUri};${pojo.Name}`;
-    }
-    return pojo.Name;
+    return qualifiedNameToString(qualifiedName, namespaceArray);
 }
 
 export function opcuaJsonDecodeQualifiedName(
@@ -124,7 +135,11 @@ export function opcuaJsonDecodeQualifiedName(
             }
             const namespaceUri = opcuaDecodeURIComponent(pojo.substring(4, endIndex));
             const name = pojo.substring(endIndex + 1);
-            const namespaceIndex = namespaceArray ? namespaceArray.indexOf(namespaceUri) : 0;
+            const namespaceIndex = namespaceUri === OPCUA_NAMESPACE_URI ? 0 : (namespaceArray?.indexOf(namespaceUri) ?? -1);
+            if (namespaceIndex < 0) {
+                // 1.05 clause 5.4.2.14: an unknown URI gives NamespaceIndex 0 and the raw string as Name
+                return new QualifiedName({ name: pojo, namespaceIndex: 0 });
+            }
             return new QualifiedName({
                 name,
                 namespaceIndex

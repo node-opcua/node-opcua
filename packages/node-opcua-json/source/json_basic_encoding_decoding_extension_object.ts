@@ -188,7 +188,11 @@ function getAllExtensionObjectFields(extensionObject: ExtensionObject) {
 interface ExtensionObjectWithOptionalSwitchField extends ExtensionObject {
     switchField?: number;
 }
-export function makeBody(extensionObject: ExtensionObject, scheme: JsonEncodingScheme): Pojo | undefined {
+export function makeBody(
+    extensionObject: ExtensionObject,
+    scheme: JsonEncodingScheme,
+    namespaceArray?: string[]
+): Pojo | undefined {
     const switchField = (extensionObject as ExtensionObjectWithOptionalSwitchField).switchField;
     const isUnion = switchField !== undefined;
 
@@ -223,12 +227,14 @@ export function makeBody(extensionObject: ExtensionObject, scheme: JsonEncodingS
             } else {
                 const valueAsArray = value as unknown[];
                 // in array default value must be explicitly set to default
-                pojo[fieldName] = valueAsArray.map((a: unknown) => (a !== undefined && a !== null ? encoder(a, scheme) : null));
+                pojo[fieldName] = valueAsArray.map((a: unknown) =>
+                    a !== undefined && a !== null ? encoder(a, scheme, namespaceArray) : null
+                );
                 allAreDefault = false;
             }
         } else {
             if (value !== undefined) {
-                const fieldValue = encoder(value, scheme);
+                const fieldValue = encoder(value, scheme, namespaceArray);
                 if (fieldValue !== undefined) {
                     pojo[fieldName] = fieldValue;
                     if (allAreDefault && !isDefault(field, fieldValue)) {
@@ -411,7 +417,7 @@ export function opcuaJsonDecodeExtensionObjectBody(
 export function opcuaJsonEncodeExtensionObjectBody(
     extensionObject: ExtensionObject | null,
     scheme: JsonEncodingScheme,
-    _namespaceArray?: string[]
+    namespaceArray?: string[]
 ): ExtensionObjectJSON | Pojo | null | undefined {
     if (!extensionObject) {
         if (scheme === JsonEncodingScheme.Compact) {
@@ -420,7 +426,7 @@ export function opcuaJsonEncodeExtensionObjectBody(
         }
         return null;
     }
-    return makeBody(extensionObject, scheme);
+    return makeBody(extensionObject, scheme, namespaceArray);
 }
 
 /**
