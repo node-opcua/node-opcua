@@ -1,3 +1,25 @@
+OPC UA JSON: namespaces by URI and matrices as Part 6 says
+=========================================================
+
+  - the 1.05 encodings (Compact, Verbose) name the namespace of every NodeId, QualifiedName and
+    ExpandedNodeId by its URI (`nsu=`) when a namespace table is given, inside structures too, so a
+    payload decodes on a server whose namespace indexes differ (Part 6 5.4.2.10, 5.4.2.14).
+  - **breaking** a 1.05 QualifiedName is a JSON string (`Name`, `nsu=<uri>;Name`, or `<index>:Name`
+    when the URI is unknown), not the object `{"Name","Uri"}` (5.4.2.14). The decoder accepts both.
+  - **breaking** a 1.05 matrix carries `Dimensions`, not `UaDimensions` (5.4.2.17, Table 41). The
+    decoder accepts both. A consumer that validates 1.05 JSON against a schema listing only
+    `UaDimensions` (node-wot binding-opcua does) needs updating.
+  - **breaking** a matrix in the 1.04 NonReversible encoding is nested JSON arrays,
+    `[[1,2,3],[4,5,6]]`, not `{"Type","Body","Dimensions"}` (Annex H.8, H.9). PubSub JSON messages
+    that use the NonReversible field encoding change the same way (`opcuaJsonEncodeDataValueMQTT`).
+  - an `nsu=` URI the decoder cannot map gives what Part 6 defines (NamespaceIndex 0 with the raw
+    string as String identifier or as Name; kept in `namespaceUri` for an ExpandedNodeId), no longer
+    a node of namespace 0 with the original identifier.
+  - fix: a QualifiedName of namespace 0 is no longer dropped by the Compact encoding.
+  - fix: the NamespaceUri of an ExpandedNodeId is written as `nsu=`, not as the server URI `svu=`.
+  - the JSON-LD export of node-opcua-uanodeset-rdf writes Variable values with namespace URIs.
+
+
 Secure channel: one chunk writer for every message
 ==================================================
 
