@@ -19,7 +19,9 @@ import { addressSpaceToJsonLd, addressSpaceToJsonLdText, prefixOfNamespace } fro
 // text carries that through wherever a DI field or VariableType had no explicit DataType.
 // JSON 1.05 namespace URIs: Variable values name every namespace by URI, so the two DI
 // QualifiedName values and the Argument DataTypes (ns=1;i=333) now read nsu=…/DI/.
-const DI_SHA1 = "ae0df67f2f5418ad1c4144668d14b8bb99ce8213";
+// JSON 1.05 Structures (5.4.2.16): the fields of the 58 Argument values sit beside UaTypeId
+// instead of under UaBody.
+const DI_SHA1 = "af36f1e031b68813d1b737a0caefec5800ee286c";
 
 type JsonLd = {
     "@context": Record<string, unknown>;
