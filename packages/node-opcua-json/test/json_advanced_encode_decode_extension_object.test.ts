@@ -94,7 +94,9 @@ describe("it should encode and decode complex extension objects", () => {
             UaType: 22,
             Value: {
                 UaTypeId: "i=15530",
-                UaBody: { PublishedDataSets: [], Connections: [], Enabled: false }
+                PublishedDataSets: [],
+                Connections: [],
+                Enabled: false
             }
         };
         testEncodingDecodingExtensionObject105(p, expected105Verbose, JsonEncodingScheme.Verbose);
@@ -102,7 +104,9 @@ describe("it should encode and decode complex extension objects", () => {
             UaType: 22,
             Value: {
                 UaTypeId: "i=15530",
-                UaBody: { PublishedDataSets: [], Connections: [], Enabled: false }
+                PublishedDataSets: [],
+                Connections: [],
+                Enabled: false
             }
         };
         testEncodingDecodingExtensionObject105(p, expected105Compact, JsonEncodingScheme.Verbose);
@@ -181,7 +185,7 @@ describe("it should encode and decode complex extension objects", () => {
             UaType: 22,
             Value: {
                 UaTypeId: "i=15530",
-                UaBody: Body105Verbose
+                ...Body105Verbose
             }
         };
         testEncodingDecodingExtensionObject105(p, expected105Verbose, JsonEncodingScheme.Verbose);
@@ -197,7 +201,7 @@ describe("it should encode and decode complex extension objects", () => {
             UaType: 22,
             Value: {
                 UaTypeId: "i=15530",
-                UaBody: Body105Compact
+                ...Body105Compact
             }
         };
         testEncodingDecodingExtensionObject105(p, expected105Compact, JsonEncodingScheme.Compact);
@@ -285,62 +289,56 @@ describe("it should encode and decode complex extension objects", () => {
     it("should encode a PubSubConfigurationDataType-2 - Verbose", () => {
         const Value105Verbose = {
             UaTypeId: "i=15530",
-            UaBody: {
-                PublishedDataSets: [],
-                Connections: [
-                    {
-                        Name: "",
-                        Enabled: false,
-                        PublisherId: {
-                            UaType: 0,
-                            Value: null
-                        },
-                        TransportProfileUri: "",
-                        Address: {
-                            UaTypeId: "i=15510",
-                            UaBody: {
-                                NetworkInterface: "",
-                                Url: ""
-                            }
-                        },
-                        ConnectionProperties: [],
-                        TransportSettings: null,
-                        WriterGroups: [
-                            {
-                                Enabled: false,
-                                GroupProperties: [],
-                                MaxNetworkMessageSize: 0,
-                                SecurityGroupId: "",
-                                SecurityKeyServices: [],
-                                SecurityMode: 0,
-                                WriterGroupId: 1,
-                                PublishingInterval: 0,
-                                KeepAliveTime: 0,
-                                Priority: 0,
-                                LocaleIds: [],
-                                HeaderLayoutUri: "",
-                                Name: "",
-                                TransportSettings: {
-                                    UaTypeId: "i=15667",
-                                    UaBody: {
-                                        QueueName: "",
-                                        ResourceUri: "",
-                                        AuthenticationProfileUri: "",
-                                        RequestedDeliveryGuarantee: 0
-                                    }
-                                },
-                                MessageSettings: {
-                                    UaTypeId: "i=15657",
-                                    UaBody: { NetworkMessageContentMask: 0 }
-                                },
-                                DataSetWriters: []
-                            }
-                        ],
-                        ReaderGroups: []
-                    }
-                ],
-                Enabled: false
-            }
+            PublishedDataSets: [],
+            Connections: [
+                {
+                    Name: "",
+                    Enabled: false,
+                    PublisherId: {
+                        UaType: 0,
+                        Value: null
+                    },
+                    TransportProfileUri: "",
+                    Address: {
+                        UaTypeId: "i=15510",
+                        NetworkInterface: "",
+                        Url: ""
+                    },
+                    ConnectionProperties: [],
+                    TransportSettings: null,
+                    WriterGroups: [
+                        {
+                            Enabled: false,
+                            GroupProperties: [],
+                            MaxNetworkMessageSize: 0,
+                            SecurityGroupId: "",
+                            SecurityKeyServices: [],
+                            SecurityMode: 0,
+                            WriterGroupId: 1,
+                            PublishingInterval: 0,
+                            KeepAliveTime: 0,
+                            Priority: 0,
+                            LocaleIds: [],
+                            HeaderLayoutUri: "",
+                            Name: "",
+                            TransportSettings: {
+                                UaTypeId: "i=15667",
+                                QueueName: "",
+                                ResourceUri: "",
+                                AuthenticationProfileUri: "",
+                                RequestedDeliveryGuarantee: 0
+                            },
+                            MessageSettings: {
+                                UaTypeId: "i=15657",
+                                NetworkMessageContentMask: 0
+                            },
+                            DataSetWriters: []
+                        }
+                    ],
+                    ReaderGroups: []
+                }
+            ],
+            Enabled: false
         };
         const expected105Verbose: VariantJSON105 = {
             UaType: 22,
@@ -351,35 +349,33 @@ describe("it should encode and decode complex extension objects", () => {
     it("should encode a PubSubConfigurationDataType-2 - Compact", () => {
         const Value105Compact = {
             UaTypeId: "i=15530",
-            UaBody: {
-                Connections: [
-                    {
-                        Address: {
-                            UaTypeId: "i=15510"
-                        },
-                        Enabled: false,
-                        PublisherId: { UaType: 0 },
-                        WriterGroups: [
-                            {
-                                Enabled: false,
-                                KeepAliveTime: 0,
-                                MaxNetworkMessageSize: 0,
-                                Priority: 0,
-                                PublishingInterval: 0,
-                                SecurityMode: 0,
-                                WriterGroupId: 1,
-                                TransportSettings: {
-                                    UaTypeId: "i=15667"
-                                },
-                                MessageSettings: {
-                                    UaTypeId: "i=15657"
-                                }
+            Connections: [
+                {
+                    Address: {
+                        UaTypeId: "i=15510"
+                    },
+                    Enabled: false,
+                    PublisherId: { UaType: 0 },
+                    WriterGroups: [
+                        {
+                            Enabled: false,
+                            KeepAliveTime: 0,
+                            MaxNetworkMessageSize: 0,
+                            Priority: 0,
+                            PublishingInterval: 0,
+                            SecurityMode: 0,
+                            WriterGroupId: 1,
+                            TransportSettings: {
+                                UaTypeId: "i=15667"
+                            },
+                            MessageSettings: {
+                                UaTypeId: "i=15657"
                             }
-                        ]
-                    }
-                ],
-                Enabled: false
-            }
+                        }
+                    ]
+                }
+            ],
+            Enabled: false
         };
         const expected105Compact: VariantJSON105 = {
             UaType: 22,

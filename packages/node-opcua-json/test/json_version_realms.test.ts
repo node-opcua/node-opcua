@@ -82,13 +82,43 @@ describe("node-opcua-json version realms", () => {
 
         const pojo105 = v105.opcuaJsonEncodeExtensionObject(range, v105.JsonEncoderMode.Verbose, namespaceArray);
         should(pojo105).have.property("UaTypeId");
-        should(pojo105).have.property("UaBody");
+        // 5.4.2.16: the fields sit beside UaTypeId; UaBody only carries a binary or XML body
+        should(pojo105).have.property("High");
+        should(pojo105).not.have.property("UaBody");
         should(pojo105).not.have.property("TypeId");
 
         const back104 = v104.opcuaJsonDecodeExtensionObject(pojo104 as v104.ExtensionObjectJSON, builder, namespaceArray) as Range;
         const back105 = v105.opcuaJsonDecodeExtensionObject(pojo105 as v105.ExtensionObjectJSON, builder, namespaceArray) as Range;
         should(back104.toJSON()).eql(range.toJSON());
         should(back105.toJSON()).eql(range.toJSON());
+    });
+
+    it("1.05 writes a Structure as its fields beside UaTypeId (5.4.2.16)", () => {
+        const range = new Range({ low: 1, high: 2 });
+        should(v105.opcuaJsonEncodeExtensionObject(range, v105.JsonEncoderMode.Compact, namespaceArray)).eql({
+            UaTypeId: "i=884",
+            Low: 1,
+            High: 2
+        });
+    });
+
+    it("1.05 still decodes { UaTypeId, UaBody: { fields } }, written by earlier versions", () => {
+        const back = v105.opcuaJsonDecodeExtensionObject(
+            { UaTypeId: "i=884", UaBody: { Low: 1, High: 2 } } as v105.ExtensionObjectJSON,
+            builder,
+            namespaceArray
+        ) as Range;
+        should(back.toJSON()).eql(new Range({ low: 1, high: 2 }).toJSON());
+    });
+
+    it("1.05 refuses a UA Binary UaBody with a message naming it", () => {
+        should(() =>
+            v105.opcuaJsonDecodeExtensionObject(
+                { UaTypeId: "i=884", UaEncoding: 1, UaBody: "AAAAAAAA8D8AAAAAAAAAQA==" } as v105.ExtensionObjectJSON,
+                builder,
+                namespaceArray
+            )
+        ).throw(/UA Binary or UA XML UaBody/);
     });
 
     it("the root entry point stays version-flexible and also exposes both realms", () => {

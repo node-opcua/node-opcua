@@ -109,26 +109,24 @@ describe("Testing Encoding/Decoding of custom extension objects ", () => {
     it("should construct a custom extension object", async () => {
         pojo.should.eql({
             UaTypeId: "ns=2;i=3007",
-            UaBody: {
-                CodeType: "Hello",
-                ScanData: {
-                    SwitchField: 3,
-                    Value: { PC: 0, UId: "SGVsbG8=", XPC_W1: 0, XPC_W2: 0 }
-                },
-                Timestamp: new Date("2018-12-23T00:00:00.000Z"),
-                Location: {
-                    SwitchField: 2,
-                    Value: {
-                        X: 100,
-                        Y: 200,
-                        Z: 300,
-                        Timestamp: new Date("2018-12-23T00:00:00.000Z"),
-                        DilutionOfPrecision: 0.01,
-                        UsefulPrecision: 2
-                    }
-                },
-                Sighting: []
-            }
+            CodeType: "Hello",
+            ScanData: {
+                SwitchField: 3,
+                Value: { PC: 0, UId: "SGVsbG8=", XPC_W1: 0, XPC_W2: 0 }
+            },
+            Timestamp: new Date("2018-12-23T00:00:00.000Z"),
+            Location: {
+                SwitchField: 2,
+                Value: {
+                    X: 100,
+                    Y: 200,
+                    Z: 300,
+                    Timestamp: new Date("2018-12-23T00:00:00.000Z"),
+                    DilutionOfPrecision: 0.01,
+                    UsefulPrecision: 2
+                }
+            },
+            Sighting: []
         });
         doDebug && console.log(util.inspect(pojo, { depth: 10 }));
     });
