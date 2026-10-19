@@ -214,12 +214,19 @@ export function makeBody(
     const pojo: Pojo = {};
 
     let allAreDefault = true;
+    // optional fields (switchBit): an undefined value is an absent field, any other value sets
+    // the field's bit in the EncodingMask, even when the value itself is omitted as a default
+    const hasOptionalFields = fields.some((field) => field.switchBit !== undefined);
+    let encodingMask = 0;
 
     for (const field of fields) {
         const value = (extensionObject as unknown as Record<string, unknown>)[field.name];
         const encoder = findEncoder(field);
 
         const fieldName = field.originalName;
+        if (field.switchBit !== undefined && value !== undefined) {
+            encodingMask |= 1 << field.switchBit;
+        }
 
         // istanbul ignore next
         if (!encoder) {
@@ -255,10 +262,14 @@ export function makeBody(
             }
         }
     }
-    if (allAreDefault && scheme === JsonEncodingScheme.Compact) {
+    // 1.04 Table 33 (reversible) and 1.05 Table 46 (Compact) carry the EncodingMask;
+    // 1.04 NonReversible and 1.05 Verbose show presence by the fields themselves
+    const writesEncodingMask =
+        hasOptionalFields && (scheme === JsonEncodingScheme.DeprecatedReversible || scheme === JsonEncodingScheme.Compact);
+    if (allAreDefault && scheme === JsonEncodingScheme.Compact && encodingMask === 0) {
         return undefined;
     }
-    return pojo;
+    return writesEncodingMask ? { EncodingMask: encodingMask, ...pojo } : pojo;
 }
 
 /** A Union schema has one field per choice, each with a switchValue, beside the switch field. */
@@ -437,16 +448,42 @@ function adaptBody(
         build(field, value, findDecoder(field));
         return pojo;
     }
+    // with an EncodingMask (1.04 Table 33, 1.05 Table 46) an optional field is present when its bit
+    // is set, and takes its default value if Compact omitted it; without one, when its name is there
+    const encodingMask = typeof body.EncodingMask === "number" ? body.EncodingMask : undefined;
     for (const field of allFields) {
         const value = body[field.originalName];
+        const bitSet =
+            encodingMask !== undefined && field.switchBit !== undefined ? (encodingMask & (1 << field.switchBit)) !== 0 : undefined;
+        if (bitSet === false) {
+            continue;
+        }
         // istanbul ignore next
         if (value === undefined) {
+            if (bitSet) {
+                pojo[field.name] = defaultFieldValue(field);
+            }
             continue;
         }
         const decoder = findDecoder(field);
         build(field, value, decoder);
     }
     return pojo;
+
+    /** The value of a present field that the CompactEncoding omitted because it was the default. */
+    function defaultFieldValue(field: FieldType): unknown {
+        if (field.isArray) {
+            return [];
+        }
+        if (field.category === "complex") {
+            return findDecoder(field)?.({} as never, builder, namespaceArray);
+        }
+        if (field.category === "enumeration") {
+            return 0;
+        }
+        const defaultValue = (field.schema as { defaultValue?: unknown } | undefined)?.defaultValue;
+        return typeof defaultValue === "function" ? defaultValue() : (defaultValue ?? null);
+    }
 
     function build(field: FieldType, value: unknown, decoder?: DecoderFunc<unknown> | null) {
         if (!decoder) {
