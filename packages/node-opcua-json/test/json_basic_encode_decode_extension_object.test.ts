@@ -42,7 +42,7 @@ const NonReversible = JsonEncodingScheme.DeprecatedNonReversible;
 
 const extensionObject = new Range({ low: 10, high: 20 });
 const extensionObjectJson = {
-    TypeId: { Id: 884 },
+    TypeId: { Id: Range.schema.encodingDefaultJson?.value },
     Body: { Low: 10, High: 20 }
 };
 
@@ -59,7 +59,7 @@ const extensionObject1 = new EventFilter({
 });
 
 const extensionObject1Json = {
-    TypeId: { Id: 725 },
+    TypeId: { Id: EventFilter.schema.encodingDefaultJson?.value },
     Body: {
         SelectClauses: [],
         WhereClause: { Elements: [{ FilterOperator: 10, FilterOperands: [] }] }
@@ -70,7 +70,7 @@ const filterOperand = new SimpleAttributeOperand({
     indexRange: new NumericRange("1:3")
 });
 const filterOperandJson = {
-    TypeId: { Id: 601 },
+    TypeId: { Id: SimpleAttributeOperand.schema.encodingDefaultJson?.value },
     Body: {
         // note: for some reason those fields in OPCUA, truly starts with a lowercase !
         TypeDefinitionId: { Id: 0 },
@@ -85,7 +85,7 @@ describe("JSON encode ExtensionObject", () => {
         it("should encode a extension object  - Range", () => {
             should(opcuaJsonEncodeExtensionObject(extensionObject, JsonEncodingScheme.DeprecatedReversible)).eql({
                 TypeId: {
-                    Id: Range.schema.dataTypeNodeId.value
+                    Id: Range.schema.encodingDefaultJson?.value
                 },
                 //  Encoding: 0,
                 Body: {
@@ -97,7 +97,7 @@ describe("JSON encode ExtensionObject", () => {
         it("should encode a extension object  - EventFilter", () => {
             should(opcuaJsonEncodeExtensionObject(extensionObject1, JsonEncodingScheme.DeprecatedReversible)).eql({
                 TypeId: {
-                    Id: EventFilter.schema.dataTypeNodeId.value
+                    Id: EventFilter.schema.encodingDefaultJson?.value
                 },
                 //  Encoding: 0,
                 Body: {
@@ -115,7 +115,7 @@ describe("JSON encode ExtensionObject", () => {
         });
         it("should encode a numeric range - FilterOperand", () => {
             should(opcuaJsonEncodeExtensionObject(filterOperand, JsonEncodingScheme.DeprecatedReversible)).eql({
-                TypeId: { Id: 601 },
+                TypeId: { Id: SimpleAttributeOperand.schema.encodingDefaultJson?.value },
                 Body: {
                     AttributeId: 0,
                     IndexRange: "1:3",
@@ -175,5 +175,17 @@ describe("JSON decode ExtensionObject", () => {
     });
     it("SimpleAttributeOperand", () => {
         testEncodingDecodingExtensionObject(filterOperand, filterOperandJson);
+    });
+    // 1.04 Table 29: the TypeId is the DataTypeEncoding Node; earlier versions wrote the DataType
+    // Node, which 1.05 Annex H.7 also allows: both decode
+    it("decodes a 1.04 TypeId that is the DataType Node, as written by earlier versions", () => {
+        const range = opcuaJsonDecodeExtensionObject({ TypeId: { Id: 884 }, Body: { Low: 10, High: 20 } }, fakeBuilder, []);
+        should(range).be.instanceOf(Range);
+        should((range as Range).high).eql(20);
+    });
+    it("decodes a 1.04 TypeId that is the Default JSON encoding Node", () => {
+        const range = opcuaJsonDecodeExtensionObject({ TypeId: { Id: 15375 }, Body: { Low: 10, High: 20 } }, fakeBuilder, []);
+        should(range).be.instanceOf(Range);
+        should((range as Range).high).eql(20);
     });
 });
