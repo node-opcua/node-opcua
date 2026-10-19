@@ -89,7 +89,12 @@ ncoded as JSON array (see 5.4.5)
     Value?: VariantJSONBody;
 
     /**
-     * The dimensions of the array encoded as a JSON array of JSON numbers.
+     * The dimensions of the array encoded as a JSON array of JSON numbers
+     * (Part 6 1.05 clause 5.4.2.17, Table 41).
+     */
+    Dimensions?: number[];
+    /**
+     * @deprecated written by node-opcua before it followed Table 41; still accepted when decoding
      */
     UaDimensions?: number[];
 }
@@ -112,6 +117,24 @@ function body(variant: Variant, scheme: JsonEncodingScheme, namespaceArray?: str
         }
         return array;
     }
+}
+
+/**
+ * Turn the flat elements of a matrix into nested JSON arrays, the outer array being the first
+ * dimension (Part 6 Annex H.9). The flat order is the one of 5.2.2.16: the higher rank dimensions
+ * are serialized first, so the last index varies fastest.
+ */
+function nestMatrix(flat: VariantJSONBodyScalar[], dimensions: number[]): unknown[] {
+    if (dimensions.length <= 1) {
+        return flat;
+    }
+    const [first, ...rest] = dimensions;
+    const chunk = rest.reduce((a, b) => a * b, 1);
+    const result: unknown[] = [];
+    for (let i = 0; i < first; i++) {
+        result.push(nestMatrix(flat.slice(i * chunk, (i + 1) * chunk), rest));
+    }
+    return result;
 }
 
 export function opcuaJsonEncodeVariant105(variant: Variant, mode: JsonEncoderMode105, namespaceArray?: string[]): VariantJSON105 {
@@ -140,7 +163,7 @@ export function opcuaJsonEncodeVariant105(variant: Variant, mode: JsonEncoderMod
         pojo.Value = Value;
     }
     if (variant.arrayType === VariantArrayType.Matrix && variant.dimensions) {
-        pojo.UaDimensions = [...variant.dimensions];
+        pojo.Dimensions = [...variant.dimensions];
     }
     if (mode === JsonEncoderMode105.Compact && variant.arrayType === VariantArrayType.Scalar) {
         // remove default values for compact encoding
@@ -209,8 +232,13 @@ export function opcuaJsonEncodeVariant104(
             ? JsonEncodingScheme.DeprecatedReversible
             : JsonEncodingScheme.DeprecatedNonReversible;
 
-    if (!reversible && variant.arrayType !== VariantArrayType.Matrix) {
-        return body(variant, scheme, namespaceArray);
+    if (!reversible) {
+        const value = body(variant, scheme, namespaceArray);
+        if (variant.arrayType === VariantArrayType.Matrix && variant.dimensions) {
+            // Annex H.8: Type and Dimensions are dropped, the matrix becomes nested arrays
+            return nestMatrix(value as VariantJSONBodyScalar[], variant.dimensions) as VariantJSONBody;
+        }
+        return value;
     }
 
     const pojo: VariantJSON104 = {
@@ -303,10 +331,11 @@ export function opcuaJsonDecodeVariant105(
     if (Array.isArray(pojo.Value)) {
         const value = pojo.Value.map((a) => f(a, builder, namespaceArray));
 
-        if (pojo.UaDimensions) {
+        const dimensions = pojo.Dimensions ?? pojo.UaDimensions;
+        if (dimensions) {
             return new Variant({
                 arrayType: VariantArrayType.Matrix,
-                dimensions: pojo.UaDimensions,
+                dimensions,
                 dataType,
                 value
             });
