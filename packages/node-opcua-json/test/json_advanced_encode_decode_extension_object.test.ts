@@ -85,7 +85,7 @@ describe("it should encode and decode complex extension objects", () => {
         const expected104: VariantJSON104 = {
             Type: 22,
             Body: {
-                TypeId: { Id: 15530 },
+                TypeId: { Id: 21202 },
                 Body: { PublishedDataSets: [], Connections: [], Enabled: false }
             }
         };
@@ -145,7 +145,7 @@ describe("it should encode and decode complex extension objects", () => {
         const expected104 = {
             Type: 22,
             Body: {
-                TypeId: { Id: 15530 },
+                TypeId: { Id: 21202 },
                 Body
             }
         };
@@ -220,7 +220,7 @@ describe("it should encode and decode complex extension objects", () => {
     });
     it("should encode a PubSubConfigurationDataType-2 - 104", () => {
         const Body104 = {
-            TypeId: { Id: 15530 },
+            TypeId: { Id: 21202 },
             Body: {
                 PublishedDataSets: [],
                 Connections: [
@@ -230,7 +230,7 @@ describe("it should encode and decode complex extension objects", () => {
                         PublisherId: null,
                         TransportProfileUri: "",
                         Address: {
-                            TypeId: { Id: 15510 },
+                            TypeId: { Id: 21200 },
                             Body: {
                                 NetworkInterface: "",
                                 Url: ""
@@ -254,7 +254,7 @@ describe("it should encode and decode complex extension objects", () => {
                                 HeaderLayoutUri: "",
                                 Name: "",
                                 TransportSettings: {
-                                    TypeId: { Id: 15667 },
+                                    TypeId: { Id: 16524 },
                                     Body: {
                                         QueueName: "",
                                         ResourceUri: "",
@@ -263,7 +263,7 @@ describe("it should encode and decode complex extension objects", () => {
                                     }
                                 },
                                 MessageSettings: {
-                                    TypeId: { Id: 15657 },
+                                    TypeId: { Id: 16393 },
                                     Body: { NetworkMessageContentMask: 0 }
                                 },
                                 DataSetWriters: []

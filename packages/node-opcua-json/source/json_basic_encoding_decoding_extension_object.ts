@@ -32,9 +32,10 @@ import {
     type FieldType,
     getStandardDataTypeFactory,
     type IStructuredTypeSchema,
-    type StructuredTypeSchema
+    type StructuredTypeSchema,
+    type StructureInfo
 } from "node-opcua-factory";
-import type { NodeId } from "node-opcua-nodeid";
+import { NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { DataType, type VariantOptions } from "node-opcua-variant";
 import type { Pojo } from "./decode_opcua_json.js";
@@ -467,7 +468,11 @@ export function opcuaJsonEncodeExtensionObject(
 
     function singleItem(extensionObject: ExtensionObject): ExtensionObjectJSON | Pojo {
         const body = opcuaJsonEncodeExtensionObjectBody(extensionObject, scheme, namespaceArray);
-        const typeId = opcuaJsonEncodeNodeId(extensionObject.schema.dataTypeNodeId, scheme, namespaceArray);
+        const typeNodeId =
+            scheme === JsonEncodingScheme.DeprecatedReversible
+                ? typeIdOfReversibleEncoding(extensionObject.schema)
+                : extensionObject.schema.dataTypeNodeId;
+        const typeId = opcuaJsonEncodeNodeId(typeNodeId, scheme, namespaceArray);
         switch (scheme) {
             case JsonEncodingScheme.DeprecatedNonReversible:
                 return body || {};
@@ -496,6 +501,38 @@ export function opcuaJsonEncodeExtensionObject(
     }
 }
 
+/**
+ * 1.04 Table 29: the TypeId of the reversible encoding is the DataTypeEncoding Node of the JSON
+ * body (its "Default JSON" encoding). It is used in namespace 0, where a decoder finds the type from
+ * it in the standard factory. Other namespaces keep the DataType Node, which 1.05 Annex H.7 also
+ * allows: a decoder resolves them through its ExtensionObjectBuilder, which works on DataType Nodes.
+ */
+function typeIdOfReversibleEncoding(schema: IStructuredTypeSchema): NodeId {
+    const jsonEncoding = schema.encodingDefaultJson;
+    if (schema.dataTypeNodeId.namespace === 0 && jsonEncoding && jsonEncoding.namespace === 0 && jsonEncoding.value) {
+        return new NodeId(jsonEncoding.identifierType, jsonEncoding.value, 0);
+    }
+    return schema.dataTypeNodeId;
+}
+
+let structureInfoByJsonEncoding: Map<string, StructureInfo> | undefined;
+/** The standard structure whose "Default JSON" encoding Node is this one, if any. */
+function findStandardStructureInfoForJsonEncoding(encodingNodeId: NodeId): StructureInfo | null {
+    if (!structureInfoByJsonEncoding) {
+        structureInfoByJsonEncoding = new Map();
+        for (const structureInfo of getStandardDataTypeFactory().getStructureIterator()) {
+            const jsonEncoding = structureInfo.schema.encodingDefaultJson;
+            if (jsonEncoding?.value) {
+                structureInfoByJsonEncoding.set(
+                    new NodeId(jsonEncoding.identifierType, jsonEncoding.value, 0).toString(),
+                    structureInfo
+                );
+            }
+        }
+    }
+    return structureInfoByJsonEncoding.get(encodingNodeId.toString()) ?? null;
+}
+
 export function opcuaJsonDecodeExtensionObject(
     _pojo: ExtensionObjectJSON104 | ExtensionObjectJSON105,
     builder: ExtensionObjectBuilder,
@@ -509,7 +546,11 @@ export function opcuaJsonDecodeExtensionObject(
 
     if (dataTypeNodeId.namespace === 0) {
         const factory = getStandardDataTypeFactory();
-        const schema = factory.findStructureInfoForDataType(dataTypeNodeId);
+        // the TypeId is the DataType Node, or (1.04 Table 29) its Default JSON encoding Node
+        const schema =
+            factory.getStructureInfoForDataType(dataTypeNodeId) ??
+            findStandardStructureInfoForJsonEncoding(dataTypeNodeId) ??
+            factory.findStructureInfoForDataType(dataTypeNodeId);
         if (!schema) return null;
         const Constructor = schema.constructor;
         if (!Constructor) {

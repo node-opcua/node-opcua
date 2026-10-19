@@ -634,7 +634,7 @@ describe("JSON encode/decode Variant with ExtensionObject", () => {
         should(compact).eql({
             Type: 22,
             Body: {
-                TypeId: { Id: 862 },
+                TypeId: { Id: 15367 },
                 Body: {
                     BuildInfo: {
                         BuildDate: new Date("2020-01-01T00:00:00.000Z"),
