@@ -25,13 +25,13 @@ import { QualifiedName } from "node-opcua-data-model";
 import type { ExtensionObjectBuilder } from "./json_basic_encoding_body_functor.js";
 import { opcuaDecodeURIComponent, opcuaEncodeURIComponent } from "./json_basic_encoding_decoding_nodeid.js";
 import { JsonEncodingScheme } from "./json_encoding_scheme.js";
+import { OPCUA_NAMESPACE_URI } from "./json_opcua_namespace.js";
 export interface QualifiedNameJSON {
     /** The Name component of the QualifiedName. */
     Name: string;
     /** The NamespaceIndex component of the QualifiedName encoded as a JSON number. */
     Uri?: string | number;
 }
-const OPCUA_NAMESPACE_URI = "http://opcfoundation.org/UA/";
 
 /**
  * The string form of Part 6 1.05 clause 5.1.12 (Table 7): no prefix in the OPC UA namespace,
