@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-server",
     "type": "module",
-    "version": "2.187.9",
+    "version": "2.187.10",
     "description": "pure nodejs OPCUA SDK - module server",
     "scripts": {
         "build": "tsc -b",
@@ -64,7 +64,7 @@
         "node-opcua-status-code": "2.187.0",
         "node-opcua-transport": "2.187.8",
         "node-opcua-types": "2.187.9",
-        "node-opcua-uanodeset-json": "2.187.9",
+        "node-opcua-uanodeset-json": "2.187.10",
         "node-opcua-utils": "2.187.0",
         "node-opcua-variant": "2.187.0",
         "thenify-ex": "4.4.0"
