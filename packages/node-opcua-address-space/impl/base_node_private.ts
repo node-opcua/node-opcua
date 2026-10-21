@@ -936,7 +936,10 @@ function _cloneInterface(
     const localFilter = optionalFilter.filterFor(node);
 
     for (const iface of interfaces) {
-        const aggregates = iface.findReferencesEx("Aggregates", BrowseDirection.Forward);
+        // a member the clone already has (the type declares it itself) is not cloned a second time
+        const aggregates = iface
+            .findReferencesEx("Aggregates", BrowseDirection.Forward)
+            .filter((r) => !r.node || !clonedNode.getChildByName(r.node.browseName));
         if (aggregates.length === 0) continue;
         // c8 ignore next
         doTrace &&
