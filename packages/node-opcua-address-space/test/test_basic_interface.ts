@@ -245,4 +245,39 @@ describe("testing object instantiation with Interfaces - case 1", () => {
         should.not.exist(uaObject2.getChildByName("OptionalVariable1", 1), "OptionalVariable1 should not be exposed");
         should.exist(uaObject2.getChildByName("OptionalVariable2", 1), "OptionalVariable2 should be exposed");
     });
+
+    it("INT-05 should expose an optional interface member of a nested child, and leave the type declaration untouched", async () => {
+        const namespace = addressSpace.getOwnNamespace();
+        const iThingType = namespace.addObjectType({ browseName: "IThingType", subtypeOf: "BaseInterfaceType" });
+        namespace.addVariable({
+            propertyOf: iThingType,
+            browseName: "OptionalPart",
+            dataType: "String",
+            modellingRule: "Optional"
+        });
+
+        const functionType = namespace.addObjectType({ browseName: "FunctionType", subtypeOf: "BaseObjectType" });
+        implementInterface(functionType, iThingType, []);
+
+        const holderType = namespace.addObjectType({ browseName: "HolderType", subtypeOf: "BaseObjectType" });
+        const functionDeclaration = functionType.instantiate({
+            browseName: "Function",
+            componentOf: holderType,
+            modellingRule: "Mandatory"
+        });
+
+        const holder = holderType.instantiate({
+            browseName: "Holder2",
+            organizedBy: addressSpace.rootFolder.objects,
+            optionals: ["Function.OptionalPart"]
+        });
+
+        const fn = holder.getChildByName("Function", 1);
+        should.exist(fn);
+        should(fn?.getChildByName("OptionalPart", 1)).be.ok();
+        should.not.exist(
+            functionDeclaration.getChildByName("OptionalPart", 1),
+            "the type declaration HolderType/Function must not gain OptionalPart"
+        );
+    });
 });

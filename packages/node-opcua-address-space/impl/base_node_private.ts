@@ -811,7 +811,7 @@ function _clone_collection_new(
 
             // also clone or instantiate interface members that may be required in the optionals
             extraInfo.level++;
-            _cloneInterface(nodeToClone, newParent, node, optionalFilter, extraInfo, browseNameMap);
+            _cloneInterface(nodeToClone, clonedNode, node, optionalFilter, extraInfo, browseNameMap);
             extraInfo.level--;
             // === clone);
             // extraInfo.registerClonedObject(clone, node);
@@ -898,7 +898,7 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
 
 function _cloneInterface(
     nodeToClone: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
-    _newParent: BaseNode,
+    clonedNode: BaseNode,
     node: UAObject | UAVariable | UAMethod,
     optionalFilter: CloneFilter,
     extraInfo: CloneExtraInfo,
@@ -946,7 +946,7 @@ function _cloneInterface(
                 `\n${extraInfo?.pad()}`,
                 aggregates.map((r) => r.toString({ addressSpace })).join(`\n${extraInfo?.pad()}`)
             );
-        _clone_collection_new(nodeToClone, node, aggregates, false, localFilter, extraInfo, browseNameMap);
+        _clone_collection_new(nodeToClone, clonedNode, aggregates, false, localFilter, extraInfo, browseNameMap);
     }
 }
 
