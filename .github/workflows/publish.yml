@@ -68,6 +68,9 @@ jobs:
         # equivalent entry already exists" (TLOG_CREATE_ENTRY_ERROR), which fails the
         # publish. Retrying is safe: from-package only publishes the versions missing
         # from the registry, and a new attempt signs anew.
+        # A failed publish leaves the manifests lerna rewrote (it writes "gitHead" into
+        # every package.json still to publish and restores them only on success), so the
+        # next attempt would stop on EUNCOMMIT: the loop shows that diff, then reverts it.
         run: |
           for attempt in 1 2 3; do
             npx lerna publish from-package \
@@ -75,6 +78,9 @@ jobs:
               --dist-tag "$DIST_TAG" \
               --concurrency 1 && exit 0
             echo "::warning::lerna publish failed (attempt $attempt of 3)"
+            git status --porcelain
+            git diff -- '*package.json'
+            git diff --name-only -z -- '*package.json' | xargs -0 -r git checkout --
             [ "$attempt" = 3 ] || sleep 60
           done
           exit 1
@@ -98,6 +104,9 @@ jobs:
               --dist-tag "$DIST_TAG" \
               --concurrency 1 && exit 0
             echo "::warning::lerna publish failed (attempt $attempt of 3)"
+            git status --porcelain
+            git diff -- '*package.json'
+            git diff --name-only -z -- '*package.json' | xargs -0 -r git checkout --
             [ "$attempt" = 3 ] || sleep 60
           done
           exit 1
