@@ -811,7 +811,7 @@ function _clone_collection_new(
 
             // also clone or instantiate interface members that may be required in the optionals
             extraInfo.level++;
-            _cloneInterface(nodeToClone, clonedNode, node, optionalFilter, extraInfo, browseNameMap);
+            _cloneInterface(nodeToClone, clonedNode, node, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
             extraInfo.level--;
             // === clone);
             // extraInfo.registerClonedObject(clone, node);
@@ -900,6 +900,7 @@ function _cloneInterface(
     nodeToClone: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
     clonedNode: BaseNode,
     node: UAObject | UAVariable | UAMethod,
+    copyAlsoModellingRules: boolean,
     optionalFilter: CloneFilter,
     extraInfo: CloneExtraInfo,
     browseNameMap: Set<string>
@@ -949,7 +950,7 @@ function _cloneInterface(
                 `\n${extraInfo?.pad()}`,
                 aggregates.map((r) => r.toString({ addressSpace })).join(`\n${extraInfo?.pad()}`)
             );
-        _clone_collection_new(nodeToClone, clonedNode, aggregates, false, localFilter, extraInfo, browseNameMap);
+        _clone_collection_new(nodeToClone, clonedNode, aggregates, copyAlsoModellingRules, localFilter, extraInfo, browseNameMap);
     }
 }
 

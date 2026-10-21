@@ -2,7 +2,13 @@ import { describe } from "mocha";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-import { AddressSpace, implementInterface } from "../dist/api/index.js";
+import {
+    AddressSpace,
+    addDefaultInstanceBrowseName,
+    implementInterface,
+    instantiateAddIn,
+    type UAObject
+} from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 
 const debugLog = make_debugLog("TEST");
@@ -279,5 +285,57 @@ describe("testing object instantiation with Interfaces - case 1", () => {
             functionDeclaration.getChildByName("OptionalPart", 1),
             "the type declaration HolderType/Function must not gain OptionalPart"
         );
+    });
+
+    it("INT-06 should keep the ModellingRule of a nested optional interface member only when instantiated inside a type", async () => {
+        const namespace = addressSpace.getOwnNamespace();
+        const iThingType = namespace.addObjectType({ browseName: "IThingType", subtypeOf: "BaseInterfaceType" });
+        for (const [browseName, modellingRule] of [
+            ["MandatoryPart", "Mandatory"],
+            ["OptionalPart", "Optional"]
+        ] as const) {
+            namespace.addVariable({ componentOf: iThingType, browseName, dataType: "Double", modellingRule });
+        }
+
+        // FunctionType implements the interface but carries a copy of the Mandatory member only
+        const functionType = namespace.addObjectType({ browseName: "FunctionType", subtypeOf: "BaseObjectType" });
+        functionType.addReference({ referenceType: "HasInterface", nodeId: iThingType.nodeId });
+        namespace.addVariable({
+            componentOf: functionType,
+            browseName: "MandatoryPart",
+            dataType: "Double",
+            modellingRule: "Mandatory"
+        });
+        should.not.exist(functionType.getChildByName("OptionalPart", 1));
+        addDefaultInstanceBrowseName(functionType, "Function");
+
+        const holderType = namespace.addObjectType({ browseName: "HolderType", subtypeOf: "BaseObjectType" });
+        instantiateAddIn(functionType, { addInOf: holderType, modellingRule: "Mandatory" });
+
+        const optionalPartOf = (holder: UAObject) => holder.getChildByName("Function", 1)?.getChildByName("OptionalPart", 1);
+
+        // inside a type: the copy is an instance declaration
+        const outerType = namespace.addObjectType({ browseName: "OuterType", subtypeOf: "BaseObjectType" });
+        const declared = optionalPartOf(
+            holderType.instantiate({
+                browseName: "Holder",
+                componentOf: outerType,
+                modellingRule: "Mandatory",
+                optionals: ["Function.OptionalPart"]
+            })
+        );
+        should.exist(declared);
+        should(declared?.modellingRule).eql("Optional");
+
+        // outside a type: an ordinary instance carries no ModellingRule
+        const copy = optionalPartOf(
+            holderType.instantiate({
+                browseName: "Holder2",
+                organizedBy: addressSpace.rootFolder.objects,
+                optionals: ["Function.OptionalPart"]
+            })
+        );
+        should.exist(copy);
+        should.not.exist(copy?.modellingRule);
     });
 });
