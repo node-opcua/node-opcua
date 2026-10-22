@@ -38,7 +38,7 @@ export class EngineServices {
         if (token !== null && !sessionContext) {
             throw new Error("the session is closed");
         }
-        // TranslateBrowsePaths alone runs without a session
+        // TranslateBrowsePaths may run without a session: then it is not filtered
         const context = sessionContext ?? SessionContext.defaultContext;
         switch (service) {
             case "read": {
@@ -60,7 +60,12 @@ export class EngineServices {
                 );
             case "translate":
                 // a BrowsePath decodes into the RelativePath its constructor makes
-                return encodeStructures(await engine.translateBrowsePaths(decodeStructuresWith(bytes, () => new BrowsePath())));
+                return encodeStructures(
+                    await engine.translateBrowsePaths(
+                        decodeStructuresWith(bytes, () => new BrowsePath()),
+                        sessionContext ?? undefined
+                    )
+                );
             case "call": {
                 const results = await engine.call(context, decodeStructures(bytes, CallMethodRequest.prototype));
                 return encodeStructures(results.map((result) => new CallMethodResult(result)));

@@ -18,6 +18,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { AddressSpace, type IServerBase } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
+import { BrowseDirection } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
@@ -32,6 +33,7 @@ import {
     MessageSecurityMode,
     UserNameIdentityToken
 } from "node-opcua-types";
+import { DataType } from "node-opcua-variant";
 import should from "should";
 import { anonymousSession, bootstrapArchive, makeSessionContext, userSession } from "./helpers.js";
 import { scratch } from "./paths.js";
@@ -160,9 +162,31 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
     });
 
     describe("security enforcement through the client", () => {
-        it("should deny a non-admin (anonymous) session with BadUserAccessDenied", async () => {
+        it("should not let a non-admin (anonymous) session discover the Role methods", async () => {
+            // the methods carry no Browse permission for Anonymous: translateBrowsePath
+            // answers BadNoMatch, as browse does, and the client reports BadNotSupported
             const role = await getClientRole(new ClientRoleSet(anonymousSession(addressSpace, server)), "Operator");
             const result = await role.addIdentity(makeRule(IdentityCriteriaType.UserName, "mallory"));
+            result.statusCode.should.equal(StatusCodes.BadNotSupported);
+        });
+
+        it("should deny a non-admin (anonymous) session calling AddIdentity with BadUserAccessDenied", async () => {
+            const admin = userSession(addressSpace, server, "admin");
+            const operator = await getClientRole(adminRoleSet(), "Operator");
+            const browsed = await admin.browse({
+                nodeId: operator.roleNodeId,
+                browseDirection: BrowseDirection.Forward,
+                resultMask: 0xff
+            });
+            const addIdentity = browsed.references?.find((r) => r.browseName.name === "AddIdentity");
+            should(addIdentity).not.be.undefined();
+
+            // the NodeId is known to the caller: the Call itself must still be refused
+            const result = await anonymousSession(addressSpace, server).call({
+                objectId: operator.roleNodeId,
+                methodId: (addIdentity as { nodeId: NodeId }).nodeId,
+                inputArguments: [{ dataType: DataType.ExtensionObject, value: makeRule(IdentityCriteriaType.UserName, "mallory") }]
+            });
             result.statusCode.should.equal(StatusCodes.BadUserAccessDenied);
         });
 
@@ -185,12 +209,13 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
     describe("live re-evaluation of an active session (§4.4.1)", () => {
         it("re-evaluates roles on an already-active session after its mapping changes", async () => {
             // "ivan" is connected throughout; his SecurityAdmin grant changes mid-session.
-            const ivanRoleSet = new ClientRoleSet(userSession(addressSpace, server, "ivan"));
-            const operatorAsIvan = await getClientRole(ivanRoleSet, "Operator");
+            const ivanSession = userSession(addressSpace, server, "ivan");
+            // a ClientRole caches the methods it resolved: resolve afresh at each step, on the same session
+            const operatorAsIvan = () => getClientRole(new ClientRoleSet(ivanSession), "Operator");
 
-            // initially ivan is not SecurityAdmin → cannot configure roles
-            (await operatorAsIvan.addIdentity(makeRule(IdentityCriteriaType.UserName, "x1"))).statusCode.should.equal(
-                StatusCodes.BadUserAccessDenied
+            // initially ivan is not SecurityAdmin: the Role methods are not even visible to him
+            (await (await operatorAsIvan()).addIdentity(makeRule(IdentityCriteriaType.UserName, "x1"))).statusCode.should.equal(
+                StatusCodes.BadNotSupported
             );
 
             // admin grants ivan the SecurityAdmin role
@@ -198,8 +223,8 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
             (await secAdmin.addIdentity(makeRule(IdentityCriteriaType.UserName, "ivan"))).statusCode.should.equal(StatusCodes.Good);
 
             // ivan's SAME session is re-evaluated (roles are recomputed per request)
-            // and he is now allowed to configure roles — no reconnection required
-            (await operatorAsIvan.addIdentity(makeRule(IdentityCriteriaType.UserName, "x2"))).statusCode.should.equal(
+            // and he is now allowed to configure roles: no reconnection required
+            (await (await operatorAsIvan()).addIdentity(makeRule(IdentityCriteriaType.UserName, "x2"))).statusCode.should.equal(
                 StatusCodes.Good
             );
 
@@ -207,8 +232,8 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
             (await secAdmin.removeIdentity(makeRule(IdentityCriteriaType.UserName, "ivan"))).statusCode.should.equal(
                 StatusCodes.Good
             );
-            (await operatorAsIvan.addIdentity(makeRule(IdentityCriteriaType.UserName, "x3"))).statusCode.should.equal(
-                StatusCodes.BadUserAccessDenied
+            (await (await operatorAsIvan()).addIdentity(makeRule(IdentityCriteriaType.UserName, "x3"))).statusCode.should.equal(
+                StatusCodes.BadNotSupported
             );
 
             // cleanup the identity ivan managed to add
@@ -259,8 +284,9 @@ describe("RoleSet Integration: server aggregator + role-set client over PseudoSe
         });
 
         it("denies AddRole to a non-admin and over an unencrypted channel", async () => {
+            // the AddRole method is not visible to Anonymous (no Browse permission)
             (await new ClientRoleSet(anonymousSession(addressSpace, server)).addRole("Nope")).statusCode.should.equal(
-                StatusCodes.BadUserAccessDenied
+                StatusCodes.BadNotSupported
             );
             (await adminRoleSet(MessageSecurityMode.None).addRole("Nope")).statusCode.should.equal(
                 StatusCodes.BadSecurityModeInsufficient

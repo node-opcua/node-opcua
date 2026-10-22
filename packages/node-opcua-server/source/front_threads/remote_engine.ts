@@ -632,8 +632,8 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
         return decodeStructures(bytes, BrowseResult.prototype);
     }
 
-    public async translateBrowsePaths(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]> {
-        const bytes = await this.#service<Uint8Array>("translate", null, encodeStructures(browsePaths));
+    public async translateBrowsePaths(browsePaths: BrowsePath[], context?: ISessionContext): Promise<BrowsePathResult[]> {
+        const bytes = await this.#service<Uint8Array>("translate", context ?? null, encodeStructures(browsePaths));
         return decodeStructures(bytes, BrowsePathResult.prototype);
     }
 

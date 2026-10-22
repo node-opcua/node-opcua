@@ -200,7 +200,11 @@ export interface IAddressSpace {
 
     browseSingleNode(nodeId: NodeIdLike, browseDescription: BrowseDescription, context?: ISessionContext): BrowseResult;
 
-    browsePath(browsePath: BrowsePath): BrowsePathResult;
+    /**
+     * @param context when given, a node the context cannot Browse (RolePermissions, AccessRestrictions)
+     *                is not followed and not returned, as if it were absent
+     */
+    browsePath(browsePath: BrowsePath, context?: ISessionContext): BrowsePathResult;
 
     inverseReferenceType(referenceType: string): string;
 

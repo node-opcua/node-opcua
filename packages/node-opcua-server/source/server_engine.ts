@@ -1982,19 +1982,19 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         return session;
     }
 
-    public async translateBrowsePaths(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]> {
+    public async translateBrowsePaths(browsePaths: BrowsePath[], context?: ISessionContext): Promise<BrowsePathResult[]> {
         const browsePathResults: BrowsePathResult[] = [];
         for (const browsePath of browsePaths) {
-            const result = await this.translateBrowsePath(browsePath);
+            const result = await this.translateBrowsePath(browsePath, context);
             browsePathResults.push(result);
         }
         return browsePathResults;
     }
-    public async translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult> {
+    public async translateBrowsePath(browsePath: BrowsePath, context?: ISessionContext): Promise<BrowsePathResult> {
         if (!this.addressSpace) {
             throw new Error("addressSpace is not available");
         }
-        const result = this.addressSpace.browsePath(browsePath);
+        const result = this.addressSpace.browsePath(browsePath, context);
         const backend = (this.addressSpaceAccessor as AddressSpaceAccessor | null)?.compactBackend;
         if (backend && result.statusCode.equals(StatusCodes.BadNoMatch)) {
             // a path that leads into a compact namespace is followed there, from the same start
