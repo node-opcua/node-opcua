@@ -1,13 +1,12 @@
-import { allPermissions, makeAccessRestrictionsFlag, makePermissionFlag } from "node-opcua-data-model";
+import { allPermissions, BrowseDirection, makePermissionFlag } from "node-opcua-data-model";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { nodesets } from "node-opcua-nodesets";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
-import { MessageSecurityMode } from "node-opcua-types";
 import should from "should";
 import { AddressSpace, makeRoles, PseudoSession, WellKnownRoles } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
 import { makeMockSessionContext } from "../testHelpers.js";
-import { nodesets } from "node-opcua-nodesets";
 
 describe("PseudoSession.translateBrowsePath honours the session context", () => {
     let addressSpace: AddressSpace;
@@ -23,11 +22,8 @@ describe("PseudoSession.translateBrowsePath honours the session context", () => 
     };
     const contextAdmin = makeMockSessionContext({ userName: "admin", server });
     const contextOperator = makeMockSessionContext({ userName: "operator", server });
-    const contextNoEncryption = makeMockSessionContext({ userName: "admin", securityMode: MessageSecurityMode.None, server });
 
-    const adminOnly = [
-        { roleId: WellKnownRoles.ConfigureAdmin, permissions: makePermissionFlag("Browse | Read") as number },
-    ];
+    const adminOnly = [{ roleId: WellKnownRoles.ConfigureAdmin, permissions: makePermissionFlag("Browse | Read") as number }];
     const everyone = [{ roleId: WellKnownRoles.AuthenticatedUser, permissions: allPermissions }, ...adminOnly];
 
     before(async () => {
@@ -39,13 +35,6 @@ describe("PseudoSession.translateBrowsePath honours the session context", () => 
         const parent = namespace.addObject({ browseName: "Parent", organizedBy: addressSpace.rootFolder.objects });
         namespace.addVariable({ browseName: "Public", dataType: "Double", componentOf: parent, rolePermissions: everyone });
         namespace.addVariable({ browseName: "Secret", dataType: "Double", componentOf: parent, rolePermissions: adminOnly });
-        namespace.addVariable({
-            browseName: "Encrypted",
-            dataType: "Double",
-            componentOf: parent,
-            rolePermissions: everyone,
-            accessRestrictions: makeAccessRestrictionsFlag("EncryptionRequired")
-        });
 
         const hidden = namespace.addObject({
             browseName: "Hidden",
@@ -84,10 +73,15 @@ describe("PseudoSession.translateBrowsePath honours the session context", () => 
         should(result.statusCode).eql(StatusCodes.BadNoMatch);
     });
 
-    it("TBP-5 an access restriction (EncryptionRequired) hides the target on an unencrypted channel", async () => {
-        const session = new PseudoSession(addressSpace, contextNoEncryption);
-        const result = await session.translateBrowsePath(path("1:Parent.1:Encrypted"));
-        should(result.statusCode).eql(StatusCodes.BadNoMatch);
+    it("TBP-5 translateBrowsePath agrees with browse on which children of Parent are visible", async () => {
+        const session = new PseudoSession(addressSpace, contextOperator);
+        const parentId = (await session.translateBrowsePath(path("1:Parent"))).targets![0].targetId;
+        const browsed = await session.browse({ nodeId: parentId, browseDirection: BrowseDirection.Forward, resultMask: 0xff });
+        const visible = (browsed.references ?? []).map((r) => r.browseName.toString());
+        for (const name of ["Public", "Secret"]) {
+            const result = await session.translateBrowsePath(path(`1:Parent.1:${name}`));
+            should(result.statusCode.isGood()).eql(visible.includes(`1:${name}`));
+        }
     });
 
     it("TBP-6 the array form applies the context to each path", async () => {

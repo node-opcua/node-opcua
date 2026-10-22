@@ -106,9 +106,10 @@ describe("User Management Integration: client over PseudoSession (§5)", functio
         });
 
         it("should deny a non-admin (anonymous) caller", async () => {
+            // the AddUser method is not visible to Anonymous (no Browse permission)
             const um = new ClientUserManagement(sessionAs(new AnonymousIdentityToken()));
             (await um.addUser("mallory", "pass1", UserConfigurationMask.None, "")).statusCode.should.equal(
-                StatusCodes.BadUserAccessDenied
+                StatusCodes.BadNotSupported
             );
         });
 

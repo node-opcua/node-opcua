@@ -942,7 +942,7 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
      *
      *
      */
-    public browsePath(browsePath: BrowsePath): BrowsePathResult {
+    public browsePath(browsePath: BrowsePath, context?: ISessionContext): BrowsePathResult {
         assert(browsePath instanceof BrowsePath);
 
         const startingNode = this.findNode(browsePath.startingNode);
@@ -989,10 +989,21 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
 
         const res: BrowsePathTargetOptions[] = [];
 
+        // a node the context cannot browse is invisible: neither followed nor returned
+        const isBrowseDenied = (nodeId: NodeId): boolean => {
+            if (!context) {
+                return false;
+            }
+            const node = this.findNode(nodeId);
+            return !!node && context.isBrowseAccessRestricted(node);
+        };
+
         const explore_element = (curNodeObject: BaseNode, elements: RelativePathElement[], index: number) => {
             const element = elements[index];
             const is_last = index + 1 === elements.length;
-            const nodeIds = curNodeObject.browseNodeByTargetName(element, is_last);
+            const nodeIds = curNodeObject
+                .browseNodeByTargetName(element, is_last)
+                .filter((nodeId: NodeId) => !isBrowseDenied(nodeId));
             const targets = nodeIds.map((nodeId: NodeId) => {
                 return {
                     remainingPathIndex: elements.length - index,

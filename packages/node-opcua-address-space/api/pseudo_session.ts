@@ -352,7 +352,7 @@ export class PseudoSession implements IBasicSession {
             browsePaths = [browsePaths as BrowsePath];
         }
         const browsePathResults = (browsePaths as BrowsePath[]).map((browsePath: BrowsePath) => {
-            return this[$addressSpace].browsePath(browsePath);
+            return this[$addressSpace].browsePath(browsePath, this[$context]);
         });
         if (isArray) {
             (callback as ResponseCallback<BrowsePathResult[]> | undefined)?.(null, browsePathResults);

@@ -4444,7 +4444,7 @@ export abstract class OPCUAServerCore<
             message,
             channel,
             async (
-                _session: ServerSession,
+                session: ServerSession,
                 sendResponse: (response: Response) => void,
                 sendError: (statusCode: StatusCode) => void
             ) => {
@@ -4461,7 +4461,7 @@ export abstract class OPCUAServerCore<
                 }
 
                 this.engine
-                    .translateBrowsePaths(request.browsePaths)
+                    .translateBrowsePaths(request.browsePaths, session.sessionContext)
                     .then((browsePathsResults) => {
                         const response = new TranslateBrowsePathsToNodeIdsResponse({
                             diagnosticInfos: null,
