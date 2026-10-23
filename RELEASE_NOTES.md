@@ -1,3 +1,22 @@
+TranslateBrowsePaths follows the Browse permission of the session
+=================================================================
+
+`browse` already hid a node the caller's role cannot Browse; `translateBrowsePath` did not.
+
+  - fix: `PseudoSession.translateBrowsePath` and the TranslateBrowsePaths service skip, at every step
+    and on the target, a node the session's role cannot Browse (`ISessionContext.isBrowseAccessRestricted`),
+    so the path gives `BadNoMatch`, as if the node were absent. `AddressSpace.browsePath(path, context?)`
+    and `ServerEngine.translateBrowsePath(s)(paths, context?)` take the context; without one nothing
+    is filtered. As in `browse`, only the Browse role permission is checked, not AccessRestrictions.
+  - **behaviour change** a client that cannot Browse a Method no longer resolves its NodeId, so the
+    role-set and user-management clients (`addIdentity`, `addRole`, `addUser`, ...) answer
+    `BadNotSupported` for such a caller where they answered `BadUserAccessDenied`. Calling the Method
+    with a NodeId obtained otherwise is still refused with `BadUserAccessDenied`.
+  - for client code: treat `BadNotSupported` from these helpers as "not available to this user", and
+    do not cache a failed lookup across a change of the user's roles (a `ClientRole` caches the
+    methods it resolved: create a new one after the roles change).
+
+
 OPC UA JSON follows Part 6 1.04 and 1.05
 ========================================
 
