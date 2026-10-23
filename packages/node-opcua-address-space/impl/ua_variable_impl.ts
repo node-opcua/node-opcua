@@ -255,6 +255,11 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
      * it, as the Read service does for the others, evaluates the getter twice for nothing.
      */
     declare public _refreshFuncWrapsGetter?: boolean;
+    /**
+     * true when the timestamped getter answered a Promise when it was bound: it is run by asyncRefresh
+     * only. readValue cannot use a Promise: it serves the value the last refresh left.
+     */
+    declare public _getterIsAsync?: boolean;
     // the read that started the refresh in progress, and the reads that came while it was (an array only then):
     // a sampled variable is read once per sample, and one at a time
     declare private __waiting_callback?: CallbackT<DataValue>;
@@ -463,7 +468,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             return makeNowDataValue({ statusCode: StatusCodes.BadDataEncodingInvalid });
         }
 
-        if (this._timestamped_get_func) {
+        if (this._timestamped_get_func && !this._getterIsAsync) {
             if (this._timestamped_get_func.length === 0) {
                 const dataValueOrPromise = (this._timestamped_get_func as VariableDataValueGetterSync)();
                 if (!Object.hasOwn(dataValueOrPromise.constructor.prototype, "then")) {
@@ -1304,6 +1309,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             this._set_func = null;
             this.refreshFunc = undefined;
             this._refreshFuncWrapsGetter = false;
+            this._getterIsAsync = false;
             this._historyRead = UAVariableImpl.prototype._historyRead;
         }
 
@@ -2459,6 +2465,7 @@ function _Variable_bind_with_timestamped_get(
 
             throw new Error(" Bind variable error: " + " the timestamped_get function must return a DataValue");
         }
+        this._getterIsAsync = isThenable(dataValue_verify);
         _Variable_bind_with_async_refresh.call(this, { refreshFunc: async_refresh_func });
     } else if (options.timestamped_get.length === 1) {
         _Variable_bind_with_async_refresh.call(this, { refreshFunc: options.timestamped_get });

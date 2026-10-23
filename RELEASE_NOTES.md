@@ -1,3 +1,13 @@
+An asynchronous getter is no longer run by the synchronous read
+===============================================================
+
+  - fix: a Variable bound with an asynchronous `timestamped_get` (one that returns a Promise) had its
+    getter run by `readValue()` as well as by the refresh, so every Read service call ran it twice and
+    logged `NODE-OPCUA-E28` each time, since `readValue()` cannot use a Promise. `readValue()` now
+    serves the value the last refresh left; the getter runs once per refresh. A Variable bound with a
+    synchronous getter is unchanged: `readValue()` still evaluates it.
+
+
 A Variable write its setter rejects is no longer stored
 =======================================================
 
