@@ -11,6 +11,17 @@ A Variable write its setter rejects is no longer stored
     (`timestamped_set`, see the "form 3" case of `test_issue_1119.ts`).
 
 
+A read that joins a read in flight is checked on its own
+========================================================
+
+  - fix: `UAVariable.readValueAsync` lets a read that arrives while the Variable is refreshing
+    (`refreshFunc`, or a getter) wait for that refresh instead of starting another one, but it
+    returned before the access checks of the joining read. A session that may not read the Variable
+    (AccessRestrictions, Read permission, UserAccessLevel) therefore received the value another
+    session was reading. Every read is now checked with its own session context before it joins;
+    the refresh is still shared.
+
+
 TranslateBrowsePaths follows the Browse permission of the session
 =================================================================
 
