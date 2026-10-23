@@ -143,7 +143,10 @@ describe("historization and status code Bad #1119", function () {
                 }
             }
         });
-        result.should.eql(["50 Good", "1 Good", "100 Good", "1000 BadOutOfRange", "10 GoodClamped"]);
+        // the setter refused the write of 1000: it did not happen, so it is not historized
+        // (as when the setter throws, form 2); to historize a Bad sample, the setter answers Good
+        // and stamps the Bad status on the value (form 3)
+        result.should.eql(["50 Good", "1 Good", "100 Good", "10 GoodClamped"]);
     });
 
     it("should create a historical node with a status code - form 2", async () => {

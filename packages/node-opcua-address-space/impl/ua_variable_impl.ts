@@ -998,6 +998,11 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
 
         write_func.call(this, dataValue, (err?: Error | null, statusCode1?: StatusCode) => {
             if (!err) {
+                // a write the setter answers Bad did not happen: the stored value stays as it was
+                if (statusCode1?.isNotGood()) {
+                    callback?.(null, statusCode1);
+                    return;
+                }
                 dataValue && this.verifyVariantCompatibility(dataValue.value);
 
                 if (indexRange && !indexRange.isEmpty()) {
@@ -2527,10 +2532,6 @@ function _Variable_bind_with_simple_set(this: UAVariableImpl, options: SimpleSet
                 );
                 errorLog(chalk.yellow("StatusCode.Good is assumed"));
                 return callback(err, StatusCodes.Good, timestamped_value);
-            }
-            if (statusCode?.isNotGood()) {
-                // record the value but still record the statusCode !
-                timestamped_value.statusCode = statusCode;
             }
             callback(err, statusCode ?? StatusCodes.BadInternalError, timestamped_value);
         });

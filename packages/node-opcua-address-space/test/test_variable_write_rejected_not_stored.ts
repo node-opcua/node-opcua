@@ -21,6 +21,9 @@ describe("a Variable write that its setter rejects does not change the stored va
         addressSpace.dispose();
     });
 
+    /** the Value the Variable holds, as later reads, history and monitored items see it */
+    const stored = (variable: UAVariable) => (variable as unknown as { $dataValue: DataValue }).$dataValue;
+
     const double = (value: number) => new Variant({ dataType: DataType.Double, value });
 
     function makeVariable(
@@ -45,8 +48,9 @@ describe("a Variable write that its setter rejects does not change the stored va
     async function writeThenInspect(variable: UAVariable) {
         const changes: number[] = [];
         variable.on("value_changed", (dataValue: DataValue) => changes.push(dataValue.value.value));
+        variable.readValue(context); // the getter fills in the stored Value
         const statusCode = await variable.writeValue(context, new DataValue({ value: double(42) }));
-        return { statusCode, stored: variable.$dataValue.value.value, changes };
+        return { statusCode, stored: stored(variable).value.value, changes };
     }
 
     it("WR-1 an async setter answering Bad leaves the stored value as it was", async () => {
@@ -63,7 +67,7 @@ describe("a Variable write that its setter rejects does not change the stored va
         should(r.statusCode).eql(StatusCodes.BadOutOfRange);
         should(r.changes).eql([]);
         should(r.stored).eql(1);
-        should(variable.$dataValue.statusCode.isGood()).eql(true);
+        should(stored(variable).statusCode.isGood()).eql(true);
     });
 
     it("WR-3 a setter answering Good still stores the value", async () => {
