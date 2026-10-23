@@ -24,6 +24,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { SecurityPolicy } from "node-opcua-secure-channel";
+import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { MessageSecurityMode, TrustListDataType, UserNameIdentityToken } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
@@ -338,6 +339,21 @@ describe("ServerConfiguration", () => {
             const mgr = new ClientPushCertificateManagement(pseudoSession);
             const group = await mgr.getCertificateGroup("DefaultApplicationGroup");
             return group.getTrustList();
+        }
+
+        /**
+         * Call a TrustList method as a session without Browse permission: the method NodeId is
+         * resolved by an admin session, as the restricted one cannot see the method, but its Call
+         * must still be refused.
+         */
+        async function callTrustListMethodAsRestrictedSession(methodName: string, inputArguments: Variant[]) {
+            const admin = new PseudoSession(addressSpace, new SessionContext({ server: opcuaServer, session }));
+            const restricted = new PseudoSession(addressSpace, new SessionContext({ server: makeRestrictedServer(), session }));
+            const objectId = (await getDefaultTrustList()).nodeId;
+            const resolved = await admin.translateBrowsePath(makeBrowsePath(objectId, `/${methodName}`));
+            should(resolved.statusCode).eql(StatusCodes.Good);
+            const methodId = resolved.targets?.[0].targetId as NodeId;
+            return (await restricted.call({ objectId, methodId, inputArguments })).statusCode;
         }
 
         /** Preload issuer certificates into the trust list so AddCertificate chain validation passes. */
@@ -867,6 +883,10 @@ describe("ServerConfiguration", () => {
                 await trustList.close();
             });
 
+            it("should not let a session without Browse permission discover the TrustList", async () => {
+                await getDefaultTrustList(makeRestrictedServer(), session).should.be.rejectedWith(/BadNoMatch/);
+            });
+
             it("should return BadInvalidState when trust list is opened for write", async () => {
                 const trustList = await getDefaultTrustList();
 
@@ -1020,11 +1040,10 @@ describe("ServerConfiguration", () => {
             });
 
             it("should return BadUserAccessDenied without proper user roles", async () => {
-                const trustList = await getDefaultTrustList(makeRestrictedServer(), session);
-
-                const certificates = [selfSignedCert];
-
-                const sc = await trustList.addCertificate(certificates[0], true);
+                const sc = await callTrustListMethodAsRestrictedSession("AddCertificate", [
+                    new Variant({ dataType: DataType.ByteString, value: selfSignedCert }),
+                    new Variant({ dataType: DataType.Boolean, value: true })
+                ]);
                 sc.should.eql(StatusCodes.BadUserAccessDenied);
             });
 
@@ -1089,10 +1108,10 @@ describe("ServerConfiguration", () => {
             });
 
             it("should return BadUserAccessDenied without proper user roles", async () => {
-                const trustList = await getDefaultTrustList(makeRestrictedServer(), session);
-
-                const fakeThumbprint = "0123456789abcdef0123456789abcdef01234567";
-                const sc = await trustList.removeCertificate(fakeThumbprint, true);
+                const sc = await callTrustListMethodAsRestrictedSession("RemoveCertificate", [
+                    new Variant({ dataType: DataType.String, value: "0123456789abcdef0123456789abcdef01234567" }),
+                    new Variant({ dataType: DataType.Boolean, value: true })
+                ]);
                 sc.should.eql(StatusCodes.BadUserAccessDenied);
             });
 

@@ -12,6 +12,8 @@ TranslateBrowsePaths follows the Browse permission of the session
     role-set and user-management clients (`addIdentity`, `addRole`, `addUser`, ...) answer
     `BadNotSupported` for such a caller where they answered `BadUserAccessDenied`. Calling the Method
     with a NodeId obtained otherwise is still refused with `BadUserAccessDenied`.
+    The push-certificate client (`CertificateGroup.getTrustList`) throws `BadNoMatch` for a session that
+    cannot Browse the TrustList.
   - for client code: treat `BadNotSupported` from these helpers as "not available to this user", and
     do not cache a failed lookup across a change of the user's roles (a `ClientRole` caches the
     methods it resolved: create a new one after the roles change).
