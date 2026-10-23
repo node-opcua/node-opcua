@@ -1,3 +1,14 @@
+The setter of a Variable is told the index range of a partial write
+===================================================================
+
+  - fix: a write to part of an array (`indexRange`, e.g. `1:2`) called the setter with the elements
+    written and no way to know where they go. The setter now receives the range: callback-style
+    functions as a trailing argument (`set(value, callback, context, indexRange)`,
+    `timestamped_set(dataValue, callback, context, indexRange)`) and `timestamped_set_ctx` in its
+    options (`{ context, indexRange }`). The range is null or empty for a write of the whole value.
+    Promise-style `set` and `timestamped_set` cannot receive it: use `timestamped_set_ctx`.
+
+
 Getters and setters of a Variable know the session context
 ==========================================================
 

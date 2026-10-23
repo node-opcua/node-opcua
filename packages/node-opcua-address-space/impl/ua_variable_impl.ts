@@ -1090,7 +1090,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                 }
                 callback?.(err || null, statusCode1);
             },
-            context
+            context,
+            indexRange
         );
         return undefined;
     }
