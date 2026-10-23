@@ -27,7 +27,9 @@ import {
     makeDefaultCloneExtraInfo,
     type SetFunc,
     type VariableDataValueGetterSync,
+    type VariableDataValueGetterWithContext,
     type VariableDataValueSetterWithCallback,
+    type VariableDataValueSetterWithContext,
     type VariableSetter
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
@@ -248,7 +250,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     declare public _timestamped_set_func?: VariableDataValueSetterWithCallback | null;
     declare public _get_func?: GetFunc | null;
     declare public _set_func?: ((value: Variant, callback: (err: Error | null, statusCode?: StatusCode) => void) => void) | null;
-    declare public refreshFunc?: (callback: CallbackT<DataValue>) => void;
+    declare public refreshFunc?: (callback: CallbackT<DataValue>, context?: ISessionContext) => void;
     /**
      * true when refreshFunc only wraps the synchronous getter of a Variable bound with a plain
      * `get`. readValue evaluates that getter itself: refreshing such a Variable before reading
@@ -552,9 +554,13 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         return dataTypeNode._getEnumerationInfo();
     }
 
-    public asyncRefresh(oldestDate: PreciseClock, callback: CallbackT<DataValue>): void;
+    public asyncRefresh(oldestDate: PreciseClock, callback: CallbackT<DataValue>, context?: ISessionContext): void;
     public asyncRefresh(oldestDate: PreciseClock): Promise<DataValue>;
-    public asyncRefresh(oldestDate: PreciseClock, callback?: CallbackT<DataValue>): Promise<DataValue> | undefined {
+    public asyncRefresh(
+        oldestDate: PreciseClock,
+        callback?: CallbackT<DataValue>,
+        context?: ISessionContext
+    ): Promise<DataValue> | undefined {
         // asyncRefresh is always invoked with a callback at runtime: the public overload without
         // a callback is only reachable through the withCallback() wrapper installed below, which
         // synthesizes one before calling into this implementation.
@@ -593,33 +599,37 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         const requestedAtPicoseconds = oldestDate.picoseconds;
         let answeredAtOnce = true;
         try {
-            this.refreshFunc.call(this, (err: Error | null, dataValue?: DataValueLike) => {
-                // c8 ignore next
-                if (err || !dataValue) {
-                    errorLog(
-                        "-------------- refresh call failed",
-                        this.browseName.toString(),
-                        this.nodeId.toString(),
-                        err?.message
-                    );
-                    dataValue = { statusCode: StatusCodes.BadNoDataAvailable };
-                }
-                if (dataValue && dataValue !== this.$dataValue) {
-                    const refreshed = coerceDataValue(dataValue);
-                    if (!refreshed.serverTimestamp) {
-                        if (answeredAtOnce && sharedClock) {
-                            refreshed.serverTimestamp = requestedAt;
-                            refreshed.serverPicoseconds = requestedAtPicoseconds;
-                        } else {
-                            const now = getCurrentClock();
-                            refreshed.serverTimestamp = now.timestamp;
-                            refreshed.serverPicoseconds = now.picoseconds;
-                        }
+            this.refreshFunc.call(
+                this,
+                (err: Error | null, dataValue?: DataValueLike) => {
+                    // c8 ignore next
+                    if (err || !dataValue) {
+                        errorLog(
+                            "-------------- refresh call failed",
+                            this.browseName.toString(),
+                            this.nodeId.toString(),
+                            err?.message
+                        );
+                        dataValue = { statusCode: StatusCodes.BadNoDataAvailable };
                     }
-                    this._internal_set_dataValue(refreshed, null);
-                }
-                cb(err, this.$dataValue);
-            });
+                    if (dataValue && dataValue !== this.$dataValue) {
+                        const refreshed = coerceDataValue(dataValue);
+                        if (!refreshed.serverTimestamp) {
+                            if (answeredAtOnce && sharedClock) {
+                                refreshed.serverTimestamp = requestedAt;
+                                refreshed.serverPicoseconds = requestedAtPicoseconds;
+                            } else {
+                                const now = getCurrentClock();
+                                refreshed.serverTimestamp = now.timestamp;
+                                refreshed.serverPicoseconds = now.picoseconds;
+                            }
+                        }
+                        this._internal_set_dataValue(refreshed, null);
+                    }
+                    cb(err, this.$dataValue);
+                },
+                context
+            );
             answeredAtOnce = false;
         } catch (err) {
             errorLog("-------------- refresh call failed 2", this.browseName.toString(), this.nodeId.toString());
@@ -1001,82 +1011,87 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         }
         assert(write_func);
 
-        write_func.call(this, dataValue, (err?: Error | null, statusCode1?: StatusCode) => {
-            if (!err) {
-                // a write the setter answers Bad did not happen: the stored value stays as it was
-                if (statusCode1?.isNotGood()) {
-                    callback?.(null, statusCode1);
-                    return;
-                }
-                dataValue && this.verifyVariantCompatibility(dataValue.value);
-
-                if (indexRange && !indexRange.isEmpty()) {
-                    if (!indexRange.isValid()) {
-                        callback?.(null, StatusCodes.BadIndexRangeInvalid);
+        write_func.call(
+            this,
+            dataValue,
+            (err?: Error | null, statusCode1?: StatusCode) => {
+                if (!err) {
+                    // a write the setter answers Bad did not happen: the stored value stays as it was
+                    if (statusCode1?.isNotGood()) {
+                        callback?.(null, statusCode1);
                         return;
                     }
+                    dataValue && this.verifyVariantCompatibility(dataValue.value);
 
-                    const newArrayOrMatrix = dataValue.value.value;
-
-                    if (dataValue.value.arrayType === VariantArrayType.Array) {
-                        if (this.$dataValue.value.arrayType !== VariantArrayType.Array) {
-                            callback(null, StatusCodes.BadTypeMismatch);
+                    if (indexRange && !indexRange.isEmpty()) {
+                        if (!indexRange.isValid()) {
+                            callback?.(null, StatusCodes.BadIndexRangeInvalid);
                             return;
                         }
-                        // check that destination data is also an array
-                        assert(check_valid_array(this.$dataValue.value.dataType, this.$dataValue.value.value));
-                        const destArr = this.$dataValue.value.value;
-                        const result = indexRange.set_values(destArr, newArrayOrMatrix);
 
-                        if (result.statusCode.isNot(StatusCodes.Good)) {
-                            callback?.(null, result.statusCode);
-                            return;
-                        }
-                        dataValue.value.value = result.array;
+                        const newArrayOrMatrix = dataValue.value.value;
 
-                        // scrap original array so we detect range
-                        this.$dataValue.value.value = null;
-                    } else if (dataValue.value.arrayType === VariantArrayType.Matrix) {
-                        const dimensions = this.$dataValue.value.dimensions;
-                        if (this.$dataValue.value.arrayType !== VariantArrayType.Matrix || !dimensions) {
-                            // not a matrix !
+                        if (dataValue.value.arrayType === VariantArrayType.Array) {
+                            if (this.$dataValue.value.arrayType !== VariantArrayType.Array) {
+                                callback(null, StatusCodes.BadTypeMismatch);
+                                return;
+                            }
+                            // check that destination data is also an array
+                            assert(check_valid_array(this.$dataValue.value.dataType, this.$dataValue.value.value));
+                            const destArr = this.$dataValue.value.value;
+                            const result = indexRange.set_values(destArr, newArrayOrMatrix);
+
+                            if (result.statusCode.isNot(StatusCodes.Good)) {
+                                callback?.(null, result.statusCode);
+                                return;
+                            }
+                            dataValue.value.value = result.array;
+
+                            // scrap original array so we detect range
+                            this.$dataValue.value.value = null;
+                        } else if (dataValue.value.arrayType === VariantArrayType.Matrix) {
+                            const dimensions = this.$dataValue.value.dimensions;
+                            if (this.$dataValue.value.arrayType !== VariantArrayType.Matrix || !dimensions) {
+                                // not a matrix !
+                                callback?.(null, StatusCodes.BadTypeMismatch);
+                                return;
+                            }
+                            const matrix = this.$dataValue.value.value;
+                            const result = indexRange.set_values_matrix(
+                                {
+                                    matrix,
+                                    dimensions
+                                },
+                                newArrayOrMatrix
+                            );
+                            if (result.statusCode.isNot(StatusCodes.Good)) {
+                                callback?.(null, result.statusCode);
+                                return;
+                            }
+                            dataValue.value.dimensions = this.$dataValue.value.dimensions;
+                            dataValue.value.value = result.matrix;
+
+                            // scrap original array so we detect range
+                            this.$dataValue.value.value = null;
+                        } else {
                             callback?.(null, StatusCodes.BadTypeMismatch);
                             return;
                         }
-                        const matrix = this.$dataValue.value.value;
-                        const result = indexRange.set_values_matrix(
-                            {
-                                matrix,
-                                dimensions
-                            },
-                            newArrayOrMatrix
-                        );
-                        if (result.statusCode.isNot(StatusCodes.Good)) {
-                            callback?.(null, result.statusCode);
-                            return;
+                    }
+                    try {
+                        this._internal_set_dataValue(dataValue, indexRange);
+                    } catch (err) {
+                        if (types.isNativeError(err)) {
+                            warningLog(err.message);
                         }
-                        dataValue.value.dimensions = this.$dataValue.value.dimensions;
-                        dataValue.value.value = result.matrix;
-
-                        // scrap original array so we detect range
-                        this.$dataValue.value.value = null;
-                    } else {
-                        callback?.(null, StatusCodes.BadTypeMismatch);
+                        callback?.(null, StatusCodes.BadInternalError);
                         return;
                     }
                 }
-                try {
-                    this._internal_set_dataValue(dataValue, indexRange);
-                } catch (err) {
-                    if (types.isNativeError(err)) {
-                        warningLog(err.message);
-                    }
-                    callback?.(null, StatusCodes.BadInternalError);
-                    return;
-                }
-            }
-            callback?.(err || null, statusCode1);
-        });
+                callback?.(err || null, statusCode1);
+            },
+            context
+        );
         return undefined;
     }
 
@@ -1437,9 +1452,9 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
                 this.__sharedReadClock = readAt !== undefined;
                 if (this.asyncRefresh === wrappedAsyncRefresh) {
                     // the thenified wrapper adds nothing when a callback is given
-                    asyncRefreshImpl.call(this, clock, satisfy_callbacks);
+                    asyncRefreshImpl.call(this, clock, satisfy_callbacks, context);
                 } else {
-                    this.asyncRefresh(clock, satisfy_callbacks);
+                    this.asyncRefresh(clock, satisfy_callbacks, context);
                 }
                 // consumed by asyncRefresh on entry; cleared here for an overridden one that never reads it
                 this.__sharedReadClock = false;
@@ -2216,9 +2231,28 @@ import { withCallback } from "thenify-ex";
 
 // readValueAsync calls the unwrapped asyncRefresh directly: binding the thenified wrapper on
 // every sample cost more than the refresh itself
-const asyncRefreshImpl: (this: UAVariableImpl, oldestDate: PreciseClock, callback: CallbackT<DataValue>) => void =
-    UAVariableImpl.prototype.asyncRefresh;
-UAVariableImpl.prototype.asyncRefresh = withCallback(asyncRefreshImpl);
+const asyncRefreshImpl: (
+    this: UAVariableImpl,
+    oldestDate: PreciseClock,
+    callback: CallbackT<DataValue>,
+    context?: ISessionContext
+) => void = UAVariableImpl.prototype.asyncRefresh;
+// the promise form when no callback is given, as withCallback() does: written out because that
+// wrapper takes the last argument for the callback, and the context comes after it
+UAVariableImpl.prototype.asyncRefresh = function (
+    this: UAVariableImpl,
+    oldestDate: PreciseClock,
+    callback?: CallbackT<DataValue>,
+    context?: ISessionContext
+): Promise<DataValue> | undefined {
+    if (typeof callback === "function") {
+        asyncRefreshImpl.call(this, oldestDate, callback, context);
+        return undefined;
+    }
+    return new Promise<DataValue>((resolve, reject) => {
+        asyncRefreshImpl.call(this, oldestDate, (err, dataValue) => (err ? reject(err) : resolve(dataValue as DataValue)), context);
+    });
+} as UAVariableImpl["asyncRefresh"];
 const wrappedAsyncRefresh = UAVariableImpl.prototype.asyncRefresh;
 UAVariableImpl.prototype.writeValue = withCallback(UAVariableImpl.prototype.writeValue);
 UAVariableImpl.prototype.writeAttribute = withCallback(UAVariableImpl.prototype.writeAttribute);
@@ -2363,7 +2397,8 @@ function turn_sync_to_async<T, D, R>(f: f1<T, D, R> | f2<T, D, R> | f3<T, D, R>,
             callback(null, r);
         };
     } else {
-        assert(f.length === numberOfArgs + 1);
+        // a callback-style function; it may declare the trailing context and indexRange parameters
+        assert(f.length >= numberOfArgs + 1 && f.length <= numberOfArgs + 3);
         return f;
     }
 }
@@ -2467,11 +2502,12 @@ function _Variable_bind_with_timestamped_get(
         }
         this._getterIsAsync = isThenable(dataValue_verify);
         _Variable_bind_with_async_refresh.call(this, { refreshFunc: async_refresh_func });
-    } else if (options.timestamped_get.length === 1) {
-        _Variable_bind_with_async_refresh.call(this, { refreshFunc: options.timestamped_get });
+    } else if (options.timestamped_get.length === 1 || options.timestamped_get.length === 2) {
+        // callback style: (callback) or (callback, context)
+        _Variable_bind_with_async_refresh.call(this, { refreshFunc: options.timestamped_get as RefreshFunc });
     } else {
-        errorLog("timestamped_get has a invalid number of argument , should be 0 or 1  ");
-        throw new Error("timestamped_get has a invalid number of argument , should be 0 or 1  ");
+        errorLog("timestamped_get has a invalid number of argument , should be 0, 1 or 2  ");
+        throw new Error("timestamped_get has a invalid number of argument , should be 0, 1 or 2  ");
     }
 }
 
@@ -2539,24 +2575,38 @@ function _Variable_bind_with_simple_set(this: UAVariableImpl, options: SimpleSet
     const set_func = turn_sync_to_async<UAVariable, Variant, StatusCode>(options.set as VariableSetter, 1);
     this._set_func = set_func;
 
-    assert(set_func.length === 2, " set function must have 2 arguments ( variant, callback)");
+    assert(set_func.length >= 2, " set function must have 2 arguments ( variant, callback)");
 
+    // the trailing arguments (context, indexRange) are a rest parameter so that the length stays 2
     this._timestamped_set_func = (
         timestamped_value: DataValue,
-        callback: (err: Error | null, statusCode: StatusCode, dataValue: DataValue) => void
+        callback: (err: Error | null, statusCode: StatusCode, dataValue: DataValue) => void,
+        ...extra: [ISessionContext?, (NumericRange | null)?]
     ) => {
         assert(timestamped_value instanceof DataValue);
-        set_func.call(this, timestamped_value.value, (err: Error | null, statusCode?: StatusCode) => {
-            // c8 ignore next
-            if (!err && !statusCode) {
-                errorLog(
-                    chalk.red("UAVariable Binding Error _set_func must return a StatusCode, check the bindVariable parameters")
-                );
-                errorLog(chalk.yellow("StatusCode.Good is assumed"));
-                return callback(err, StatusCodes.Good, timestamped_value);
-            }
-            callback(err, statusCode ?? StatusCodes.BadInternalError, timestamped_value);
-        });
+        (
+            set_func as (
+                this: UAVariable,
+                value: Variant,
+                callback: (err: Error | null, statusCode?: StatusCode) => void,
+                ...extra: unknown[]
+            ) => void
+        ).call(
+            this,
+            timestamped_value.value,
+            (err: Error | null, statusCode?: StatusCode) => {
+                // c8 ignore next
+                if (!err && !statusCode) {
+                    errorLog(
+                        chalk.red("UAVariable Binding Error _set_func must return a StatusCode, check the bindVariable parameters")
+                    );
+                    errorLog(chalk.yellow("StatusCode.Good is assumed"));
+                    return callback(err, StatusCodes.Good, timestamped_value);
+                }
+                callback(err, statusCode ?? StatusCodes.BadInternalError, timestamped_value);
+            },
+            ...extra
+        );
     };
 }
 
@@ -2568,7 +2618,7 @@ function _Variable_bind_with_timestamped_set(
     }
 ) {
     assert(
-        options.timestamped_set.length === 2 || options.timestamped_set.length === 1,
+        options.timestamped_set.length >= 1 && options.timestamped_set.length <= 4,
         "timestamped_set must have 2 parameters  timestamped_set: function(dataValue,callback){} or one paramater  timestamped_set: function(dataValue): Promise<StatusCode>{}"
     );
     assert(!options.set, "should not specify set when timestamped_set_func exists ");
@@ -2577,7 +2627,7 @@ function _Variable_bind_with_timestamped_set(
     // setter of its own binds the same default, and a closure per variable was 110 bytes each
     let setter = callbackSetters.get(options.timestamped_set);
     if (!setter) {
-        setter = convertToCallbackFunction1<StatusCode, DataValue, UAVariable>(options.timestamped_set);
+        setter = convertToCallbackFunction1<StatusCode, DataValue, UAVariable>(options.timestamped_set, 2);
         callbackSetters.set(options.timestamped_set, setter);
     }
     this._timestamped_set_func = setter;
@@ -2585,12 +2635,41 @@ function _Variable_bind_with_timestamped_set(
 /** the callback form of each setter function met so far, see _Variable_bind_with_timestamped_set */
 const callbackSetters = new WeakMap<TimestampSetFunc, VariableDataValueSetterWithCallback>();
 
+/** an asynchronous setter that is told who writes (`timestamped_set_ctx`) */
+function _Variable_bind_with_context_setter(this: UAVariableImpl, setter: VariableDataValueSetterWithContext) {
+    // the context and the index range come after the callback, in a rest parameter: the length stays 2
+    this._timestamped_set_func = function (
+        this: UAVariable,
+        dataValue: DataValue,
+        callback: (err: Error | null, statusCode?: StatusCode) => void,
+        ...extra: [ISessionContext?, (NumericRange | null)?]
+    ) {
+        const [context, indexRange] = extra;
+        let promise: Promise<StatusCode>;
+        try {
+            promise = setter.call(this, dataValue, { context, indexRange });
+        } catch (err) {
+            callback(err as Error);
+            return;
+        }
+        Promise.resolve(promise).then(
+            (statusCode) => callback(null, statusCode),
+            (err) => callback(err as Error)
+        );
+    };
+}
+
 interface SetterOptions {
     set?: SetFunc;
     timestamped_set?: TimestampSetFunc;
+    timestamped_set_ctx?: VariableDataValueSetterWithContext;
     timestamped_get?: TimestampGetFunc;
+    timestamped_get_ctx?: VariableDataValueGetterWithContext;
 }
 function bind_setter(this: UAVariableImpl, options: SetterOptions) {
+    if (options.timestamped_set && options.timestamped_set_ctx) {
+        throw new Error("bind_setter : options should not specify both timestamped_set and timestamped_set_ctx ");
+    }
     if (options.set && typeof options.set === "function") {
         // variation 1
         if (options.timestamped_set === undefined) {
@@ -2605,8 +2684,15 @@ function bind_setter(this: UAVariableImpl, options: SetterOptions) {
             set: undefined,
             timestamped_set: options.timestamped_set
         });
-    } else if (typeof options.timestamped_get === "function") {
-        // timestamped_get is  specified but timestamped_set is not
+    } else if (typeof options.timestamped_set_ctx === "function") {
+        // variation 5: the setter is told who writes
+        assert(
+            typeof options.timestamped_get === "function" || typeof options.timestamped_get_ctx === "function",
+            "timestamped_set_ctx must be used with timestamped_get or timestamped_get_ctx"
+        );
+        _Variable_bind_with_context_setter.call(this, options.timestamped_set_ctx);
+    } else if (typeof options.timestamped_get === "function" || typeof options.timestamped_get_ctx === "function") {
+        // a timestamped getter is specified but no setter
         // => Value is read-only
         _Variable_bind_with_timestamped_set.call(this, {
             set: undefined,
@@ -2620,10 +2706,36 @@ function bind_setter(this: UAVariableImpl, options: SetterOptions) {
     }
 }
 
-type RefreshFunc = (callback: CallbackT<DataValue>) => void;
+type RefreshFunc = (callback: CallbackT<DataValue>, context?: ISessionContext) => void;
+/**
+ * variation 5: an asynchronous getter that is told who reads (`timestamped_get_ctx`). It is run by
+ * the refresh only, like any asynchronous getter, with the session context of the read.
+ */
+function _Variable_bind_with_context_getter(this: UAVariableImpl, getter: VariableDataValueGetterWithContext) {
+    _Variable_bind_with_async_refresh.call(this, {
+        refreshFunc: (callback: CallbackT<DataValue>, context?: ISessionContext) => {
+            let promise: Promise<DataValue>;
+            try {
+                promise = getter.call(this, { context });
+            } catch (err) {
+                callback(err as Error);
+                return;
+            }
+            Promise.resolve(promise).then(
+                (dataValue) => callback(null, dataValue),
+                (err) => {
+                    errorLog("timestamped_get_ctx error: Variable is ", this.nodeId.toString(), this.browseName.toString());
+                    callback(err as Error);
+                }
+            );
+        }
+    });
+}
+
 interface GetterOptions {
     get?: GetFunc;
     timestamped_get?: TimestampGetFunc;
+    timestamped_get_ctx?: VariableDataValueGetterWithContext;
     refreshFunc?: RefreshFunc;
     dataType?: DataType | string;
     value?: unknown;
@@ -2638,6 +2750,9 @@ function bind_getter(this: UAVariableImpl, options: GetterOptions) {
             get: undefined,
             timestamped_get: options.timestamped_get
         });
+    } else if (typeof options.timestamped_get_ctx === "function") {
+        // variation 5
+        _Variable_bind_with_context_getter.call(this, options.timestamped_get_ctx);
     } else if (typeof options.refreshFunc === "function") {
         // variation 3
         if (options.get !== undefined || options.timestamped_get !== undefined) {

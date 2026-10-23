@@ -3829,27 +3829,32 @@ export abstract class OPCUAServerCore<
                 const context = session.sessionContext;
 
                 // ask for a refresh of asynchronous variables
-                this.engine.refreshValues(request.nodesToRead, 0, (err?: Error | null) => {
-                    assert(!err, " error not handled here , fix me"); // TODO
+                this.engine.refreshValues(
+                    request.nodesToRead,
+                    0,
+                    (err?: Error | null) => {
+                        assert(!err, " error not handled here , fix me"); // TODO
 
-                    this.engine
-                        .historyRead(context, request)
-                        .then((results: HistoryReadResult[]) => {
-                            assert(results[0].schema.name === "HistoryReadResult");
-                            assert(results.length === request.nodesToRead?.length);
+                        this.engine
+                            .historyRead(context, request)
+                            .then((results: HistoryReadResult[]) => {
+                                assert(results[0].schema.name === "HistoryReadResult");
+                                assert(results.length === request.nodesToRead?.length);
 
-                            const response = new HistoryReadResponse({
-                                diagnosticInfos: undefined,
-                                results
+                                const response = new HistoryReadResponse({
+                                    diagnosticInfos: undefined,
+                                    results
+                                });
+
+                                assert(response.diagnosticInfos?.length === 0);
+                                sendResponse(response);
+                            })
+                            .catch((_err) => {
+                                return sendError(StatusCodes.BadHistoryOperationInvalid);
                             });
-
-                            assert(response.diagnosticInfos?.length === 0);
-                            sendResponse(response);
-                        })
-                        .catch((_err) => {
-                            return sendError(StatusCodes.BadHistoryOperationInvalid);
-                        });
-                });
+                    },
+                    context
+                );
             }
         );
     }
