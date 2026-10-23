@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-gds",
-    "version": "2.187.13",
+    "version": "2.187.14",
     "type": "module",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-gds",
     "main": "dist/index.js",
@@ -15,12 +15,12 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-address-space-base": "2.187.13",
+        "node-opcua-address-space-base": "2.187.14",
         "node-opcua-basic-types": "2.187.0",
         "node-opcua-data-model": "2.187.0",
         "node-opcua-extension-object": "2.187.0",
         "node-opcua-nodeid": "2.187.0",
-        "node-opcua-nodeset-ua": "2.187.13",
+        "node-opcua-nodeset-ua": "2.187.14",
         "node-opcua-status-code": "2.187.0",
         "node-opcua-variant": "2.187.0"
     },
