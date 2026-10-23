@@ -1666,6 +1666,26 @@ describe("testing ServerEngine", () => {
             return dataValues[0];
         }
 
+        it("SC-8 the Read service gives the session context to the refreshFunc of the Variable", async () => {
+            const ns = engine.addressSpace?.getOwnNamespace() as INamespace;
+            const nodeId = "ns=1;s=MyVarWithContext";
+            let seen: unknown;
+            const variable = ns.addVariable({ browseName: "SomeVarWithContext", dataType: "Double", nodeId });
+            variable.bindVariable({
+                refreshFunc: (callback, refreshContext) => {
+                    seen = refreshContext;
+                    callback(null, new DataValue({ value: new Variant({ dataType: "Double", value: 1 }) }));
+                }
+            });
+            const readRequest = new ReadRequest({
+                nodesToRead: [new ReadValueId({ nodeId, attributeId: AttributeIds.Value })]
+            });
+            await new Promise<void>((resolve, reject) =>
+                engine.prepareRead(context, readRequest, (err) => (err ? reject(err) : resolve()))
+            );
+            should(seen).equal(context);
+        });
+
         it("MAXA-1 should not cause dataValue to be refreshed if maxAge is greater than available dataValue", async () => {
             const ns = engine.addressSpace?.getOwnNamespace();
             if (!ns) return;

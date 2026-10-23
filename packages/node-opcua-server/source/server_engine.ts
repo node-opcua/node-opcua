@@ -2067,12 +2067,17 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * what a Read needs before its values are read: the asynchronous Variables refreshed (a front
      * thread's engine fetches there what it cannot read in place, see RemoteEngine)
      */
-    public prepareRead(_context: ISessionContext, readRequest: ReadRequestOptions, callback: (err?: Error | null) => void): void {
+    public prepareRead(context: ISessionContext, readRequest: ReadRequestOptions, callback: (err?: Error | null) => void): void {
         const nodesToRead = (readRequest.nodesToRead ?? []) as ReadValueId[];
         const maxAge = readRequest.maxAge ?? 0;
-        this.refreshValues(nodesToRead, maxAge, (err?: Error | null) => {
-            callback(err ?? null);
-        });
+        this.refreshValues(
+            nodesToRead,
+            maxAge,
+            (err?: Error | null) => {
+                callback(err ?? null);
+            },
+            context
+        );
     }
 
     /**
@@ -2104,7 +2109,9 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
          * The array length matches the number of  nodeIds that are candidate for an
          * async refresh (i.e: nodes that are of type Variable with asyncRefresh func }
          */
-        callback: (err: Error | null, dataValues?: DataValue[]) => void
+        callback: (err: Error | null, dataValues?: DataValue[]) => void,
+        /** the session context of the read: given to the refresh function of each Variable */
+        context?: ISessionContext
     ): void {
         // this runs on every Read, and most Reads touch no Variable with a refresh func: the
         // candidates are collected by identity (findNode returns one node per NodeId), without
@@ -2179,7 +2186,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 finishIfDone();
             };
             try {
-                uaVariable.asyncRefresh(referenceTime, onRefreshed);
+                uaVariable.asyncRefresh(referenceTime, onRefreshed, context);
             } catch (err) {
                 const _err = err as Error;
                 errorLog("asyncRefresh internal error", _err.message);

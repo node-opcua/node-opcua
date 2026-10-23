@@ -45,7 +45,16 @@ export type PromiseFunc1<T, P, This> = (this: This, param1: P) => Promise<T>;
 export type CallbackFunc1<T, P, This> = (this: This, param1: P, callback: CallbackT<T>) => void;
 export type MultiformFunc1<T, P, This> = StraightFunc1<T, P, This> | PromiseFunc1<T, P, This> | CallbackFunc1<T, P, This>;
 
-export function convertToCallbackFunction1<T, P, This>(func: MultiformFunc1<T, P, This>): CallbackFunc1<T, P, This> {
+/**
+ * A function of one parameter is a straight or a Promise-returning one, a function of two is a
+ * callback-style one. A callback-style function may also declare up to `extraArguments` trailing
+ * parameters (the session context of a Variable's getter or setter, for instance): they are
+ * passed on as given.
+ */
+export function convertToCallbackFunction1<T, P, This>(
+    func: MultiformFunc1<T, P, This>,
+    extraArguments = 0
+): CallbackFunc1<T, P, This> {
     if (func.length === 1) {
         return function (this: This, param: P, callback: CallbackT<T>) {
             /** */
@@ -62,13 +71,18 @@ export function convertToCallbackFunction1<T, P, This>(func: MultiformFunc1<T, P
             }
         };
     } else {
-        if (func.length !== 2) {
+        if (func.length < 2 || func.length > 2 + extraArguments) {
             throw new Error("convertToCallbackFunction: invalid function");
         }
 
-        return function (this: This, param: P, callback: CallbackT<T>) {
+        return function (this: This, param: P, callback: CallbackT<T>, ...extra: unknown[]) {
             try {
-                (func as CallbackFunc1<T, P, This>).call(this, param, callback);
+                (func as (this: This, param: P, callback: CallbackT<T>, ...extra: unknown[]) => void).call(
+                    this,
+                    param,
+                    callback,
+                    ...extra
+                );
             } catch (err) {
                 warningLog("internal error", (err as Error).message);
                 callback(err as Error);

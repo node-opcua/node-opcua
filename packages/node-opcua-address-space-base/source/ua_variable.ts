@@ -339,7 +339,11 @@ export interface UAVariable<T extends UAVariableEvents & ListenerSignature<T> = 
 
     writeValue(context: ISessionContext, dataValue: DataValue, indexRange?: string | NumericRange | null): Promise<StatusCode>;
 
-    asyncRefresh(oldestDate: PreciseClock, callback: CallbackT<DataValue>): void;
+    /**
+     * @param context the session context of the read that asks for the refresh, given to the
+     *                refreshFunc of the Variable; undefined when it does not come from a session
+     */
+    asyncRefresh(oldestDate: PreciseClock, callback: CallbackT<DataValue>, context?: ISessionContext): void;
 
     asyncRefresh(oldestDate: PreciseClock): Promise<DataValue>;
 

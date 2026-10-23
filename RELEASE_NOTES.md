@@ -1,3 +1,25 @@
+Getters and setters of a Variable know the session context
+==========================================================
+
+The getters and setters of a Variable were never told which session reads or writes it, although the
+server knows it (`prepareRead`, `writeValue`). They now receive the `ISessionContext`
+(`undefined` when the access does not come from a session).
+
+  - callback-style functions take it as a trailing argument (existing code is unchanged):
+    `refreshFunc(callback, context)`, `timestamped_get(callback, context)`,
+    `set(value, callback, context)`, `timestamped_set(dataValue, callback, context)`. These
+    functions may now declare up to two parameters more than before (2 or 3 for a getter, 2 to 4 for a
+    setter); a function of the previous length is classified exactly as it was.
+  - Promise-style functions cannot declare the extra parameter (their length tells them apart from the
+    callback style), so there are two new bindings, with a fixed signature:
+    `timestamped_get_ctx(this, { context }): Promise<DataValue>` and
+    `timestamped_set_ctx(this, dataValue, { context }): Promise<StatusCode>`
+    (`timestamped_set_ctx` needs `timestamped_get` or `timestamped_get_ctx`).
+  - `UAVariable.asyncRefresh(oldestDate, callback, context?)` and
+    `ServerEngine.refreshValues(nodes, maxAge, callback, context?)` take the context to give to the
+    refresh function. A refresh shared by concurrent reads gets the context of the first one.
+
+
 An asynchronous getter is no longer run by the synchronous read
 ===============================================================
 

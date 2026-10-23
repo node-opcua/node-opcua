@@ -72,7 +72,7 @@ export class EngineServices {
             }
             case "historyRead": {
                 const request = decodeStructure(bytes, new HistoryReadRequest());
-                await new Promise<void>((resolve) => engine.refreshValues(request.nodesToRead ?? [], 0, () => resolve()));
+                await new Promise<void>((resolve) => engine.refreshValues(request.nodesToRead ?? [], 0, () => resolve(), context));
                 return encodeStructures(await engine.historyRead(context, request));
             }
         }
