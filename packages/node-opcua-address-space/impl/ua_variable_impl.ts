@@ -1349,11 +1349,47 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         });
     }
 
+    /**
+     * why this context may not read the Value, or null when it may: the gates of readValue(),
+     * applied to every read of readValueAsync, including one that joins a refresh in flight.
+     * Runs once per sample of every monitored item: it allocates nothing
+     */
+    private _readDenial(context: ISessionContext): StatusCode | null {
+        if (context.isAccessRestricted(this)) {
+            // same gate as readValue(): a variable bound with a simple get()
+            // also gets a refreshFunc, sending every read down the asyncRefresh
+            // branch of _readValueAsync - which calls the getter directly and never passes
+            // through readValue(). Without this check here, a node hardened
+            // with AccessRestrictions(EncryptionRequired) answered its value
+            // over an unencrypted channel.
+            return StatusCodes.BadSecurityModeInsufficient;
+        } else if (!this.isReadable(context)) {
+            return StatusCodes.BadNotReadable;
+        } else if (!this.checkPermissionPrivate(context, PermissionType.Read)) {
+            return StatusCodes.BadUserAccessDenied;
+        } else if (
+            // as in readValue(): the Read permission has just passed, only the access level is
+            // left, unless a node replaced isUserReadable (see makeNotReadableIfEnabledFlagIsFalse)
+            this.isUserReadable === UAVariableImpl.prototype.isUserReadable
+                ? !this.checkAccessLevelPrivate(context, AccessLevelFlag.CurrentRead)
+                : !this.isUserReadable(context)
+        ) {
+            return StatusCodes.BadNotReadable;
+        }
+        return null;
+    }
+
     private _readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>, readAt?: PreciseClock): void {
         context = context || SessionContext.defaultContext;
 
         if (this.__waiting_callback) {
-            // a refresh is in progress: its value answers this read too
+            // a refresh is in progress: its value answers this read too, once this read's own
+            // access checks have passed (they depend on its context, not on the first reader's)
+            const joinerDenied = this._readDenial(context);
+            if (joinerDenied) {
+                callback(null, makeNowDataValue({ statusCode: joinerDenied }));
+                return;
+            }
             this.__more_waiting_callbacks ??= [];
             this.__more_waiting_callbacks.push(callback);
             return;
@@ -1368,28 +1404,7 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         // runs once per sample of every monitored item, so nothing here allocates a closure or
         // binds a function: the denial (if any) is a StatusCode, and the callback that releases
         // the waiting readers is made once per variable
-        let denied: StatusCode | null = null;
-        if (context.isAccessRestricted(this)) {
-            // same gate as readValue(): a variable bound with a simple get()
-            // also gets a refreshFunc, sending every read down the asyncRefresh
-            // branch below - which calls the getter directly and never passes
-            // through readValue(). Without this check here, a node hardened
-            // with AccessRestrictions(EncryptionRequired) answered its value
-            // over an unencrypted channel.
-            denied = StatusCodes.BadSecurityModeInsufficient;
-        } else if (!this.isReadable(context)) {
-            denied = StatusCodes.BadNotReadable;
-        } else if (!this.checkPermissionPrivate(context, PermissionType.Read)) {
-            denied = StatusCodes.BadUserAccessDenied;
-        } else if (
-            // as in readValue(): the Read permission has just passed, only the access level is
-            // left, unless a node replaced isUserReadable (see makeNotReadableIfEnabledFlagIsFalse)
-            this.isUserReadable === UAVariableImpl.prototype.isUserReadable
-                ? !this.checkAccessLevelPrivate(context, AccessLevelFlag.CurrentRead)
-                : !this.isUserReadable(context)
-        ) {
-            denied = StatusCodes.BadNotReadable;
-        }
+        const denied = this._readDenial(context);
 
         this.__satisfy_waiting_callbacks ??= (err: Error | null, dataValue?: DataValue) => {
             // now call all pending callbacks, in the order of the reads
