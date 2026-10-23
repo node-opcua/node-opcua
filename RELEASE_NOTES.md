@@ -1,3 +1,16 @@
+A Variable write its setter rejects is no longer stored
+=======================================================
+
+  - fix: `UAVariable.writeValue` stored the written value whenever the setter reported no error,
+    whatever the status it answered. A write answered Bad (`BadOutOfRange`, ...) therefore changed
+    the Value that later reads, `maxAge` reads, history and exception-based monitored items saw, and
+    a Variable bound with a simple `set` was even stored with the Bad status. A write whose setter
+    answers a status that is not Good now leaves the stored Value untouched and returns that status.
+  - **behaviour change** a rejected write is no longer historized. To record a Bad sample in the
+    history, have the setter answer Good and set the Bad status on the DataValue it receives
+    (`timestamped_set`, see the "form 3" case of `test_issue_1119.ts`).
+
+
 TranslateBrowsePaths follows the Browse permission of the session
 =================================================================
 
