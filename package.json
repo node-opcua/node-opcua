@@ -161,7 +161,7 @@
     "memfs": "^4.80.0",
     "mocha-clean": "^1.0.0",
     "node-opcua-crypto": "6.2.3",
-    "node-opcua-pki": "7.1.3",
+    "node-opcua-pki": "7.1.4",
     "rimraf": "^6.1.3",
     "semver": "^7.8.5",
     "sinon": "^22.1.0",

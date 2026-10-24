@@ -38,7 +38,7 @@
         "node-opcua-nodeid": "2.187.0",
         "node-opcua-numeric-range": "2.187.0",
         "node-opcua-object-registry": "2.186.7",
-        "node-opcua-pki": "7.1.3",
+        "node-opcua-pki": "7.1.4",
         "node-opcua-pseudo-session": "2.187.15",
         "node-opcua-schemas": "2.187.0",
         "node-opcua-secure-channel": "2.187.15",
