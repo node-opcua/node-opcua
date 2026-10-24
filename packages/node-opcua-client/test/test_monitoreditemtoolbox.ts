@@ -1,14 +1,14 @@
 import "should";
 import { TimestampsToReturn } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import sinon, { type SinonSandbox } from "sinon";
+import sinon from "sinon";
 
 import { ClientMonitoredItemGroup, ClientSidePublishEngine } from "../dist/index.js";
 import { ClientSessionImpl } from "../dist/private/client_session_impl.js";
 import { ClientSubscriptionImpl } from "../dist/private/client_subscription_impl.js";
 
 describe("Testing the Monitored Items Group", () => {
-    let sandbox: SinonSandbox;
+    let sandbox: sinon.SinonSandbox;
     let monitoredItemGroup: ClientMonitoredItemGroup;
     let fakeSubscription: sinon.SinonStubbedInstance<ClientSubscriptionImpl>;
 

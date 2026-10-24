@@ -31,7 +31,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { assert_arrays_are_equal } from "node-opcua-test-helpers";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import should from "should";
-import sinon, { type SinonFakeTimers } from "sinon";
+import sinon from "sinon";
 import { ServerEngine } from "../source/index.js";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
@@ -1635,7 +1635,7 @@ describe("testing ServerEngine", () => {
     });
 
     describe("ServerEngine read maxAge", () => {
-        let clock: SinonFakeTimers;
+        let clock: sinon.SinonFakeTimers;
         let timerId: NodeJS.Timeout;
         beforeEach(() => {
             const old_setInterval = setInterval;
