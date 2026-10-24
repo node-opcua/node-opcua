@@ -14,7 +14,7 @@ import {
     VariableIds
 } from "node-opcua";
 import should from "should";
-import sinon, { type SinonSpy } from "sinon";
+import sinon from "sinon";
 
 const _a = should;
 const port = 2233;
@@ -93,7 +93,7 @@ async function then_the_client_should_automatically_be_disconnected(client: OPCU
         });
     });
 }
-async function monitor(subscription: ClientSubscription, id: number): Promise<SinonSpy> {
+async function monitor(subscription: ClientSubscription, id: number): Promise<sinon.SinonSpy> {
     const spy = sinon.spy();
     return await new Promise((resolve, reject) => {
         const itemToMonitor = {
@@ -153,7 +153,7 @@ describe("Testing server shutdown", () => {
         // arrive while the server is still in its shutdown
         // grace period (2 s). This avoids the race where the
         // channel is closed before the last publish cycle.
-        const waitForSpy = (spy: SinonSpy, count: number, timeoutMs: number): Promise<void> =>
+        const waitForSpy = (spy: sinon.SinonSpy, count: number, timeoutMs: number): Promise<void> =>
             new Promise<void>((resolve) => {
                 if (spy.callCount >= count) return resolve();
                 let settled = false;

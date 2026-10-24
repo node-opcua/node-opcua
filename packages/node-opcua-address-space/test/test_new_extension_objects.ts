@@ -5,7 +5,7 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
-import { spy } from "sinon";
+import sinon from "sinon";
 //
 import { AddressSpace, adjustNamespaceArray, PseudoSession } from "../dist/api/index.js";
 import { generateAddressSpace } from "../distNodeJS/index.js";
@@ -31,8 +31,8 @@ describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition av
 
     it("WY2- PseudoSession & getExtensionObjectConstructor ", async () => {
         const session = new PseudoSession(addressSpace);
-        const browseSpy = spy(session, "browse");
-        const browseNextSpy = spy(session, "browseNext");
+        const browseSpy = sinon.spy(session, "browse");
+        const browseNextSpy = sinon.spy(session, "browseNext");
 
         const dataTypeNodeId = resolveNodeId("ns=1;i=3001");
         const F = await getExtensionObjectConstructor(session, dataTypeNodeId);
@@ -45,8 +45,8 @@ describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition av
 
     it("WY3- PseudoSession & getExtensionObjectConstructor with requestedMaxReferencesPerNode", async () => {
         const session = new PseudoSession(addressSpace);
-        const browseSpy = spy(session, "browse");
-        const browseNextSpy = spy(session, "browseNext");
+        const browseSpy = sinon.spy(session, "browse");
+        const browseNextSpy = sinon.spy(session, "browseNext");
 
         session.requestedMaxReferencesPerNode = 2;
 
@@ -111,8 +111,8 @@ describe("Test Extension Object in pure 1.04 version - DataType deriving from Da
 
     it("WZ2- PseudoSession & getExtensionObjectConstructor ", async () => {
         const session = new PseudoSession(addressSpace);
-        const browseSpy = spy(session, "browse");
-        const browseNextSpy = spy(session, "browseNext");
+        const browseSpy = sinon.spy(session, "browse");
+        const browseNextSpy = sinon.spy(session, "browseNext");
 
         const _d = addressSpace.findDataType("MyCustomDataType");
 

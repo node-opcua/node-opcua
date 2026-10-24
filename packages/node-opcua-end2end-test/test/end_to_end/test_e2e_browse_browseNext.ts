@@ -13,7 +13,7 @@ import {
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
-import { spy } from "sinon";
+import sinon from "sinon";
 import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager.js";
 
 const _doDebug = false;
@@ -102,8 +102,8 @@ describe("testing browse & browseNext", () => {
             nodeClassMask: NodeClassMask.Object,
             nodeId: groupNodeId
         };
-        const browseSpy = spy(session, "browse");
-        const browseNextSpy = spy(session, "browseNext");
+        const browseSpy = sinon.spy(session, "browse");
+        const browseNextSpy = sinon.spy(session, "browseNext");
 
         const result = await browseAll(session, nodeToBrowse);
         should(result.references?.length).eql(27);

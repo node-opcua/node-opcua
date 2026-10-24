@@ -9,7 +9,7 @@ import type { EnumerationDefinitionSchema, StructureInfo } from "node-opcua-fact
 import { nodesets } from "node-opcua-nodesets";
 import { BrowseDescription } from "node-opcua-types";
 import should from "should";
-import { spy } from "sinon";
+import sinon from "sinon";
 import {
     addExtensionObjectDataType,
     BrowseDirection,
@@ -200,8 +200,8 @@ describe("loading very large DataType Definitions ", function (this: Mocha.Suite
     it("LGH #889 should load large DataType tree - Auto", async () => {
         const session = createLimitedPseudoSession();
 
-        const browseSpy = spy(session, "browse");
-        const browseNextSpy = spy(session, "browseNext");
+        const browseSpy = sinon.spy(session, "browse");
+        const browseNextSpy = sinon.spy(session, "browseNext");
 
         const dataTypeManager = new ExtraDataTypeManager();
         await populateDataTypeManager(session, dataTypeManager, DataTypeExtractStrategy.Auto);
@@ -223,8 +223,8 @@ describe("loading very large DataType Definitions ", function (this: Mocha.Suite
 
     it("LGH #889 should load large DataType tree - Force104", async () => {
         const session = createLimitedPseudoSession();
-        const browseSpy = spy(session, "browse");
-        const browseNextSpy = spy(session, "browseNext");
+        const browseSpy = sinon.spy(session, "browse");
+        const browseNextSpy = sinon.spy(session, "browseNext");
 
         const dataTypeManager = new ExtraDataTypeManager();
         dataTypeManager.setSession(session);
@@ -248,8 +248,8 @@ describe("loading very large DataType Definitions ", function (this: Mocha.Suite
 
     it("LGH #889 should load large DataType tree - Lazy", async () => {
         const session = createLimitedPseudoSession();
-        const browseSpy = spy(session, "browse");
-        const browseNextSpy = spy(session, "browseNext");
+        const browseSpy = sinon.spy(session, "browse");
+        const browseNextSpy = sinon.spy(session, "browseNext");
 
         const dataTypeManager = new ExtraDataTypeManager();
         dataTypeManager.setSession(session);
