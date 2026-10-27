@@ -1,6 +1,6 @@
 {
     "name": "@sterfive/check-test-ports",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "description": "find fixed test ports, report collisions, suggest the next free one",
     "license": "MIT",
     "bin": {
