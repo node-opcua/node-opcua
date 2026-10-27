@@ -429,6 +429,18 @@ test("packageRoots and testDirs decide what is scanned", () => {
     fs.rmSync(dir, { recursive: true, force: true });
 });
 
+test("the workspace root's own test directories are scanned, like a package's", () => {
+    const dir = tempTree({
+        "tests/one.spec.ts": "const port = 6300;\n",
+        "packages/a/test/two.ts": "const port = 6300;\n",
+        "source/not_a_test.ts": "const port = 6400;\n"
+    });
+    const r = analyze(dir);
+    assert.deepEqual([...r.ports.keys()], [6300], "tests/ is scanned, source/ is not");
+    assert.equal(r.collisions.length, 1, "a root test and a package test can collide");
+    fs.rmSync(dir, { recursive: true, force: true });
+});
+
 test("the command line takes --root, --package-roots and --test-dirs, and the package.json key", async () => {
     const { execFileSync, spawnSync } = await import("node:child_process");
     const cli = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "../src/index.js");

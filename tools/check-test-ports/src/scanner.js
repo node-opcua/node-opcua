@@ -44,7 +44,8 @@ export const TEST_DIRS = ["test", "tests", "test_long", "test_helpers", "test-he
  *
  * @typedef {object} ScanOptions
  * @property {string[]} [packageRoots] directories holding one package per subdirectory
- * @property {string[]} [testDirs]     per-package directories that hold tests
+ * @property {string[]} [testDirs]     per-package directories that hold tests; the workspace
+ *                                      root's own ones are scanned too (a single-package repo)
  */
 
 /** a port as written in source: digits, optionally with numeric separators (30_795) */
@@ -222,6 +223,10 @@ function walk(dir, out) {
 
 export function testFiles(root = repoRoot, { packageRoots = PACKAGE_ROOTS, testDirs = TEST_DIRS } = {}) {
     const files = [];
+    // the root counts as a package: a single-package repository keeps its tests in ./tests
+    for (const sub of testDirs) {
+        walk(path.join(root, sub), files);
+    }
     for (const packageRoot of packageRoots) {
         const abs = path.join(root, packageRoot);
         if (!fs.existsSync(abs)) {

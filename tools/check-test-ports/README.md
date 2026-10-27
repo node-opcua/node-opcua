@@ -19,7 +19,8 @@ pnpm exec check-test-ports --summary          # run from the workspace root
 ```
 
 By default it scans `packages/*/test`, `tests`, `test_long`, `test_helpers`, `test-helpers`,
-`test_fixtures` and `test-fixtures`, plus the same under `packages_extra`. To look elsewhere, either
+`test_fixtures` and `test-fixtures`, plus the same under `packages_extra` and at the workspace root
+(`./tests`, for a single-package repository). To look elsewhere, either
 pass flags or add a key to the workspace root `package.json` (flags win):
 
 ```json
