@@ -1,8 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
-import "should";
 import { nodesets } from "node-opcua-nodesets";
+import { PermissionType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
+import should from "should";
 import {
     _constructNamespaceTranslationTable,
     _recomputeRequiredModelsFromTypes,
@@ -239,5 +240,45 @@ describe("constructNamespaceDependency with self referencing structures", functi
         // used to throw RangeError: Maximum call stack size exceeded
         const { requiredNamespaceIndexes } = _recomputeRequiredModelsFromTypes(namespace);
         requiredNamespaceIndexes.should.eql([0, nsAcme]);
+    });
+});
+
+// a namespace that uses a role of another model in a RolePermission, and nothing else of that model:
+// the exporter translates the RoleId, so the role's namespace must be in the dependency set
+// ( export used to throw "namespace N of ns=N;i=... is not in the dependency set of ..." )
+describe("constructNamespaceDependency with a role used only in RolePermissions", function () {
+    this.timeout(100000);
+
+    let addressSpace: AddressSpace;
+    before(async () => {
+        addressSpace = AddressSpace.create();
+        addressSpace.registerNamespace("Private");
+        await generateAddressSpace(addressSpace, [nodesets.standard]);
+    });
+    after(() => {
+        addressSpace.dispose();
+    });
+
+    it("RRR-6 should include the namespace of a RoleId in the dependency set and in the RequiredModels", () => {
+        const rolesNamespace = addressSpace.registerNamespace("http://acme/Roles/");
+        const qualityRole = rolesNamespace.addObject({
+            browseName: "QualityRole",
+            typeDefinition: "RoleType",
+            organizedBy: addressSpace.rootFolder.objects
+        });
+
+        const namespace = addressSpace.getOwnNamespace();
+        const reportType = namespace.addObjectType({ browseName: "ReportType" });
+        const generateReport = namespace.addMethod(reportType, { browseName: "GenerateReport" });
+        generateReport.setRolePermissions([
+            { roleId: qualityRole.nodeId, permissions: PermissionType.Browse | PermissionType.Call }
+        ]);
+
+        const dependencies = constructNamespaceDependency(namespace).map((n) => n.namespaceUri);
+        should(dependencies).containEql("http://acme/Roles/");
+
+        const xml = namespace.toNodeset2XML();
+        should(xml).match(/<RequiredModel ModelUri="http:\/\/acme\/Roles\/"/);
+        should(xml).match(/<RolePermission Permissions="\d+">ns=2;i=\d+<\/RolePermission>/);
     });
 });
