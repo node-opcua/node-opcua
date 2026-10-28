@@ -239,6 +239,11 @@ export function _getCompleteRequiredModelsFromValuesAndReferences(
         } else if (node.nodeClass === NodeClass.VariableType) {
             exploreValue((node as UAVariableTypeImpl).value);
         }
+        // the exporter translates the RoleId of every RolePermission too: a role of a model the
+        // namespace uses nothing else from is a dependency all the same
+        for (const rolePermission of (<BaseNodeImpl>node).rolePermissions || []) {
+            consider(rolePermission.roleId.namespace);
+        }
         const references = (<BaseNodeImpl>node).allReferences();
         for (const reference of references) {
             // check referenceId
