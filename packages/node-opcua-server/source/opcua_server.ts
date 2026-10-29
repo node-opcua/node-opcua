@@ -2999,7 +2999,7 @@ export abstract class OPCUAServerCore<
         // AuditActivateSessionEventType. Every refusal below goes through here, so each failed
         // request raises exactly one, with Status false.
         function rejectConnection(server: OPCUAServerCore, statusCode: StatusCode): void {
-            if (session) server.activationRefused(session);
+            const given = session ? server.activationRefused(session) : undefined;
             raiseAuditActivateSessionEventType.call(server, session, request.requestHeader.auditEntryId ?? "", {
                 statusCode,
                 userIdentityToken: request.userIdentityToken as UserIdentityToken | null,
@@ -3016,7 +3016,13 @@ export abstract class OPCUAServerCore<
                 responseHeader: { serviceResult: statusCode }
             });
 
-            channel.send_response("MSG", response1, message);
+            // the refusal is heard once a session taken from another front is back there
+            if (given) given.then(send, send);
+            else send();
+
+            function send(): void {
+                channel.send_response("MSG", response1, message);
+            }
         }
 
         /* c8 ignore next */
@@ -3264,8 +3270,13 @@ export abstract class OPCUAServerCore<
                 leanWrite(writeHost, channel, typeId, body, offset, requestId, securityHeader));
     }
 
-    /** an ActivateSession refused: the session stays as it was (FrontOPCUAServer gives back one it took) */
-    protected activationRefused(_session: ServerSession): void {}
+    /**
+     * an ActivateSession refused: the session stays as it was (FrontOPCUAServer gives back one it took,
+     * and the refusal is answered once it is back)
+     */
+    protected activationRefused(_session: ServerSession): Promise<void> | undefined {
+        return undefined;
+    }
 
     protected prepare(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request;
