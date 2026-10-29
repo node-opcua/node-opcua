@@ -2,7 +2,7 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { isDeepStrictEqual as isEqual } from "node:util";
-import type { BaseNode, INamespace, UAEventType, UAObject, UAProperty, UAVariable } from "node-opcua-address-space-base";
+import type { BaseNode, INamespace, UAEventType, UAProperty, UAVariable } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
@@ -12,7 +12,6 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType, type VariantOptions } from "node-opcua-variant";
 import type { ConditionInfo } from "../../api/interfaces/alarms_and_conditions/condition_info_i.js";
 import type { InstantiateAlarmConditionOptions } from "../../api/interfaces/alarms_and_conditions/instantiate_alarm_condition_options.js";
-import type { PromoteToAlarmOptions } from "../../api/interfaces/alarms_and_conditions/promote_to_alarm_options.js";
 import type { UAAlarmConditionEx } from "../../api/interfaces/alarms_and_conditions/ua_alarm_condition_ex.js";
 import type { UAShelvedStateMachineEx } from "../../api/interfaces/state_machine/ua_shelved_state_machine_ex.js";
 import type { UATwoStateVariableEx } from "../../api/ua_two_state_variable_ex.js";
@@ -24,12 +23,8 @@ import {
 } from "../state_machine/ua_shelving_state_machine_ex.js";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable.js";
 import { ConditionInfoImpl } from "./condition_info_impl.js";
-import {
-    _initialize_acknowledgeable_condition_node,
-    UAAcknowledgeableConditionImpl,
-    UAAcknowledgeableConditionImplBase
-} from "./ua_acknowledgeable_condition_impl.js";
-import { _initialize_condition_node, type ConditionInitializationOptions } from "./ua_condition_impl.js";
+import { UAAcknowledgeableConditionImpl, UAAcknowledgeableConditionImplBase } from "./ua_acknowledgeable_condition_impl.js";
+import type { ConditionInitializationOptions } from "./ua_condition_impl.js";
 
 const debugLog = make_debugLog("ua_alarm_condition_impl");
 const doDebug = checkDebugFlag("ua_alarm_condition_impl");
@@ -478,7 +473,7 @@ export type AlarmConditionInitializationOptions = ConditionInitializationOptions
 /**
  * The alarm half of the wiring, everything that follows the creation of the node.
  *
- * Shared by {@link UAAlarmConditionImplBase.instantiate} and by {@link promoteToAlarm}, so a node
+ * Shared by {@link UAAlarmConditionImplBase.instantiate} and by `promoteToAlarm`, so a node
  * that was created some other way ends up with exactly the same machinery rather than an
  * approximation of it. `inputNode` is optional here because a node being promoted may already
  * carry its InputNode property, or may be given one later.
@@ -598,79 +593,4 @@ export function _initialize_alarm_condition_node(
     assert(alarmNode instanceof UAAcknowledgeableConditionImpl);
     assert(alarmNode instanceof UAAlarmConditionImpl);
     return alarmNode;
-}
-
-/**
- * Give an existing node the behaviour of the alarm its type says it is.
- *
- * A node only becomes a working alarm when `namespace.instantiateAlarmCondition` builds it; a node
- * that arrived any other way - `objectType.instantiate()`, or a nodeset XML - carries the right
- * children but none of the machinery, so `activateAlarm` and `signalNewCondition` are simply not
- * there. This retypes the node in place, keeping its identity in the address space index and every
- * reference already pointing at it, and then runs the same initialization the factory runs.
- *
- * Limit alarms are refused rather than half-promoted: their behaviour lives in
- * UALimitAlarmImpl and its subclasses, and a node wearing the plain alarm prototype would look
- * promoted while ignoring its own limit set points.
- */
-export function promoteToAlarm(node: UAObject, options?: PromoteToAlarmOptions): UAAlarmConditionEx {
-    if (node instanceof UAAlarmConditionImplBase) {
-        return node as unknown as UAAlarmConditionImpl; // already promoted
-    }
-    const addressSpace = node.addressSpace;
-    const typeDefinition = node.typeDefinitionObj;
-
-    const alarmConditionType = addressSpace.findObjectType("AlarmConditionType");
-    /* c8 ignore next */
-    if (!alarmConditionType) {
-        throw new Error("promoteToAlarm: cannot find AlarmConditionType - is the standard nodeset loaded ?");
-    }
-    if (!typeDefinition || (typeDefinition !== alarmConditionType && !typeDefinition.isSubtypeOf(alarmConditionType))) {
-        throw new Error(
-            `promoteToAlarm: ${node.browseName.toString()} has type definition ` +
-                `${typeDefinition ? typeDefinition.browseName.toString() : "<none>"} ` +
-                "which does not derive from AlarmConditionType - only alarms can be promoted"
-        );
-    }
-    const limitAlarmType = addressSpace.findObjectType("LimitAlarmType");
-    if (limitAlarmType && (typeDefinition === limitAlarmType || typeDefinition.isSubtypeOf(limitAlarmType))) {
-        throw new Error(
-            `promoteToAlarm: ${node.browseName.toString()} is a ${typeDefinition.browseName.toString()}, ` +
-                "a limit alarm - promoting limit alarms is not supported, use namespace.instantiateLimitAlarm instead"
-        );
-    }
-    // CertificateExpirationAlarmType carries behaviour of its own - promoteToCertificateExpirationAlarm
-    // starts an expiry timer and registers a shutdown task. Promoting one here would give it plain
-    // alarm behaviour and silently drop that, which is worse than refusing: the node would look
-    // promoted and never fire.
-    const certificateExpirationAlarmType = addressSpace.findObjectType("CertificateExpirationAlarmType");
-    if (
-        certificateExpirationAlarmType &&
-        (typeDefinition === certificateExpirationAlarmType || typeDefinition.isSubtypeOf(certificateExpirationAlarmType))
-    ) {
-        throw new Error(
-            `promoteToAlarm: ${node.browseName.toString()} is a ${typeDefinition.browseName.toString()}, ` +
-                "which has its own expiry machinery - use promoteToCertificateExpirationAlarm instead"
-        );
-    }
-    const alarmConditionEventType = addressSpace.findEventType(typeDefinition.nodeId);
-    /* c8 ignore next */
-    if (!alarmConditionEventType) {
-        throw new Error(`promoteToAlarm: cannot find event type for ${typeDefinition.browseName.toString()}`);
-    }
-
-    // conditionSource has to be an own property even when it is absent: the condition
-    // initialization tells "no source" from "source not considered" by its presence.
-    const initializationOptions: AlarmConditionInitializationOptions = {
-        conditionClass: options?.conditionClass,
-        conditionName: options?.conditionName || node.browseName.name || undefined,
-        conditionSource: options?.conditionSource ?? null,
-        inputNode: options?.inputNode,
-        maxTimeShelved: options?.maxTimeShelved
-    };
-
-    const conditionNode = node as unknown as UAAlarmConditionImpl;
-    _initialize_condition_node(node.namespace, conditionNode, alarmConditionEventType, initializationOptions);
-    _initialize_acknowledgeable_condition_node(conditionNode);
-    return _initialize_alarm_condition_node(conditionNode, initializationOptions);
 }

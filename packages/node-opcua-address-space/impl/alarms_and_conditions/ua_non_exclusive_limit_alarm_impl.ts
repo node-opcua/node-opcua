@@ -80,45 +80,7 @@ export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implement
         assert(alarm instanceof UALimitAlarmImpl);
         assert(alarm instanceof UANonExclusiveLimitAlarmImpl);
 
-        // ---------------- install States
-        if (alarm.lowLowState) {
-            _install_TwoStateVariable_machinery(alarm.lowLowState, {
-                falseState: "LowLow inactive",
-                trueState: "LowLow active"
-            });
-            alarm.lowLowState.setValue(false);
-            assert(alarm.lowLowLimit !== undefined);
-        }
-        if (alarm.lowState) {
-            _install_TwoStateVariable_machinery(alarm.lowState, {
-                falseState: "Low inactive",
-                trueState: "Low active"
-            });
-            alarm.lowState.setValue(false);
-            assert(alarm.lowLimit !== undefined);
-        }
-        if (alarm.highState) {
-            _install_TwoStateVariable_machinery(alarm.highState, {
-                falseState: "High inactive",
-                trueState: "High active"
-            });
-            alarm.highState.setValue(false);
-            assert(alarm.highLimit !== undefined);
-        }
-        if (alarm.highHighState) {
-            _install_TwoStateVariable_machinery(alarm.highHighState, {
-                falseState: "HighHigh inactive",
-                trueState: "HighHigh active"
-            });
-            alarm.highHighState.setValue(false);
-            assert(alarm.highHighLimit !== undefined);
-        }
-
-        alarm.activeState.setValue(false);
-
-        alarm.updateState();
-
-        return alarm;
+        return _initialize_non_exclusive_limit_alarm_node(alarm);
     }
 
     public calculateConditionInfo(
@@ -230,3 +192,57 @@ export class UANonExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implement
 export type UANonExclusiveLimitAlarmImpl = UANonExclusiveLimitAlarmImplBase;
 /** @internal */
 export const UANonExclusiveLimitAlarmImpl = UANonExclusiveLimitAlarmImplBase;
+
+/**
+ * The non-exclusive limit alarm half of the wiring, everything that follows the limit alarm
+ * initialization: the TwoStateVariable machinery of each limit state the node has, then a first
+ * evaluation of the input.
+ *
+ * Shared by {@link UANonExclusiveLimitAlarmImplBase.instantiate} and by `promoteToLimitAlarm`. The
+ * caller has already given the node its final prototype.
+ *
+ * @internal
+ */
+export function _initialize_non_exclusive_limit_alarm_node(alarm: UANonExclusiveLimitAlarmImpl): UANonExclusiveLimitAlarmImpl {
+    assert(alarm instanceof UANonExclusiveLimitAlarmImpl);
+
+    // ---------------- install States
+    if (alarm.lowLowState) {
+        _install_TwoStateVariable_machinery(alarm.lowLowState, {
+            falseState: "LowLow inactive",
+            trueState: "LowLow active"
+        });
+        alarm.lowLowState.setValue(false);
+        assert(alarm.lowLowLimit !== undefined);
+    }
+    if (alarm.lowState) {
+        _install_TwoStateVariable_machinery(alarm.lowState, {
+            falseState: "Low inactive",
+            trueState: "Low active"
+        });
+        alarm.lowState.setValue(false);
+        assert(alarm.lowLimit !== undefined);
+    }
+    if (alarm.highState) {
+        _install_TwoStateVariable_machinery(alarm.highState, {
+            falseState: "High inactive",
+            trueState: "High active"
+        });
+        alarm.highState.setValue(false);
+        assert(alarm.highLimit !== undefined);
+    }
+    if (alarm.highHighState) {
+        _install_TwoStateVariable_machinery(alarm.highHighState, {
+            falseState: "HighHigh inactive",
+            trueState: "HighHigh active"
+        });
+        alarm.highHighState.setValue(false);
+        assert(alarm.highHighLimit !== undefined);
+    }
+
+    alarm.activeState.setValue(false);
+
+    alarm.updateState();
+
+    return alarm;
+}

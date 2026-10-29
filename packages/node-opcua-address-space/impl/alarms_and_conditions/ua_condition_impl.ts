@@ -798,11 +798,19 @@ export function _initialize_condition_node(
         // HasCondition References can be used in the Type definition of an Object or a Variable.
         assert(options.conditionOf?.nodeClass === NodeClass.Object || options.conditionOf?.nodeClass === NodeClass.Variable);
 
-        conditionNode.addReference({
-            isForward: false,
-            nodeId: options.conditionOf || NodeId.nullNodeId,
-            referenceType: "HasCondition"
-        });
+        // a node being promoted may already carry it: a nodeset usually declares the HasCondition
+        // of its alarms, and adding the same reference twice is refused
+        const conditionOfNodeId = options.conditionOf?.nodeId || NodeId.nullNodeId;
+        const alreadyThere = conditionNode
+            .findReferencesEx("HasCondition", BrowseDirection.Inverse)
+            .some((r) => sameNodeId(r.nodeId, conditionOfNodeId));
+        if (!alreadyThere) {
+            conditionNode.addReference({
+                isForward: false,
+                nodeId: conditionOfNodeId,
+                referenceType: "HasCondition"
+            });
+        }
     }
 
     // the constant property of this condition

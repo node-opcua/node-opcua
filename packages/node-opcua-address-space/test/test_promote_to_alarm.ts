@@ -15,8 +15,10 @@ import should from "should";
 import {
     AddressSpace,
     type Namespace,
+    type PromoteToLimitAlarmOptions,
     promoteToAlarm,
     type UAAlarmConditionEx,
+    type UAExclusiveLimitAlarmEx,
     type UAObject,
     type UAObjectType,
     type UAVariable
@@ -130,12 +132,21 @@ describe("promoteToAlarm", function (this: Mocha.Suite) {
         should(() => promoteToAlarm(notAnAlarm)).throwError(/does not derive from AlarmConditionType/);
     });
 
-    it("PTA-6 - refuses a limit alarm rather than half promoting it", () => {
+    it("PTA-6 - hands a limit alarm to promoteToLimitAlarm rather than half promoting it", () => {
+        // no limit at all: refused by promoteToLimitAlarm, before the node is touched
         const node = bareAlarm("LimitAlarm", "ExclusiveLevelAlarmType");
-
         should(() => promoteToAlarm(node, { conditionSource: source, inputNode })).throwError(
-            /ExclusiveLevelAlarmType.*limit alarm/
+            /promoteToLimitAlarm: .*at least one limit is required/
         );
+        should(typeof (node as unknown as Partial<UAAlarmConditionEx>).activateAlarm).eql("undefined");
+
+        const limitAlarm = promoteToAlarm(node, {
+            conditionSource: source,
+            inputNode,
+            highLimit: 10
+        } as PromoteToLimitAlarmOptions);
+        should(limitAlarm === (node as unknown as UAAlarmConditionEx)).eql(true);
+        should((limitAlarm as UAExclusiveLimitAlarmEx).getHighLimit()).eql(10);
     });
 
     it("PTA-8 - refuses a certificate expiration alarm, which owns an expiry timer", () => {

@@ -9,6 +9,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType, type VariantOptions } from "node-opcua-variant";
 import type { InstantiateLimitAlarmOptions } from "../../api/interfaces/alarms_and_conditions/instantiate_limit_alarm_options.js";
 import type { UALimitAlarmEx } from "../../api/interfaces/alarms_and_conditions/ua_limit_alarm_ex.js";
+import type { AddressSpacePrivate } from "../address_space_private.js";
 import type { NamespacePrivate } from "../namespace_private.js";
 import { UAAlarmConditionImplBase } from "./ua_alarm_condition_impl.js";
 
@@ -54,8 +55,6 @@ export class UALimitAlarmImplBase extends UAAlarmConditionImplBase implements UA
         options: InstantiateLimitAlarmOptions,
         data?: Record<string, VariantOptions>
     ): UALimitAlarmImpl {
-        const addressSpace = namespace.addressSpace;
-
         // must provide a inputNode
         // xx assert(Object.prototype.hasOwnProperty.call(options,"conditionOf")); // must provide a conditionOf
         assert(Object.hasOwn(options, "inputNode"), "UALimitAlarm.instantiate: options must provide the inputNode");
@@ -85,67 +84,14 @@ export class UALimitAlarmImplBase extends UAAlarmConditionImplBase implements UA
 
         // xx assert(options.optionals,"must provide an optionals");
         const alarmNode = UAAlarmConditionImplBase.instantiate(namespace, limitAlarmTypeId, options, data) as UALimitAlarmImpl;
-        Object.setPrototypeOf(alarmNode, UALimitAlarmImpl.prototype);
 
         assert(alarmNode.conditionOfNode() !== null);
 
-        const inputNode = addressSpace._coerceNode(options.inputNode) as UAVariable;
-        if (!inputNode) {
-            throw new Error("Expecting a valid input node");
-        }
-        assert(inputNode.nodeClass === NodeClass.Variable);
-
-        // ----------------------- Install Limit Alarm specifics
-        // from spec 1.03:
-        // Four optional limits are defined that configure the states of the derived limit Alarm Types.
-        // These Properties shall be set for any Alarm limits that are exposed by the derived limit Alarm
-        // Types. These Properties are listed as optional but at least one is required. For cases where
-        // an underlying system cannot provide the actual value of a limit, the limit Property shall still be
-        // provided, but will have its AccessLevel set to not readable. It is assumed that the limits are
-        // described using the same Engineering Unit that is assigned to the variable that is the source
-        // of the alarm. For Rate of change limit alarms, it is assumed this rate is units per second
-        // unless otherwise specified.
+        // from spec 1.03: the four limits are listed as optional but at least one is required
         if (count === 0) {
             throw new Error("at least one limit is required");
         }
-
-        const dataType = addressSpace.findCorrespondingBasicDataType(inputNode.dataType);
-
-        if (-1 === uaLimitAlarmInputSupportedDataType.indexOf(dataType)) {
-            const message = `UALimitAlarm.instantiate: inputNode must be of type ${uaLimitAlarmInputSupportedDataType
-                .map((a) => DataType[a])
-                .join("|")}, got ${DataType[dataType]}`;
-            warningLog(message);
-            throw new Error(message);
-        }
-
-        if (Object.hasOwn(options, "highHighLimit") && options.highHighLimit !== undefined) {
-            alarmNode.setHighHighLimit(options.highHighLimit);
-        }
-        if (Object.hasOwn(options, "highLimit")) {
-            alarmNode.setHighLimit(options.highLimit);
-        }
-        if (Object.hasOwn(options, "lowLimit")) {
-            alarmNode.setLowLimit(options.lowLimit);
-        }
-        if (Object.hasOwn(options, "lowLowLimit") && options.lowLowLimit !== undefined) {
-            alarmNode.setLowLowLimit(options.lowLowLimit);
-        }
-
-        /*
-         * The InputNode Property provides the NodeId of the Variable the Value of which is used as
-         * primary input in the calculation of the Alarm state. If this Variable is not in the AddressSpace,
-         * a Null NodeId shall be provided. In some systems, an Alarm may be calculated based on
-         * multiple Variables Values; it is up to the system to determine which Variable’s NodeId is used.
-         */
-        assert(alarmNode.inputNode.nodeClass === NodeClass.Variable);
-        alarmNode.inputNode.setValueFromSource({ dataType: "NodeId", value: inputNode.nodeId });
-
-        // install inputNode monitoring for change
-        alarmNode.installInputNodeMonitoring(options.inputNode);
-        alarmNode._watchLimits();
-
-        return alarmNode;
+        return _initialize_limit_alarm_node(alarmNode, options);
     }
 
     public getHighHighLimit(): number {
@@ -245,7 +191,8 @@ export class UALimitAlarmImplBase extends UAAlarmConditionImplBase implements UA
         this.setStateBasedOnInputValue(value);
     }
 
-    protected _watchLimits(): void {
+    /** @internal */
+    public _watchLimits(): void {
         /// ----------------------------------------------------------------------
         /// Installing Limits monitored
         const _updateState = () => this.updateState();
@@ -280,3 +227,89 @@ export class UALimitAlarmImplBase extends UAAlarmConditionImplBase implements UA
 export const UALimitAlarmImpl = UALimitAlarmImplBase;
 /** @internal */
 export type UALimitAlarmImpl = UALimitAlarmImplBase;
+
+/**
+ * The part of {@link InstantiateLimitAlarmOptions} that the initialization step below reads.
+ *
+ * @internal
+ */
+export type LimitAlarmInitializationOptions = Pick<
+    Partial<InstantiateLimitAlarmOptions>,
+    "highHighLimit" | "highLimit" | "lowLimit" | "lowLowLimit"
+> & {
+    inputNode: UAVariable | NodeId;
+};
+
+/**
+ * The limit alarm half of the wiring, everything that follows the alarm initialization.
+ *
+ * Shared by {@link UALimitAlarmImplBase.instantiate} and by `promoteToLimitAlarm`. A limit given in
+ * the options is written to its property; a limit left out keeps whatever value its property holds.
+ *
+ * @internal
+ */
+export function _initialize_limit_alarm_node(
+    alarmNode: UALimitAlarmImpl,
+    options: LimitAlarmInitializationOptions
+): UALimitAlarmImpl {
+    Object.setPrototypeOf(alarmNode, UALimitAlarmImpl.prototype);
+
+    const addressSpace = alarmNode.addressSpace as AddressSpacePrivate;
+    const inputNode = addressSpace._coerceNode(options.inputNode) as UAVariable;
+    if (!inputNode) {
+        throw new Error("Expecting a valid input node");
+    }
+    assert(inputNode.nodeClass === NodeClass.Variable);
+
+    // ----------------------- Install Limit Alarm specifics
+    // from spec 1.03:
+    // Four optional limits are defined that configure the states of the derived limit Alarm Types.
+    // These Properties shall be set for any Alarm limits that are exposed by the derived limit Alarm
+    // Types. These Properties are listed as optional but at least one is required. For cases where
+    // an underlying system cannot provide the actual value of a limit, the limit Property shall still be
+    // provided, but will have its AccessLevel set to not readable. It is assumed that the limits are
+    // described using the same Engineering Unit that is assigned to the variable that is the source
+    // of the alarm. For Rate of change limit alarms, it is assumed this rate is units per second
+    // unless otherwise specified.
+    if (!alarmNode.highHighLimit && !alarmNode.highLimit && !alarmNode.lowLimit && !alarmNode.lowLowLimit) {
+        throw new Error("at least one limit is required");
+    }
+
+    const dataType = addressSpace.findCorrespondingBasicDataType(inputNode.dataType);
+
+    if (-1 === uaLimitAlarmInputSupportedDataType.indexOf(dataType)) {
+        const message = `UALimitAlarm.instantiate: inputNode must be of type ${uaLimitAlarmInputSupportedDataType
+            .map((a) => DataType[a])
+            .join("|")}, got ${DataType[dataType]}`;
+        warningLog(message);
+        throw new Error(message);
+    }
+
+    if (Object.hasOwn(options, "highHighLimit") && options.highHighLimit !== undefined) {
+        alarmNode.setHighHighLimit(options.highHighLimit);
+    }
+    if (Object.hasOwn(options, "highLimit")) {
+        alarmNode.setHighLimit(options.highLimit as number);
+    }
+    if (Object.hasOwn(options, "lowLimit")) {
+        alarmNode.setLowLimit(options.lowLimit as number);
+    }
+    if (Object.hasOwn(options, "lowLowLimit") && options.lowLowLimit !== undefined) {
+        alarmNode.setLowLowLimit(options.lowLowLimit);
+    }
+
+    /*
+     * The InputNode Property provides the NodeId of the Variable the Value of which is used as
+     * primary input in the calculation of the Alarm state. If this Variable is not in the AddressSpace,
+     * a Null NodeId shall be provided. In some systems, an Alarm may be calculated based on
+     * multiple Variables Values; it is up to the system to determine which Variable’s NodeId is used.
+     */
+    assert(alarmNode.inputNode.nodeClass === NodeClass.Variable);
+    alarmNode.inputNode.setValueFromSource({ dataType: "NodeId", value: inputNode.nodeId });
+
+    // install inputNode monitoring for change
+    alarmNode.installInputNodeMonitoring(options.inputNode);
+    alarmNode._watchLimits();
+
+    return alarmNode;
+}
