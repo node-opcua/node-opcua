@@ -20,6 +20,15 @@ import { resolveOperand } from "./resolve_operand.js";
 
 const warningLog = make_warningLog("Filter");
 
+// One evaluation of a ContentFilter against one event. An element may be referenced by several
+// ElementOperands (a shared reference is a valid acyclic graph), and its result does not change
+// during the evaluation: caching it keeps the cost linear in the filter size. Without the cache,
+// a chain of N elements of the form And(e[i+1], e[i+1]) costs 2^N evaluations.
+interface FilterEvaluation {
+    contentFilter: ContentFilter;
+    results: Map<number, boolean>;
+}
+
 function _coerceToBoolean(value: Variant | string | number | null): boolean {
     if (value instanceof Variant) {
         return !!value.value;
@@ -70,7 +79,7 @@ function _coerceToEqualable(value: Variant): Variant {
 // call-site contract explicit instead of silently typing the whole function `any`.
 function evaluateOperand<TIn, T>(
     filterContext: FilterContext,
-    filter: ContentFilter,
+    filter: FilterEvaluation,
     operand: FilterOperand,
     coerce: (value: TIn) => T
 ): T {
@@ -134,12 +143,12 @@ function checkOfType(filterContext: FilterContext, ofType: ExtensionObject | nul
     return filterContext.isSubtypeOf(sourceTypeDefinition, ofTypeNode);
 }
 
-function checkNot(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
+function checkNot(filterContext: FilterContext, filter: FilterEvaluation, filteredOperands: FilterOperand[]): boolean {
     const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToBoolean);
     return !operandA;
 }
 
-function checkOr(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
+function checkOr(filterContext: FilterContext, filter: FilterEvaluation, filteredOperands: FilterOperand[]): boolean {
     const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToBoolean);
     const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToBoolean);
     return operandA || operandB;
@@ -153,30 +162,34 @@ function checkOr(filterContext: FilterContext, filter: ContentFilter, filteredOp
  *   [1]: Any operand that resolves to a Boolean.
  * If any operand cannot be resolved to a Boolean it is considered a NULL. See below for a discussion on the handling of NULL.
  */
-function checkAnd(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
+function checkAnd(filterContext: FilterContext, filter: FilterEvaluation, filteredOperands: FilterOperand[]): boolean {
     const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToBoolean);
     const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToBoolean);
     return operandA && operandB;
 }
-function checkLessThan(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
+function checkLessThan(filterContext: FilterContext, filter: FilterEvaluation, filteredOperands: FilterOperand[]): boolean {
     const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToCompareable);
     const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToCompareable);
     return operandA < operandB;
 }
 
-function checkLessThanOrEqual(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
+function checkLessThanOrEqual(filterContext: FilterContext, filter: FilterEvaluation, filteredOperands: FilterOperand[]): boolean {
     const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToCompareable);
     const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToCompareable);
     return operandA <= operandB;
 }
 
-function checkGreaterThan(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
+function checkGreaterThan(filterContext: FilterContext, filter: FilterEvaluation, filteredOperands: FilterOperand[]): boolean {
     const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToCompareable);
     const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToCompareable);
     return operandA > operandB;
 }
 
-function checkGreaterThanOrEqual(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
+function checkGreaterThanOrEqual(
+    filterContext: FilterContext,
+    filter: FilterEvaluation,
+    filteredOperands: FilterOperand[]
+): boolean {
     const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToCompareable);
     const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToCompareable);
     return operandA >= operandB;
@@ -224,7 +237,7 @@ const isVariantEqual = (a: Variant, b: Variant): boolean => {
     }
 };
 
-function checkEquals(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
+function checkEquals(filterContext: FilterContext, filter: FilterEvaluation, filteredOperands: FilterOperand[]): boolean {
     const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToEqualable);
     const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToEqualable);
     return isVariantEqual(operandA, operandB);
@@ -241,7 +254,7 @@ function checkEquals(filterContext: FilterContext, filter: ContentFilter, filter
  * types, the particular result is FALSE. See the discussion on data type precedence in Table 123
  * for more information how to convert operands of different types.
  */
-function checkBetween(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
+function checkBetween(filterContext: FilterContext, filter: FilterEvaluation, filteredOperands: FilterOperand[]): boolean {
     const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToCompareable);
     const operandLow = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToCompareable);
     const operandHigh = evaluateOperand(filterContext, filter, filteredOperands[2], _coerceToCompareable);
@@ -306,11 +319,22 @@ function checkInList(context: FilterContext, filterOperands: FilterOperand[]): b
     return false;
 }
 
-function checkFilterAtIndex(filterContext: FilterContext, filter: ContentFilter, index: number): boolean {
-    if (!filter.elements || filter.elements.length === 0) {
+function checkFilterAtIndex(filterContext: FilterContext, filter: FilterEvaluation, index: number): boolean {
+    const cached = filter.results.get(index);
+    if (cached !== undefined) {
+        return cached;
+    }
+    const result = evaluateElementAtIndex(filterContext, filter, index);
+    filter.results.set(index, result);
+    return result;
+}
+
+function evaluateElementAtIndex(filterContext: FilterContext, filter: FilterEvaluation, index: number): boolean {
+    const elements = filter.contentFilter.elements;
+    if (!elements || elements.length === 0) {
         return true;
     }
-    const element = filter.elements[index];
+    const element = elements[index];
 
     // c8 ignore next
     if (!element) {
@@ -481,5 +505,5 @@ export function checkFilter(filterContext: FilterContext, contentFilter: Content
     if (validateContentFilter(contentFilter).isNot(StatusCodes.Good)) {
         return false;
     }
-    return checkFilterAtIndex(filterContext, contentFilter, 0);
+    return checkFilterAtIndex(filterContext, { contentFilter, results: new Map() }, 0);
 }

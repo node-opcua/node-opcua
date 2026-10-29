@@ -4,6 +4,7 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import {
     ContentFilter,
+    type ContentFilterElementOptions,
     ElementOperand,
     EventFilter,
     FilterOperator,
@@ -791,5 +792,51 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         checkFilter(filterContext, contentFilter).should.eql(true);
         filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
         checkFilter(filterContext, contentFilter).should.eql(false);
+    });
+
+    it("EV36 - checkFilter evaluates an element referenced many times only once per event", () => {
+        // element i (0 <= i < K) : And(ElementOperand(i+1), ElementOperand(i+1))
+        // element K              : OfType(SystemEventType)
+        // A shared reference is a valid (acyclic) graph, so validation accepts it; evaluating it
+        // without memoization visits the leaf 2^K times (exponential in the filter size).
+        const makeChain = (K: number) => {
+            const elements: ContentFilterElementOptions[] = [];
+            for (let i = 0; i < K; i++) {
+                elements.push({
+                    filterOperator: FilterOperator.And,
+                    filterOperands: [new ElementOperand({ index: i + 1 }), new ElementOperand({ index: i + 1 })]
+                });
+            }
+            elements.push(ofType("SystemEventType"));
+            return new ContentFilter({ elements });
+        };
+
+        const originalGetNodeClass = filterContext.getNodeClass;
+        let leafCalls = 0;
+        filterContext.getNodeClass = function (this: FilterContextMock, nodeId: NodeId) {
+            leafCalls++;
+            return originalGetNodeClass.call(this, nodeId);
+        };
+        try {
+            const contentFilter = makeChain(20);
+            validateContentFilter(contentFilter).should.eql(StatusCodes.Good);
+
+            filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+            leafCalls = 0;
+            checkFilter(filterContext, contentFilter).should.eql(true);
+            // the OfType leaf asks for two node classes (operand type + event source): one evaluation
+            leafCalls.should.eql(2);
+
+            filterContext.eventSource = filterContext.findNodeByName("EventQueueOverflowEventType");
+            leafCalls = 0;
+            checkFilter(filterContext, contentFilter).should.eql(false);
+            leafCalls.should.eql(2);
+
+            // a chain near the MaxWhereClauseParameters limit stays linear
+            filterContext.eventSource = filterContext.findNodeByName("DeviceFailureEventType");
+            checkFilter(filterContext, makeChain(499)).should.eql(true);
+        } finally {
+            filterContext.getNodeClass = originalGetNodeClass;
+        }
     });
 });
