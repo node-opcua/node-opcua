@@ -4,6 +4,7 @@
 import type { UAObject, UAObjectType, UAProperty, UAVariable } from "node-opcua-address-space-base";
 import type { DataType } from "node-opcua-basic-types";
 import { NodeId } from "node-opcua-nodeid";
+import { setOwnProperty } from "node-opcua-utils";
 import type { InstallSetPointOptions } from "../../api/interfaces/alarms_and_conditions/install_setpoint_options.js";
 import type { PromoteToAlarmOptions } from "../../api/interfaces/alarms_and_conditions/promote_to_alarm_options.js";
 import type { PromoteToLimitAlarmOptions } from "../../api/interfaces/alarms_and_conditions/promote_to_limit_alarm_options.js";
@@ -222,7 +223,7 @@ export function promoteToLimitAlarm(node: UAObject, options?: PromoteToLimitAlar
         const value = options?.[name];
         const property = node.getPropertyByName(limitBrowseName) as UAVariable | null;
         if (value !== undefined) {
-            limits[name] = value;
+            setOwnProperty(limits, name, value);
             if (!property) {
                 missing.push(limitBrowseName);
             }
