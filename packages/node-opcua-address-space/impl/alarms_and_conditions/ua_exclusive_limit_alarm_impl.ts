@@ -51,16 +51,7 @@ export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implements U
         assert(alarm instanceof UAExclusiveLimitAlarmImpl);
         assert(alarm instanceof UALimitAlarmImpl);
 
-        // ---------------- install LimitState StateMachine
-        assert(alarm.limitState, "limitState is mandatory");
-        promoteToStateMachine(alarm.limitState as unknown as UAObject);
-
-        // start with a inactive state
-        alarm.activeState.setValue(false);
-
-        alarm.updateState();
-
-        return alarm as UAExclusiveLimitAlarmImpl;
+        return _initialize_exclusive_limit_alarm_node(alarm);
     }
     public signalNewCondition(stateName: string | null, isActive: boolean, value: string): void {
         assert(stateName === null || typeof isActive === "boolean");
@@ -110,3 +101,27 @@ export class UAExclusiveLimitAlarmImplBase extends UALimitAlarmImpl implements U
 export type UAExclusiveLimitAlarmImpl = UAExclusiveLimitAlarmImplBase;
 /** @internal */
 export const UAExclusiveLimitAlarmImpl = UAExclusiveLimitAlarmImplBase;
+
+/**
+ * The exclusive limit alarm half of the wiring, everything that follows the limit alarm
+ * initialization: the LimitState state machine, then a first evaluation of the input.
+ *
+ * Shared by {@link UAExclusiveLimitAlarmImplBase.instantiate} and by `promoteToLimitAlarm`. The
+ * caller has already given the node its final prototype.
+ *
+ * @internal
+ */
+export function _initialize_exclusive_limit_alarm_node(alarm: UAExclusiveLimitAlarmImpl): UAExclusiveLimitAlarmImpl {
+    assert(alarm instanceof UAExclusiveLimitAlarmImpl);
+
+    // ---------------- install LimitState StateMachine
+    assert(alarm.limitState, "limitState is mandatory");
+    promoteToStateMachine(alarm.limitState as unknown as UAObject);
+
+    // start with a inactive state
+    alarm.activeState.setValue(false);
+
+    alarm.updateState();
+
+    return alarm;
+}

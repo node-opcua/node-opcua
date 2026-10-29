@@ -52,7 +52,7 @@ export {
  * and none of the behaviour; promoting it retypes the node in place and installs the machinery
  * `namespace.instantiateAlarmCondition` would have installed.
  */
-export { promoteToAlarm } from "../impl/alarms_and_conditions/ua_alarm_condition_impl.js";
+export { promoteToAlarm, promoteToLimitAlarm } from "../impl/alarms_and_conditions/promote_to_alarm.js";
 export { instantiateCertificateExpirationAlarm } from "../impl/alarms_and_conditions/ua_certificate_expiration_alarm_impl.js";
 /** The event name a node emits when one of its attributes changes. */
 export { childAccessorNamesShadowedBy, makeAttributeEventName } from "../impl/base_node_impl.js";
@@ -149,6 +149,7 @@ export * from "./interfaces/alarms_and_conditions/instantiate_exclusive_limit_al
 export * from "./interfaces/alarms_and_conditions/instantiate_limit_alarm_options.js";
 export * from "./interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options.js";
 export * from "./interfaces/alarms_and_conditions/promote_to_alarm_options.js";
+export * from "./interfaces/alarms_and_conditions/promote_to_limit_alarm_options.js";
 export * from "./interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex.js";
 export * from "./interfaces/alarms_and_conditions/ua_alarm_condition_ex.js";
 export * from "./interfaces/alarms_and_conditions/ua_base_event_ex.js";
