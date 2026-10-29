@@ -609,7 +609,7 @@ export type FrontRequest =
     | { kind: "admitSession" }
     /** the room admitSession made is not used: the session closed before the engine heard of it */
     | { kind: "cancelAdmission" }
-    /** the ActivateSession that took this session from another front was refused: it goes back there */
+    /** the ActivateSession that took this session from another front was refused: it goes back there (answered once it is) */
     | { kind: "returnSession"; token: string }
     /** answered with the index of the session worker that hosts the session's subscriptions */
     | { kind: "sessionCreated"; session: SessionRecord }

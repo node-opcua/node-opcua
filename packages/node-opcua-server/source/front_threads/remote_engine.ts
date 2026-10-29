@@ -355,14 +355,17 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
 
     /**
      * a session taken from another front whose ActivateSession was refused here: it goes back there,
-     * untouched, as a refused ActivateSession leaves a session of a single-thread server
+     * untouched, as a refused ActivateSession leaves a session of a single-thread server.
+     * Resolves once the engine has handed it back.
      */
-    public returnSession(session: ServerSession): void {
+    public returnSession(session: ServerSession): Promise<void> | undefined {
         const token = tokenKeyOf(session.authenticationToken);
-        if (!this.#taken.delete(token)) return;
+        if (!this.#taken.delete(token)) return undefined;
         this.sessions.delete(token);
         this.#workerOf.delete(token);
-        this.#tell({ kind: "returnSession", token });
+        // answered once the engine has told the other front to go on with the session: the client
+        // may reach that front as soon as it hears the refusal
+        return this.#channel.call<unknown>({ kind: "returnSession", token }).then(() => undefined);
     }
 
     /**
