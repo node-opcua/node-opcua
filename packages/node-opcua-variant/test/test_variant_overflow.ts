@@ -121,3 +121,58 @@ describe("test variant decoding - hostile encoding byte", () => {
         variant.dataType.should.eql(DataType.DiagnosticInfo);
     });
 });
+
+describe("test variant array decoding - wire-controlled length must be backed by the payload", () => {
+    // decodeGeneralArray reads a 32-bit element count straight off the wire. Checking it only
+    // against the maxArrayLength ceiling is not enough: an element decoder that consumes zero
+    // bytes (DataType.Null, encode_decode.ts: decodeNull) lets a declared length far below the
+    // ceiling size an allocation that the tiny buffer behind it can never justify. A 5-byte
+    // buffer declaring 1,048,575 Null elements sits under maxArrayLength (1,048,576) yet expands
+    // into a 1,048,575-slot array. The decoder must reject any length the remaining bytes cannot
+    // back, not just lengths above the ceiling.
+    const VARIANT_ARRAY_MASK = 0x80;
+
+    function decodeOf(buffer: Buffer): { caught: unknown; value: unknown } {
+        let caught: unknown;
+        const variant = new Variant();
+        try {
+            variant.decode(new BinaryStream(buffer));
+        } catch (err) {
+            caught = err;
+        }
+        return { caught, value: variant.value };
+    }
+
+    it("rejects an array length larger than the bytes remaining (Null element, zero bytes each)", () => {
+        // encodingByte = DataType.Null | array flag, then UInt32 length = 1,048,575, and no body.
+        const buffer = Buffer.from([VARIANT_ARRAY_MASK | DataType.Null, 0xff, 0xff, 0x0f, 0x00]);
+
+        const { caught, value } = decodeOf(buffer);
+
+        should.exist(caught, "decoding an unsatisfiable Null array must throw, not allocate 1,048,575 slots");
+        should(caught).be.instanceOf(Error); // catchable: the transport try/catch closes only this connection
+        should(caught).not.be.instanceOf(TypeError);
+        should.not.exist(value);
+    });
+
+    it("rejects a generic array whose declared length exceeds the bytes remaining", () => {
+        // Boolean has no typed-array helper, so it goes through decodeGeneralArray. Declare 3
+        // elements but supply only 2 bytes of body.
+        const buffer = Buffer.from([VARIANT_ARRAY_MASK | DataType.Boolean, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00]);
+
+        const { caught } = decodeOf(buffer);
+
+        should.exist(caught, "a Boolean[3] backed by only 2 bytes must be rejected");
+        should(caught).be.instanceOf(Error);
+    });
+
+    it("still accepts a generic array that the payload fully backs (no off-by-one, ceiling intact)", () => {
+        // Boolean[3] with exactly 3 bytes of body must decode normally.
+        const buffer = Buffer.from([VARIANT_ARRAY_MASK | DataType.Boolean, 0x03, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01]);
+
+        const { caught, value } = decodeOf(buffer);
+
+        should.not.exist(caught);
+        (value as boolean[]).should.eql([true, false, true]);
+    });
+});
