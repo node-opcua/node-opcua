@@ -944,9 +944,12 @@ function decodeGeneralArray(dataType: DataType, stream: BinaryStream) {
     if (length === 0xffffffff) {
         return null;
     }
-    if (length > Variant.maxArrayLength) {
-        throw new Error(`maxArrayLength(${Variant.maxArrayLength}) has been exceeded in Variant.decodeArray len=${length}`);
-    }
+    // Every encoded element occupies at least one byte, so a declared length larger than the
+    // number of bytes left in the stream is unsatisfiable. checkArrayLength enforces the same
+    // maxArrayLength ceiling as before and additionally rejects a length the remaining payload
+    // cannot back - without that second bound an element decoder that reads zero bytes (e.g. the
+    // Null decoder) lets a tiny buffer size an arbitrarily large allocation.
+    stream.checkArrayLength(length);
     const decode = get_decoder(dataType);
 
     const arr = [];
