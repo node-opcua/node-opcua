@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-variant",
     "type": "module",
-    "version": "2.187.0",
+    "version": "2.187.19",
     "description": "pure nodejs OPCUA SDK - module variant",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
