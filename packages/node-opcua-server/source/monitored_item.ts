@@ -28,8 +28,7 @@ import {
     coerceTimestampsToReturn,
     DataValue,
     extractRange,
-    sameDataValue,
-    sameStatusCode
+    sameDataValue
 } from "node-opcua-data-value";
 import type { PreciseClock } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -52,14 +51,7 @@ import {
     MonitoringParameters,
     type PseudoRange
 } from "node-opcua-service-subscription";
-import {
-    type CallbackT,
-    coerceStatusCode,
-    extraStatusCodeBits,
-    type ModifiableStatusCode,
-    StatusCode,
-    StatusCodes
-} from "node-opcua-status-code";
+import { type CallbackT, coerceStatusCode, extraStatusCodeBits, StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     EventFieldList,
     type MonitoringFilter,
@@ -1605,12 +1597,10 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     private _setOverflowBit(notification: QueueItem) {
         if (Object.hasOwn(notification, "value")) {
             const dataChangeNotification = notification as MonitoredItemNotification;
-            assert(dataChangeNotification.value.statusCode.equals(StatusCodes.Good));
             dataChangeNotification.value.statusCode = StatusCode.makeStatusCode(
                 dataChangeNotification.value.statusCode,
                 "Overflow | InfoTypeDataValue"
             );
-            assert(sameStatusCode(dataChangeNotification.value.statusCode, StatusCodes.GoodWithOverflowBit));
             assert(dataChangeNotification.value.statusCode.hasOverflowBit);
         }
         if (this.$subscription?.subscriptionDiagnostics) {
@@ -1852,7 +1842,15 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 if (this.queue[0] instanceof MonitoredItemNotification) {
                     const el = this.queue[0] as MonitoredItemNotification;
                     if (el.value.statusCode.hasOverflowBit) {
-                        (el.value.statusCode as ModifiableStatusCode).unset("Overflow | InfoTypeDataValue");
+                        // on a copy: the value may carry a status code it shares with its source,
+                        // which can be a constant of the StatusCodes table
+                        const statusCode = StatusCode.makeStatusCode(el.value.statusCode);
+                        statusCode.unset("Overflow");
+                        // the info bits (0:9) that remain, such as the limit bits, still need their InfoType
+                        if ((statusCode.value & 0x3ff) === 0) {
+                            statusCode.unset("InfoTypeDataValue");
+                        }
+                        el.value.statusCode = statusCode;
                     }
                 }
             }

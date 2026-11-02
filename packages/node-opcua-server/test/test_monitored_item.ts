@@ -13,7 +13,7 @@ import {
     MonitoringMode,
     MonitoringParameters
 } from "node-opcua-service-subscription";
-import { type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type MonitoredItemNotification, Range } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
@@ -1906,6 +1906,122 @@ describe("MonitoredItem recording a SemanticChanged sample", () => {
         should(monitoredItem.queue.length).eql(1);
         should(monitoredItem.queue[0].value.statusCode.hasSemanticChangedBit).eql(true);
 
+        monitoredItem.terminate();
+        monitoredItem.dispose();
+    });
+});
+
+describe("MonitoredItem queue overflow on a value that is not exactly Good (issue 1849)", () => {
+    const at = new Date("2026-10-30T00:00:00Z");
+    const uncertainAtLowLimit = StatusCode.makeStatusCode(StatusCodes.Uncertain, "LimitLow | InfoTypeDataValue");
+
+    const record = (monitoredItem: IMonitoredItem, statusCode: StatusCode, count: number) => {
+        for (let value = 0; value < count; value++) {
+            monitoredItem.recordValue(
+                new DataValue({
+                    value: { dataType: DataType.Double, value },
+                    statusCode,
+                    sourceTimestamp: at,
+                    serverTimestamp: at
+                })
+            );
+        }
+    };
+    const create = (discardOldest: boolean) => {
+        const monitoredItem = createMonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest,
+            queueSize: 2,
+            monitoredItemId: 70,
+            timestampsToReturn: TimestampsToReturn.Both
+        });
+        monitoredItem.setNode(fakeNode);
+        return monitoredItem;
+    };
+    const shrinkQueueToOne = (monitoredItem: IMonitoredItem) => {
+        const result = monitoredItem.modify(
+            null,
+            new MonitoringParameters({ clientHandle: 1, samplingInterval: 100, discardOldest: false, queueSize: 1 })
+        );
+        should(result.statusCode).eql(StatusCodes.Good);
+    };
+
+    const statusCodes: [string, StatusCode][] = [
+        ["Good", StatusCodes.Good],
+        ["Good with SemanticChanged", StatusCode.makeStatusCode(StatusCodes.Good, "SemanticChanged")],
+        ["GoodClamped", StatusCodes.GoodClamped],
+        ["Uncertain", StatusCodes.Uncertain],
+        ["Uncertain with SemanticChanged", StatusCode.makeStatusCode(StatusCodes.Uncertain, "SemanticChanged")],
+        ["Uncertain with limit bits", uncertainAtLowLimit],
+        ["BadNoCommunication", StatusCodes.BadNoCommunication]
+    ];
+    for (const discardOldest of [true, false]) {
+        for (const [name, statusCode] of statusCodes) {
+            it(`keeps ${name} and sets the overflow bit (discardOldest=${discardOldest})`, () => {
+                const sourceValue = statusCode.value;
+                const monitoredItem = create(discardOldest);
+                const subscription = {
+                    ...fakeSubscription,
+                    subscriptionDiagnostics: { monitoringQueueOverflowCount: 0 }
+                };
+                monitoredItem.$subscription = subscription;
+
+                record(monitoredItem, statusCode, 5);
+
+                should(monitoredItem.queue.length).eql(2);
+                const flagged = monitoredItem.queue[discardOldest ? 0 : 1].value;
+                const other = monitoredItem.queue[discardOldest ? 1 : 0].value;
+                should(flagged.statusCode.hasOverflowBit).eql(true);
+                should(flagged.statusCode.value).eql(StatusCode.makeStatusCode(statusCode, "Overflow | InfoTypeDataValue").value);
+                should(other.statusCode.value).eql(sourceValue);
+                should(flagged.value.value).eql(discardOldest ? 3 : 4);
+                should(flagged.sourceTimestamp?.getTime()).eql(at.getTime());
+                should(flagged.serverTimestamp?.getTime()).eql(at.getTime());
+                should(subscription.subscriptionDiagnostics.monitoringQueueOverflowCount).eql(3);
+                // the recorded status code is shared with the variable: it must not receive the bit
+                should(statusCode.value).eql(sourceValue);
+
+                monitoredItem.terminate();
+                monitoredItem.dispose();
+            });
+        }
+    }
+
+    it("shrinking the queue to one removes the overflow bit and restores exactly Good", () => {
+        const monitoredItem = create(false);
+        monitoredItem.$subscription = fakeSubscription;
+        record(monitoredItem, StatusCodes.Good, 3);
+
+        shrinkQueueToOne(monitoredItem);
+
+        should(monitoredItem.queue[0].value.statusCode.value).eql(StatusCodes.Good.value);
+        monitoredItem.terminate();
+        monitoredItem.dispose();
+    });
+
+    it("shrinking the queue to one keeps the InfoType that the limit bits of the value depend on", () => {
+        const monitoredItem = create(false);
+        monitoredItem.$subscription = fakeSubscription;
+        record(monitoredItem, uncertainAtLowLimit, 3);
+
+        shrinkQueueToOne(monitoredItem);
+
+        should(monitoredItem.queue[0].value.statusCode.value).eql(uncertainAtLowLimit.value);
+        monitoredItem.terminate();
+        monitoredItem.dispose();
+    });
+
+    it("shrinking the queue to one does not write into a status code shared with the source", () => {
+        const monitoredItem = create(false);
+        monitoredItem.$subscription = fakeSubscription;
+        const expected = StatusCodes.GoodWithOverflowBit.value;
+        record(monitoredItem, StatusCodes.GoodWithOverflowBit, 1);
+
+        shrinkQueueToOne(monitoredItem);
+
+        should(monitoredItem.queue[0].value.statusCode.hasOverflowBit).eql(false);
+        should(StatusCodes.GoodWithOverflowBit.value).eql(expected);
         monitoredItem.terminate();
         monitoredItem.dispose();
     });
