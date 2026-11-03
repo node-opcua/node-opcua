@@ -25,6 +25,7 @@ import { DataType, VariantArrayType } from "node-opcua-variant";
 import should from "should";
 import {
     ClientFile,
+    defaultMaxOpenFilesPerServer,
     defaultMaxOpenFilesPerSession,
     type FileOptions,
     getFileData,
@@ -161,7 +162,7 @@ describe("FileType: write access, size limit and file handle limit", () => {
         it("Open for writing returns BadUserAccessDenied if the user cannot call the Write Method", async () => {
             const { file, filename } = makeFile();
             denyCallOnWrite(file);
-            const { session } = makeSession();
+            const { session, runShutdownTasks } = makeSession();
 
             should(await readBoolean(session, file.writable)).eql(true);
             should(await readBoolean(session, file.userWritable)).eql(false);
@@ -170,6 +171,7 @@ describe("FileType: write access, size limit and file handle limit", () => {
 
             // Read access does not change
             should(await open(session, file, OpenFileMode.Read)).eql(StatusCodes.Good);
+            await runShutdownTasks();
         });
     });
 
@@ -301,6 +303,66 @@ describe("FileType: write access, size limit and file handle limit", () => {
             fs.writeFileSync(filename, SEED);
             should(await open(session, file, OpenFileMode.Read)).eql(StatusCodes.Good);
             await runShutdownTasks();
+        });
+    });
+
+    describe("file handle limit for the server", () => {
+        it("has a default of 256 handles, above the 100 handles of a default server", () => {
+            should(defaultMaxOpenFilesPerServer).eql(256);
+        });
+
+        it("the limit applies to all the sessions and to all the files, and a Close gives room again", async () => {
+            const { file: file1 } = makeFile({ maxOpenFilesPerServer: 3 });
+            const { file: file2 } = makeFile({ maxOpenFilesPerServer: 3 });
+            const a = makeSession();
+            const b = makeSession();
+            const clientFile = new ClientFile(a.session, file1.nodeId);
+            await clientFile.open(OpenFileMode.Read);
+            should(await open(a.session, file2, OpenFileMode.Read)).eql(StatusCodes.Good);
+            should(await open(b.session, file1, OpenFileMode.Read)).eql(StatusCodes.Good);
+
+            should(await open(a.session, file1, OpenFileMode.Read)).eql(StatusCodes.BadResourceUnavailable);
+            should(await open(b.session, file2, OpenFileMode.Read)).eql(StatusCodes.BadResourceUnavailable);
+            should(await open(makeSession().session, file1, OpenFileMode.Read)).eql(StatusCodes.BadResourceUnavailable);
+
+            await clientFile.close();
+            should(await open(b.session, file2, OpenFileMode.Read)).eql(StatusCodes.Good);
+            await a.runShutdownTasks();
+            await b.runShutdownTasks();
+        });
+
+        it("a closed session gives room again", async () => {
+            const { file } = makeFile({ maxOpenFilesPerServer: 2 });
+            const a = makeSession();
+            const b = makeSession();
+            should(await open(a.session, file, OpenFileMode.Read)).eql(StatusCodes.Good);
+            should(await open(a.session, file, OpenFileMode.Read)).eql(StatusCodes.Good);
+            should(await open(b.session, file, OpenFileMode.Read)).eql(StatusCodes.BadResourceUnavailable);
+
+            await a.runShutdownTasks();
+            should(getFileData(file).openCount).eql(0);
+            should(await open(b.session, file, OpenFileMode.Read)).eql(StatusCodes.Good);
+            await b.runShutdownTasks();
+        });
+
+        it("Open calls that come at the same time cannot pass the limit", async () => {
+            const { file } = makeFile({ maxOpenFilesPerServer: 4 });
+            const fixtures = [makeSession(), makeSession(), makeSession()];
+            const calls = fixtures.flatMap(({ session }) => [1, 2, 3].map(() => open(session, file, OpenFileMode.Read)));
+            const statusCodes = await Promise.all(calls);
+            should(statusCodes.filter((statusCode) => statusCode === StatusCodes.Good).length).eql(4);
+            should(getFileData(file).openCount).eql(4);
+            await Promise.all(fixtures.map((fixture) => fixture.runShutdownTasks()));
+        });
+
+        it("a refused Open with EraseExisting keeps the content", async () => {
+            const { file, filename } = makeFile({ maxOpenFilesPerServer: 1 });
+            const a = makeSession();
+            const b = makeSession();
+            should(await open(a.session, file, OpenFileMode.Read)).eql(StatusCodes.Good);
+            should(await open(b.session, file, OpenFileMode.WriteEraseExisting)).eql(StatusCodes.BadResourceUnavailable);
+            should(fs.readFileSync(filename, "utf8")).eql(SEED);
+            await a.runShutdownTasks();
         });
     });
 

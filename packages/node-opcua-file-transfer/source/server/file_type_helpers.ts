@@ -81,11 +81,21 @@ export interface FileOptions {
      */
     maxOpenFilesPerSession?: number;
 
+    /**
+     * the maximum number of file handles that all the Sessions can hold at the same time, for
+     * all the files of the address space. When the Sessions already hold this number of
+     * handles, Open on this file returns BadResourceUnavailable.
+     * Keep this value below the file descriptor limit of the process, with a margin for sockets.
+     * - if not specified, {@link defaultMaxOpenFilesPerServer} applies
+     */
+    maxOpenFilesPerServer?: number;
+
     refreshFileContentFunc?: () => Promise<void>;
 }
 
 export const defaultMaxSize = 100000000;
 export const defaultMaxOpenFilesPerSession = 10;
+export const defaultMaxOpenFilesPerServer = 256;
 
 export interface UAFileType extends UAObjectType, UAFile_Base {}
 
@@ -108,6 +118,7 @@ export class FileTypeData {
     public maxChunkSizeBytes = 0;
     public writable = true;
     public maxOpenFilesPerSession = defaultMaxOpenFilesPerSession;
+    public maxOpenFilesPerServer = defaultMaxOpenFilesPerServer;
 
     private file: UAFile;
     private _openCount = 0;
@@ -128,6 +139,7 @@ export class FileTypeData {
         this.maxChunkSizeBytes = options.maxChunkSize || FileTypeData.maxChunkSize;
         this.writable = options.writable ?? true;
         this.maxOpenFilesPerSession = options.maxOpenFilesPerSession ?? defaultMaxOpenFilesPerSession;
+        this.maxOpenFilesPerServer = options.maxOpenFilesPerServer ?? defaultMaxOpenFilesPerServer;
 
         // openCount indicates the number of currently valid file handles on the file.
         this._openCount = 0;
@@ -456,7 +468,7 @@ function toNodeJSMode(opcuaMode: OpenFileMode): string {
  *
  * OPC 10000-20 does not list these codes for this Method. OPC 10000-4 defines them in general:
  *  BadUserAccessDenied     The file is writable, but not for this user.
- *  BadResourceUnavailable  The Session already holds the maximum number of file handles.
+ *  BadResourceUnavailable  The Session, or all the Sessions, already hold the maximum number of file handles.
  *
  * @private
  */
@@ -505,7 +517,11 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISe
     }
 
     // An in-process caller has no Session: there is nothing to limit, and no Session close to wait for.
-    if (context.session && _getFilesOfSession(addressSpace, _getSessionId(context)).length >= fileData.maxOpenFilesPerSession) {
+    if (
+        context.session &&
+        (_getFilesOfSession(addressSpace, _getSessionId(context)).length >= fileData.maxOpenFilesPerSession ||
+            Object.keys(_prepare(addressSpace).$$files).length >= fileData.maxOpenFilesPerServer)
+    ) {
         return { statusCode: StatusCodes.BadResourceUnavailable };
     }
 
