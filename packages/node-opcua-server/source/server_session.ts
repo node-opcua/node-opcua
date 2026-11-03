@@ -20,7 +20,7 @@ import {
     type UASessionDiagnosticsVariable,
     type UASessionSecurityDiagnostics
 } from "node-opcua-address-space";
-import type { AddReferenceOpts, BaseNode, ISessionContext } from "node-opcua-address-space-base";
+import type { AddReferenceOpts, BaseNode, ISessionContext, SessionShutdownTask } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { getMinOPCUADate, randomGuid } from "node-opcua-basic-types";
 import {
@@ -211,6 +211,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     private _registeredNodes: Record<string, NodeId>;
     private _registeredNodesInv: Record<string, BaseNode>;
     private _cumulatedSubscriptionCount: number;
+    private _shutdownTasks: SessionShutdownTask[] = [];
     private _sessionDiagnostics?: SessionDiagnosticsDataTypeEx;
     /** the object behind this._sessionDiagnostics, and the proxy it was taken from */
     private _rawSessionDiagnostics?: SessionDiagnosticsDataTypeEx;
@@ -666,9 +667,11 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * @param [auditEntryId] the RequestHeader.auditEntryId of the CloseSession request that caused
      *        this close, when there is one (part 5 6.4.3 ClientAuditEntryId). Absent for a
      *        server-initiated close (Timeout, Terminated, Forcing), where there is no client request.
-     *
+     * @returns a Promise that resolves when the shutdown tasks have settled.
+     *        The Session is already closed when the call returns: all the steps up to
+     *        the wait for the shutdown tasks run synchronously.
      */
-    public close(deleteSubscriptions: boolean, reason: string, auditEntryId?: string): void {
+    public close(deleteSubscriptions: boolean, reason: string, auditEntryId?: string): Promise<void> {
         // c8 ignore next
         doDebug && debugLog(" closing session deleteSubscriptions = ", deleteSubscriptions);
         if (this.publishEngine) {
@@ -692,6 +695,10 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(this.currentSubscriptionCount === 0);
 
         this.status = "closed";
+
+        const shutdownTasks = this._shutdownTasks;
+        this._shutdownTasks = [];
+        const shutdownTasksDone = Promise.all(shutdownTasks.map((task) => this._runShutdownTask(task)));
 
         this._detach_channel();
 
@@ -717,6 +724,24 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         assert(!this.sessionDiagnostics, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
         assert(!this.sessionObject, "ServerSession#_removeSessionObjectFromAddressSpace must be called");
+
+        return shutdownTasksDone.then(() => undefined);
+    }
+
+    public registerSessionShutdownTask(task: SessionShutdownTask): void {
+        if (this.status === "closed" || this.status === "disposed") {
+            void this._runShutdownTask(task);
+            return;
+        }
+        this._shutdownTasks.push(task);
+    }
+
+    private async _runShutdownTask(task: SessionShutdownTask): Promise<void> {
+        try {
+            await task();
+        } catch (err) {
+            errorLog("Session shutdown task has failed:", (err as Error).message);
+        }
     }
 
     public registerNode(nodeId: NodeId): NodeId {

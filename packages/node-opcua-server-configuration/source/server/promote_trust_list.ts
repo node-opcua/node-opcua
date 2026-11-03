@@ -821,11 +821,18 @@ export async function promoteTrustList(trustList: UATrustList) {
             writeTrustList(MemFs as unknown as AbstractFs, filename, trustMask, certificateManager)
                 .then(() => {
                     // Track if opened for write to enforce BadInvalidState on subsequent opens
-                    if (openMask === OpenFileMode.WriteEraseExisting) {
+                    const opensForWrite = openMask === OpenFileMode.WriteEraseExisting;
+                    if (opensForWrite) {
                         trustListEx.$$openedForWrite = true;
                     }
 
-                    _open_asyncExecutionFunction.call(this, inputArgs, context, callback);
+                    _open_asyncExecutionFunction.call(this, inputArgs, context, (err, result) => {
+                        // an Open that fails gives no file handle, and so no way to clear the flag later.
+                        if (opensForWrite && (err || result?.statusCode?.isNotGood())) {
+                            trustListEx.$$openedForWrite = false;
+                        }
+                        callback(err, result);
+                    });
                 })
                 .catch((err) => {
                     errorLog((err as Error).message);

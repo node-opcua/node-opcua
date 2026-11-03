@@ -102,6 +102,9 @@ export interface IConditionRefreshScopeHolder {
     readonly _condition_refresh_scope: ConditionRefreshScope | null;
 }
 
+/** a task that the server runs once when the Session closes, see {@link ISessionBase.registerSessionShutdownTask} */
+export type SessionShutdownTask = () => void | Promise<void>;
+
 export interface ISessionBase {
     userIdentityToken?: UserIdentityToken;
     channel?: IChannelBase;
@@ -124,6 +127,15 @@ export interface ISessionBase {
      * against, and a Method validating its SubscriptionId argument then lets it through.
      */
     getSubscription?(subscriptionId: number): ISubscriptionBase | null;
+    /**
+     * Registers a task that runs once when the Session closes, for whatever reason (CloseSession,
+     * timeout, server shutdown). Use it to release a resource that the Session holds.
+     * A task that fails does not stop the other tasks. A task that returns a Promise delays
+     * the CloseSession response and the server shutdown until it settles, so it must settle.
+     * A task registered after the Session closed runs immediately.
+     * Optional: an in-process caller (PseudoSession, tests) has no Session lifetime to follow.
+     */
+    registerSessionShutdownTask?(task: SessionShutdownTask): void;
 }
 export interface ContinuationPointData {
     dataValues: DataValue[];

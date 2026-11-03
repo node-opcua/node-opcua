@@ -14,8 +14,8 @@ import {
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS.js";
 import { CertificateManager } from "node-opcua-certificate-manager";
-import { OpenFileMode } from "node-opcua-file-transfer";
-import { NodeId } from "node-opcua-nodeid";
+import { defaultMaxOpenFilesPerSession, OpenFileMode } from "node-opcua-file-transfer";
+import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { SecurityPolicy } from "node-opcua-secure-channel";
 import { MessageSecurityMode, TrustListDataType, UserNameIdentityToken } from "node-opcua-types";
@@ -120,5 +120,40 @@ describe("TrustList File Lock", () => {
 
         // Clean up
         await trustList.close();
+    });
+
+    it("should allow opening the trust list for write after an Open for write that was refused", async () => {
+        await installPushCertificateManagement(addressSpace, {
+            applicationGroup,
+            userTokenGroup,
+            applicationUri: "SomeUri"
+        });
+
+        const otherSession: ISessionBase = { ...session, getSessionId: () => new NodeId(NodeIdType.NUMERIC, 1234, 0) };
+        const context = new SessionContext({ server: opcuaServer, session: otherSession });
+        const pseudoSession = new PseudoSession(addressSpace, context);
+
+        const clientPushCertificateManager = new ClientPushCertificateManagement(pseudoSession);
+        const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
+
+        // The Session uses all its file handles: the server refuses the next Open.
+        for (let i = 0; i < defaultMaxOpenFilesPerSession; i++) {
+            const reader = await defaultApplicationGroup.getTrustList();
+            await reader.open(OpenFileMode.Read);
+        }
+        const refused = await defaultApplicationGroup.getTrustList();
+        const error = await refused.open(OpenFileMode.WriteEraseExisting).then(
+            () => null,
+            (err: Error) => err
+        );
+        should(error?.message).match(/BadResourceUnavailable/);
+
+        // Another Session must not find the file locked for writing.
+        const context2 = new SessionContext({ server: opcuaServer, session });
+        const manager2 = new ClientPushCertificateManagement(new PseudoSession(addressSpace, context2));
+        const group2 = await manager2.getCertificateGroup("DefaultApplicationGroup");
+        const writer = await group2.getTrustList();
+        await writer.open(OpenFileMode.WriteEraseExisting);
+        await writer.close();
     });
 });
