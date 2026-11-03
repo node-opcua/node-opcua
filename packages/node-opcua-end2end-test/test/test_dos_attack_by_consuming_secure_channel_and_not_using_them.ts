@@ -1,12 +1,16 @@
 /*
  * attempt a DoS attack on Server by consuming SecureChannels and NOT using them.
  */
-import "should";
+
 import { spawn } from "node:child_process";
+import crypto from "node:crypto";
 import chalk from "chalk";
 import {
+    ApplicationDescription,
+    ApplicationType,
     ClientSecureChannelLayer,
     type ClientSession,
+    CreateSessionRequest,
     is_valid_endpointUrl,
     MessageSecurityMode,
     OPCUAClient,
@@ -15,6 +19,7 @@ import {
 } from "node-opcua";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 import sinon from "sinon";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
 import { compiledHelper } from "../test_helpers/paths.js";
@@ -222,6 +227,67 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
                 /* ignore */
             }
         }
+    });
+
+    // Open a SecureChannel and send one CreateSession on it. Do not activate the Session.
+    // A Session is attached to its channel during CreateSession, before ActivateSession, so
+    // this leaves the channel with a created-but-unactivated Session.
+    function createSessionOnly(client: OPCUAClient): Promise<void> {
+        const request = new CreateSessionRequest({
+            clientDescription: new ApplicationDescription({
+                applicationUri: "urn:test:probe",
+                applicationType: ApplicationType.Client
+            }),
+            endpointUrl,
+            sessionName: "probe-" + crypto.randomBytes(4).toString("hex"),
+            clientNonce: crypto.randomBytes(32),
+            clientCertificate: null,
+            requestedSessionTimeout: 600000,
+            maxResponseMessageSize: 0
+        });
+        return new Promise<void>((resolve, reject) => {
+            (
+                client as unknown as {
+                    performMessageTransaction(r: object, cb: (err: Error | null) => void): void;
+                }
+            ).performMessageTransaction(request, (err) => (err ? reject(err) : resolve()));
+        });
+    }
+
+    it("ZAA6 a channel that carries only an unactivated session shall not block a new connection", async () => {
+        // fill every slot with a created-but-unactivated session
+        const held: OPCUAClient[] = [];
+        for (let i = 0; i < server.maxConnectionsPerEndpoint; i++) {
+            const client = OPCUAClient.create({ connectionStrategy: fail_fast_connectionStrategy });
+            held.push(client);
+            await client.connect(endpointUrl);
+            await createSessionOnly(client);
+        }
+
+        // a further legitimate connection must still succeed: the oldest channel whose
+        // sessions are all unactivated is reclaimed, so one slot becomes free.
+        const late = OPCUAClient.create({ connectionStrategy: fail_fast_connectionStrategy });
+        let connected = false;
+        try {
+            await late.connect(endpointUrl);
+            connected = true;
+        } catch {
+            // refused: the weakness is present
+        } finally {
+            try {
+                await late.disconnect();
+            } catch {
+                /* ignore */
+            }
+            for (const client of held) {
+                try {
+                    await client.disconnect();
+                } catch {
+                    /* ignore */
+                }
+            }
+        }
+        should(connected).eql(true);
     });
 
     it("ZAA5 Server shall not keep channel that have been disconnected abruptly - version 2", async () => {
