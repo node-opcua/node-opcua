@@ -241,7 +241,7 @@ describe("testing Server resilience to DDOS attacks", function (this: Mocha.Cont
             endpointUrl,
             sessionName: "probe-" + crypto.randomBytes(4).toString("hex"),
             clientNonce: crypto.randomBytes(32),
-            clientCertificate: null,
+            clientCertificate: undefined,
             requestedSessionTimeout: 600000,
             maxResponseMessageSize: 0
         });
