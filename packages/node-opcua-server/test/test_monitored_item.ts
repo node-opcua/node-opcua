@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
 import { type IAddressSpace, type ISessionContext, SessionContext } from "node-opcua-address-space";
-import { AttributeIds, NodeClass, type QualifiedNameOptions } from "node-opcua-data-model";
+import { AttributeIds, LocalizedText, NodeClass, QualifiedName, type QualifiedNameOptions } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { coerceNodeId, makeNodeId, type NodeId } from "node-opcua-nodeid";
@@ -15,7 +15,7 @@ import {
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type MonitoredItemNotification, Range } from "node-opcua-types";
-import { DataType, Variant } from "node-opcua-variant";
+import { DataType, Variant, type VariantOptions } from "node-opcua-variant";
 import should from "should";
 import sinon from "sinon";
 
@@ -2022,6 +2022,77 @@ describe("MonitoredItem queue overflow on a value that is not exactly Good (issu
 
         should(monitoredItem.queue[0].value.statusCode.hasOverflowBit).eql(false);
         should(StatusCodes.GoodWithOverflowBit.value).eql(expected);
+        monitoredItem.terminate();
+        monitoredItem.dispose();
+    });
+});
+
+describe("MonitoredItem recording an unchanged value of an object type", () => {
+    const create = (filter?: DataChangeFilter) => {
+        const monitoredItem = createMonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 10,
+            monitoredItemId: 80,
+            timestampsToReturn: TimestampsToReturn.Both,
+            filter
+        });
+        monitoredItem.$subscription = fakeSubscription;
+        monitoredItem.setNode(fakeNode);
+        return monitoredItem;
+    };
+    const sample = (value: Omit<VariantOptions, "arrayType">, second: number) =>
+        new DataValue({ value, sourceTimestamp: new Date(2026, 10, 3, 18, 48, second) });
+
+    // a StatusCode is the only object Variant.clone() hands back as it is: the others are copied per sample
+    const values: [string, Omit<VariantOptions, "arrayType">][] = [
+        ["StatusCode", { dataType: DataType.StatusCode, value: StatusCodes.Good }],
+        ["NodeId", { dataType: DataType.NodeId, value: makeNodeId(1) }],
+        ["LocalizedText", { dataType: DataType.LocalizedText, value: new LocalizedText({ text: "A" }) }],
+        ["QualifiedName", { dataType: DataType.QualifiedName, value: new QualifiedName({ name: "A" }) }],
+        ["ByteString", { dataType: DataType.ByteString, value: Buffer.from("A") }],
+        ["DateTime", { dataType: DataType.DateTime, value: new Date(2026, 10, 3) }],
+        ["ExtensionObject", { dataType: DataType.ExtensionObject, value: new Range({ low: 0, high: 1 }) }]
+    ];
+    for (const [name, value] of values) {
+        it(`queues a new source timestamp of the same ${name} (trigger StatusValueTimestamp)`, () => {
+            const monitoredItem = create(new DataChangeFilter({ trigger: DataChangeTrigger.StatusValueTimestamp }));
+
+            should(monitoredItem.recordValue(sample(value, 0))).eql(true);
+            should(monitoredItem.recordValue(sample(value, 13))).eql(true);
+
+            should(monitoredItem.queue.length).eql(2);
+            should(monitoredItem.queue[1].value.sourceTimestamp?.getSeconds()).eql(13);
+
+            monitoredItem.terminate();
+            monitoredItem.dispose();
+        });
+    }
+
+    it("records the same StatusCode again when the change test is skipped, as resending the initial value does", () => {
+        const monitoredItem = create();
+        const value = { dataType: DataType.StatusCode, value: StatusCodes.Good };
+
+        should(monitoredItem.recordValue(sample(value, 0))).eql(true);
+        should(monitoredItem.recordValue(sample(value, 0), true)).eql(true);
+
+        should(monitoredItem.queue.length).eql(2);
+        should(monitoredItem.queue[1].value.value.value).equal(StatusCodes.Good);
+
+        monitoredItem.terminate();
+        monitoredItem.dispose();
+    });
+
+    it("still rejects the same StatusCode when no filter asks for the timestamp", () => {
+        const monitoredItem = create();
+        const value = { dataType: DataType.StatusCode, value: StatusCodes.Good };
+
+        should(monitoredItem.recordValue(sample(value, 0))).eql(true);
+        should(monitoredItem.recordValue(sample(value, 13))).eql(false);
+
+        should(monitoredItem.queue.length).eql(1);
+
         monitoredItem.terminate();
         monitoredItem.dispose();
     });

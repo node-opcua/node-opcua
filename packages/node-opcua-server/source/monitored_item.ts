@@ -1713,7 +1713,9 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 !(dataValue.value.value instanceof Object) ||
                 dataValue.value.value !== this.oldDataValue.value.value
             ) &&
-            !(dataValue.value.value instanceof Date)
+            !(dataValue.value.value instanceof Date) &&
+            // a shared constant, the one object Variant.clone() does not copy: nothing to corrupt
+            !(dataValue.value.value instanceof StatusCode)
         ) {
             throw new Error(
                 "dataValue.value.value cannot be the same object twice! " +
