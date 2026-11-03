@@ -1955,6 +1955,9 @@ importers:
       node-opcua-status-code:
         specifier: 2.187.0
         version: link:../node-opcua-status-code
+      node-opcua-types:
+        specifier: 2.187.19
+        version: link:../node-opcua-types
       node-opcua-variant:
         specifier: 2.187.19
         version: link:../node-opcua-variant

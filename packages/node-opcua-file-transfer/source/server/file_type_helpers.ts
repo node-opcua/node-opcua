@@ -4,7 +4,15 @@
 
 import fsOrig from "node:fs";
 import { promisify, types } from "node:util";
-import type { IAddressSpace, ISessionContext, UAFile, UAFile_Base, UAMethod, UAObjectType } from "node-opcua-address-space";
+import type {
+    IAddressSpace,
+    ISessionBase,
+    ISessionContext,
+    UAFile,
+    UAFile_Base,
+    UAMethod,
+    UAObjectType
+} from "node-opcua-address-space";
 import { getContextMaxMessageSize } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import type { Byte, Int32, UInt32, UInt64 } from "node-opcua-basic-types";
@@ -14,6 +22,7 @@ import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "n
 import { NodeId, type NodeIdLike, sameNodeId } from "node-opcua-nodeid";
 import type { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
+import { PermissionType } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import type { AbstractFs } from "../common/abstract_fs.js";
 import { OpenFileMode, OpenFileModeMask } from "../open_mode.js";
@@ -32,7 +41,10 @@ export interface FileOptions {
      */
     filename: string;
     /**
-     * the maximum allowed size of the  physical file.
+     * the maximum allowed size of the physical file, in bytes.
+     * A Write that would go past this size returns BadOutOfRange and writes nothing.
+     * - if not specified, {@link defaultMaxSize} applies
+     * - 0 means no limit
      */
     maxSize?: number;
     /**
@@ -51,10 +63,40 @@ export interface FileOptions {
      */
     maxChunkSize?: number;
 
+    /**
+     * whether the file can be opened for writing. The Writable Property exposes this value.
+     * When false, Open with the Write bit returns BadNotWritable. Read access does not change.
+     * - if not specified, the file is writable
+     *
+     * UserWritable also takes the user access rights into account: a user without the Call
+     * permission on the Write Method cannot open the file for writing (BadUserAccessDenied).
+     */
+    writable?: boolean;
+
+    /**
+     * the maximum number of file handles that one Session can hold at the same time, for
+     * all the files of the address space. When the Session already holds this number of
+     * handles, Open on this file returns BadResourceUnavailable.
+     * - if not specified, {@link defaultMaxOpenFilesPerSession} applies
+     */
+    maxOpenFilesPerSession?: number;
+
     refreshFileContentFunc?: () => Promise<void>;
 }
 
+export const defaultMaxSize = 100000000;
+export const defaultMaxOpenFilesPerSession = 10;
+
 export interface UAFileType extends UAObjectType, UAFile_Base {}
+
+/**
+ * Write requires a call to the Write Method: a user that cannot call it has no write
+ * access to the file, and Open must not give it one.
+ */
+function _hasWriteAccessRights(context: ISessionContext, file: UAFile): boolean {
+    return context.checkPermission(file.write, PermissionType.Call);
+}
+
 /**
  *
  */
@@ -64,6 +106,8 @@ export class FileTypeData {
     public maxSize = 0;
     public mimeType = "";
     public maxChunkSizeBytes = 0;
+    public writable = true;
+    public maxOpenFilesPerSession = defaultMaxOpenFilesPerSession;
 
     private file: UAFile;
     private _openCount = 0;
@@ -82,6 +126,8 @@ export class FileTypeData {
         this.maxSize = options.maxSize ?? 0;
         this.mimeType = options.mimeType || "";
         this.maxChunkSizeBytes = options.maxChunkSize || FileTypeData.maxChunkSize;
+        this.writable = options.writable ?? true;
+        this.maxOpenFilesPerSession = options.maxOpenFilesPerSession ?? defaultMaxOpenFilesPerSession;
 
         // openCount indicates the number of currently valid file handles on the file.
         this._openCount = 0;
@@ -126,6 +172,27 @@ export class FileTypeData {
         );
 
         file.size.minimumSamplingInterval = 0; // changes immediately
+
+        file.writable.bindVariable(
+            {
+                get: () => new Variant({ dataType: DataType.Boolean, value: this.writable })
+            },
+            true
+        );
+        file.userWritable.bindVariable(
+            {
+                timestamped_get_ctx: async ({ context }) =>
+                    new DataValue({
+                        serverTimestamp: new Date(),
+                        value: new Variant({
+                            dataType: DataType.Boolean,
+                            value: this.writable && (!context || _hasWriteAccessRights(context, file))
+                        }),
+                        statusCode: StatusCodes.Good
+                    })
+            },
+            true
+        );
 
         this.refresh();
     }
@@ -234,11 +301,13 @@ interface FileAccessData {
     size: number; // size
     openMode: OpenFileMode;
     sessionId: NodeId;
+    fileData: FileTypeData;
 }
 
 interface FileTypeM {
     $$currentFileHandle: number;
     $$files: { [key: number]: FileAccessData };
+    $$sessionsWithShutdownTask: WeakSet<ISessionBase>;
 }
 
 interface AddressSpacePriv extends IAddressSpace, FileTypeM {}
@@ -246,6 +315,7 @@ function _prepare(addressSpace: IAddressSpace): FileTypeM {
     const _context = addressSpace as AddressSpacePriv;
     _context.$$currentFileHandle = _context.$$currentFileHandle ? _context.$$currentFileHandle : 41;
     _context.$$files = _context.$$files || {};
+    _context.$$sessionsWithShutdownTask = _context.$$sessionsWithShutdownTask || new WeakSet();
     return _context as FileTypeM;
 }
 function _getSessionId(context: ISessionContext) {
@@ -255,7 +325,7 @@ function _getSessionId(context: ISessionContext) {
     assert(context.session?.getSessionId);
     return context.session?.getSessionId() || new NodeId();
 }
-function _addFile(addressSpace: IAddressSpace, context: ISessionContext, openMode: OpenFileMode): UInt32 {
+function _addFile(addressSpace: IAddressSpace, context: ISessionContext, openMode: OpenFileMode, fileData: FileTypeData): UInt32 {
     const _context = _prepare(addressSpace);
     _context.$$currentFileHandle++;
     const fileHandle: number = _context.$$currentFileHandle;
@@ -266,7 +336,8 @@ function _addFile(addressSpace: IAddressSpace, context: ISessionContext, openMod
         openMode,
         position: [0, 0],
         size: 0,
-        sessionId
+        sessionId,
+        fileData
     };
     _context.$$files[fileHandle] = _fileData;
 
@@ -288,6 +359,54 @@ function _getFileInfo(addressSpace: IAddressSpace, context: ISessionContext, fil
 function _close(addressSpace: IAddressSpace, fileData: FileAccessData) {
     const _context = _prepare(addressSpace);
     delete _context.$$files[fileData.handle];
+}
+
+function _getFilesOfSession(addressSpace: IAddressSpace, sessionId: NodeId): FileAccessData[] {
+    const _context = _prepare(addressSpace);
+    return Object.values(_context.$$files).filter((f) => sameNodeId(f.sessionId, sessionId));
+}
+
+/**
+ * The handle becomes invalid immediately. Thus a second release of the same handle, or a
+ * call that comes while the file descriptor closes, cannot use the file descriptor.
+ */
+async function _releaseHandle(addressSpace: IAddressSpace, fileInfo: FileAccessData): Promise<void> {
+    _close(addressSpace, fileInfo);
+    const fd = fileInfo.fd;
+    if (fd === -1) {
+        return; // the file is not open yet: _openFile sees that the handle has gone, and closes it.
+    }
+    fileInfo.fd = -1;
+    fileInfo.fileData.openCount -= 1;
+    try {
+        await promisify(fileInfo.fileData._fs.close)(fd);
+    } catch (err) {
+        if (types.isNativeError(err)) {
+            errorLog("Close error : ", err.message);
+        }
+    }
+}
+
+/**
+ * The fileHandle is valid while the Session is open (OPC 10000-20 4.2.2): when the Session
+ * closes, release the handles that the client did not close.
+ * One task per Session is sufficient. A task per handle would accumulate in a long-lived
+ * Session that opens and closes files.
+ */
+function _releaseHandlesOnSessionClose(addressSpace: IAddressSpace, context: ISessionContext): void {
+    const session = context.session;
+    if (!session?.registerSessionShutdownTask) {
+        return;
+    }
+    const _context = _prepare(addressSpace);
+    if (_context.$$sessionsWithShutdownTask.has(session)) {
+        return;
+    }
+    _context.$$sessionsWithShutdownTask.add(session);
+    const sessionId = _getSessionId(context);
+    session.registerSessionShutdownTask(async () => {
+        await Promise.all(_getFilesOfSession(addressSpace, sessionId).map((f) => _releaseHandle(addressSpace, f)));
+    });
 }
 
 function toNodeJSMode(opcuaMode: OpenFileMode): string {
@@ -329,11 +448,15 @@ function toNodeJSMode(opcuaMode: OpenFileMode): string {
  * Method Result Codes (defined in Call Service)
  *  Result Code         Description
  *  BadNotReadable      File might be locked and thus not readable.
- *  BadNotWritable      The file is locked and thus not writable.
+ *  BadNotWritable      The file is locked and thus not writable, or the file is not writable.
  *  BadInvalidState
  *  BadInvalidArgument  Mode setting is invalid.
  *  BadNotFound .
  *  BadUnexpectedError
+ *
+ * OPC 10000-20 does not list these codes for this Method. OPC 10000-4 defines them in general:
+ *  BadUserAccessDenied     The file is writable, but not for this user.
+ *  BadResourceUnavailable  The Session already holds the maximum number of file handles.
  *
  * @private
  */
@@ -369,6 +492,23 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISe
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
+    const fileData = getFileDataFromContext(context);
+
+    // These checks come first: the file system call below erases the file if the mode asks for it.
+    if ((mode & OpenFileModeMask.WriteBit) === OpenFileModeMask.WriteBit) {
+        if (!fileData.writable) {
+            return { statusCode: StatusCodes.BadNotWritable };
+        }
+        if (!_hasWriteAccessRights(context, context.object as UAFile)) {
+            return { statusCode: StatusCodes.BadUserAccessDenied };
+        }
+    }
+
+    // An in-process caller has no Session: there is nothing to limit, and no Session close to wait for.
+    if (context.session && _getFilesOfSession(addressSpace, _getSessionId(context)).length >= fileData.maxOpenFilesPerSession) {
+        return { statusCode: StatusCodes.BadResourceUnavailable };
+    }
+
     /**
      *  fileHandle (UInt32) A handle for the file used in other method calls indicating not the
      *            file (this is done by the Object of the Method call) but the access
@@ -377,26 +517,33 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISe
      *            fileHandle to another Session but need to get a new fileHandle by calling
      *            the Open Method.
      */
-    const fileHandle = _addFile(addressSpace, context, mode as OpenFileMode);
+    const fileHandle = _addFile(addressSpace, context, mode as OpenFileMode, fileData);
 
     const _fileInfo = _getFileInfo(addressSpace, context, fileHandle);
     if (!_fileInfo) {
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
-
-    const fileData = getFileDataFromContext(context);
+    _releaseHandlesOnSessionClose(addressSpace, context);
 
     const filename = fileData.filename;
-
-    // make sure file is up to date ... by delegating
-    if (mode === OpenFileMode.Read) {
-        await fileData.refreshFileContent();
-    }
 
     const abstractFs = _getFileSystem(context);
 
     try {
-        _fileInfo.fd = await promisify(abstractFs.open)(filename, flags);
+        // make sure file is up to date ... by delegating
+        if (mode === OpenFileMode.Read) {
+            await fileData.refreshFileContent();
+        }
+
+        const fd = await promisify(abstractFs.open)(filename, flags);
+
+        // The Session can close during the wait. Its shutdown task did not see this file descriptor.
+        if (_prepare(addressSpace).$$files[fileHandle] !== _fileInfo) {
+            await promisify(abstractFs.close)(fd);
+            return { statusCode: StatusCodes.BadSessionClosed };
+        }
+        _fileInfo.fd = fd;
+        fileData.openCount += 1;
 
         // update position
         _fileInfo.position = [0, 0];
@@ -410,13 +557,13 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISe
         if ((mode & OpenFileModeMask.EraseExistingBit) === OpenFileModeMask.EraseExistingBit) {
             _fileInfo.size = 0;
         }
-
-        fileData.openCount += 1;
+        fileData.fileSize = _fileInfo.size;
     } catch (err) {
         if (types.isNativeError(err)) {
             errorLog(err.message);
             errorLog(err.stack);
         }
+        await _releaseHandle(addressSpace, _fileInfo);
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
 
@@ -449,8 +596,6 @@ function _getFileSystem(context: ISessionContext): AbstractFs {
  * @private
  */
 async function _closeFile(this: UAMethod, inputArguments: Variant[], context: ISessionContext): Promise<CallMethodResultOptions> {
-    const abstractFs = _getFileSystem(context);
-
     const addressSpace = this.addressSpace;
 
     const fileHandle: UInt32 = inputArguments[0].value as UInt32;
@@ -465,9 +610,7 @@ async function _closeFile(this: UAMethod, inputArguments: Variant[], context: IS
     // c8 ignore next
     doDebug && debugLog("Closing file handle ", fileHandle, "filename: ", fileData.filename, "openCount: ", fileData.openCount);
 
-    await promisify(abstractFs.close)(_fileInfo.fd);
-    _close(addressSpace, _fileInfo);
-    fileData.openCount -= 1;
+    await _releaseHandle(addressSpace, _fileInfo);
 
     return {
         statusCode: StatusCodes.Good
@@ -584,6 +727,25 @@ async function _writeFile(this: UAMethod, inputArguments: Variant[], context: IS
 
     const data: Buffer = inputArguments[1].value as Buffer;
 
+    // Writing an empty or null ByteString returns Good without any effect on the file.
+    if (!data || data.length === 0) {
+        return { outputArguments: [], statusCode: StatusCodes.Good };
+    }
+
+    const fileData = getFileDataFromContext(context);
+
+    // In append mode, the file system writes at the end of the file, whatever the position is.
+    // The check and the size update stay in the same tick: a concurrent Write sees the new size.
+    const isAppend = (_fileInfo.openMode & OpenFileModeMask.AppendBit) === OpenFileModeMask.AppendBit;
+    const offset = isAppend ? fileData.fileSize : _positionToNumber(_fileInfo.position);
+    if (fileData.maxSize > 0 && offset + data.length > fileData.maxSize) {
+        return { statusCode: StatusCodes.BadOutOfRange };
+    }
+    if (isAppend) {
+        fileData.fileSize = offset + data.length;
+        _fileInfo.position = _numberToPosition(offset);
+    }
+
     let ret = { bytesWritten: 0 };
     try {
         // note: we do not util.promise here as it has a wierd behavior...
@@ -600,7 +762,6 @@ async function _writeFile(this: UAMethod, inputArguments: Variant[], context: IS
         _fileInfo.position[1] += ret.bytesWritten;
         _fileInfo.size = Math.max(_fileInfo.size, _fileInfo.position[1]);
 
-        const fileData = getFileDataFromContext(context);
         // c8 ignore next
         doDebug && debugLog(fileData.fileSize);
         fileData.fileSize = Math.max(fileData.fileSize, _fileInfo.position[1]);
@@ -610,6 +771,7 @@ async function _writeFile(this: UAMethod, inputArguments: Variant[], context: IS
         if (types.isNativeError(err)) {
             errorLog("Write error : ", err.message);
         }
+        await fileData.refresh();
         return { statusCode: StatusCodes.BadUnexpectedError };
     }
 
@@ -617,6 +779,14 @@ async function _writeFile(this: UAMethod, inputArguments: Variant[], context: IS
         outputArguments: [],
         statusCode: StatusCodes.Good
     };
+}
+
+function _positionToNumber(position: UInt64): number {
+    return position[0] * 0x100000000 + position[1];
+}
+
+function _numberToPosition(value: number): UInt64 {
+    return [Math.floor(value / 0x100000000), value % 0x100000000];
 }
 
 async function _setPositionFile(
@@ -633,7 +803,8 @@ async function _setPositionFile(
     if (!_fileInfo) {
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
-    _fileInfo.position = position;
+    // If the position is higher than the file size, the position is set to the end of the file (OPC 10000-20 4.2.7).
+    _fileInfo.position = _positionToNumber(position) > _fileInfo.size ? _numberToPosition(_fileInfo.size) : position;
     return { statusCode: StatusCodes.Good };
 }
 
@@ -662,8 +833,6 @@ async function _getPositionFile(
         statusCode: StatusCodes.Good
     };
 }
-
-export const defaultMaxSize = 100000000;
 
 function install_method_handle_on_type(addressSpace: IAddressSpace): void {
     const fileType = addressSpace.findObjectType("FileType") as unknown as UAFile;

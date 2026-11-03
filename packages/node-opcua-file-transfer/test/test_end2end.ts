@@ -1,12 +1,11 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import "should";
-
 import { type NodeId, OPCUAClient, OPCUAServer, type TransportSettings, type UAFile } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
 
-import { ClientFile, installFileType, readOPCUAFile, writeOPCUAFile } from "../dist/index.js";
+import { ClientFile, getFileData, installFileType, OpenFileMode, readOPCUAFile, writeOPCUAFile } from "../dist/index.js";
 
 const port = 2000;
 
@@ -16,6 +15,7 @@ describe("FileType: Testing with very large file end-to-end", function (this: Mo
     let server: OPCUAServer;
 
     let nodeId: NodeId;
+    let opcuaFile: UAFile;
     before(async () => {
         server = new OPCUAServer({
             port
@@ -29,7 +29,7 @@ describe("FileType: Testing with very large file end-to-end", function (this: Mo
 
         const fileType = addressSpace.findObjectType("FileType")!;
         // install file 1
-        const opcuaFile = fileType.instantiate({
+        opcuaFile = fileType.instantiate({
             browseName: "FileTransferObj",
             organizedBy: addressSpace.rootFolder.objects.server
         }) as UAFile;
@@ -66,5 +66,15 @@ describe("FileType: Testing with very large file end-to-end", function (this: Mo
 
             bufferBack.length.should.eql(veryLargeBuffer.length);
         });
+    });
+
+    it("should release the file handles when the session closes before the client calls Close", async () => {
+        const client = OPCUAClient.create({});
+        await client.withSessionAsync(server.getEndpointUrl(), async (session) => {
+            await new ClientFile(session, nodeId).open(OpenFileMode.Read);
+            await new ClientFile(session, nodeId).open(OpenFileMode.Read);
+            should(getFileData(opcuaFile).openCount).eql(2);
+        });
+        should(getFileData(opcuaFile).openCount).eql(0);
     });
 });

@@ -531,15 +531,16 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             this._orphanPublishEngine.shutdown();
         }
 
-        for (const token of tokens) {
-            this.closeSession(token, true, "Terminated");
-        }
+        const sessionsClosed = tokens.map((token) => this.closeSession(token, true, "Terminated"));
 
         // all sessions must have been terminated
         assert(this.currentSessionCount === 0);
 
         // all subscriptions must have been terminated
         assert(this.currentSubscriptionCount === 0, "all subscriptions must have been terminated");
+
+        // a session shutdown task can use the address space: it must finish before the disposal.
+        await Promise.all(sessionsClosed);
 
         this._shutdownTasks.push(shutdownAndDisposeAddressSpace);
 
@@ -1804,7 +1805,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
             // If a Server terminates a Session for any other reason, Subscriptions  associated with the Session,
             // are not deleted. => deleteSubscription= false
-            this.closeSession(session.authenticationToken, /*deleteSubscription=*/ false, /* reason =*/ "Timeout");
+            void this.closeSession(session.authenticationToken, /*deleteSubscription=*/ false, /* reason =*/ "Timeout");
 
             this.incrementSessionTimeoutCount();
         });
@@ -1835,7 +1836,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         deleteSubscriptions: boolean,
         reason: ClosingReason,
         auditEntryId?: string
-    ): void {
+    ): Promise<void> {
         reason = reason || "CloseSession";
         assert(typeof reason === "string");
         assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
@@ -1862,7 +1863,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             ServerSidePublishEngine.transferSubscriptionsToOrphan(session.publishEngine, this._orphanPublishEngine);
         }
 
-        session.close(deleteSubscriptions, reason, auditEntryId);
+        const shutdownTasksDone = session.close(deleteSubscriptions, reason, auditEntryId);
 
         assert(session.status === "closed");
 
@@ -1880,6 +1881,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             this._sessionsByToken.delete(tokenKey);
         }
         session.dispose();
+        return shutdownTasksDone;
     }
 
     public findSubscription(subscriptionId: number): Subscription | null {

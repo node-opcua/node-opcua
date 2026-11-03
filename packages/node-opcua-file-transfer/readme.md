@@ -54,6 +54,21 @@ installFileType(opcuaFile, {
 ```
 
 
+These options control the access to the file:
+
+| option | default | effect |
+|---|---|---|
+| `writable` | `true` | When `false`, `Open` with the Write bit returns `BadNotWritable`. Read access does not change. |
+| `maxSize` | `defaultMaxSize` (100000000) | A `Write` past this size returns `BadOutOfRange` and writes nothing. `0` means no limit. |
+| `maxOpenFilesPerSession` | `defaultMaxOpenFilesPerSession` (10) | The number of file handles that one Session can hold, for all the files. Then `Open` returns `BadResourceUnavailable`. |
+
+The `Writable` Property exposes the `writable` option. `UserWritable` also takes the role of the user
+into account: a user without the `Call` permission on the `Write` Method cannot open the file for
+writing, and `Open` returns `BadUserAccessDenied`.
+
+The server releases the file handles of a Session when the Session closes. To release your own
+resources in the same way, use `session.registerSessionShutdownTask(task)`.
+
 ## accessing a File node from a node-opcua client : ClientFile
 
 We assume that we have a valid OPCUA Client Session
