@@ -1433,9 +1433,20 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             // c8 ignore next
             errorLog(chalk.bgRed.white(`PREVENTING DDOS ATTACK => maxConnection =${this.maxConnections}`));
 
-            const unused_channels: ServerSecureChannelLayer[] = this.getChannels().filter((channel1: ServerSecureChannelLayer) => {
-                return !channel1.hasSession;
-            });
+            // OPC UA Part 6: at the cap the server closes the oldest SecureChannel that has
+            // no Session assigned, so that one new connection fits. A Session is attached to
+            // its channel during CreateSession, which happens before ActivateSession, so a
+            // channel can report `hasSession === true` while none of its Sessions is activated
+            // yet. Such a channel does not represent an established client, so it stays
+            // reclaimable. We reclaim in two tiers: first a channel with no Session at all,
+            // then, only if none is free, the oldest channel whose Sessions are all still
+            // unactivated. `getChannels()` keeps the channels in ascending channelId order, so
+            // the first entry of each tier is the oldest.
+            const sessionLess = this.getChannels().filter((channel1: ServerSecureChannelLayer) => !channel1.hasSession);
+            const unused_channels: ServerSecureChannelLayer[] =
+                sessionLess.length > 0
+                    ? sessionLess
+                    : this.getChannels().filter((channel1: ServerSecureChannelLayer) => !channel1.hasActivatedSession);
             if (unused_channels.length === 0) {
                 doDebug &&
                     console.log(
@@ -1461,7 +1472,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 );
             }
             const channel = unused_channels[0];
-            errorLog(`${unused_channels.length} : Forcefully closing oldest channel that have no session: ${channel.hashKey}`);
+            errorLog(
+                `${unused_channels.length} : Forcefully closing oldest channel that has no activated session: ${channel.hashKey}`
+            );
             channel.close(() => {
                 // c8 ignore next
                 if (doDebug) {

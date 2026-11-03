@@ -324,6 +324,19 @@ export class ServerSecureChannelLayer extends EventEmitter {
         return Object.keys(this.sessionTokens).length > 0;
     }
 
+    /**
+     * true when at least one Session on this channel has been activated.
+     *
+     * A Session is attached to its channel during CreateSession, which happens before
+     * ActivateSession. `hasSession` therefore becomes true for a Session that is only
+     * created and not yet activated. `hasActivatedSession` is true only once a Session
+     * reaches the "active" state, so a channel that carries only unactivated Sessions
+     * still reports false here.
+     */
+    public get hasActivatedSession(): boolean {
+        return Object.values(this.sessionTokens).some((session) => session.status === "active");
+    }
+
     public get certificateManager(): ICertificateStore {
         if (!this.#parent) {
             throw new Error("certificateManager not found");
