@@ -1160,6 +1160,15 @@ export interface OPCUAServerEndpointOptions {
      * - Unspecified IPv6 address (::) if IPv6 is available,
      * - Unspecified IPv4 address (0.0.0.0) otherwise.
      * Use this to bind the server to a specific interface or IP.
+     *
+     * In an `endpoints[]` entry, it applies to that listener only; when the
+     * entry has no `host`, the top-level `host` is used (then all interfaces).
+     * Binding each listener to its own interface is how two networks get
+     * different security settings (see `advertisedEndpoints` for the limits
+     * of per-URL settings on a shared listener).
+     *
+     * note: `hostname` is what endpoint URLs advertise; `host` is where the
+     * socket is bound. They are independent.
      */
     host?: string;
     /**
@@ -1171,6 +1180,8 @@ export interface OPCUAServerEndpointOptions {
      * share the port with other listeners in this process or others (SO_REUSEPORT, Linux): the
      * kernel spreads the incoming connections across them. Used by front threads, which all
      * listen on the same port.
+     *
+     * In an `endpoints[]` entry, it applies to that listener only; the top-level value is the fallback.
      */
     reusePort?: boolean;
     /**
@@ -4965,7 +4976,13 @@ export abstract class OPCUAServerCore<
 
         const port = Number(endpointOptions.port || 0);
 
-        const endPoint = this.createEndpoint(port, serverOption);
+        // the listener settings of an `endpoints[]` entry win over the top-level ones,
+        // which stay the fallback (and are the only source for the implicit endpoint)
+        const endPoint = this.createEndpoint(port, {
+            ...serverOption,
+            host: endpointOptions.host ?? serverOption.host,
+            reusePort: endpointOptions.reusePort ?? serverOption.reusePort
+        });
 
         endpointOptions.alternateHostname = endpointOptions.alternateHostname || [];
         const alternateHostname = Array.isArray(endpointOptions.alternateHostname)
