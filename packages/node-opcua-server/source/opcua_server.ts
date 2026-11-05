@@ -418,6 +418,62 @@ function sameIdentityToken(token1?: UserIdentityToken, token2?: UserIdentityToke
     assert(false, " Not implemented yet");
     return false;
 }
+/**
+ * the user token types the endpoints of an OPCUAServer can advertise
+ * (UserTokenType.IssuedToken has no UserTokenPolicy builder yet, see server_end_point.ts)
+ */
+const supportedUserTokenTypes: readonly UserTokenType[] = [
+    UserTokenType.Anonymous,
+    UserTokenType.UserName,
+    UserTokenType.Certificate
+];
+
+/**
+ * compute the user token types an endpoint advertises from the
+ * `userTokenTypes` and `allowAnonymous` options.
+ *
+ * - `undefined` stays `undefined`, so the endpoint keeps its defaults
+ *   (and still removes Anonymous when allowAnonymous is false)
+ * - `allowAnonymous: false` removes Anonymous from the list
+ * - unsupported token types (IssuedToken, Invalid) are ignored
+ * - a list that ends up empty is a configuration error: no session could be activated
+ *
+ * @internal
+ */
+function resolveUserTokenTypes(
+    userTokenTypes: UserTokenType[] | undefined,
+    allowAnonymous: boolean,
+    { silent }: { silent?: boolean } = {}
+): UserTokenType[] | undefined {
+    if (userTokenTypes === undefined || userTokenTypes === null) {
+        return undefined;
+    }
+    if (!Array.isArray(userTokenTypes)) {
+        throw new Error("userTokenTypes must be an array of UserTokenType");
+    }
+    const unsupported = userTokenTypes.filter((t) => !supportedUserTokenTypes.includes(t));
+    if (unsupported.length > 0 && !silent) {
+        warningLog(
+            "userTokenTypes: ignoring unsupported user token type(s)",
+            unsupported.map((t) => UserTokenType[t] ?? t).join(", ")
+        );
+    }
+    let result = [...new Set(userTokenTypes.filter((t) => supportedUserTokenTypes.includes(t)))];
+    if (!allowAnonymous && result.includes(UserTokenType.Anonymous)) {
+        if (!silent) {
+            warningLog("userTokenTypes contains UserTokenType.Anonymous but allowAnonymous is false: Anonymous is not advertised");
+        }
+        result = result.filter((t) => t !== UserTokenType.Anonymous);
+    }
+    if (result.length === 0) {
+        throw new Error(
+            "userTokenTypes: no supported user token type left (after applying allowAnonymous); " +
+                "no client could activate a session on this endpoint"
+        );
+    }
+    return result;
+}
+
 function getTokenType(userIdentityToken: UserIdentityToken): UserTokenType {
     if (userIdentityToken instanceof AnonymousIdentityToken) {
         return UserTokenType.Anonymous;
@@ -826,6 +882,7 @@ function validate_security_endpoint(
 
     // sometime endpoints have a extra leading "/" that can be ignored
     // don't be too harsh.
+    let urlMatched = true;
     if (endpoints.length === 0 && request.endpointUrl?.endsWith("/")) {
         endpoints = server.findMatchingEndpoints(request.endpointUrl.slice(0, -1));
     }
@@ -844,6 +901,7 @@ function validate_security_endpoint(
         if (OPCUAServer.requestExactEndpointUrl) {
             return { errCode: StatusCodes.BadServiceUnsupported };
         } else {
+            urlMatched = false;
             endpoints = server.findMatchingEndpoints(null);
         }
     }
@@ -870,8 +928,105 @@ function validate_security_endpoint(
     }
     return {
         errCode: StatusCodes.Good,
-        endpoint: endpoints_matching_security_policy[0]
+        endpoint: bindSessionEndpoint(
+            endpoints_matching_security_policy[0],
+            urlMatched,
+            endpoints_matching_security_policy,
+            channel
+        )
     };
+}
+
+function userTokenTypesOf(endpoint: EndpointDescription): Set<UserTokenType> {
+    return new Set((endpoint.userIdentityTokens || []).map((t) => t.tokenType));
+}
+
+/**
+ * Choose the EndpointDescription a new Session is bound to, so that the user
+ * token types accepted at ActivateSession never depend on a claim the server
+ * cannot verify.
+ *
+ * The endpointUrl of CreateSession is supplied by the Client (OPC 10000-4 5.7.2:
+ * "The network address that the Client used to access the Session Endpoint",
+ * used "for diagnostics and to determine the set of EndpointDescriptions to
+ * return"). Only the listener (TCP socket) the SecureChannel arrived on is a
+ * fact. Therefore:
+ *
+ * - URL matched an endpoint of the channel's own listener: that endpoint is used,
+ *   unchanged (its userIdentityTokens are enforced by ActivateSession).
+ * - URL matched nothing (fallback), or matched an endpoint of ANOTHER listener:
+ *   the accepted token types are limited to the intersection of the token types
+ *   of all endpoints of the channel's listener with the same security mode and
+ *   policy, i.e. the most restrictive one the client could have reached.
+ *
+ * When this limitation removes nothing (no per-URL / per-listener differences),
+ * the chosen endpoint is returned as is: same object as before this rule existed.
+ * Otherwise a copy of it with the filtered userIdentityTokens is returned; its
+ * policyIds are kept so that a client that picked the same endpoint still matches.
+ *
+ * @internal
+ */
+function bindSessionEndpoint(
+    chosen: EndpointDescription,
+    urlMatched: boolean,
+    candidates: EndpointDescription[],
+    channel: ServerSecureChannelLayer
+): EndpointDescription {
+    const own = channel.getEndpointDescription(
+        channel.securityMode,
+        fromURI(channel.securityPolicy),
+        null
+    ) as EndpointDescriptionEx | null;
+    const listener = own?._parent;
+    const chosenOnListener = !listener || (chosen as EndpointDescriptionEx)._parent === listener;
+    if (urlMatched && chosenOnListener) {
+        return chosen;
+    }
+    let peers = listener
+        ? listener
+              .endpointDescriptions()
+              .filter(
+                  (e) =>
+                      !(e as EndpointDescriptionEx).restricted &&
+                      e.securityMode === channel.securityMode &&
+                      e.securityPolicyUri === channel.securityPolicy
+              )
+        : candidates;
+    if (peers.length === 0) {
+        peers = candidates;
+    }
+    const allowed = userTokenTypesOf(chosen);
+    for (const peer of peers) {
+        const peerTypes = userTokenTypesOf(peer);
+        for (const t of [...allowed]) {
+            if (!peerTypes.has(t)) {
+                allowed.delete(t);
+            }
+        }
+    }
+    const chosenTokens = chosen.userIdentityTokens || [];
+    if (chosenTokens.every((t) => allowed.has(t.tokenType))) {
+        return chosen;
+    }
+    warningLog(
+        "CreateSession endpointUrl",
+        urlMatched ? "belongs to another listener" : "matches no endpoint",
+        "of this channel: user token types limited to",
+        [...allowed].map((t) => UserTokenType[t]).join(", ") || "(none)"
+    );
+    const derived = new EndpointDescription({
+        endpointUrl: chosen.endpointUrl,
+        server: chosen.server,
+        serverCertificate: chosen.serverCertificate,
+        securityMode: chosen.securityMode,
+        securityPolicyUri: chosen.securityPolicyUri,
+        userIdentityTokens: chosenTokens.filter((t) => allowed.has(t.tokenType)),
+        transportProfileUri: chosen.transportProfileUri,
+        securityLevel: chosen.securityLevel
+    }) as EndpointDescriptionEx;
+    derived._parent = (chosen as EndpointDescriptionEx)._parent;
+    derived.restricted = false;
+    return derived;
 }
 
 /** the operation-level bits of RequestHeader.returnDiagnostics (OPC 10000-4 v1.05.07 §7.33) */
@@ -1030,9 +1185,58 @@ export interface OPCUAServerEndpointOptions {
     securityModes?: MessageSecurityMode[];
     /**
      * tells if the server default endpoints should allow anonymous connection.
+     *
+     * When `false`, `UserTokenType.Anonymous` is removed from the advertised
+     * user token policies, even if it is listed in `userTokenTypes`.
      * @default true
      */
     allowAnonymous?: boolean;
+
+    /**
+     * the user identity token types that the endpoints advertise in their
+     * `userIdentityTokens` (UserTokenPolicy) list.
+     *
+     * The server only accepts, at ActivateSession, a user identity token whose
+     * type and policyId match one of the advertised UserTokenPolicies of the
+     * endpoint the session was created on: any other token is rejected with
+     * `BadIdentityTokenInvalid`. Restricting this list therefore restricts the
+     * way users can authenticate, not only what is shown to clients.
+     *
+     * - `UserTokenType.Anonymous` is removed when `allowAnonymous` is `false`
+     *   (`allowAnonymous: false` always wins).
+     * - `UserTokenType.IssuedToken` is not supported yet and is ignored.
+     * - the resulting list must not be empty, otherwise no client could ever
+     *   activate a session: the server constructor throws.
+     *
+     * Per-URL lists in `advertisedEndpoints` can only restrict this list. They
+     * all share this listener's socket, so a client presenting an unknown URL
+     * (or the URL of another listener) is limited to the most restrictive list
+     * of the listener it is connected to; to enforce a different list for some
+     * clients, give them their own listener in `endpoints`.
+     *
+     * @example a "passwordless" server that only accepts X509 user certificates
+     * ```ts
+     * userTokenTypes: [UserTokenType.Certificate],
+     * allowAnonymous: false
+     * ```
+     * @default [UserTokenType.Anonymous, UserTokenType.UserName, UserTokenType.Certificate]
+     */
+    userTokenTypes?: UserTokenType[];
+
+    /**
+     * when `true`, the endpoint with `SecurityPolicy.None` also advertises a
+     * UserName token policy without any user token security policy
+     * (policyId `username_unsecure`): the password is then sent in clear
+     * text over an unsecured channel.
+     *
+     * This is strongly discouraged by OPC 10000-4 and is only meant for
+     * legacy clients on trusted, isolated networks. It has no effect when
+     * `UserTokenType.UserName` is not in `userTokenTypes` or when
+     * `MessageSecurityMode.None` is not in `securityModes`.
+     *
+     * @default false
+     */
+    allowUnsecurePassword?: boolean;
 
     /** alternate hostname  or IP to use */
     alternateHostname?: string | string[];
@@ -1811,6 +2015,16 @@ export abstract class OPCUAServerCore<
          */
         this.allowAnonymous = options.allowAnonymous;
 
+        // fail fast: a userTokenTypes list that leaves no usable token policy would
+        // only be detected in initialize(), when the endpoints are created
+        if (!options.endpoints) {
+            resolveUserTokenTypes(options.userTokenTypes, options.allowAnonymous, { silent: true });
+        }
+        for (const endpointOptions of [...(options.endpoints || []), ...(options.alternateEndpoints || [])]) {
+            const endpointAllowAnonymous = endpointOptions.allowAnonymous === undefined ? true : !!endpointOptions.allowAnonymous;
+            resolveUserTokenTypes(endpointOptions.userTokenTypes, endpointAllowAnonymous, { silent: true });
+        }
+
         this.discoveryServerEndpointUrl = options.discoveryServerEndpointUrl || "opc.tcp://%FQDN%:4840";
         assert(typeof this.discoveryServerEndpointUrl === "string");
 
@@ -1877,6 +2091,8 @@ export abstract class OPCUAServerCore<
                     hostname: options.hostname || hostname,
                     host: options.host,
                     allowAnonymous: options.allowAnonymous,
+                    userTokenTypes: options.userTokenTypes,
+                    allowUnsecurePassword: options.allowUnsecurePassword,
                     alternateHostname: options.alternateHostname,
                     advertisedEndpoints: options.advertisedEndpoints,
                     disableDiscovery: options.disableDiscovery,
@@ -3110,7 +3326,17 @@ export abstract class OPCUAServerCore<
         }
 
         // userIdentityToken may be missing , assume anonymous access then
-        request.userIdentityToken = request.userIdentityToken || createAnonymousIdentityToken(endpoint);
+        // (OPC 10000-4 5.7.3: a null userIdentityToken is an AnonymousIdentityToken).
+        // When the endpoint does not advertise Anonymous, the token is not valid for it:
+        // reject the request instead of letting createAnonymousIdentityToken throw
+        // (which would end as a ServiceFault BadInternalError with no audit event).
+        if (!request.userIdentityToken) {
+            if (!findUserTokenPolicy(endpoint, UserTokenType.Anonymous)) {
+                rejectConnection(this, StatusCodes.BadIdentityTokenInvalid);
+                return;
+            }
+            request.userIdentityToken = createAnonymousIdentityToken(endpoint);
+        }
 
         // check request.userIdentityToken is correct ( expected type and correctly formed)
         this.isValidUserIdentityToken(
@@ -4746,6 +4972,7 @@ export abstract class OPCUAServerCore<
             ? endpointOptions.alternateHostname
             : [endpointOptions.alternateHostname];
         const allowAnonymous = endpointOptions.allowAnonymous === undefined ? true : !!endpointOptions.allowAnonymous;
+        const userTokenTypes = resolveUserTokenTypes(endpointOptions.userTokenTypes, allowAnonymous);
 
         endPoint.addStandardEndpointDescriptions({
             allowAnonymous,
@@ -4760,11 +4987,12 @@ export abstract class OPCUAServerCore<
             // xx                hostname,
             resourcePath: serverOption.resourcePath || "",
 
-            advertisedEndpoints: endpointOptions.advertisedEndpoints
+            advertisedEndpoints: endpointOptions.advertisedEndpoints,
 
-            // TODO  userTokenTypes: endpointOptions.userTokenTypes || undefined,
+            // undefined => addStandardEndpointDescriptions uses its defaults
+            userTokenTypes,
 
-            // TODO allowUnsecurePassword: endpointOptions.allowUnsecurePassword || false
+            allowUnsecurePassword: endpointOptions.allowUnsecurePassword === true
         });
         return endPoint;
     }

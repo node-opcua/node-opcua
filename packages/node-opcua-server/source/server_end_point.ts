@@ -211,7 +211,18 @@ export interface AdvertisedEndpointConfig {
     securityPolicies?: SecurityPolicy[];
     /** Override anonymous access (default: inherit from main endpoint) */
     allowAnonymous?: boolean;
-    /** Override user token types (default: inherit from main endpoint) */
+    /**
+     * Restrict user token types (default: inherit from main endpoint).
+     *
+     * This list can only restrict the main endpoint list: token types that
+     * the main endpoint does not allow are ignored (with a warning).
+     *
+     * note: all URLs of a listener share the same socket and the server
+     * cannot verify which URL a client really used, so this restriction
+     * guides well-behaved clients but is not an authentication boundary:
+     * a client that presents the main URL gets the main list. To enforce a
+     * different list, give it its own listener (`endpoints: [{ port, userTokenTypes }]`).
+     */
     userTokenTypes?: UserTokenType[];
 }
 
@@ -752,7 +763,22 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             // Per-URL security overrides — fall back to main settings
             const entrySecurityModes = config.securityModes ?? mainSecurityModes;
             const entrySecurityPolicies = config.securityPolicies ?? mainSecurityPolicies;
-            let entryUserTokenTypes = config.userTokenTypes ?? mainUserTokenTypes;
+            // A per-URL list can only RESTRICT the main list, never widen it:
+            // all URLs of this listener share one socket, and the server cannot
+            // verify which URL a client really used (CreateSession endpointUrl is
+            // supplied by the client), so a wider list on one URL would be
+            // reachable by every client of the listener.
+            let entryUserTokenTypes = mainUserTokenTypes;
+            if (config.userTokenTypes) {
+                const widening = config.userTokenTypes.filter((t) => !mainUserTokenTypes.includes(t));
+                if (widening.length > 0) {
+                    warningLog(
+                        `advertisedEndpoints ${config.url}: userTokenTypes cannot add token types that the main endpoint does not allow; ignoring`,
+                        widening.map((t) => UserTokenType[t] ?? t).join(", ")
+                    );
+                }
+                entryUserTokenTypes = config.userTokenTypes.filter((t) => mainUserTokenTypes.includes(t));
+            }
 
             // Handle allowAnonymous override: if explicitly false,
             // filter out Anonymous even if the main config allows it
