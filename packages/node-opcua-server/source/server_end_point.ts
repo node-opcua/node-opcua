@@ -180,7 +180,12 @@ export interface EndpointDescriptionParams {
 }
 
 /**
- * Per-URL security overrides for advertised endpoints.
+ * Per-URL security restrictions for advertised endpoints.
+ *
+ * All advertised URLs share the listener's socket: an entry can only make
+ * its URL stricter than the main endpoint, and it only binds clients that
+ * present that URL (a client presenting the main URL gets the main settings).
+ * See documentation/advertised_endpoints.md, "Security Model".
  *
  * When `advertisedEndpoints` contains a config object, the endpoint
  * descriptions generated for that URL use the overridden security
@@ -205,11 +210,11 @@ export interface EndpointDescriptionParams {
 export interface AdvertisedEndpointConfig {
     /** The full endpoint URL, e.g. `"opc.tcp://public.example.com:4840"` */
     url: string;
-    /** Override security modes (default: inherit from main endpoint) */
+    /** Restrict security modes (default: inherit from main endpoint); modes the main endpoint lacks are ignored */
     securityModes?: MessageSecurityMode[];
-    /** Override security policies (default: inherit from main endpoint) */
+    /** Restrict security policies (default: inherit from main endpoint); policies the main endpoint lacks are ignored */
     securityPolicies?: SecurityPolicy[];
-    /** Override anonymous access (default: inherit from main endpoint) */
+    /** `false` removes anonymous access for this URL (default: inherit from main endpoint); `true` cannot add it */
     allowAnonymous?: boolean;
     /**
      * Restrict user token types (default: inherit from main endpoint).
@@ -307,6 +312,25 @@ export function parseOpcTcpUrl(url: string): { hostname: string; port: number; r
         port: parsed.port ? Number.parseInt(parsed.port, 10) : 4840,
         resourcePath: parsed.pathname === "/" ? "" : parsed.pathname
     };
+}
+
+/**
+ * keep only the values of a per-URL setting that the main endpoint also has
+ * (a per-URL setting can restrict the main endpoint, never widen it).
+ * @internal
+ */
+function restrictToMain<T>(url: string, what: string, entry: T[] | undefined, main: T[], label: (value: T) => string): T[] {
+    if (!entry) {
+        return main;
+    }
+    const widening = entry.filter((v) => !main.includes(v));
+    if (widening.length > 0) {
+        warningLog(
+            `advertisedEndpoints ${url}: ${what} cannot add values that the main endpoint does not allow; ignoring`,
+            widening.map(label).join(", ")
+        );
+    }
+    return entry.filter((v) => main.includes(v));
 }
 
 function getUniqueName(name: string, collection: { [key: string]: number }) {
@@ -760,9 +784,24 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 continue;
             }
 
-            // Per-URL security overrides — fall back to main settings
-            const entrySecurityModes = config.securityModes ?? mainSecurityModes;
-            const entrySecurityPolicies = config.securityPolicies ?? mainSecurityPolicies;
+            // Per-URL security restrictions: fall back to main settings
+            // A per-URL security setting can only RESTRICT the main endpoint: the
+            // listener accepts every mode and policy offered by any of its URLs, so
+            // a wider per-URL setting would open the whole listener.
+            const entrySecurityModes = restrictToMain(
+                config.url,
+                "securityModes",
+                config.securityModes,
+                mainSecurityModes,
+                (m) => MessageSecurityMode[m] ?? String(m)
+            );
+            const entrySecurityPolicies = restrictToMain(
+                config.url,
+                "securityPolicies",
+                config.securityPolicies,
+                mainSecurityPolicies,
+                (p) => String(p)
+            );
             // A per-URL list can only RESTRICT the main list, never widen it:
             // all URLs of this listener share one socket, and the server cannot
             // verify which URL a client really used (CreateSession endpointUrl is

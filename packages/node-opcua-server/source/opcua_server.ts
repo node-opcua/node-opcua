@@ -926,6 +926,19 @@ function validate_security_endpoint(
         /* c8 ignore next */
         doDebug && debugLog("endpoints_matching_security_policy= ", endpoints_matching_security_policy.length);
     }
+    const securityCheck = checkChannelSecurityOnListener(endpoints_matching_security_policy[0], urlMatched, channel);
+    if (securityCheck.isNotGood()) {
+        warningLog(
+            "CreateSession endpointUrl",
+            request.endpointUrl,
+            "does not identify an endpoint of this channel's listener, and not every URL of this listener accepts",
+            MessageSecurityMode[channel.securityMode],
+            channel.securityPolicy,
+            "=>",
+            securityCheck.toString()
+        );
+        return { errCode: securityCheck };
+    }
     return {
         errCode: StatusCodes.Good,
         endpoint: bindSessionEndpoint(
@@ -935,6 +948,65 @@ function validate_security_endpoint(
             channel
         )
     };
+}
+
+/** the listener (OPCUAServerEndPoint) the secure channel arrived on, when known */
+function channelListener(channel: ServerSecureChannelLayer): EndpointDescriptionEx["_parent"] | undefined {
+    const own = channel.getEndpointDescription(
+        channel.securityMode,
+        fromURI(channel.securityPolicy),
+        null
+    ) as EndpointDescriptionEx | null;
+    return own?._parent;
+}
+
+/**
+ * The security mode and policy counterpart of {@link bindSessionEndpoint}.
+ *
+ * Every URL of a listener shares its socket, so the listener accepts a secure
+ * channel with any mode and policy that one of its URLs offers. When the
+ * CreateSession endpointUrl identifies an endpoint of the channel's own listener,
+ * validate_security_endpoint already checked the channel against that URL.
+ * Otherwise (unknown URL, or URL of another listener) the channel must use a mode
+ * and policy offered by EVERY URL of its listener, the most restrictive common set.
+ *
+ * Status codes, as for a matched URL: BadSecurityModeRejected when some URL does not
+ * offer the channel's security mode at all, else BadSecurityPolicyRejected.
+ *
+ * Without per-URL differences every URL offers the same set: always Good.
+ * @internal
+ */
+function checkChannelSecurityOnListener(
+    chosen: EndpointDescription,
+    urlMatched: boolean,
+    channel: ServerSecureChannelLayer
+): StatusCode {
+    const listener = channelListener(channel);
+    if (!listener) {
+        return StatusCodes.Good;
+    }
+    if (urlMatched && (chosen as EndpointDescriptionEx)._parent === listener) {
+        return StatusCodes.Good;
+    }
+    const byUrl = new Map<string, EndpointDescription[]>();
+    for (const e of listener.endpointDescriptions()) {
+        if ((e as EndpointDescriptionEx).restricted) {
+            continue;
+        }
+        const url = (e.endpointUrl || "").toLowerCase();
+        byUrl.set(url, [...(byUrl.get(url) || []), e]);
+    }
+    let result: StatusCode = StatusCodes.Good;
+    for (const endpoints of byUrl.values()) {
+        const sameMode = endpoints.filter((e) => e.securityMode === channel.securityMode);
+        if (sameMode.length === 0) {
+            return StatusCodes.BadSecurityModeRejected;
+        }
+        if (!sameMode.some((e) => e.securityPolicyUri === channel.securityPolicy)) {
+            result = StatusCodes.BadSecurityPolicyRejected;
+        }
+    }
+    return result;
 }
 
 function userTokenTypesOf(endpoint: EndpointDescription): Set<UserTokenType> {
@@ -972,12 +1044,7 @@ function bindSessionEndpoint(
     candidates: EndpointDescription[],
     channel: ServerSecureChannelLayer
 ): EndpointDescription {
-    const own = channel.getEndpointDescription(
-        channel.securityMode,
-        fromURI(channel.securityPolicy),
-        null
-    ) as EndpointDescriptionEx | null;
-    const listener = own?._parent;
+    const listener = channelListener(channel);
     const chosenOnListener = !listener || (chosen as EndpointDescriptionEx)._parent === listener;
     if (urlMatched && chosenOnListener) {
         return chosen;
