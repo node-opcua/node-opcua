@@ -651,8 +651,15 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
                 await write(sessions[1 + (k % 3)], `ns=${ns};s=Name`, new Variant({ dataType: DataType.String, value: names[k] }));
             }
             await until(() => values.some((v) => v.value.value === names[names.length - 1]), "the last string");
+            // let a notification that would come after the last one (a duplicate) show up
+            await pause(100);
             should(engine.serviceRequests.write).eql(before, "written by the fronts themselves");
-            should(values.slice(1).map((v) => v.value.value)).eql(names, "one notification per write, in order");
+            // what the item reported before the first write (the value it started with, however many times
+            // it was told) is not a write: count from the first string written
+            const received = values.map((v) => v.value.value);
+            const first = received.indexOf(names[0]);
+            should(first).be.aboveOrEqual(1, `the first string was reported, received ${received.join(",")}`);
+            should(received.slice(first)).eql(names, `one notification per write, in order, received ${received.join(",")}`);
             await item.terminate();
             await write(sessions[1], `ns=${ns};s=Name`, new Variant({ dataType: DataType.String, value: "pump" }));
         });
