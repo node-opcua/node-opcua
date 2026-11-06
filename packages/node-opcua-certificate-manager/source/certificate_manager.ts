@@ -443,10 +443,18 @@ export function getDefaultCertificateManager(name: "PKI" | "UserPKI"): OPCUACert
     if (!cm) {
         const config = envPaths("node-opcua-default").config;
         const pkiFolder = path.join(config, name);
+        // The application PKI ("PKI") keeps the convenient default: it accepts an unknown
+        // peer application certificate, which a development server expects.
+        // The user PKI ("UserPKI") must not. A user certificate is an identity claim: the
+        // certificate CommonName becomes the user name for the role lookup. If the default
+        // user PKI accepted unknown certificates, any self-signed certificate would log in
+        // as the user named in its CommonName. So the default user PKI accepts only the
+        // certificates that the integrator places in its trusted folder.
+        const automaticallyAcceptUnknownCertificate = name !== "UserPKI";
         cm = new OPCUACertificateManager({
             name,
             rootFolder: pkiFolder,
-            automaticallyAcceptUnknownCertificate: true
+            automaticallyAcceptUnknownCertificate
         });
         _defaultCertificateManagers.set(name, cm);
     }
