@@ -12,12 +12,12 @@ const port3 = 5858;
 const host1 = "127.0.0.1";
 const host2 = "127.0.0.2";
 
-/** true when this machine can bind a socket on `host` (Linux routes all of 127.0.0.0/8 to lo) */
+/** true when this machine can bind a socket on `host` (Linux routes all of 127.0.0.0/8 to lo); probes on port3, which no listener of this test holds yet */
 async function canBind(host: string): Promise<boolean> {
     return new Promise((resolve) => {
         const s = net.createServer();
         s.once("error", () => resolve(false));
-        s.listen(0, host, () => s.close(() => resolve(true)));
+        s.listen(port3, host, () => s.close(() => resolve(true)));
     });
 }
 
