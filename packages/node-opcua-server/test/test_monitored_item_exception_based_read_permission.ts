@@ -25,7 +25,7 @@ import { DataType, type VariantLike } from "node-opcua-variant";
 import should from "should";
 import { OPCUAServer } from "../dist/index.js";
 
-const port = 5843;
+const port = 5862;
 const OPERATOR = resolveNodeId("ns=0;i=15680"); // WellKnownRole_Operator
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
