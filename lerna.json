@@ -3,7 +3,7 @@
     "packages/*",
     "packages_extra/*"
   ],
-  "version": "2.187.23",
+  "version": "2.187.24",
   "npmClient": "pnpm",
   "exact": true
 }
