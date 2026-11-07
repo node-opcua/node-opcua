@@ -915,4 +915,52 @@ describe("ServerEngine Subscriptions Transfer", function (this: ITestContext) {
             await engine.closeSession(session3.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
         });
     });
+
+    // OPC UA Part 4 §5.13.7: the ownership rule TransferSubscriptions enforces must also apply to
+    // DeleteSubscriptions. A session must not delete an orphaned subscription that belongs to another
+    // user, even once the owning session has timed out and the subscription has been orphaned.
+    it("ZDZ-ST12 - should NOT delete an orphaned subscription for a session of a different user", async () => {
+        await with_fake_timer.call(test, async () => {
+            if (!engine) throw new Error("internal error");
+
+            // session owned by user1
+            session1 = engine.createSession({ sessionTimeout: 100000, server });
+            session1.userIdentityToken = new UserNameIdentityToken({ userName: "user1" });
+
+            const subscription = session1.createSubscription({
+                requestedPublishingInterval: 100,
+                requestedLifetimeCount: 60,
+                requestedMaxKeepAliveCount: 10,
+                maxNotificationsPerPublish: 10,
+                publishingEnabled: true,
+                priority: 1
+            });
+            const subscriptionId = subscription.id;
+
+            // the session times out, but the subscription is kept alive (orphaned)
+            await engine.closeSession(session1.authenticationToken, /*deleteSubscriptions=*/ false, /* reason =*/ "Timeout");
+
+            const orphan = engine.findOrphanSubscription(subscriptionId);
+            should.exist(orphan);
+            if (!orphan) throw new Error("internal error: subscription was not orphaned");
+
+            // a different user (user2) must not be allowed to delete the orphaned subscription
+            session2 = engine.createSession({ sessionTimeout: 100000, server });
+            session2.userIdentityToken = new UserNameIdentityToken({ userName: "user2" });
+            should(engine.mayDeleteOrphanSubscription(session2, orphan)).eql(false);
+
+            // the orphaned subscription is still present after the denied attempt
+            should.exist(engine.findOrphanSubscription(subscriptionId));
+
+            // the legitimate user (user1) is allowed, and can delete the orphaned subscription
+            const session3 = engine.createSession({ sessionTimeout: 100000, server });
+            session3.userIdentityToken = new UserNameIdentityToken({ userName: "user1" });
+            should(engine.mayDeleteOrphanSubscription(session3, orphan)).eql(true);
+            should(engine.deleteOrphanSubscription(orphan)).eql(StatusCodes.Good);
+            should.not.exist(engine.findOrphanSubscription(subscriptionId));
+
+            await engine.closeSession(session2.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
+            await engine.closeSession(session3.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
+        });
+    });
 });

@@ -329,6 +329,13 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         return this.#orphans?.getSubscriptionById(subscriptionId) ?? null;
     }
 
+    /** OPC 10000-4: the same ownership rule as a transfer here (ServerEngine does it the same way) */
+    public override mayDeleteOrphanSubscription(session: ServerSession, subscription: Subscription): boolean {
+        return identitiesCompatibleForTransfer(ownerIdentityOf(subscription), getTransferSessionIdentity(session), {
+            allowAnonymousTransferOnUnsecuredChannel: this.#allowAnonymousTransfer
+        });
+    }
+
     public override deleteOrphanSubscription(subscription: Subscription): StatusCode {
         if (!this.#orphans) return StatusCodes.BadInternalError;
         subscription.terminate();

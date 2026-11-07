@@ -4295,6 +4295,12 @@ export abstract class OPCUAServerCore<
                 let subscription = this.engine.findOrphanSubscription(subscriptionId);
                 // c8 ignore next
                 if (subscription) {
+                    // OPC 10000-4: only the owning user may delete an orphaned subscription, the same
+                    // ownership rule TransferSubscriptions enforces. Check before the pre-delete hook
+                    // runs or anything is destroyed.
+                    if (!this.engine.mayDeleteOrphanSubscription(session, subscription)) {
+                        return StatusCodes.BadUserAccessDenied;
+                    }
                     warningLog("Deleting an orphan subscription", subscriptionId);
 
                     await this._beforeDeleteSubscription(subscription);
