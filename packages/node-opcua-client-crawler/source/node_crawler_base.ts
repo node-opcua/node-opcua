@@ -63,12 +63,21 @@ const doDebug = checkDebugFlag("node_crawler_base");
 const doDebug1 = doDebug && false;
 const warningLog = make_warningLog("node_crawler_base");
 
-console.log("+-------------------------------------------------------------------------------------+");
-console.log("| Warning:                                                                            |");
-console.log("| node-opcua-client-crawler module has been deprecated and is not maintained anymore. |");
-console.log("| Please use '@sterfive/crawler' instead.                                             |");
-console.log("| '@sterfive/crawler' is available to the NodeOPCUA Subscription members              |");
-console.log("+-------------------------------------------------------------------------------------+");
+let unmaintainedNoticeShown = false;
+function showUnmaintainedNotice(): void {
+    if (unmaintainedNoticeShown || process.env.NODEOPCUA_CRAWLER_SILENT) {
+        return;
+    }
+    unmaintainedNoticeShown = true;
+    console.warn(
+        [
+            "node-opcua-client-crawler is no longer maintained. It remains MIT licensed and",
+            "keeps working, but receives no fixes. Forks and new maintainers are welcome:",
+            "https://github.com/node-opcua/node-opcua/tree/master/packages/node-opcua-client-crawler",
+            "(set NODEOPCUA_CRAWLER_SILENT=1 to hide this message)"
+        ].join("\n")
+    );
+}
 
 //                         "ReferenceType | IsForward | BrowseName | NodeClass | DisplayName | TypeDefinition"
 const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | DisplayName | NodeClass | TypeDefinition");
@@ -204,9 +213,8 @@ export type ObjectMap = { [key: string]: Pojo };
  * @class NodeCrawlerBase
  * @param session
  * @constructor
- * @deprecated  the "node-opcua-client-crawler" is now deprecated.
- *              use NodeCrawlerBase from "@sterfive/crawler".
- *              Contact contact@sterfive.com for License information.
+ * @deprecated  node-opcua-client-crawler is no longer maintained (still MIT).
+ *              See the package README for its status and alternatives.
  *
  */
 export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
@@ -257,6 +265,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
     constructor(session: NodeCrawlerClientSession) {
         super();
+        showUnmaintainedNotice();
 
         this.session = session;
         // verify that session object provides the expected methods (browse/read)
