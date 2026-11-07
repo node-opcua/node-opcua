@@ -5,9 +5,8 @@ Crawls an OPC UA server address space and returns nodes with their attributes.
 ### Status: unmaintained, still MIT
 
 This package is no longer maintained. It remains available under the MIT license,
-it keeps working, and you are free to use, fork and republish it. It receives no
-new fixes. Version 2.127.1 works with node-opcua-client >= 2.124. Later versions
-ship with the node-opcua release of the same number.
+it keeps working with node-opcua-client >= 2.124, and you are free to use, fork
+and republish it. It receives no new fixes. The final published version is 2.127.2.
 
 At the first crawler instantiation, the package prints a one-time notice about this
 status. Set `NODEOPCUA_CRAWLER_SILENT=1` to hide it.
