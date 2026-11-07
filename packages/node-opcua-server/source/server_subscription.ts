@@ -1162,7 +1162,12 @@ export class Subscription extends EventEmitter {
             return handle_error(StatusCodes.BadDataEncodingUnsupported);
         }
 
-        // check that item can be read by current user session
+        // The session's read permission is not checked here. It is enforced by the MonitoredItem
+        // on every notification, on both the sampled and the exception-based path (see
+        // MonitoredItem#_on_value_changed_exception_based and _on_sampling_timer). A session's
+        // roles can change while the item is live, so the check must run per delivery, not once
+        // at creation. Refusing creation here would also deny an item whose session gains access
+        // later.
 
         // filter
         const requestedParameters = monitoredItemCreateRequest.requestedParameters;

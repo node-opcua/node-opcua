@@ -1214,6 +1214,19 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
      * usual. This also bounds the cost of a fast writer, which the queue alone did not.
      */
     private _on_value_changed_exception_based(dataValue: DataValue, indexRange?: NumericRange | null) {
+        // The value_changed listener is attached to the node and carries no session, so the value
+        // it delivers has not been through the node's read permission. Re-evaluate that permission
+        // on every delivery, as the sampled path does on each tick (see _on_sampling_timer /
+        // resendInitialValue): read the attribute through the session context and, when the session
+        // may not read the node, deliver that status in place of the value. The read re-resolves the
+        // current identity each time, so a role change while the item is live is honoured.
+        if (this.node) {
+            const sessionContext = this.getSessionContext() || SessionContext.defaultContext;
+            const permitted = this.node.readAttribute(sessionContext, this.itemToMonitor.attributeId);
+            if (permitted.statusCode.equals(StatusCodes.BadUserAccessDenied)) {
+                dataValue = permitted;
+            }
+        }
         if (this.samplingInterval <= 0) {
             // the server advertises MinSupportedSampleRate 0: every change goes out
             this._on_value_changed(dataValue, indexRange);
