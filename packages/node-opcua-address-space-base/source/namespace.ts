@@ -401,4 +401,10 @@ export declare interface INamespace extends INamespaceIterable {
     getDefaultRolePermissions(): RolePermissionType[] | null;
     setDefaultAccessRestrictions(accessRestrictions: AccessRestrictionsFlag): void;
     getDefaultAccessRestrictions(): AccessRestrictionsFlag;
+    /**
+     * calls `listener` each time setDefaultRolePermissions() or setDefaultAccessRestrictions()
+     * changes the defaults of this namespace: a copy of the defaults kept elsewhere (the compact
+     * address space) follows them. Returns the function that removes the listener.
+     */
+    onDefaultPermissionsChanged?(listener: () => void): () => void;
 }

@@ -264,6 +264,7 @@ export class NamespaceImpl implements NamespacePrivate {
     private _aliases: Map<string, NodeId>;
     private defaultAccessRestrictions?: AccessRestrictionsFlag;
     private defaultRolePermissions?: RolePermissionType[];
+    readonly #defaultPermissionsListeners: (() => void)[] = [];
 
     constructor(options: NamespaceConstructorOptions) {
         /* c8 ignore next */
@@ -1854,12 +1855,26 @@ export class NamespaceImpl implements NamespacePrivate {
     // default roles and permissions
     public setDefaultRolePermissions(rolePermissions: RolePermissionTypeOptions[] | null): void {
         this.defaultRolePermissions = rolePermissions ? coerceRolePermissions(rolePermissions) : undefined;
+        this.#notifyDefaultPermissionsChanged();
     }
     public getDefaultRolePermissions(): RolePermissionType[] | null {
         return this.defaultRolePermissions || null;
     }
     public setDefaultAccessRestrictions(accessRestrictions: AccessRestrictionsFlag): void {
         this.defaultAccessRestrictions = accessRestrictions;
+        this.#notifyDefaultPermissionsChanged();
+    }
+    public onDefaultPermissionsChanged(listener: () => void): () => void {
+        this.#defaultPermissionsListeners.push(listener);
+        return () => {
+            const i = this.#defaultPermissionsListeners.indexOf(listener);
+            if (i >= 0) this.#defaultPermissionsListeners.splice(i, 1);
+        };
+    }
+    #notifyDefaultPermissionsChanged(): void {
+        for (const listener of this.#defaultPermissionsListeners.slice()) {
+            listener();
+        }
     }
     public getDefaultAccessRestrictions(): AccessRestrictionsFlag {
         return this.defaultAccessRestrictions || AccessRestrictionsFlag.None;
