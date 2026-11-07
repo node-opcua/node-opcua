@@ -99,7 +99,8 @@ import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_e
 import { ServerSession } from "./server_session.js";
 import { Subscription } from "./server_subscription.js";
 import { getMonitoredItemsId, resendData, setSubscriptionDurable } from "./subscription_methods.js";
-import { transferSubscriptionToSession } from "./subscription_transfer.js";
+import { ownerIdentityOf, transferSubscriptionToSession } from "./subscription_transfer.js";
+import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer.js";
 
 const debugLog = make_debugLog("server_engine");
 const errorLog = make_errorLog("server_engine");
@@ -1907,6 +1908,18 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             return null;
         }
         return this._orphanPublishEngine.getSubscriptionById(subscriptionId);
+    }
+
+    /**
+     * OPC 10000-4: a Session may delete an orphaned Subscription only when it acts for the user that
+     * owns it, the same ownership rule TransferSubscriptions applies. The identity kept on the
+     * Subscription at the moment of orphaning answers this; when it cannot be established we fail
+     * closed (return false).
+     */
+    public mayDeleteOrphanSubscription(session: ServerSession, subscription: Subscription): boolean {
+        return sessionsCompatibleForTransfer(ownerIdentityOf(subscription), session, {
+            allowAnonymousTransferOnUnsecuredChannel: this.allowAnonymousSubscriptionTransferOnUnsecuredChannel
+        });
     }
 
     public deleteOrphanSubscription(subscription: Subscription): StatusCode {

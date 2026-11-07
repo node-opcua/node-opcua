@@ -522,6 +522,12 @@ export class RemoteEngine extends EventEmitter implements IServerEngineForServer
         return null;
     }
 
+    // this engine holds no orphan pool (findOrphanSubscription is always null here), so the orphan
+    // branch is never reached through it; fail closed for completeness.
+    public mayDeleteOrphanSubscription(_session: ServerSession, _subscription: Subscription): boolean {
+        return false;
+    }
+
     public deleteOrphanSubscription(_subscription: Subscription): StatusCode {
         return StatusCodes.BadSubscriptionIdInvalid;
     }

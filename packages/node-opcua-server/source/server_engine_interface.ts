@@ -41,6 +41,7 @@ export interface IServerEngineForServer
         | "currentSubscriptionCount"
         | "publishingIntervalCount"
         | "findOrphanSubscription"
+        | "mayDeleteOrphanSubscription"
         | "deleteOrphanSubscription"
         | "transferSubscription"
         | "prepareMonitoredItems"
