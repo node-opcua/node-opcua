@@ -98,9 +98,9 @@ import { ServerSidePublishEngine } from "./server_publish_engine.js";
 import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions.js";
 import { ServerSession } from "./server_session.js";
 import { Subscription } from "./server_subscription.js";
+import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer.js";
 import { getMonitoredItemsId, resendData, setSubscriptionDurable } from "./subscription_methods.js";
 import { ownerIdentityOf, transferSubscriptionToSession } from "./subscription_transfer.js";
-import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer.js";
 
 const debugLog = make_debugLog("server_engine");
 const errorLog = make_errorLog("server_engine");
