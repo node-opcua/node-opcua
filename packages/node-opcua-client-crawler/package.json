@@ -1,13 +1,11 @@
 {
     "name": "node-opcua-client-crawler",
     "type": "module",
+    "private": true,
     "version": "2.187.24",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "engines": {
-        "node": ">=22.13.0"
-    },
-    "deprecated": "No longer maintained. Still MIT licensed and working. Forks and new maintainers welcome, see the README.",
+    "deprecated": "No longer maintained. Still MIT licensed and usable with node-opcua-client >= 2.124. Forks and new maintainers welcome, see the README.",
     "description": "pure nodejs OPCUA SDK - module client-crawler (unmaintained, still MIT)",
     "scripts": {
         "lint": "biome check --no-errors-on-unmatched .",
