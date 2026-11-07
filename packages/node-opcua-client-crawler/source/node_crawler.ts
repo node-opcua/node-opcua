@@ -15,8 +15,8 @@ const warningLog = make_warningLog("node_crawler");
 type Queue = async.QueueObject<TaskReconstruction>;
 
 /**
- * @deprecated: use NodeCrawlerBase from "@sterfive/crawler"
- *              contact@sterfive.com
+ * @deprecated  node-opcua-client-crawler is no longer maintained (still MIT).
+ *              See the package README for its status and alternatives.
  */
 export class NodeCrawler extends NodeCrawlerBase {
     protected readonly _objMap: ObjectMap;
@@ -207,7 +207,7 @@ export class NodeCrawler extends NodeCrawlerBase {
                     ref.typeDefinition.toString()
                 );
                 warningLog("Crawler: Cannot find reference", ref.nodeId.toString(), "in cache");
-                warningLog("contact Sterfive's professional support for help to resolve");
+                warningLog("node-opcua-client-crawler is unmaintained; see its README");
             }
 
             if (reference) {

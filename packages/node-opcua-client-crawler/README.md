@@ -1,26 +1,33 @@
-## OPCUA Server Crawler Module
+## node-opcua-client-crawler
 
+Crawls an OPC UA server address space and returns nodes with their attributes.
 
-### Overview
-This module offers a straightforward API designed for crawling an OPCUA server to retrieve all nodes along with their attributes.
+### Status: unmaintained, still MIT
 
-### Deprecation Notice
-Please note that this package is no longer supported or maintained.
+This package is no longer maintained. It remains available under the MIT license,
+it keeps working, and you are free to use, fork and republish it. It receives no
+new fixes. Version 2.127.1 works with node-opcua-client >= 2.124. Later versions
+ship with the node-opcua release of the same number.
 
-### Alternative
+At the first crawler instantiation, the package prints a one-time notice about this
+status. Set `NODEOPCUA_CRAWLER_SILENT=1` to hide it.
 
-For continued support and enhanced features, we recommend switching to the "@sterfive/crawler" module. This module, developed and provided by Sterfive, who are also the creators of the original module, offers a complete overhaul for a more robust and comprehensive experience.
+### Why it is not replaced by a new MIT version
 
-### Accessing "@sterfive/crawler"
-Access to "@sterfive/crawler" requires membership in the NodeOPCUA Support.
+The crawler was rewritten from scratch for performance and robustness. The new
+implementation depends on commercially licensed components, so it cannot be
+released under MIT and cannot replace this package.
 
-### How to Subscribe
-To become a member and gain access to the module, please:
+### Want to maintain it?
 
-- Visit our support page: Sterfive Support
-- Contact us via email: support@sterfive.com for more information.
+Forks, pull requests and new maintainers are welcome. Open an issue on the
+node-opcua repository if you would like to take over this package.
 
+### Supported alternative
+
+Sterfive provides the rewritten crawler, `@sterfive/crawler`, to NodeOPCUA
+Subscription members: https://support.sterfive.com
 
 ## Copyright
 
-Copyright (c) 2022-2024  Sterfive SAS - 833264583 RCS ORLEANS - France (https://www.sterfive.com)
+Copyright (c) 2022-2025  Sterfive SAS - 833264583 RCS ORLEANS - France (https://www.sterfive.com)
