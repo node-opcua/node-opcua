@@ -2042,7 +2042,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         if (!this.addressSpace || !this.compactAddressSpace || !this.addressSpaceAccessor) {
             throw new Error("registerCompactNamespace: the engine was not initialized with compactAddressSpace");
         }
-        const index = this.addressSpace.registerNamespace(namespaceUri).index;
+        const namespace = this.addressSpace.registerNamespace(namespaceUri);
+        const index = namespace.index;
         const compact = this.compactAddressSpace;
         // the compact space's table follows the node objects' table, index for index
         const uris = this.addressSpace.getNamespaceArray().map((n) => n.namespaceUri);
@@ -2050,6 +2051,28 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         compact.namespaceUris.push(...uris);
         const accessor = this.addressSpaceAccessor as AddressSpaceAccessor;
         const namespaces = new Set(accessor.compact?.namespaces ?? []);
+        if (!namespaces.has(index)) {
+            // the defaults the application sets on the namespace (setDefaultRolePermissions,
+            // setDefaultAccessRestrictions) are the ones the compact space enforces, now and
+            // each time they change
+            const copyDefaults = () => {
+                const rolePermissions = namespace.getDefaultRolePermissions();
+                const accessRestrictions = namespace.getDefaultAccessRestrictions();
+                compact.permissions.setNamespaceDefaults(
+                    index,
+                    rolePermissions || accessRestrictions
+                        ? {
+                              accessRestrictions,
+                              rolePermissions: rolePermissions
+                                  ? rolePermissions.map((r) => ({ roleId: r.roleId, permissions: r.permissions }))
+                                  : null
+                          }
+                        : null
+                );
+            };
+            copyDefaults();
+            namespace.onDefaultPermissionsChanged?.(copyDefaults);
+        }
         namespaces.add(index);
         accessor.compact = { space: compact, namespaces };
         return index;
