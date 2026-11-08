@@ -2,7 +2,7 @@
     "name": "node-opcua-client-crawler",
     "type": "module",
     "private": true,
-    "version": "2.187.24",
+    "version": "2.187.25",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "deprecated": "No longer maintained. Still MIT licensed and usable with node-opcua-client >= 2.124. Forks and new maintainers welcome, see the README.",

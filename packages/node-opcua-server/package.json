@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-server",
     "type": "module",
-    "version": "2.187.24",
+    "version": "2.187.25",
     "description": "pure nodejs OPCUA SDK - module server",
     "scripts": {
         "build": "tsc -b",
