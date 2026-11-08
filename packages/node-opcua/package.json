@@ -64,7 +64,7 @@
         "node-opcua-utils": "2.187.0",
         "node-opcua-variant": "2.187.19",
         "node-opcua-vendor-diagnostic": "2.187.25",
-        "semver": "^7.8.5"
+        "semver": "^7.8.6"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

@@ -19,7 +19,7 @@
         "node-opcua-versions": "./dist/cli.js"
     },
     "dependencies": {
-        "commander": "^15.0.0"
+        "commander": "^15.1.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

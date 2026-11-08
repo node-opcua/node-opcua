@@ -13,7 +13,7 @@
         "bcryptjs": "3.0.3",
         "chalk": "6.0.1",
         "cli-table3": "0.6.5",
-        "cli-truncate": "6.1.1",
+        "cli-truncate": "6.2.0",
         "command-line-args": "6.0.2",
         "node-opcua": "2.187.25",
         "node-opcua-address-space": "2.187.24",

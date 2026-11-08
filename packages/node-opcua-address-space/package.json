@@ -54,7 +54,7 @@
         "node-opcua-utils": "2.187.0",
         "node-opcua-variant": "2.187.19",
         "node-opcua-xml2json": "2.187.0",
-        "semver": "^7.8.5",
+        "semver": "^7.8.6",
         "thenify-ex": "4.4.0",
         "xml-writer": "^1.7.0"
     },

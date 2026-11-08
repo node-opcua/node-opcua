@@ -10,7 +10,7 @@
         "sample-server": "tsx bin/sample_server_with_role_set.ts"
     },
     "devDependencies": {
-        "commander": "^15.0.0",
+        "commander": "^15.1.0",
         "node-opcua-address-space": "2.187.24",
         "node-opcua-certificate-manager": "2.187.23",
         "node-opcua-client": "2.187.24",

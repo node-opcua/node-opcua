@@ -12,7 +12,7 @@
         "format": "biome check --write --no-errors-on-unmatched ."
     },
     "devDependencies": {
-        "commander": "^15.0.0",
+        "commander": "^15.1.0",
         "node-opcua-address-space": "2.187.24",
         "node-opcua-alias-name-client": "2.187.24",
         "node-opcua-alias-name-common": "2.187.0",

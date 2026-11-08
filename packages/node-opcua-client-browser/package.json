@@ -39,7 +39,7 @@
         "node-opcua-transport": "2.187.19"
     },
     "devDependencies": {
-        "@playwright/test": "^1.64.1",
+        "@playwright/test": "^1.65.0",
         "@types/ws": "^8.18.2",
         "buffer": "^6.0.3",
         "esbuild": "^0.28.2",
@@ -48,7 +48,7 @@
         "node-opcua-test-helpers": "2.184.0",
         "process": "^0.11.10",
         "util": "^0.12.5",
-        "ws": "^8.22.0"
+        "ws": "^8.22.1"
     },
     "author": "Sterfive SAS",
     "license": "MIT",
