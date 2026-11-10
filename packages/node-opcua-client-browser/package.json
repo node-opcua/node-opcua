@@ -33,7 +33,7 @@
         "node-opcua-assert": "2.186.7",
         "node-opcua-client": "2.187.24",
         "node-opcua-common": "2.187.19",
-        "node-opcua-crypto": "6.2.3",
+        "node-opcua-crypto": "6.2.5",
         "node-opcua-debug": "2.186.7",
         "node-opcua-status-code": "2.187.0",
         "node-opcua-transport": "2.187.19"
@@ -48,7 +48,7 @@
         "node-opcua-test-helpers": "2.184.0",
         "process": "^0.11.10",
         "util": "^0.12.5",
-        "ws": "^8.22.1"
+        "ws": "^8.22.2"
     },
     "author": "Sterfive SAS",
     "license": "MIT",
