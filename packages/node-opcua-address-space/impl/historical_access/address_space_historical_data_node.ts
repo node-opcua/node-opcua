@@ -773,7 +773,14 @@ function _historyRead(
     // HistoryRead over a channel that does not meet them, exactly as readValue() refuses a Read.
     // The live Read path gates this; the history path did not, so the whole historical series
     // could be disclosed over an unencrypted channel.
-    if (context.isAccessRestricted(this)) {
+    //
+    // isAccessRestricted() resolves the namespace's default restriction when the node carries
+    // none, which reads the Server/Namespaces object through the address space. On the
+    // front-thread delegation the node is detached (no namespace / address space), so only
+    // evaluate the restriction when it can be resolved: an explicit value, or a live namespace.
+    const canCheckRestriction =
+        this.accessRestrictions !== undefined || (this.namespace as { addressSpace?: unknown })?.addressSpace !== undefined;
+    if (canCheckRestriction && context.isAccessRestricted(this)) {
         callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadSecurityModeInsufficient }));
         return;
     }

@@ -971,7 +971,14 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         // Write over a channel that does not meet them, exactly as readValue() refuses a Read. The
         // Read path gates this (readValue / _readDenial); the write path did not, so a protected
         // value could be written over an unencrypted channel.
-        if (context.isAccessRestricted(this)) {
+        //
+        // isAccessRestricted() resolves the namespace's default restriction when the node carries
+        // none, which needs the address space; a detached node (front-thread delegation) has none,
+        // so only evaluate the restriction when it can be resolved: an explicit value or a live
+        // namespace.
+        const canCheckRestriction =
+            this.accessRestrictions !== undefined || (this.namespace as { addressSpace?: unknown })?.addressSpace !== undefined;
+        if (canCheckRestriction && context.isAccessRestricted(this)) {
             callback?.(null, StatusCodes.BadSecurityModeInsufficient);
             return;
         }
