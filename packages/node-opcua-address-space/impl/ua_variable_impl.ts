@@ -967,6 +967,15 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         // index range could be string
         indexRange = NumericRange.coerce(indexRange);
 
+        // A node hardened with AccessRestrictions (for example EncryptionRequired) must refuse a
+        // Write over a channel that does not meet them, exactly as readValue() refuses a Read. The
+        // Read path gates this (readValue / _readDenial); the write path did not, so a protected
+        // value could be written over an unencrypted channel.
+        if (context.isAccessRestricted(this)) {
+            callback?.(null, StatusCodes.BadSecurityModeInsufficient);
+            return;
+        }
+
         // test write permission
         if (!this.isWritable(context)) {
             callback?.(null, StatusCodes.BadNotWritable);

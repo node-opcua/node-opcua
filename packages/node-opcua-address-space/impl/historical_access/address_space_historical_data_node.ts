@@ -769,6 +769,14 @@ function _historyRead(
     continuationData: ContinuationData,
     callback: CallbackT<HistoryReadResult>
 ) {
+    // A node hardened with AccessRestrictions (for example EncryptionRequired) must refuse a
+    // HistoryRead over a channel that does not meet them, exactly as readValue() refuses a Read.
+    // The live Read path gates this; the history path did not, so the whole historical series
+    // could be disclosed over an unencrypted channel.
+    if (context.isAccessRestricted(this)) {
+        callback(null, new HistoryReadResult({ statusCode: StatusCodes.BadSecurityModeInsufficient }));
+        return;
+    }
     if (!this.canUserReadHistory(context)) {
         const result = new HistoryReadResult({
             statusCode: StatusCodes.BadUserAccessDenied
