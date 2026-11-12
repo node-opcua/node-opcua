@@ -967,15 +967,13 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         // index range could be string
         indexRange = NumericRange.coerce(indexRange);
 
-        // A node hardened with AccessRestrictions (for example EncryptionRequired) must refuse a
-        // Write over a channel that does not meet them, exactly as readValue() refuses a Read. The
-        // Read path gates this (readValue / _readDenial); the write path did not, so a protected
-        // value could be written over an unencrypted channel.
+        // A node with AccessRestrictions (for example EncryptionRequired) accepts a Write only over a
+        // channel that meets them, as readValue() applies the same to a Read.
         //
-        // isAccessRestricted() resolves the namespace's default restriction when the node carries
-        // none, which needs the address space; a detached node (front-thread delegation) has none,
-        // so only evaluate the restriction when it can be resolved: an explicit value or a live
-        // namespace.
+        // TODO: Read, Write and HistoryRead each resolve this on their own; a shared address-space
+        // helper would unify them. isAccessRestricted() resolves the namespace default through the
+        // address space, which a detached node (front-thread delegation) lacks, so evaluate it only
+        // when resolvable: an explicit value, or a live namespace.
         const canCheckRestriction =
             this.accessRestrictions !== undefined || (this.namespace as { addressSpace?: unknown })?.addressSpace !== undefined;
         if (canCheckRestriction && context.isAccessRestricted(this)) {
@@ -1124,14 +1122,25 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
             throw new Error("Internal error");
         }
 
+        context = context || SessionContext.defaultContext;
+
+        // A node with AccessRestrictions (for example EncryptionRequired) accepts a write to any of
+        // its attributes only over a channel that meets them, as readValue() applies to a Read. Gate
+        // here, before the attribute switch, so every attribute (Value, Historizing, ...) is covered.
+        // See writeValue() for the detached-node and shared-helper notes.
+        const canCheckRestriction =
+            this.accessRestrictions !== undefined || (this.namespace as { addressSpace?: unknown })?.addressSpace !== undefined;
+        if (canCheckRestriction && context.isAccessRestricted(this)) {
+            callback(null, StatusCodes.BadSecurityModeInsufficient);
+            return;
+        }
+
         if (!this.canUserWriteAttribute(context, writeValueOptions.attributeId as AttributeIds)) {
             callback(null, StatusCodes.BadUserAccessDenied);
             return;
         }
         const writeValue: WriteValue =
             writeValueOptions instanceof WriteValue ? (writeValueOptions as WriteValue) : new WriteValue(writeValueOptions);
-
-        context = context || SessionContext.defaultContext;
 
         assert(context instanceof SessionContext);
         assert(writeValue instanceof WriteValue);
@@ -1889,6 +1898,18 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     ): Promise<HistoryReadResult> | undefined {
         assert(context instanceof SessionContext);
         assert(typeof callback === "function");
+
+        // A node with AccessRestrictions (for example EncryptionRequired) answers a HistoryRead only
+        // over a channel that meets them, as readValue() applies to a Read. Gate here, before the
+        // historian dispatch, so an installed or application historian is covered. See writeValue()
+        // for the detached-node and shared-helper notes.
+        const canCheckRestriction =
+            this.accessRestrictions !== undefined || (this.namespace as { addressSpace?: unknown })?.addressSpace !== undefined;
+        if (canCheckRestriction && context.isAccessRestricted(this)) {
+            callback?.(null, new HistoryReadResult({ statusCode: StatusCodes.BadSecurityModeInsufficient }));
+            return;
+        }
+
         if (typeof this._historyRead !== "function") {
             callback?.(null, new HistoryReadResult({ statusCode: StatusCodes.BadNotReadable }));
             return;

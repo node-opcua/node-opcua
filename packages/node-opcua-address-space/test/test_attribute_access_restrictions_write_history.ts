@@ -1,14 +1,14 @@
 /**
- * A node hardened with AccessRestrictions (EncryptionRequired) must refuse a Write and a
- * HistoryRead over a channel that does not meet them, exactly as readValue() refuses a Read.
- * The Read path enforced this; writeValue() and _historyRead() did not, so a protected value
- * could be written, and a protected history disclosed, over an unencrypted (None) channel.
+ * AccessRestrictions (for example EncryptionRequired) gate Read, Write and HistoryRead alike: the
+ * operation is allowed only over a channel that meets them. This asserts that Write (the Value and
+ * the Historizing attributes) and HistoryRead apply the same check readValue() applies - for a
+ * restriction set on the node and for one inherited from the namespace default - and that an
+ * encrypted channel is allowed.
  *
- * The lab uses a mini address space and a mock session context with a chosen security mode, so
- * no server or socket is needed. An encrypted context is the control: the same operation is
- * allowed once the channel meets the restriction.
+ * The lab uses a mini address space and a mock session context with a chosen security mode, so no
+ * server or socket is needed.
  */
-import { makeAccessRestrictionsFlag } from "node-opcua-data-model";
+import { AccessRestrictionsFlag, AttributeIds, makeAccessRestrictionsFlag } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
@@ -121,9 +121,52 @@ describe("AccessRestrictions enforced on Write and HistoryRead, not only Read", 
         // control: over an encrypted channel the HistoryRead is allowed and returns the series
         const allowed = await v.historyRead(anonymousEncrypted, details, null, null, { continuationPoint: null });
         should(allowed.statusCode).eql(StatusCodes.Good);
-        should((allowed.historyData as HistoryData).dataValues!.length >= 5).eql(
-            true,
-            "the full series is disclosed once the channel is encrypted"
-        );
+        const dataValues = (allowed.historyData as HistoryData).dataValues || [];
+        should(dataValues).be.an.Array();
+        should(dataValues.length).be.aboveOrEqual(5, "the full series is returned once the channel is encrypted");
+    });
+
+    it("ARWH-3 refuses a write of the Historizing attribute over a None channel", async () => {
+        const v = addressSpace.getOwnNamespace().addVariable({
+            browseName: "ProtectedHistorizing",
+            dataType: DataType.Double,
+            accessLevel: "CurrentRead | CurrentWrite | HistoryRead | HistoryWrite",
+            userAccessLevel: "CurrentRead | CurrentWrite | HistoryRead | HistoryWrite",
+            value: { dataType: DataType.Double, value: 0 }
+        });
+        addressSpace.installHistoricalDataNode(v);
+        v.setAccessRestrictions(makeAccessRestrictionsFlag("EncryptionRequired"));
+
+        // the Value branch is not the only one that must be gated: a write of Historizing over a
+        // None channel must be refused too, before the attribute switch.
+        const denied = await v.writeAttribute(anonymousNone, {
+            attributeId: AttributeIds.Historizing,
+            value: new DataValue({ value: new Variant({ dataType: DataType.Boolean, value: false }) })
+        });
+        should(denied).eql(StatusCodes.BadSecurityModeInsufficient);
+    });
+
+    it("ARWH-4 refuses a Write over None when the restriction is the namespace default", async () => {
+        const ns = addressSpace.getOwnNamespace();
+        ns.setDefaultAccessRestrictions(makeAccessRestrictionsFlag("EncryptionRequired"));
+        try {
+            const v = ns.addVariable({
+                browseName: "NamespaceDefaultProtected",
+                dataType: DataType.Int32,
+                accessLevel: "CurrentRead | CurrentWrite",
+                userAccessLevel: "CurrentRead | CurrentWrite",
+                value: { dataType: DataType.Int32, value: 1 }
+            });
+            // the node carries no AccessRestrictions of its own; the namespace default applies
+            should(v.readValue(anonymousNone).statusCode).eql(StatusCodes.BadSecurityModeInsufficient);
+            const denied = await v.writeValue(
+                anonymousNone,
+                new DataValue({ value: new Variant({ dataType: DataType.Int32, value: 9 }) })
+            );
+            should(denied).eql(StatusCodes.BadSecurityModeInsufficient);
+            should(v.readValue(anonymousEncrypted).value.value).eql(1, "the value must be unchanged after the denied Write");
+        } finally {
+            ns.setDefaultAccessRestrictions(AccessRestrictionsFlag.None);
+        }
     });
 });
