@@ -769,6 +769,8 @@ function _historyRead(
     continuationData: ContinuationData,
     callback: CallbackT<HistoryReadResult>
 ) {
+    // AccessRestrictions are enforced in UAVariableImpl.historyRead(), before the historian is
+    // dispatched, so every historian is covered.
     if (!this.canUserReadHistory(context)) {
         const result = new HistoryReadResult({
             statusCode: StatusCodes.BadUserAccessDenied
