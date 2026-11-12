@@ -16,7 +16,7 @@ import {
     SecurityPolicy,
     TimestampsToReturn
 } from "node-opcua-client";
-import { makePermissionFlag } from "node-opcua-data-model";
+import { makeAccessRestrictionsFlag, makePermissionFlag } from "node-opcua-data-model";
 import type { DataValue } from "node-opcua-data-value";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { resolveNodeId } from "node-opcua-nodeid";
@@ -29,6 +29,8 @@ import { OPCUAServer } from "../dist/index.js";
 const port = 5862;
 const port2 = 5863;
 const port3 = 5864;
+const port4 = 5865;
+const port5 = 5866;
 const OPERATOR = resolveNodeId("ns=0;i=15680"); // WellKnownRole_Operator
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -412,6 +414,242 @@ describe("exception-based monitored item honours a NamespaceMetadata DefaultRole
 
             should(goodValuesOf(exception.values)).eql([], "no good value reaches the denied session on the exception-based path");
             should(goodValuesOf(sampled.values)).eql([], "no good value reaches the denied session on the sampled path");
+        });
+    });
+});
+
+describe("exception-based monitored item refuses an AccessRestrictions node over a weak channel", function (this: Mocha.Suite) {
+    // A node hardened with AccessRestrictions(EncryptionRequired) is read only over an encrypted
+    // channel. Over a None channel a live Read returns BadSecurityModeInsufficient; the exception
+    // path must apply the same gate and deliver no value - the subscription-delivery scope of
+    // GHSA-3xxr. The session here has full Read permission, so only the security mode can refuse.
+    this.timeout(60000);
+    let server: OPCUAServer;
+    let secretNodeId: string;
+
+    before(async () => {
+        server = new OPCUAServer({ port: port4, allowAnonymous: true, serverCapabilities: { minSupportedSampleRate: 0 } });
+        await server.initialize();
+        const addressSpace = server.engine.addressSpace!;
+        const ns = addressSpace.getOwnNamespace();
+        secretNodeId = `ns=${ns.index};s=Secret`;
+        const node = ns.addVariable({
+            organizedBy: addressSpace.rootFolder.objects,
+            nodeId: secretNodeId,
+            browseName: "Secret",
+            dataType: "Double",
+            accessLevel: "CurrentRead | CurrentWrite",
+            userAccessLevel: "CurrentRead | CurrentWrite",
+            minimumSamplingInterval: 0,
+            value: { dataType: DataType.Double, value: 1 }
+        });
+        node.setAccessRestrictions(makeAccessRestrictionsFlag("EncryptionRequired"));
+        await server.start();
+    });
+
+    after(async () => {
+        await server.shutdown();
+    });
+
+    function setFromSource(value: VariantLike): void {
+        (
+            server.engine.addressSpace!.findNode(secretNodeId) as unknown as { setValueFromSource(v: VariantLike): void }
+        ).setValueFromSource(value);
+    }
+
+    async function collect(subscription: ClientSubscription, samplingInterval: number) {
+        const values: DataValue[] = [];
+        const item = ClientMonitoredItem.create(
+            subscription,
+            { nodeId: secretNodeId, attributeId: AttributeIds.Value },
+            { samplingInterval, discardOldest: true, queueSize: 100 },
+            TimestampsToReturn.Both
+        );
+        item.on("changed", (dataValue: DataValue) => values.push(dataValue));
+        await new Promise<void>((resolve, reject) => {
+            item.once("initialized", () => resolve());
+            item.once("err", (message: string) => reject(new Error(message)));
+        });
+        return { item, values };
+    }
+
+    async function withAnonymousSession<T>(action: (session: ClientSession) => Promise<T>): Promise<T> {
+        const client = OPCUAClient.create({
+            endpointMustExist: false,
+            securityMode: MessageSecurityMode.None,
+            securityPolicy: SecurityPolicy.None
+        });
+        await client.connect(server.getEndpointUrl());
+        try {
+            const session = await client.createSession(); // anonymous, over a None channel
+            try {
+                return await action(session);
+            } finally {
+                await session.close();
+            }
+        } finally {
+            await client.disconnect();
+        }
+    }
+
+    const goodValuesOf = (values: DataValue[]) => values.filter((v) => v.statusCode.isGood()).map((v) => v.value.value);
+
+    it("delivers no good value over a None channel to an EncryptionRequired node", async () => {
+        await withAnonymousSession(async (session) => {
+            const plain = await session.read({ nodeId: secretNodeId, attributeId: AttributeIds.Value });
+            should(plain.statusCode).eql(
+                StatusCodes.BadSecurityModeInsufficient,
+                "the plain Read must be refused for the security mode for the lab to be valid"
+            );
+
+            const subscription = await session.createSubscription2({
+                requestedPublishingInterval: 50,
+                requestedLifetimeCount: 1000,
+                requestedMaxKeepAliveCount: 20,
+                maxNotificationsPerPublish: 100,
+                publishingEnabled: true,
+                priority: 10
+            });
+
+            const exception = await collect(subscription, 0);
+            const sampled = await collect(subscription, 100);
+            await until(() => exception.values.length >= 1 && sampled.values.length >= 1, "the initial notifications");
+
+            for (let k = 2; k <= 6; k++) {
+                setFromSource({ dataType: DataType.Double, value: k });
+                await pause(60);
+            }
+            await pause(400);
+
+            await exception.item.terminate();
+            await sampled.item.terminate();
+            await subscription.terminate();
+
+            should(exception.values[0].statusCode).eql(
+                StatusCodes.BadSecurityModeInsufficient,
+                "the first exception notification is refused for the security mode"
+            );
+            should(goodValuesOf(exception.values)).eql(
+                [],
+                "no good value reaches the None-channel session on the exception-based path"
+            );
+            should(goodValuesOf(sampled.values)).eql([], "no good value reaches the None-channel session on the sampled path");
+        });
+    });
+});
+
+describe("exception-based monitored item refuses a node the user access level does not allow to read", function (this: Mocha.Suite) {
+    // The node is readable at the access level (CurrentRead), so it can be monitored, but its user
+    // access level withholds CurrentRead, so isUserReadable() is false and a Read returns
+    // BadNotReadable. The exception path must apply the same gate and deliver no value (1865 finding
+    // 3). The session has full Read permission, so only the access level can refuse.
+    this.timeout(60000);
+    let server: OPCUAServer;
+    let secretNodeId: string;
+
+    before(async () => {
+        server = new OPCUAServer({ port: port5, allowAnonymous: true, serverCapabilities: { minSupportedSampleRate: 0 } });
+        await server.initialize();
+        const addressSpace = server.engine.addressSpace!;
+        const ns = addressSpace.getOwnNamespace();
+        secretNodeId = `ns=${ns.index};s=Secret`;
+        ns.addVariable({
+            organizedBy: addressSpace.rootFolder.objects,
+            nodeId: secretNodeId,
+            browseName: "Secret",
+            dataType: "Double",
+            accessLevel: "CurrentRead | CurrentWrite",
+            userAccessLevel: "CurrentWrite", // no CurrentRead: isUserReadable() is false
+            minimumSamplingInterval: 0,
+            value: { dataType: DataType.Double, value: 1 }
+        });
+        await server.start();
+    });
+
+    after(async () => {
+        await server.shutdown();
+    });
+
+    function setFromSource(value: VariantLike): void {
+        (
+            server.engine.addressSpace!.findNode(secretNodeId) as unknown as { setValueFromSource(v: VariantLike): void }
+        ).setValueFromSource(value);
+    }
+
+    async function collect(subscription: ClientSubscription, samplingInterval: number) {
+        const values: DataValue[] = [];
+        const item = ClientMonitoredItem.create(
+            subscription,
+            { nodeId: secretNodeId, attributeId: AttributeIds.Value },
+            { samplingInterval, discardOldest: true, queueSize: 100 },
+            TimestampsToReturn.Both
+        );
+        item.on("changed", (dataValue: DataValue) => values.push(dataValue));
+        await new Promise<void>((resolve, reject) => {
+            item.once("initialized", () => resolve());
+            item.once("err", (message: string) => reject(new Error(message)));
+        });
+        return { item, values };
+    }
+
+    async function withAnonymousSession<T>(action: (session: ClientSession) => Promise<T>): Promise<T> {
+        const client = OPCUAClient.create({
+            endpointMustExist: false,
+            securityMode: MessageSecurityMode.None,
+            securityPolicy: SecurityPolicy.None
+        });
+        await client.connect(server.getEndpointUrl());
+        try {
+            const session = await client.createSession();
+            try {
+                return await action(session);
+            } finally {
+                await session.close();
+            }
+        } finally {
+            await client.disconnect();
+        }
+    }
+
+    const goodValuesOf = (values: DataValue[]) => values.filter((v) => v.statusCode.isGood()).map((v) => v.value.value);
+
+    it("delivers no good value when the user access level withholds CurrentRead", async () => {
+        await withAnonymousSession(async (session) => {
+            const plain = await session.read({ nodeId: secretNodeId, attributeId: AttributeIds.Value });
+            should(plain.statusCode).eql(
+                StatusCodes.BadNotReadable,
+                "the plain Read must be refused as not readable for the lab to be valid"
+            );
+
+            const subscription = await session.createSubscription2({
+                requestedPublishingInterval: 50,
+                requestedLifetimeCount: 1000,
+                requestedMaxKeepAliveCount: 20,
+                maxNotificationsPerPublish: 100,
+                publishingEnabled: true,
+                priority: 10
+            });
+
+            const exception = await collect(subscription, 0);
+            const sampled = await collect(subscription, 100);
+            await until(() => exception.values.length >= 1 && sampled.values.length >= 1, "the initial notifications");
+
+            for (let k = 2; k <= 6; k++) {
+                setFromSource({ dataType: DataType.Double, value: k });
+                await pause(60);
+            }
+            await pause(400);
+
+            await exception.item.terminate();
+            await sampled.item.terminate();
+            await subscription.terminate();
+
+            should(exception.values[0].statusCode).eql(
+                StatusCodes.BadNotReadable,
+                "the first exception notification is not readable"
+            );
+            should(goodValuesOf(exception.values)).eql([], "no good value reaches the session on the exception-based path");
+            should(goodValuesOf(sampled.values)).eql([], "no good value reaches the session on the sampled path");
         });
     });
 });

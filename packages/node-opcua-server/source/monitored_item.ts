@@ -30,7 +30,7 @@ import {
     extractRange,
     sameDataValue
 } from "node-opcua-data-value";
-import type { PreciseClock } from "node-opcua-date-time";
+import { getCurrentClock, type PreciseClock } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
@@ -1215,35 +1215,50 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
      * usual. This also bounds the cost of a fast writer, which the queue alone did not.
      */
     private _on_value_changed_exception_based(dataValue: DataValue, indexRange?: NumericRange | null) {
-        // The value_changed listener is attached to the node and carries no session, so the value it
-        // delivers has not been through the node's read permission. Re-evaluate that permission on
-        // every delivery, as the sampled path does on each tick (see _on_sampling_timer /
-        // resendInitialValue), and when the session may not read the node, deliver that status in
-        // place of the value. The check re-resolves the current identity each time, so a role change
-        // while the item is live is honoured.
+        // The value_changed listener is attached to the node and carries no session, so this value
+        // has not passed the node's read gate. Apply that gate on every delivery, as the sampled
+        // path does: a session that may not read the node receives the refusal status in place of
+        // the value. The gate runs readValue's checks in its order (see the inner comment). The
+        // refusal DataValue is built here rather than read through readAttribute(), because a
+        // detached (compact-store) node does not answer readAttribute() with its value. A readable
+        // node keeps the change value; an in-process context has no session and is always permitted.
         //
-        // checkPermission(Read) uses the same resolution the Read service enforces
-        // (checkPermissionPrivate -> context.checkPermission): the node's own role permissions, the
-        // namespace default (its private field and the DefaultRolePermissions value declared on the
-        // NamespaceMetadata node), and unresolvedPermissionPolicy.
-        //
-        // That resolution reads the Server/Namespaces object through the address space. On the
-        // front-thread delegation the node is detached (no namespace / address space), so the
-        // permission is evaluated only when it can be resolved: an own role permission, or a live
-        // namespace. A readable node keeps the fast path (no attribute read); an in-process context
-        // has no session and is always permitted.
-        //
-        // TODO: Read, HistoryRead and this path each resolve the read checks on their own; one
+        // TODO: Read, HistoryRead, Write and this path each resolve these checks on their own; one
         // address-space read-refusal helper would let them share a single gate.
         const restrictedNode = this.node as UAVariable | undefined;
         if (restrictedNode) {
             const sessionContext = this.getSessionContext() || SessionContext.defaultContext;
-            const canCheck =
-                !!sessionContext.session &&
-                (restrictedNode.rolePermissions !== undefined ||
-                    (restrictedNode.namespace as { addressSpace?: unknown })?.addressSpace !== undefined);
-            if (canCheck && !sessionContext.checkPermission(restrictedNode, PermissionType.Read)) {
-                dataValue = restrictedNode.readAttribute(sessionContext, this.itemToMonitor.attributeId);
+            if (sessionContext.session) {
+                const liveNamespace = (restrictedNode.namespace as { addressSpace?: unknown })?.addressSpace !== undefined;
+                const canCheckRestriction = restrictedNode.accessRestrictions !== undefined || liveNamespace;
+                const canCheckPermission = restrictedNode.rolePermissions !== undefined || liveNamespace;
+                // readValue's order: security mode, then the access level, the Read permission and
+                // the user access level. On the front-thread delegation the node is a detached proxy
+                // whose access levels are not filled in - only its role permissions are - so the
+                // access-level checks (isReadable / isUserReadable) run only on a live namespace,
+                // while the permission check runs whenever it can be resolved. The order is preserved
+                // on a live node.
+                let refusal: StatusCode | undefined;
+                if (canCheckRestriction && sessionContext.isAccessRestricted(restrictedNode)) {
+                    refusal = StatusCodes.BadSecurityModeInsufficient;
+                } else if (liveNamespace && !restrictedNode.isReadable(sessionContext)) {
+                    refusal = StatusCodes.BadNotReadable;
+                } else if (canCheckPermission && !sessionContext.checkPermission(restrictedNode, PermissionType.Read)) {
+                    refusal = StatusCodes.BadUserAccessDenied;
+                } else if (liveNamespace && !restrictedNode.isUserReadable(sessionContext)) {
+                    refusal = StatusCodes.BadNotReadable;
+                }
+                if (refusal) {
+                    // stamp the refusal with the current clock, as readValue does.
+                    const { timestamp, picoseconds } = getCurrentClock();
+                    dataValue = new DataValue({
+                        statusCode: refusal,
+                        sourceTimestamp: timestamp,
+                        sourcePicoseconds: picoseconds,
+                        serverTimestamp: timestamp,
+                        serverPicoseconds: picoseconds
+                    });
+                }
             }
         }
         if (this.samplingInterval <= 0) {

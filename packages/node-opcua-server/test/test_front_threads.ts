@@ -720,6 +720,40 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
             await item.terminate();
         });
 
+        it("hands a session the values of a node its roles may read", async () => {
+            const space = engine.addressSpace;
+            const plant = space.findNode(`ns=${ns};s=Speed`)?.parent as never;
+            const readable = `ns=${ns};s=Readable`;
+            space.addVariable({
+                nodeId: readable,
+                browseName: "Readable",
+                componentOf: plant,
+                dataType: "Double",
+                value: { dataType: DataType.Double, value: 1 },
+                // read by the Anonymous role: a permitted session must still receive the live values
+                // (the exception path now reads the access level of this front-thread node too)
+                rolePermissions: [
+                    { roleId: resolveNodeId("ns=0;i=15644"), permissions: PermissionType.Browse | PermissionType.Read }
+                ]
+            });
+            await pause(50);
+            const { item, values } = await monitor(
+                subscriptions[0],
+                { nodeId: readable, attributeId: AttributeIds.Value },
+                { samplingInterval: 0, queueSize: 10, discardOldest: true }
+            );
+            await until(() => values.length >= 1, "the initial answer");
+            for (let k = 2; k <= 5; k++) {
+                setFromSource(engine, readable, { dataType: DataType.Double, value: k });
+                await pause(30);
+            }
+            await pause(300);
+            const good = values.filter((v) => v.statusCode.isGood()).map((v) => v.value.value);
+            should(good.length).be.aboveOrEqual(1, "a permitted session receives the live values");
+            should(good).containEql(5);
+            await item.terminate();
+        });
+
         it("applies a new EURange to a percent deadband", async () => {
             const space = engine.addressSpace;
             const plant = space.findNode(`ns=${ns};s=Speed`)?.parent as never;
