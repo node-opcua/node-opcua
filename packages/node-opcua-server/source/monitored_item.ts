@@ -1224,15 +1224,17 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         //
         // checkPermission(Read) uses the same resolution the Read service enforces
         // (checkPermissionPrivate -> context.checkPermission): the node's own role permissions, the
-        // namespace default (its private field AND the DefaultRolePermissions value declared on the
-        // NamespaceMetadata node), and unresolvedPermissionPolicy. getRolePermissions(true) saw only
-        // the private fields, so it missed the namespace-metadata-default and deny-policy cases.
+        // namespace default (its private field and the DefaultRolePermissions value declared on the
+        // NamespaceMetadata node), and unresolvedPermissionPolicy.
         //
         // That resolution reads the Server/Namespaces object through the address space. On the
-        // front-thread delegation the node is detached (no namespace / address space), so only
-        // evaluate the permission when it can be resolved: an own role permission, or a live
-        // namespace. An unrestricted node then keeps the fast path (no attribute read), and an
-        // in-process context has no session and is always permitted.
+        // front-thread delegation the node is detached (no namespace / address space), so the
+        // permission is evaluated only when it can be resolved: an own role permission, or a live
+        // namespace. A readable node keeps the fast path (no attribute read); an in-process context
+        // has no session and is always permitted.
+        //
+        // TODO: Read, HistoryRead and this path each resolve the read checks on their own; one
+        // address-space read-refusal helper would let them share a single gate.
         const restrictedNode = this.node as UAVariable | undefined;
         if (restrictedNode) {
             const sessionContext = this.getSessionContext() || SessionContext.defaultContext;
