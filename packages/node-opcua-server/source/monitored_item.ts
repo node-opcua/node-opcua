@@ -55,6 +55,7 @@ import { type CallbackT, coerceStatusCode, extraStatusCodeBits, StatusCode, Stat
 import {
     EventFieldList,
     type MonitoringFilter,
+    PermissionType,
     type ReadValueIdOptions,
     type SimpleAttributeOperand,
     type SubscriptionDiagnosticsDataType
@@ -1215,21 +1216,34 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
      */
     private _on_value_changed_exception_based(dataValue: DataValue, indexRange?: NumericRange | null) {
         // The value_changed listener is attached to the node and carries no session, so the value it
-        // delivers has not been through the node's read permission. When the node is read-restricted
-        // (its own role permissions, or its namespace default), re-evaluate that permission on every
-        // delivery, as the sampled path does on each tick (see _on_sampling_timer /
-        // resendInitialValue): read the attribute through the session context and, when the session
-        // may not read the node, deliver that status in place of the value. The read re-resolves the
-        // current identity each time, so a role change while the item is live is honoured.
+        // delivers has not been through the node's read permission. Re-evaluate that permission on
+        // every delivery, as the sampled path does on each tick (see _on_sampling_timer /
+        // resendInitialValue), and when the session may not read the node, deliver that status in
+        // place of the value. The check re-resolves the current identity each time, so a role change
+        // while the item is live is honoured.
         //
-        // An unrestricted node keeps the fast path: with no role permissions it can never answer
-        // BadUserAccessDenied, so the emitted value stands and no extra read is made.
+        // checkPermission(Read) uses the same resolution the Read service enforces
+        // (checkPermissionPrivate -> context.checkPermission): the node's own role permissions, the
+        // namespace default (its private field and the DefaultRolePermissions value declared on the
+        // NamespaceMetadata node), and unresolvedPermissionPolicy.
+        //
+        // That resolution reads the Server/Namespaces object through the address space. On the
+        // front-thread delegation the node is detached (no namespace / address space), so the
+        // permission is evaluated only when it can be resolved: an own role permission, or a live
+        // namespace. A readable node keeps the fast path (no attribute read); an in-process context
+        // has no session and is always permitted.
+        //
+        // TODO: Read, HistoryRead and this path each resolve the read checks on their own; one
+        // address-space read-refusal helper would let them share a single gate.
         const restrictedNode = this.node as UAVariable | undefined;
-        if (restrictedNode?.getRolePermissions?.(true)) {
+        if (restrictedNode) {
             const sessionContext = this.getSessionContext() || SessionContext.defaultContext;
-            const permitted = restrictedNode.readAttribute(sessionContext, this.itemToMonitor.attributeId);
-            if (permitted.statusCode.equals(StatusCodes.BadUserAccessDenied)) {
-                dataValue = permitted;
+            const canCheck =
+                !!sessionContext.session &&
+                (restrictedNode.rolePermissions !== undefined ||
+                    (restrictedNode.namespace as { addressSpace?: unknown })?.addressSpace !== undefined);
+            if (canCheck && !sessionContext.checkPermission(restrictedNode, PermissionType.Read)) {
+                dataValue = restrictedNode.readAttribute(sessionContext, this.itemToMonitor.attributeId);
             }
         }
         if (this.samplingInterval <= 0) {
