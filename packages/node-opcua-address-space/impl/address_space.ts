@@ -947,7 +947,8 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
 
         const startingNode = this.findNode(browsePath.startingNode);
 
-        if (!startingNode) {
+        // a starting node the context cannot browse is invisible, like the nodes along the path
+        if (!startingNode || context?.isBrowseAccessRestricted(startingNode)) {
             return new BrowsePathResult({ statusCode: StatusCodes.BadNodeIdUnknown });
         }
 
@@ -1211,7 +1212,8 @@ export class AddressSpaceImpl implements AddressSpacePrivate {
 
         const obj = this.findNode(nodeId);
 
-        if (!obj) {
+        // a node the context cannot browse is invisible, as a target in browseNode and in browsePath
+        if (!obj || context?.isBrowseAccessRestricted(obj)) {
             // Object Not Found
             browseResult.statusCode = StatusCodes.BadNodeIdUnknown;
         } else {

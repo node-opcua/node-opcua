@@ -32,6 +32,11 @@ export class UAViewImpl extends BaseNodeImpl implements UAView {
     public readAttribute(context: ISessionContext | null, attributeId: AttributeIds): DataValue {
         context = context || SessionContext.defaultContext;
 
+        const deniedByBrowse = this._readDeniedByBrowse(context, attributeId);
+        if (deniedByBrowse) {
+            return deniedByBrowse;
+        }
+
         const options: DataValueLike = {};
 
         switch (attributeId) {

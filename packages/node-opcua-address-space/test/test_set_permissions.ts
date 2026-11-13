@@ -219,7 +219,11 @@ describe("Method#setPermissions & checkPermission", () => {
             userExecutable: true
         });
         someMethod.bindMethod(defaultMethod);
-        someMethod.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: makePermissionFlag("Call") }]);
+        // every role may see the method (Browse), only the Engineer may call it
+        someMethod.setRolePermissions([
+            { roleId: WellKnownRoles.Engineer, permissions: makePermissionFlag("Browse | Call") },
+            { roleId: WellKnownRoles.Anonymous, permissions: makePermissionFlag("Browse") }
+        ]);
 
         context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
         someMethod.readAttribute(context, AttributeIds.Executable).value.value.should.eql(true);

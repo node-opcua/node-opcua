@@ -94,10 +94,11 @@ describe("AddressSpace : Variable.setPermissions", () => {
         variable.userAccessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
         variable.userAccessLevel.should.eql(0x03);
 
+        // Browse: a role that cannot browse the variable cannot read its UserAccessLevel either
         variable.setRolePermissions([
-            { roleId: WellKnownRoles.Anonymous, permissions: makePermissionFlag("Read") as number },
-            { roleId: WellKnownRoles.AuthenticatedUser, permissions: makePermissionFlag("Read") as number },
-            { roleId: WellKnownRoles.ConfigureAdmin, permissions: makePermissionFlag("Read | Write") as number }
+            { roleId: WellKnownRoles.Anonymous, permissions: makePermissionFlag("Browse | Read") as number },
+            { roleId: WellKnownRoles.AuthenticatedUser, permissions: makePermissionFlag("Browse | Read") as number },
+            { roleId: WellKnownRoles.ConfigureAdmin, permissions: makePermissionFlag("Browse | Read | Write") as number }
         ]);
         // variable.setPermissions({
         //     [Permission.Read]: ["*"],
@@ -190,10 +191,11 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
         variable.userAccessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
         variable.userAccessLevel.should.eql(0x03);
 
+        // Browse: a role that cannot browse the variable cannot read its UserAccessLevel either
         variable.setRolePermissions([
-            { roleId: WellKnownRoles.Anonymous, permissions: makePermissionFlag("Read") as number },
-            { roleId: WellKnownRoles.AuthenticatedUser, permissions: makePermissionFlag("Read") as number },
-            { roleId: WellKnownRoles.ConfigureAdmin, permissions: makePermissionFlag("Read | Write") as number }
+            { roleId: WellKnownRoles.Anonymous, permissions: makePermissionFlag("Browse | Read") as number },
+            { roleId: WellKnownRoles.AuthenticatedUser, permissions: makePermissionFlag("Browse | Read") as number },
+            { roleId: WellKnownRoles.ConfigureAdmin, permissions: makePermissionFlag("Browse | Read | Write") as number }
         ]);
         // variable.setPermissions({
         //     [Permission.Read]: ["*"],
@@ -299,7 +301,16 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
         // install the nodeUA Elements
         setNamespaceMetaData(namespace);
 
-        parentNode = namespace.addObject({ browseName: "Object", organizedBy: addressSpace.rootFolder.objects });
+        // the namespace default gives Anonymous no Browse: grant it on the parent, so that
+        // a Browse of the parent shows which children Anonymous may see
+        parentNode = namespace.addObject({
+            browseName: "Object",
+            organizedBy: addressSpace.rootFolder.objects,
+            rolePermissions: [
+                { roleId: WellKnownRoles.Anonymous, permissions: PermissionType.Read | PermissionType.Browse },
+                ...myRolePermissions.slice(1)
+            ]
+        });
 
         uaDefaultVariable = namespace.addAnalogDataItem({
             browseName: "DefaultVariable",

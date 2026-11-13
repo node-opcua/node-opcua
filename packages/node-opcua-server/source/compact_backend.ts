@@ -41,7 +41,7 @@ export interface ICompactBackend {
     /** the references these namespaces add to a node of another namespace (a folder of the base namespace) */
     references(context: ISessionContext | null, nodeId: NodeId, description: BrowseDescription): Promise<ReferenceDescription[]>;
     /** a path followed in these namespaces from its start; null when it leads nowhere here */
-    translate(browsePath: BrowsePath): Promise<BrowsePathResult | null>;
+    translate(browsePath: BrowsePath, context?: ISessionContext | null): Promise<BrowsePathResult | null>;
     /** a call of a Method of these namespaces */
     call?(context: ISessionContext | null, request: CallMethodRequest): Promise<CallMethodResultOptions>;
     /** a HistoryRead of a Variable of these namespaces */
@@ -100,8 +100,8 @@ export class LocalCompactBackend implements ICompactBackend {
         return this.#services.references(context, node, description, referenceType, this.namespaces);
     }
 
-    public async translate(browsePath: BrowsePath): Promise<BrowsePathResult | null> {
-        const result = this.#services.translate(browsePath);
+    public async translate(browsePath: BrowsePath, context?: ISessionContext | null): Promise<BrowsePathResult | null> {
+        const result = this.#services.translate(browsePath, context ?? null);
         return result.statusCode.isGood() ? result : null;
     }
 
