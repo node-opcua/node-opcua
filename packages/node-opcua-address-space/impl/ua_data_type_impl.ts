@@ -149,6 +149,11 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     ): DataValue {
         assert(!context || context instanceof SessionContext);
 
+        const deniedByBrowse = this._readDeniedByBrowse(context, attributeId);
+        if (deniedByBrowse) {
+            return deniedByBrowse;
+        }
+
         const options: DataValueLike = {};
         switch (attributeId) {
             case AttributeIds.IsAbstract:

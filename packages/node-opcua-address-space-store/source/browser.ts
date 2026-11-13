@@ -112,7 +112,12 @@ export class Browser {
      * TranslateBrowsePaths for one path: every node the path leads to from `start`
      * (several when a browse name is not unique under a node), or [] when it leads nowhere
      */
-    public translate(start: number, path: RelativePathElement[], defaultReferenceType: NodeId): number[] {
+    public translate(
+        start: number,
+        path: RelativePathElement[],
+        defaultReferenceType: NodeId,
+        canVisit?: (node: number) => boolean
+    ): number[] {
         let current = [start];
         for (const element of path) {
             const next: number[] = [];
@@ -126,7 +131,7 @@ export class Browser {
                     element.includeSubtypes ?? true,
                     !element.isInverse
                 );
-                for (const f of found) if (!next.includes(f)) next.push(f);
+                for (const f of found) if (!next.includes(f) && (!canVisit || canVisit(f))) next.push(f);
             }
             if (next.length === 0) return [];
             current = next;

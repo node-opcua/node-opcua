@@ -197,6 +197,11 @@ export class UAVariableTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements 
     public readAttribute(context: SessionContext | null, attributeId: AttributeIds): DataValue {
         assert(!context || context instanceof SessionContext);
 
+        const deniedByBrowse = this._readDeniedByBrowse(context, attributeId);
+        if (deniedByBrowse) {
+            return deniedByBrowse;
+        }
+
         const options: DataValueLike = {};
         switch (attributeId) {
             case AttributeIds.IsAbstract:

@@ -115,6 +115,11 @@ export class UAMethodImpl extends BaseNodeImpl<UAMethodEvents> implements UAMeth
         indexRange?: NumericRange,
         dataEncoding?: QualifiedNameLike | null
     ): DataValue {
+        const deniedByBrowse = this._readDeniedByBrowse(context, attributeId);
+        if (deniedByBrowse) {
+            return deniedByBrowse;
+        }
+
         const options: DataValueLike = {};
         switch (attributeId) {
             case AttributeIds.Executable:

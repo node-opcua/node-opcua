@@ -823,6 +823,29 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
     public getUserWriteMask(): number {
         return 0;
     }
+    /**
+     * OPC 10000-3 §8.55: the Browse permission lets a Client see the Node and read its
+     * Attributes other than Value and RolePermissions. When the context cannot Browse
+     * this Node, those Attributes answer BadUserAccessDenied, as Browse and
+     * TranslateBrowsePath already leave the Node out.
+     * Value, RolePermissions and UserRolePermissions keep their own checks.
+     * @private
+     */
+    protected _readDeniedByBrowse(context: ISessionContext | null, attributeId: AttributeIds): DataValue | null {
+        if (
+            !context ||
+            attributeId === AttributeIds.Value ||
+            attributeId === AttributeIds.RolePermissions ||
+            attributeId === AttributeIds.UserRolePermissions
+        ) {
+            return null;
+        }
+        if (!context.isBrowseAccessRestricted(this as BaseNode)) {
+            return null;
+        }
+        return new DataValue({ statusCode: StatusCodes.BadUserAccessDenied });
+    }
+
     public readAttribute(
         context: ISessionContext | null,
         attributeId: AttributeIds,
@@ -832,6 +855,10 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
         indexRange;
         dataEncoding;
         assert(!context || context instanceof SessionContext);
+        const deniedByBrowse = this._readDeniedByBrowse(context, attributeId);
+        if (deniedByBrowse) {
+            return deniedByBrowse;
+        }
         const options: Record<string, unknown> = {};
         options.statusCode = StatusCodes.Good;
 

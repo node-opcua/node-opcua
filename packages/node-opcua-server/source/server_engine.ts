@@ -2013,7 +2013,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         const backend = (this.addressSpaceAccessor as AddressSpaceAccessor | null)?.compactBackend;
         if (backend && result.statusCode.equals(StatusCodes.BadNoMatch)) {
             // a path that leads into a compact namespace is followed there, from the same start
-            const inCompact = await backend.translate(browsePath);
+            const inCompact = await backend.translate(browsePath, context);
             if (inCompact) {
                 return inCompact;
             }

@@ -683,6 +683,11 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         context = context || SessionContext.defaultContext;
         assert(context instanceof SessionContext);
 
+        const deniedByBrowse = this._readDeniedByBrowse(context, attributeId);
+        if (deniedByBrowse) {
+            return deniedByBrowse;
+        }
+
         const options: DataValueLike = {};
 
         if (attributeId !== AttributeIds.Value) {

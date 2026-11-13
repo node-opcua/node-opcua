@@ -238,6 +238,15 @@ export class StoreServices {
         dataEncoding?: QualifiedNameLike | null
     ): DataValue {
         const space = this.#space;
+        if (
+            attributeId !== AttributeIds.Value &&
+            attributeId !== AttributeIds.RolePermissions &&
+            attributeId !== AttributeIds.UserRolePermissions &&
+            !space.permissions.canBrowse(context, index)
+        ) {
+            // the Browse permission lets a Client read the attributes other than Value and RolePermissions
+            return new DataValue({ statusCode: StatusCodes.BadUserAccessDenied });
+        }
         if (attributeId !== AttributeIds.Value || space.store.nodes.nodeClass(index) !== NodeClass.Variable) {
             if (indexRange?.isDefined()) {
                 return new DataValue({ statusCode: StatusCodes.BadIndexRangeNoData });
@@ -291,7 +300,8 @@ export class StoreServices {
         }
         const space = this.#space;
         const node = space.store.find(resolveNodeId(browseDescription.nodeId));
-        if (node === NO_NODE) {
+        // a node the context cannot browse is invisible, as it is as a target of a reference
+        if (node === NO_NODE || !space.permissions.canBrowse(context, node)) {
             return new BrowseResult({ statusCode: StatusCodes.BadNodeIdUnknown });
         }
         let referenceType: NodeId | undefined;
@@ -359,10 +369,12 @@ export class StoreServices {
     }
 
     /** one TranslateBrowsePathsToNodeIds path, with the statuses the node objects give */
-    public translate(browsePath: BrowsePath): BrowsePathResult {
+    public translate(browsePath: BrowsePath, context: ISessionContext | null = null): BrowsePathResult {
         const space = this.#space;
         const start = space.store.find(resolveNodeId(browsePath.startingNode));
-        if (start === NO_NODE) {
+        // a node the context cannot browse is invisible: neither a start, a step nor a target
+        const canBrowse = (index: number) => space.permissions.canBrowse(context, index);
+        if (start === NO_NODE || !canBrowse(start)) {
             return new BrowsePathResult({ statusCode: StatusCodes.BadNodeIdUnknown });
         }
         const elements = browsePath.relativePath.elements ?? [];
@@ -383,7 +395,8 @@ export class StoreServices {
                 includeSubtypes: e.includeSubtypes,
                 targetName: { namespaceIndex: e.targetName.namespaceIndex, name: e.targetName.name ?? "" }
             })),
-            HIERARCHICAL_REFERENCES
+            HIERARCHICAL_REFERENCES,
+            canBrowse
         );
         if (found.length === 0) {
             return new BrowsePathResult({ statusCode: StatusCodes.BadNoMatch });

@@ -884,7 +884,8 @@ describe("ServerConfiguration", () => {
             });
 
             it("should not let a session without Browse permission discover the TrustList", async () => {
-                await getDefaultTrustList(makeRestrictedServer(), session).should.be.rejectedWith(/BadNoMatch/);
+                // the session cannot browse ServerConfiguration: a path that starts there finds no node
+                await getDefaultTrustList(makeRestrictedServer(), session).should.be.rejectedWith(/BadNodeIdUnknown/);
             });
 
             it("should return BadInvalidState when trust list is opened for write", async () => {

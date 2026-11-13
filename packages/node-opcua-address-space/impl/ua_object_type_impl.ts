@@ -68,6 +68,11 @@ export class UAObjectTypeImpl extends BaseNodeImpl<BaseNodeEvents> implements UA
 
     public readAttribute(context: ISessionContext, attributeId: AttributeIds): DataValue {
         assert(context instanceof SessionContext);
+        const deniedByBrowse = this._readDeniedByBrowse(context, attributeId);
+        if (deniedByBrowse) {
+            return deniedByBrowse;
+        }
+
         const options: DataValueLike = {};
         switch (attributeId) {
             case AttributeIds.IsAbstract:

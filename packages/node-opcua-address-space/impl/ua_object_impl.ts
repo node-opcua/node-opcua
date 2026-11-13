@@ -96,6 +96,11 @@ export class UAObjectImpl<T extends UAObjectEvents & ListenerSignature<T> = UAOb
         indexRange;
         dataEncoding;
         const now = getCurrentClock();
+        const deniedByBrowse = this._readDeniedByBrowse(context, attributeId);
+        if (deniedByBrowse) {
+            return deniedByBrowse;
+        }
+
         const options: DataValueLike = {};
         switch (attributeId) {
             case AttributeIds.EventNotifier:
