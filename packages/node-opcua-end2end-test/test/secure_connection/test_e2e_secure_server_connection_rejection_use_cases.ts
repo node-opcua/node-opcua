@@ -21,6 +21,7 @@ const port = 2237;
 const empty_nodeset_filename = get_empty_nodeset_filename();
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { withEnv } from "node-opcua-test-helpers";
 
 // biome-ignore lint/suspicious/noExplicitAny: monkey-patching private client/server implementation internals (computeClientSignature, makeServerNonce, performMessageTransaction) for fault injection
 type InternalAny = any;
@@ -29,6 +30,10 @@ describe("testing the server ability to deny client session request (server with
     let server: OPCUAServer;
     let endpointUrl: string;
     let clientOptions: OPCUAClientOptions;
+
+    // The server and client share the default application PKI, which is secure by
+    // default: enable auto-accept so the server trusts the client certificate.
+    withEnv("NODE_OPCUA_AUTO_ACCEPT_CERTS", "true");
 
     before(async () => {
         server = new OPCUAServer({ port, nodeset_filename: empty_nodeset_filename });

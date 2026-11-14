@@ -13,6 +13,7 @@ import {
 } from "node-opcua";
 import { build_address_space_for_conformance_testing } from "node-opcua-address-space-for-conformance-testing";
 import { assert } from "node-opcua-assert";
+import { setEnv } from "node-opcua-test-helpers";
 import should from "should";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
 import {
@@ -46,6 +47,7 @@ export interface UmbrellaTestContext extends Mocha.Context {
     data?: ServerHandle; // external server data
     backgroundSessionCount?: number;
     backgroundSubscriptionCount?: number;
+    _restoreAutoAcceptEnv?: () => void;
 }
 
 async function start_external_server(test: UmbrellaTestContext, options: IStartServerOptions) {
@@ -112,11 +114,20 @@ export async function afterTest(test: UmbrellaTestContext) {
             // left as log only (original test tolerated mismatch)
         }
     }
+
+    // Restore original auto-accept setting
+    test._restoreAutoAcceptEnv?.();
+    test._restoreAutoAcceptEnv = undefined;
 }
 
 export async function beforeTest(test: UmbrellaTestContext) {
     test.backgroundSessionCount = 0;
     test.backgroundSubscriptionCount = 0;
+
+    // Enable auto-accept for default certificate manager to maintain compatibility
+    // with self-signed certificates in tests
+    test._restoreAutoAcceptEnv = setEnv("NODE_OPCUA_AUTO_ACCEPT_CERTS", "true");
+
     const options: IStartServerOptions = {
         port: test.port ? parseInt(test.port.toString(), 10) : 26543,
         maxConnectionsPerEndpoint: 500,

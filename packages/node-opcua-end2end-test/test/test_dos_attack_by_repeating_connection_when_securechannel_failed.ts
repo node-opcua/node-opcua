@@ -15,12 +15,17 @@ import {
 import { exploreCertificateInfo, readCertificateChainAsync, readCertificateRevocationList } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { withEnv } from "node-opcua-test-helpers";
 import should from "should";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
 import { certificateFolder } from "../test_helpers/paths.js";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
+
+// The clients use the default application PKI, which is secure by default:
+// enable auto-accept so they trust the self-signed server certificate.
+withEnv("NODE_OPCUA_AUTO_ACCEPT_CERTS", "true");
 
 // -----------------------------------------------------------------------------
 // Constants & Shared Helpers
@@ -46,6 +51,7 @@ describe("testing Server resilience to DDOS attacks 2", function () {
 
     let server: OPCUAServer;
     let endpointUrl: string;
+
     const maxConnectionsPerEndpoint = 3;
     const maxSessions = 10000;
     let _clients: OPCUAClient[] = [];

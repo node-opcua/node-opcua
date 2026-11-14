@@ -10,6 +10,7 @@ import {
     type TransferSubscriptionsResponse
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { withEnv } from "node-opcua-test-helpers";
 import should from "should";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
 
@@ -107,6 +108,10 @@ async function startServer(allowAnonymousSubscriptionTransferOnUnsecuredChannel?
 
 describe("GHTR3 - anonymous TransferSubscriptions and the channel security mode (Part 4 5.13.7)", function (this: Mocha.Context) {
     this.timeout(60_000);
+
+    // The clients use the default application PKI, which is secure by default:
+    // enable auto-accept so they trust the self-signed server certificate.
+    withEnv("NODE_OPCUA_AUTO_ACCEPT_CERTS", "true");
 
     describe("GHTR3-default - the rule is enforced when the option is not set", () => {
         let server: OPCUAServer;

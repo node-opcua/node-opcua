@@ -169,10 +169,15 @@ async function createClient(
 }
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { withEnv } from "node-opcua-test-helpers";
 import { certificateFolder } from "../../test_helpers/paths.js";
 
 describe("test reconnection when server stops and change it privateKey and certificate then restart #985", function (this: Mocha.Suite) {
     this.timeout(120 * 1000);
+
+    // The clients use the default application PKI, which is secure by default:
+    // enable auto-accept so they trust the self-signed server certificate.
+    withEnv("NODE_OPCUA_AUTO_ACCEPT_CERTS", "true");
 
     async function test(
         securityPolicy: SecurityPolicy,

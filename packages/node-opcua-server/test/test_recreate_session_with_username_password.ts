@@ -8,6 +8,11 @@ const seconds = 1000;
 const port = 5002;
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { withEnv } from "node-opcua-test-helpers";
+
+// The server and client use the default application PKI, which is secure by default:
+// enable auto-accept so the self-signed certificates are trusted.
+withEnv("NODE_OPCUA_AUTO_ACCEPT_CERTS", "true");
 
 // not part of the public client API - accessed here for diagnostic logging only
 interface IClientWithInternals {
