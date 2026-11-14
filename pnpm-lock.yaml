@@ -4898,6 +4898,28 @@ importers:
         specifier: ^2.2.3
         version: 2.2.3
 
+  tools/parallel-runner:
+    dependencies:
+      chalk:
+        specifier: 6.0.1
+        version: 6.0.1
+      command-line-args:
+        specifier: 6.0.2
+        version: 6.0.2
+      mocha:
+        specifier: 12.0.3
+        version: 12.0.3
+      mocha-clean:
+        specifier: ^1.0.0
+        version: 1.0.0
+      should:
+        specifier: ^13.2.3
+        version: 13.2.3
+    optionalDependencies:
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
+
   tools/scan-dependencies:
     devDependencies:
       '@types/node':
