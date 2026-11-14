@@ -62,7 +62,10 @@ cache:
         # generation is deliberately NOT part of it: that output is committed.
         - pnpm run build:all
         - pnpm run pretest
-        - node ${SECURITY_OPTIONS} packages/parallel_test.js
+        # canonical entry: tools/parallel-runner (@sterfive/parallel-runner).
+        # `node packages/parallel_test.js` still works too - it is a one-line
+        # shim that forwards here with --root packages.
+        - node ${SECURITY_OPTIONS} tools/parallel-runner/src/cli.js --root packages
         # - node packages/run_all_mocha_tests.js DISCO3
 
 # build_and_test_node_16:
