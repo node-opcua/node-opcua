@@ -74,6 +74,10 @@ export enum NumericRangeType {
 // new Enum(["Empty", "SingleValue", "ArrayRange", "MatrixRange", "InvalidRange"]);
 
 const regexNumericRange = /^[0-9:,]*$/;
+// <index> ::= <digit> [<digit>] — at least one digit on each side of ':'. Without this,
+// parseInt("") is NaN and every comparison against NaN is false, so ":5" and "5:" passed
+// _valid_range and later threw from extract_values (OPC 10000-4 7.27).
+const regexIndex = /^[0-9]+$/;
 
 function _valid_range(low: number, high: number): boolean {
     return !(low >= high || low < 0 || high < 0);
@@ -122,11 +126,23 @@ function construct_numeric_range_bit_from_string(str: string): NumericalRange0 {
     const values = str.split(":");
 
     if (values.length === 1) {
+        if (!regexIndex.test(values[0])) {
+            return {
+                type: NumericRangeType.InvalidRange,
+                value: str
+            };
+        }
         return {
             type: NumericRangeType.SingleValue,
             value: parseInt(values[0], 10)
         };
     } else if (values.length === 2) {
+        if (!regexIndex.test(values[0]) || !regexIndex.test(values[1])) {
+            return {
+                type: NumericRangeType.InvalidRange,
+                value: str
+            };
+        }
         const array = values.map((a) => parseInt(a, 10));
 
         if (!_valid_range(array[0], array[1])) {

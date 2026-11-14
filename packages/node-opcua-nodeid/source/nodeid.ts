@@ -295,10 +295,13 @@ export type NodeIdLike = string | NodeId | number;
 /**
  * @private
  */
-const regexNamespaceI = /ns=([0-9]+);i=([0-9]+)/;
-const regexNamespaceS = /ns=([0-9]+);s=(.*)/;
-const regexNamespaceB = /ns=([0-9]+);b=(.*)/;
-const regexNamespaceG = /ns=([0-9]+);g=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/;
+// Anchored: a string identifier may itself contain something that looks like another
+// NodeId (`ns=1;s=ns=2;i=5`); an unanchored pattern read the inner one back as numeric.
+const regexNamespaceI = /^ns=([0-9]+);i=([0-9]+)$/;
+const regexNamespaceS = /^ns=([0-9]+);s=([\s\S]*)$/;
+const regexNamespaceB = /^ns=([0-9]+);b=([\s\S]*)$/;
+const regexNamespaceG = /^ns=([0-9]+);g=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})$/;
+const regexNumericIdentifier = /^[0-9]+$/;
 
 /**
  * `nsu=<namespace uri>;<identifier>`.
@@ -351,7 +354,11 @@ export function coerceNodeId(value: unknown, namespaceOptions?: number | Resolve
         twoFirst = value.substring(0, 2);
         if (twoFirst === "i=") {
             identifierType = NodeIdType.NUMERIC;
-            value = parseInt(value.substring(2), 10);
+            const identifier = value.substring(2);
+            if (!regexNumericIdentifier.test(identifier)) {
+                throw new Error(`String cannot be coerced to a nodeId : ${value}`);
+            }
+            value = parseInt(identifier, 10);
         } else if (twoFirst === "s=") {
             identifierType = NodeIdType.STRING;
             value = value.substring(2);
