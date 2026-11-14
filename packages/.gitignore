@@ -10,3 +10,4 @@ tmp_*
 a.*
 .clinic/
 pnpm-lock.yaml
+.para*.json

@@ -62,7 +62,7 @@
     "generate:nodesets": "pnpm --filter \"!node-opcua-types\" recursive run generate",
     "pretest": "pnpm recursive run pretest",
     "test": "cd packages && node --expose-gc ${SECURITY_REVERT_CVE_2023_46809} --max-old-space-size=2048 run_all_mocha_tests.js",
-    "test:parallel": "cd packages && node parallel_test.js",
+    "test:parallel": "node tools/parallel-runner/src/cli.js --root packages",
     "test:win": "cd packages && node --expose-gc --max-old-space-size=2048 run_all_mocha_tests.js",
     "test:per-package": "pnpm m run test",
     "test:per-package:dry-run": "pnpm m run test --dry-run",

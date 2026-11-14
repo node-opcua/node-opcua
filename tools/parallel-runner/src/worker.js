@@ -3,9 +3,14 @@ const util = require("node:util");
 // .default: chalk 6 is ESM-only, so require() hands back the module namespace
 // object rather than the instance, and every chalk.<style>() would be undefined.
 const chalk = require("chalk").default;
+// side-effect: extends Object.prototype with .should — test files rely on it
+// being loaded by the runner (they don't import "should" themselves). The old
+// single-file runner got this for free because the worker re-executed the same
+// entry file, whose top-level require("should") ran in the worker thread.
+require("should");
 const { Mocha } = require("mocha");
 
-const { runtests } = require("./run_all_mocha_tests.js");
+const { runtests } = require("./mocha_runner.js");
 
 if (isMainThread) {
     return;
@@ -98,13 +103,17 @@ class ParallelMochaReporter {
                 console.log(err.stack);
                 console.log(`  ${chalk.red(test.fullTitle())}`);
                 console.log(test.file);
-                const { duration, file, error: _error, timedOut, state, stats, title } = test;
+                const { duration, file, title } = test;
                 const titlePath = test.titlePath();
                 const output = this.outputLines;
                 this.outputLines = [];
+                // hook failures carry the error on `err`, not test.error (which
+                // stays undefined) - forward whichever is present, else the CI log
+                // prints "undefined" and the real cause is lost
+                const error = err ? (err.stack || err.message || String(err)) : test.error;
                 parentPort.postMessage({
                     type: EVENT_TEST_FAIL,
-                    test: { duration, file, timedOut, state, stats, title, output, titlePath }
+                    test: { duration, file, title, output, titlePath, error }
                 });
                 console.log = this.oldConsoleLog;
                 this.oldConsoleLog = null;
@@ -146,6 +155,15 @@ console.warn = (...args) => {
     }
 };
 
+console.error = (...args) => {
+    try {
+        const line = util.format.apply(null, ["E       ", t(), ...args]);
+        parentPort.postMessage({ type: "LOG", file: g_file, page: undefined, line });
+    } catch (_err) {
+        /* parent gone, nothing useful to do */
+    }
+};
+
 async function workerThread() {
     const { page: _page, selectedTests, g } = workerData;
 
@@ -162,3 +180,8 @@ async function workerThread() {
 }
 
 module.exports.workerThread = workerThread;
+
+// This file is the worker entry (cli.js spawns new Worker("src/worker.js")).
+// In the main thread the guard at the top of the file already returned, so
+// reaching this line means we are inside a worker: run immediately.
+workerThread();
