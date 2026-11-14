@@ -174,6 +174,21 @@ import { certificateFolder } from "../../test_helpers/paths.js";
 describe("test reconnection when server stops and change it privateKey and certificate then restart #985", function (this: Mocha.Suite) {
     this.timeout(120 * 1000);
 
+    let originalEnv: string | undefined;
+
+    before(async function () {
+        originalEnv = process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS;
+        process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS = "true";
+    });
+
+    after(async function () {
+        if (originalEnv !== undefined) {
+            process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS = originalEnv;
+        } else {
+            delete process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS;
+        }
+    });
+
     async function test(
         securityPolicy: SecurityPolicy,
         securityMode: MessageSecurityMode,

@@ -1,0 +1,1795 @@
+/**
+ * @module node-opcua-server
+ */
+import { EventEmitter } from "node:events";
+import { types } from "node:util";
+import chalk from "chalk";
+import { AddressSpace, addElement, bindExtObjArrayNode, ensureObjectIsSecure, removeElement, WellKnownRoles } from "node-opcua-address-space";
+import { generateAddressSpace, generateCompactAddressSpace } from "node-opcua-address-space/nodeJS.js";
+import { assert } from "node-opcua-assert";
+import { BinaryStream } from "node-opcua-binary-stream";
+import { ServerDiagnosticsSummaryDataType, ServerState, ServerStatusDataType, SubscriptionDiagnosticsDataType } from "node-opcua-common";
+import { DataTypeIds, MethodIds, ObjectIds, VariableIds } from "node-opcua-constants";
+import { AttributeIds, addProfileUri, coerceLocalizedText, coerceQualifiedName, makeAccessLevelFlag, NodeClass } from "node-opcua-data-model";
+import { getCurrentClock, getMinOPCUADate } from "node-opcua-date-time";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog, traceFromThisProjectOnly } from "node-opcua-debug";
+import { coerceNodeId, makeNodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import { nodesets } from "node-opcua-nodesets";
+import { ObjectRegistry } from "node-opcua-object-registry";
+import { ApplicationDescription } from "node-opcua-service-endpoints";
+import { TransferResult } from "node-opcua-service-subscription";
+import { StatusCodes } from "node-opcua-status-code";
+import { ApplicationType, PermissionType, ProgramDiagnosticDataType, ReadValueId, TimeZoneDataType } from "node-opcua-types";
+import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
+import { AddressSpaceAccessor } from "./addressSpace_accessor.js";
+import { defaultAuditEventRoles, restrictAuditEventReception } from "./audit_event_permissions.js";
+import { HistoryServerCapabilities } from "./history_server_capabilities.js";
+import { MonitoredItem } from "./monitored_item.js";
+import { defaultServerCapabilities, ServerCapabilities } from "./server_capabilities.js";
+import { ServerSidePublishEngine } from "./server_publish_engine.js";
+import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions.js";
+import { ServerSession } from "./server_session.js";
+import { Subscription } from "./server_subscription.js";
+import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer.js";
+import { getMonitoredItemsId, resendData, setSubscriptionDurable } from "./subscription_methods.js";
+import { ownerIdentityOf, transferSubscriptionToSession } from "./subscription_transfer.js";
+const debugLog = make_debugLog("server_engine");
+const errorLog = make_errorLog("server_engine");
+const warningLog = make_warningLog("server_engine");
+const doDebug = checkDebugFlag("server_engine");
+function upperCaseFirst(str) {
+    return str.slice(0, 1).toUpperCase() + str.slice(1);
+}
+async function shutdownAndDisposeAddressSpace() {
+    if (this.addressSpace) {
+        await this.addressSpace.shutdown();
+        this.addressSpace.dispose();
+        this.addressSpace = null;
+    }
+}
+function requestServerStateChange(inputArguments, context, callback) {
+    assert(Array.isArray(inputArguments));
+    assert(typeof callback === "function");
+    assert(Object.hasOwn(context, "session"), " expecting a session id in the context object");
+    const session = context.session;
+    if (!session) {
+        return callback(null, { statusCode: StatusCodes.BadInternalError });
+    }
+    return callback(null, { statusCode: StatusCodes.BadNotImplemented });
+}
+function __bindVariable(self, nodeId, options) {
+    options = options || {};
+    if (!self.addressSpace) {
+        return;
+    }
+    const variable = self.addressSpace.findNode(nodeId);
+    if (variable?.bindVariable) {
+        variable.bindVariable(options, true);
+        assert(typeof variable.asyncRefresh === "function");
+        assert(typeof variable.refreshFunc === "function");
+    }
+    else {
+        warningLog("Warning: cannot bind object with id ", nodeId.toString(), " please check your nodeset.xml file or add this node programmatically");
+    }
+}
+// note OPCUA 1.03 part 4 page 76
+// The Server-assigned identifier for the Subscription (see 7.14 for IntegerId definition). This identifier shall
+// be unique for the entire Server, not just for the Session, in order to allow the Subscription to be transferred
+// to another Session using the TransferSubscriptions service.
+// After Server start-up the generation of subscriptionIds should start from a random IntegerId or continue from
+// the point before the restart.
+let next_subscriptionId = Math.ceil(Math.random() * 1000000);
+export function setNextSubscriptionId(n) {
+    next_subscriptionId = Math.max(n, 1);
+}
+function _get_next_subscriptionId() {
+    /* c8 ignore next */
+    doDebug && debugLog(" next_subscriptionId = ", next_subscriptionId);
+    return next_subscriptionId++;
+}
+// https://profiles.opcfoundation.org/profile
+function defaultServerProfileArray() {
+    const profiles = [];
+    for (const profileUri of [
+        "http://opcfoundation.org/UA-Profile/Server/Standard", // Standard UA Server Profile",
+        "http://opcfoundation.org/UA-Profile/Server/DataAccess",
+        "http://opcfoundation.org/UA-Profile/Server/ComplexTypes2017",
+        "http://opcfoundation.org/UA-Profile/Server/Events",
+        // No history Facet here: a Server only provides history for a Variable with a
+        // historian installed, which nothing sets up by default. A Server that installs
+        // one can advertise it with addServerProfile.
+        "http://opcfoundation.org/UA-Profile/Server/Methods",
+        "http://opcfoundation.org/UA-Profile/Server/StandardEventSubscription",
+        "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary",
+        "http://opcfoundation.org/UA-Profile/Server/FileAccess",
+        "http://opcfoundation.org/UA-Profile/Server/StateMachine"
+        // "http://opcfoundation.org/UA-Profile/Transport/wss-uajson",
+        // "http://opcfoundation.org/UA-Profile/Transport/wss-uasc-uabinary"
+        // "http://opcfoundation.org/UA-Profile/Server/DurableSubscription"
+        // "http://opcfoundation.org/UA-Profile/Server/ReverseConnect",
+        // "http://opcfoundation.org/UAProfile/Server/NodeManagement",
+        //  "Embedded UA Server Profile",
+        // "Micro Embedded Device Server Profile",
+        // "Nano Embedded Device Server Profile"
+    ]) {
+        addProfileUri(profiles, profileUri);
+    }
+    return profiles;
+}
+const HISTORICAL_RAW_DATA_PROFILE_URI = "http://opcfoundation.org/UA-Profile/Server/HistoricalRawData";
+/**
+ * Advertise the HistoricalRawData Facet as soon as the AddressSpace has a Variable a Client
+ * can run a HistoryRead against. Nothing sets up a historian by default (see
+ * defaultServerProfileArray), so the Facet only appears once a Server actually calls
+ * addressSpace.installHistoricalDataNode on a Variable.
+ */
+function installHistoricalRawDataFacetHook(addressSpace, serverProfileArray) {
+    addressSpace.onHistorizingNodeAdded = () => {
+        addProfileUri(serverProfileArray, HISTORICAL_RAW_DATA_PROFILE_URI);
+    };
+}
+/**
+ * the key of a session in ServerEngine#_sessionsByToken: the bytes of its authentication token,
+ * one character per byte, or null for a NodeId that cannot be the token of a session.
+ */
+function sessionTokenKey(authenticationToken) {
+    const value = authenticationToken.value;
+    if (authenticationToken.identifierType !== NodeIdType.BYTESTRING ||
+        authenticationToken.namespace !== 0 ||
+        !(value instanceof Buffer)) {
+        return null;
+    }
+    return value.toString("latin1");
+}
+/**
+ *
+ */
+export class ServerEngine extends EventEmitter {
+    static registry = new ObjectRegistry();
+    isAuditing;
+    allowAnonymousSubscriptionTransferOnUnsecuredChannel;
+    serverDiagnosticsSummary;
+    serverDiagnosticsEnabled;
+    serverCapabilities;
+    historyServerCapabilities;
+    serverConfiguration;
+    clientDescription;
+    addressSpace;
+    #diagnosticsNamespaceUri;
+    #diagnosticsNamespaceIndex = 1;
+    /** the namespace of the Sessions and of the diagnostics of the Subscriptions (see diagnosticsNamespaceUri) */
+    get diagnosticsNamespaceIndex() {
+        return this.#diagnosticsNamespaceIndex;
+    }
+    /** the compact address space, when the engine was initialized with one */
+    compactAddressSpace = null;
+    addressSpaceAccessor = null;
+    // pseudo private
+    _internalState;
+    _sessions;
+    _closedSessions;
+    /** the sessions of _sessions, by the bytes of their authentication token: see getSession */
+    _sessionsByToken = new Map();
+    _orphanPublishEngine;
+    _shutdownTasks;
+    _applicationUri;
+    _expectedShutdownTime;
+    _serverStatus;
+    _globalCounter = { totalMonitoredItemCount: 0 };
+    _serverArrayProvider;
+    constructor(options) {
+        super();
+        options = options || { applicationUri: "" };
+        this.#diagnosticsNamespaceUri = options.diagnosticsNamespaceUri;
+        options.buildInfo = options.buildInfo || {};
+        ServerEngine.registry.register(this);
+        this._sessions = {};
+        this._closedSessions = {};
+        this._orphanPublishEngine = undefined; // will be constructed on demand
+        this.isAuditing = typeof options.isAuditing === "boolean" ? options.isAuditing : false;
+        // OPC UA Part 4 §5.13.7: an anonymous Subscription is only transferred over a Sign/SignAndEncrypt
+        // channel to a client with the same ApplicationUri. Enforced by default (CTT Subscription Transfer
+        // Err-017); the flag is an explicit relaxation for anonymous clients that reconnect over a None
+        // endpoint and expect to keep their subscriptionId. The cross-user ownership check (see
+        // transferSubscription) is always enforced regardless of this flag.
+        this.allowAnonymousSubscriptionTransferOnUnsecuredChannel =
+            options.allowAnonymousSubscriptionTransferOnUnsecuredChannel === true;
+        options.buildInfo.buildDate = options.buildInfo.buildDate || new Date();
+        // ---------------------------------------------------- ServerStatusDataType
+        this._serverStatus = new ServerStatusDataType({
+            buildInfo: options.buildInfo,
+            currentTime: new Date(),
+            secondsTillShutdown: 0,
+            shutdownReason: { text: "" },
+            startTime: new Date(),
+            state: ServerState.NoConfiguration
+        });
+        // --------------------------------------------------- ServerCapabilities
+        options.serverCapabilities = options.serverCapabilities || {};
+        options.serverConfiguration = options.serverConfiguration || {
+            supportedPrivateKeyFormat: ["PEM"]
+        };
+        // The default list goes through addProfileUri so that it is already in the
+        // deduplicated, sorted form that later additions (addServerProfile) maintain.
+        options.serverCapabilities.serverProfileArray =
+            options.serverCapabilities.serverProfileArray || defaultServerProfileArray();
+        options.serverCapabilities.localeIdArray = options.serverCapabilities.localeIdArray || ["en-EN", "fr-FR"];
+        this.serverCapabilities = new ServerCapabilities(options.serverCapabilities);
+        // to do when spec is clear about what goes here!
+        // spec 1.04 says (in Part 4 7.33 SignedSoftwareCertificate
+        // Note: Details on SoftwareCertificates need to be defined in a future version.
+        this.serverCapabilities.softwareCertificates = [
+        // new SignedSoftwareCertificate({})
+        ];
+        // make sure minSupportedSampleRate matches MonitoredItem.minimumSamplingInterval unless configured;
+        // ?? and not ||, so that a server can claim 0 (exception-based items are then answered with 0)
+        Object.defineProperty(this.serverCapabilities, "minSupportedSampleRate", {
+            get: () => options.serverCapabilities?.minSupportedSampleRate ?? MonitoredItem.minimumSamplingInterval,
+            configurable: true
+        });
+        this.serverConfiguration = options.serverConfiguration;
+        this.historyServerCapabilities = new HistoryServerCapabilities(options.historyServerCapabilities);
+        // --------------------------------------------------- serverDiagnosticsSummary extension Object
+        this.serverDiagnosticsSummary = new ServerDiagnosticsSummaryDataType();
+        assert(Object.hasOwn(this.serverDiagnosticsSummary, "currentSessionCount"));
+        // note spelling is different for serverDiagnosticsSummary.currentSubscriptionCount
+        //      and sessionDiagnostics.currentSubscriptionsCount ( with an s)
+        assert(Object.hasOwn(this.serverDiagnosticsSummary, "currentSubscriptionCount"));
+        Object.defineProperty(this.serverDiagnosticsSummary, "currentSubscriptionCount", {
+            get: () => {
+                // currentSubscriptionCount returns the total number of subscriptions
+                // that are currently active on all sessions
+                let counter = 0;
+                Object.values(this._sessions).forEach((session) => {
+                    counter += session.currentSubscriptionCount;
+                });
+                // we also need to add the orphan subscriptions
+                counter += this._orphanPublishEngine ? this._orphanPublishEngine.subscriptions.length : 0;
+                return counter;
+            },
+            configurable: true
+        });
+        this._internalState = "creating";
+        this.setServerState(ServerState.NoConfiguration);
+        this.addressSpace = null;
+        this._shutdownTasks = [];
+        this._applicationUri = "";
+        if (typeof options.applicationUri === "function") {
+            Object.defineProperty(this, "_applicationUri", {
+                get: options.applicationUri,
+                configurable: true
+            });
+        }
+        else {
+            this._applicationUri = options.applicationUri || "<unset _applicationUri>";
+        }
+        options.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled ?? true;
+        this.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled;
+    }
+    isStarted() {
+        return !!this._serverStatus;
+    }
+    dispose() {
+        this.addressSpace = null;
+        assert(Object.keys(this._sessions).length === 0, "ServerEngine#_sessions not empty");
+        this._sessions = {};
+        this._sessionsByToken.clear();
+        // todo fix me
+        this._closedSessions = {};
+        assert(Object.keys(this._closedSessions).length === 0, "ServerEngine#_closedSessions not empty");
+        this._closedSessions = {};
+        if (this._orphanPublishEngine) {
+            this._orphanPublishEngine.dispose();
+            this._orphanPublishEngine = undefined;
+        }
+        this._shutdownTasks = [];
+        this._serverStatus = null;
+        this._internalState = "disposed";
+        this.removeAllListeners();
+        ServerEngine.registry.unregister(this);
+    }
+    get startTime() {
+        return this._serverStatus.startTime || new Date();
+    }
+    get currentTime() {
+        return this._serverStatus.currentTime || new Date();
+    }
+    get buildInfo() {
+        return this._serverStatus.buildInfo;
+    }
+    /**
+     * register a function that will be called when the server will perform its shut down.
+     */
+    registerShutdownTask(task) {
+        assert(typeof task === "function");
+        this._shutdownTasks.push(task);
+    }
+    /**
+     */
+    async shutdown() {
+        /* c8 ignore next */
+        doDebug && debugLog("ServerEngine#shutdown");
+        this._internalState = "shutdown";
+        this.setServerState(ServerState.Shutdown);
+        // delete any existing sessions
+        const tokens = Object.keys(this._sessions).map((key) => {
+            const session = this._sessions[key];
+            return session.authenticationToken;
+        });
+        // delete and close any orphan subscriptions
+        if (this._orphanPublishEngine) {
+            this._orphanPublishEngine.shutdown();
+        }
+        const sessionsClosed = tokens.map((token) => this.closeSession(token, true, "Terminated"));
+        // all sessions must have been terminated
+        assert(this.currentSessionCount === 0);
+        // all subscriptions must have been terminated
+        assert(this.currentSubscriptionCount === 0, "all subscriptions must have been terminated");
+        // a session shutdown task can use the address space: it must finish before the disposal.
+        await Promise.all(sessionsClosed);
+        this._shutdownTasks.push(shutdownAndDisposeAddressSpace);
+        // perform registerShutdownTask
+        for (const task of this._shutdownTasks) {
+            await task.call(this);
+        }
+        this.setServerState(ServerState.Invalid);
+        this.dispose();
+    }
+    /**
+     * the number of active sessions
+     */
+    get currentSessionCount() {
+        return this.serverDiagnosticsSummary.currentSessionCount;
+    }
+    /**
+     * the cumulated number of sessions that have been opened since this object exists
+     */
+    get cumulatedSessionCount() {
+        return this.serverDiagnosticsSummary.cumulatedSessionCount;
+    }
+    /**
+     * the number of active subscriptions.
+     */
+    get currentSubscriptionCount() {
+        return this.serverDiagnosticsSummary.currentSubscriptionCount;
+    }
+    /**
+     * the cumulated number of subscriptions that have been created since this object exists
+     */
+    get cumulatedSubscriptionCount() {
+        return this.serverDiagnosticsSummary.cumulatedSubscriptionCount;
+    }
+    get rejectedSessionCount() {
+        return this.serverDiagnosticsSummary.rejectedSessionCount;
+    }
+    get rejectedRequestsCount() {
+        return this.serverDiagnosticsSummary.rejectedRequestsCount;
+    }
+    get sessionAbortCount() {
+        return this.serverDiagnosticsSummary.sessionAbortCount;
+    }
+    get sessionTimeoutCount() {
+        return this.serverDiagnosticsSummary.sessionTimeoutCount;
+    }
+    get publishingIntervalCount() {
+        return this.serverDiagnosticsSummary.publishingIntervalCount;
+    }
+    incrementSessionTimeoutCount() {
+        if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
+            // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
+            this.serverDiagnosticsSummary.sessionTimeoutCount += 1;
+        }
+    }
+    incrementSessionAbortCount() {
+        if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
+            // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
+            this.serverDiagnosticsSummary.sessionAbortCount += 1;
+        }
+    }
+    incrementRejectedRequestsCount() {
+        if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
+            // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
+            this.serverDiagnosticsSummary.rejectedRequestsCount += 1;
+        }
+    }
+    /**
+     * increment rejected session count (also increment rejected requests count)
+     */
+    incrementRejectedSessionCount() {
+        if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
+            // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
+            this.serverDiagnosticsSummary.rejectedSessionCount += 1;
+        }
+        this.incrementRejectedRequestsCount();
+    }
+    incrementSecurityRejectedRequestsCount() {
+        if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
+            // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
+            this.serverDiagnosticsSummary.securityRejectedRequestsCount += 1;
+        }
+        this.incrementRejectedRequestsCount();
+    }
+    /**
+     * increment rejected session count (also increment rejected requests count)
+     */
+    incrementSecurityRejectedSessionCount() {
+        if (this.serverDiagnosticsSummary && this.serverDiagnosticsEnabled) {
+            // The requests include all Services defined in Part 4 of the OPC UA Specification, also requests to create sessions. This number includes the securityRejectedRequestsCount.
+            this.serverDiagnosticsSummary.securityRejectedSessionCount += 1;
+        }
+        this.incrementSecurityRejectedRequestsCount();
+    }
+    setShutdownTime(date) {
+        this._expectedShutdownTime = date;
+    }
+    setShutdownReason(reason) {
+        const localizedReason = coerceLocalizedText(reason);
+        if (!localizedReason)
+            return;
+        this.addressSpace?.rootFolder.objects.server.serverStatus.shutdownReason.setValueFromSource({
+            dataType: DataType.LocalizedText,
+            value: localizedReason
+        });
+    }
+    /**
+     * @return the approximate number of seconds until the server will be shut down. The
+     * value is only relevant once the state changes into SHUTDOWN.
+     */
+    secondsTillShutdown() {
+        if (!this._expectedShutdownTime) {
+            return 0;
+        }
+        // ToDo: implement a correct solution here
+        const now = Date.now();
+        return Math.max(0, Math.ceil((this._expectedShutdownTime.getTime() - now) / 1000));
+    }
+    /**
+     * the name of the server
+     */
+    get serverName() {
+        return this._serverStatus.buildInfo?.productName || "";
+    }
+    /**
+     * the server urn
+     */
+    get serverNameUrn() {
+        return this._applicationUri;
+    }
+    /**
+     * Install a provider that contributes additional entries to the `Server_ServerArray`
+     * variable (ns=0;i=2254).
+     *
+     * OPC 10000-17 (GDS) Annex C.2 requires an aggregating server to expose the ServerUri
+     * of every aggregated server in its ServerArray, so that `ExpandedNodeId.serverIndex`
+     * values returned by services such as `FindAlias` can be resolved by clients.
+     *
+     * The ServerArray value served to clients is `[serverNameUrn, ...provider()]`:
+     * index 0 always remains this server's own URI, and the provider supplies the
+     * entries for indices 1..n.
+     *
+     * Index-stability contract: a `serverIndex` handed out to clients must keep
+     * designating the same server for the lifetime of this server. The provider must
+     * therefore never reorder or compact its array when a server is withdrawn; instead
+     * it must leave an empty-string hole at the withdrawn position so that subsequent
+     * indices do not shift.
+     *
+     * The provider is consulted on every read of the variable, so its result should be
+     * cheap to compute (e.g. a cached array). Pass `null` to remove a previously
+     * installed provider. The provider may be installed before or after the server is
+     * started.
+     */
+    setServerArrayProvider(provider) {
+        this._serverArrayProvider = provider || undefined;
+    }
+    /**
+     * the urn of the server namespace
+     */
+    get serverNamespaceUrn() {
+        return this._applicationUri; // "urn:" + engine.serverName;
+    }
+    get serverStatus() {
+        return this._serverStatus;
+    }
+    setServerState(serverState) {
+        assert(serverState !== null && serverState !== undefined);
+        if (!this._serverStatus) {
+            return;
+        }
+        const oldState = this._serverStatus.state;
+        this.addressSpace?.rootFolder?.objects?.server?.serverStatus?.state?.setValueFromSource({
+            dataType: DataType.Int32,
+            value: serverState
+        });
+        if (oldState !== serverState) {
+            this.emit("serverStateChanged", oldState, serverState);
+        }
+    }
+    getServerState() {
+        return this._serverStatus.state;
+    }
+    /**
+     * Set the `ServerConfiguration.InApplicationSetup` property
+     * in the address space.
+     *
+     * This flag indicates whether the server is currently in
+     * its initial application setup phase (e.g. waiting for
+     * GDS provisioning).
+     */
+    setInApplicationSetup(value) {
+        const addressSpace = this.addressSpace;
+        if (!addressSpace) {
+            return;
+        }
+        const serverConfiguration = addressSpace.rootFolder?.objects?.server?.getChildByName("ServerConfiguration");
+        if (!serverConfiguration) {
+            return;
+        }
+        let prop = serverConfiguration.getPropertyByName("InApplicationSetup");
+        if (!prop) {
+            // InApplicationSetup is ModellingRule_Optional on
+            // ServerConfigurationType (i=19308) — instantiate
+            // it on the instance on first use.
+            const ns = addressSpace.getOwnNamespace();
+            prop = ns.addVariable({
+                browseName: { name: "InApplicationSetup", namespaceIndex: 0 },
+                propertyOf: serverConfiguration,
+                typeDefinition: "PropertyType",
+                dataType: DataType.Boolean,
+                minimumSamplingInterval: -1,
+                value: { dataType: DataType.Boolean, value }
+            });
+            return;
+        }
+        prop.setValueFromSource({
+            dataType: DataType.Boolean,
+            value
+        });
+    }
+    /**
+     * Read the current value of
+     * `ServerConfiguration.InApplicationSetup`.
+     *
+     * Returns `false` if the property does not exist in
+     * the address space.
+     */
+    getInApplicationSetup() {
+        const serverConfiguration = this.addressSpace?.rootFolder?.objects?.server?.getChildByName("ServerConfiguration");
+        if (!serverConfiguration) {
+            return false;
+        }
+        const prop = serverConfiguration.getPropertyByName("InApplicationSetup");
+        if (!prop) {
+            return false;
+        }
+        return prop.readValue().value.value ?? false;
+    }
+    getServerDiagnosticsEnabledFlag() {
+        if (!this.addressSpace) {
+            return false;
+        }
+        const server = this.addressSpace.rootFolder.objects.server;
+        const serverDiagnostics = server.getComponentByName("ServerDiagnostics");
+        if (!serverDiagnostics) {
+            return false;
+        }
+        return serverDiagnostics.readValue().value.value;
+    }
+    /**
+     *
+     */
+    initialize(options, callback) {
+        assert(!this.addressSpace); // check that 'initialize' has not been already called
+        this._internalState = "initializing";
+        options = options || {};
+        assert(typeof callback === "function");
+        const asList = (value) => (value === undefined ? [] : Array.isArray(value) ? value : [value]);
+        // the deprecated `nodeset_filename` and `nodesets` load in one call, the former first, so
+        // that a dependency may cross from one list to the other; nothing given means the standard nodeset
+        const nodesetDocuments = [...asList(options.nodeset_filename), ...asList(options.nodesets)];
+        if (nodesetDocuments.length === 0) {
+            nodesetDocuments.push(nodesets.standard);
+        }
+        const nodesetNames = nodesetDocuments.map((d) => (typeof d === "string" ? d : d.name || "(source)"));
+        const startTime = new Date();
+        /* c8 ignore next */
+        doDebug && debugLog("Loading ", nodesetNames, "...");
+        this.addressSpace = AddressSpace.create();
+        installHistoricalRawDataFacetHook(this.addressSpace, this.serverCapabilities.serverProfileArray);
+        this.addressSpaceAccessor = new AddressSpaceAccessor(this.addressSpace);
+        if (options.compactAddressSpace) {
+            this.compactAddressSpace = AddressSpace.createCompact(typeof options.compactAddressSpace === "object" ? options.compactAddressSpace : undefined);
+        }
+        if (!options.skipOwnNamespace) {
+            // register namespace 1 (our namespace);
+            const serverNamespace = this.addressSpace.registerNamespace(this.serverNamespaceUrn);
+            assert(serverNamespace.index === 1);
+        }
+        // a load that fails reports once, through the callback, and the setup below is skipped
+        const loadCompact = async () => {
+            const compact = this.compactAddressSpace;
+            if (!compact || !this.addressSpace)
+                return;
+            // the compact space takes the node objects' namespace table as its own before it loads,
+            // so that a companion nodeset gets the same index in both (the server's own namespace
+            // sits at 1 on the node objects' side before any companion model)
+            compact.namespaceUris.length = 0;
+            compact.namespaceUris.push(...this.addressSpace.getNamespaceArray().map((n) => n.namespaceUri));
+            await generateCompactAddressSpace(compact, nodesetDocuments, options.nodesetLoaderOptions);
+        };
+        generateAddressSpace(this.addressSpace, nodesetDocuments, options.nodesetLoaderOptions)
+            .then(loadCompact)
+            .then(() => {
+            /* c8 ignore next */
+            if (!this.addressSpace) {
+                throw new Error("Internal error");
+            }
+            const addressSpace = this.addressSpace;
+            if (this.#diagnosticsNamespaceUri) {
+                this.#diagnosticsNamespaceIndex = addressSpace.registerNamespace(this.#diagnosticsNamespaceUri).index;
+            }
+            const endTime = new Date();
+            /* c8 ignore next */
+            doDebug && debugLog("Loading ", nodesetNames, " done : ", endTime.getTime() - startTime.getTime(), " ms");
+            const bindVariableIfPresent = (nodeId, opts) => {
+                assert(!nodeId.isEmpty());
+                const obj = addressSpace.findNode(nodeId);
+                if (obj) {
+                    __bindVariable(this, nodeId, opts);
+                }
+                return obj;
+            };
+            // OPC 10000-2 v1.05.06 §4.14: Audit Events only reach the Roles allowed to see them
+            // (OPCUAServerOptions.auditEventRoles; null leaves the types as declared)
+            if (options.auditEventRoles !== null) {
+                restrictAuditEventReception(addressSpace, options.auditEventRoles ?? defaultAuditEventRoles);
+            }
+            // -------------------------------------------- install default get/put handler
+            const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2255
+            bindVariableIfPresent(server_NamespaceArray_Id, {
+                get() {
+                    return new Variant({
+                        arrayType: VariantArrayType.Array,
+                        dataType: DataType.String,
+                        value: addressSpace.getNamespaceArray().map((x) => x.namespaceUri)
+                    });
+                },
+                set: null // read only
+            });
+            const server_ServerArray_Id = makeNodeId(VariableIds.Server_ServerArray); // ns=0;i=2254
+            bindVariableIfPresent(server_ServerArray_Id, {
+                get: () => {
+                    // index 0 is always this server's own URI; an installed provider
+                    // (see setServerArrayProvider) contributes indices 1..n
+                    const additionalEntries = this._serverArrayProvider ? this._serverArrayProvider() : [];
+                    return new Variant({
+                        arrayType: VariantArrayType.Array,
+                        dataType: DataType.String,
+                        value: [this.serverNameUrn, ...additionalEntries]
+                    });
+                },
+                set: null // read only
+            });
+            // Make each namespace's DefaultRolePermissions / DefaultUserRolePermissions
+            // Property readable. A Property loaded from a NodeSet2 without a Value reads back
+            // uninitialized; give it a Good, Null value so a client can read it. A Property
+            // that already carries a value (a default declared by the nodeset) is left as is,
+            // since overwriting it would silently drop the declared namespace default.
+            const namespaces = makeNodeId(ObjectIds.Server_Namespaces);
+            const namespacesNode = addressSpace.findNode(namespaces);
+            if (namespacesNode) {
+                const initializeIfUnset = (variable) => {
+                    if (!variable) {
+                        return;
+                    }
+                    const dataValue = variable.readValue();
+                    const value = dataValue?.value?.value;
+                    const hasValue = dataValue?.statusCode.isGood() && value !== null && value !== undefined;
+                    if (!hasValue) {
+                        variable.setValueFromSource({ dataType: DataType.Null });
+                    }
+                };
+                for (const ns of namespacesNode.getComponents()) {
+                    initializeIfUnset(ns.getChildByName("DefaultUserRolePermissions"));
+                    initializeIfUnset(ns.getChildByName("DefaultRolePermissions"));
+                }
+            }
+            const bindStandardScalar = (id, dataType, func, setter_func) => {
+                assert(typeof id === "number", "expecting id to be a number");
+                assert(typeof func === "function");
+                assert(typeof setter_func === "function" || !setter_func);
+                assert(dataType !== null); // check invalid dataType
+                let setter_func2 = null;
+                if (setter_func) {
+                    setter_func2 = (variant) => {
+                        const variable2 = !!variant.value;
+                        setter_func(variable2);
+                        return StatusCodes.Good;
+                    };
+                }
+                const nodeId = makeNodeId(id);
+                // make sur the provided function returns a valid value for the variant type
+                // This test may not be exhaustive but it will detect obvious mistakes.
+                /* c8 ignore next */
+                if (!isValidVariant(VariantArrayType.Scalar, dataType, func())) {
+                    errorLog("func", func());
+                    throw new Error(`bindStandardScalar : func doesn't provide an value of type ${DataType[dataType]}`);
+                }
+                return bindVariableIfPresent(nodeId, {
+                    get() {
+                        return new Variant({
+                            arrayType: VariantArrayType.Scalar,
+                            dataType,
+                            value: func()
+                        });
+                    },
+                    set: setter_func2
+                });
+            };
+            const bindStandardArray = (id, variantDataType, _dataType, func) => {
+                assert(typeof func === "function");
+                assert(variantDataType !== null); // check invalid dataType
+                const nodeId = makeNodeId(id);
+                // make sur the provided function returns a valid value for the variant type
+                // This test may not be exhaustive but it will detect obvious mistakes.
+                assert(isValidVariant(VariantArrayType.Array, variantDataType, func()));
+                bindVariableIfPresent(nodeId, {
+                    get() {
+                        const value = func();
+                        assert(Array.isArray(value));
+                        return new Variant({
+                            arrayType: VariantArrayType.Array,
+                            dataType: variantDataType,
+                            value
+                        });
+                    },
+                    set: null // read only
+                });
+            };
+            bindStandardScalar(VariableIds.Server_EstimatedReturnTime, DataType.DateTime, () => getMinOPCUADate());
+            // TimeZoneDataType
+            addressSpace.findDataType(resolveNodeId(DataTypeIds.TimeZoneDataType));
+            const timeZone = new TimeZoneDataType({
+                daylightSavingInOffset: /* boolean*/ false,
+                offset: /* int16 */ 0
+            });
+            bindStandardScalar(VariableIds.Server_LocalTime, DataType.ExtensionObject, () => {
+                return timeZone;
+            });
+            bindStandardScalar(VariableIds.Server_ServiceLevel, DataType.Byte, () => {
+                return 255;
+            });
+            bindStandardScalar(VariableIds.Server_Auditing, DataType.Boolean, () => {
+                return this.isAuditing;
+            });
+            const engine = this;
+            const makeNotReadableIfEnabledFlagIsFalse = (variable) => {
+                const originalIsReadable = variable.isReadable;
+                variable.isUserReadable = checkReadableFlag;
+                function checkReadableFlag(context) {
+                    const isEnabled = engine.serverDiagnosticsEnabled;
+                    return originalIsReadable.call(this, context) && isEnabled;
+                }
+                for (const c of variable.getAggregates()) {
+                    if (c.nodeClass === NodeClass.Variable) {
+                        makeNotReadableIfEnabledFlagIsFalse(c);
+                    }
+                }
+            };
+            const bindServerDiagnostics = () => {
+                bindStandardScalar(VariableIds.Server_ServerDiagnostics_EnabledFlag, DataType.Boolean, () => {
+                    return this.serverDiagnosticsEnabled;
+                }, (newFlag) => {
+                    this.serverDiagnosticsEnabled = newFlag;
+                });
+                const nodeId = makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary);
+                const serverDiagnosticsSummaryNode = addressSpace.findNode(nodeId);
+                if (serverDiagnosticsSummaryNode) {
+                    serverDiagnosticsSummaryNode.bindExtensionObject(this.serverDiagnosticsSummary);
+                    this.serverDiagnosticsSummary = serverDiagnosticsSummaryNode.$extensionObject;
+                    makeNotReadableIfEnabledFlagIsFalse(serverDiagnosticsSummaryNode);
+                }
+            };
+            const bindServerStatus = () => {
+                const serverStatusNode = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus));
+                if (!serverStatusNode) {
+                    return;
+                }
+                if (serverStatusNode) {
+                    serverStatusNode.bindExtensionObject(this._serverStatus);
+                    serverStatusNode.minimumSamplingInterval = 1000;
+                }
+                const currentTimeNode = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_CurrentTime));
+                if (currentTimeNode) {
+                    currentTimeNode.minimumSamplingInterval = 1000;
+                }
+                const secondsTillShutdown = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus_SecondsTillShutdown));
+                if (secondsTillShutdown) {
+                    secondsTillShutdown.minimumSamplingInterval = 1000;
+                }
+                assert(serverStatusNode.$extensionObject);
+                serverStatusNode.$extensionObject = new Proxy(serverStatusNode.$extensionObject, {
+                    get(target, prop) {
+                        if (prop === "currentTime") {
+                            serverStatusNode.currentTime.touchValue();
+                            return new Date();
+                        }
+                        else if (prop === "secondsTillShutdown") {
+                            serverStatusNode.secondsTillShutdown.touchValue();
+                            return engine.secondsTillShutdown();
+                        }
+                        return target[prop];
+                    }
+                });
+                this._serverStatus = serverStatusNode.$extensionObject;
+            };
+            const bindServerCapabilities = () => {
+                bindStandardArray(VariableIds.Server_ServerCapabilities_ServerProfileArray, DataType.String, DataType.String, () => {
+                    return this.serverCapabilities.serverProfileArray;
+                });
+                bindStandardArray(VariableIds.Server_ServerCapabilities_LocaleIdArray, DataType.String, "LocaleId", () => {
+                    return this.serverCapabilities.localeIdArray;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MinSupportedSampleRate, DataType.Double, () => {
+                    return Math.max(this.serverCapabilities.minSupportedSampleRate, defaultServerCapabilities.minSupportedSampleRate);
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints, DataType.UInt16, () => {
+                    return this.serverCapabilities.maxBrowseContinuationPoints;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxQueryContinuationPoints, DataType.UInt16, () => {
+                    return this.serverCapabilities.maxQueryContinuationPoints;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints, DataType.UInt16, () => {
+                    return this.serverCapabilities.maxHistoryContinuationPoints;
+                });
+                // new in 1.05
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSessions, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxSessions;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSubscriptions, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxSubscriptions;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxMonitoredItems, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxMonitoredItems;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSubscriptionsPerSession, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxSubscriptionsPerSession;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSelectClauseParameters, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxSelectClauseParameters;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxWhereClauseParameters, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxWhereClauseParameters;
+                });
+                // ConformanceUnits (i=24101, new in 1.05): the conformance units the server claims.
+                // Part 7 wants the list limited to the units the server supports in its current
+                // configuration, so it is read live from serverCapabilities.conformanceUnits and an
+                // application can fill it after the server has started. An empty list must still
+                // reach the wire as a typed empty QualifiedName array, never as a Null variant: the
+                // CTT (Base Info Core Structure 2 / 001.js) checks the Value's DataType against the
+                // Attribute's. Elements are coerced because encodeQualifiedName needs real instances.
+                bindStandardArray(VariableIds.Server_ServerCapabilities_ConformanceUnits, DataType.QualifiedName, "QualifiedName", () => this.serverCapabilities.conformanceUnits.map((unit) => coerceQualifiedName(unit)));
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxMonitoredItemsPerSubscription, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxMonitoredItemsPerSubscription;
+                });
+                // added by DI : Server-specific period of time in milliseconds until the Server will revoke a lock.
+                // TODO bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxInactiveLockTime,
+                // TODO     DataType.UInt16, function () {
+                // TODO         return self.serverCapabilities.maxInactiveLockTime;
+                // TODO });
+                bindStandardArray(VariableIds.Server_ServerCapabilities_SoftwareCertificates, DataType.ExtensionObject, "SoftwareCertificates", () => {
+                    return this.serverCapabilities.softwareCertificates;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxArrayLength, DataType.UInt32, () => {
+                    // Advertise the smallest of the three ceilings that actually apply: the
+                    // configured value, the Variant value-array cap, and the generic
+                    // structured-array cap. Reporting more than any of them enforces would let
+                    // a client send an array the decoder then refuses.
+                    return Math.min(this.serverCapabilities.maxArrayLength, Variant.maxArrayLength, BinaryStream.maxArrayLength);
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxStringLength, DataType.UInt32, () => {
+                    return Math.min(this.serverCapabilities.maxStringLength, BinaryStream.maxStringLength);
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxByteStringLength, DataType.UInt32, () => {
+                    return Math.min(this.serverCapabilities.maxByteStringLength, BinaryStream.maxByteStringLength);
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxMonitoredItemsQueueSize, DataType.UInt32, () => {
+                    return Math.max(1, this.serverCapabilities.maxMonitoredItemsQueueSize);
+                });
+                const bindOperationLimits = (operationLimits) => {
+                    assert(operationLimits !== null && typeof operationLimits === "object");
+                    const keys = Object.keys(operationLimits);
+                    keys.forEach((key) => {
+                        const uid = `Server_ServerCapabilities_OperationLimits_${upperCaseFirst(key)}`;
+                        const nodeId = makeNodeId(VariableIds[uid]);
+                        assert(!nodeId.isEmpty());
+                        // Part 5 OperationLimitsType: a limit property that is provided shall be
+                        // non-zero. 0 means "no limit" here, so the optional property is not
+                        // exposed at all (CTT 1.05 Base Info Server Capabilities 2 015).
+                        if (!operationLimits[key]) {
+                            const limitNode = addressSpace.findNode(nodeId);
+                            if (limitNode)
+                                addressSpace.deleteNode(limitNode);
+                            return;
+                        }
+                        bindStandardScalar(VariableIds[uid], DataType.UInt32, () => {
+                            return operationLimits[key];
+                        });
+                    });
+                };
+                bindOperationLimits(this.serverCapabilities.operationLimits);
+                // i=2399 [ProgramStateMachineType_ProgramDiagnostics];
+                function fix_ProgramStateMachineType_ProgramDiagnostics() {
+                    const nodeId = coerceNodeId("i=2399"); // ProgramStateMachineType_ProgramDiagnostics
+                    const variable = addressSpace.findNode(nodeId);
+                    if (variable) {
+                        variable.$extensionObject = new ProgramDiagnosticDataType({});
+                        //  variable.setValueFromSource({
+                        //     dataType: DataType.ExtensionObject,
+                        //     //     value: new ProgramDiagnostic2DataType()
+                        //     value: new ProgramDiagnosticDataType({})
+                        // });
+                    }
+                }
+                fix_ProgramStateMachineType_ProgramDiagnostics();
+            };
+            const bindHistoryServerCapabilities = () => {
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_MaxReturnDataValues, DataType.UInt32, () => {
+                    return this.historyServerCapabilities.maxReturnDataValues;
+                });
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_MaxReturnEventValues, DataType.UInt32, () => {
+                    return this.historyServerCapabilities.maxReturnEventValues;
+                });
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_AccessHistoryDataCapability, DataType.Boolean, () => {
+                    return this.historyServerCapabilities.accessHistoryDataCapability;
+                });
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_AccessHistoryEventsCapability, DataType.Boolean, () => {
+                    return this.historyServerCapabilities.accessHistoryEventsCapability;
+                });
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertDataCapability, DataType.Boolean, () => {
+                    return this.historyServerCapabilities.insertDataCapability;
+                });
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_ReplaceDataCapability, DataType.Boolean, () => {
+                    return this.historyServerCapabilities.replaceDataCapability;
+                });
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_UpdateDataCapability, DataType.Boolean, () => {
+                    return this.historyServerCapabilities.updateDataCapability;
+                });
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertEventCapability, DataType.Boolean, () => {
+                    return this.historyServerCapabilities.insertEventCapability;
+                });
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_ReplaceEventCapability, DataType.Boolean, () => {
+                    return this.historyServerCapabilities.replaceEventCapability;
+                });
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_UpdateEventCapability, DataType.Boolean, () => {
+                    return this.historyServerCapabilities.updateEventCapability;
+                });
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteEventCapability, DataType.Boolean, () => {
+                    return this.historyServerCapabilities.deleteEventCapability;
+                });
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteRawCapability, DataType.Boolean, () => {
+                    return this.historyServerCapabilities.deleteRawCapability;
+                });
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_DeleteAtTimeCapability, DataType.Boolean, () => {
+                    return this.historyServerCapabilities.deleteAtTimeCapability;
+                });
+                bindStandardScalar(VariableIds.HistoryServerCapabilities_InsertAnnotationCapability, DataType.Boolean, () => {
+                    return this.historyServerCapabilities.insertAnnotationCapability;
+                });
+            };
+            function r(a, defaultValue) {
+                if (a === undefined)
+                    return defaultValue;
+                if (typeof a === "function") {
+                    return a();
+                }
+                return a;
+            }
+            const bindServerConfigurationBasic = () => {
+                bindStandardArray(VariableIds.ServerConfiguration_ServerCapabilities, DataType.String, DataType.String, () => r(this.serverConfiguration.serverCapabilities, ["NA"]));
+                bindStandardScalar(VariableIds.ServerConfiguration_ApplicationType, DataType.Int32, () => r(this.serverConfiguration.applicationType, ApplicationType.Server));
+                bindStandardScalar(VariableIds.ServerConfiguration_ApplicationUri, DataType.String, () => r(this.serverConfiguration.applicationUri, ""));
+                bindStandardScalar(VariableIds.ServerConfiguration_ProductUri, DataType.String, () => r(this.serverConfiguration.productUri, ""));
+                bindStandardScalar(VariableIds.ServerConfiguration_HasSecureElement, DataType.Boolean, () => r(this.serverConfiguration.hasSecureElement, false));
+                bindStandardScalar(VariableIds.ServerConfiguration_MulticastDnsEnabled, DataType.Boolean, () => r(this.serverConfiguration.multicastDnsEnabled, false));
+                bindStandardArray(VariableIds.ServerConfiguration_SupportedPrivateKeyFormats, DataType.String, DataType.String, () => r(this.serverConfiguration.supportedPrivateKeyFormat, ["PEM"]));
+            };
+            bindServerDiagnostics();
+            bindServerStatus();
+            bindServerCapabilities();
+            bindServerConfigurationBasic();
+            bindHistoryServerCapabilities();
+            const bindExtraStuff = () => {
+                // mainly for compliance
+                /*
+        // The version number for the data type description. i=104
+        bindStandardScalar(VariableIds.DataTypeDescriptionType_DataTypeVersion, DataType.String, () => {
+            return "0";
+        });
+
+        const namingRuleDataTypeNode = addressSpace.findDataType(resolveNodeId(DataTypeIds.NamingRuleType))! as UADataType;
+
+        if (namingRuleDataTypeNode) {
+            const namingRuleType = (namingRuleDataTypeNode as any)._getEnumerationInfo().nameIndex; // getEnumeration("NamingRuleType");
+            if (!namingRuleType) {
+                throw new Error("Cannot find Enumeration definition for NamingRuleType");
+            }
+            // i=111
+            bindStandardScalar(VariableIds.ModellingRuleType_NamingRule, DataType.Int32, () => {
+                return 0;
+            });
+
+            // i=112
+            bindStandardScalar(VariableIds.ModellingRule_Mandatory_NamingRule, DataType.Int32, () => {
+                return namingRuleType.Mandatory ? namingRuleType.Mandatory.value : 0;
+            });
+
+            // i=113
+            bindStandardScalar(VariableIds.ModellingRule_Optional_NamingRule, DataType.Int32, () => {
+                return namingRuleType.Optional ? namingRuleType.Optional.value : 0;
+            });
+            // i=114
+            bindStandardScalar(VariableIds.ModellingRule_ExposesItsArray_NamingRule, DataType.Int32, () => {
+                return namingRuleType.ExposesItsArray ? namingRuleType.ExposesItsArray.value : 0;
+            });
+            bindStandardScalar(VariableIds.ModellingRule_MandatoryPlaceholder_NamingRule, DataType.Int32, () => {
+                return namingRuleType.MandatoryPlaceholder ? namingRuleType.MandatoryPlaceholder.value : 0;
+            });
+        }
+*/
+            };
+            bindExtraStuff();
+            this.__internal_bindMethod(makeNodeId(MethodIds.Server_GetMonitoredItems), getMonitoredItemsId.bind(this));
+            this.__internal_bindMethod(makeNodeId(MethodIds.Server_SetSubscriptionDurable), setSubscriptionDurable.bind(this));
+            this.__internal_bindMethod(makeNodeId(MethodIds.Server_ResendData), resendData.bind(this));
+            this.__internal_bindMethod(makeNodeId(MethodIds.Server_RequestServerStateChange), requestServerStateChange.bind(this));
+            // fix getMonitoredItems.outputArguments arrayDimensions
+            const fixGetMonitoredItemArgs = () => {
+                const objects = this.addressSpace?.rootFolder?.objects;
+                if (!objects?.server) {
+                    return;
+                }
+                const getMonitoredItemsMethod = objects.server.getMethodByName("GetMonitoredItems");
+                if (!getMonitoredItemsMethod) {
+                    return;
+                }
+                const outputArguments = getMonitoredItemsMethod.outputArguments;
+                if (!outputArguments) {
+                    return;
+                }
+                const dataValue = outputArguments.readValue();
+                if (!dataValue.value?.value) {
+                    // value is null or undefined , meaning no arguments necessary
+                    return;
+                }
+                assert(dataValue.value.value[0].arrayDimensions.length === 1 &&
+                    dataValue.value.value[0].arrayDimensions[0] === 0);
+                assert(dataValue.value.value[1].arrayDimensions.length === 1 &&
+                    dataValue.value.value[1].arrayDimensions[0] === 0);
+            };
+            fixGetMonitoredItemArgs();
+            const prepareServerDiagnostics = () => {
+                const addressSpace1 = this.addressSpace;
+                if (!addressSpace1) {
+                    return;
+                }
+                if (!addressSpace1.rootFolder.objects) {
+                    return;
+                }
+                const server = addressSpace1.rootFolder.objects.server;
+                if (!server) {
+                    return;
+                }
+                // create SessionsDiagnosticsSummary
+                const serverDiagnosticsNode = server.getComponentByName("ServerDiagnostics");
+                if (!serverDiagnosticsNode) {
+                    return;
+                }
+                // OPC UA Part 5 §12.4: EnabledFlag should be writable
+                // only by administrators (ConfigureAdmin / SecurityAdmin).
+                // accessLevel declares the capability (readable + writable),
+                // while rolePermissions restrict Write to admin roles only.
+                serverDiagnosticsNode.enabledFlag.accessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
+                serverDiagnosticsNode.enabledFlag.userAccessLevel = makeAccessLevelFlag("CurrentRead | CurrentWrite");
+                serverDiagnosticsNode.enabledFlag.setRolePermissions([
+                    { roleId: WellKnownRoles.Anonymous, permissions: PermissionType.Read | PermissionType.Browse },
+                    { roleId: WellKnownRoles.AuthenticatedUser, permissions: PermissionType.Read | PermissionType.Browse },
+                    { roleId: WellKnownRoles.Observer, permissions: PermissionType.Read | PermissionType.Browse },
+                    { roleId: WellKnownRoles.Operator, permissions: PermissionType.Read | PermissionType.Browse },
+                    { roleId: WellKnownRoles.Engineer, permissions: PermissionType.Read | PermissionType.Browse },
+                    { roleId: WellKnownRoles.Supervisor, permissions: PermissionType.Read | PermissionType.Browse },
+                    {
+                        roleId: WellKnownRoles.ConfigureAdmin,
+                        permissions: PermissionType.Read | PermissionType.Browse | PermissionType.Write
+                    },
+                    {
+                        roleId: WellKnownRoles.SecurityAdmin,
+                        permissions: PermissionType.Read | PermissionType.Browse | PermissionType.Write
+                    }
+                ]);
+                // A Server may not expose the SamplingIntervalDiagnosticsArray if it does not use fixed sampling rates.
+                // because we are not using fixed sampling rate, we need to remove the optional SamplingIntervalDiagnosticsArray
+                // component
+                const samplingIntervalDiagnosticsArray = serverDiagnosticsNode.getComponentByName("SamplingIntervalDiagnosticsArray");
+                if (samplingIntervalDiagnosticsArray) {
+                    addressSpace.deleteNode(samplingIntervalDiagnosticsArray);
+                }
+                const subscriptionDiagnosticsArrayNode = serverDiagnosticsNode.getComponentByName("SubscriptionDiagnosticsArray");
+                assert(subscriptionDiagnosticsArrayNode.nodeClass === NodeClass.Variable);
+                bindExtObjArrayNode(subscriptionDiagnosticsArrayNode, "SubscriptionDiagnosticsType", "subscriptionId");
+                makeNotReadableIfEnabledFlagIsFalse(subscriptionDiagnosticsArrayNode);
+                const sessionsDiagnosticsSummary = serverDiagnosticsNode.getComponentByName("SessionsDiagnosticsSummary");
+                if (!sessionsDiagnosticsSummary) {
+                    return;
+                }
+                const sessionDiagnosticsArray = sessionsDiagnosticsSummary.getComponentByName("SessionDiagnosticsArray");
+                assert(sessionDiagnosticsArray.nodeClass === NodeClass.Variable);
+                bindExtObjArrayNode(sessionDiagnosticsArray, "SessionDiagnosticsVariableType", "sessionId");
+                const varType = addressSpace.findVariableType("SessionSecurityDiagnosticsType");
+                if (!varType) {
+                    // c8 ignore next
+                    doDebug && debugLog("Warning cannot find SessionSecurityDiagnosticsType variable Type");
+                }
+                else {
+                    const sessionSecurityDiagnosticsArray = sessionsDiagnosticsSummary.getComponentByName("SessionSecurityDiagnosticsArray");
+                    assert(sessionSecurityDiagnosticsArray.nodeClass === NodeClass.Variable);
+                    bindExtObjArrayNode(sessionSecurityDiagnosticsArray, "SessionSecurityDiagnosticsType", "sessionId");
+                    ensureObjectIsSecure(sessionSecurityDiagnosticsArray);
+                }
+            };
+            prepareServerDiagnostics();
+            this._internalState = "initialized";
+            this.setServerState(ServerState.Running);
+            setImmediate(() => callback());
+        }, (err) => {
+            errorLog(err.message);
+            callback(err);
+        });
+    }
+    async browseWithAutomaticExpansion(nodesToBrowse, context) {
+        // do expansion first
+        for (const browseDescription of nodesToBrowse) {
+            const nodeId = resolveNodeId(browseDescription.nodeId);
+            const node = this.addressSpace?.findNode(nodeId);
+            if (node) {
+                if (node.onFirstBrowseAction) {
+                    try {
+                        await node.onFirstBrowseAction();
+                        node.onFirstBrowseAction = undefined;
+                    }
+                    catch (err) {
+                        if (types.isNativeError(err)) {
+                            errorLog("onFirstBrowseAction method has failed", err.message);
+                        }
+                        errorLog(err);
+                    }
+                    assert(node.onFirstBrowseAction === undefined, "expansion can only be made once");
+                }
+            }
+        }
+        return await this.browse(context, nodesToBrowse);
+    }
+    async browse(context, nodesToBrowse) {
+        if (!this.addressSpaceAccessor) {
+            throw new Error("addressSpaceAccessor is not available");
+        }
+        return this.addressSpaceAccessor.browse(context, nodesToBrowse);
+    }
+    async read(context, readRequest) {
+        return this.readSync(context, readRequest);
+    }
+    /** read, without a promise: see AddressSpaceAccessor#readSync */
+    readSync(context, readRequest) {
+        if (!this.addressSpaceAccessor) {
+            throw new Error("addressSpaceAccessor is not available");
+        }
+        return this.addressSpaceAccessor.readSync(context, readRequest);
+    }
+    async write(context, nodesToWrite) {
+        if (!this.addressSpaceAccessor) {
+            throw new Error("addressSpaceAccessor is not available");
+        }
+        return await this.addressSpaceAccessor.write(context, nodesToWrite);
+    }
+    async call(context, methodsToCall) {
+        if (!this.addressSpaceAccessor) {
+            throw new Error("addressSpaceAccessor is not available");
+        }
+        return await this.addressSpaceAccessor.call(context, methodsToCall);
+    }
+    async historyRead(context, historyReadRequest) {
+        if (!this.addressSpaceAccessor) {
+            throw new Error("addressSpaceAccessor is not available");
+        }
+        return this.addressSpaceAccessor.historyRead(context, historyReadRequest);
+    }
+    /**
+     * whether one more Session fits (OPC 10000-4 5.6.2): when the server is full, the oldest Session
+     * not activated yet is closed to make room, and a Session is refused only if none is
+     */
+    async admitSession() {
+        if (this.currentSessionCount >= this.serverCapabilities.maxSessions) {
+            const oldest = this.getOldestInactiveSession();
+            if (oldest) {
+                await this.closeSession(oldest.authenticationToken, false, "Forcing");
+            }
+        }
+        return this.currentSessionCount < this.serverCapabilities.maxSessions;
+    }
+    getOldestInactiveSession() {
+        // search screwed or closed session first
+        let tmp = Object.values(this._sessions).filter((session1) => session1.status === "screwed" || session1.status === "disposed" || session1.status === "closed");
+        if (tmp.length === 0) {
+            // if none available, tap into the session that are not yet activated
+            tmp = Object.values(this._sessions).filter((session1) => session1.status === "new");
+        }
+        if (tmp.length === 0)
+            return null;
+        let session = tmp[0];
+        for (let i = 1; i < tmp.length; i++) {
+            const c = tmp[i];
+            if (session.creationDate.getTime() > c.creationDate.getTime()) {
+                session = c;
+            }
+        }
+        return session;
+    }
+    /**
+     * create a new server session object.
+     */
+    createSession(options) {
+        // A CreateSession already in flight can land after shutdown() has disposed the
+        // address space. Everything downstream assumes it is still there, so the failure
+        // surfaced far from here as `Cannot read properties of null (reading
+        // 'findDataType')` inside UAVariableImpl - thrown from a promise nobody awaited,
+        // which took the process with it rather than failing one request.
+        //
+        // Keyed on _internalState, which shutdown() sets before it does anything else.
+        //
+        // Not on addressSpace being null: that is legitimately null before initialize(),
+        // and refusing there breaks every caller that builds an engine and creates a
+        // session on it - 51 tests, including the one asserting sessions are disposed on
+        // shutdown.
+        //
+        // Nor on ServerState.Shutdown, which looks right and is not: setServerState
+        // writes through `this.addressSpace?.rootFolder?...setValueFromSource(...)`, so
+        // once the address space is disposed the write silently does nothing and the
+        // state never reaches Shutdown. Guarding on it let the crash straight through.
+        if (this._internalState === "shutdown" || this._internalState === "disposed") {
+            const err = new Error("createSession: the server is shutting down");
+            err.statusCode = StatusCodes.BadServerHalted;
+            throw err;
+        }
+        options = options || {};
+        options.server = options.server || {};
+        /* c8 ignore next */
+        doDebug && debugLog("createSession : increasing serverDiagnosticsSummary cumulatedSessionCount/currentSessionCount ");
+        this.serverDiagnosticsSummary.cumulatedSessionCount += 1;
+        this.serverDiagnosticsSummary.currentSessionCount += 1;
+        this.clientDescription = options.clientDescription || new ApplicationDescription({});
+        const sessionTimeout = options.sessionTimeout || 1000;
+        assert(typeof sessionTimeout === "number");
+        // Hand the session the IServerBase itself. Reducing it to
+        // `options.server.userManager` severed roleResolvers,
+        // rolePolicyOverride and unresolvedPermissionPolicy from every real
+        // session's SessionContext (see ServerSession's constructor).
+        const session = new ServerSession(this, options.server, sessionTimeout);
+        if (options.ids) {
+            session.nodeId = options.ids.nodeId;
+            session.authenticationToken = options.ids.authenticationToken;
+        }
+        /* c8 ignore next */
+        doDebug && debugLog("createSession :sessionTimeout = ", session.sessionTimeout);
+        const key = session.authenticationToken.toString();
+        this._sessions[key] = session;
+        const tokenKey = sessionTokenKey(session.authenticationToken);
+        if (tokenKey !== null) {
+            this._sessionsByToken.set(tokenKey, session);
+        }
+        // see spec OPC Unified Architecture,  Part 2 page 26 Release 1.02
+        // TODO : When a Session is created, the Server adds an entry for the Client
+        //        in its SessionDiagnosticsArray Variable
+        session.on("new_subscription", (_subscription) => {
+            this.serverDiagnosticsSummary.cumulatedSubscriptionCount += 1;
+            // add the subscription diagnostics in our subscriptions diagnostics array
+            // note currentSubscriptionCount is handled directly with a special getter
+        });
+        session.on("subscription_terminated", (_subscription) => {
+            // remove the subscription diagnostics in our subscriptions diagnostics array
+            // note currentSubscriptionCount is handled directly with a special getter
+        });
+        // OPC Unified Architecture, Part 4 23 Release 1.03
+        // Sessions are terminated by the Server automatically if the Client fails to issue a Service request on the
+        // Session within the timeout period negotiated by the Server in the CreateSession Service response.
+        // This protects the Server against Client failures and against situations where a failed underlying
+        // connection cannot be re-established. Clients shall be prepared to submit requests in a timely manner
+        // prevent the Session from closing automatically. Clients may explicitly terminate sessions using the
+        // CloseSession Service.
+        session.on("timeout", () => {
+            // the session hasn't been active for a while , probably because the client has disconnected abruptly
+            // it is now time to close the session completely
+            session.sessionName = session.sessionName || "";
+            const channel = session.channel;
+            errorLog(chalk.cyan("Server: closing SESSION "), session.status, chalk.yellow(session.sessionName), chalk.yellow(session.nodeId.toString()), chalk.cyan(" because of timeout = "), session.sessionTimeout, chalk.cyan(" has expired without a keep alive"), chalk.bgCyan("channel = "), channel?.remoteAddress, " port = ", channel?.remotePort);
+            // If a Server terminates a Session for any other reason, Subscriptions  associated with the Session,
+            // are not deleted. => deleteSubscription= false
+            void this.closeSession(session.authenticationToken, /*deleteSubscription=*/ false, /* reason =*/ "Timeout");
+            this.incrementSessionTimeoutCount();
+        });
+        return session;
+    }
+    /**
+     * @param authenticationToken
+     * @param deleteSubscriptions {Boolean} : true if session's subscription shall be deleted
+     * @param {String} [reason = "CloseSession"] the reason for closing the session (
+     *                 shall be "Timeout", "Terminated" or "CloseSession")
+     * @param [auditEntryId] the RequestHeader.auditEntryId of the CloseSession request that caused
+     *        this close, when there is one. See ServerSession#close.
+     *
+     *
+     * what the specs say:
+     * -------------------
+     *
+     * If a Client invokes the CloseSession Service then all Subscriptions associated with the Session are also deleted
+     * if the deleteSubscriptions flag is set to TRUE. If a Server terminates a Session for any other reason,
+     * Subscriptions associated with the Session, are not deleted. Each Subscription has its own lifetime to protect
+     * against data loss in the case of a Session termination. In these cases, the Subscription can be reassigned to
+     * another Client before its lifetime expires.
+     */
+    closeSession(authenticationToken, deleteSubscriptions, reason, auditEntryId) {
+        reason = reason || "CloseSession";
+        assert(typeof reason === "string");
+        assert(reason === "Timeout" || reason === "Terminated" || reason === "CloseSession" || reason === "Forcing");
+        /* c8 ignore next */
+        doDebug && debugLog("ServerEngine.closeSession ", authenticationToken.toString(), deleteSubscriptions);
+        const session = this.getSession(authenticationToken);
+        /* c8 ignore next */
+        if (!session) {
+            throw new Error(`cannot find session with this authenticationToken ${authenticationToken.toString()}`);
+        }
+        if (!deleteSubscriptions) {
+            // Live Subscriptions will not be deleted, but transferred to the orphanPublishEngine
+            // until they time out or until a other session transfer them back to it.
+            if (!this._orphanPublishEngine) {
+                this._orphanPublishEngine = new ServerSidePublishEngineForOrphanSubscription({ maxPublishRequestInQueue: 0 });
+            }
+            // c8 ignore next
+            doDebug && debugLog("transferring remaining live subscription to orphanPublishEngine !");
+            ServerSidePublishEngine.transferSubscriptionsToOrphan(session.publishEngine, this._orphanPublishEngine);
+        }
+        const shutdownTasksDone = session.close(deleteSubscriptions, reason, auditEntryId);
+        assert(session.status === "closed");
+        // c8 ignore next
+        doDebug && debugLog(" engine.serverDiagnosticsSummary.currentSessionCount -= 1;");
+        this.serverDiagnosticsSummary.currentSessionCount -= 1;
+        // xx //TODO make sure _closedSessions gets cleaned at some point
+        // xx self._closedSessions[key] = session;
+        // remove sessionDiagnostics from server.ServerDiagnostics.SessionsDiagnosticsSummary.SessionDiagnosticsSummary
+        delete this._sessions[authenticationToken.toString()];
+        const tokenKey = sessionTokenKey(authenticationToken);
+        if (tokenKey !== null) {
+            this._sessionsByToken.delete(tokenKey);
+        }
+        session.dispose();
+        return shutdownTasksDone;
+    }
+    findSubscription(subscriptionId) {
+        const subscriptions = [];
+        Object.values(this._sessions).forEach((session) => {
+            if (subscriptions.length) {
+                return;
+            }
+            const subscription = session.publishEngine.getSubscriptionById(subscriptionId);
+            if (subscription) {
+                subscriptions.push(subscription);
+            }
+        });
+        if (subscriptions.length) {
+            assert(subscriptions.length === 1);
+            return subscriptions[0];
+        }
+        return this.findOrphanSubscription(subscriptionId);
+    }
+    findOrphanSubscription(subscriptionId) {
+        if (!this._orphanPublishEngine) {
+            return null;
+        }
+        return this._orphanPublishEngine.getSubscriptionById(subscriptionId);
+    }
+    /**
+     * OPC 10000-4: a Session may delete an orphaned Subscription only when it acts for the user that
+     * owns it, the same ownership rule TransferSubscriptions applies. The identity kept on the
+     * Subscription at the moment of orphaning answers this; when it cannot be established we fail
+     * closed (return false).
+     */
+    mayDeleteOrphanSubscription(session, subscription) {
+        return sessionsCompatibleForTransfer(ownerIdentityOf(subscription), session, {
+            allowAnonymousTransferOnUnsecuredChannel: this.allowAnonymousSubscriptionTransferOnUnsecuredChannel
+        });
+    }
+    deleteOrphanSubscription(subscription) {
+        if (!this._orphanPublishEngine) {
+            return StatusCodes.BadInternalError;
+        }
+        assert(this.findSubscription(subscription.id));
+        const c = this._orphanPublishEngine.subscriptionCount;
+        subscription.terminate();
+        subscription.dispose();
+        assert(this._orphanPublishEngine.subscriptionCount === c - 1);
+        return StatusCodes.Good;
+    }
+    /**
+     * @param session           {ServerSession}  - the new session that will own the subscription
+     * @param subscriptionId    {IntegerId}      - the subscription Id to transfer
+     * @param sendInitialValues {Boolean}        - true if initial values will be resent.
+     * @return                  {TransferResult}
+     */
+    async transferSubscription(session, subscriptionId, sendInitialValues) {
+        if (subscriptionId <= 0) {
+            return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
+        }
+        const subscription = this.findSubscription(subscriptionId);
+        if (!subscription) {
+            return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
+        }
+        return transferSubscriptionToSession(subscription, session, sendInitialValues, {
+            allowAnonymousTransferOnUnsecuredChannel: this.allowAnonymousSubscriptionTransferOnUnsecuredChannel
+        });
+    }
+    /**
+     * retrieve a session by its authenticationToken.
+     *
+     * @param authenticationToken
+     * @param activeOnly
+     * @return {ServerSession}
+     */
+    /** A snapshot of all sessions currently tracked by the engine (active and pending). */
+    getSessions() {
+        return Object.values(this._sessions);
+    }
+    getSession(authenticationToken, activeOnly) {
+        if (!authenticationToken ||
+            (authenticationToken.identifierType && authenticationToken.identifierType !== NodeIdType.BYTESTRING)) {
+            return null; // wrong type !
+        }
+        // every request of a session comes through here: the session is found from the bytes
+        // of the token, without formatting the NodeId as a string. A token that is not found
+        // this way takes the long road below.
+        const tokenKey = sessionTokenKey(authenticationToken);
+        if (tokenKey !== null) {
+            const activeSession = this._sessionsByToken.get(tokenKey);
+            if (activeSession) {
+                return activeSession;
+            }
+        }
+        const key = authenticationToken.toString();
+        let session = this._sessions[key];
+        if (!activeOnly && !session) {
+            session = this._closedSessions[key];
+        }
+        return session;
+    }
+    async translateBrowsePaths(browsePaths, context) {
+        const browsePathResults = [];
+        for (const browsePath of browsePaths) {
+            const result = await this.translateBrowsePath(browsePath, context);
+            browsePathResults.push(result);
+        }
+        return browsePathResults;
+    }
+    async translateBrowsePath(browsePath, context) {
+        if (!this.addressSpace) {
+            throw new Error("addressSpace is not available");
+        }
+        const result = this.addressSpace.browsePath(browsePath, context);
+        const backend = this.addressSpaceAccessor?.compactBackend;
+        if (backend && result.statusCode.equals(StatusCodes.BadNoMatch)) {
+            // a path that leads into a compact namespace is followed there, from the same start
+            const inCompact = await backend.translate(browsePath, context);
+            if (inCompact) {
+                return inCompact;
+            }
+        }
+        return result;
+    }
+    /**
+     * where the nodes to monitor are found: the node objects, and the compact address space for
+     * the namespaces it serves
+     */
+    get nodeFinder() {
+        const addressSpace = this.addressSpace;
+        if (!addressSpace) {
+            throw new Error("nodeFinder: the engine is not initialized");
+        }
+        const backend = this.addressSpaceAccessor?.compactBackend;
+        if (!backend) {
+            return addressSpace;
+        }
+        return {
+            findNode: (nodeId) => {
+                const resolved = resolveNodeId(nodeId);
+                if (!backend.namespaces.has(resolved.namespace)) {
+                    return addressSpace.findNode(resolved);
+                }
+                // a backend that does not serve monitored items answers no node: BadNodeIdUnknown
+                return backend.findNode ? backend.findNode(resolved) : null;
+            }
+        };
+    }
+    /**
+     * a namespace of the application served by the compact address space: registered on the
+     * node objects as well, so that the NamespaceArray and the indexes are one; nodes are then
+     * added through the compact space's own API (addVariable, addObject, bindings)
+     */
+    registerCompactNamespace(namespaceUri) {
+        if (!this.addressSpace || !this.compactAddressSpace || !this.addressSpaceAccessor) {
+            throw new Error("registerCompactNamespace: the engine was not initialized with compactAddressSpace");
+        }
+        const namespace = this.addressSpace.registerNamespace(namespaceUri);
+        const index = namespace.index;
+        const compact = this.compactAddressSpace;
+        // the compact space's table follows the node objects' table, index for index
+        const uris = this.addressSpace.getNamespaceArray().map((n) => n.namespaceUri);
+        compact.namespaceUris.length = 0;
+        compact.namespaceUris.push(...uris);
+        const accessor = this.addressSpaceAccessor;
+        const namespaces = new Set(accessor.compact?.namespaces ?? []);
+        if (!namespaces.has(index)) {
+            // the defaults the application sets on the namespace (setDefaultRolePermissions,
+            // setDefaultAccessRestrictions) are the ones the compact space enforces, now and
+            // each time they change
+            const copyDefaults = () => {
+                const rolePermissions = namespace.getDefaultRolePermissions();
+                const accessRestrictions = namespace.getDefaultAccessRestrictions();
+                compact.permissions.setNamespaceDefaults(index, rolePermissions || accessRestrictions
+                    ? {
+                        accessRestrictions,
+                        rolePermissions: rolePermissions
+                            ? rolePermissions.map((r) => ({ roleId: r.roleId, permissions: r.permissions }))
+                            : null
+                    }
+                    : null);
+            };
+            copyDefaults();
+            namespace.onDefaultPermissionsChanged?.(copyDefaults);
+        }
+        namespaces.add(index);
+        accessor.compact = { space: compact, namespaces };
+        return index;
+    }
+    /**
+     *
+     * performs a call to ```asyncRefresh``` on all variable nodes that provide an async refresh func.
+     *
+     * @param nodesToRefresh {Array<ReadValueId|HistoryReadValueId>}  an array containing the node to consider
+     * Each element of the array shall be of the form { nodeId: <xxx>, attributeIds: <value> }.
+     * @param maxAge {number}  the maximum age of the value to be read, in milliseconds.
+     * @param callback
+     *
+     */
+    /**
+     * what a Read needs before its values are read: the asynchronous Variables refreshed (a front
+     * thread's engine fetches there what it cannot read in place, see RemoteEngine)
+     */
+    prepareRead(context, readRequest, callback) {
+        const nodesToRead = (readRequest.nodesToRead ?? []);
+        const maxAge = readRequest.maxAge ?? 0;
+        this.refreshValues(nodesToRead, maxAge, (err) => {
+            callback(err ?? null);
+        }, context);
+    }
+    /**
+     * before the items of a CreateMonitoredItems are created: what must be fetched to find their
+     * nodes synchronously. Nothing here, where every node is (a session worker fetches them).
+     */
+    prepareMonitoredItems(_context, _itemsToCreate) {
+        return undefined;
+    }
+    /**
+     * once the items of a CreateMonitoredItems (or a SetMonitoringMode, a ModifyMonitoredItems) are made: what
+     * they must wait for before the client hears of them. Nothing here, where items sample this engine's nodes
+     * directly (a session worker waits for its engine to watch them).
+     */
+    monitoredItemsReady() {
+        return undefined;
+    }
+    refreshValues(nodesToRefresh, maxAge, 
+    /**
+     * @param err
+     * @param dataValues an array containing value read
+     * The array length matches the number of  nodeIds that are candidate for an
+     * async refresh (i.e: nodes that are of type Variable with asyncRefresh func }
+     */
+    callback, 
+    /** the session context of the read: given to the refresh function of each Variable */
+    context) {
+        // this runs on every Read, and most Reads touch no Variable with a refresh func: the
+        // candidates are collected by identity (findNode returns one node per NodeId), without
+        // building a NodeId string per node, and the reference clock is only taken when needed.
+        const uaVariables = new Set();
+        for (const nodeToRefresh of nodesToRefresh) {
+            // only consider node  for which the caller wants to read the Value attribute
+            // assuming that Value is requested if attributeId is missing,
+            if (nodeToRefresh instanceof ReadValueId && nodeToRefresh.attributeId !== AttributeIds.Value) {
+                continue;
+            }
+            // ... and that are valid object and instances of Variables ...
+            const uaNode = this.addressSpace?.findNode(nodeToRefresh.nodeId);
+            if (!uaNode || !(uaNode.nodeClass === NodeClass.Variable)) {
+                continue;
+            }
+            // ... and that have been declared as asynchronously updating
+            const { refreshFunc, _refreshFuncWrapsGetter } = uaNode;
+            if (typeof refreshFunc !== "function") {
+                continue;
+            }
+            // ... which a Variable bound with a plain `get` is not: its refresh function only
+            // calls the getter, and reading the Variable does that anyway
+            if (_refreshFuncWrapsGetter) {
+                continue;
+            }
+            uaVariables.add(uaNode);
+        }
+        if (uaVariables.size === 0) {
+            // nothing to do
+            callback(null, []);
+            return;
+        }
+        const uaVariableArray = [...uaVariables];
+        const referenceTime = getCurrentClock();
+        maxAge && referenceTime.timestamp.setTime(referenceTime.timestamp.getTime() - maxAge);
+        // perform all asyncRefresh in parallel. A Variable bound with a synchronous getter is
+        // refreshed before asyncRefresh returns: when they all are, which is the common case,
+        // the callback is called before refreshValues returns, without a promise per Variable.
+        const dataValues = new Array(uaVariableArray.length);
+        let pending = uaVariableArray.length;
+        let failure = null;
+        let starting = true;
+        let finished = false;
+        const finishIfDone = () => {
+            // as Promise.all would: the first failure is reported without waiting for the rest
+            if (finished || starting || (pending > 0 && !failure)) {
+                return;
+            }
+            finished = true;
+            failure ? callback(failure) : callback(null, dataValues);
+        };
+        uaVariableArray.forEach((uaVariable, index) => {
+            let refreshed = false;
+            const onRefreshed = (err, dataValue) => {
+                if (refreshed) {
+                    return;
+                }
+                refreshed = true;
+                pending -= 1;
+                if (err) {
+                    failure = failure || err;
+                }
+                else if (!dataValue) {
+                    failure = failure || new Error("asyncRefresh completed without error but returned no dataValue");
+                }
+                else {
+                    dataValues[index] = dataValue; // check-proto-pollution: ok - index of the forEach
+                }
+                finishIfDone();
+            };
+            try {
+                uaVariable.asyncRefresh(referenceTime, onRefreshed, context);
+            }
+            catch (err) {
+                const _err = err;
+                errorLog("asyncRefresh internal error", _err.message);
+                onRefreshed(_err);
+            }
+        });
+        // the refreshes that completed while being started are reported from here, so that
+        // an exception thrown by the callback reaches our caller, not a Variable
+        starting = false;
+        finishIfDone();
+    }
+    _exposeSubscriptionDiagnostics(subscription) {
+        try {
+            // c8 ignore next
+            doDebug && debugLog("ServerEngine#_exposeSubscriptionDiagnostics", subscription.subscriptionId);
+            const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
+            const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+            assert(subscriptionDiagnostics.$subscription === subscription);
+            assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
+            if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
+                addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray, this.addressSpace?.getNamespace(this.#diagnosticsNamespaceIndex));
+            }
+        }
+        catch (err) {
+            errorLog("_exposeSubscriptionDiagnostics err", err);
+        }
+    }
+    _unexposeSubscriptionDiagnostics(subscription) {
+        const serverSubscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
+        const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+        assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
+        if (subscriptionDiagnostics && serverSubscriptionDiagnosticsArray) {
+            removeElement(serverSubscriptionDiagnosticsArray, (a) => a.subscriptionId === subscription.id);
+            /*assert(
+                !(subscriptionDiagnosticsArray as any)[subscription.id],
+                " subscription node must have been removed from subscriptionDiagnosticsArray"
+            );
+            */
+        }
+        // c8 ignore next
+        doDebug && debugLog("ServerEngine#_unexposeSubscriptionDiagnostics", subscription.subscriptionId);
+    }
+    /**
+     * create a new subscription
+     * @return {Subscription}
+     */
+    /** `id`: the id the subscription keeps, when it comes from another thread of the server */
+    _createSubscriptionOnSession(session, request, id) {
+        assert(Object.hasOwn(request, "requestedPublishingInterval")); // Duration
+        assert(Object.hasOwn(request, "requestedLifetimeCount")); // Counter
+        assert(Object.hasOwn(request, "requestedMaxKeepAliveCount")); // Counter
+        assert(Object.hasOwn(request, "maxNotificationsPerPublish")); // Counter
+        assert(Object.hasOwn(request, "publishingEnabled")); // Boolean
+        assert(Object.hasOwn(request, "priority")); // Byte
+        // adjust publishing parameters
+        const publishingInterval = request.requestedPublishingInterval || 0;
+        const maxKeepAliveCount = request.requestedMaxKeepAliveCount || 0;
+        const lifeTimeCount = request.requestedLifetimeCount || 0;
+        const subscription = new Subscription({
+            id: id ?? _get_next_subscriptionId(),
+            lifeTimeCount,
+            maxKeepAliveCount,
+            maxNotificationsPerPublish: request.maxNotificationsPerPublish,
+            priority: request.priority || 0,
+            publishEngine: session.publishEngine, //
+            publishingEnabled: request.publishingEnabled,
+            publishingInterval,
+            // -------------------
+            sessionId: NodeId.nullNodeId,
+            globalCounter: this._globalCounter,
+            serverCapabilities: this.serverCapabilities // shared
+        });
+        // add subscriptionDiagnostics
+        this._exposeSubscriptionDiagnostics(subscription);
+        assert(subscription.publishEngine === session.publishEngine);
+        session.publishEngine.add_subscription(subscription);
+        const engine = this;
+        subscription.once("terminated", function () {
+            engine._unexposeSubscriptionDiagnostics(this);
+        });
+        return subscription;
+    }
+    /**
+     */
+    __internal_bindMethod(nodeId, func) {
+        assert(typeof func === "function");
+        assert(nodeId instanceof NodeId);
+        const methodNode = this.addressSpace?.findNode(nodeId);
+        if (!methodNode) {
+            return;
+        }
+        if (methodNode?.bindMethod) {
+            methodNode.bindMethod(func);
+        }
+        else {
+            /* c8 ignore next */
+            warningLog(chalk.yellow("WARNING:  cannot bind a method with id ") +
+                chalk.cyan(nodeId.toString()) +
+                chalk.yellow(". please check your nodeset.xml file or add this node programmatically"));
+            warningLog(traceFromThisProjectOnly());
+        }
+    }
+    _getServerSubscriptionDiagnosticsArrayNode() {
+        // c8 ignore next
+        if (!this.addressSpace) {
+            doDebug && debugLog("ServerEngine#_getServerSubscriptionDiagnosticsArray : no addressSpace");
+            return null; // no addressSpace
+        }
+        const subscriptionDiagnosticsType = this.addressSpace.findVariableType("SubscriptionDiagnosticsType");
+        if (!subscriptionDiagnosticsType) {
+            doDebug && debugLog(`ServerEngine#_getServerSubscriptionDiagnosticsArray : cannot find SubscriptionDiagnosticsType`);
+        }
+        // SubscriptionDiagnosticsArray = i=2290
+        const subscriptionDiagnosticsArrayNode = this.addressSpace.findNode(makeNodeId(VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray));
+        return subscriptionDiagnosticsArrayNode;
+    }
+}
+//# sourceMappingURL=server_engine.js.map

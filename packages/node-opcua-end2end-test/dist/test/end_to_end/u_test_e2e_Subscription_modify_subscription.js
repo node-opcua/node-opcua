@@ -1,0 +1,53 @@
+import { OPCUAClient } from "node-opcua";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+const _debugLog = make_debugLog("TEST");
+const _doDebug = checkDebugFlag("TEST");
+async function pause(delay) {
+    await new Promise((resolve) => setTimeout(resolve, delay));
+}
+export function t(test) {
+    const _options = {};
+    describe("ClientSubscription#modify", function () {
+        it("should modify subscription parameters", async () => {
+            const client = OPCUAClient.create({});
+            const parameters = {
+                priority: 1,
+                publishingEnabled: true,
+                requestedLifetimeCount: 1000,
+                requestedMaxKeepAliveCount: 10,
+                requestedPublishingInterval: 500
+            };
+            const endpointUrl = test.endpointUrl;
+            await client.withSubscriptionAsync(endpointUrl, parameters, async (_session, subscription) => {
+                const PENDING_SUBSCRIPTION_ID = 0xc0cac01a;
+                const _TERMINATED_SUBSCRIPTION_ID = 0xc0cac01b;
+                const _TERMINATING_SUBSCRIPTION_ID = 0xc0cac01c;
+                subscription.subscriptionId.should.not.eql(PENDING_SUBSCRIPTION_ID);
+                subscription.publishingInterval.should.eql(500);
+                subscription.maxKeepAliveCount.should.eql(10);
+                subscription.lifetimeCount.should.eql(1000);
+                await pause(100);
+                const res1 = await subscription.modify({
+                    requestedPublishingInterval: 550
+                });
+                res1.revisedLifetimeCount.should.eql(1000);
+                res1.revisedPublishingInterval.should.eql(550);
+                res1.revisedMaxKeepAliveCount.should.eql(10);
+                const res2 = await subscription.modify({
+                    requestedMaxKeepAliveCount: 25
+                });
+                res2.revisedLifetimeCount.should.eql(1000);
+                res2.revisedPublishingInterval.should.eql(550);
+                res2.revisedMaxKeepAliveCount.should.eql(25);
+                const res3 = await subscription.modify({
+                    requestedLifetimeCount: 1010
+                });
+                res3.revisedLifetimeCount.should.eql(1010);
+                res3.revisedPublishingInterval.should.eql(550);
+                res3.revisedMaxKeepAliveCount.should.eql(25);
+            });
+        });
+    });
+}
+//# sourceMappingURL=u_test_e2e_Subscription_modify_subscription.js.map

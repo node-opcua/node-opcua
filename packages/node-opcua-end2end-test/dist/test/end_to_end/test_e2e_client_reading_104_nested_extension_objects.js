@@ -1,0 +1,56 @@
+import fs from "node:fs";
+import os from "node:os";
+import "should";
+import { AttributeIds, nodesets, OPCUAClient, OPCUAServer } from "node-opcua";
+const port = 4893;
+const nodeId = "ns=3;i=6009";
+async function startServer() {
+    const nodeset = testFixture("nodeset-with-nested_datastructure-1.04.NodeSet.xml");
+    fs.existsSync(nodeset).should.eql(true);
+    const server = new OPCUAServer({
+        port,
+        disableDiscovery: true,
+        nodeset_filename: [nodesets.standard, nodeset]
+    });
+    await server.initialize();
+    const addressSpace = server.engine.addressSpace;
+    const va1 = addressSpace.findNode(nodeId);
+    va1.bindExtensionObject();
+    await server.start();
+    return server;
+}
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { testFixture } from "../../test_helpers/paths.js";
+describe("testing github issue", () => {
+    let server;
+    before(async () => {
+        server = await startServer();
+    });
+    after(async () => {
+        server && (await server.shutdown());
+    });
+    it("should be possible ", async () => {
+        const endpointUrl = `opc.tcp://${os.hostname()}:${port}`;
+        const client = OPCUAClient.create({ endpointMustExist: false });
+        const dataValue = await client.withSessionAsync(endpointUrl, async (session) => {
+            const dataValue = await session.read({
+                nodeId,
+                attributeId: AttributeIds.Value
+            });
+            return dataValue;
+        });
+        console.log("dataValue", dataValue.toString());
+        dataValue.value.value.field1_1.should.eql(0);
+        dataValue.value.value.toJSON().should.eql({
+            field1_1: 0,
+            field1_2: {
+                field2_1: false,
+                field2_2: false
+            },
+            field1_3: {
+                field3_1: false
+            }
+        });
+    });
+});
+//# sourceMappingURL=test_e2e_client_reading_104_nested_extension_objects.js.map

@@ -1,0 +1,31 @@
+import os from "node:os";
+import "should";
+import { makeApplicationUrn, OPCUAClient } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+/**
+ * Bug #596 - ClientSession#getNamespaceIndex
+ *
+ * Verifies that a session can resolve namespace indexes from their URI strings on the client side
+ * using `session.getNamespaceIndex`, and that the namespace array contains the expected application
+ * URN for the server (constructed with `makeApplicationUrn`).
+ *
+ */
+export function t(test) {
+    describe("Bug #596 - ClientSession#getNamespaceIndex", () => {
+        it("retrieves namespace index from URI on client side", async () => {
+            const client = OPCUAClient.create({});
+            const endpointUrl = test.endpointUrl;
+            const hostname = os.hostname();
+            const namespaceArray = await client.withSessionAsync(endpointUrl, async (session) => {
+                session.getNamespaceIndex("http://opcfoundation.org/UA/").should.eql(0);
+                session.getNamespaceIndex("urn://node-opcua-simulator").should.eql(2);
+                // Debug trace (disabled by default)
+                // console.log("hostname =", hostname);
+                // console.log("namespaceArray (cached) =", (session as any).$$namespaceArray);
+                return await session.readNamespaceArray();
+            });
+            namespaceArray[1].should.match(new RegExp(makeApplicationUrn(hostname, "NodeOPCUA-Server")));
+        });
+    });
+}
+//# sourceMappingURL=u_test_e2e_issue_596.js.map

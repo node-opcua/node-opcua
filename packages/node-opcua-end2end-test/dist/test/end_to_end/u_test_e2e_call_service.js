@@ -1,0 +1,372 @@
+import { AttributeIds, ClientMonitoredItem, coerceNodeId, DataType, MethodIds, OPCUAClient, resolveNodeId, StatusCodes, Variant, VariantArrayType } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+import { assertThrow } from "../../test_helpers/assert_throw.js";
+import { perform_operation_on_client_session, perform_operation_on_subscription } from "../../test_helpers/perform_operation_on_client_session.js";
+export function t(test) {
+    describe("testing CALL SERVICE on a fake server exposing the temperature device", () => {
+        let client;
+        let endpointUrl;
+        beforeEach(() => {
+            client = OPCUAClient.create({
+                requestedSessionTimeout: 600 * 1000 // use long session time out
+            });
+            endpointUrl = test.endpointUrl;
+        });
+        afterEach(() => { });
+        it("Q1 should retrieve the inputArgument of a method using a OPCUA transaction getArgumentDefinition", async () => {
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const _objectId = coerceNodeId("ns=0;i=2253"); // server
+                const methodId = coerceNodeId("ns=0;i=11492"); // GetMonitoredItem
+                const args = await session.getArgumentDefinition(methodId);
+                const { inputArguments, outputArguments } = args;
+                inputArguments.length.should.equal(1);
+                should(inputArguments[0].name).equal("SubscriptionId");
+                inputArguments[0].dataType.toString().should.equal("ns=0;i=7");
+                outputArguments.length.should.equal(2);
+                should(outputArguments[0].name).equal("ServerHandles");
+                outputArguments[0].dataType.toString().should.equal("ns=0;i=7");
+                should(outputArguments[1].name).equal("ClientHandles");
+                outputArguments[1].dataType.toString().should.equal("ns=0;i=7");
+            });
+        });
+        it("Q2 should return BadNothingToDo when CallRequest has no method to call", async () => {
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                await assertThrow(async () => {
+                    await session.call([]);
+                }, /BadNothingToDo/);
+            });
+        });
+        it("Q3-0 should reports inputArgumentResults GOOD when CallRequest input is good", async () => {
+            const invalidSubscriptionID = 1;
+            const methodsToCall = [];
+            methodsToCall.push({
+                objectId: coerceNodeId("ns=0;i=2253"), // SERVER
+                methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
+                inputArguments: [{ dataType: DataType.UInt32, arrayType: VariantArrayType.Scalar, value: invalidSubscriptionID }] //OK
+            });
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const results = await session.call(methodsToCall);
+                should(results[0].inputArgumentResults?.length).eql(1);
+                should(results[0].inputArgumentResults?.[0]).eql(StatusCodes.Good);
+                results[0].statusCode.should.eql(StatusCodes.BadSubscriptionIdInvalid);
+                should(results[0].outputArguments?.length).eql(0);
+            });
+        });
+        it("Q3-2b should reports inputArgumentResults GOOD when CallRequest input is good", async () => {
+            await perform_operation_on_subscription(client, endpointUrl, async (session, subscription) => {
+                const methodsToCall = [];
+                methodsToCall.push({
+                    objectId: coerceNodeId("ns=0;i=2253"), // SERVER
+                    methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
+                    inputArguments: [
+                        { dataType: DataType.UInt32, arrayType: VariantArrayType.Scalar, value: subscription.subscriptionId }
+                    ] //OK
+                });
+                const results = await session.call(methodsToCall);
+                should(results[0].inputArgumentResults?.length).eql(1);
+                should(results[0].inputArgumentResults?.[0]).eql(StatusCodes.Good);
+                results[0].statusCode.should.eql(StatusCodes.Good);
+                should(results[0].outputArguments?.length).eql(2);
+                should(results[0].outputArguments?.[0]).be.instanceOf(Variant);
+                should(results[0].outputArguments?.[1]).be.instanceOf(Variant);
+            });
+        });
+        it("Q3-1 should return BadInvalidArgument /  BadTypeMismatch when CallRequest input argument has the wrong DataType", async () => {
+            const invalidSubscriptionID = 1;
+            const methodsToCall = [];
+            methodsToCall.push({
+                objectId: coerceNodeId("ns=0;i=2253"), // SERVER
+                methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
+                inputArguments: [
+                    {
+                        dataType: DataType.String,
+                        arrayType: VariantArrayType.Scalar,
+                        value: invalidSubscriptionID.toString()
+                    }
+                ]
+            });
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const results = await session.call(methodsToCall);
+                // OPC 10000-4 v1.05.07 §5.12.2 (CTT Method Call Err-004): BadInvalidArgument at the operation level,
+                // BadTypeMismatch on the argument
+                results[0].statusCode.should.eql(StatusCodes.BadInvalidArgument);
+                should(results[0].inputArgumentResults?.length).eql(1);
+                should(results[0].inputArgumentResults?.[0]).eql(StatusCodes.BadTypeMismatch);
+            });
+        });
+        it("Q3-2 should return BadInvalidArgument /  BadTypeMismatch when CallRequest input argument has the wrong ArrayType", async () => {
+            // note : this test causes ProsysOPC Demo server 2.2.0.94 to report a ServiceFault with a internal error
+            //        (this issue has been reported to Jouni)
+            const invalidSubscriptionID = 1;
+            const methodsToCall = [];
+            methodsToCall.push({
+                objectId: coerceNodeId("ns=0;i=2253"), // SERVER
+                methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
+                inputArguments: [{ dataType: DataType.UInt32, arrayType: VariantArrayType.Array, value: [invalidSubscriptionID] }] // << WRONG TYPE
+            });
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const results = await session.call(methodsToCall);
+                // OPC 10000-4 v1.05.07 §5.12.2 (CTT Method Call Err-004): BadInvalidArgument at the operation level,
+                // BadTypeMismatch on the argument
+                results[0].statusCode.should.eql(StatusCodes.BadInvalidArgument);
+                should(results[0].inputArgumentResults?.length).eql(1);
+                should(results[0].inputArgumentResults?.[0]).eql(StatusCodes.BadTypeMismatch);
+            });
+        });
+        it("Q3-4 should handle multiple calls", async () => {
+            const many_calls = 50;
+            const methodsToCall = [];
+            for (let i = 0; i < many_calls; i++) {
+                methodsToCall.push({
+                    objectId: coerceNodeId("ns=0;i=2253"), // SERVER
+                    methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
+                    inputArguments: [{ dataType: DataType.UInt32, value: 1 }]
+                });
+            }
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const results = await session.call(methodsToCall);
+                results.length.should.eql(many_calls);
+                results.forEach((result) => {
+                    should(result.inputArgumentResults?.length).eql(1);
+                    should(result.inputArgumentResults?.[0]).eql(StatusCodes.Good);
+                });
+            });
+        });
+        it("Q3-5 should return BadTooManyOperations when CallRequest has too many methods to call", async () => {
+            const too_many = 5000;
+            const methodsToCall = [];
+            for (let i = 0; i < too_many; i++) {
+                methodsToCall.push({
+                    objectId: coerceNodeId("ns=0;i=2253"), // SERVER
+                    methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
+                    inputArguments: [{ dataType: DataType.UInt32, value: 1 }]
+                });
+            }
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                await assertThrow(async () => {
+                    const _results = await session.call(methodsToCall);
+                }, /BadTooManyOperations/);
+            });
+        });
+        it("Q4 should succeed and return BadNodeIdInvalid when CallRequest try to address an node that is not an UAObject", async () => {
+            const methodsToCall = [
+                {
+                    objectId: resolveNodeId("Server_ServerStatus_CurrentTime"), //  a Variable doesn't have methods
+                    methodId: coerceNodeId("ns=0;i=11489"),
+                    inputArguments: [{ dataType: DataType.UInt32, value: [1] }]
+                }
+            ];
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const results = await session.call(methodsToCall);
+                results.length.should.eql(1);
+                results[0].statusCode.should.equalOneOf(StatusCodes.BadInvalidArgument, StatusCodes.BadNodeIdInvalid, StatusCodes.BadMethodInvalid);
+            });
+        });
+        it("Q5 should succeed and return BadNodeIdUnknown when CallRequest try to address an unknown object", async () => {
+            const methodsToCall = [
+                {
+                    objectId: coerceNodeId("ns=0;s=UnknownObject"),
+                    methodId: coerceNodeId("ns=0;s=UnknownMethod")
+                }
+            ];
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const results = await session.call(methodsToCall);
+                results.length.should.eql(1);
+                results[0].statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
+            });
+        });
+        it("Q6 should succeed and return BadMethodInvalid when CallRequest try to address an unknwon method on a valid object", async () => {
+            const methodsToCall = [
+                {
+                    objectId: coerceNodeId("ns=0;i=2253"), // SERVER
+                    methodId: coerceNodeId("ns=0;s=unknown_method")
+                    // methodId: coerceNodeId("ns=0;s=11489")
+                }
+            ];
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const results = await session.call(methodsToCall);
+                results.length.should.eql(1);
+                results[0].statusCode.should.equalOneOf(StatusCodes.BadNodeIdUnknown, StatusCodes.BadNodeIdInvalid, StatusCodes.BadMethodInvalid);
+            });
+        });
+        it("Q7 should succeed and return BadInvalidArgument when CallRequest has invalid arguments", async () => {
+            const methodsToCall = [
+                {
+                    objectId: coerceNodeId("ns=0;i=2253"), // SERVER
+                    methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
+                    inputArguments: [] // invalid => missing arg !
+                }
+            ];
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const results = await session.call(methodsToCall);
+                results.length.should.eql(1);
+                results[0].statusCode.should.equalOneOf(StatusCodes.BadInvalidArgument, StatusCodes.BadArgumentsMissing);
+            });
+        });
+        it("Q8 should succeed and return BadInvalidArgument / BadTypeMismatch when CallRequest is GetMonitoredItem and has the argument with a wrong dataType ", async () => {
+            const methodsToCall = [
+                {
+                    objectId: coerceNodeId("ns=0;i=2253"), // SERVER
+                    methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
+                    inputArguments: [
+                        { dataType: DataType.QualifiedName } // intentionally a wrong dataType here
+                    ]
+                }
+            ];
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const results = await session.call(methodsToCall);
+                results.length.should.eql(1);
+                results[0].statusCode.should.eql(StatusCodes.BadInvalidArgument);
+                should(results[0].inputArgumentResults).be.instanceOf(Array);
+                should(results[0].inputArgumentResults?.length).eql(1);
+                should(results[0].inputArgumentResults?.[0]).eql(StatusCodes.BadTypeMismatch);
+            });
+        });
+        it("Q9 should succeed and return BadSubscriptionId when CallRequest is GetMonitoredItem and has valid arguments but invalid subscriptionId ", async () => {
+            MethodIds.Server_GetMonitoredItems.should.eql(11492);
+            const subscriptionId = 100;
+            const methodsToCall = [
+                {
+                    objectId: coerceNodeId("ns=0;i=2253"), // SERVER
+                    methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
+                    inputArguments: [
+                        // subscriptionID( UInt32)
+                        { dataType: DataType.UInt32, value: subscriptionId }
+                    ]
+                }
+            ];
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const results = await session.call(methodsToCall);
+                results.length.should.eql(1);
+                results[0].statusCode.should.eql(StatusCodes.BadSubscriptionIdInvalid);
+            });
+        });
+        it("QA should succeed and return BadArgumentsMissing when CallRequest as a missing argument", async () => {
+            MethodIds.Server_GetMonitoredItems.should.eql(11492);
+            const _subscriptionId = 100;
+            const methodsToCall = [
+                {
+                    objectId: coerceNodeId("ns=0;i=2253"), // SERVER
+                    methodId: coerceNodeId("ns=0;i=11492"), // GetMonitoredItem
+                    inputArguments: []
+                }
+            ];
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const results = await session.call(methodsToCall);
+                results.length.should.eql(1);
+                results[0].statusCode.should.eql(StatusCodes.BadArgumentsMissing);
+            });
+        });
+        describe("GetMonitoredItems", () => {
+            it("T1 A client should be able to call the GetMonitoredItems standard OPCUA command, and return BadSubscriptionId if input args subscriptionId is invalid ", async () => {
+                await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                    const subscriptionId = 1000000; // invalid subscription ID
+                    await assertThrow(async () => {
+                        const _monitoredItems = await session.getMonitoredItems(subscriptionId);
+                    }, /BadSubscriptionId/);
+                });
+            });
+            it("T2 A client should be able to call the GetMonitoredItems standard OPCUA command, with a valid subscriptionId and no monitored Item", async () => {
+                await perform_operation_on_subscription(client, endpointUrl, async (session, subscription) => {
+                    const subscriptionId = subscription.subscriptionId;
+                    const result = await session.getMonitoredItems(subscriptionId);
+                    should(result.serverHandles).be.instanceOf(Uint32Array);
+                    should(result.clientHandles).be.instanceOf(Uint32Array);
+                    result.serverHandles.length.should.eql(0);
+                    result.clientHandles.length.should.eql(0);
+                });
+            });
+            it("T3 A client should be able to call the GetMonitoredItems standard OPCUA command, with a valid subscriptionId and one monitored Item", async () => {
+                await perform_operation_on_subscription(client, endpointUrl, async (session, subscription) => {
+                    const subscriptionId = subscription.subscriptionId;
+                    const monitoredItem = ClientMonitoredItem.create(subscription, { nodeId: resolveNodeId("ns=0;i=2258"), attributeId: AttributeIds.Value }, { samplingInterval: 10, discardOldest: true, queueSize: 1 });
+                    // subscription.on("item_added",function(monitoredItem){
+                    monitoredItem.on("initialized", () => {
+                        /** */
+                    });
+                    await new Promise((resolve) => {
+                        monitoredItem.once("changed", resolve);
+                    });
+                    const result = await session.getMonitoredItems(subscriptionId);
+                    should(result.serverHandles).be.instanceOf(Uint32Array);
+                    should(result.clientHandles).be.instanceOf(Uint32Array);
+                    result.serverHandles.length.should.eql(1);
+                    result.clientHandles.length.should.eql(1);
+                    //xx console.log("serverHandles = ",result.serverHandles);
+                    //xx console.log("clientHandles = ",result.clientHandles);
+                    // lets stop monitoring this item
+                    await monitoredItem.terminate();
+                });
+            });
+            it("T4 GetMonitoredItem must have the Executable attribute set", async () => {
+                await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                    const getMonitoredItemMethodId = "ns=0;i=11492";
+                    const nodesToRead = [
+                        {
+                            nodeId: getMonitoredItemMethodId,
+                            attributeId: AttributeIds.Executable
+                        },
+                        {
+                            nodeId: getMonitoredItemMethodId,
+                            attributeId: AttributeIds.UserExecutable
+                        }
+                    ];
+                    const dataValues = await session.read(nodesToRead);
+                    dataValues[0].statusCode.should.eql(StatusCodes.Good);
+                    dataValues[0].value.dataType.should.eql(DataType.Boolean);
+                    dataValues[0].value.value.should.eql(true);
+                    dataValues[1].statusCode.should.eql(StatusCodes.Good);
+                    dataValues[1].value.dataType.should.eql(DataType.Boolean);
+                    dataValues[1].value.value.should.eql(true);
+                });
+            });
+        });
+        it("should find the OutputArguments and InputArguments Properties with a translate browse path request (like UAExpert)", async () => {
+            // note : this is how UAExpert tries to figure out what are the input and output arguments definition
+            const getMonitoredItemMethodId = coerceNodeId("ns=0;i=11492");
+            const hasPropertyRefId = resolveNodeId("HasProperty");
+            /* NodeId  ns=0;i=46*/
+            const browsePaths = [
+                {
+                    startingNode: /* NodeId  */ getMonitoredItemMethodId,
+                    relativePath: /* RelativePath   */ {
+                        elements: /* RelativePathElement */ [
+                            {
+                                referenceTypeId: hasPropertyRefId,
+                                isInverse: false,
+                                includeSubtypes: false,
+                                targetName: { namespaceIndex: 0, name: "InputArguments" }
+                            }
+                        ]
+                    }
+                },
+                {
+                    startingNode: getMonitoredItemMethodId,
+                    relativePath: {
+                        elements: [
+                            {
+                                referenceTypeId: hasPropertyRefId,
+                                isInverse: false,
+                                includeSubtypes: false,
+                                targetName: { namespaceIndex: 0, name: "OutputArguments" }
+                            }
+                        ]
+                    }
+                }
+            ];
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const results = await session.translateBrowsePath(browsePaths);
+                //xx console.log(results[0].toString());
+                results[0].statusCode.should.eql(StatusCodes.Good);
+                should(results[0].targets?.length).eql(1);
+                should(results[0].targets?.[0].targetId.toString()).eql("ns=0;i=11493");
+                //xx console.log(results[1].toString());
+                results[1].statusCode.should.eql(StatusCodes.Good);
+                should(results[1].targets?.length).eql(1);
+                should(results[1].targets?.[0].targetId.toString()).eql("ns=0;i=11494");
+            });
+        });
+    });
+}
+//# sourceMappingURL=u_test_e2e_call_service.js.map

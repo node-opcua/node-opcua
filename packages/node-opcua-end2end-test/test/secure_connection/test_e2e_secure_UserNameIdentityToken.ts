@@ -56,7 +56,11 @@ describe("testing Client-Server with UserName/Password identity token", () => {
     let endpointUrl: string;
     const port = 2239;
 
+    let originalEnv: string | undefined;
+
     before(async () => {
+        originalEnv = process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS;
+        process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS = "true";
         server = await build_server_with_temperature_device({
             port,
             allowAnonymous: false,
@@ -67,6 +71,11 @@ describe("testing Client-Server with UserName/Password identity token", () => {
     });
     after(async () => {
         await server.shutdown();
+        if (originalEnv !== undefined) {
+            process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS = originalEnv;
+        } else {
+            delete process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS;
+        }
     });
 
     it("should not anonymously connect when anonymous is forbidden", async () => {

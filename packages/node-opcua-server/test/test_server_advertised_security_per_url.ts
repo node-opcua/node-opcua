@@ -88,7 +88,11 @@ describe("advertisedEndpoints: per-URL securityModes cannot be dodged with an un
     this.timeout(Math.max(this.timeout(), 60000));
     let server: OPCUAServer;
 
+    let originalEnv: string | undefined;
+
     before(async () => {
+        originalEnv = process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS;
+        process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS = "true";
         server = await startServer(mainPort, {
             securityModes: [MessageSecurityMode.None, MessageSecurityMode.SignAndEncrypt],
             securityPolicies: [SecurityPolicy.None, SecurityPolicy.Basic256Sha256],
@@ -99,6 +103,11 @@ describe("advertisedEndpoints: per-URL securityModes cannot be dodged with an un
     after(async () => {
         await server.shutdown();
         server.dispose();
+        if (originalEnv !== undefined) {
+            process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS = originalEnv;
+        } else {
+            delete process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS;
+        }
     });
 
     it("advertises no None endpoint for the public URL", () => {

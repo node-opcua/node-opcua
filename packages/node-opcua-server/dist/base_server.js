@@ -1,0 +1,1007 @@
+/**
+ * @module node-opcua-server
+ */
+import fs from "node:fs";
+import { isIP } from "node:net";
+import os from "node:os";
+import path from "node:path";
+import { withLock } from "@ster5/global-mutex";
+import chalk from "chalk";
+import { assert } from "node-opcua-assert";
+import { getDefaultCertificateManager } from "node-opcua-certificate-manager";
+import { performCertificateSanityCheck } from "node-opcua-client";
+import { makeApplicationUrn, makeSubject, OPCUASecureObject, resolvePrivateKeyProviderIfNeeded } from "node-opcua-common";
+import { PrivateKeyPassphraseRequiredError } from "node-opcua-crypto";
+import { exploreCertificate } from "node-opcua-crypto/web";
+import { coerceLocalizedText, coerceLocalizedTextStrict } from "node-opcua-data-model";
+import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
+import { checkDebugFlag, displayTraceFromThisProjectOnly, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName, getHostname, getIpAddresses, ipv4ToHex, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
+import { FindServersRequest, FindServersResponse } from "node-opcua-service-discovery";
+import { ApplicationDescription, ApplicationType, GetEndpointsResponse } from "node-opcua-service-endpoints";
+import { ServiceFault } from "node-opcua-service-secure-channel";
+import { StatusCodes } from "node-opcua-status-code";
+import { parseEndpointUrl } from "node-opcua-transport";
+import { EndpointDescription } from "node-opcua-types";
+import { checkFileExistsAndIsNotEmpty, matchUri } from "node-opcua-utils";
+const doDebug = checkDebugFlag("base_server");
+const debugLog = make_debugLog("base_server");
+const errorLog = make_errorLog("base_server");
+const warningLog = make_warningLog("base_server");
+/**
+ * Rewrite the DiscoveryUrls of an ApplicationDescription so that they are reachable
+ * through the network address the Client actually used.
+ *
+ * OPC 10000-4 v1.05.07 5.5.2.1: "A Server may have multiple HostNames. For this reason, the
+ * Client shall pass the URL it used to connect to the Endpoint to this Service. The
+ * implementation of this Service shall use this information to return responses that are
+ * accessible to the Client via the provided URL." and 5.5.2.2 (endpointUrl parameter):
+ * "The Server uses this information [...] to determine what URLs to return in the response.
+ *  The Server should return a suitable default URL if it does not recognize the HostName in
+ *  the URL."
+ *
+ * Only the host part is substituted, and only on the DiscoveryUrls that the server serves on
+ * the very port the client used: a requested URL on a port this server does not serve, an
+ * unparsable URL, or an empty one leaves the DiscoveryUrls untouched (the "suitable default").
+ *
+ * @internal
+ */
+export function adaptDiscoveryUrls(discoveryUrls, requestedEndpointUrl) {
+    const urls = (discoveryUrls || []).filter((url) => typeof url === "string");
+    if (!requestedEndpointUrl) {
+        return urls;
+    }
+    let requested;
+    try {
+        requested = parseEndpointUrl(requestedEndpointUrl);
+    }
+    catch {
+        return urls;
+    }
+    const defaultPort = "4840";
+    const requestedPort = requested.port || defaultPort;
+    const adapted = [];
+    for (const url of urls) {
+        let parsed;
+        try {
+            parsed = parseEndpointUrl(url);
+        }
+        catch {
+            adapted.push(url);
+            continue;
+        }
+        const port = parsed.port || defaultPort;
+        if (parsed.protocol !== requested.protocol || port !== requestedPort) {
+            // this server does not serve the requested protocol/port here: keep the default
+            adapted.push(url);
+            continue;
+        }
+        if (matchUri(parsed.hostname, requested.hostname)) {
+            adapted.push(url);
+            continue;
+        }
+        const portPart = parsed.port ? `:${parsed.port}` : "";
+        adapted.push(`${parsed.protocol}//${requested.hostname}${portPart}${parsed.pathname || ""}`);
+    }
+    // the substitution may have collapsed two host names onto the same URL
+    return [...new Set(adapted)];
+}
+/**
+ * Check whether the host name a Client used to reach this server is covered by the
+ * server certificate, and return it when it is not.
+ *
+ * OPC 10000-4 v1.05.07 5.6.2.1 (OpenSecureChannel): "Servers shall add all possible
+ * HostNames like MyHost and MyHost.mycompany.com into the Server Certificate. This
+ * includes IP addresses of the host or the HostName exposed by a NAT router used to
+ * connect to the Server." and "a Client shall verify the HostName specified in the
+ * Server Certificate is the same as the HostName contained in the endpointUrl."
+ *
+ * Returns null (nothing to report) when: the URL is empty or cannot be parsed, the host
+ * is a loopback address (localhost, 127.0.0.0/8, ::1, [::1]), the host is an IPv6
+ * literal (IPv6 SAN entries are not matched here, mirroring checkCertificateSAN()), the
+ * certificate cannot be explored, or the host is already covered by a dNSName (matched
+ * case-insensitively) or, for an IPv4 literal, an iPAddress SAN entry.
+ *
+ * Otherwise returns the host exactly as it appears in the URL, lower-cased.
+ *
+ * @internal
+ */
+export function findEndpointHostMissingFromCertificate(endpointUrl, certificate) {
+    if (!endpointUrl) {
+        return null;
+    }
+    let hostname;
+    try {
+        hostname = parseEndpointUrl(endpointUrl).hostname;
+    }
+    catch {
+        return null;
+    }
+    if (!hostname) {
+        return null;
+    }
+    const host = hostname.toLowerCase();
+    if (host === "localhost") {
+        return null;
+    }
+    // Strip the brackets that the URL parser keeps around an IPv6 literal so that
+    // isIP() (and, for IPv4, ipv4ToHex()) can recognize it.
+    const bareHost = host.startsWith("[") && host.endsWith("]") ? host.slice(1, -1) : host;
+    const family = isIP(bareHost);
+    if (family === 6) {
+        // IPv6 SAN entries are not matched here, mirroring checkCertificateSAN().
+        return null;
+    }
+    if (family === 4 && bareHost.startsWith("127.")) {
+        // 127.0.0.0/8 is loopback.
+        return null;
+    }
+    let info;
+    try {
+        info = exploreCertificate(certificate);
+    }
+    catch {
+        return null;
+    }
+    if (family === 4) {
+        const sanIpsHex = info.tbsCertificate.extensions?.subjectAltName?.iPAddress || [];
+        return sanIpsHex.includes(ipv4ToHex(bareHost)) ? null : host;
+    }
+    const sanDns = info.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
+    const isCovered = sanDns.some((name) => name.toLowerCase() === host);
+    return isCovered ? null : host;
+}
+const default_server_info = {
+    // The globally unique identifier for the application instance. This URI is used as
+    // ServerUri in Services if the application is a Server.
+    applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server"),
+    // The globally unique identifier for the product.
+    productUri: "NodeOPCUA-Server",
+    // A localized descriptive name for the application.
+    applicationName: { text: "NodeOPCUA", locale: "en" },
+    applicationType: ApplicationType.Server,
+    gatewayServerUri: "",
+    discoveryProfileUri: "",
+    discoveryUrls: []
+};
+function cleanupEndpoint(endpoint) {
+    if (endpoint._on_new_channel) {
+        assert(typeof endpoint._on_new_channel === "function");
+        endpoint.removeListener("newChannel", endpoint._on_new_channel);
+        endpoint._on_new_channel = undefined;
+    }
+    if (endpoint._on_close_channel) {
+        assert(typeof endpoint._on_close_channel === "function");
+        endpoint.removeListener("closeChannel", endpoint._on_close_channel);
+        endpoint._on_close_channel = undefined;
+    }
+    if (endpoint._on_connectionRefused) {
+        assert(typeof endpoint._on_connectionRefused === "function");
+        endpoint.removeListener("connectionRefused", endpoint._on_connectionRefused);
+        endpoint._on_connectionRefused = undefined;
+    }
+    if (endpoint._on_openSecureChannelFailure) {
+        assert(typeof endpoint._on_openSecureChannelFailure === "function");
+        endpoint.removeListener("openSecureChannelFailure", endpoint._on_openSecureChannelFailure);
+        endpoint._on_openSecureChannelFailure = undefined;
+    }
+    if (endpoint._on_channel_secured) {
+        assert(typeof endpoint._on_channel_secured === "function");
+        endpoint.removeListener("channelSecured", endpoint._on_channel_secured);
+        endpoint._on_channel_secured = undefined;
+    }
+}
+const emptyCallback = () => {
+    /* empty */
+};
+// biome-ignore lint/suspicious/noExplicitAny: must propagate EventEmitter generic
+export class OPCUABaseServer extends OPCUASecureObject {
+    static makeServiceFault = makeServiceFault;
+    /**
+     * The type of server
+     */
+    get serverType() {
+        return this.serverInfo.applicationType;
+    }
+    serverInfo;
+    endpoints;
+    serverCertificateManager;
+    capabilitiesForMDNS;
+    _preInitTask;
+    /**
+     * Per-host "is this host covered by the certificate" verdicts backing
+     * _warnIfEndpointHostNotInCertificate(), keyed by the lower-cased host. Covers
+     * both outcomes so a correctly covered host is never rechecked either. Left
+     * undefined until first used: tests build a server with
+     * Object.create(OPCUABaseServer.prototype), which skips the constructor.
+     */
+    _endpointHostCertificateCache;
+    /**
+     * The certificate (compared by reference) that _endpointHostCertificateCache was
+     * computed against. Every certificate provider in this codebase hands back the
+     * same Buffer instance from getCertificate() until it is invalidated, so a
+     * reference change reliably signals a new certificate and resets the cache.
+     */
+    _endpointHostCertificateCacheCertificate;
+    options;
+    constructor(options) {
+        options = options || {};
+        if (!options.serverCertificateManager) {
+            options.serverCertificateManager = getDefaultCertificateManager("PKI");
+        }
+        if ("rootDir" in options.serverCertificateManager) {
+            // Disk path — derive cert/key paths from certificate manager
+            const cm = options.serverCertificateManager;
+            options.privateKeyFile = options.privateKeyFile || cm.privateKey;
+            options.certificateFile = options.certificateFile || path.join(cm.rootDir, "own/certs/certificate.pem");
+        }
+        // else: in-memory path — caller must provide cert/key via provider
+        super(options);
+        this.serverCertificateManager = options.serverCertificateManager;
+        this.capabilitiesForMDNS = [];
+        this.endpoints = [];
+        this.options = options;
+        this._preInitTask = [];
+        const serverInfo = {
+            ...default_server_info,
+            ...options.serverInfo
+        };
+        serverInfo.applicationName = coerceLocalizedText(serverInfo.applicationName);
+        this.serverInfo = new ApplicationDescription(serverInfo);
+        if (this.serverInfo.applicationName.toString().match(/urn:/)) {
+            errorLog("[NODE-OPCUA-E06] application name cannot be a urn", this.serverInfo.applicationName.toString());
+        }
+        this.serverInfo.applicationName.locale = this.serverInfo.applicationName.locale || "en";
+        if (!this.serverInfo.applicationName.locale) {
+            warningLog("[NODE-OPCUA-W24] the server applicationName must have a valid locale : ", this.serverInfo.applicationName.toString());
+        }
+        const __applicationUri = serverInfo.applicationUri || "";
+        Object.defineProperty(this.serverInfo, "applicationUri", {
+            get: () => resolveFullyQualifiedDomainName(__applicationUri),
+            configurable: true
+        });
+        this._preInitTask.push(async () => {
+            await extractFullyQualifiedDomainName();
+        });
+        this._preInitTask.push(async () => {
+            await this.initializeCM();
+        });
+    }
+    /**
+     * Return additional DNS hostnames to include in the self-signed
+     * certificate's SubjectAlternativeName (SAN).
+     *
+     * The base implementation returns an empty array. Subclasses
+     * (e.g. `OPCUAServer`) override this to include hostnames from
+     * `alternateHostname` and `advertisedEndpoints`.
+     *
+     * Public so packages outside `node-opcua-server` (e.g.
+     * `node-opcua-server-configuration`'s CreateSigningRequest handler) can
+     * reuse the same configured-hostnames list for a CSR's SAN, not only
+     * for the initial self-signed certificate.
+     *
+     * @internal
+     */
+    getConfiguredHostnames() {
+        return [];
+    }
+    /**
+     * Return additional IP addresses to include in the self-signed
+     * certificate's SubjectAlternativeName (SAN) iPAddress entries.
+     *
+     * The base implementation returns an empty array. Subclasses
+     * (e.g. `OPCUAServer`) override this to include IP literals
+     * found in `alternateHostname` and `advertisedEndpoints`.
+     *
+     * These IPs are considered **explicitly configured** by the
+     * user and are therefore checked by `checkCertificateSAN()`.
+     * In contrast, auto-detected IPs from `getIpAddresses()` are
+     * included in the certificate at creation time but are NOT
+     * checked later — see `checkCertificateSAN()` for rationale.
+     *
+     * Public for the same reason as {@link getConfiguredHostnames}.
+     *
+     * @internal
+     */
+    getConfiguredIPs() {
+        return [];
+    }
+    async createDefaultCertificate() {
+        if (this.certificateFile === "<in-memory>" || this.certificateFile === "<unknown>") {
+            // In-memory provider — skip disk operations
+            return;
+        }
+        if (fs.existsSync(this.certificateFile)) {
+            return;
+        }
+        if (!checkFileExistsAndIsNotEmpty(this.certificateFile)) {
+            await withLock({ fileToLock: `${this.certificateFile}.mutex` }, async () => {
+                if (checkFileExistsAndIsNotEmpty(this.certificateFile)) {
+                    return;
+                }
+                const applicationUri = this.serverInfo.applicationUri || "<missing application uri>";
+                const fqdn = getFullyQualifiedDomainName();
+                const hostname = getHostname();
+                const dns = [...new Set([fqdn, hostname, ...this.getConfiguredHostnames()])].sort();
+                // Include both auto-detected IPs and explicitly configured IPs.
+                // Auto-detected IPs (getIpAddresses) are ephemeral — they depend on
+                // the current network state (WiFi, tethering, VPN, roaming) and may
+                // change between reboots. They are included here so that the initial
+                // certificate covers the current network configuration, but they are
+                // NOT checked by checkCertificateSAN() to avoid noisy warnings when
+                // the network changes. Only explicitly configured IPs (from
+                // alternateHostname / advertisedEndpoints) are checked at startup.
+                const ip = [...new Set([...getIpAddresses(), ...this.getConfiguredIPs()])].sort();
+                // Cast is safe: in the disk path, serverCertificateManager is
+                // always an OPCUACertificateManager.
+                const cm = this.serverCertificateManager;
+                await cm.createSelfSignedCertificate({
+                    applicationUri,
+                    dns,
+                    ip,
+                    outputFile: this.certificateFile,
+                    subject: makeSubject(this.serverInfo.applicationName.text || "<missing application name>", hostname),
+                    startDate: new Date(),
+                    validity: 365 * 10 // 10 years
+                });
+            });
+        }
+    }
+    async initializeCM() {
+        // The pki-level initialize() itself already decrypts (or re-encrypts)
+        // the on-disk key when serverCertificateManager is configured with a
+        // privateKeyPassphrase, and fails closed with
+        // PrivateKeyPassphraseRequiredError on a mismatch — so this whole
+        // sequence, not just the resolve step below, needs the friendlier
+        // error message.
+        try {
+            await this.serverCertificateManager.initialize();
+            await this.createDefaultCertificate();
+            // Resolve the (possibly passphrase-encrypted) private key once,
+            // asynchronously, and install it as this server's provider — so
+            // that every later, synchronous getPrivateKey() call (secure
+            // channel layer, endpoint creation, ...) succeeds without touching
+            // disk again. No-ops when the caller supplied its own
+            // certificateKeyPairProvider, when running in-memory, or when
+            // serverCertificateManager doesn't expose an async getPrivateKey()
+            // (e.g. a bare ICertificateStore).
+            await resolvePrivateKeyProviderIfNeeded(this, this.serverCertificateManager, !!this.options.certificateKeyPairProvider);
+        }
+        catch (err) {
+            if (err instanceof PrivateKeyPassphraseRequiredError) {
+                throw new Error(`[NODE-OPCUA-E30] private key ${this.privateKeyFile} is encrypted; ` +
+                    "set privateKeyPassphrase on the OPCUACertificateManager passed as serverCertificateManager");
+            }
+            throw err;
+        }
+        if ("privateKey" in this.serverCertificateManager) {
+            // c8 ignore next
+            doDebug &&
+                debugLog("privateKey      = ", this.privateKeyFile, this.serverCertificateManager.privateKey);
+        }
+        else {
+            // c8 ignore next
+            doDebug && debugLog("privateKey      = ", this.privateKeyFile);
+        }
+        // c8 ignore next
+        doDebug && debugLog("certificateFile = ", this.certificateFile);
+        this._checkCertificateSanMismatch();
+        await performCertificateSanityCheck(this, "server", this.serverCertificateManager, this.serverInfo.applicationUri || "");
+        this._checkOwnCertificateChainCompleteness();
+    }
+    /**
+     * Check that the server's certificate PEM contains the full
+     * chain (leaf + issuer CAs).  If the certificate is CA-signed
+     * but the PEM only contains the leaf, a prominent warning is
+     * logged so the operator can detect the mismatch easily.
+     *
+     * This method intentionally does NOT attempt to auto-heal the
+     * certificate file — the provisioning layer (GDS UpdateCertificate,
+     * CLI tools, etc.) is responsible for writing the full chain.
+     * Use {@link CertificateManager.completeCertificateChain} in
+     * provisioning code to reconstruct a partial chain.
+     *
+     * @internal
+     */
+    _checkOwnCertificateChainCompleteness() {
+        try {
+            const chain = this.getCertificateChain();
+            if (chain.length === 0)
+                return;
+            const leafInfo = exploreCertificate(chain[0]);
+            const isSelfSigned = leafInfo.tbsCertificate.extensions?.subjectKeyIdentifier ===
+                leafInfo.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier;
+            // Self-signed certificates don't need a chain
+            if (isSelfSigned)
+                return;
+            if (chain.length >= 2) {
+                // Chain already contains at least leaf + issuer — good
+                return;
+            }
+            // ─── Partial chain detected ────────────────────────────────
+            const cn = leafInfo.tbsCertificate.subject.commonName ?? "?";
+            const akid = leafInfo.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier ?? "?";
+            warningLog(`[NODE-OPCUA-W60] Server certificate "${cn}" is CA-signed ` +
+                `but certificate.pem contains only the leaf certificate. ` +
+                `Clients may reject the connection with BadCertificateChainIncomplete. ` +
+                `(authorityKeyIdentifier: ${akid}). ` +
+                `To fix this, ensure the issuer CA certificate chain is appended ` +
+                `to ${this.certificateFile}, or re-provision the certificate ` +
+                `using the GDS UpdateCertificate workflow.`);
+        }
+        catch (err) {
+            warningLog(`[NODE-OPCUA-W60] Certificate chain check failed: ${err.message}`);
+        }
+    }
+    /**
+     * Compare the current certificate's SAN entries against all
+     * explicitly configured hostnames and IPs, and return any
+     * that are missing.
+     *
+     * Returns an empty array when the certificate covers every
+     * configured hostname and IP.
+     *
+     * **Important — ephemeral IP mitigation:**
+     * Auto-detected IPs (from `getIpAddresses()`) are deliberately
+     * NOT included in this check. Network interfaces are transient
+     * — WiFi IPs change on reconnect, tethering IPs appear/disappear,
+     * VPN adapters come and go. Including them would cause the
+     * `[NODE-OPCUA-W26]` warning to fire on every server restart
+     * whenever the network state differs from when the certificate
+     * was originally created.
+     *
+     * Only **explicitly configured** values are checked:
+     * - Hostnames: FQDN, os.hostname(), `alternateHostname` (non-IP),
+     *   hostnames from `advertisedEndpoints` URLs
+     * - IPs: IP literals from `alternateHostname`, IP literals
+     *   from `advertisedEndpoints` URLs
+     *
+     * The certificate itself still includes auto-detected IPs at
+     * creation time — this is fine because it captures the network
+     * state at that moment. But the *mismatch warning* only fires
+     * for things the user explicitly asked for.
+     */
+    checkCertificateSAN() {
+        const certDer = this.getCertificate();
+        const info = exploreCertificate(certDer);
+        const sanDns = info.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
+        const sanIpsHex = info.tbsCertificate.extensions?.subjectAltName?.iPAddress || [];
+        const fqdn = getFullyQualifiedDomainName();
+        const hostname = getHostname();
+        const expectedDns = [...new Set([fqdn, hostname, ...this.getConfiguredHostnames()])].sort();
+        // Only check explicitly configured IPs — NOT auto-detected ones.
+        // See JSDoc above for the rationale (ephemeral network interfaces).
+        const expectedIps = [...new Set(this.getConfiguredIPs())].sort();
+        const missingDns = expectedDns.filter((name) => !sanDns.includes(name));
+        // exploreCertificate returns iPAddress entries as hex strings
+        // Only IPv4 addresses can be converted with ipv4ToHex here; IPv6 (and invalid) IPs are skipped.
+        const missingIps = expectedIps.filter((ip) => {
+            const family = isIP(ip);
+            if (family === 4) {
+                return !sanIpsHex.includes(ipv4ToHex(ip));
+            }
+            // IPv6 or invalid literals are currently not matched against SAN iPAddress entries here.
+            return false;
+        });
+        return [...missingDns, ...missingIps];
+    }
+    /**
+     * Delete the existing self-signed certificate and create a new
+     * one that includes all currently configured hostnames.
+     *
+     * @throws if the current certificate was NOT self-signed
+     *         (i.e. issued by a CA or GDS)
+     */
+    async regenerateSelfSignedCertificate() {
+        // guard: only allow regeneration of self-signed certs
+        const certDer = this.getCertificate();
+        const info = exploreCertificate(certDer);
+        const issuer = info.tbsCertificate.issuer;
+        const subject = info.tbsCertificate.subject;
+        const isSelfSigned = issuer.commonName === subject.commonName && issuer.organizationName === subject.organizationName;
+        if (!isSelfSigned) {
+            throw new Error("Cannot regenerate certificate: current certificate is not self-signed (issued by a CA or GDS)");
+        }
+        // delete old cert
+        if (fs.existsSync(this.certificateFile)) {
+            fs.unlinkSync(this.certificateFile);
+        }
+        // recreate with current hostnames
+        await this.createDefaultCertificate();
+        // invalidate cached cert so next getCertificate() reloads from disk
+        this.invalidateCachedCertificates();
+    }
+    _checkCertificateSanMismatch() {
+        try {
+            const missing = this.checkCertificateSAN();
+            if (missing.length > 0) {
+                warningLog(`[NODE-OPCUA-W26] Certificate SAN is missing the following configured hostnames/IPs: ${missing.join(", ")}. ` +
+                    "Clients with strict certificate validation may reject connections for these entries. " +
+                    "Use server.regenerateSelfSignedCertificate() to fix this.");
+            }
+        }
+        catch (_err) {
+            // ignore errors during SAN check (e.g. cert not yet loaded)
+        }
+    }
+    /**
+     * Thin wrapper around findEndpointHostMissingFromCertificate() (the exploreCertificate()
+     * ASN.1 parse), extracted so tests can spy on how many times the expensive check
+     * actually runs when _warnIfEndpointHostNotInCertificate() caches its verdicts.
+     */
+    _findEndpointHostMissingFromCertificate(endpointUrl, certificate) {
+        return findEndpointHostMissingFromCertificate(endpointUrl, certificate);
+    }
+    /**
+     * Warn once per host when a Client reaches this server through a host name that
+     * the server certificate does not cover (see findEndpointHostMissingFromCertificate()
+     * for the spec reference). Called from the GetEndpoints and CreateSession request
+     * paths, both reachable before any Session exists.
+     *
+     * OPC 10000-4 v1.05.07 5.5.4.1 (GetEndpoints): "the Server should minimize the
+     * amount of processing required to send the response for this Service." GetEndpoints
+     * is unauthenticated, so a host, once checked against the current certificate, is
+     * never rechecked, whether it turned out covered or missing, and the number of
+     * distinct hosts remembered (MAX_CACHED_HOSTS) and warned about (MAX_WARNED_HOSTS)
+     * are both capped so an attacker sending arbitrarily many host names cannot grow
+     * the cache or the log without bound. The cache is reset when the certificate
+     * itself changes (e.g. after regenerateSelfSignedCertificate()), so a still-missing
+     * host is warned about once more.
+     *
+     * Never throws: a failure here must not change the response sent to the Client.
+     */
+    _warnIfEndpointHostNotInCertificate(endpointUrl) {
+        const MAX_CACHED_HOSTS = 64;
+        const MAX_WARNED_HOSTS = 20;
+        if (!endpointUrl) {
+            return;
+        }
+        let host;
+        try {
+            host = parseEndpointUrl(endpointUrl).hostname.toLowerCase();
+        }
+        catch {
+            return;
+        }
+        let certificate;
+        try {
+            certificate = this.getCertificate();
+        }
+        catch {
+            return;
+        }
+        let cache = this._endpointHostCertificateCache;
+        if (this._endpointHostCertificateCacheCertificate !== certificate || !cache) {
+            // First use, or the certificate changed: start a fresh cache so a
+            // still-missing host is warned about once more.
+            cache = new Map();
+            this._endpointHostCertificateCache = cache;
+            this._endpointHostCertificateCacheCertificate = certificate;
+        }
+        if (cache.has(host)) {
+            // Already checked against the current certificate, covered or missing:
+            // nothing left to compute or log.
+            return;
+        }
+        if (cache.size >= MAX_CACHED_HOSTS) {
+            return;
+        }
+        try {
+            const missingHost = this._findEndpointHostMissingFromCertificate(endpointUrl, certificate);
+            cache.set(host, missingHost === null);
+            if (missingHost === null) {
+                return;
+            }
+            let warnedCount = 0;
+            for (const covered of cache.values()) {
+                if (!covered) {
+                    warnedCount++;
+                }
+            }
+            if (warnedCount > MAX_WARNED_HOSTS) {
+                return;
+            }
+            warningLog(`[NODE-OPCUA-W27] A client reached this server as "${missingHost}", which is not in the server certificate. ` +
+                "Clients that verify the host name will report Bad_CertificateHostNameInvalid. " +
+                `Add "${missingHost}" to alternateHostname (or advertisedEndpoints) and regenerate the certificate ` +
+                "(server.regenerateSelfSignedCertificate() for a self-signed one).");
+        }
+        catch (_err) {
+            // ignore errors (e.g. certificate not yet loaded); nothing was cached, so
+            // this host is retried on the next request
+        }
+    }
+    start(...args) {
+        const callback = args[0];
+        if (!callback || args.length === 0) {
+            return this.startAsync();
+        }
+        else {
+            this.startAsync()
+                .then(() => {
+                callback();
+            })
+                .catch((err) => callback(err));
+        }
+    }
+    async performPreInitialization() {
+        const tasks = this._preInitTask;
+        this._preInitTask = [];
+        for (const task of tasks) {
+            await task();
+        }
+    }
+    async startAsync() {
+        await this.performPreInitialization();
+        assert(Array.isArray(this.endpoints));
+        assert(this.endpoints.length > 0, "We need at least one end point");
+        installPeriodicClockAdjustment();
+        // through unknown: `this` is OPCUABaseServer<T>, and T could be a narrower subtype of the
+        // constraint, so TS 7 refuses the direct conversion. The events emitted here are the ones
+        // the constraint declares, so the base instantiation is the right view of `this`.
+        const server = this;
+        const _on_new_channel = function (channel) {
+            // the OpenSecureChannel exchange is handled inside the channel and never
+            // reaches "request"/"response": forward it for diagnostics. newChannel
+            // fires after HEL/ACK, before the first OpenSecureChannelRequest.
+            channel.on("openSecureChannelRequest", (request) => {
+                server.emit("openSecureChannelRequest", request, channel);
+            });
+            channel.on("openSecureChannelResponse", (response) => {
+                server.emit("openSecureChannelResponse", response, channel);
+            });
+            server.emit("newChannel", channel, this);
+        };
+        const _on_channel_secured = function (channel) {
+            // Install a response interceptor once per channel so the
+            // server can emit "response" events for diagnostics.
+            // Done here (after OpenSecureChannel) rather than at
+            // newChannel time, so the interceptor can rely on
+            // securityPolicy/securityMode being populated.
+            channel.setResponseInterceptor((_msg, response1) => {
+                server.emit("response", response1, channel);
+            });
+            server.emit("channelSecured", channel, this);
+        };
+        const _on_close_channel = function (channel) {
+            server.emit("closeChannel", channel, this);
+        };
+        const _on_connectionRefused = function (socketData) {
+            server.emit("connectionRefused", socketData, this);
+        };
+        const _on_openSecureChannelFailure = function (socketData, channelData) {
+            server.emit("openSecureChannelFailure", socketData, channelData, this);
+        };
+        const promises = [];
+        for (const endpoint of this.endpoints) {
+            assert(!endpoint._on_close_channel);
+            endpoint._on_new_channel = _on_new_channel;
+            endpoint.on("newChannel", endpoint._on_new_channel);
+            endpoint._on_channel_secured = _on_channel_secured;
+            endpoint.on("channelSecured", endpoint._on_channel_secured);
+            endpoint._on_close_channel = _on_close_channel;
+            endpoint.on("closeChannel", endpoint._on_close_channel);
+            endpoint._on_connectionRefused = _on_connectionRefused;
+            endpoint.on("connectionRefused", endpoint._on_connectionRefused);
+            endpoint._on_openSecureChannelFailure = _on_openSecureChannelFailure;
+            endpoint.on("openSecureChannelFailure", endpoint._on_openSecureChannelFailure);
+            promises.push(new Promise((resolve, reject) => endpoint.start((err) => (err ? reject(err) : resolve()))));
+        }
+        await Promise.all(promises);
+    }
+    /**
+     * shutdown all server endPoints
+     */
+    shutdown(done) {
+        assert(typeof done === "function");
+        uninstallPeriodicClockAdjustment();
+        this.serverCertificateManager
+            .dispose()
+            .catch((err) => {
+            // The certificate manager may already be disposing if
+            // userCertificateManager and serverCertificateManager
+            // point to the same instance (common in tests).
+            // c8 ignore next
+            doDebug && debugLog("OPCUABaseServer#shutdown serverCertificateManager.dispose() error:", err.message);
+        })
+            .then(() => {
+            // c8 ignore next
+            doDebug && debugLog("OPCUABaseServer#shutdown starting");
+            const promises = this.endpoints.map((endpoint) => {
+                return new Promise((resolve, reject) => {
+                    cleanupEndpoint(endpoint);
+                    endpoint.shutdown((err) => (err ? reject(err) : resolve()));
+                });
+            });
+            Promise.all(promises)
+                .then(() => {
+                // c8 ignore next
+                doDebug && debugLog("shutdown completed");
+                done();
+            })
+                .catch((err) => done(err));
+        });
+    }
+    shutdownChannels(callback) {
+        assert(typeof callback === "function");
+        // c8 ignore next
+        if (!callback)
+            throw new Error("thenify is not available");
+        // c8 ignore next
+        doDebug && debugLog("OPCUABaseServer#shutdownChannels");
+        const promises = this.endpoints.map((endpoint) => {
+            return new Promise((resolve, reject) => {
+                // c8 ignore next
+                doDebug && debugLog(" shutting down endpoint ", endpoint.endpointDescriptions()[0].endpointUrl);
+                endpoint.abruptlyInterruptChannels();
+                endpoint.shutdown((err) => (err ? reject(err) : resolve()));
+            });
+        });
+        Promise.all(promises)
+            .then(() => callback())
+            .catch((err) => callback?.(err));
+    }
+    /**
+     * @private
+     */
+    on_request(message, channel) {
+        assert(message.requestId !== 0);
+        const request = message.request;
+        // prepare request
+        this.prepare(message, channel);
+        if (doDebug) {
+            debugLog(chalk.green.bold("--------------------------------------------------------"), channel.channelId, request.schema.name);
+        }
+        let errMessage;
+        let response;
+        this.emit("request", request, channel);
+        try {
+            // handler must be named _on_ActionRequest()
+            const handler = this[`_on_${request.schema.name}`];
+            if (typeof handler === "function") {
+                handler.call(this, message, channel);
+            }
+            else {
+                errMessage = `[NODE-OPCUA-W07] Unsupported Service : ${request.schema.name}`;
+                warningLog(errMessage);
+                // c8 ignore next
+                doDebug && debugLog(chalk.red.bold(errMessage));
+                response = makeServiceFault(StatusCodes.BadServiceUnsupported, [errMessage]);
+                channel.send_response("MSG", response, message, emptyCallback);
+            }
+        }
+        catch (err) {
+            /* c8 ignore next */
+            const errMessage1 = `[NODE-OPCUA-W08] EXCEPTION CAUGHT WHILE PROCESSING REQUEST !! ${request.schema.name}`;
+            warningLog(chalk.red.bold(errMessage1));
+            warningLog(request.toString());
+            displayTraceFromThisProjectOnly(err);
+            let additional_messages = [];
+            additional_messages.push(`EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! ${request.schema.name}`);
+            if (err instanceof Error) {
+                additional_messages.push(err.message);
+                if (err.stack) {
+                    additional_messages = additional_messages.concat(err.stack.split("\n"));
+                }
+            }
+            response = makeServiceFault(StatusCodes.BadInternalError, additional_messages);
+            channel.send_response("MSG", response, message, emptyCallback);
+        }
+    }
+    /**
+     * Find endpoint descriptions matching a given endpoint URL.
+     *
+     * When `endpointUrl` is provided, only endpoints whose URL matches
+     * (case-insensitive) are returned. When `null` or omitted, all
+     * endpoints from every `OPCUAServerEndPoint` are returned.
+     *
+     * This is the shared resolution path used by both `GetEndpoints`
+     * and `CreateSession` (`validate_security_endpoint`).
+     *
+     * @internal (was _get_endpoints)
+     */
+    findMatchingEndpoints(endpointUrl) {
+        let endpoints = [];
+        for (const endPoint of this.endpoints) {
+            const ep = endPoint.endpointDescriptions();
+            const epFiltered = endpointUrl ? ep.filter((e) => matchUri(e.endpointUrl, endpointUrl)) : ep;
+            endpoints = endpoints.concat(epFiltered);
+        }
+        return endpoints;
+    }
+    /**
+     * get one of the possible endpointUrl
+     */
+    getEndpointUrl() {
+        return this.findMatchingEndpoints()[0].endpointUrl || "";
+    }
+    getDiscoveryUrls() {
+        const urlSet = new Set();
+        for (const ep of this.endpoints) {
+            for (const desc of ep.endpointDescriptions()) {
+                if (desc.endpointUrl) {
+                    urlSet.add(desc.endpointUrl);
+                }
+            }
+        }
+        return [...urlSet];
+    }
+    getServers(_channel) {
+        this.serverInfo.discoveryUrls = this.getDiscoveryUrls();
+        const servers = [this.serverInfo];
+        return servers;
+    }
+    suspendEndPoints(callback) {
+        /* c8 ignore next */
+        if (!callback) {
+            throw new Error("Internal Error");
+        }
+        const promises = this.endpoints.map((ep) => {
+            return new Promise((resolve, reject) => {
+                /* c8 ignore next */
+                if (doDebug) {
+                    debugLog("Suspending ", ep.endpointDescriptions()[0].endpointUrl);
+                }
+                ep.suspendConnection((err) => {
+                    /* c8 ignore next */
+                    if (doDebug) {
+                        debugLog("Suspended ", ep.endpointDescriptions()[0].endpointUrl);
+                    }
+                    err ? reject(err) : resolve();
+                });
+            });
+        });
+        Promise.all(promises)
+            .then(() => callback())
+            .catch((err) => callback(err));
+    }
+    resumeEndPoints(callback) {
+        // c8 ignore next
+        if (!callback)
+            throw new Error("thenify is not available");
+        const promises = this.endpoints.map((ep) => {
+            return new Promise((resolve, reject) => {
+                ep.restoreConnection((err) => (err ? reject(err) : resolve()));
+            });
+        });
+        Promise.all(promises)
+            .then(() => callback())
+            .catch((err) => callback(err));
+    }
+    prepare(_message, _channel) {
+        /* empty */
+    }
+    /**
+     * @private
+     */
+    _on_GetEndpointsRequest(message, channel) {
+        const request = message.request;
+        assert(request.schema.name === "GetEndpointsRequest");
+        this._warnIfEndpointHostNotInCertificate(request.endpointUrl);
+        // Every EndpointDescription.server below is this exact object, by
+        // reference (see createEndpoint(): `serverInfo: this.serverInfo`),
+        // so refreshing discoveryUrls here reaches all of them. Without
+        // this, GetEndpoints' embedded ApplicationDescription always
+        // reports an empty DiscoveryUrls array - getServers() (FindServers)
+        // already does the same refresh, GetEndpoints never did.
+        this.serverInfo.discoveryUrls = this.getDiscoveryUrls();
+        const response = new GetEndpointsResponse({});
+        /**
+         * endpointUrl	String	The network address that the Client used to access the DiscoveryEndpoint.
+         *                      The Server uses this information for diagnostics and to determine what URLs to return in the response.
+         *                      The Server should return a suitable default URL if it does not recognize the HostName in the URL
+         * localeIds   []LocaleId	List of locales to use.
+         *                          Specifies the locale to use when returning human readable strings.
+         * profileUris []	String	List of Transport Profile that the returned Endpoints shall support.
+         *                          OPC 10000-7 defines URIs for the Transport Profiles.
+         *                          All Endpoints are returned if the list is empty.
+         *                          If the URI is a URL, this URL may have a query string appended.
+         *                          The Transport Profiles that support query strings are defined in OPC 10000-7.
+         */
+        response.endpoints = this.findMatchingEndpoints(null);
+        const _e = response.endpoints.map((e) => e.endpointUrl);
+        if (request.endpointUrl) {
+            const filtered = response.endpoints.filter((endpoint) => matchUri(endpoint.endpointUrl, request.endpointUrl));
+            if (filtered.length > 0) {
+                response.endpoints = filtered;
+            }
+        }
+        response.endpoints = response.endpoints.filter((endpoint) => !endpoint.restricted);
+        // apply filters
+        if (request.profileUris && request.profileUris.length > 0) {
+            const profileUris = request.profileUris;
+            response.endpoints = response.endpoints.filter((endpoint) => profileUris.indexOf(endpoint.transportProfileUri) >= 0);
+        }
+        // The ApplicationName is served in the first locale the client asked for: there is
+        // one text only, and Part 4 5.4.4 lets the server pick the best available locale.
+        // Without a request locale the name keeps its own (CTT Discovery Get Endpoints 002).
+        // The descriptions are the endpoint's own shared instances: answer with copies.
+        const requestedLocale = (request.localeIds || []).find((l) => typeof l === "string" && l.length > 0);
+        if (requestedLocale) {
+            response.endpoints = response.endpoints.map((endpoint) => {
+                const copy = new EndpointDescription(endpoint);
+                copy.server = new ApplicationDescription(endpoint.server);
+                copy.server.applicationName = coerceLocalizedTextStrict({
+                    locale: requestedLocale,
+                    text: endpoint.server.applicationName.text
+                });
+                return copy;
+            });
+        }
+        channel.send_response("MSG", response, message, emptyCallback);
+    }
+    /**
+     * @private
+     */
+    _on_FindServersRequest(message, channel) {
+        // Release 1.02  13  OPC Unified Architecture, Part 4 :
+        //   This  Service  can be used without security and it is therefore vulnerable to Denial Of Service (DOS)
+        //   attacks. A  Server  should minimize the amount of processing required to send the response for this
+        //   Service.  This can be achieved by preparing the result in advance.   The  Server  should  also add a
+        //   short delay before starting processing of a request during high traffic conditions.
+        const shortDelay = 100; // milliseconds
+        setTimeout(() => {
+            const request = message.request;
+            assert(request.schema.name === "FindServersRequest");
+            if (!(request instanceof FindServersRequest)) {
+                throw new Error("Invalid request type");
+            }
+            let servers = this.getServers(channel);
+            // apply filters
+            // TODO /
+            if (request.serverUris && request.serverUris.length > 0) {
+                const serverUris = request.serverUris;
+                // A serverUri matches the applicationUri from the ApplicationDescription define
+                servers = servers.filter((inner_Server) => {
+                    return serverUris.indexOf(inner_Server.applicationUri) >= 0;
+                });
+            }
+            const requestedEndpointUrl = request.endpointUrl;
+            function adapt(applicationDescription) {
+                return new ApplicationDescription({
+                    applicationName: applicationDescription.applicationName,
+                    applicationType: applicationDescription.applicationType,
+                    applicationUri: applicationDescription.applicationUri,
+                    discoveryProfileUri: applicationDescription.discoveryProfileUri,
+                    discoveryUrls: adaptDiscoveryUrls(applicationDescription.discoveryUrls, requestedEndpointUrl),
+                    gatewayServerUri: applicationDescription.gatewayServerUri,
+                    productUri: applicationDescription.productUri
+                });
+            }
+            const response = new FindServersResponse({
+                servers: servers.map(adapt)
+            });
+            channel.send_response("MSG", response, message, emptyCallback);
+        }, shortDelay);
+    }
+    /**
+     * returns a array of currently active channels
+     */
+    getChannels() {
+        let channels = [];
+        for (const endpoint of this.endpoints) {
+            const c = endpoint.getChannels();
+            channels = channels.concat(c);
+        }
+        return channels;
+    }
+}
+/**
+ * construct a service Fault response
+ */
+function makeServiceFault(statusCode, messages) {
+    const response = new ServiceFault();
+    response.responseHeader.serviceResult = statusCode;
+    // xx response.serviceDiagnostics.push( new DiagnosticInfo({ additionalInfo: messages.join("\n")}));
+    assert(Array.isArray(messages));
+    assert(typeof messages[0] === "string");
+    response.responseHeader.stringTable = messages;
+    warningLog(chalk.cyan(" messages "), messages.join("\n"));
+    return response;
+}
+import { withCallback } from "thenify-ex";
+const opts = { multiArgs: false };
+OPCUABaseServer.prototype.resumeEndPoints = withCallback(OPCUABaseServer.prototype.resumeEndPoints, opts);
+OPCUABaseServer.prototype.suspendEndPoints = withCallback(OPCUABaseServer.prototype.suspendEndPoints, opts);
+OPCUABaseServer.prototype.shutdownChannels = withCallback(OPCUABaseServer.prototype.shutdownChannels, opts);
+//# sourceMappingURL=base_server.js.map

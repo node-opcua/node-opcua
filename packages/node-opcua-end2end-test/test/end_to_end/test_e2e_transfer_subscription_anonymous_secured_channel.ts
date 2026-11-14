@@ -108,6 +108,21 @@ async function startServer(allowAnonymousSubscriptionTransferOnUnsecuredChannel?
 describe("GHTR3 - anonymous TransferSubscriptions and the channel security mode (Part 4 5.13.7)", function (this: Mocha.Context) {
     this.timeout(60_000);
 
+    let originalEnv: string | undefined;
+
+    before(async function () {
+        originalEnv = process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS;
+        process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS = "true";
+    });
+
+    after(async function () {
+        if (originalEnv !== undefined) {
+            process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS = originalEnv;
+        } else {
+            delete process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS;
+        }
+    });
+
     describe("GHTR3-default - the rule is enforced when the option is not set", () => {
         let server: OPCUAServer;
         let endpointUrl: string;

@@ -1,0 +1,180 @@
+import "should";
+import { AggregateFunction, HistoryData, OPCUAClient, OPCUAServer, StatusCodes } from "node-opcua";
+import { addAggregateSupport } from "node-opcua-aggregates";
+import { createHistorian1, createHistorian2, createHistorian3, createHistorian4 } from "node-opcua-aggregates/testHelpers.js";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import should from "should";
+const debugLog = make_debugLog("TEST");
+const _doDebug = checkDebugFlag("TEST");
+const year = 2018;
+const month = 10;
+const day = 9;
+export function makeDate(time) {
+    const [hours, minutes, seconds] = time.split(":").map((x) => parseInt(x, 10));
+    return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+}
+let h1NodeId;
+const port = 2232;
+async function startServerWithHA() {
+    const server = new OPCUAServer({
+        port
+    });
+    await server.initialize();
+    const addressSpace = server.engine.addressSpace;
+    addAggregateSupport(addressSpace);
+    const h1 = createHistorian1(addressSpace);
+    const _h2 = createHistorian2(addressSpace);
+    const _h3 = createHistorian3(addressSpace);
+    const _h4 = createHistorian4(addressSpace);
+    h1NodeId = h1.nodeId;
+    return server;
+}
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+describe("test readAggregateValue", () => {
+    let server;
+    let endpointUrl;
+    before(async () => {
+        server = await startServerWithHA();
+        await server.start();
+        endpointUrl = server.getEndpointUrl();
+        debugLog("endpointUrl = ", endpointUrl);
+    });
+    after(async () => {
+        await server.shutdown();
+    });
+    it("RAV-1 readAggregateValue: should calculate average", async () => {
+        const client = OPCUAClient.create({ endpointMustExist: false });
+        await client.withSessionAsync(endpointUrl, async (session) => {
+            const nodeToRead = { nodeId: h1NodeId };
+            const startTime = makeDate("12:00:00");
+            const endTime = makeDate("12:01:40");
+            const processingInterval = 16 * 1000;
+            const resultMax = await session.readAggregateValue(nodeToRead, startTime, endTime, AggregateFunction.Maximum, processingInterval);
+            resultMax.statusCode.should.eql(StatusCodes.Good);
+            const resultMin = await session.readAggregateValue(nodeToRead, startTime, endTime, AggregateFunction.Minimum, processingInterval);
+            resultMin.statusCode.should.eql(StatusCodes.Good);
+            const resultAvg = await session.readAggregateValue(nodeToRead, startTime, endTime, AggregateFunction.Average, processingInterval);
+            resultAvg.statusCode.should.eql(StatusCodes.Good);
+            debugLog(resultAvg.toString());
+        });
+    });
+    it("RAV-2 readAggregateValue: should return BadAggregateNotSupported if aggregatye function is not support", async () => {
+        const client = OPCUAClient.create({ endpointMustExist: false });
+        await client.withSessionAsync(endpointUrl, async (session) => {
+            const nodeToRead = { nodeId: h1NodeId };
+            const startTime = makeDate("12:00:00");
+            const endTime = makeDate("12:01:40");
+            const processingInterval = 16 * 1000;
+            const resultStdSample = await session.readAggregateValue(nodeToRead, startTime, endTime, AggregateFunction.StandardDeviationSample, processingInterval);
+            resultStdSample.statusCode.should.eql(StatusCodes.BadAggregateNotSupported);
+        });
+    });
+    it("RAV-3 readAggregateValue: should calculate aggregate(multi) of multiple nodeId", async () => {
+        const client = OPCUAClient.create({
+            endpointMustExist: false
+        });
+        const historyReadResult = await client.withSessionAsync(endpointUrl, async (session) => {
+            const nodeToRead = [{ nodeId: h1NodeId }, { nodeId: h1NodeId }];
+            const aggregateFn = [AggregateFunction.Maximum, AggregateFunction.Minimum];
+            const startTime = makeDate("12:00:00");
+            const endTime = makeDate("12:01:40");
+            const processingInterval = 16 * 1000;
+            const resultMaxMin = await session.readAggregateValue(nodeToRead, startTime, endTime, aggregateFn, processingInterval);
+            return resultMaxMin;
+        });
+        historyReadResult[0].statusCode.should.eql(StatusCodes.Good);
+        historyReadResult[1].statusCode.should.eql(StatusCodes.Good);
+    });
+    it("RAV-4 readAggregateValue should return BadAggregateInvalidInputs if PercentDataBad and PercentDataGood are incoherent", async () => {
+        const client = OPCUAClient.create({
+            endpointMustExist: false
+        });
+        const historyReadResult = await client.withSessionAsync(endpointUrl, async (session) => {
+            const nodeToRead = { nodeId: h1NodeId };
+            const startTime = makeDate("12:00:00");
+            const endTime = makeDate("12:01:40");
+            const processingInterval = 16 * 1000;
+            const historyReadResult = await session.readAggregateValue(nodeToRead, startTime, endTime, AggregateFunction.Maximum, processingInterval, {
+                percentDataBad: 0, // << Invalid !
+                percentDataGood: 0, // << Invalid !
+                treatUncertainAsBad: true,
+                // useServerCapabilitiesDefaults: false,
+                useSlopedExtrapolation: true
+            });
+            return historyReadResult;
+        });
+        historyReadResult.statusCode.should.eql(StatusCodes.BadAggregateInvalidInputs);
+    });
+    it("RAV-5 readAggregateValue should return Good if PercentDataBad and PercentDataGood are coherent", async () => {
+        const client = OPCUAClient.create({
+            endpointMustExist: false
+        });
+        const historyReadResult = await client.withSessionAsync(endpointUrl, async (session) => {
+            const nodeToRead = { nodeId: h1NodeId };
+            const startTime = makeDate("12:00:00");
+            const endTime = makeDate("12:01:40");
+            const processingInterval = 16 * 1000;
+            const historyReadResult = await session.readAggregateValue(nodeToRead, startTime, endTime, AggregateFunction.Maximum, processingInterval, {
+                percentDataBad: 80, // << valid !
+                percentDataGood: 50, // << valid !
+                treatUncertainAsBad: true,
+                useServerCapabilitiesDefaults: false,
+                useSlopedExtrapolation: true
+            });
+            return historyReadResult;
+        });
+        historyReadResult.statusCode.should.eql(StatusCodes.Good);
+    });
+    it("RAV-6 readAggregateValue with useServerCapabilitiesDefaults", async () => {
+        const client = OPCUAClient.create({
+            endpointMustExist: false
+        });
+        const historyReadResult = await client.withSessionAsync(endpointUrl, async (session) => {
+            const nodeToRead = { nodeId: h1NodeId };
+            const startTime = makeDate("12:00:00");
+            const endTime = makeDate("12:01:40");
+            const processingInterval = 16 * 1000;
+            const historyReadResult = await session.readAggregateValue(nodeToRead, startTime, endTime, AggregateFunction.Maximum, processingInterval, {
+                useServerCapabilitiesDefaults: true
+            });
+            return historyReadResult;
+        });
+        should(historyReadResult.continuationPoint).eql(null);
+        console.log(historyReadResult.toString());
+        //  historyReadResult.historyData.length.should.eql(1);
+        historyReadResult.statusCode.should.eql(StatusCodes.Good);
+    });
+    it("RHV-1 readHistoryValue - form 1", async () => {
+        const client = OPCUAClient.create({
+            endpointMustExist: false
+        });
+        const historyReadResult = await client.withSessionAsync(endpointUrl, async (session) => {
+            const nodeToRead = { nodeId: h1NodeId };
+            const startTime = makeDate("12:00:00");
+            const endTime = makeDate("12:01:40");
+            return await session.readHistoryValue(nodeToRead, // use a HistoryReadValueIdOptions2 here
+            startTime, endTime);
+        });
+        debugLog(historyReadResult.toString());
+    });
+    it("RHV-2 readHistoryValue - form 2", async () => {
+        const client = OPCUAClient.create({
+            endpointMustExist: false
+        });
+        const historyReadResult = await client.withSessionAsync(endpointUrl, async (session) => {
+            const startTime = makeDate("12:00:00");
+            const endTime = makeDate("12:01:40");
+            return await session.readHistoryValue(h1NodeId, // use  a nodeId here
+            startTime, endTime);
+        });
+        debugLog(historyReadResult.toString());
+        historyReadResult.statusCode.should.eql(StatusCodes.Good);
+        should(historyReadResult.historyData).be.instanceOf(HistoryData);
+        const historyData = historyReadResult.historyData;
+        // readHistoryValue defaults returnBounds to true; History1's last raw sample is at
+        // 12:01:30, before the requested endTime of 12:01:40, so the response carries the
+        // 10 raw samples plus a Bad_BoundNotFound end bound (OPC 10000-11 6.5.3.2)
+        should(historyData.dataValues?.length).eql(11);
+    });
+});
+//# sourceMappingURL=test_readAggregateValue.js.map

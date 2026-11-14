@@ -1,0 +1,84 @@
+import "should";
+import { BrowseDirection, browseAll, NodeClassMask, OPCUAClient, OPCUAServer } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+import sinon from "sinon";
+import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager.js";
+const _doDebug = false;
+// #519_NodeCrawler is not browsing some nodes
+// #889
+describe("testing browse & browseNext", () => {
+    let server;
+    let endpointUrl;
+    const port = 1975;
+    let groupNodeId;
+    before(async () => {
+        const serverCertificateManager = await createServerCertificateManager(port);
+        const options = { port, serverCertificateManager };
+        server = new OPCUAServer(options);
+        await server.initialize();
+        const addressSpace = server.engine.addressSpace;
+        const group = addressSpace.getOwnNamespace().addObject({
+            browseName: "Group",
+            organizedBy: addressSpace.rootFolder.objects
+        });
+        for (let i = 0; i < 27; i++) {
+            addressSpace.getOwnNamespace().addObject({
+                browseName: `Object${i}`,
+                organizedBy: group
+            });
+        }
+        groupNodeId = group.nodeId;
+        await server.start();
+        endpointUrl = server.getEndpointUrl();
+    });
+    let data;
+    beforeEach(async () => {
+        const client = OPCUAClient.create({});
+        await client.connect(endpointUrl);
+        const session = await client.createSession();
+        // we want a maximum of 10 references per nodes
+        session.requestedMaxReferencesPerNode = 10;
+        data = { client, session };
+    });
+    afterEach(async () => {
+        const { session, client } = data;
+        await session.close();
+        await client.disconnect();
+    });
+    after(async () => {
+        await server.shutdown();
+    });
+    it("should browse all references of a node using browse and browseNext", async () => {
+        const { session } = data;
+        const nodeToBrowse = {
+            browseDirection: BrowseDirection.Forward,
+            nodeClassMask: NodeClassMask.Object,
+            nodeId: groupNodeId
+        };
+        const result = await session.browse(nodeToBrowse);
+        should(result.references?.length).eql(10);
+        should.exist(result.continuationPoint);
+        const resultNext1 = await session.browseNext(result.continuationPoint, false);
+        should(resultNext1.references?.length).eql(10);
+        should.exist(resultNext1.continuationPoint);
+        const resultNext2 = await session.browseNext(resultNext1.continuationPoint, false);
+        should(resultNext2.references?.length).eql(7);
+        should.not.exist(resultNext2.continuationPoint);
+    });
+    it("should browse all references using browseAll  ", async () => {
+        const { session } = data;
+        const nodeToBrowse = {
+            browseDirection: BrowseDirection.Forward,
+            nodeClassMask: NodeClassMask.Object,
+            nodeId: groupNodeId
+        };
+        const browseSpy = sinon.spy(session, "browse");
+        const browseNextSpy = sinon.spy(session, "browseNext");
+        const result = await browseAll(session, nodeToBrowse);
+        should(result.references?.length).eql(27);
+        browseSpy.callCount.should.eql(1);
+        browseNextSpy.callCount.should.eql(2);
+    });
+});
+//# sourceMappingURL=test_e2e_browse_browseNext.js.map

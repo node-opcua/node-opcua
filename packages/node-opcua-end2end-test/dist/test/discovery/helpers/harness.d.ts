@@ -1,0 +1,6 @@
+import type { OPCUACertificateManager } from "node-opcua";
+export interface TestHarness {
+    discoveryServerCertificateManager: OPCUACertificateManager;
+    serverCertificateManager: OPCUACertificateManager;
+}
+//# sourceMappingURL=harness.d.ts.map

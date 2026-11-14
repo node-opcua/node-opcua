@@ -1,0 +1,60 @@
+import { MessageSecurityMode } from "node-opcua-secure-channel";
+import type { ServerSession } from "./server_session.js";
+/**
+ * Discriminates a session's user identity for the purpose of the TransferSubscriptions ownership
+ * check. `unsupported` covers any token type we cannot safely represent (e.g. IssuedIdentityToken) and
+ * always results in the transfer being refused.
+ */
+export type TransferUserIdentityKind = "none" | "anonymous" | "username" | "x509" | "unsupported";
+/**
+ * The subset of a Session's identity that OPC UA Part 4 §5.13.7 (TransferSubscriptions) requires in
+ * order to decide whether a Subscription may be transferred to another Session.
+ *
+ * A snapshot of this identity is retained on the Subscription so that the ownership / user-identity
+ * check can still be enforced once the owning Session is no longer available (for example after a
+ * Session times out and its Subscriptions are moved to the orphan publish engine).
+ *
+ * Only a minimal, non-secret identity key is kept: it never stores the raw UserIdentityToken, which for
+ * UserNameIdentityToken / IssuedIdentityToken would carry sensitive bytes (Password / TokenData).
+ */
+export interface ITransferSessionIdentity {
+    kind: TransferUserIdentityKind;
+    /** set when kind === "username" */
+    userName?: string;
+    /** set when kind === "x509": SHA1 thumbprint (hex) of the user certificate (a certificate is public) */
+    certificateThumbprint?: string;
+    /** ApplicationUri of the owning client, used for the anonymous-user transfer rule. */
+    applicationUri?: string | null;
+    /** MessageSecurityMode of the channel the session was operating on, used for the anonymous-user rule. */
+    securityMode?: MessageSecurityMode;
+}
+export interface SessionsCompatibleForTransferOptions {
+    /**
+     * OPC UA Part 4 §5.13.7 requires that an anonymous user may only transfer a Subscription when the
+     * old and the new Session share the same ApplicationUri AND the channel MessageSecurityMode is Sign
+     * or SignAndEncrypt. Setting this flag to `true` relaxes that requirement and accepts
+     * anonymous-to-anonymous transfers over an unsecured channel.
+     * @default false
+     */
+    allowAnonymousTransferOnUnsecuredChannel?: boolean;
+}
+/**
+ * Extract the (non-secret) transfer-relevant identity from a Session.
+ */
+export declare function getTransferSessionIdentity(session: ServerSession): ITransferSessionIdentity;
+/**
+ * Determine whether a Subscription owned by `sourceIdentity` may be transferred to `sessionDest`.
+ *
+ * OPC UA Part 4 §5.13.7 requires that the Server validate that the Client of the destination Session
+ * is operating on behalf of the same user as the Session that owns the Subscription:
+ *  - for a non-anonymous user, the ClientUserId (UserName / X509 subject / ...) must match;
+ *  - for an anonymous user (whose ClientUserId is null), the ApplicationUri must match and the channel
+ *    MessageSecurityMode must be Sign or SignAndEncrypt.
+ *
+ * The identity of the owning Session must therefore be known: when it cannot be established (missing or
+ * unsupported identity token) the transfer is refused rather than allowed - and never raises.
+ */
+export declare function sessionsCompatibleForTransfer(sourceIdentity: ITransferSessionIdentity | undefined, sessionDest: ServerSession, options?: SessionsCompatibleForTransferOptions): boolean;
+/** the same check, on the identity of the destination Session: what another thread of the server is told of it */
+export declare function identitiesCompatibleForTransfer(sourceIdentity: ITransferSessionIdentity | undefined, dest: ITransferSessionIdentity, options?: SessionsCompatibleForTransferOptions): boolean;
+//# sourceMappingURL=sessions_compatible_for_transfer.d.ts.map

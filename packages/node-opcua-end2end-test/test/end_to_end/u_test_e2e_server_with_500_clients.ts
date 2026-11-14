@@ -189,6 +189,8 @@ export function t(test: TestHarness): void {
         let clientCertificateManager: OPCUACertificateManager;
 
         before(async () => {
+            // Enable auto-accept for development/testing with self-signed certificates
+            process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS = "true";
             clientCertificateManager = getDefaultCertificateManager("PKI");
             await clientCertificateManager.initialize();
 
@@ -206,6 +208,7 @@ export function t(test: TestHarness): void {
             if (first_client) {
                 await first_client.disconnect();
             }
+            delete process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS;
         });
 
         /**

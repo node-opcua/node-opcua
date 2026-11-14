@@ -1,0 +1,133 @@
+import os from "node:os";
+import { findServers, findServersOnNetwork, makeApplicationUrn, OPCUAServer } from "node-opcua";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+import { createAndStartServer, ep, pause, startDiscovery } from "./helpers/index.js";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+// add the tcp/ip endpoint with no security
+export function t(_test) {
+    describe("DISCO5 - Many discovery servers sharing ServerOnNetworks list", function () {
+        this.timeout(Math.max(40000, this.timeout()));
+        let discoveryServer1;
+        let discoveryServerEndpointUrl1;
+        let discoveryServer2;
+        let discoveryServerEndpointUrl2;
+        let discoveryServer3;
+        let discoveryServerEndpointUrl3;
+        before(() => {
+            OPCUAServer.registry.count().should.eql(0);
+        });
+        after(async () => {
+            OPCUAServer.registry.count().should.eql(0);
+        });
+        const port_discover1 = 1331;
+        const port_discover2 = 1332;
+        const port_discover3 = 1334;
+        const port1 = 1301;
+        const port2 = 1302;
+        const port3 = 1303;
+        before(async () => {
+            discoveryServer1 = await startDiscovery(port_discover1);
+            discoveryServerEndpointUrl1 = ep(discoveryServer1);
+            discoveryServer2 = await startDiscovery(port_discover2);
+            discoveryServerEndpointUrl2 = ep(discoveryServer2);
+            discoveryServer3 = await startDiscovery(port_discover3);
+            discoveryServerEndpointUrl3 = ep(discoveryServer3);
+        });
+        after(async () => {
+            await discoveryServer1.shutdown();
+            await discoveryServer2.shutdown();
+            await discoveryServer3.shutdown();
+        });
+        it("DISCO5-A - should register server to the discover server 1", async () => {
+            // there should be no endpoint exposed by an blank discovery server
+            discoveryServer1.registeredServerCount.should.equal(0);
+            discoveryServer2.registeredServerCount.should.equal(0);
+            discoveryServer3.registeredServerCount.should.equal(0);
+            if (doDebug) {
+                debugLog("discoveryServerEndpointUrl1", discoveryServerEndpointUrl1);
+                debugLog("discoveryServerEndpointUrl2", discoveryServerEndpointUrl2);
+                debugLog("discoveryServerEndpointUrl3", discoveryServerEndpointUrl3);
+            }
+            let _initialServerCount = 0;
+            {
+                const data = await findServers(discoveryServerEndpointUrl1);
+                const { servers } = data;
+                _initialServerCount = servers.length;
+                should(servers[0].discoveryUrls?.length).eql(1);
+            }
+            const server1 = await createAndStartServer(discoveryServerEndpointUrl1, port1, "A1");
+            discoveryServer1.registeredServerCount.should.equal(1);
+            discoveryServer2.registeredServerCount.should.equal(0);
+            discoveryServer3.registeredServerCount.should.equal(0);
+            const server2 = await createAndStartServer(discoveryServerEndpointUrl2, port2, "A2");
+            discoveryServer1.registeredServerCount.should.equal(1);
+            discoveryServer2.registeredServerCount.should.equal(1);
+            discoveryServer3.registeredServerCount.should.equal(0);
+            const server3 = await createAndStartServer(discoveryServerEndpointUrl3, port3, "A3");
+            discoveryServer1.registeredServerCount.should.equal(1);
+            discoveryServer2.registeredServerCount.should.equal(1);
+            discoveryServer3.registeredServerCount.should.equal(1);
+            const hostname = os.hostname();
+            {
+                const data = await findServers(discoveryServerEndpointUrl1);
+                const { servers } = data;
+                servers.length.should.eql(2);
+                should(servers[0].applicationUri).eql(`urn:localhost:LDS-${port_discover1}`);
+                should(servers[1].applicationUri).eql(makeApplicationUrn(hostname, `A1`));
+            }
+            {
+                const data = await findServers(discoveryServerEndpointUrl2);
+                const { servers } = data;
+                debugLog("length = ", servers.length);
+                debugLog("servers[0].applicationUri = ", servers[0].applicationUri);
+                debugLog("servers[1].applicationUri = ", servers[1].applicationUri);
+                servers.length.should.eql(2);
+                should(servers[0].applicationUri).eql(`urn:localhost:LDS-${port_discover2}`);
+                should(servers[1].applicationUri).eql(makeApplicationUrn(hostname, `A2`));
+            }
+            await pause(500);
+            {
+                const data = await findServers(discoveryServerEndpointUrl3);
+                const { servers } = data;
+                servers.length.should.eql(2);
+                should(servers[0].applicationUri).eql(`urn:localhost:LDS-${port_discover3}`);
+                should(servers[1].applicationUri).eql(makeApplicationUrn(hostname, `A3`));
+            }
+            await pause(500);
+            // query_discovery_server_for_available_servers_on_network
+            {
+                const servers = await findServersOnNetwork(discoveryServerEndpointUrl1);
+                if (doDebug) {
+                    debugLog(servers?.map((x) => x.discoveryUrl).join("\n"));
+                }
+                should(servers?.length).eql(6);
+                debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+            }
+            // query_discovery_server_for_available_servers_on_network(callback) {
+            {
+                const servers = await findServersOnNetwork(discoveryServerEndpointUrl2);
+                if (doDebug) {
+                    debugLog(servers?.map((x) => x.discoveryUrl).join("\n"));
+                }
+                should(servers?.length).eql(6);
+                debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+            }
+            {
+                // query_discovery_server_for_available_servers_on_network
+                const servers = await findServersOnNetwork(discoveryServerEndpointUrl3);
+                if (doDebug) {
+                    debugLog(servers?.map((x) => x.discoveryUrl).join("\n"));
+                }
+                // xxservers.length.should.eql(6);
+                debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+            }
+            await server1.shutdown();
+            await server2.shutdown();
+            await server3.shutdown();
+        });
+    });
+}
+//# sourceMappingURL=u_test_multiple_discovery_servers_and_mdns.js.map

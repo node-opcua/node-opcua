@@ -1,0 +1,80 @@
+import { BrowsePath, makeBrowsePath, ObjectIds, OPCUAClient, resolveNodeId, StatusCodes, VariableIds } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
+export function t(test) {
+    describe("testing session#translateBrowsePath", () => {
+        let _server;
+        let client;
+        let endpointUrl;
+        beforeEach(() => {
+            client = OPCUAClient.create({});
+            endpointUrl = test.endpointUrl;
+            _server = test.server;
+        });
+        afterEach(() => { });
+        it("TBP1 should translate browse path", async () => {
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                // find nodeId of Root.Objects.server.status.buildInfo
+                const browsePath = [
+                    makeBrowsePath("RootFolder", "/Objects/Server"),
+                    makeBrowsePath("RootFolder", "/Objects/Server.ServerStatus"),
+                    makeBrowsePath("RootFolder", "/Objects/Server.ServerStatus.BuildInfo"),
+                    makeBrowsePath("RootFolder", "/Objects/Server.ServerStatus.BuildInfo.ProductName"),
+                    makeBrowsePath("RootFolder", "/Objects/Server.ServerStatus.BuildInfo."), // missing TargetName !
+                    makeBrowsePath("RootFolder", "/Objects.Server"), // intentional error usign . instead of /
+                    makeBrowsePath("RootFolder", "/Objects/2:MatrikonOPC Simulation Server (DA)") // va
+                ];
+                //xx console.log("browsePath ", browsePath[0].toString({addressSpace: server.engine.addressSpace}));
+                const results = await session.translateBrowsePath(browsePath);
+                results.length.should.eql(browsePath.length);
+                //xx console.log(results[0].toString());
+                results[0].statusCode.should.eql(StatusCodes.Good);
+                should(results[0].targets?.length).eql(1);
+                should(results[0].targets?.[0].targetId.toString()).eql("ns=0;i=2253");
+                should(results[0].targets?.[0].targetId.value).eql(ObjectIds.Server);
+                //xx console.log(results[1].toString());
+                results[1].statusCode.should.eql(StatusCodes.Good);
+                should(results[1].targets?.length).eql(1);
+                should(results[1].targets?.[0].targetId.toString()).eql("ns=0;i=2256");
+                should(results[1].targets?.[0].targetId.value).eql(VariableIds.Server_ServerStatus);
+                //xx console.log(results[2].toString());
+                results[2].statusCode.should.eql(StatusCodes.Good);
+                should(results[2].targets?.length).eql(1);
+                should(results[2].targets?.[0].targetId.toString()).eql("ns=0;i=2260");
+                should(results[2].targets?.[0].targetId.value).eql(VariableIds.Server_ServerStatus_BuildInfo);
+                //xx console.log(results[3].toString());
+                results[3].statusCode.should.eql(StatusCodes.Good);
+                should(results[3].targets?.length).eql(1);
+                should(results[3].targets?.[0].targetId.toString()).eql("ns=0;i=2261");
+                should(results[3].targets?.[0].targetId.value).eql(VariableIds.Server_ServerStatus_BuildInfo_ProductName);
+                // missing browseName on last element of the relativepath => ERROR
+                results[4].statusCode.should.eql(StatusCodes.BadBrowseNameInvalid);
+                results[5].statusCode.should.eql(StatusCodes.BadNoMatch);
+                results[6].statusCode.should.eql(StatusCodes.BadNoMatch);
+            });
+        });
+        it("TBP2 server should return BadNothingToDo when the translateBrowsePath browse path relativePath is empty", async () => {
+            /*
+             CTT Test 5.7.3-Err-5
+             Given an existent starting node and no RelativePath elements.
+             When TranslateBrowsePathsToNodeIds is called server returns operation result Bad_NothingToDo.
+             */
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const browsePath = new BrowsePath({
+                    startingNode: resolveNodeId("ObjectsFolder"), ///ec.makeNodeId(opcua.ObjectIds.Server),
+                    relativePath: {
+                        // RelativePath
+                        elements: []
+                    }
+                });
+                const browsePathResult = await session.translateBrowsePath(browsePath);
+                browsePathResult.schema.name.should.equal("BrowsePathResult");
+                browsePathResult.statusCode.should.eql(StatusCodes.BadNothingToDo);
+                //xx console.log(browsePathResult.toString())
+                browsePathResult.statusCode.should.eql(StatusCodes.BadNothingToDo);
+            });
+        });
+    });
+}
+//# sourceMappingURL=u_test_e2e_translateBrowsePath.js.map
