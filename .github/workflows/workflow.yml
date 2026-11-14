@@ -358,6 +358,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          # On a pull request the checkout is GitHub's merge commit of the PR into
+          # master; depth 2 brings its first parent (the master tip) along, which is
+          # what the git-aware test selection below compares against.
+          fetch-depth: 2
       - uses: pnpm/action-setup@v6
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v7
@@ -399,7 +404,15 @@ jobs:
       # heaps that were never collected - detection on with GC off is the one
       # combination that costs wall clock and measures nothing. Worker threads
       # inherit NODE_OPTIONS, which is how it reaches the per-file isolates.
-      - run: pnpm run test:parallel
+      #
+      # Pull requests run only the packages the PR touches plus every package that
+      # depends on them (`-g --since HEAD^1`: HEAD^1 of the merge commit is the master
+      # tip). A lockfile or root config change, or a PR with no change under
+      # packages/ at all, still runs everything. Pushes to master run the whole
+      # suite, and so do the coverage, per-package and Windows jobs on every event:
+      # they are the safety net for a test that depends on another package without
+      # declaring it in package.json.
+      - run: pnpm run test:parallel ${{ github.event_name == 'pull_request' && '-g --since HEAD^1' || '' }}
         env:
           NODE_OPTIONS: --expose-gc
 
