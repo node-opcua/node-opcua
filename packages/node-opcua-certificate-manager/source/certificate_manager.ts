@@ -3,6 +3,8 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+
+import chalk from "chalk";
 import envPaths from "env-paths";
 import { assert } from "node-opcua-assert";
 import type { ICertificateStore } from "node-opcua-common";
@@ -438,19 +440,34 @@ OPCUACertificateManager.prototype.initialize = withCallback(OPCUACertificateMana
 
 const _defaultCertificateManagers: Map<string, OPCUACertificateManager> = new Map();
 
+/**
+ * Check if auto-accept of unknown certificates is enabled for application PKI.
+ * UserPKI is NEVER auto-accepting (security requirement).
+ */
+function shouldAutoAcceptApplicationCertificates(): boolean {
+    const envValue = process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS?.toLowerCase();
+    return envValue === "true" || envValue === "1";
+}
+
 export function getDefaultCertificateManager(name: "PKI" | "UserPKI"): OPCUACertificateManager {
     let cm = _defaultCertificateManagers.get(name);
     if (!cm) {
         const config = envPaths("node-opcua-default").config;
         const pkiFolder = path.join(config, name);
-        // The application PKI ("PKI") keeps the convenient default: it accepts an unknown
-        // peer application certificate, which a development server expects.
-        // The user PKI ("UserPKI") must not. A user certificate is an identity claim: the
-        // certificate CommonName becomes the user name for the role lookup. If the default
-        // user PKI accepted unknown certificates, any self-signed certificate would log in
-        // as the user named in its CommonName. So the default user PKI accepts only the
-        // certificates that the integrator places in its trusted folder.
-        const automaticallyAcceptUnknownCertificate = name !== "UserPKI";
+
+        // UserPKI: NEVER auto-accept (security requirement)
+        // Application PKI: Secure by default, override via NODE_OPCUA_AUTO_ACCEPT_CERTS
+        const automaticallyAcceptUnknownCertificate = name === "UserPKI" ? false : shouldAutoAcceptApplicationCertificates();
+
+        // Warn if application PKI is in auto-accept mode
+        if (automaticallyAcceptUnknownCertificate) {
+            warningLog(
+                chalk.yellow("⚠️  Development mode: auto-accepting unknown application certificates.") +
+                    chalk.white(" User certificates ALWAYS require explicit trust.") +
+                    chalk.white(" Set NODE_OPCUA_AUTO_ACCEPT_CERTS=false to disable.")
+            );
+        }
+
         cm = new OPCUACertificateManager({
             name,
             rootFolder: pkiFolder,
