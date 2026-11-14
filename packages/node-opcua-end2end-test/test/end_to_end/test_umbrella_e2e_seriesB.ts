@@ -30,10 +30,24 @@ describe("testing Client - Umbrella-B ", function (this: Mocha.Context) {
     const test = this as ReadyUmbrellaTestContext;
     test.port = port;
 
-    before(async () => beforeTest(test));
+    let originalEnv: string | undefined;
+
+    before(async function () {
+        originalEnv = process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS;
+        process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS = "true";
+        await beforeTest(test);
+    });
+
+    after(async function () {
+        await afterTest(test);
+        if (originalEnv !== undefined) {
+            process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS = originalEnv;
+        } else {
+            delete process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS;
+        }
+    });
     beforeEach(async () => beforeEachTest(test));
     afterEach(async () => afterEachTest(test));
-    after(async () => afterTest(test));
 
     // typescripts tests starts here...
     tE2eIssue610TimeoutHintOverflow(test);
