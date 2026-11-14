@@ -1,0 +1,116 @@
+import "should";
+import { ClientSecureChannelLayer, get_mini_nodeset_filename, OPCUAClient, OPCUAServer } from "node-opcua";
+import sinon from "sinon";
+const port = 2128;
+async function startServer() {
+    // get IP of the machine
+    const mini = get_mini_nodeset_filename();
+    const server = new OPCUAServer({
+        port,
+        // nodeset_filename: [nodesets.standard],
+        nodeset_filename: [mini]
+    });
+    await server.initialize();
+    await server.start();
+    return server;
+}
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+describe("#1002 - ability to set transport timeout ", () => {
+    let server;
+    before(async () => {
+        server = await startServer();
+    });
+    after(async () => {
+        await server.shutdown();
+        server.dispose();
+    });
+    it("A- using default transport timeout", async () => {
+        const endpointUrl = server.getEndpointUrl();
+        const client = OPCUAClient.create({ clientName: `1 test_e2e_1002` });
+        const spyConnectionLost = sinon.spy();
+        const spyClose = sinon.spy();
+        const spyConnectionReestablished = sinon.spy();
+        client.on("connection_lost", spyConnectionLost);
+        client.on("close", spyClose);
+        client.on("connection_reestablished", spyConnectionReestablished);
+        const actualTimeout = await client.withSessionAsync(endpointUrl, async (_session) => {
+            const timeout = client._secureChannel?.getTransport().timeout;
+            const socket = client._secureChannel?.getTransport()._socket;
+            socket.on("timeout", () => console.log("socket timeout"));
+            return timeout;
+        });
+        actualTimeout.should.eql(ClientSecureChannelLayer.defaultTransportTimeout);
+        spyClose.callCount.should.eql(1);
+        spyConnectionLost.callCount.should.eql(0);
+        spyConnectionReestablished.callCount.should.eql(0);
+    });
+    it("B- should be possible to set the transport timeout - no automatic reconnection", async () => {
+        const endpointUrl = server.getEndpointUrl();
+        const transportTimeout = 1234;
+        const client = OPCUAClient.create({
+            clientName: `2 test_e2e_1002`,
+            transportTimeout,
+            connectionStrategy: { maxRetry: 0 } // we don't want automatic reconnection => maxRetry = 0
+        });
+        client.on("backoff", () => console.log("keep trying", endpointUrl));
+        client.on("connection_lost", () => console.log("connection lost"));
+        client.on("connection_reestablished", () => console.log("connection_reestablished"));
+        const spyConnectionLost = sinon.spy();
+        const spyClose = sinon.spy();
+        const spyConnectionReestablished = sinon.spy();
+        client.on("connection_lost", spyConnectionLost);
+        client.on("close", spyClose);
+        client.on("connection_reestablished", spyConnectionReestablished);
+        const actualTimeout = await client.withSessionAsync(endpointUrl, async (_session) => {
+            const timeout = client._secureChannel?.getTransport().timeout;
+            const socket = client._secureChannel?.getTransport()._socket;
+            socket.on("timeout", () => console.log("socket timeout"));
+            console.log("timeout = ", timeout);
+            console.log("connected");
+            await new Promise((resolve) => setTimeout(resolve, transportTimeout + 4000));
+            console.log("done");
+            return timeout || 0;
+        });
+        actualTimeout.should.eql(transportTimeout);
+        spyConnectionLost.callCount.should.eql(1);
+        spyClose.callCount.should.eql(1);
+        spyConnectionReestablished.callCount.should.eql(0);
+    });
+    it("C- should be possible to set the transport timeout - with automatic reconnection", async () => {
+        const endpointUrl = server.getEndpointUrl();
+        const transportTimeout = 1000;
+        const client = OPCUAClient.create({
+            clientName: `3 test_e2e_1002`,
+            transportTimeout,
+            connectionStrategy: { maxRetry: 1 } // we WANT automatic reconnection => maxRetry <> 1
+        });
+        client.on("backoff", () => console.log("keep trying", endpointUrl));
+        client.on("connection_lost", () => console.log("connection lost"));
+        client.on("connection_reestablished", () => console.log("connection_reestablished"));
+        const spyConnectionLost = sinon.spy();
+        const spyClose = sinon.spy();
+        const spyConnectionReestablished = sinon.spy();
+        client.on("connection_lost", spyConnectionLost);
+        client.on("close", spyClose);
+        client.on("connection_reestablished", spyConnectionReestablished);
+        const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        const actualTimeout = await client.withSessionAsync(endpointUrl, async (_session) => {
+            const timeout = client._secureChannel?.getTransport().timeout;
+            const socket = client._secureChannel?.getTransport()._socket;
+            socket.on("timeout", () => console.log("socket timeout"));
+            console.log("timeout = ", timeout);
+            console.log("connected");
+            await wait(transportTimeout + 6890);
+            console.log("done");
+            return timeout || 0;
+        });
+        await wait(1000);
+        actualTimeout.should.eql(transportTimeout);
+        spyConnectionLost.callCount.should.be.greaterThan(1);
+        spyConnectionReestablished.callCount.should.be.greaterThan(1);
+        // it is possible that spyClose will not be called if we are not connected while disconnect is called
+        // spyClose.callCount.should.eql(1);
+        spyConnectionReestablished.callCount.should.be.greaterThan(1);
+    });
+});
+//# sourceMappingURL=test_e2e_1002.js.map

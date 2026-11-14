@@ -1,0 +1,223 @@
+import "should";
+import { AttributeIds, ClientMonitoredItem, coerceNodeId, DataType, MonitoringMode, MonitoringParameters, OPCUAClient, ReadValueId, resolveNodeId, StatusCodes, Subscription, TimestampsToReturn } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
+import { waitUntilCondition } from "../../test_helpers/utils.js";
+import { pause } from "../discovery/helpers/_helper.js";
+const doDebug = false;
+/**
+ * Monitoring scalability tests
+ * - Legacy test #69: ensure client can create and receive data changes for a modest list of nodes.
+ * - Stress test: create ~5000 monitored items via a single CreateMonitoredItems service call and verify
+ *   a raw notification arrives containing monitored item results (subject to maxNotificationsPerPublish rules).
+ * - Issue #1008 regression: invoke GetMonitoredItems method against the Server object.
+ *
+ * Converted from callback-based JavaScript to async/await TypeScript while keeping original intent/comments.
+ */
+export function t(test) {
+    describe("Monitoring many nodes", function () {
+        this.timeout(Math.max(60_000, this.timeout()));
+        let client;
+        let endpointUrl;
+        beforeEach(async () => {
+            if (global.gc) {
+                global.gc();
+            }
+            client = OPCUAClient.create({});
+            endpointUrl = test.endpointUrl;
+            client.on("lifetime_75", () => {
+                /* token about to expire */
+            });
+        });
+        afterEach(async () => {
+            if (client) {
+                await client.disconnect();
+            }
+            // @ts-expect-error
+            client = null;
+        });
+        it("monitors a small set of nodes (#69)", async () => {
+            const changeByNodes = {};
+            const ids = [
+                "Scalar_Simulation_Double",
+                "Scalar_Simulation_Boolean",
+                "Scalar_Simulation_String",
+                "Scalar_Simulation_Int64",
+                "Scalar_Simulation_LocalizedText"
+            ];
+            const makeCallback = (nodeIdStr) => () => {
+                changeByNodes[nodeIdStr] = (changeByNodes[nodeIdStr] || 0) + 1;
+            };
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 150,
+                    requestedLifetimeCount: 10 * 60 * 10,
+                    requestedMaxKeepAliveCount: 10,
+                    maxNotificationsPerPublish: 20000,
+                    publishingEnabled: true,
+                    priority: 6
+                });
+                try {
+                    for (const id of ids) {
+                        const nodeId = `ns=2;s=${id}`;
+                        const monitoredItem = await ClientMonitoredItem.create(subscription, { nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value }, { samplingInterval: 10, discardOldest: true, queueSize: 1 });
+                        monitoredItem.on("changed", makeCallback(nodeId));
+                    }
+                    await pause(3000);
+                }
+                finally {
+                    await subscription.terminate();
+                }
+            });
+            Object.keys(changeByNodes).length.should.eql(5);
+        });
+        // Base ID list reused to build up to ~5000 entries
+        const baseIds = [
+            "Scalar_Simulation_Double",
+            "Scalar_Simulation_Float",
+            "Scalar_Simulation_Boolean",
+            "Scalar_Simulation_String",
+            "Scalar_Simulation_Int64",
+            "Scalar_Simulation_Int32",
+            "Scalar_Simulation_Int16",
+            "Scalar_Simulation_SByte",
+            "Scalar_Simulation_UInt64",
+            "Scalar_Simulation_UInt32",
+            "Scalar_Simulation_UInt16",
+            "Scalar_Simulation_Byte",
+            "Scalar_Simulation_LocalizedText",
+            "Scalar_Simulation_ByteString",
+            "Scalar_Simulation_DateTime",
+            "Scalar_Simulation_Duration"
+        ];
+        function buildIdsList(target) {
+            let list = baseIds.slice();
+            while (list.length < target)
+                list = list.concat(baseIds);
+            return list.slice(0, target);
+        }
+        function makeItemsToMonitor(count) {
+            const ids = buildIdsList(count);
+            const itemsToMonitor = [];
+            const _clientHandle = 1;
+            for (const s of ids) {
+                const nodeId = `ns=2;s=${s}`;
+                const itemToMonitor = new ReadValueId({ attributeId: AttributeIds.Value, nodeId });
+                itemsToMonitor.push(itemToMonitor);
+            }
+            return itemsToMonitor;
+        }
+        function _makeItemsToCreate(count) {
+            const itemsToMonitor = makeItemsToMonitor(count);
+            const itemsToCreate = [];
+            let clientHandle = 1;
+            for (const itemToMonitor of itemsToMonitor) {
+                clientHandle++;
+                const monitoringParameters = new MonitoringParameters({
+                    clientHandle,
+                    samplingInterval: 100,
+                    filter: null,
+                    queueSize: 1,
+                    discardOldest: true
+                });
+                itemsToCreate.push({
+                    itemToMonitor,
+                    monitoringMode: MonitoringMode.Reporting,
+                    requestedParameters: monitoringParameters
+                });
+            }
+            return itemsToCreate;
+        }
+        it("monitors a very large number of nodes (~5000)", async () => {
+            // Use a longer transaction timeout for this stress test — under heavy
+            // load the server may take >15s to process 5000+ CreateMonitoredItems.
+            client = OPCUAClient.create({ defaultTransactionTimeout: 60_000 });
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const maxThatServerCanDo = Subscription.maxNotificationPerPublishHighLimit;
+                console.log(" maxThatServerCanDo =", maxThatServerCanDo);
+                const subscription = await session.createSubscription2({
+                    requestedPublishingInterval: 10,
+                    requestedLifetimeCount: 10 * 60 * 10,
+                    requestedMaxKeepAliveCount: 3,
+                    maxNotificationsPerPublish: 0, // unlimited requested : may be not honnored by server
+                    publishingEnabled: true,
+                    priority: 6
+                });
+                const notificationMessageSpy = sinon.spy();
+                subscription.on("received_notifications", notificationMessageSpy);
+                const rawNotifSpy = sinon.spy();
+                subscription.on("raw_notification", rawNotifSpy);
+                const keepAlive = sinon.spy();
+                subscription.on("keepalive", keepAlive);
+                subscription.on("keepalive", () => {
+                    doDebug && console.log("keepalive");
+                });
+                subscription.on("received_notifications", () => {
+                    doDebug && console.log("received notification");
+                });
+                try {
+                    const itemsToMonitor = makeItemsToMonitor(5000 + baseIds.length); // mimic original expansion logic
+                    const group = await subscription.monitorItems(itemsToMonitor, {
+                        discardOldest: false,
+                        filter: null,
+                        queueSize: 100,
+                        samplingInterval: 100
+                    }, TimestampsToReturn.Both);
+                    group.monitoredItems[0].statusCode.should.eql(StatusCodes.Good);
+                    group.monitoredItems[group.monitoredItems.length - 1].statusCode.should.eql(StatusCodes.Good);
+                    // wait for a raw notification to be received
+                    await waitUntilCondition(async () => notificationMessageSpy.callCount > +1, 5000, "expecting some raw notification");
+                    // Wait for the condition the assertions below are about: data received
+                    // for every monitored item.
+                    //
+                    // This used to wait for two keepalives instead, which made the test
+                    // depend on scheduler luck. A keepalive is only sent on a publish cycle
+                    // that has nothing to report, and 5000 items on continuously changing
+                    // Scalar_Simulation_* variables rarely leave one; keepalives only appear
+                    // in the gaps between simulation ticks. Anything that slows the backlog
+                    // down - c8's instrumentation, a loaded machine - fills those gaps, and
+                    // the 5s budget expired before a second keepalive ever arrived.
+                    const dataNotifications = () => notificationMessageSpy
+                        .getCalls()
+                        .map((call) => call.args[0])
+                        .filter((n) => n.notificationData.length > 0);
+                    const countReportedItems = () => dataNotifications().reduce((acc, n) => {
+                        const dataChangeNotification = n.notificationData?.[0];
+                        return acc + dataChangeNotification.monitoredItems.length;
+                    }, 0);
+                    await waitUntilCondition(async () => countReportedItems() >= itemsToMonitor.length, 30_000, "expecting data for all monitored items");
+                    const rawNotifs = dataNotifications();
+                    const totalItemsCreated = countReportedItems();
+                    rawNotifs.length.should.be.greaterThan(0, "expecting at least one notification with some data");
+                    totalItemsCreated.should.be.greaterThan(maxThatServerCanDo, "expecting at least one notification with some data");
+                    totalItemsCreated.should.greaterThanOrEqual(itemsToMonitor.length, "expecting to receive data for all monitored items");
+                }
+                finally {
+                    await subscription.terminate();
+                }
+            });
+        });
+        it("invokes GetMonitoredItems (issue #1008)", async () => {
+            const parameters = {
+                requestedPublishingInterval: 100,
+                requestedLifetimeCount: 10,
+                requestedMaxKeepAliveCount: 10,
+                maxNotificationsPerPublish: 6000,
+                publishingEnabled: true,
+                priority: 10
+            };
+            await client.withSubscriptionAsync(endpointUrl, parameters, async (session, subscription) => {
+                // Delay to allow subscription to settle
+                await new Promise((r) => setTimeout(r, 1000));
+                const objectId = coerceNodeId("ns=0;i=2253"); // Server
+                const methodId = coerceNodeId("ns=0;i=11492"); // GetMonitoredItems
+                const inputArguments = [{ dataType: DataType.UInt32, value: subscription.subscriptionId }];
+                const methodToCall = { objectId, methodId, inputArguments };
+                const result = await session.call(methodToCall);
+                result.statusCode.name.should.eql("Good");
+            });
+        });
+    });
+}
+//# sourceMappingURL=u_test_e2e_monitoring_large_number_of_nodes.js.map

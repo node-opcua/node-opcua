@@ -1,0 +1,298 @@
+import { types } from "node:util";
+import { AttributeIds, DataType, DataValue, OPCUAClient } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+import sinon from "sinon";
+export function t(test) {
+    describe("Testing Client Connection ", function () {
+        it("TCC1 - it should raise an error if connect is called with an empty endpoint", async () => {
+            const client = OPCUAClient.create({});
+            const closeSpy = sinon.spy();
+            client.on("close", closeSpy);
+            const empty_endpoint = "";
+            let _err = null;
+            try {
+                await client.connect(empty_endpoint);
+            }
+            catch (err) {
+                _err = err;
+            }
+            should.exist(_err, "expecting an error here");
+            should(_err?.message).match("Invalid endpoint");
+            closeSpy.callCount.should.eql(0);
+        });
+        it("TCC2 - it should raise an error if connect is called with an invalid endpoint", async () => {
+            const client = OPCUAClient.create({ connectionStrategy: { maxRetry: 0 } });
+            const closeSpy = sinon.spy();
+            client.on("close", closeSpy);
+            // Match TCC1's pattern: await the rejection ourselves and assert
+            // on the stable inner cause (the transport-layer error from
+            // `client_tcp_transport.ts`). Previously this test used
+            // `should.be.rejectedWith(...)` without `await`, which let mocha
+            // see the test as passed before the assertion's promise
+            // rejected — surfacing later as an unhandled rejection. The
+            // expected message was also stale; `client_base_impl.ts` wraps
+            // the underlying error as "The connection MAY have been rejected
+            // by server, Err = (…)" but the inner cause text is stable.
+            let _err = null;
+            try {
+                await client.connect("invalid-proto://test-host");
+            }
+            catch (err) {
+                _err = err;
+            }
+            should.exist(_err, "expecting an error here");
+            should(_err?.message).match(/this transport protocol is not supported/);
+            closeSpy.callCount.should.eql(0);
+        });
+        it("TCC3 - it should raise an error when connect is called while client is already connected", async () => {
+            const client = OPCUAClient.create({});
+            const closeSpy = sinon.spy();
+            client.on("close", closeSpy);
+            await client.connect(test.endpointUrl);
+            closeSpy.callCount.should.eql(0);
+            let _err;
+            try {
+                await client.connect(test.endpointUrl);
+            }
+            catch (err) {
+                _err = err;
+            }
+            finally {
+                closeSpy.callCount.should.eql(0);
+                await client.disconnect();
+            }
+            should.exist(_err, " ");
+            should(_err?.message).match(/invalid internal state = connected/);
+            closeSpy.callCount.should.eql(1);
+        });
+        it("TCC4 - it should raise an error when connect is called while client is currently connecting", async () => {
+            const client = OPCUAClient.create({});
+            const closeSpy = sinon.spy();
+            client.on("close", closeSpy);
+            const p1 = client.connect(test.endpointUrl);
+            let _err;
+            try {
+                await client.connect(test.endpointUrl);
+            }
+            catch (err) {
+                _err = err;
+            }
+            finally {
+                await p1;
+                closeSpy.callCount.should.eql(0);
+                await client.disconnect();
+                closeSpy.callCount.should.eql(1);
+            }
+            should.exist(_err, " ");
+            should(_err?.message).match(/invalid internal state = connecting/);
+            closeSpy.callCount.should.eql(1);
+        });
+        it("TCC5 - it should not raise an error if disconnect is called when client is not connected", async () => {
+            const client = OPCUAClient.create({});
+            const closeSpy = sinon.spy();
+            client.on("close", closeSpy);
+            await client.disconnect();
+            await client.disconnect();
+            closeSpy.callCount.should.eql(0);
+        });
+        it("TCC6 - it should not raise an error if disconnect is called twice ", async () => {
+            const client = OPCUAClient.create({});
+            const closeSpy = sinon.spy();
+            client.on("close", closeSpy);
+            await client.connect(test.endpointUrl);
+            closeSpy.callCount.should.eql(0);
+            const p1 = client.disconnect();
+            const p2 = client.disconnect();
+            await p2;
+            await p1;
+            closeSpy.callCount.should.eql(1);
+        });
+        it("TCC7 - it should  raise an warning if sessionTimeout are not compatible with subscription parameters", async () => {
+            const client = OPCUAClient.create({
+                requestedSessionTimeout: 1000
+            });
+            await client.connect(test.endpointUrl);
+            const session = await client.createSession();
+            try {
+                const _subscription = await session.createSubscription2({
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: true,
+                    requestedLifetimeCount: 100,
+                    requestedMaxKeepAliveCount: 100,
+                    requestedPublishingInterval: 1000
+                });
+            }
+            catch (err) {
+                if (types.isNativeError(err)) {
+                    // [NODE-OPCUA-W09] The subscription parameters are not compatible with the session timeout
+                    err.message.should.match(/\[NODE-OPCUA-W09\]/);
+                    console.log(err.message);
+                }
+            }
+            await session.close();
+            await client.disconnect();
+        });
+        it("TCC8 - should abort automatic reconnection if client use special transport settings that are too restrictive", async () => {
+            // given a client with a ridiculously small message buffer size
+            const client = OPCUAClient.create({
+                requestedSessionTimeout: 1000,
+                transportSettings: {
+                    maxChunkCount: 1, // ridiculously small max chunk count
+                    maxMessageSize: 1 * 8192, // should be at least 8192
+                    receiveBufferSize: 8192,
+                    sendBufferSize: 8192
+                },
+                connectionStrategy: {
+                    initialDelay: 10,
+                    maxDelay: 100,
+                    maxRetry: -1
+                }
+            });
+            // When I try to connect to the server
+            let _err;
+            try {
+                await client.connect(test.endpointUrl);
+            }
+            catch (err) {
+                _err = err;
+            }
+            // Then the client should fail gracefully to connect
+            // it should not try to match the reconnection strategy because
+            // it is worthless keeping trying to reconnect with such TcpMessage error message
+            should.exist(_err);
+            // and should return BadTcpMessageTooLarge message
+            should(_err?.message).match(/The connection may have been rejected by server|BadTcpMessageTooLarge|max chunk count exceeded|received an Abort Message/);
+            await client.disconnect();
+            console.log("Disconnected !");
+        });
+        it("TCC9 - write a very large message ", async () => {
+            // given a client with correct transport settings
+            const client = OPCUAClient.create({
+                // use a very large transaction timeout so it does not interfere with the debuggers
+                defaultTransactionTimeout: 1 * 60 * 60 * 1000,
+                requestedSessionTimeout: 1 * 60 * 60 * 1000,
+                transportSettings: {
+                    maxChunkCount: 16,
+                    maxMessageSize: 3 * 8192, // should be at least 8192
+                    receiveBufferSize: 1 * 8192,
+                    sendBufferSize: 1 * 8192
+                },
+                connectionStrategy: {
+                    initialDelay: 10,
+                    maxDelay: 100,
+                    maxRetry: -1
+                }
+            });
+            function makeLargeDataWrite() {
+                const value = new DataValue({
+                    value: {
+                        dataType: DataType.ByteString,
+                        value: Buffer.alloc(4 * 8192)
+                    }
+                });
+                const nodeId = "ns=2;s=Static_Scalar_ByteString";
+                const nodesToWrite = [
+                    { nodeId, attributeId: AttributeIds.Value, value },
+                    { nodeId, attributeId: AttributeIds.Value, value },
+                    { nodeId, attributeId: AttributeIds.Value, value },
+                    { nodeId, attributeId: AttributeIds.Value, value }
+                ];
+                return nodesToWrite;
+            }
+            const nodesToWrite = makeLargeDataWrite();
+            let _err;
+            await client.withSessionAsync(test.endpointUrl, async (session) => {
+                try {
+                    const _statusCode = await session.write(nodesToWrite);
+                }
+                catch (err) {
+                    console.log(err);
+                    _err = err;
+                    console.log(_err.message);
+                }
+            });
+            should.exist(_err);
+            const errResponse = _err.response;
+            console.log("err.response", errResponse.toString());
+            should(errResponse?.responseHeader?.stringTable?.[0]).match(/BadTcpMessageTooLarge/);
+        });
+        const immenseWriteNoProblem = async (nodeId) => {
+            const client = OPCUAClient.create({
+                transportSettings: {
+                    maxChunkCount: 1000,
+                    maxMessageSize: 1000 * 8192, // should be at least 8192
+                    receiveBufferSize: 1 * 8192,
+                    sendBufferSize: 1 * 8192
+                }
+            });
+            function makeSingleLargeDataWrite() {
+                const value = new DataValue({
+                    value: {
+                        dataType: DataType.ByteString,
+                        value: Buffer.alloc(100 * 8192)
+                    }
+                });
+                const nodesToWrite = [{ nodeId, attributeId: AttributeIds.Value, value }];
+                return nodesToWrite;
+            }
+            const nodesToWrite = makeSingleLargeDataWrite();
+            await client.withSessionAsync(test.endpointUrl, async (session) => {
+                const statusCode = await session.write(nodesToWrite);
+                console.log("statusCode", statusCode.toString());
+            });
+        };
+        it("TCCA - read a very large message - server send ServerFault instead of ReadResponse", async () => {
+            const nodeId = "ns=2;s=Static_Scalar_ByteString";
+            await immenseWriteNoProblem(nodeId);
+            // given a client with correct transport settings
+            const client = OPCUAClient.create({
+                requestedSessionTimeout: 1000,
+                transportSettings: {
+                    maxChunkCount: 20, // relatively small max chunk count to allow connection but fail large read, on the return of the read request
+                    maxMessageSize: 200 * 8192, //  very comfortable size
+                    receiveBufferSize: 10 * 8192,
+                    sendBufferSize: 10 * 8192
+                },
+                connectionStrategy: {
+                    initialDelay: 10,
+                    maxDelay: 100,
+                    maxRetry: -1
+                }
+            });
+            function makeLargeDataRead() {
+                const nodesToRead = [
+                    { nodeId, attributeId: AttributeIds.Value },
+                    { nodeId, attributeId: AttributeIds.Value },
+                    { nodeId, attributeId: AttributeIds.Value },
+                    { nodeId, attributeId: AttributeIds.Value },
+                    { nodeId, attributeId: AttributeIds.Value },
+                    { nodeId, attributeId: AttributeIds.Value },
+                    { nodeId, attributeId: AttributeIds.Value },
+                    { nodeId, attributeId: AttributeIds.Value },
+                    { nodeId, attributeId: AttributeIds.Value },
+                    { nodeId, attributeId: AttributeIds.Value },
+                    { nodeId, attributeId: AttributeIds.Value },
+                    { nodeId, attributeId: AttributeIds.Value },
+                    { nodeId, attributeId: AttributeIds.Value }
+                ];
+                return nodesToRead;
+            }
+            const nodesToRead = makeLargeDataRead();
+            let _err;
+            await client.withSessionAsync(test.endpointUrl, async (session) => {
+                try {
+                    const _dataValues = await session.read(nodesToRead);
+                }
+                catch (err) {
+                    console.log(err);
+                    _err = err;
+                    console.log(_err.message);
+                }
+            });
+            should.exist(_err);
+            should(_err?.message).match(/BadOperationAbandoned|BadTcpMessageTooLarge/);
+        });
+    });
+}
+//# sourceMappingURL=u_test_e2e_client.js.map

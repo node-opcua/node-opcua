@@ -1,0 +1,104 @@
+import { AttributeIds, ClientMonitoredItem, ClientSubscription, OPCUAClient, ServerSession, StatusCodes, TimestampsToReturn } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+/**
+ * Issue #195 tests
+ * A: Client detects server max pending publish requests limit and adapts.
+ * B: Client handles session close (simulated here) and can transfer old subscription to new session.
+ */
+export function t(test) {
+    describe("Issue #195 publish request throttling & session recovery", () => {
+        it("195-A detects server max pending publish requests", async () => {
+            const server = test.server;
+            if (!server)
+                return;
+            const client = OPCUAClient.create({ requestedSessionTimeout: 120 * 60 * 1000, keepSessionAlive: false });
+            const endpointUrl = test.endpointUrl;
+            let session;
+            const oldValue = ServerSession.maxPublishRequestInQueue;
+            oldValue.should.be.greaterThan(20);
+            ServerSession.maxPublishRequestInQueue = 10; // constrain
+            async function createSubscription() {
+                // create subscription
+                const parameters = {
+                    requestedPublishingInterval: 10000,
+                    requestedLifetimeCount: 60,
+                    requestedMaxKeepAliveCount: 10
+                };
+                ClientSubscription.ignoreNextWarning = true;
+                const subscription = ClientSubscription.create(session, parameters);
+                await new Promise((resolve) => subscription.on("started", () => resolve()));
+                subscription.on("internal_error", (_err) => {
+                    // console.error("internal_error", err.message);
+                });
+                subscription.on("keepalive", () => {
+                    // console.log("keepalive - pending=", (subscription as any).publish_engine.nbPendingPublishRequests);
+                });
+                // monitored item to activate publish flow
+                const nodeIdToMonitor = "ns=0;i=2257"; // Server_ServerStatus_StartTime
+                const mi = ClientMonitoredItem.create(subscription, { nodeId: nodeIdToMonitor, attributeId: AttributeIds.Value }, { samplingInterval: 1000, discardOldest: true, queueSize: 100 }, TimestampsToReturn.Both);
+                await new Promise((resolve) => mi.on("initialized", () => resolve()));
+                return subscription;
+            }
+            try {
+                await client.connect(endpointUrl);
+                session = (await client.createSession());
+                session.getPublishEngine().nbMaxPublishRequestsAcceptedByServer.should.be.greaterThan(100);
+                await createSubscription();
+                await createSubscription();
+                await createSubscription();
+                await createSubscription();
+                await createSubscription();
+                // After multiple subscriptions, client should have learned reduced server limit
+                session.getPublishEngine().nbMaxPublishRequestsAcceptedByServer.should.eql(10);
+            }
+            finally {
+                ServerSession.maxPublishRequestInQueue = oldValue;
+                if (session) {
+                    await session.close();
+                }
+                await client.disconnect();
+            }
+        });
+        it("195-B detects session closed and transfers subscription", async () => {
+            const server = test.server;
+            if (!server)
+                return;
+            const client = OPCUAClient.create({ requestedSessionTimeout: 2500, keepSessionAlive: false });
+            const endpointUrl = test.endpointUrl;
+            await client.connect(endpointUrl);
+            let session = await client.createSession();
+            // Create long-lived subscription whose keep-alive exceeds session timeout
+            const subParams = {
+                requestedPublishingInterval: 1000,
+                requestedLifetimeCount: 100000,
+                requestedMaxKeepAliveCount: 1000
+            };
+            ClientSubscription.ignoreNextWarning = true;
+            const subscription = ClientSubscription.create(session, subParams);
+            await new Promise((resolve) => subscription.on("started", () => resolve()));
+            const expectedKeepAliveMillis = subscription.publishingInterval * subscription.maxKeepAliveCount;
+            expectedKeepAliveMillis.should.be.greaterThan(session.timeout);
+            // Create monitored item
+            const mi = ClientMonitoredItem.create(subscription, { nodeId: "ns=0;i=2257", attributeId: AttributeIds.Value }, { samplingInterval: 1000, discardOldest: true, queueSize: 100 }, TimestampsToReturn.Both);
+            await new Promise((resolve) => mi.on("initialized", () => resolve()));
+            const subscriptionId = subscription.subscriptionId;
+            (typeof subscriptionId).should.eql("number");
+            // Simulate closure (original test actively closed session)
+            await new Promise((resolve) => session.close(false, () => resolve()));
+            // Re-create session and transfer subscription
+            session = await client.createSession();
+            const transferResponse = await new Promise((resolve, reject) => {
+                session.transferSubscriptions({ subscriptionIds: [subscriptionId] }, (err, response) => {
+                    if (err)
+                        return reject(err);
+                    resolve(response);
+                });
+            });
+            should(transferResponse.results?.[0].statusCode).eql(StatusCodes.Good);
+            await session.close();
+            await client.disconnect();
+        });
+    });
+}
+//# sourceMappingURL=u_test_e2e_issue_195.js.map

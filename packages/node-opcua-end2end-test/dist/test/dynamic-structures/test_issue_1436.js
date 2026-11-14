@@ -1,0 +1,61 @@
+import path from "node:path";
+import { AttributeIds, MessageSecurityMode, nodesets, OPCUAClient, OPCUAServer, SecurityPolicy, UserTokenType } from "node-opcua";
+import { OpaqueStructure } from "node-opcua-extension-object";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { packagePath } from "node-opcua-test-helpers";
+const port = 2024; // use a unit port number to allow test serialization
+describe("issue_1436", function () {
+    this.timeout(50 * 1000);
+    let server;
+    before(async () => {
+        const fixtureFolder = packagePath("node-opcua-address-space", "test_helpers", "test_fixtures", "fixtures-for-1436");
+        const serverOptions = {
+            port,
+            nodeset_filename: [
+                nodesets.standard,
+                path.join(fixtureFolder, "test_issue_1436_base.xml"),
+                path.join(fixtureFolder, "test_issue_1436_dependent.xml"),
+                path.join(fixtureFolder, "test_issue_1436_server.xml")
+            ],
+            securityPolicies: [SecurityPolicy.None],
+            securityModes: [MessageSecurityMode.None]
+        };
+        server = new OPCUAServer(serverOptions);
+        await server.initialize();
+        await server.start();
+    });
+    after(async () => {
+        await server.shutdown();
+    });
+    it("should correctly handle 1.04 servers when handling structs which depend on multiple namespaces", async () => {
+        const clientOptions = {
+            endpointMustExist: false,
+            connectionStrategy: {
+                maxRetry: 2,
+                initialDelay: 250,
+                maxDelay: 500
+            }
+        };
+        const endpoint = {
+            endpointUrl: `opc.tcp://localhost:${port}`,
+            userIdentity: {
+                type: UserTokenType.Anonymous
+            }
+        };
+        // read struct with client
+        const client = OPCUAClient.create(clientOptions);
+        await client.withSessionAsync(endpoint, async (session) => {
+            const result = await session.read({
+                nodeId: "ns=4;i=6001", // Read variable of data type structure which contains a structure from a dependent namespace.
+                attributeId: AttributeIds.Value
+            });
+            if (result.statusCode.isBad() || !result.value.value) {
+                throw new Error("Error while reading node.");
+            }
+            if (result.value.value instanceof OpaqueStructure) {
+                throw new Error("Structure with substructure from dependent namespace could not be decoded right.");
+            }
+        });
+    });
+});
+//# sourceMappingURL=test_issue_1436.js.map

@@ -1,0 +1,74 @@
+import os from "node:os";
+import { OPCUAClient, OPCUAServer } from "node-opcua";
+import should from "should";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager.js";
+const _should = should;
+const port = 2004;
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+describe("Verifying Server Endpoint", () => {
+    let server;
+    let endpointUri = `opc.tcp://${os.hostname()}:${port}`;
+    before(async () => {
+        const serverCertificateManager = await createServerCertificateManager(port);
+        server = new OPCUAServer({ port, serverCertificateManager });
+        await server.initialize();
+        await server.start();
+        endpointUri = server.getEndpointUrl();
+    });
+    after(async () => {
+        await server.shutdown();
+    });
+    it("should not have duplicated policies inside a single endpoint", async () => {
+        // given a server
+        const client = OPCUAClient.create({ endpointMustExist: false });
+        await client.connect(endpointUri);
+        const endpointDescriptions = await client.getEndpoints();
+        try {
+            for (const e of endpointDescriptions) {
+                // console.log(e.toString());
+                const policyIds = e.userIdentityTokens?.map((a) => a.policyId);
+                const counters = {};
+                policyIds?.forEach((a) => {
+                    counters[a] = (counters[a] || 0) + 1;
+                });
+                const duplicatedPolicies = Object.entries(counters)
+                    .filter(([_k, v]) => v !== 1)
+                    .map(([k, _v]) => k);
+                if (duplicatedPolicies.length) {
+                    console.log("duplicated policies", duplicatedPolicies);
+                }
+                duplicatedPolicies.should.eql([], `endpoint ${e.securityPolicyUri} must not exhibit duplicated policies`);
+            }
+        }
+        finally {
+            await client.disconnect();
+        }
+    });
+    it("should not have duplicated policies within the server", async () => {
+        // given a server
+        const client = OPCUAClient.create({ endpointMustExist: false });
+        await client.connect(endpointUri);
+        const endpointDescriptions = await client.getEndpoints();
+        try {
+            const counters = {};
+            for (const e of endpointDescriptions) {
+                // console.log(e.toString());
+                const policyIds = e.userIdentityTokens?.map((a) => a.policyId);
+                policyIds?.forEach((a) => {
+                    counters[a] = (counters[a] || 0) + 1;
+                });
+            }
+            const duplicatedPolicies = Object.entries(counters)
+                .filter(([_k, v]) => v !== 1)
+                .map(([k, _v]) => k);
+            if (duplicatedPolicies.length) {
+                console.log("duplicated policies", duplicatedPolicies);
+            }
+            duplicatedPolicies.should.eql([], "duplicated policies found");
+        }
+        finally {
+            await client.disconnect();
+        }
+    });
+});
+//# sourceMappingURL=test_verify_end_points.js.map

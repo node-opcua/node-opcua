@@ -1,0 +1,108 @@
+import os from "node:os";
+import { DataType, DiagnosticInfo, OPCUAClient, OPCUAServer, StatusCodes } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+describe("list status codes for input arguments", () => {
+    const port = 2002;
+    const server = new OPCUAServer({
+        port
+    });
+    const client = OPCUAClient.create({
+        endpointMustExist: false
+    });
+    let clientSession;
+    before(async () => {
+        await server.initialize();
+        const addressSpace = server.engine.addressSpace;
+        const namespace = addressSpace.getOwnNamespace();
+        const folder = namespace.addFolder(addressSpace.rootFolder.objects, {
+            browseName: "e2e",
+            nodeId: "ns=1;s=e2e"
+        });
+        namespace
+            .addMethod(folder, {
+            browseName: "RingDoor",
+            nodeId: "ns=1;s=RingDoor",
+            inputArguments: [{ dataType: DataType.UInt16, name: "times" }]
+        })
+            .bindMethod((inputArguments, _context, callback) => {
+            if (inputArguments[0].value === 0) {
+                return callback(null, {
+                    statusCode: StatusCodes.BadInvalidArgument
+                });
+            }
+            if (inputArguments[0].value > 9) {
+                return callback(null, {
+                    statusCode: StatusCodes.BadInvalidArgument,
+                    inputArgumentResults: [StatusCodes.BadOutOfRange],
+                    inputArgumentDiagnosticInfos: [new DiagnosticInfo({ additionalInfo: "Hey dude, stop ringing the door" })]
+                });
+            }
+            if (inputArguments[0].value > 3) {
+                return callback(null, {
+                    statusCode: StatusCodes.BadInvalidArgument,
+                    inputArgumentResults: [StatusCodes.BadOutOfRange]
+                });
+            }
+            callback(null, { statusCode: StatusCodes.Good, inputArgumentResults: [StatusCodes.Good] });
+        });
+        await server.start();
+        await client.connect(`opc.tcp://${os.hostname()}:${port}/UA/NodeOPCUA`);
+        clientSession = await client.createSession();
+    });
+    after(async () => {
+        await clientSession.close();
+        await client.disconnect();
+        await server.shutdown();
+    });
+    it("should return no error", async () => {
+        const result = await clientSession.call({
+            objectId: "ns=1;s=e2e",
+            methodId: "ns=1;s=RingDoor",
+            inputArguments: [{ dataType: DataType.UInt16, value: 1 }]
+        });
+        result.statusCode.should.eql(StatusCodes.Good);
+        should(result.inputArgumentResults?.[0]).eql(StatusCodes.Good);
+    });
+    it("should return BadInvalidArgument with a lib generated BadTypeMismatch on the argument if its type is wrong", async () => {
+        const result = await clientSession.call({
+            objectId: "ns=1;s=e2e",
+            methodId: "ns=1;s=RingDoor",
+            inputArguments: [{ dataType: DataType.UInt32, value: 1 }]
+        });
+        // OPC 10000-4 v1.05.07 §5.12.2: the operation reports BadInvalidArgument, inputArgumentResults says why
+        result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
+        should(result.inputArgumentResults?.[0]).eql(StatusCodes.BadTypeMismatch);
+    });
+    it("should return custom error", async () => {
+        const result = await clientSession.call({
+            objectId: "ns=1;s=e2e",
+            methodId: "ns=1;s=RingDoor",
+            inputArguments: [{ dataType: DataType.UInt16, value: 4 }]
+        });
+        result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
+        should(result.inputArgumentResults?.[0]).eql(StatusCodes.BadOutOfRange);
+    });
+    it("should return default status code good if no custom status code is provided for input argument result", async () => {
+        const result = await clientSession.call({
+            objectId: "ns=1;s=e2e",
+            methodId: "ns=1;s=RingDoor",
+            inputArguments: [{ dataType: DataType.UInt16, value: 0 }]
+        });
+        result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
+        should(result.inputArgumentResults?.[0]).eql(StatusCodes.Good);
+    });
+    it("should return custom diagnostic infos", async () => {
+        const result = await clientSession.call({
+            objectId: "ns=1;s=e2e",
+            methodId: "ns=1;s=RingDoor",
+            inputArguments: [{ dataType: DataType.UInt16, value: 10 }]
+        });
+        result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
+        should(result.inputArgumentResults?.[0]).eql(StatusCodes.BadOutOfRange);
+        should.exist(result.inputArgumentDiagnosticInfos);
+        should.exist(result.inputArgumentDiagnosticInfos?.[0]);
+        should(result.inputArgumentDiagnosticInfos?.[0]?.additionalInfo).eql("Hey dude, stop ringing the door");
+    });
+});
+//# sourceMappingURL=test_e2e_UaMethodInputArgsResult.js.map

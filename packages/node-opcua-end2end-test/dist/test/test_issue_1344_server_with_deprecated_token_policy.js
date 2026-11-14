@@ -1,0 +1,79 @@
+import { ActivateSessionRequest, MessageSecurityMode, OPCUAClient, OPCUAServer, SecurityPolicy, UserTokenPolicy, UserTokenType } from "node-opcua";
+import should from "should";
+const port = 2242;
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+describe("issue #1334 - client should avoid using userToken that have deprecated security policy like 192Rsa256 ", () => {
+    const buildSecureServer = async () => {
+        const server = new OPCUAServer({
+            port,
+            userManager: {
+                isValidUser: (userName, password) => {
+                    return userName === "user" && password === "password";
+                }
+            },
+            securityModes: [MessageSecurityMode.SignAndEncrypt],
+            securityPolicies: [SecurityPolicy.Basic256Sha256]
+        });
+        await server.initialize();
+        const endpoints = server.findMatchingEndpoints();
+        const encryptedEndpoint = endpoints.find((e) => e.securityMode === MessageSecurityMode.SignAndEncrypt);
+        // reproduce what S7 1500 will provide
+        encryptedEndpoint.userIdentityTokens = [
+            new UserTokenPolicy({
+                policyId: "UserName_Basic128Rsa15_Token",
+                tokenType: UserTokenType.UserName,
+                issuedTokenType: null,
+                securityPolicyUri: SecurityPolicy.Basic128Rsa15
+            }),
+            new UserTokenPolicy({
+                policyId: "UserName_Basic256_Token",
+                tokenType: UserTokenType.UserName,
+                issuedTokenType: null,
+                securityPolicyUri: SecurityPolicy.Basic256
+            }),
+            new UserTokenPolicy({
+                policyId: "UserName_Basic256Sha256_Token",
+                tokenType: UserTokenType.UserName,
+                issuedTokenType: null,
+                securityPolicyUri: SecurityPolicy.Basic256Sha256
+            })
+        ];
+        console.log(encryptedEndpoint.userIdentityTokens?.map((x) => x.toString()).join("\n"));
+        await server.start();
+        return server;
+    };
+    let server;
+    before(async () => {
+        server = await buildSecureServer();
+    });
+    after(async () => {
+        await server.shutdown();
+    });
+    it("OPCUAClient should avoid using deprecated securityPolicy for identity tokens ", async () => {
+        const client = OPCUAClient.create({
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic256Sha256
+        });
+        await client.connect(server.getEndpointUrl());
+        let activeSessionRequest;
+        client.on("send_request", (message) => {
+            if (message instanceof ActivateSessionRequest) {
+                activeSessionRequest = message;
+                console.log(message.toString());
+            }
+        });
+        const session = await client.createSession({
+            type: UserTokenType.UserName,
+            userName: "user",
+            password: "password"
+        });
+        await session.close();
+        await client.disconnect();
+        if (!activeSessionRequest) {
+            throw new Error("expecting activeSessionRequest to have been captured");
+        }
+        const userToken = activeSessionRequest.userIdentityToken;
+        should(userToken.policyId).eql("UserName_Basic256Sha256_Token");
+    });
+});
+//# sourceMappingURL=test_issue_1344_server_with_deprecated_token_policy.js.map

@@ -1,0 +1,104 @@
+import "should";
+import { ClientSubscription, DataValue, MessageSecurityMode, OPCUAClient, ReadRequest, SecurityPolicy, TimestampsToReturn } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import Sinon from "sinon";
+import { assertThrow } from "../../test_helpers/assert_throw.js";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
+const securityMode = MessageSecurityMode.None;
+const securityPolicy = SecurityPolicy.None;
+export function t(test) {
+    describe("Testing bug #141 - Client publish timeoutHint and timed_out_request event", () => {
+        const options = {
+            securityMode,
+            securityPolicy,
+            // biome-ignore lint/suspicious/noExplicitAny: explicit null forces "fetch via GetEndpoints"; the option type only declares undefined
+            serverCertificate: null,
+            requestedSessionTimeout: 20000
+        };
+        let client;
+        let endpointUrl;
+        let server;
+        beforeEach(() => {
+            client = OPCUAClient.create(options);
+            endpointUrl = test.endpointUrl;
+            server = test.server;
+        });
+        afterEach(async () => {
+            if (client)
+                await client.disconnect();
+            // @ts-expect-error
+            client = null;
+        });
+        it("#141-A PublishRequest timeoutHint shall exceed keepalive gap", async function () {
+            // wait until at least 2 keepalives have been observed (proves the gap is
+            // sustainable across multiple cycles), with a generous safety timeout so a
+            // slow/loaded CI runner doesn't fail on a single missed keepalive window
+            this.timeout(90000);
+            const targetKeepaliveCount = 2;
+            const safetyTimeout = 60000;
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const subscription = ClientSubscription.create(session, {
+                    requestedPublishingInterval: 6000,
+                    requestedMaxKeepAliveCount: 2,
+                    requestedLifetimeCount: 12,
+                    maxNotificationsPerPublish: 10,
+                    publishingEnabled: true,
+                    priority: 10
+                });
+                let keepaliveCounter = 0;
+                await new Promise((resolve, reject) => {
+                    const to = setTimeout(() => resolve(), safetyTimeout);
+                    subscription.on("keepalive", () => {
+                        keepaliveCounter++;
+                        if (keepaliveCounter >= targetKeepaliveCount) {
+                            clearTimeout(to);
+                            resolve();
+                        }
+                    });
+                    subscription.on("internal_error", (err) => {
+                        clearTimeout(to);
+                        reject(err);
+                    });
+                    subscription.on("terminated", () => {
+                        /* ignore */
+                    });
+                });
+                await new Promise((r) => subscription.terminate(r));
+                keepaliveCounter.should.be.aboveOrEqual(targetKeepaliveCount);
+                client.timedOutRequestCount.should.eql(0);
+            });
+        });
+        it("#141-B client emits timed_out_request when request timeoutHint exhausted", async () => {
+            const node = server.engine.addressSpace.getOwnNamespace().addVariable({
+                browseName: "MySlowVariable",
+                dataType: "Int32",
+                value: {
+                    refreshFunc: (callback) => {
+                        const longTime = 10000; // simulate slow read
+                        setTimeout(() => {
+                            callback(null, new DataValue({
+                                value: { value: 10, dataType: "Int32" },
+                                sourceTimestamp: new Date()
+                            }));
+                        }, longTime);
+                    }
+                }
+            });
+            await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+                const time_out_request_spy = Sinon.spy();
+                client.once("timed_out_request", time_out_request_spy);
+                await assertThrow(async () => {
+                    const request = new ReadRequest({
+                        nodesToRead: [{ nodeId: node.nodeId, attributeId: 13 }],
+                        timestampsToReturn: TimestampsToReturn.Neither
+                    });
+                    request.requestHeader.timeoutHint = 10; // very short
+                    await session.performMessageTransaction(request);
+                }, /Transaction has timed out/);
+                time_out_request_spy.callCount.should.eql(1, "expecting a single timed_out_request event");
+                client.timedOutRequestCount.should.eql(1);
+            });
+        });
+    });
+}
+//# sourceMappingURL=u_test_e2e_issue_141.js.map

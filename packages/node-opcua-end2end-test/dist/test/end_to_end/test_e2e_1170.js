@@ -1,0 +1,31 @@
+import { OPCUAClient, OPCUAServer } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+describe("Testing bug #1170", () => {
+    const port = 1170;
+    let server;
+    let endpointUrl;
+    before(async () => {
+        server = new OPCUAServer({
+            port,
+            serverInfo: {
+                productUri: "Mini NodeOPCUA-Server"
+            }
+        });
+        await server.start();
+        endpointUrl = server.getEndpointUrl();
+    });
+    after(async () => {
+        await server.shutdown();
+    });
+    it("server createSession should expose endpoints with correct productURI", async () => {
+        const client = OPCUAClient.create({
+            clientName: `1 test_e2e_1170`
+        });
+        const serverEndpoints = await client.withSessionAsync(endpointUrl, async (session) => {
+            return session.serverEndpoints;
+        });
+        should(serverEndpoints[0].server.productUri).eql("Mini NodeOPCUA-Server");
+    });
+});
+//# sourceMappingURL=test_e2e_1170.js.map

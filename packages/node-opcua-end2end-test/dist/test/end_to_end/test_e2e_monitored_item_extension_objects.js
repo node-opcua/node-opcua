@@ -1,0 +1,242 @@
+import { AttributeIds, ClientMonitoredItem, constructEventFilter, DataType, DataValue, nodesets, OPCUAClient, OPCUAServer, resolveNodeId, TimestampsToReturn, VariantArrayType } from "node-opcua";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import should from "should";
+import sinon from "sinon";
+const debugLog = make_debugLog("TEST");
+const _doDebug = checkDebugFlag("TEST");
+const _should = should;
+const port = 2228;
+let endpointUrl;
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", () => {
+    let nodeId;
+    let scanResultNode;
+    const server = new OPCUAServer({
+        port,
+        nodeset_filename: [nodesets.standard, nodesets.di, nodesets.autoId]
+    });
+    function raiseRfidScanEvent() {
+        const addressSpace = server.engine.addressSpace;
+        if (!addressSpace) {
+            throw new Error("addressSpace should be initialized");
+        }
+        const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
+        const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId);
+        if (!rfidScanResultDataTypeNode) {
+            throw new Error("cannot find RfidScanResult");
+        }
+        const rfidScanEventType = addressSpace.findEventType("RfidScanEventType", nsAutoId);
+        if (!rfidScanEventType) {
+            throw new Error("cannot find RfidScanEventType");
+        }
+        const scanResult = addressSpace.constructExtensionObject(rfidScanResultDataTypeNode, {
+            // ScanResult
+            scanData: {
+                epc: {
+                    pC: Math.ceil(Math.random() * 100),
+                    uId: Buffer.from("Hello"),
+                    xpC_W1: Math.ceil(Math.random() * 100),
+                    xpC_W2: Math.ceil(Math.random() * 100)
+                }
+            },
+            timestamp: new Date(2018, 11, 23),
+            location: {
+                local: {
+                    x: 100,
+                    y: 200,
+                    z: 300,
+                    timestamp: new Date(),
+                    dilutionOfPrecision: Math.random(),
+                    usefulPrecicision: 2 // <<!!!! Note the TYPO HERE ! Bug in AutoID.XML !
+                }
+            }
+        });
+        const s = addressSpace.rootFolder.objects.server;
+        s.raiseEvent(rfidScanEventType, {
+            scanResult: {
+                dataType: DataType.ExtensionObject,
+                value: scanResult
+            }
+        });
+        debugLog("Event raised");
+    }
+    before(async () => {
+        await server.initialize();
+        const addressSpace = server.engine.addressSpace;
+        const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
+        const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId);
+        if (!rfidScanResultDataTypeNode) {
+            throw new Error("cannot find RfidScanResult");
+        }
+        const namespace = addressSpace.getOwnNamespace();
+        const scanResult = addressSpace.constructExtensionObject(rfidScanResultDataTypeNode, {
+            // ScanResult
+            scanData: {
+                epc: {
+                    pC: 12,
+                    uId: Buffer.from("Hello"),
+                    xpC_W1: 10,
+                    xpC_W2: 12
+                }
+            },
+            timestamp: new Date(2018, 11, 23),
+            location: {
+                local: {
+                    x: 100,
+                    y: 200,
+                    z: 300,
+                    timestamp: new Date(),
+                    dilutionOfPrecision: 0.01,
+                    usefulPrecicision: 2 // <<!!!! Note the TYPO HERE ! Bug in AutoID.XML !
+                }
+            }
+        });
+        scanResultNode = namespace.addVariable({
+            browseName: "Result",
+            dataType: rfidScanResultDataTypeNode,
+            valueRank: -1,
+            organizedBy: addressSpace.rootFolder.objects,
+            value: { dataType: DataType.ExtensionObject, value: scanResult },
+            minimumSamplingInterval: -1
+        });
+        scanResultNode.setValueFromSource({
+            arrayType: VariantArrayType.Scalar,
+            dataType: DataType.ExtensionObject,
+            value: scanResult
+        });
+        nodeId = scanResultNode.nodeId;
+        await server.start();
+        endpointUrl = server.getEndpointUrl();
+    });
+    after(async () => {
+        await server.shutdown();
+    });
+    const publishingInterval = 500;
+    it("MIEO-1 - a client should not receive opaque structure when monitoring extension objects", async () => {
+        const client = OPCUAClient.create({
+            requestedSessionTimeout: 10000000,
+            endpointMustExist: false
+        });
+        const subscriptionParameters = {
+            publishingEnabled: true,
+            requestedLifetimeCount: 10000,
+            requestedMaxKeepAliveCount: 100,
+            requestedPublishingInterval: publishingInterval
+        };
+        await client.withSubscriptionAsync(endpointUrl, subscriptionParameters, async (_session, subscription) => {
+            try {
+                const itemToMonitor = {
+                    attributeId: AttributeIds.Value,
+                    nodeId
+                };
+                const parameters = {
+                    queueSize: 10,
+                    samplingInterval: 100
+                };
+                const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, parameters, TimestampsToReturn.Both);
+                const changedSpy = sinon.spy();
+                monitoredItem.on("changed", changedSpy);
+                monitoredItem.on("err", (message) => {
+                    debugLog("Error", message);
+                });
+                monitoredItem.on("changed", (_dataValue) => {
+                    debugLog("."); //dataValue.toJSON());
+                });
+                await new Promise((resolve) => {
+                    // subscription.on("item_added",function(monitoredItem){
+                    monitoredItem.on("initialized", () => {
+                        debugLog(" Initialized !");
+                        resolve();
+                    });
+                });
+                await new Promise((resolve) => monitoredItem.once("changed", () => resolve()));
+                debugLog("changedSpy = ", changedSpy.getCalls().length);
+                /*RfidScanResult*/
+                changedSpy.firstCall.args[0].should.be.instanceOf(DataValue);
+                changedSpy.firstCall.args[0].value.dataType.should.eql(DataType.ExtensionObject);
+                changedSpy.firstCall.args[0].value.value.constructor.name.should.eql("RfidScanResult");
+                changedSpy.callCount.should.eql(1);
+            }
+            catch (err) {
+                debugLog(err);
+                throw err;
+            }
+        });
+    });
+    it("MIEO-2 - a client should not receive opaque structure when monitoring extension objects", async () => {
+        const client = OPCUAClient.create({
+            requestedSessionTimeout: 10000000,
+            endpointMustExist: false
+        });
+        const subscriptionParameters = {
+            publishingEnabled: true,
+            requestedLifetimeCount: 10000,
+            requestedMaxKeepAliveCount: 100,
+            requestedPublishingInterval: publishingInterval
+        };
+        await client.withSubscriptionAsync(endpointUrl, subscriptionParameters, async (session, subscription) => {
+            try {
+                await session.readNamespaceArray();
+                const nsAutoId = session.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
+                const _rfidScanEventTypeNodeId = `ns=${nsAutoId};i=1006`;
+                const fields = [
+                    "EventType",
+                    "SourceName",
+                    "EventId",
+                    "ReceiveTime",
+                    "Severity",
+                    "Message",
+                    `${nsAutoId}:ScanResult`
+                ];
+                // Create event filter for when changes are detected on the server
+                const eventFilter = constructEventFilter(fields);
+                const monitoringParameters = {
+                    discardOldest: true,
+                    queueSize: 100,
+                    samplingInterval: 0, // when ever changed
+                    filter: eventFilter
+                };
+                const itemToMonitor = {
+                    attributeId: AttributeIds.EventNotifier,
+                    nodeId: resolveNodeId("ns=0;i=2253") // resolveNodeId("Server")
+                };
+                const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, monitoringParameters, TimestampsToReturn.Both);
+                // subscription.on("item_added",function(monitoredItem){
+                monitoredItem.on("initialized", () => {
+                    debugLog(" Initialized !");
+                });
+                const changedSpy = sinon.spy();
+                monitoredItem.on("changed", changedSpy);
+                monitoredItem.on("err", (message) => {
+                    debugLog("Error", message);
+                });
+                monitoredItem.on("changed", (eventFields) => {
+                    for (const _eventField of eventFields) {
+                        // debugLog(eventField.toString());
+                    }
+                });
+                await new Promise((resolve) => {
+                    // subscription.on("item_added",function(monitoredItem){
+                    monitoredItem.on("initialized", () => {
+                        debugLog(" Initialized !");
+                        resolve();
+                    });
+                });
+                raiseRfidScanEvent();
+                await new Promise((resolve) => monitoredItem.once("changed", () => resolve()));
+                debugLog("changedSpy = ", changedSpy.getCalls().length);
+                // debugLog(changedSpy.firstCall.args[0]);
+                /*RfidScanResult*/
+                changedSpy.firstCall.args[0].should.be.instanceOf(Array);
+                changedSpy.firstCall.args[0][6].dataType.should.eql(DataType.ExtensionObject);
+                changedSpy.firstCall.args[0][6].value.constructor.name.should.eql("RfidScanResult");
+                changedSpy.callCount.should.eql(1);
+            }
+            catch (err) {
+                debugLog(err);
+                throw err;
+            }
+        });
+    });
+});
+//# sourceMappingURL=test_e2e_monitored_item_extension_objects.js.map

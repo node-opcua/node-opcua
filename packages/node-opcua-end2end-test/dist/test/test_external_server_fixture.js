@@ -1,0 +1,42 @@
+import { crash_simple_server, start_simple_server, stop_simple_server } from "../test_helpers/external_server_fixture.js";
+import { serverScript } from "../test_helpers/paths.js";
+const port = 4891;
+describe("testing external fixture server", () => {
+    it("MQS- should start and stop a server several time", async () => {
+        /** */
+        let serverHandle = await start_simple_server({
+            port,
+            server_sourcefile: serverScript("simple_server_that_fails_to_republish.cjs")
+        });
+        await crash_simple_server(serverHandle);
+        serverHandle = await start_simple_server({
+            port,
+            server_sourcefile: serverScript("simple_server_that_fails_to_republish.cjs")
+        });
+        await crash_simple_server(serverHandle);
+        serverHandle = await start_simple_server({
+            port,
+            server_sourcefile: serverScript("simple_server_that_fails_to_republish.cjs")
+        });
+        await crash_simple_server(serverHandle);
+    });
+    it("MQS- should start and stop a server several time", async () => {
+        /** */
+        let serverHandle = await start_simple_server({
+            port,
+            server_sourcefile: serverScript("simple_server_that_fails_to_republish.cjs")
+        });
+        await stop_simple_server(serverHandle);
+        serverHandle = await start_simple_server({
+            port,
+            server_sourcefile: serverScript("simple_server_that_fails_to_republish.cjs")
+        });
+        await stop_simple_server(serverHandle);
+        serverHandle = await start_simple_server({
+            port,
+            server_sourcefile: serverScript("simple_server_that_fails_to_republish.cjs")
+        });
+        await stop_simple_server(serverHandle);
+    });
+});
+//# sourceMappingURL=test_external_server_fixture.js.map

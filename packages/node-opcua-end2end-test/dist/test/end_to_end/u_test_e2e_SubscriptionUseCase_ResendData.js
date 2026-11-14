@@ -1,0 +1,223 @@
+import { AttributeIds, DataChangeNotification, DataType, MethodIds, MonitoringMode, ObjectIds, OPCUAClient, StatusCodes, TimestampsToReturn, VariableIds } from "node-opcua";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+const debugLog = make_debugLog("TEST");
+const _doDebug = checkDebugFlag("TEST");
+const sleep = async (n) => new Promise((resolve) => setTimeout(resolve, n));
+export function t(test) {
+    describe("Server#ResendData(subscription)", () => {
+        let server;
+        let client;
+        let uaVar1;
+        let uaVar2;
+        let uaVar3;
+        let endpointUrl;
+        before(() => {
+            server = test.server;
+            endpointUrl = test.endpointUrl;
+            const namespace = server.engine.addressSpace.getOwnNamespace();
+            const rootFolder = server.engine.addressSpace.rootFolder;
+            const objectsFolder = rootFolder.objects;
+            function addVariable(browseName, value) {
+                // Variable with dataItem capable of sending data change notification events
+                // this type of variable can be continuously monitored.
+                const n1 = namespace.addVariable({
+                    organizedBy: objectsFolder,
+                    browseName,
+                    nodeId: `s=${browseName}`,
+                    dataType: "Double",
+                    value: {
+                        dataType: DataType.Double,
+                        value: 0.0
+                    }
+                });
+                n1.minimumSamplingInterval.should.eql(0);
+                let changeDetected = 0;
+                n1.on("value_changed", (_dataValue) => {
+                    changeDetected += 1;
+                });
+                n1.setValueFromSource({ dataType: DataType.Double, value: value }, StatusCodes.Good);
+                changeDetected.should.equal(1);
+                return n1;
+            }
+            uaVar1 = addVariable("V1", 100);
+            uaVar2 = addVariable("V2", 200);
+            uaVar3 = addVariable("V3", 300);
+        });
+        beforeEach(() => {
+            client = OPCUAClient.create({
+                keepSessionAlive: true,
+                requestedSessionTimeout: 4 * 60 * 1000 // 4 min ! make sure that session doesn't drop during test
+            });
+        });
+        afterEach(() => {
+            /** */
+        });
+        const publishingInterval = 3000;
+        const samplingInterval = 500;
+        it("with Subscription#resend - Server_ResendData", async () => {
+            await client.withSubscriptionAsync(endpointUrl, {
+                priority: 1,
+                publishingEnabled: true,
+                maxNotificationsPerPublish: 1000,
+                requestedLifetimeCount: 1000,
+                requestedMaxKeepAliveCount: 50,
+                requestedPublishingInterval: publishingInterval
+            }, async (session, subscription) => {
+                /** */
+                let messages = [];
+                subscription.on("received_notifications", (notificationMessage) => {
+                    debugLog(notificationMessage.toString());
+                    messages.push(notificationMessage);
+                });
+                const _m1 = await subscription.monitor({
+                    nodeId: uaVar1.nodeId,
+                    attributeId: AttributeIds.Value
+                }, {
+                    samplingInterval,
+                    queueSize: 100
+                }, TimestampsToReturn.Both, MonitoringMode.Disabled);
+                const m2 = await subscription.monitor({
+                    nodeId: uaVar2.nodeId,
+                    attributeId: AttributeIds.Value
+                }, {
+                    samplingInterval,
+                    queueSize: 100
+                }, TimestampsToReturn.Both, MonitoringMode.Sampling);
+                const _m3 = await subscription.monitor({
+                    nodeId: uaVar3.nodeId,
+                    attributeId: AttributeIds.Value
+                }, {
+                    samplingInterval,
+                    queueSize: 100
+                }, TimestampsToReturn.Both, MonitoringMode.Reporting);
+                await sleep(publishingInterval * 2);
+                let referenceValue;
+                {
+                    messages.length.should.eql(1);
+                    should(messages[0].notificationData?.length).eql(1);
+                    const n = messages[0].notificationData?.[0];
+                    should(n.monitoredItems?.length).eql(1);
+                    should(n.monitoredItems?.[0].clientHandle).eql(3);
+                    should(n.monitoredItems?.[0].value.value.value).eql(300);
+                    referenceValue = n.monitoredItems[0].value;
+                }
+                messages = [];
+                await sleep(publishingInterval * 2);
+                console.log("calling resendData");
+                await session.call({
+                    methodId: MethodIds.Server_ResendData,
+                    objectId: ObjectIds.Server,
+                    inputArguments: [{ dataType: DataType.UInt32, value: subscription.subscriptionId }]
+                });
+                await sleep(publishingInterval * 2);
+                {
+                    messages.length.should.eql(1);
+                    should(messages[0].notificationData?.length).eql(1);
+                    const n = messages[0].notificationData?.[0];
+                    should(n.monitoredItems?.length).eql(1);
+                    should(n.monitoredItems?.[0].clientHandle).eql(3);
+                    should(n.monitoredItems?.[0].value.value.value).eql(300);
+                    const newDataValue = n.monitoredItems[0].value;
+                    referenceValue.toString().should.eql(newDataValue.toString());
+                }
+                console.log("now item2 goes reporting");
+                messages = [];
+                await m2.setMonitoringMode(MonitoringMode.Reporting);
+                await sleep(publishingInterval * 3);
+                // Note: not clear what should be the behavior here ?
+                // My understanding: we should have 2 elements related to item 2
+                // => causes: initial value, resend
+                // => also due to queueSize was large enough
+                // Note: notifications may arrive in 1 or 2 messages depending
+                // on publish cycle timing, so collect all items across messages.
+                {
+                    messages.length.should.be.greaterThanOrEqual(1);
+                    const allItems = messages.flatMap((m) => (m.notificationData || [])
+                        .filter((nd) => nd instanceof DataChangeNotification)
+                        .flatMap((nd) => nd.monitoredItems || []));
+                    allItems.length.should.eql(2);
+                    allItems[0].clientHandle.should.eql(2);
+                    allItems[0].value.value.value.should.eql(200);
+                    allItems[1].clientHandle.should.eql(2);
+                    allItems[1].value.value.value.should.eql(200);
+                    allItems[1].value.toString().should.eql(allItems[0].value.toString());
+                }
+            });
+        });
+        it("with Subscription#resend - Server_ResendData CurrentTime", async () => {
+            await client.withSubscriptionAsync(endpointUrl, {
+                priority: 1,
+                publishingEnabled: true,
+                maxNotificationsPerPublish: 1000,
+                requestedLifetimeCount: 1000,
+                requestedMaxKeepAliveCount: 50,
+                requestedPublishingInterval: publishingInterval
+            }, async (session, subscription) => {
+                /** */
+                let messages = [];
+                subscription.on("received_notifications", (notificationMessage) => {
+                    debugLog(notificationMessage.toString());
+                    messages.push(notificationMessage);
+                });
+                const _m1 = await subscription.monitor({
+                    nodeId: VariableIds.Server_ServerStatus_CurrentTime,
+                    attributeId: AttributeIds.Value
+                }, {
+                    samplingInterval: publishingInterval * 10,
+                    queueSize: 0
+                }, TimestampsToReturn.Server, MonitoringMode.Reporting);
+                // wait for the initial-value notification — poll up to 3 publish cycles to
+                // avoid flakes on slow runners. samplingInterval is publishingInterval*10,
+                // so a second sample cannot arrive inside this window.
+                {
+                    const deadline = Date.now() + publishingInterval * 3;
+                    while (messages.length < 1 && Date.now() < deadline) {
+                        await sleep(50);
+                    }
+                }
+                let ref;
+                {
+                    messages.length.should.eql(1);
+                    should(messages[0].notificationData?.length).eql(1);
+                    const n0 = messages[0].notificationData?.[0];
+                    should(n0.monitoredItems?.length).eql(1);
+                    should(n0.monitoredItems?.[0].clientHandle).eql(1);
+                    ref = n0.monitoredItems[0].value;
+                }
+                messages = [];
+                console.log("calling resendData");
+                await session.call({
+                    methodId: MethodIds.Server_ResendData,
+                    objectId: ObjectIds.Server,
+                    inputArguments: [{ dataType: DataType.UInt32, value: subscription.subscriptionId }]
+                });
+                await session.call({
+                    methodId: MethodIds.Server_ResendData,
+                    objectId: ObjectIds.Server,
+                    inputArguments: [{ dataType: DataType.UInt32, value: subscription.subscriptionId }]
+                });
+                await sleep(publishingInterval * 2);
+                console.log("now item2 goes reporting");
+                {
+                    messages.length.should.eql(1);
+                    should(messages[0].notificationData?.length).eql(1);
+                    const n0 = messages[0].notificationData?.[0];
+                    should(n0.monitoredItems?.length).eql(2);
+                    should(n0.monitoredItems?.[0].clientHandle).eql(1);
+                    should(n0.monitoredItems?.[0].value.toString()).eql(ref.toString());
+                    should(n0.monitoredItems?.[1].clientHandle).eql(1);
+                    should(n0.monitoredItems?.[1].value.toString()).eql(ref.toString());
+                    // messages[1].notificationData!.length.should.eql(1);
+                    // const n1 = messages[1].notificationData![0] as DataChangeNotification;
+                    // n1.monitoredItems!.length.should.eql(1);
+                    // n1.monitoredItems![0].clientHandle.should.eql(1);
+                    // n1.monitoredItems![0].value.toString().should.eql(ref.toString());
+                }
+                messages = [];
+            });
+        });
+    });
+}
+//# sourceMappingURL=u_test_e2e_SubscriptionUseCase_ResendData.js.map

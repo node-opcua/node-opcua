@@ -1,0 +1,105 @@
+import "should";
+import { OPCUAClient } from "node-opcua";
+import { make_warningLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import sinon from "sinon";
+import { waitUntilCondition } from "../../test_helpers/utils.js";
+const warningLog = make_warningLog("TEST");
+const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+export function t(test) {
+    describe("ZZZA Testing timeout on session ", () => {
+        it("An opened session will eventually time out on server side if the client doesn't make transactions", async () => {
+            const endpointUrl = test.endpointUrl;
+            const requestedSessionTimeout = 2000;
+            const client = OPCUAClient.create({
+                keepSessionAlive: false,
+                requestedSessionTimeout
+            });
+            let session;
+            try {
+                await client.connect(endpointUrl);
+                session = await client.createSession();
+                // server may revise, accept within 50%..150% of requested
+                session.timeout.should.be.within(requestedSessionTimeout * 0.5, requestedSessionTimeout * 1.5);
+                // wait a bit longer than requested to let server timeout the session
+                await pause(requestedSessionTimeout + 1000);
+                // Attempt to close (may already be timed out)
+                try {
+                    await session.close();
+                }
+                catch (err) {
+                    if (!/BadSessionIdInvalid/.test(err.message)) {
+                        throw err;
+                    }
+                }
+            }
+            finally {
+                await client.disconnect().catch(() => undefined);
+            }
+            if (test.server) {
+                await waitUntilCondition(() => test.server.engine.currentSessionCount === 0, 10 * 1000);
+            }
+        });
+        it("An opened session will not time out on server side if the client has keepSessionAlive = true 1/2", async () => {
+            const requestedSessionTimeout = 600; // (>500)
+            const client = OPCUAClient.create({
+                keepSessionAlive: true,
+                requestedSessionTimeout
+            });
+            const connection_lost_spy = sinon.spy();
+            client.on("connection_lost", connection_lost_spy);
+            const endpointUrl = test.endpointUrl;
+            await client.connect(endpointUrl);
+            const session = (await client.createSession());
+            // Allow some tolerance
+            session.timeout.should.be.within(requestedSessionTimeout * 0.8, requestedSessionTimeout * 1.2);
+            const keepalive_spy = sinon.spy();
+            session.on("keepalive", keepalive_spy);
+            session.on("keepalive", () => warningLog("keepalive"));
+            // checkInterval should be less than timeout but not too small (> 50% of timeout)
+            session._keepAliveManager.checkInterval.should.be.within(session.timeout * 0.5, session.timeout * 0.85);
+            await pause(2000); // enough to get several keepalives
+            await session.close();
+            keepalive_spy.callCount.should.be.greaterThan(2);
+            await client.disconnect();
+            connection_lost_spy.callCount.should.eql(0);
+        });
+        it("An opened session will not time-out on server side if the client has keepSessionAlive = true 2/2", async () => {
+            const requestedSessionTimeout = 1200;
+            const client = OPCUAClient.create({
+                keepSessionAlive: true,
+                requestedSessionTimeout
+            });
+            const connection_lost_spy = sinon.spy();
+            client.on("connection_lost", connection_lost_spy);
+            const endpointUrl = test.endpointUrl;
+            const keepalive_spy = sinon.spy();
+            await client.connect(endpointUrl);
+            const session = (await client.createSession());
+            warningLog("adjusted session timeout =", session.timeout);
+            session.timeout.should.be.within(requestedSessionTimeout * 0.8, requestedSessionTimeout * 1.2);
+            session._keepAliveManager.checkInterval.should.be.within(session.timeout * 0.5, session.timeout * 0.85);
+            session.on("keepalive", keepalive_spy);
+            session.on("keepalive", () => {
+                warningLog("Unexpected KEEPALIVE while client is performing regular transactions");
+            });
+            const nodeId = "ns=1;i=54";
+            // Pace reads well under checkInterval's lower bound (rather than a fixed 100ms) so a
+            // single slow round-trip (OS timer/network jitter - notably worse on Windows CI
+            // runners) still leaves margin before the keepalive manager's poll fires.
+            const readPause = Math.min(50, Math.floor(session._keepAliveManager.checkInterval * 0.1));
+            for (let i = 0; i < 11; i++) {
+                await session.read({ nodeId });
+                await pause(readPause);
+            }
+            await session.close();
+            // Regular communication should avoid keepalive emission. Tolerate at most one stray
+            // keepalive: a single round-trip stalling past checkInterval is a benign timing race,
+            // not a functional defect - a genuine keepalive storm (>=2) still fails the test.
+            keepalive_spy.callCount.should.be.lessThanOrEqual(1);
+            await client.disconnect();
+            connection_lost_spy.callCount.should.eql(0);
+        });
+    });
+}
+//# sourceMappingURL=u_test_e2e_timeout_session.js.map

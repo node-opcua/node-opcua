@@ -1,0 +1,168 @@
+// --------------------------------------------------------------------------------------------
+// Modern TypeScript version of limited node operation tests.
+// Validates server operationLimits (read, browse, translate) enforcement and crawler behavior
+// under constrained maxNodesPer* settings. Original JS archived as test_e2e_limited_number_of_nodes-old.js
+// --------------------------------------------------------------------------------------------
+import { AttributeIds, assert, BrowseDirection, makeBrowsePath, makeNodeId, ObjectIds, OPCUAClient, OPCUAServer, VariableIds } from "node-opcua";
+import { NodeCrawler } from "node-opcua-client-crawler";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+// The default export is the callable `should`, and the statics (`should.exist`) hang off it.
+// A namespace import is not the same object: `should` is CommonJS, so under ESM its namespace
+// carries only `default`, and `should.exist` silently becomes undefined. Calling it threw
+// inside a read callback, before resolve(), so the test hung until mocha timed out.
+import should from "should";
+import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session.js";
+assert(typeof makeBrowsePath === "function");
+const port = 2227;
+describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", function () {
+    this.timeout(Math.max(this.timeout(), 10_000));
+    let server;
+    let client;
+    let endpointUrl;
+    before(async () => {
+        server = new OPCUAServer({
+            port,
+            // xx nodeset_filename: empty_nodeset_filename,
+            serverCapabilities: {
+                maxSessions: 1,
+                maxArrayLength: 0,
+                maxStringLength: 0,
+                maxBrowseContinuationPoints: 0,
+                maxQueryContinuationPoints: 0,
+                maxHistoryContinuationPoints: 0,
+                // new in 1.05
+                maxSubscriptions: 10,
+                maxSubscriptionsPerSession: 3,
+                maxMonitoredItemsQueueSize: 11,
+                minSupportedSampleRate: 222,
+                operationLimits: {
+                    maxNodesPerRead: 10,
+                    maxNodesPerWrite: 10,
+                    maxNodesPerMethodCall: 10,
+                    maxNodesPerBrowse: 2,
+                    maxNodesPerRegisterNodes: 3,
+                    maxNodesPerNodeManagement: 4,
+                    maxMonitoredItemsPerCall: 120,
+                    maxNodesPerHistoryReadData: 5,
+                    maxNodesPerHistoryReadEvents: 6,
+                    maxNodesPerHistoryUpdateData: 7,
+                    maxNodesPerHistoryUpdateEvents: 8,
+                    maxNodesPerTranslateBrowsePathsToNodeIds: 9
+                }
+            }
+        });
+        client = OPCUAClient.create({});
+        await server.start();
+        endpointUrl = server.getEndpointUrl();
+    });
+    after(async () => {
+        await client.disconnect();
+        await server.shutdown();
+        OPCUAServer.registry.count().should.eql(0);
+    });
+    it("should be possible to customize serverCapabilities.operationLimits at construction time", () => {
+        const caps = server.engine.serverCapabilities;
+        caps.minSupportedSampleRate.should.eql(222);
+        caps.maxMonitoredItemsQueueSize.should.eql(11);
+        caps.operationLimits.maxNodesPerRead.should.eql(10);
+        caps.operationLimits.maxNodesPerWrite.should.eql(10);
+        caps.operationLimits.maxNodesPerMethodCall.should.eql(10);
+        caps.operationLimits.maxNodesPerBrowse.should.eql(2);
+        caps.operationLimits.maxNodesPerRegisterNodes.should.eql(3);
+        caps.operationLimits.maxNodesPerNodeManagement.should.eql(4);
+        caps.operationLimits.maxMonitoredItemsPerCall.should.eql(120);
+        caps.operationLimits.maxNodesPerHistoryReadData.should.eql(5);
+        caps.operationLimits.maxNodesPerHistoryReadEvents.should.eql(6);
+        caps.operationLimits.maxNodesPerHistoryUpdateData.should.eql(7);
+        caps.operationLimits.maxNodesPerHistoryUpdateEvents.should.eql(8);
+        caps.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds.should.eql(9);
+    });
+    it("server should provide OperationLimits_MaxNodesPerRead node", async () => {
+        await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+            const caps = server.engine.serverCapabilities;
+            caps.operationLimits.maxNodesPerRead.should.eql(10);
+            const nodeId1 = makeNodeId(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead);
+            const nodeToRead = { nodeId: nodeId1, attributeId: AttributeIds.Value };
+            const dataValue = await session.read(nodeToRead);
+            dataValue.value.value.should.eql(caps.operationLimits.maxNodesPerRead);
+        });
+    });
+    it("server should return BadTooManyOperations when nodesToRead exceed MaxNodesPerRead", async () => {
+        await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+            const caps = server.engine.serverCapabilities;
+            const nodeId1 = makeNodeId(VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead);
+            const nodeId2 = makeNodeId(VariableIds.Server_ServerDiagnostics_ServerDiagnosticsSummary_CurrentSessionCount);
+            const nodesToRead = Array.from({ length: 12 }, (_, i) => ({
+                nodeId: i % 2 ? nodeId2 : nodeId1,
+                attributeId: AttributeIds.Value
+            }));
+            nodesToRead.length.should.be.greaterThan(caps.operationLimits.maxNodesPerRead);
+            await new Promise((resolve) => {
+                session.read(nodesToRead, (err) => {
+                    should.exist(err);
+                    err.message.should.match(/BadTooManyOperations/);
+                    resolve();
+                });
+            });
+        });
+    });
+    it("server should return BadTooManyOperations when browseRequest exceed MaxNodesPerBrowse", async () => {
+        const caps = server.engine.serverCapabilities;
+        caps.operationLimits.maxNodesPerBrowse.should.equal(2);
+        await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+            const bad_referenceid_node = "ns=3;i=3500";
+            const browseDesc = {
+                nodeId: "ObjectsFolder",
+                referenceTypeId: bad_referenceid_node,
+                browseDirection: BrowseDirection.Forward
+            };
+            const browseRequest = Array.from({ length: 5 }, () => browseDesc);
+            browseRequest.length.should.be.greaterThan(caps.operationLimits.maxNodesPerBrowse);
+            await new Promise((resolve) => {
+                session.browse(browseRequest, (err) => {
+                    should.exist(err);
+                    err.message.should.match(/BadTooManyOperations/);
+                    resolve();
+                });
+            });
+        });
+    });
+    it("server should return BadTooManyOperations when translate exceeds limit", async () => {
+        const caps = server.engine.serverCapabilities;
+        await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+            const translateBrowsePath = Array.from({ length: 10 }, () => makeBrowsePath("RootFolder", "/Objects/Server"));
+            caps.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds.should.be.greaterThan(1);
+            translateBrowsePath.length.should.be.greaterThan(caps.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds);
+            await new Promise((resolve) => {
+                session.translateBrowsePath(translateBrowsePath, (err) => {
+                    should.exist(err);
+                    err.message.should.match(/BadTooManyOperations/);
+                    resolve();
+                });
+            });
+        });
+    });
+    it("crawler shall work even with low read/browse limits", async () => {
+        await perform_operation_on_client_session(client, endpointUrl, async (session) => {
+            const crawler = new NodeCrawler(session);
+            crawler.on("browsed", (_element) => {
+                /* hook retained for potential debug */
+            });
+            await new Promise((resolve, reject) => {
+                crawler.read(ObjectIds.Server, (err) => {
+                    crawler.dispose();
+                    if (err)
+                        return reject(err);
+                    resolve();
+                });
+            });
+        });
+    });
+    xit("should crawl a server cyclic-node", async () => {
+        const namespace = server.engine.addressSpace.getOwnNamespace();
+        // TODO: implement cyclic node creation test scenario
+        const subFolder1 = namespace.addFolder("ObjectsFolder", "SubFolder1");
+        const _subFolder2 = namespace.addFolder(subFolder1, "SubFolder2");
+    });
+});
+//# sourceMappingURL=test_e2e_limited_number_of_nodes.js.map

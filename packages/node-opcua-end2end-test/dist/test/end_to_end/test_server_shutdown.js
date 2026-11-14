@@ -1,0 +1,171 @@
+import chalk from "chalk";
+import { AttributeIds, ClientMonitoredItem, nodesets, OPCUAClient, OPCUAServer, resolveNodeId, ServerState, TimestampsToReturn, VariableIds } from "node-opcua";
+import should from "should";
+import sinon from "sinon";
+const _a = should;
+const port = 2233;
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+const debugLog = make_debugLog("TEST");
+const doDebug = checkDebugFlag("TEST");
+async function given_a_running_server() {
+    const server = new OPCUAServer({
+        port,
+        nodeset_filename: [nodesets.standard]
+    });
+    await server.initialize();
+    await server.start();
+    debugLog("server started");
+    return server;
+}
+async function given_a_connected_client(endpointUrl) {
+    const client = OPCUAClient.create({ endpointMustExist: false });
+    client.on("connection_lost", () => {
+        debugLog("Connection has been lost");
+    });
+    client.on("backoff", () => {
+        debugLog("Connection backoff");
+    });
+    client.on("reconnection_attempt_has_failed", () => {
+        debugLog("reconnection_attempt_has_failed");
+    });
+    await client.connect(endpointUrl);
+    const session = await client.createSession();
+    const subscription = await session.createSubscription2({
+        publishingEnabled: true,
+        requestedLifetimeCount: 1000,
+        requestedMaxKeepAliveCount: 60,
+        requestedPublishingInterval: 100
+    });
+    return { client, session, subscription };
+}
+async function then_the_client_should_automatically_be_disconnected(client) {
+    if (client.isReconnecting) {
+        return;
+    }
+    let resolved = false;
+    await new Promise((resolve) => {
+        client.on("connection_lost", () => {
+            debugLog("Connection has been lost");
+            if (!resolved) {
+                resolved = true;
+                resolve();
+            }
+        });
+        client.on("backoff", () => {
+            debugLog("Connection backoff");
+            if (!resolved) {
+                resolved = true;
+                resolve();
+            }
+        });
+        client.on("reconnection_attempt_has_failed", () => {
+            debugLog("reconnection_attempt_has_failed");
+            if (!resolved) {
+                resolved = true;
+                resolve();
+            }
+        });
+    });
+}
+async function monitor(subscription, id) {
+    const spy = sinon.spy();
+    return await new Promise((resolve, reject) => {
+        const itemToMonitor = {
+            attributeId: AttributeIds.Value,
+            nodeId: resolveNodeId(id)
+        };
+        const requestedParameters = {
+            discardOldest: false,
+            queueSize: 100,
+            samplingInterval: 0
+        };
+        const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, requestedParameters, TimestampsToReturn.Both);
+        monitoredItem.on("changed", spy);
+        monitoredItem.on("err", (message) => {
+            debugLog("Error", message);
+            reject(new Error(message));
+        });
+        monitoredItem.on("initialized", () => {
+            // debugLog("Initialized");
+            resolve(spy);
+        });
+    });
+}
+function f(func) {
+    return async (a) => {
+        debugLog(`       * ${func.name.replace(/_/g, " ").replace(/(given|when|then)/, chalk.green("**$1**"))}`);
+        return await func(a);
+    };
+}
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+describe("Testing server shutdown", () => {
+    it("should change state and update secondTillShutdown", async () => {
+        const server = await f(given_a_running_server)();
+        const endpointUrl = server.getEndpointUrl();
+        const { client, subscription } = await f(given_a_connected_client)(endpointUrl);
+        const secondTillShutdownSpy = await monitor(subscription, VariableIds.Server_ServerStatus_SecondsTillShutdown);
+        const stateSpy = await monitor(subscription, VariableIds.Server_ServerStatus_State);
+        const shutdownReasonSpy = await monitor(subscription, VariableIds.Server_ServerStatus_ShutdownReason);
+        // Start the shutdown process but don't await yet —
+        // we need to capture the notifications before the
+        // connection is torn down at the end of shutdown.
+        server.engine.setShutdownReason("Shutdown by Test");
+        const shutdownPromise = server.shutdown(2000);
+        // Wait for the expected data-change notifications to
+        // arrive while the server is still in its shutdown
+        // grace period (2 s). This avoids the race where the
+        // channel is closed before the last publish cycle.
+        const waitForSpy = (spy, count, timeoutMs) => new Promise((resolve) => {
+            if (spy.callCount >= count)
+                return resolve();
+            let settled = false;
+            const done = () => {
+                if (settled)
+                    return;
+                settled = true;
+                clearInterval(t);
+                clearTimeout(timer);
+                resolve();
+            };
+            const t = setInterval(() => {
+                if (spy.callCount >= count) {
+                    done();
+                }
+            }, 50);
+            const timer = setTimeout(() => {
+                done(); // let the assertion below report the mismatch
+            }, timeoutMs);
+        });
+        await waitForSpy(stateSpy, 2, 5000);
+        await waitForSpy(shutdownReasonSpy, 2, 5000);
+        // Now let the shutdown finish and wait for the client
+        // to detect the lost connection.
+        await shutdownPromise;
+        await f(then_the_client_should_automatically_be_disconnected)(client);
+        // force disconnection
+        debugLog("Force disconnection");
+        await client.disconnect();
+        if (doDebug) {
+            debugLog(secondTillShutdownSpy.callCount);
+            debugLog(stateSpy.callCount);
+            debugLog(shutdownReasonSpy.callCount);
+            for (const c of secondTillShutdownSpy.getCalls()) {
+                debugLog("secondTillShutdownSpy", c.args[0].toString());
+            }
+            for (const c of stateSpy.getCalls()) {
+                debugLog("state", ServerState[c.args[0].value.value], c.args[0].toString());
+            }
+            for (const c of shutdownReasonSpy.getCalls()) {
+                debugLog("shutdownReasonSpy", c.args[0].toString());
+            }
+        }
+        stateSpy.callCount.should.be.greaterThanOrEqual(2);
+        stateSpy.getCall(0).args[0].value.value.should.eql(ServerState.Running);
+        stateSpy.getCall(1).args[0].value.value.should.eql(ServerState.Shutdown);
+        shutdownReasonSpy.callCount.should.be.greaterThanOrEqual(2);
+        shutdownReasonSpy.getCall(0).args[0].value.value.toString().should.eql("locale=null text=null");
+        shutdownReasonSpy.getCall(1).args[0].value.value.text.should.eql("Shutdown by Test");
+        debugLog("Done");
+    });
+});
+//# sourceMappingURL=test_server_shutdown.js.map

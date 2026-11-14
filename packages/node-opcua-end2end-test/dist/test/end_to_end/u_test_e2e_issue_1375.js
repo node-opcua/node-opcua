@@ -1,0 +1,23 @@
+import { OPCUAClient, readServerCapabilities } from "node-opcua";
+import "should";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+const _debugLog = make_debugLog("TEST");
+const _doDebug = checkDebugFlag("TEST");
+export function t(test) {
+    describe("Verifying #1375", function () {
+        this.timeout(Math.max(200000, this.timeout()));
+        before(() => { });
+        beforeEach(async () => { });
+        afterEach(async () => { });
+        it("Should read MinSupportedSampleRate", async () => {
+            const client = OPCUAClient.create({ endpointMustExist: false });
+            const serverCapabilities = await client.withSessionAsync(test.endpointUrl, async (session) => {
+                const serverCapabilities = await readServerCapabilities(session);
+                return serverCapabilities;
+            });
+            console.log("serverCapabilities", serverCapabilities);
+        });
+    });
+}
+//# sourceMappingURL=u_test_e2e_issue_1375.js.map

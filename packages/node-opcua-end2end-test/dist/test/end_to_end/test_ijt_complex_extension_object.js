@@ -1,0 +1,385 @@
+// https://reference.opcfoundation.org/Tightening/DataTypes/ResultDataType/
+import { AddressSpace, AttributeIds, BinaryStream, coerceInt64, coerceLocalizedTextStrict, coerceUInt64, DataType, DataTypeExtractStrategy, DataValue, generateAddressSpace, getExtraDataTypeManager, LocalizedText, make_debugLog, nodesets, OPCUAClient, OPCUAServer, PseudoSession, promoteOpaqueStructure, randomGuid, readNamespaceArray, resolveNodeId, StatusCodes, standardUnits, Variant } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import should from "should";
+const debugLog = make_debugLog("TEST");
+const nodeId = "s=Result";
+const port = 2512;
+async function buildAddressSpace(addressSpace) {
+    debugLog(addressSpace
+        .getNamespaceArray()
+        .map((a) => a.namespaceUri)
+        .join("\n"));
+    const nsTightening = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/IJT/Tightening/");
+    if (nsTightening === -1)
+        throw new Error("cannot find Tightening namespace");
+    const nsIJTBase = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/IJT/Base/");
+    if (nsIJTBase === -1)
+        throw new Error("cannot find IJTBase namespace");
+    const nsMachineryResult = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Machinery/Result/");
+    if (nsMachineryResult === -1)
+        throw new Error("cannot find MachineryResult namespace");
+    const ResultDataType = addressSpace.findDataType("ResultDataType", nsMachineryResult);
+    if (!ResultDataType)
+        throw new Error("cannot find ResultDataType");
+    const ResultMetaDataType = addressSpace.findDataType("ResultMetaDataType", nsMachineryResult);
+    if (!ResultMetaDataType)
+        throw new Error("cannot find ResultMetaDataType");
+    const JoiningResultMetaDataType = addressSpace.findDataType("JoiningResultMetaDataType", nsIJTBase);
+    if (!JoiningResultMetaDataType)
+        throw new Error("cannot find JoiningResultMetaDataType");
+    const JoiningResultDataType = addressSpace.findDataType("JoiningResultDataType", nsIJTBase);
+    if (!JoiningResultDataType)
+        throw new Error("cannot find JoiningResultDataType");
+    const EntityDataType = addressSpace.findDataType("EntityDataType", nsIJTBase);
+    if (!EntityDataType)
+        throw new Error("cannot find EntityDataType");
+    const joiningResultMetaDataInfo = {
+        resultId: "DB751F14-76CE-D949-A557-384FCC8126D4",
+        hasTransferableDataOnFile: undefined,
+        isPartial: false,
+        isSimulated: true,
+        resultState: 1,
+        stepId: undefined,
+        partId: undefined,
+        externalRecipeId: undefined,
+        internalRecipeId: undefined,
+        productId: undefined,
+        externalConfigurationId: undefined,
+        internalConfigurationId: undefined,
+        jobId: undefined,
+        creationTime: new Date(),
+        processingTimes: {
+            endTime: new Date(),
+            startTime: new Date(Date.now() - 1000000),
+            acquisitionDuration: 1000000,
+            processingDuration: 100
+        },
+        resultUri: undefined,
+        resultEvaluation: 1,
+        assemblyType: 1,
+        associatedEntities: [
+            {
+                name: "VIN",
+                description: "Vehicle Identification Number",
+                entityId: "4Y1SL65848Z411439",
+                entityOriginId: "",
+                isExternal: true,
+                entityType: 20
+            },
+            {
+                name: "ProgramId",
+                description: "Program_4_Steps",
+                entityId: "0952E9B4-05F6-4B43-B66C-B8027FBE966A",
+                entityOriginId: "DCCA6C76-3926-455B-959B-EA3082FCD091",
+                isExternal: false,
+                entityType: 27
+            },
+            {
+                entityId: "AAA",
+                entityType: 1,
+                description: "aa",
+                entityOriginId: "AAA",
+                isExternal: false,
+                name: "AAA"
+            }
+        ],
+        classification: 1,
+        description: new LocalizedText({ text: "AAA" }),
+        sequenceNumber: coerceInt64(32),
+        joiningTechnology: coerceLocalizedTextStrict({ locale: "en", text: "Tightening" }),
+        operationMode: 1,
+        name: "AAA",
+        resultEvaluationCode: coerceInt64(12),
+        resultEvaluationDetails: new LocalizedText({ text: "AAA" }),
+        resultCounters: [
+            {
+                name: "1",
+                counterValue: 1,
+                counterType: 1
+            }
+        ]
+    };
+    const example2 = {
+        overallResultValues: [
+            {
+                measuredValue: 1,
+                parameterIdList: ["AAA"],
+                name: "AAA",
+                lowLimit: 10,
+                highLimit: 1000,
+                resultEvaluation: 1,
+                valueId: randomGuid(),
+                valueTag: 1,
+                engineeringUnits: standardUnits.centimetre,
+                physicalQuantity: 1,
+                resultStep: "1",
+                sensorId: randomGuid(),
+                targetValue: 1,
+                tracePointIndex: 1,
+                tracePointTimeOffset: 0,
+                violationConsequence: 1,
+                violationType: 1
+            }
+        ],
+        errors: [
+            {
+                errorType: 1,
+                errorId: "1",
+                errorMessage: coerceLocalizedTextStrict("message")
+            }
+        ],
+        failureReason: 1,
+        failingStepResultId: randomGuid(),
+        stepResults: [
+            {
+                stepResultId: randomGuid(),
+                stepResultValues: [
+                    {
+                        measuredValue: 1,
+                        parameterIdList: ["AAA"],
+                        name: "AAA",
+                        lowLimit: 10,
+                        highLimit: 1000,
+                        resultEvaluation: 1,
+                        valueId: randomGuid(),
+                        valueTag: 1,
+                        engineeringUnits: standardUnits.centimetre,
+                        physicalQuantity: 1,
+                        resultStep: "1",
+                        sensorId: randomGuid(),
+                        targetValue: 1,
+                        tracePointIndex: 1,
+                        tracePointTimeOffset: 0,
+                        violationConsequence: 1,
+                        violationType: 1
+                    }
+                ]
+            }
+        ]
+    };
+    const joiningResultMetaData = addressSpace.constructExtensionObject(JoiningResultMetaDataType, joiningResultMetaDataInfo);
+    const resultContent1 = addressSpace.constructExtensionObject(JoiningResultDataType, example2);
+    const result = addressSpace.constructExtensionObject(ResultDataType, {
+        resultMetaData: joiningResultMetaData,
+        resultContent: [new Variant({ dataType: DataType.ExtensionObject, value: resultContent1 })]
+    });
+    const namespace = addressSpace.getOwnNamespace();
+    const variable = namespace.addVariable({
+        browseName: "Test",
+        nodeId,
+        dataType: ResultDataType,
+        componentOf: addressSpace.rootFolder.objects.server
+    });
+    variable.setValueFromSource({
+        dataType: DataType.ExtensionObject,
+        value: result
+    });
+    debugLog("--------------------------");
+    debugLog(result.toString());
+    const resultMeta = namespace.addVariable({
+        browseName: "TestMeta",
+        nodeId: "ns=1;s=TestMeta",
+        dataType: ResultMetaDataType,
+        componentOf: addressSpace.rootFolder.objects.server
+    });
+    resultMeta.setValueFromSource({
+        dataType: DataType.ExtensionObject,
+        value: joiningResultMetaData
+    });
+    debugLog("--------------------------");
+    debugLog(joiningResultMetaData.toString());
+}
+describe("X-test complex dataStructure in tightening - server side", () => {
+    let addressSpace;
+    before(async () => {
+        addressSpace = AddressSpace.create();
+        await generateAddressSpace(addressSpace, [
+            nodesets.standard,
+            nodesets.di,
+            nodesets.ia,
+            nodesets.amb,
+            nodesets.machinery,
+            nodesets.machineryResult,
+            nodesets.ijtBase,
+            nodesets.tightening
+        ]);
+        await buildAddressSpace(addressSpace);
+    });
+    after(() => {
+        addressSpace.dispose();
+    });
+    async function testDataValueEncodingDecoding(addressSpace, dataValue) {
+        console.log(dataValue.toString());
+        const binaryStream = new BinaryStream(dataValue.binaryStoreSize());
+        dataValue.encode(binaryStream);
+        binaryStream.rewind();
+        const reloaded = new DataValue();
+        reloaded.decode(binaryStream);
+        const session = new PseudoSession(addressSpace);
+        await promoteOpaqueStructure(session, [reloaded]);
+        console.log(reloaded.toString());
+        dataValue.toString().should.eql(reloaded.toString());
+    }
+    it("X-TestMeta: should read a complex data structure", async () => {
+        const node = addressSpace.findNode("ns=1;s=TestMeta");
+        node.should.not.eql(null);
+        const dataValue = node?.readValue();
+        await testDataValueEncodingDecoding(addressSpace, dataValue);
+    });
+    it("X-Result: should read a complex data structure", async () => {
+        const node = addressSpace.findNode("ns=1;s=Result");
+        node.should.not.eql(null);
+        const dataValue = node?.readValue();
+        await testDataValueEncodingDecoding(addressSpace, dataValue);
+    });
+});
+async function buildServer() {
+    const server = new OPCUAServer({
+        port,
+        nodeset_filename: [
+            nodesets.standard,
+            nodesets.di,
+            nodesets.ia,
+            nodesets.amb,
+            nodesets.machinery,
+            nodesets.machineryResult,
+            nodesets.ijtBase,
+            nodesets.tightening
+        ]
+    });
+    await server.initialize();
+    const addressSpace = server.engine.addressSpace;
+    if (!addressSpace) {
+        throw new Error("AddressSpace not initialized");
+    }
+    await buildAddressSpace(addressSpace);
+    await server.start();
+    return server;
+}
+describe("test complex dataStructure in tightening", function () {
+    this.timeout(Math.max(this.timeout(), 60000));
+    let server;
+    before(async () => {
+        server = await buildServer();
+    });
+    after(async () => {
+        await server.shutdown();
+    });
+    it("should read a complex data structure", async () => {
+        const endpointUrl = server.getEndpointUrl();
+        const client = OPCUAClient.create({
+            endpointMustExist: false
+        });
+        const result = await client.withSessionAsync(endpointUrl, async (session) => {
+            const d = await session.read({
+                nodeId: `ns=1;${nodeId}`,
+                attributeId: AttributeIds.Value
+            });
+            return d.value.value;
+        });
+        debugLog(result.toString());
+        const resultContent = result.resultContent[0];
+        debugLog(resultContent.toString());
+        should(resultContent.dataType).eql(DataType.ExtensionObject);
+        should(resultContent.value).be.instanceOf(Object);
+        should(resultContent.value?.constructor.schema.name).eql("JoiningResultDataType");
+    });
+    it("should encode and decode derived Union DataType", async () => {
+        const endpointUrl = server.getEndpointUrl();
+        const client = OPCUAClient.create({
+            endpointMustExist: false
+        });
+        const resultMeta = await client.withSessionAsync(endpointUrl, async (session) => {
+            const namespaceArray = await readNamespaceArray(session);
+            const ijt = namespaceArray.indexOf("http://opcfoundation.org/UA/IJT/Base/");
+            if (ijt === -1) {
+                throw new Error("Namespace IJT not found");
+            }
+            const dataTypeManager = await getExtraDataTypeManager(session, DataTypeExtractStrategy.Force104);
+            dataTypeManager.hasDataTypeFactory(0).should.eql(true);
+            const jointResultMetaDataTypeNodeId = resolveNodeId(`ns=${ijt};i=3020`);
+            const jointResultMetaDataInfo = {
+                resultId: "DB751F14-76CE-D949-A557-384FCC8126D5",
+                hasTransferableDataOnFile: false,
+                isPartial: false,
+                isSimulated: true,
+                resultState: 1,
+                stepId: undefined,
+                partId: undefined,
+                externalRecipeId: undefined,
+                internalRecipeId: undefined,
+                productId: undefined,
+                externalConfigurationId: undefined,
+                internalConfigurationId: undefined,
+                jobId: undefined,
+                creationTime: new Date(),
+                processingTimes: {
+                    startTime: new Date(),
+                    endTime: new Date(),
+                    acquisitionDuration: 100,
+                    processingDuration: 50
+                },
+                resultUri: undefined,
+                resultEvaluation: 1,
+                resultEvaluationCode: coerceInt64(10),
+                resultEvaluationDetails: new LocalizedText({ locale: "en", text: "OK TIGHTENING" }),
+                fileFormat: undefined,
+                joiningTechnology: new LocalizedText({ locale: "en", text: "Tightening" }),
+                sequenceNumber: coerceUInt64(20),
+                name: "Single:Tightening:Result:2",
+                description: new LocalizedText({ locale: "en", text: "Single:Tightening:Result:2" }),
+                classification: 1,
+                operationMode: 2,
+                assemblyType: 1,
+                associatedEntities: [
+                    {
+                        name: "VIN",
+                        description: "Vehicle Identification Number",
+                        entityId: "4Y1SL65848Z411439",
+                        entityOriginId: "",
+                        isExternal: true,
+                        entityType: 20
+                    },
+                    {
+                        name: "ProgramId",
+                        description: "Program_4_Steps",
+                        entityId: "0952E9B4-05F6-4B43-B66C-B8027FBE966A",
+                        entityOriginId: "DCCA6C76-3926-455B-959B-EA3082FCD091",
+                        isExternal: false,
+                        entityType: 27
+                    },
+                    {
+                        name: "ProgramId",
+                        description: "Program_4_Steps",
+                        entityId: "0952E9B4-05F6-4B43-B66C-B8027FBE966A",
+                        entityOriginId: "DCCA6C76-3926-455B-959B-EA3082FCD091",
+                        isExternal: false,
+                        entityType: 27
+                    }
+                ],
+                interventionType: 0,
+                isGeneratedOffline: false,
+                extendedMetaData: undefined
+            };
+            // constructExtensionObject expects a plain field bag (Record<string, unknown>);
+            // DTJoiningResultMeta's structural type lacks an index signature so a cast is needed.
+            const extObj = await session.constructExtensionObject(jointResultMetaDataTypeNodeId, jointResultMetaDataInfo);
+            const statusCode = await session.write({
+                nodeId: "ns=1;s=TestMeta",
+                attributeId: AttributeIds.Value,
+                value: new DataValue({
+                    value: new Variant({ dataType: DataType.ExtensionObject, value: extObj })
+                })
+            });
+            statusCode.should.eql(StatusCodes.Good);
+            const d = await session.read({
+                nodeId: "ns=1;s=TestMeta",
+                attributeId: AttributeIds.Value
+            });
+            return d.value.value;
+        });
+        debugLog(resultMeta.toString());
+    });
+});
+//# sourceMappingURL=test_ijt_complex_extension_object.js.map
