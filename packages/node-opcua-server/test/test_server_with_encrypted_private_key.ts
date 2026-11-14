@@ -14,6 +14,7 @@ import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { MessageSecurityMode, OPCUAClient, SecurityPolicy } from "node-opcua-client";
 import { extractFullyQualifiedDomainName } from "node-opcua-hostname";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { withEnv } from "node-opcua-test-helpers";
 import should from "should";
 import { OPCUAServer } from "../source/index.js";
 
@@ -31,6 +32,10 @@ async function makeTmpDir(name: string): Promise<string> {
 
 describe("OPCUAServer with a passphrase-protected private key", function (this: Mocha.Suite) {
     this.timeout(Math.max(60000, this.timeout()));
+
+    // The client uses the default application PKI, which is secure by default:
+    // enable auto-accept so the self-signed server certificate is trusted.
+    withEnv("NODE_OPCUA_AUTO_ACCEPT_CERTS", "true");
 
     before(async () => {
         await extractFullyQualifiedDomainName();

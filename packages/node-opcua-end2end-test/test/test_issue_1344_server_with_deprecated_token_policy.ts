@@ -13,6 +13,11 @@ import should from "should";
 const port = 2242;
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { withEnv } from "node-opcua-test-helpers";
+
+// The server and client use the default application PKI, which is secure by default:
+// enable auto-accept so the self-signed certificates are trusted.
+withEnv("NODE_OPCUA_AUTO_ACCEPT_CERTS", "true");
 
 describe("issue #1334 - client should avoid using userToken that have deprecated security policy like 192Rsa256 ", () => {
     const buildSecureServer = async () => {

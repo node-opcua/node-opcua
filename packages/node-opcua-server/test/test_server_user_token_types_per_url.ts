@@ -16,6 +16,7 @@ import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import type { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import type { EndpointDescription } from "node-opcua-service-endpoints";
+import { withEnv } from "node-opcua-test-helpers";
 import should from "should";
 import sinon from "sinon";
 import { OPCUAServer, type OPCUAServerOptions } from "../source/index.js";
@@ -53,6 +54,10 @@ const securityOptions = {
     securityModes: [MessageSecurityMode.SignAndEncrypt],
     securityPolicies: [SecurityPolicy.Basic256Sha256]
 };
+
+// The clients in this file use the default application PKI, which is secure by default:
+// enable auto-accept so they trust the self-signed server certificates.
+withEnv("NODE_OPCUA_AUTO_ACCEPT_CERTS", "true");
 
 function tokenTypesOf(endpoint: EndpointDescription | undefined): UserTokenType[] {
     return (endpoint?.userIdentityTokens || []).map((t) => t.tokenType).sort();

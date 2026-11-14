@@ -1,5 +1,6 @@
 import "should";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { withEnv } from "node-opcua-test-helpers";
 import { afterEachTest, afterTest, beforeEachTest, beforeTest, type ReadyUmbrellaTestContext } from "./_helper_umbrella.js";
 import { t as tE2eAlarmClientSide } from "./alarms_and_conditions/u_test_e2e_alarm_client_side.js";
 import { t as tE2eConditions } from "./alarms_and_conditions/u_test_e2e_conditions.js";
@@ -30,10 +31,18 @@ describe("testing Client - Umbrella-B ", function (this: Mocha.Context) {
     const test = this as ReadyUmbrellaTestContext;
     test.port = port;
 
-    before(async () => beforeTest(test));
+    // Enable auto-accept on the default application PKI before beforeTest() starts the server
+    withEnv("NODE_OPCUA_AUTO_ACCEPT_CERTS", "true");
+
+    before(async () => {
+        await beforeTest(test);
+    });
+
+    after(async () => {
+        await afterTest(test);
+    });
     beforeEach(async () => beforeEachTest(test));
     afterEach(async () => afterEachTest(test));
-    after(async () => afterTest(test));
 
     // typescripts tests starts here...
     tE2eIssue610TimeoutHintOverflow(test);

@@ -8,6 +8,7 @@ import {
     type OPCUAServer
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { withEnv } from "node-opcua-test-helpers";
 import should from "should";
 
 const doDebug = false;
@@ -187,6 +188,9 @@ export function t(test: TestHarness): void {
 
     describe(`AZAZ Testing ${maxSessionsForTest} clients`, () => {
         let clientCertificateManager: OPCUACertificateManager;
+
+        // Enable auto-accept for development/testing with self-signed certificates
+        withEnv("NODE_OPCUA_AUTO_ACCEPT_CERTS", "true");
 
         before(async () => {
             clientCertificateManager = getDefaultCertificateManager("PKI");

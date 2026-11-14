@@ -2,8 +2,13 @@ import "should";
 import os from "node:os";
 import { MessageSecurityMode, OPCUAClient, SecurityPolicy, type UserIdentityInfo } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { withEnv } from "node-opcua-test-helpers";
 import { assertThrow } from "../../test_helpers/assert_throw.js";
 import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device.js";
+
+// The clients use the default application PKI, which is secure by default:
+// enable auto-accept so they trust the self-signed server certificate.
+withEnv("NODE_OPCUA_AUTO_ACCEPT_CERTS", "true");
 
 interface ConnectionOptions {
     securityMode?: MessageSecurityMode;
