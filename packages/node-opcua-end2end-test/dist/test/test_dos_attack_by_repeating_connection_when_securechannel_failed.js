@@ -28,6 +28,7 @@ describe("testing Server resilience to DDOS attacks 2", function () {
     const privateKeyFile = path.join(certificateFolder, "client_key_2048.pem");
     let server;
     let endpointUrl;
+    let originalEnv;
     const maxConnectionsPerEndpoint = 3;
     const maxSessions = 10000;
     let _clients = [];
@@ -47,10 +48,18 @@ describe("testing Server resilience to DDOS attacks 2", function () {
     const serverSecureChannelLayerEx = ServerSecureChannelLayer;
     const originalThrottle = serverSecureChannelLayerEx.throttleTime;
     before(() => {
+        originalEnv = process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS;
+        process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS = "true";
         serverSecureChannelLayerEx.throttleTime = 1;
     });
     after(() => {
         serverSecureChannelLayerEx.throttleTime = originalThrottle;
+        if (originalEnv !== undefined) {
+            process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS = originalEnv;
+        }
+        else {
+            delete process.env.NODE_OPCUA_AUTO_ACCEPT_CERTS;
+        }
     });
     beforeEach(async () => {
         // Reset state between tests
