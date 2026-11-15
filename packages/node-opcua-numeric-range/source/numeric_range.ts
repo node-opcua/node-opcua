@@ -74,6 +74,8 @@ export enum NumericRangeType {
 // new Enum(["Empty", "SingleValue", "ArrayRange", "MatrixRange", "InvalidRange"]);
 
 const regexNumericRange = /^[0-9:,]*$/;
+// an index is made of at least one digit (OPC 10000-4, 7.27 NumericRange)
+const regexIndex = /^[0-9]+$/;
 
 function _valid_range(low: number, high: number): boolean {
     return !(low >= high || low < 0 || high < 0);
@@ -121,6 +123,15 @@ export interface NumericalRange1 {
 function construct_numeric_range_bit_from_string(str: string): NumericalRange0 {
     const values = str.split(":");
 
+    // parseInt("") is NaN, and NaN slips through every comparison in _valid_range:
+    // ":5", "5:" and "," would otherwise be accepted as valid ranges
+    if (!values.every((v) => regexIndex.test(v))) {
+        return {
+            type: NumericRangeType.InvalidRange,
+            value: str
+        };
+    }
+
     if (values.length === 1) {
         return {
             type: NumericRangeType.SingleValue,
@@ -156,6 +167,10 @@ function _normalize(e: NumericalRange1): number[] {
 }
 
 function construct_numeric_range_from_string(str: string): NumericalRange0 {
+    if (str === "") {
+        // no range at all, not a range with a missing index
+        return { type: NumericRangeType.Empty, value: null };
+    }
     if (!regexNumericRange.test(str)) {
         return {
             type: NumericRangeType.InvalidRange,
