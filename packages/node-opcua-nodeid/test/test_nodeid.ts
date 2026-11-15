@@ -477,6 +477,43 @@ describe("testing coerceNodeId with namespace arrays", () => {
         nodeId.toString({ namespaceArray }).should.equal("nsu=http://opcfoundation.org/UA/DI/;s=a;b;c");
     });
 
+    it("should coerce a string nodeId whose identifier looks like a numeric nodeId", () => {
+        // toString() writes "ns=1;s=ns=2;i=5" for a STRING nodeId holding "ns=2;i=5". The patterns used
+        // to be unanchored, so the numeric one matched inside the identifier and won.
+        const original = new NodeId(NodeIdType.STRING, "ns=2;i=5", 1);
+        const nodeId = coerceNodeId(original.toString());
+        nodeId.identifierType.should.eql(NodeIdType.STRING);
+        nodeId.namespace.should.eql(1);
+        nodeId.value.should.eql("ns=2;i=5");
+        sameNodeId(nodeId, original).should.eql(true);
+    });
+
+    it("should coerce a nsu string nodeId whose identifier looks like a numeric nodeId", () => {
+        const nodeId = coerceNodeId("nsu=http://opcfoundation.org/UA/DI/;s=ns=2;i=5", { namespaceArray });
+        nodeId.identifierType.should.eql(NodeIdType.STRING);
+        nodeId.namespace.should.eql(1);
+        nodeId.value.should.eql("ns=2;i=5");
+    });
+
+    it("should keep line breaks in a string identifier", () => {
+        const nodeId = coerceNodeId("ns=1;s=line1\nline2");
+        nodeId.identifierType.should.eql(NodeIdType.STRING);
+        nodeId.value.should.eql("line1\nline2");
+    });
+
+    it("should not coerce a string with text around a numeric nodeId", () => {
+        should(() => coerceNodeId("ns=1;i=5abc")).throwError(/cannot be coerced/);
+        should(() => coerceNodeId("garbage ns=1;i=5")).throwError(/cannot be coerced/);
+        should(() => coerceNodeId("garbage ns=1;s=foo")).throwError(/cannot be coerced/);
+    });
+
+    it("should not coerce a numeric nodeId whose identifier is not a number", () => {
+        should(() => coerceNodeId("i=abc")).throwError(/cannot be coerced/);
+        should(() => coerceNodeId("i=")).throwError(/cannot be coerced/);
+        should(() => coerceNodeId("i=5abc")).throwError(/cannot be coerced/);
+        should(() => coerceNodeId("ns=1;i=abc")).throwError(/cannot be coerced/);
+    });
+
     it("should resolve NodeID with optional namespace array", () => {
         const ref_nodeId = resolveNodeId("nsu=http://opcfoundation.org/UA/DI/;i=85", { namespaceArray });
         ref_nodeId.toString().should.equal("ns=1;i=85");

@@ -1854,7 +1854,7 @@ describe("SM2 - MonitoredItem advanced", function (this: ITestContext) {
                 serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
             });
             subscription.$session = {
-                nodeId: coerceNodeId("i=5;s=tmp"),
+                nodeId: coerceNodeId("i=5"),
                 sessionContext: SessionContext.defaultContext
             } as unknown as ServerSession;
             // console.log(subscription.subscriptionDiagnostics.toString());

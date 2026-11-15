@@ -149,6 +149,28 @@ describe("Testing numerical range", () => {
         nr.isValid().should.equal(false);
     });
 
+    describe("indexes with a missing bound", () => {
+        // OPC 10000-4 7.27: <dimension> ::= <index> [':' <index>], and an <index> needs at least one digit
+        for (const str of [":5", "5:", ":", ",", ",5", "5,", ":5,1:2", "1:2,5:", "1:2,"]) {
+            it(`should be an InvalidRange when constructed with the string '${str}'`, () => {
+                const nr = new NumericRange(str);
+                nr.type.should.equal(NumericRangeType.InvalidRange);
+                nr.isValid().should.equal(false);
+            });
+        }
+
+        it("should not throw when extracting values with an invalid range", () => {
+            const r = new NumericRange(":5").extract_values([0, 1, 2, 3, 4, 5, 6]);
+            r.statusCode.should.eql(StatusCodes.BadIndexRangeInvalid);
+        });
+
+        it("should treat an empty string as no range", () => {
+            const nr = new NumericRange("");
+            nr.type.should.equal(NumericRangeType.Empty);
+            nr.isValid().should.equal(true);
+        });
+    });
+
     describe("MatrixRange", () => {
         it("should be an MatrixRange when constructed with a string : '1:3,4:5' ", () => {
             const nr = new NumericRange("1:3,4:5");

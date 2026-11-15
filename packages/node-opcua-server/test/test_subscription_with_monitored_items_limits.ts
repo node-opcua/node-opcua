@@ -111,7 +111,7 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: Mocha.
         });
 
         (subscription as unknown as { $session: { nodeId: NodeId; sessionContext: SessionContext } }).$session = {
-            nodeId: coerceNodeId("i=5;s=tmp"),
+            nodeId: coerceNodeId("i=5"),
             sessionContext: SessionContext.defaultContext
         };
         subscription.on("monitoredItem", (monitoredItem) => {
