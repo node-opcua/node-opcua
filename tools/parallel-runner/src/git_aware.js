@@ -1,6 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { execSync } = require("node:child_process");
+const { execSync, execFileSync } = require("node:child_process");
 
 /**
  * Git-aware test selection for parallel_test
@@ -15,68 +15,70 @@ const { execSync } = require("node:child_process");
  * @returns {Array} Array of changed file paths (relative to repo root)
  */
 function getGitChangedFiles(packagesDir = null) {
+    return getGitChanges(packagesDir).changedFiles;
+}
+
+/** top-level repo files whose change can affect any package's tests */
+const GLOBAL_CONFIG_RE = /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|package-lock\.json|tsconfig[^/]*\.json|\.mocharc[^/]*)$/;
+
+/**
+ * Working-tree changes (staged, unstaged, untracked; not ignored).
+ * Parsed from `git status --porcelain -z`, so renames and paths with spaces
+ * are handled, and run with execFileSync (no shell).
+ * @returns {{ changedFiles: string[], globalChanges: string[], repoRoot: string|null }}
+ *   changedFiles: absolute paths under packagesDir
+ *   globalChanges: repo-level config files (lockfile, root tsconfig, ...) and
+ *                  files directly in packagesDir that belong to no package
+ */
+/** sort repo-relative paths into package changes and repo-level config changes */
+function classifyChanges(relPaths, repoRoot, dir) {
+    const changed = new Set();
+    const global = new Set();
+    for (const p of relPaths) {
+        const abs = path.resolve(repoRoot, p);
+        const base = path.basename(abs);
+        if (base.startsWith(".parallel_test_")) continue; // the runner's own state files
+        if (GLOBAL_CONFIG_RE.test(p)) {
+            global.add(abs);
+        } else if (abs.startsWith(dir + path.sep)) {
+            changed.add(abs);
+            // a config file sitting directly in packagesDir (tsconfig, .mocharc)
+            if (path.dirname(abs) === dir && GLOBAL_CONFIG_RE.test(base)) global.add(abs);
+        }
+    }
+    return { changedFiles: [...changed], globalChanges: [...global] };
+}
+
+function getGitChanges(packagesDir = null) {
     const repoRoot = findRepoRoot(packagesDir || process.cwd());
     if (!repoRoot) {
-        return [];
+        return { changedFiles: [], globalChanges: [], repoRoot: null };
     }
-
-    // default to <repoRoot>/packages, overridable (e.g. the monorepo passes its own root)
     const dir = path.resolve(packagesDir || path.join(repoRoot, "packages"));
-    const relDir = path.relative(repoRoot, dir) || ".";
-    
     try {
-        // Get staged and modified files (tracked files)
-        const statusOutput = execSync(
-            "git status --porcelain",
-            { cwd: repoRoot, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
-        );
-        
-        // Get untracked files in the target directory only
-        const untrackedInPackagesOutput = execSync(
-            `git ls-files --others --exclude-standard -- ${relDir}/`,
-            { cwd: repoRoot, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
-        );
-        
-        const changedFiles = [];
-        
-        // Parse git status output (format: "MM file\nA  file\n M file\n")
-        if (statusOutput) {
-            const lines = statusOutput.trim().split("\n");
-            for (const line of lines) {
-                if (line.trim()) {
-                    const parts = line.trim().split(/\s+/);
-                    if (parts.length >= 2) {
-                        const file = parts.slice(1).join(" ");
-                        if (file && !file.startsWith(".")) {
-                            const fullPath = path.resolve(repoRoot, file);
-                            // Only include files in packages directory
-                            if (fullPath.startsWith(dir)) {
-                                changedFiles.push(fullPath);
-                            }
-                        }
-                    }
-                }
+        const out = execFileSync("git", ["status", "--porcelain", "-z", "--untracked-files=all"], {
+            cwd: repoRoot,
+            encoding: "utf8",
+            stdio: ["ignore", "pipe", "ignore"],
+            maxBuffer: 256 * 1024 * 1024
+        });
+        const relPaths = [];
+        const recs = out.split("\0");
+        for (let i = 0; i < recs.length; i++) {
+            const rec = recs[i];
+            if (rec.length < 4) continue;
+            const xy = rec.slice(0, 2);
+            relPaths.push(rec.slice(3));
+            if (xy[0] === "R" || xy[0] === "C") {
+                // rename / copy: the next NUL-separated record is the old path
+                i++;
+                if (recs[i]) relPaths.push(recs[i]);
             }
         }
-        
-        // Parse untracked files in packages directory
-        if (untrackedInPackagesOutput) {
-            const lines = untrackedInPackagesOutput.trim().split("\n");
-            for (const line of lines) {
-                if (line.trim() && !line.startsWith(".")) {
-                    const fullPath = path.resolve(repoRoot, line.trim());
-                    // Only include files in packages directory
-                    if (fullPath.startsWith(dir)) {
-                        changedFiles.push(fullPath);
-                    }
-                }
-            }
-        }
-        
-        return changedFiles;
+        return { ...classifyChanges(relPaths, repoRoot, dir), repoRoot };
     } catch (err) {
         console.warn(`[git-aware] Could not get git status: ${err.message}`);
-        return [];
+        return { changedFiles: [], globalChanges: [], repoRoot };
     }
 }
 
@@ -86,32 +88,48 @@ function getGitChangedFiles(packagesDir = null) {
  * @returns {Array} Array of changed file paths
  */
 function getGitChangedFilesSince(commit = "HEAD", startDir = process.cwd()) {
-    const repoRoot = findRepoRoot(startDir);
+    return getGitChangesSince(commit, startDir).changedFiles;
+}
+
+/**
+ * Changes of this branch relative to `ref` (e.g. master, origin/master, a sha):
+ *   - everything that differs between the merge-base of `ref` and HEAD and the
+ *     working tree (committed on the branch + staged + unstaged), deletions and
+ *     both sides of renames included: `git diff --name-only --no-renames <base>`
+ *   - plus untracked, non-ignored files
+ * The merge-base matters: diffing against the tip of `ref` would also count
+ * everything that landed on `ref` since the branch was created.
+ * @returns {{ changedFiles: string[], globalChanges: string[], repoRoot: string|null, base: string|null, error?: string }}
+ */
+function getGitChangesSince(ref, packagesDir = null) {
+    const repoRoot = findRepoRoot(packagesDir || process.cwd());
     if (!repoRoot) {
-        return [];
+        return { changedFiles: [], globalChanges: [], repoRoot: null, base: null, error: "not a git repository" };
     }
-    
+    const dir = path.resolve(packagesDir || path.join(repoRoot, "packages"));
+    const git = (...args) =>
+        execFileSync("git", args, {
+            cwd: repoRoot,
+            encoding: "utf8",
+            stdio: ["ignore", "pipe", "pipe"],
+            maxBuffer: 256 * 1024 * 1024
+        });
+    let base;
     try {
-        const output = execSync(
-            `git diff --name-only ${commit} --diff-filter=d`,
-            { cwd: repoRoot, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
-        );
-        
-        const changedFiles = [];
-        if (output) {
-            const lines = output.trim().split("\n");
-            for (const line of lines) {
-                if (line.trim() && !line.startsWith(".")) {
-                    changedFiles.push(path.resolve(repoRoot, line.trim()));
-                }
-            }
-        }
-        
-        return changedFiles;
-    } catch (err) {
-        console.warn(`[git-aware] Could not get git diff: ${err.message}`);
-        return [];
+        git("rev-parse", "--verify", "--quiet", `${ref}^{commit}`);
+    } catch (_err) {
+        return { changedFiles: [], globalChanges: [], repoRoot, base: null, error: `unknown git reference "${ref}"` };
     }
+    try {
+        base = git("merge-base", ref, "HEAD").trim();
+    } catch (_err) {
+        base = git("rev-parse", `${ref}^{commit}`).trim(); // unrelated histories: diff against ref itself
+    }
+    const relPaths = [
+        ...git("diff", "--name-only", "--no-renames", "-z", base).split("\0"),
+        ...git("ls-files", "--others", "--exclude-standard", "-z").split("\0")
+    ].filter(Boolean);
+    return { ...classifyChanges(relPaths, repoRoot, dir), repoRoot, base };
 }
 
 /**
@@ -321,13 +339,38 @@ function analyzeChanges(options = {}) {
     }
     
     // Get changed files
-    const changedFiles = sinceCommit 
-        ? getGitChangedFilesSince(sinceCommit, absolutePackagesDir)
-        : getGitChangedFiles(absolutePackagesDir);
+    let changedFiles;
+    let globalChanges = [];
+    let base = null;
+    if (sinceCommit) {
+        const since = getGitChangesSince(sinceCommit, absolutePackagesDir);
+        if (since.error) {
+            throw new Error(`--since: ${since.error}`);
+        }
+        ({ changedFiles, globalChanges, base } = since);
+    } else {
+        ({ changedFiles, globalChanges } = getGitChanges(absolutePackagesDir));
+    }
+    if (globalChanges.length > 0) {
+        // lockfile / root tsconfig / mocharc: can affect every package
+        return {
+            changedFiles,
+            base,
+            globalChanges,
+            changedPackages: [],
+            affectedPackages: [],
+            affectedTestFiles: [],
+            skippedPackages: [],
+            skippedCount: 0,
+            runAll: true,
+            reason: `repo-level config changed: ${globalChanges.map((f) => path.basename(f)).join(", ")}`
+        };
+    }
     
     if (changedFiles.length === 0) {
         return {
             changedFiles: [],
+            base,
             changedPackages: [],
             affectedPackages: [],
             affectedTestFiles: [],
@@ -409,6 +452,7 @@ function analyzeChanges(options = {}) {
     
     return {
         changedFiles,
+        base,
         changedPackages: Array.from(changedPackages),
         sourceChangedPackages: Array.from(sourceChangedPackages),
         testChangedPackages: Array.from(testChangedPackages),
@@ -503,9 +547,13 @@ function getAnalysisSummary(analysis) {
  * Check if there are any changes at all
  * @returns {boolean}
  */
-function hasChanges(packagesDir = null) {
-    const changedFiles = getGitChangedFiles(packagesDir);
-    return changedFiles.length > 0;
+function hasChanges(packagesDir = null, sinceRef = null) {
+    const r = sinceRef ? getGitChangesSince(sinceRef, packagesDir) : getGitChanges(packagesDir);
+    if (r.error) {
+        throw new Error(`--since: ${r.error}`);
+    }
+    const { changedFiles, globalChanges } = r;
+    return changedFiles.length > 0 || globalChanges.length > 0;
 }
 
 /**
@@ -521,6 +569,8 @@ function isCI() {
 
 module.exports = {
     analyzeChanges,
+    getGitChanges,
+    getGitChangesSince,
     getGitChangedFiles,
     getGitChangedFilesSince,
     getAllPackages,

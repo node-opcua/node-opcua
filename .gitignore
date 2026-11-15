@@ -1,6 +1,9 @@
 #package-lock.json
 CTT/ServerNodeOPCUA2/
 
+# parallel runner cache files
+.parallel*.json
+
 _generated_
 _packages_extra2/
 _packages_extra3/

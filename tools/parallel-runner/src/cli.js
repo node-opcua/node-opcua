@@ -28,7 +28,8 @@ const MIN_WORKER_COUNT = envNumber("MIN_WORKER_COUNT", 5, (v) => parseInt(v, 10)
 
 const FACTOR = envNumber("CPU_FORMULA_FACTOR", 0.9, parseFloat);
 
-const testWatchDogTimeout = process.env.PING ? parseInt(process.env.PING) : 10 * 60 * 1000;
+// validated like the others: setInterval(NaN) fires every millisecond
+const testWatchDogTimeout = envNumber("PING", 10 * 60 * 1000, (v) => parseInt(v, 10));
 
 // Disable chokidar file-system watchers in CertificateManager during
 // parallel test runs. Each OPCUAServer creates 5 watchers; with N
@@ -52,7 +53,6 @@ try { ({ hasChanges, analyzeChanges, findRepoRoot, getAllPackages } = require(".
 function durationToString(milliseconds) {
     const seconds = Math.floor(milliseconds / 1000);
     const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
     const a = (n) => n.toString().padStart(2, "0");
     const b = (n) => n.toString().padStart(3, "0");
     return `${a(minutes % 60)}:${a(seconds % 60)}.${b(milliseconds % 1000)}`;
@@ -176,13 +176,23 @@ function w(n, width) {
 let ROOT = process.cwd();
 let DURATIONS_FILE = require("node:path").join(ROOT, ".parallel_test_durations.json");
 let durationHistory = {};
+// keys are relative to ROOT so the history survives a move / another clone
+const durationKey = (file) => require("node:path").relative(ROOT, file);
 function loadDurationHistory() {
+    durationHistory = {};
     try {
-        durationHistory = JSON.parse(require("node:fs").readFileSync(DURATIONS_FILE, "utf8")) || {};
+        const raw = JSON.parse(require("node:fs").readFileSync(DURATIONS_FILE, "utf8")) || {};
+        for (const [k, v] of Object.entries(raw)) {
+            // older files used absolute paths: convert what lies under ROOT
+            const rel = require("node:path").isAbsolute(k) ? durationKey(k) : k;
+            if (!rel.startsWith("..") && v > 0) durationHistory[rel] = v;
+        }
     } catch (_err) {
         durationHistory = {};
     }
 }
+/** expected wall time of a test file from previous runs, or undefined */
+const historyFor = (file) => durationHistory[durationKey(file)];
 /** file -> wall-clock ms measured during this run */
 const fileWallTime = {};
 /** files whose STARTED message has been seen */
@@ -195,7 +205,15 @@ function saveDurationHistory() {
         return;
     }
     try {
-        require("node:fs").writeFileSync(DURATIONS_FILE, JSON.stringify({ ...durationHistory, ...fileWallTime }, null, 1));
+        const fs = require("node:fs");
+        const path = require("node:path");
+        const merged = { ...durationHistory };
+        for (const [file, ms] of Object.entries(fileWallTime)) merged[durationKey(file)] = ms;
+        // drop entries for test files that no longer exist
+        for (const k of Object.keys(merged)) {
+            if (!fs.existsSync(path.join(ROOT, k))) delete merged[k];
+        }
+        fs.writeFileSync(DURATIONS_FILE, JSON.stringify(merged, null, 1));
     } catch (_err) {
         /* best effort: a read-only checkout just means no history next time */
     }
@@ -218,10 +236,10 @@ function estimateEtaMs() {
 
     // speed of this run vs. history, on the files we can compare (clamped)
     let speed = 1;
-    const comparable = doneFiles.filter((f) => durationHistory[f] > 0);
+    const comparable = doneFiles.filter((f) => historyFor(f) > 0);
     if (comparable.length >= 3) {
         const actual = comparable.reduce((a, f) => a + fileWallTime[f], 0);
-        const expected = comparable.reduce((a, f) => a + durationHistory[f], 0);
+        const expected = comparable.reduce((a, f) => a + historyFor(f), 0);
         speed = Math.min(3, Math.max(1 / 3, actual / expected));
     }
 
@@ -230,7 +248,7 @@ function estimateEtaMs() {
     if (!Number.isFinite(unknownCost)) {
         unknownCost = mean(Object.values(durationHistory).filter((v) => v > 0)) * speed;
     }
-    const expectedFor = (f) => (durationHistory[f] > 0 ? durationHistory[f] * speed : unknownCost);
+    const expectedFor = (f) => (historyFor(f) > 0 ? historyFor(f) * speed : unknownCost);
 
     let remaining = 0;
     let longestResidual = 0;
@@ -277,8 +295,6 @@ function getProgressPrefix() {
     // Compact format for CI: ETA at front, percentage
     const prefix = chalk.gray(`[ETA ${eta} ${w(percent, 3)}% ${cpuBarChar}]`);
     // Track the last prefix for overwriting at the end
-    lastETALinePrefix = prefix;
-    lastETALineLength = prefix.length;
     return prefix;
 }
 
@@ -333,11 +349,15 @@ function runningLine() {
 
 const TEST_FILE_STARTED = "TEST_FILE_STARTED";
 const TEST_FILE_COMPLETED = "TEST_FILE_COMPLETED";
-const TEST_FILE_COMPILATION_ERROR = "TEST_FILE_COMPILATION_ERROR";
 const runningPages = new Set();
 
-const failingTestFilename = [];
 const failingTests = {};
+/** files with at least one failure this run (never cached as passed) */
+const failedFiles = new Set();
+/** files whose run finished this run (TEST_FILE_COMPLETED or worker death) */
+const completedFiles = new Set();
+/** failing tests recorded by an earlier run, carried over for --onlyFail */
+let previousFailingTests = [];
 const outputFor = {};
 
 const durationsPerTestFile = {};
@@ -357,9 +377,6 @@ let globalTestCache = null;
 let argv = null; // Will be set in main thread
 const workers = {};
 
-// Progress display state
-let lastETALinePrefix = "";  // Track last ETA prefix in CI mode for overwriting
-let lastETALineLength = 0;
 
 // Detect environment
 let isTTY = process.stdout.isTTY === true;
@@ -388,6 +405,56 @@ function collectDuration(test) {
     testCounter++;
     const { file } = test;
     durationsPerTestFile[file] = (durationsPerTestFile[file] || 0) + (test.duration || 0);
+}
+
+/** status icon in front of each test line, single-width so columns stay aligned */
+const STATUS = {
+    passed: chalk.green("✓"),
+    failed: chalk.red("✗"),
+    pending: chalk.gray("○")
+};
+
+/** failing list to persist: this run's failures + earlier ones from files not re-run */
+function persistFailingList() {
+    if (!globalTestCache) return;
+    const carried = previousFailingTests.filter((f) => !completedFiles.has(f.file) && !failedFiles.has(f.file));
+    globalTestCache.saveFailingTests([...carried, ...failingTestList]);
+}
+
+/**
+ * one place for every failure: mocha test/hook failure, unloadable file,
+ * dead worker. Prints it, records it in the cache and the failing list, and in
+ * stop mode ends the run with exit code 1.
+ */
+function recordFailure(test, prefix) {
+    const { duration, title, file, error, output, titlePath } = test;
+    const testName = (titlePath && titlePath.length ? titlePath.join(" > ") : title) || "unknown test";
+    failedFiles.add(file);
+    failingTests[file] = titlePath;
+    failingTestList.push({ file, test: testName, error: error || "Test failed", timestamp: Date.now() });
+
+    logLine(prefix(), STATUS.failed, chalk.red(title));
+    logLine(prefix(), " ", chalk.gray(`${durationToString(duration || 0)}  ${file}`));
+    logLine(prefix(), " ", chalk.red(`${error}`));
+    console.log(chalk.gray("-".repeat(70)));
+    for (const l of output || []) {
+        for (const ll of String(l).split("\n")) {
+            logLine(prefix(), chalk.redBright(ll));
+        }
+    }
+    console.log(chalk.gray("-".repeat(70)));
+
+    if (globalTestCache) {
+        globalTestCache.markFileFailed(file, testName, error || "Test failed");
+    }
+    persistFailingList();
+
+    if (argv.noStop) {
+        console.log(chalk.yellow("  [FAILED but continuing - noStop mode] "));
+    } else {
+        epilogue();
+        process.exit(1);
+    }
 }
 
 async function runTest({ page, selectedTests, g }) {
@@ -422,7 +489,7 @@ async function runTest({ page, selectedTests, g }) {
         ).padEnd(120);
         return prefixStr;
     }
-    const result = new Promise((resolve, reject) => {
+    const result = new Promise((resolve) => {
         runningPages.add(page);
         const worker = new Worker(require("node:path").join(__dirname, "worker.js"), {
             workerData: { page, selectedTests, g },
@@ -447,12 +514,33 @@ async function runTest({ page, selectedTests, g }) {
         worker.stderr.on("data", capture("E"));
         // Track worker for cleanup
         workers[page] = worker;
+
+        const completeFile = (file) => {
+            if (completedFiles.has(file)) return;
+            completedFiles.add(file);
+            fileCounter++;
+            const running = runningFiles.get(page);
+            if (running && running.file === file) {
+                fileWallTime[file] = Date.now() - running.startedAt;
+            }
+            runningFiles.delete(page);
+            // one verdict per file, once it is over: a pass recorded after the
+            // first passing test survived a later failure in the same file.
+            // Not with --testFilter: only a subset of the file ran.
+            if (globalTestCache && !failedFiles.has(file) && !argv.testFilter) {
+                globalTestCache.markFilePassed(file);
+            }
+            outputFor[file] = [];
+            if (argv && argv.compact) {
+                renderProgress(true);
+            }
+        };
+
         worker.on("message", (message) => {
             const { type, file, test, line } = message;
-            // args && logLine(prefix(), ...args);
             switch (type) {
                 case "LOG":
-                    outputFor[file].push(line); //util.format.apply(args));
+                    (outputFor[file] = outputFor[file] || []).push(line);
                     break;
                 case TEST_FILE_STARTED:
                     outputFor[file] = outputFor[file] || [];
@@ -461,106 +549,54 @@ async function runTest({ page, selectedTests, g }) {
                     fileStarted++;
                     break;
                 case TEST_FILE_COMPLETED:
-                    fileCounter++;
-                    outputFor[file] = [];
-                    {
-                        const running = runningFiles.get(page);
-                        if (running && running.file === file) {
-                            fileWallTime[file] = Date.now() - running.startedAt;
-                        }
-                    }
-                    runningFiles.delete(page);
-                    if (argv && argv.compact) {
-                        // Force re-render progress line at bottom
-                        renderProgress(true);
-                    }
-                    break;
-                case TEST_FILE_COMPILATION_ERROR:
+                    completeFile(file);
                     break;
                 case EVENT_TEST_BEGIN:
                     break;
-                case EVENT_TEST_SKIPPED:
+                case EVENT_TEST_PENDING:
                     collectDuration(test);
+                    logLine(prefix(), STATUS.pending, chalk.gray(test.title));
                     break;
                 case EVENT_TEST_FAIL:
-                    {
-                        collectDuration(test);
-                        const { duration, title, file, error, output, titlePath } = test;
-                        failingTestFilename.push(file.replace(ROOT, ""));
-                        failingTests[file] = titlePath;
-
-                        const d = durationToString(duration);
-                        
-                        // Determine status marker
-                        const statusMarker = globalTestCache && globalTestCache.hasFilePassed(file) ? 
-                            chalk.cyan("[CACHED]") : chalk.red("[FAIL]");
-
-                        logLine(prefix(), chalk.red(title), chalk.white(` ${statusMarker}`));
-                        logLine(prefix(), chalk.gray(`  ${d}  ${file}`));
-                        logLine(prefix(), chalk.red(`  ${error}`));
-
-                        console.log(chalk.gray("-".repeat(70)));
-                        for (const l of output) {
-                            for (const ll of l.split("\n")) {
-                                logLine(prefix(), chalk.redBright(ll));
-                            }
-                        }
-                        console.log("-----------------------------------------------------------------------------");
-                        // Show one-line summary for early exit, but not for noStop mode (will be shown at end)
-                        epilogue(argv.noStop ? false : true);
-                        // Save checkpoint for failed test
-                        if (globalTestCache) {
-                            globalTestCache.markFileFailed(file, titlePath || title, error || "Test failed");
-                        }
-                        // In non-stop mode, collect failing test and continue
-                        if (argv.noStop) {
-                            failingTestList.push({
-                                file,
-                                test: titlePath || title,
-                                error: error || "Test failed",
-                                timestamp: Date.now()
-                            });
-                            console.log(chalk.yellow("  [FAILED but continuing - noStop mode] "));
-                            
-                            // Save to cache immediately to prevent data loss on crash
-                            if (globalTestCache) {
-                                globalTestCache.saveFailingTests(failingTestList);
-                            }
-                        } else {
-                            process.exit(1);
-                        }
-                    }
+                    collectDuration(test);
+                    recordFailure(test, prefix);
                     break;
                 case EVENT_TEST_PASS:
                     {
                         collectDuration(test);
                         const { duration, title, file } = test;
-
-                        const d = durationToString(duration);
-                        
-                        // Determine status marker
-                        const wasCached = globalTestCache && globalTestCache.hasFilePassed(file);
-                        const statusMarker = wasCached ? chalk.cyan("[CACHED]") : chalk.green("[PASS]");
-
-                        logLine(prefix(), chalk.green(title), chalk.white(` ${statusMarker}`));
-                        logLine(prefix(), chalk.gray(`  ${d}  ${file}`));
-                        
-                        // Mark file as passed in cache
-                        if (globalTestCache) {
-                            globalTestCache.markFilePassed(file, title);
-                        }
-                        
-                        // Progress updates are handled by timer, not after each test
+                        logLine(prefix(), STATUS.passed, chalk.green(title));
+                        logLine(prefix(), " ", chalk.gray(`${durationToString(duration)}  ${file}`));
                     }
                     break;
             }
         });
 
-        worker.on("error", reject);
+        // A worker that dies (process.exit in a test, OOM, uncaught error outside
+        // mocha) used to reject, which silently ended this lane for the rest of the
+        // run and left its file neither passed nor failed. Record it as a failure
+        // and keep the lane going.
+        let workerError = null;
+        worker.on("error", (err) => {
+            workerError = err;
+        });
         worker.on("exit", (code) => {
             runningPages.delete(page);
+            delete workers[page];
+            for (const file of selectedTests) {
+                if (!completedFiles.has(file)) {
+                    // also exit code 0: a test calling process.exit(0) ends the file early
+                    const reason = workerError
+                        ? workerError.stack || workerError.message || String(workerError)
+                        : `worker exited with code ${code} before the file completed`;
+                    recordFailure(
+                        { duration: 0, file, title: "worker died before the file completed", error: reason, output: outputFor[file] || [], titlePath: [] },
+                        prefix
+                    );
+                    completeFile(file);
+                }
+            }
             runningFiles.delete(page);
-            if (code !== 0) reject(new Error(`Worker ${page} stopped with exit code ${code}`));
             resolve();
         });
     });
@@ -568,16 +604,7 @@ async function runTest({ page, selectedTests, g }) {
     return result;
 }
 
-const {
-    EVENT_RUN_BEGIN,
-    EVENT_RUN_END,
-    EVENT_TEST_BEGIN,
-    EVENT_TEST_FAIL,
-    EVENT_TEST_PASS,
-    EVENT_SUITE_BEGIN,
-    EVENT_SUITE_END,
-    EVENT_TEST_SKIPPED
-} = Mocha.Runner.constants;
+const { EVENT_TEST_BEGIN, EVENT_TEST_FAIL, EVENT_TEST_PASS, EVENT_TEST_PENDING } = Mocha.Runner.constants;
 
 async function runTestAndContinue(data) {
     if (data.index >= data.testFiles.length) {
@@ -602,34 +629,8 @@ async function runTestAndContinue(data) {
 }
 
 const t1 = Date.now();
-function reportFailures() {
-    if (failingTestList.length > 0) {
-        console.log();
-        console.log(chalk.bgRed.white(" ═══════════════════════════════════════════════════════════ "));
-        console.log(chalk.bgRed.white("                        FAILED TESTS                                    "));
-        console.log(chalk.bgRed.white(" ═══════════════════════════════════════════════════════════ "));
-        console.log();
-        console.log(chalk.red("  Total failing tests: " + failingTestList.length));
-        console.log();
-        for (let i = 0; i < failingTestList.length; i++) {
-            const fail = failingTestList[i];
-            console.log(chalk.white((i + 1) + ". " + fail.file));
-            console.log(chalk.white("   Test: " + fail.test));
-            console.log(chalk.red("   Error: " + fail.error));
-            console.log();
-        }
-        console.log(chalk.cyan("  To re-run only failing tests:"));
-        console.log("    " + chalk.yellow("parallel-runner --onlyFail"));
-        
-        // Save failing tests to cache for --onlyFail mode
-        if (globalTestCache) {
-            globalTestCache.saveFailingTests(failingTestList);
-        }
-        console.log();
-    }
-}
-
-function epilogue(isFinal = true) {
+function epilogue() {
+    const isFinal = true;
     const t2 = Date.now();
     
     // ==========================================
@@ -640,7 +641,7 @@ function epilogue(isFinal = true) {
     // In CI mode: print final summary on new line WITHOUT ETA prefix
     // This makes it stand out as the final, clear message
     if (isFinal && argv && argv.compact && usePrefixProgress) {
-        const failCount = failingTestFilename.length;
+        const failCount = failingTestList.length;
         let summaryMessage;
         if (failCount === 0) {
             summaryMessage = chalk.bgGreen.white(" ✓ ALL TESTS PASSED ") + chalk.green(` (${testCounter} tests, ${durationToString(t2 - t1)})`);
@@ -650,12 +651,11 @@ function epilogue(isFinal = true) {
         // Print on new line - stands out without ETA prefix
         console.log();
         console.log(summaryMessage);
-        lastETALinePrefix = "";
     }
     
     // In TTY mode: overwrite the progress line with final status
     if (isFinal && argv && argv.compact && useBottomProgress) {
-        const failCount = failingTestFilename.length;
+        const failCount = failingTestList.length;
         let summaryMessage;
         if (failCount === 0) {
             summaryMessage = chalk.bgGreen.white(" ✓ ALL TESTS PASSED ") + chalk.green(` (${testCounter} tests, ${durationToString(t2 - t1)})`);
@@ -672,7 +672,7 @@ function epilogue(isFinal = true) {
     
     // In verbose mode: also show a clear final summary
     if (isFinal && argv && argv.verbose) {
-        const failCount = failingTestFilename.length;
+        const failCount = failingTestList.length;
         let summaryMessage;
         if (failCount === 0) {
             summaryMessage = chalk.bgGreen.white(" ✓ ALL TESTS PASSED ") + chalk.green(` (${testCounter} tests, ${durationToString(t2 - t1)})`);
@@ -712,7 +712,7 @@ function epilogue(isFinal = true) {
     }
     console.log(chalk.white(`    Actually run:    ${chalk.cyan(filesActuallyRun)} files`));
     console.log(chalk.white(`    Tests executed: ${chalk.cyan(testCounter)} tests`));
-    console.log(chalk.white(`    Failures:        ${failingTestFilename.length > 0 ? chalk.red(failingTestFilename.length) : chalk.green("0")} tests`));
+    console.log(chalk.white(`    Failures:        ${failingTestList.length > 0 ? chalk.red(failingTestList.length) : chalk.green("0")} tests`));
     console.log();
     console.log(chalk.white(`  Duration: ${chalk.cyan(durationToString(t2 - t1))}`));
     console.log();
@@ -721,7 +721,7 @@ function epilogue(isFinal = true) {
     // AUTOMATIC CHECKPOINT RESET WHEN ALL TESTS PASS
     // (Keep cache for performance, but clear checkpoint for fresh start)
     // ==========================================
-    if (failingTestFilename.length === 0 && filesActuallyRun > 0) {
+    if (failingTestList.length === 0 && filesActuallyRun > 0) {
         console.log(chalk.bgGreen.white(" ═══════════════════════════════════════════════════════════ "));
         console.log(chalk.bgGreen.white("  ✓ ALL TESTS PASSED                                            "));
         console.log(chalk.bgGreen.white(" ═══════════════════════════════════════════════════════════ "));
@@ -730,16 +730,16 @@ function epilogue(isFinal = true) {
         if (globalTestCache) {
             // Clear checkpoint for fresh start, but KEEP cache for performance
             globalTestCache.clearCheckpoint();
-            console.log(chalk.green("  ✓ Checkpoint cleared - next run will start from beginning"));
+            console.log(chalk.green("  ✓ Checkpoint cleared"));
             console.log(chalk.green("  ✓ Cache preserved - passed tests will be skipped"));
         }
-    } else if (failingTestFilename.length > 0) {
+    } else if (failingTestList.length > 0) {
         console.log(chalk.bgYellow.white(" ═══════════════════════════════════════════════════════════ "));
         console.log(chalk.bgYellow.white("  ⚠ SOME TESTS FAILED                                           "));
         console.log(chalk.bgYellow.white(" ═══════════════════════════════════════════════════════════ "));
         console.log();
         if (globalTestCache) {
-            console.log(chalk.yellow("  ✓ Cache preserved - next run will resume from last failing test"));
+            console.log(chalk.yellow("  ✓ Cache preserved - next run skips the files that passed and re-runs the rest"));
         }
     }
     console.log();
@@ -747,7 +747,7 @@ function epilogue(isFinal = true) {
     // ==========================================
     // DETAILED FAILURE INFORMATION
     // ==========================================
-    if (failingTestFilename.length > 0) {
+    if (failingTestList.length > 0) {
         console.log();
         console.log(chalk.bgRed.white(" "));
         console.log(chalk.bgRed.white("  Failing Tests:"));
@@ -756,8 +756,11 @@ function epilogue(isFinal = true) {
             const fail = failingTestList[i];
             console.log(chalk.red(`  ${i + 1}. ${fail.file}`));
             console.log(chalk.gray(`     Test: ${fail.test}`));
-            console.log(chalk.red(`     Error: ${fail.error}`));
+            console.log(chalk.red(`     Error: ${String(fail.error).split("\n")[0]}`));
         }
+        console.log();
+        console.log(chalk.cyan("  To re-run only failing tests:"));
+        console.log("    " + chalk.yellow("parallel-runner --onlyFail"));
         console.log();
     }
 
@@ -772,13 +775,13 @@ function epilogue(isFinal = true) {
             .join("\n")
     );
     console.log("-------------------------------------------------------------------------------");
-    const runningTests = [...runningPages].map((i) => testFiles[i]);
+    const runningTests = [...runningFiles.values()].map((r) => r.file);
     console.log(`still running at exit: ${runningTests.length}`);
     console.log(runningTests.join("\n"));
 }
 
 function dumpRunningTests() {
-    const runningTests = [...runningPages].map((i) => testFiles[i]);
+    const runningTests = [...runningFiles.values()].map((r) => r.file);
     console.log(`running tests: ${runningTests.length}`);
     console.log(runningTests.join("\n"));
 }
@@ -792,7 +795,13 @@ if (isMainThread) {
             { name: "verbose", alias: "v", type: Boolean, defaultValue: false, description: "use verbose output (multiple lines per test)" },
             { name: "status", type: Boolean, defaultValue: false, description: "display cache and git status information" },
             { name: "help", alias: "h", type: Boolean, defaultValue: false, description: "display help information" },
-            { name: "gitAware", type: Boolean, defaultValue: false, description: "enable git-aware selective testing" },
+            { name: "gitAware", alias: "g", type: Boolean, defaultValue: false, description: "enable git-aware selective testing" },
+            {
+                name: "since",
+                type: String,
+                defaultValue: null,
+                description: "with -g: compare against <ref> (e.g. master): changes on this branch since it left <ref>, plus uncommitted ones. Implies -g"
+            },
             { name: "reset", type: Boolean, defaultValue: false, description: "reset cache and run all tests from scratch" },
             { name: "all", type: Boolean, defaultValue: false, description: "run all tests (ignore git-aware filtering)" },
             { name: "noStop", type: Boolean, defaultValue: false, description: "continue running tests after failures" },
@@ -805,6 +814,9 @@ if (isMainThread) {
 
     // resolve the test root once, before anything reads state files
     ROOT = require("node:path").resolve(argv.root || process.cwd());
+    if (argv.since) {
+        argv.gitAware = true; // --since only makes sense with git-aware selection
+    }
     DURATIONS_FILE = require("node:path").join(ROOT, ".parallel_test_durations.json");
     loadDurationHistory();
 
@@ -832,6 +844,15 @@ if (isMainThread) {
             process.exit(0);
         }
 
+        // file filter first, so the header, the skip statistics and the cache all
+        // talk about the same set of files
+        if (argv.fileFilter) {
+            const f = new RegExp(argv.fileFilter);
+            testFiles = testFiles.filter((file) => f.test(file));
+            console.log(chalk.cyan(`✓ File filter /${argv.fileFilter}/: ${testFiles.length} of ${originalTestFileCount} test files`));
+            originalTestFileCount = testFiles.length;
+        }
+
         // ========== SIGINT HANDLER (CTRL+C) ==========
         let shuttingDown = false;
         process.on('SIGINT', async () => {
@@ -848,8 +869,10 @@ if (isMainThread) {
             try {
                 // Save checkpoint first
                 if (globalTestCache && testFiles && testFiles.length > 0) {
-                    const nextFileIndex = Math.min(fileCounter, testFiles.length - 1);
-                    const checkpointFile = testFiles[nextFileIndex];
+                    // informational only (shown by --status): resuming relies on the
+                    // per-file cache, files that passed are skipped next time
+                    const running = [...runningFiles.values()].map((r) => r.file);
+                    const checkpointFile = running[0] || testFiles[Math.min(fileCounter, testFiles.length - 1)];
                     
                     globalTestCache.saveCheckpoint({
                         filePath: checkpointFile,
@@ -863,7 +886,7 @@ if (isMainThread) {
                         globalTestCache.saveFailingTests(failingTestList);
                     }
                     
-                    console.log(chalk.yellow(`✓ Checkpoint saved - next run will resume from: ${checkpointFile}`));
+                    console.log(chalk.yellow(`✓ Progress saved - next run skips the ${completedFiles.size - failedFiles.size} files that passed and re-runs the rest`));
                 }
             } catch (err) {
                 console.error(chalk.red('Failed to save checkpoint:'), err.message);
@@ -872,21 +895,13 @@ if (isMainThread) {
             // Terminate all workers
             console.log(chalk.yellow('Terminating worker threads...'));
             const workerPromises = [];
+            // only live workers: finished ones are removed from `workers` on exit,
+            // waiting for their 'exit' again used to always burn the full 2 s
             for (const page of Object.keys(workers)) {
-                if (workers[page]) {
-                    try {
-                        workers[page].terminate();
-                        workerPromises.push(
-                            new Promise(resolve => {
-                                workers[page].on('exit', () => {
-                                    resolve();
-                                });
-                            })
-                        );
-                    } catch (e) {
-                        // ignore
-                    }
-                }
+                const worker = workers[page];
+                if (!worker) continue;
+                workerPromises.push(new Promise((resolve) => worker.once("exit", resolve)));
+                worker.terminate().catch(() => {});
             }
             
             // Wait for workers to exit (max 2 seconds)
@@ -907,7 +922,9 @@ if (isMainThread) {
                 // ========== CACHE & GIT-AWARE INTEGRATION ==========
         try {
             const { TestResultCache } = require("./cache");
-            globalTestCache = new TestResultCache(ROOT);
+            const { createFingerprinter } = require("./fingerprint");
+            globalTestCache = new TestResultCache(ROOT, { fingerprint: createFingerprinter(ROOT) });
+            previousFailingTests = globalTestCache.getFailingTests() || [];
             
             // Handle reset flag
             if (argv.reset) {
@@ -925,10 +942,15 @@ if (isMainThread) {
             const validPassedFiles = globalTestCache.getValidPassedFiles(allTestFiles);
             filesSkippedByCache = validPassedFiles.length;
             
-            // Filter out files that have passed and are still valid
-            // This is done regardless of checkpoint - we'll apply checkpoint after
-            if (filesSkippedByCache > 0 && !argv.reset && !argv.onlyFail) {
-                testFiles = testFiles.filter(file => !validPassedFiles.includes(file));
+            // Skip files that passed and whose fingerprint (test file + package
+            // sources + workspace deps) is unchanged. Not with --onlyFail (it picks
+            // its own files) nor --testFilter (asking for specific tests means
+            // running them, even in a file that passed).
+            if (filesSkippedByCache > 0 && !argv.reset && !argv.onlyFail && !argv.testFilter) {
+                const skip = new Set(validPassedFiles);
+                testFiles = testFiles.filter((file) => !skip.has(file));
+            } else {
+                filesSkippedByCache = 0;
             }
             
             // Track original count before any filtering
@@ -951,40 +973,49 @@ if (isMainThread) {
                 }
             }
             
-            // Get checkpoint
-            const checkpoint = globalTestCache.getCheckpoint();
-            
-            // Apply cache filtering if we have a checkpoint
-            if (checkpoint && !argv.reset && !argv.onlyFail) {
-                const startIndex = testFiles.indexOf(checkpoint.filePath);
-                if (startIndex >= 0) {
-                    filesSkippedByResume = startIndex;
-                    console.log(chalk.yellow("✓ Resuming from checkpoint - skipping " + startIndex + " tests that previously passed"));
-                    testFiles = testFiles.slice(startIndex);
-                } else {
-                    console.log(chalk.yellow("⚠ Checkpoint file not found in current test list - running from start"));
-                }
-            }
-            
+            // No checkpoint slicing: it skipped every file before the checkpoint,
+            // including ones that failed or never finished. The cache above
+            // already skips exactly the files that passed.
+
             // Track original count before git-aware filtering
             const filesBeforeGitAware = testFiles.length;
             
             // Apply git-aware filtering
             if (gitAwareAvailable && argv.gitAware && !argv.all) {
-                const hasGitChanges = hasChanges(ROOT);
-                if (hasGitChanges) {
-                    const analysis = analyzeChanges({ packagesDir: ROOT, includeDependents: true });
+                const sinceRef = argv.since || null;
+                let hasGitChanges;
+                try {
+                    hasGitChanges = hasChanges(ROOT, sinceRef);
+                } catch (err) {
+                    // a typo in --since must not quietly turn into "run everything"
+                    console.error(chalk.red(`✗ ${err.message}`));
+                    process.exit(2);
+                }
+                const allPackages = getAllPackages(ROOT);
+                const analysis = hasGitChanges
+                    ? analyzeChanges({ packagesDir: ROOT, includeDependents: true, sinceCommit: sinceRef })
+                    : null;
+                if (sinceRef) {
+                    const base = analysis && analysis.base ? analysis.base.slice(0, 10) : "merge-base";
+                    console.log(chalk.cyan(`Git-aware: comparing against ${sinceRef} (${base}) + uncommitted changes`));
+                }
+                if (allPackages.length === 0) {
+                    // --root is a single package: there is nothing to select between
+                    console.log(chalk.cyan("Git-aware: --root is a single package - running all its tests"));
+                } else if (analysis && analysis.runAll) {
+                    console.log(chalk.yellow(`Git-aware: ${analysis.reason} - running all tests`));
+                } else if (hasGitChanges) {
                     // Map package names to their directory paths
-                    const allPackages = getAllPackages(ROOT);
                     const packageNameToDir = new Map();
                     for (const pkg of allPackages) {
                         packageNameToDir.set(pkg.name, pkg.dir);
                     }
                     const affectedPackageDirs = analysis.affectedPackages.map(pkgName => packageNameToDir.get(pkgName)).filter(d => d);
                     console.log(chalk.green("✓ Git-aware mode enabled - filtering to " + affectedPackageDirs.length + " affected packages"));
-                    testFiles = testFiles.filter(file => 
-                        affectedPackageDirs.some(pkgDir => file.startsWith(pkgDir))
-                    );
+                    // separator matters: "packages/node-opcua" is a string prefix of
+                    // every "packages/node-opcua-*" directory
+                    const sep = require("node:path").sep;
+                    testFiles = testFiles.filter((file) => affectedPackageDirs.some((pkgDir) => file.startsWith(pkgDir + sep)));
                     filesSkippedByGitAware = filesBeforeGitAware - testFiles.length;
                 } else {
                     console.log(chalk.cyan("No git changes detected - running all tests"));
@@ -1019,15 +1050,9 @@ if (isMainThread) {
             }
             
         } catch (err) {
-            console.log(chalk.yellow("Note: Cache or git-aware features not available - running all tests"));
+            console.log(chalk.yellow(`Note: cache / git-aware setup failed (${err.message}) - running the remaining files without them`));
         }
         // ================================================================
-        if (argv.fileFilter) {
-            console.log("applying filter", argv.fileFilter);
-            const f = new RegExp(argv.fileFilter);
-            testFiles = testFiles.filter((file) => file.match(f));
-            console.log("filtered test files", testFiles.length);
-        }
         if (process.stdin && process.stdin.isTTY && process.stdin.setRawMode) {
             // keypress events only: a readline interface would write its prompt
             // onto stdout. Raw mode swallows SIGINT, so Ctrl+C is handled here.
@@ -1110,10 +1135,7 @@ if (isMainThread) {
             // Don't clear here - epilogue will overwrite the progress line with summary
         }
 
-        // Report failing tests in noStop mode
-        if (argv.noStop) {
-            reportFailures();
-        }
+        persistFailingList();
 
         // Clear checkpoint if --onlyFail mode succeeded (all tests passed)
         if (argv.onlyFail && failingTestList.length === 0) {
@@ -1126,7 +1148,8 @@ if (isMainThread) {
         clearInterval(infoTimer);
         epilogue();
 
-        process.exit(0);
+        // --noStop used to exit 0 whatever happened, which kept CI green
+        process.exit(failingTestList.length > 0 ? 1 : 0);
     })();
 }
 // cli.js is always the main thread; workers are spawned on src/worker.js,
@@ -1319,7 +1342,7 @@ function displayHelp() {
 }
 
 function dumpRunningTestsLogs() {
-    const runningTests = [...runningPages].map((i) => testFiles[i]);
+    const runningTests = [...runningFiles.values()].map((r) => r.file);
     for (let file of runningTests) {
         const outputs = outputFor[file];
         if (outputs && outputs.length) {
@@ -1350,7 +1373,8 @@ async function displayStatus(allTestFiles) {
     }
 
     if (TestResultCache) {
-        const testCache = new TestResultCache(ROOT);
+        const { createFingerprinter } = require("./fingerprint");
+        const testCache = new TestResultCache(ROOT, { fingerprint: createFingerprinter(ROOT) });
         const summary = testCache.getSummary(allTestFiles);
         const checkpoint = testCache.getCheckpoint();
 
@@ -1366,15 +1390,15 @@ async function displayStatus(allTestFiles) {
         if (checkpoint) {
             console.log();
             console.log(chalk.yellow("🎯 Checkpoint Status:"));
-            console.log("  Active: " + chalk.yellow("✓ Yes - will resume from checkpoint"));
+            console.log("  Active: " + chalk.yellow("✓ Yes - last run stopped here"));
             console.log("  Failed at: " + chalk.white(checkpoint.filePath || "unknown"));
             console.log("  Test: " + chalk.white(checkpoint.testName || "unknown"));
             console.log("  Error: " + chalk.white(checkpoint.error || "unknown"));
             console.log("  Timestamp: " + chalk.white(new Date(checkpoint.timestamp).toLocaleString()));
             console.log();
             console.log(chalk.cyan("  → Next run will:"));
-            console.log("     " + chalk.green("✓ Skip") + " " + skippable + " cached files + files before the checkpoint");
-            console.log("     " + chalk.blue("✓ Run") + " from the failing test onward");
+            console.log("     " + chalk.green("✓ Skip") + " " + skippable + " cached files");
+            console.log("     " + chalk.blue("✓ Run") + " the remaining " + (summary.totalFiles - skippable) + " files (including the failing one)");
         } else {
             console.log();
             console.log(chalk.green("🎯 Checkpoint Status:"));
@@ -1396,13 +1420,34 @@ async function displayStatus(allTestFiles) {
     // Git status
     console.log(chalk.magenta("🌿 Git Status:"));
     
-    const hasGitChanges = gitAwareAvailable ? hasChanges() : false;
-    const repoRoot = gitAwareAvailable ? findRepoRoot() : null;
+    // same ROOT as a real run, so --status and the run agree
+    const sinceRef = argv.since || null;
+    let hasGitChanges = false;
+    let sinceError = null;
+    try {
+        hasGitChanges = gitAwareAvailable ? hasChanges(ROOT, sinceRef) : false;
+    } catch (err) {
+        sinceError = err.message;
+    }
+    const repoRoot = gitAwareAvailable ? findRepoRoot(ROOT) : null;
     console.log("  Repository: " + chalk.white(repoRoot || "Not a git repo"));
-    
+    console.log("  Compared against: " + chalk.white(sinceRef ? `${sinceRef} (merge-base) + uncommitted changes` : "HEAD (uncommitted changes only)"));
+
+    let analysis = null;
     if (gitAwareAvailable && hasGitChanges) {
+        try {
+            analysis = analyzeChanges({ packagesDir: ROOT, includeDependents: true, sinceCommit: sinceRef });
+        } catch (err) {
+            sinceError = err.message;
+        }
+    }
+    if (sinceError) {
+        console.log("  " + chalk.red(`✗ ${sinceError}`));
+    } else if (analysis && analysis.runAll) {
         console.log("  Changes detected: " + chalk.green("✓ Yes"));
-        const analysis = analyzeChanges({ packagesDir: ROOT, includeDependents: true });
+        console.log(chalk.cyan(`  → Git-aware mode will: Run all tests (${analysis.reason})`));
+    } else if (analysis) {
+        console.log("  Changes detected: " + chalk.green("✓ Yes"));
         console.log("  Changed files: " + chalk.white(analysis.changedFiles.length));
         console.log("  Changed packages: " + chalk.white(analysis.changedPackages.length));
         console.log("  Affected packages: " + chalk.white(analysis.affectedPackages.length));
@@ -1428,11 +1473,16 @@ async function displayStatus(allTestFiles) {
     if (TestResultCache && gitAwareAvailable) {
         const testCache = new TestResultCache(ROOT);
         const checkpoint = testCache.getCheckpoint();
-        const hasGitChanges = hasChanges(ROOT);
+        let hasGitChanges = false;
+        try {
+            hasGitChanges = hasChanges(ROOT, argv.since || null);
+        } catch (_err) {
+            /* already reported above */
+        }
         
         if (checkpoint) {
-            console.log(chalk.yellow("  You have a checkpoint from a failed test."));
-            console.log(chalk.yellow("  Next run will automatically resume from the failing test."));
+            console.log(chalk.yellow("  The last run stopped on a failure or was interrupted."));
+            console.log(chalk.yellow("  Next run skips the files that passed and re-runs the rest."));
             console.log();
             console.log(chalk.yellow("  To start fresh:"));
             console.log("    " + chalk.cyan("parallel-runner --reset"));

@@ -3,6 +3,21 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 
 const CACHE_FILENAME = ".parallel_test_cache.json";
+// 3.0: entries are keyed on a fingerprint that covers the package sources and
+// workspace dependencies (see fingerprint.js), not only the test file. Caches
+// written by older versions are discarded: their "passed" entries could be
+// stale (code changed, or a later test in the file failed).
+const CACHE_VERSION = "3.0";
+
+const emptyCache = () => ({
+    version: CACHE_VERSION,
+    testSuiteHash: "",
+    testFiles: [],
+    fileHashes: {},
+    results: {},
+    checkpoint: null,
+    failingTests: []
+});
 
 /**
  * Compute a hash for a test file based on its content and modification time
@@ -36,7 +51,7 @@ function computeTestSuiteHash(testFiles) {
 /**
  * Cache structure:
  * {
- *   version: "2.0",
+ *   version: "3.0",
  *   testSuiteHash: "abc123...",  // hash of all test files
  *   testFiles: ["path/to/test1.ts", ...],
  *   fileHashes: { // NEW: per-file hashes for better invalidation
@@ -64,12 +79,18 @@ function computeTestSuiteHash(testFiles) {
  */
 
 class TestResultCache {
-    constructor(dir = process.cwd()) {
+    /**
+     * @param {string} [dir] directory holding the cache file
+     * @param {{ fingerprint?: (file: string) => string }} [options]
+     *        fingerprint: hash a cached result depends on (default: the test
+     *        file's path + mtime + size only)
+     */
+    constructor(dir = process.cwd(), options = {}) {
         this.cacheFile = path.join(dir, CACHE_FILENAME);
+        this.fingerprint = options.fingerprint || computeFileHash;
         this.cache = this.load();
-        // Migrate from v1 to v2 if needed
-        if (this.cache.version !== "2.0") {
-            this.migrate();
+        if (this.cache.version !== CACHE_VERSION) {
+            this.cache = emptyCache();
         }
     }
 
@@ -82,42 +103,18 @@ class TestResultCache {
         } catch (err) {
             console.warn(`[parallel_test_cache] Failed to load cache: ${err.message}`);
         }
-        return {
-            version: "2.0",
-            testSuiteHash: "",
-            testFiles: [],
-            fileHashes: {},
-            results: {},
-            checkpoint: null,
-            failingTests: []
-        };
+        return emptyCache();
     }
 
     save() {
         try {
-            const content = JSON.stringify(this.cache, null, 2);
-            fs.writeFileSync(this.cacheFile, content, "utf8");
+            // write-then-rename: a CTRL+C or crash in the middle of a write must
+            // not leave a truncated JSON file (which used to wipe the cache)
+            const tmp = `${this.cacheFile}.${process.pid}.tmp`;
+            fs.writeFileSync(tmp, JSON.stringify(this.cache), "utf8");
+            fs.renameSync(tmp, this.cacheFile);
         } catch (err) {
             console.warn(`[parallel_test_cache] Failed to save cache: ${err.message}`);
-        }
-    }
-
-    migrate() {
-        // If v1 cache, migrate to v2
-        if (this.cache.version === "1.0") {
-            this.cache.version = "2.0";
-            this.cache.fileHashes = {};
-            // Compute file hashes for all test files in the cache
-            for (const filePath of this.cache.testFiles || []) {
-                this.cache.fileHashes[filePath] = computeFileHash(filePath);
-            }
-            // Also ensure results have hashes
-            for (const [filePath, result] of Object.entries(this.cache.results || {})) {
-                if (!result.hash) {
-                    result.hash = computeFileHash(filePath);
-                }
-            }
-            this.save();
         }
     }
 
@@ -133,7 +130,7 @@ class TestResultCache {
         
         // Check if all cached test files still exist and have the same hash
         for (const filePath of this.cache.testFiles) {
-            const currentHash = computeFileHash(filePath);
+            const currentHash = this.fingerprint(filePath);
             const cachedHash = this.cache.fileHashes?.[filePath];
             if (currentHash !== cachedHash) {
                 return false; // File has changed
@@ -149,7 +146,7 @@ class TestResultCache {
         const result = this.cache.results?.[filePath];
         if (!result) return false;
 
-        const currentHash = computeFileHash(filePath);
+        const currentHash = this.fingerprint(filePath);
         // Validity = unchanged since it passed. result.hash is the hash recorded
         // at pass time; fileHashes is refreshed on every run (initialize/markFilePassed),
         // so comparing against it would make every entry look valid forever.
@@ -170,7 +167,7 @@ class TestResultCache {
         }
         for (const filePath of testFiles) {
             if (!this.cache.fileHashes[filePath]) {
-                this.cache.fileHashes[filePath] = computeFileHash(filePath);
+                this.cache.fileHashes[filePath] = this.fingerprint(filePath);
             }
         }
         
@@ -181,15 +178,7 @@ class TestResultCache {
      * Reset the cache
      */
     reset() {
-        this.cache = {
-            version: "2.0",
-            testSuiteHash: "",
-            testFiles: [],
-            fileHashes: {},
-            results: {},
-            checkpoint: null,
-            failingTests: []
-        };
+        this.cache = emptyCache();
         try {
             fs.unlinkSync(this.cacheFile);
         } catch (err) {
@@ -222,7 +211,7 @@ class TestResultCache {
             this.cache.fileHashes = {};
         }
         
-        const fileHash = computeFileHash(filePath);
+        const fileHash = this.fingerprint(filePath);
         this.cache.fileHashes[filePath] = fileHash;
         
         this.cache.results[filePath] = {
@@ -238,6 +227,16 @@ class TestResultCache {
      * Mark a test file as failed
      */
     markFileFailed(filePath, testName = "", error = "") {
+        // a failure always wins over an earlier pass recorded for the same file
+        if (!this.cache.results) {
+            this.cache.results = {};
+        }
+        this.cache.results[filePath] = {
+            passed: false,
+            hash: this.fingerprint(filePath),
+            lastRun: new Date().toISOString(),
+            tests: [testName]
+        };
         this.cache.checkpoint = {
             filePath,
             testName,
@@ -330,15 +329,7 @@ class TestResultCache {
      * Clear the entire cache
      */
     clear() {
-        this.cache = {
-            version: "2.0",
-            testSuiteHash: "",
-            testFiles: [],
-            fileHashes: {},
-            results: {},
-            checkpoint: null,
-            failingTests: []
-        };
+        this.cache = emptyCache();
         try {
             fs.unlinkSync(this.cacheFile);
         } catch (err) {

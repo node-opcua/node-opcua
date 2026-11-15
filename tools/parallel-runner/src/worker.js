@@ -24,7 +24,7 @@ const {
     EVENT_TEST_PASS,
     EVENT_SUITE_BEGIN,
     EVENT_SUITE_END,
-    EVENT_TEST_SKIPPED
+    EVENT_TEST_PENDING
 } = Mocha.Runner.constants;
 
 const t = () => {
@@ -45,6 +45,15 @@ class ParallelMochaReporter {
         this.outputLines = [];
         this.oldConsoleLog = null;
 
+        // hooks and pending tests fire FAIL/PENDING without a TEST_BEGIN, so there
+        // may be nothing saved: only restore what was actually swapped out
+        // (restoring null made the next console.log throw and killed the file)
+        this.restoreConsole = () => {
+            if (this.oldConsoleLog) {
+                console.log = this.oldConsoleLog;
+            }
+            this.oldConsoleLog = null;
+        };
         const redirectConsoleLog = (...args) => {
             /** */
             this.outputLines.push(t() + util.format.apply(null, args));
@@ -68,8 +77,7 @@ class ParallelMochaReporter {
                 this.decreaseIndent();
             })
             .on(EVENT_TEST_PASS, (test) => {
-                console.log = this.oldConsoleLog;
-                this.oldConsoleLog = null;
+                this.restoreConsole();
                 /** */
                 console.log(`  ${chalk.yellow(test.fullTitle())}`);
                 // console.log("  " + this.indent() + chalk.green(test.title));
@@ -82,10 +90,8 @@ class ParallelMochaReporter {
                     test: { duration, file, error, timedOut, state, stats, title, output, titlePath }
                 });
             })
-            .on(EVENT_TEST_SKIPPED, (test) => {
-                console.log(`  ${chalk.yellow(test.fullTitle())}`);
-                console.log = this.oldConsoleLog;
-                this.oldConsoleLog = null;
+            .on(EVENT_TEST_PENDING, (test) => {
+                this.restoreConsole();
                 console.log(`  ${chalk.yellow(test.fullTitle())}`);
                 /** */
                 const { duration, file, error, timedOut, state, stats, title } = test;
@@ -93,7 +99,7 @@ class ParallelMochaReporter {
                 const output = this.outputLines;
                 this.outputLines = [];
                 parentPort.postMessage({
-                    type: EVENT_TEST_SKIPPED,
+                    type: EVENT_TEST_PENDING,
                     test: { duration, file, error, timedOut, state, stats, title, output, titlePath }
                 });
                 // console.log("  " + this.indent() + chalk.yellow(test.title));
@@ -115,11 +121,7 @@ class ParallelMochaReporter {
                     type: EVENT_TEST_FAIL,
                     test: { duration, file, title, output, titlePath, error }
                 });
-                console.log = this.oldConsoleLog;
-                this.oldConsoleLog = null;
-                console.log("done");
-                //xx                process.exit(1);
-                /** */
+                this.restoreConsole();
             })
             .once(EVENT_RUN_END, () => {
                 /** */
@@ -173,7 +175,34 @@ async function workerThread() {
     }
     g_file = selectedTests[0];
     const reporter = ParallelMochaReporter;
-    const _failures = await runtests({ reporter, dryRun: false, filterOpts: g, selectedTests });
+    // a file that cannot be loaded (syntax error, broken import) runs no test at
+    // all; it must surface as a failure, not as a silently "completed" file
+    const reportFileError = (file, title, err) => {
+        parentPort.postMessage({
+            type: EVENT_TEST_FAIL,
+            test: {
+                duration: 0,
+                file,
+                title,
+                output: [],
+                titlePath: [title],
+                error: err ? err.stack || err.message || String(err) : title
+            }
+        });
+    };
+    try {
+        await runtests({
+            reporter,
+            dryRun: false,
+            filterOpts: g,
+            selectedTests,
+            onLoadError: (file, err) => reportFileError(file, "test file could not be loaded", err)
+        });
+    } catch (err) {
+        for (const file of selectedTests) {
+            reportFileError(file, "test runner crashed", err);
+        }
+    }
     for (const file of selectedTests) {
         parentPort.postMessage({ type: "TEST_FILE_COMPLETED", file });
     }

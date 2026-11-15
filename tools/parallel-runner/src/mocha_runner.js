@@ -10,8 +10,27 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const chalk = require("chalk").default;
-const { Mocha } = require("mocha");
+const { createRequire } = require("node:module");
 require("mocha-clean");
+
+/**
+ * The mocha that runs a test file must be the very module instance the file
+ * imports: `import { describe } from "mocha"` calls mocha's exported describe,
+ * which forwards to a context only the *running* instance sets. When the runner
+ * resolves mocha from its own folder (tools/parallel-runner) and the test from
+ * another node_modules (another worktree, another install, another version),
+ * the file dies at load time with
+ *     TypeError: Cannot read properties of undefined (reading 'describe')
+ * So resolve mocha from the test file's location, and fall back to the
+ * runner's own copy when the test side has none.
+ */
+function mochaFor(testFile) {
+    try {
+        return createRequire(testFile)("mocha");
+    } catch (_err) {
+        return require("mocha");
+    }
+}
 
 const { registerHooks } = require("node:module");
 const { pathToFileURL, fileURLToPath } = require("node:url");
@@ -84,7 +103,8 @@ function testNoLeak(file) {
  * Run a list of test files under mocha with the given reporter.
  * @returns {Promise<number>} number of failures
  */
-async function runtests({ selectedTests, reporter, dryRun, filterOpts }) {
+async function runtests({ selectedTests, reporter, dryRun, filterOpts, onLoadError }) {
+    const { Mocha } = mochaFor(selectedTests[0]);
     const mocha = new Mocha({
         bail: true,
         fullTrace: true,
@@ -113,9 +133,11 @@ async function runtests({ selectedTests, reporter, dryRun, filterOpts }) {
                 await mocha.loadFilesAsync();
             } catch (err) {
                 unloadable.push({ file, message: (err && err.message) || String(err) });
+                onLoadError && onLoadError(file, err);
             }
         }
-        mocha.files = queued;
+        // keep only the files that loaded: re-adding a broken one would be pointless
+        mocha.files = queued.filter((f) => !unloadable.some((u) => u.file === f));
         if (unloadable.length) {
             console.log(
                 `\n${chalk.yellow(`${unloadable.length} file(s) could not be loaded; set TSX=1 to fall back to tsx`)}`
@@ -126,7 +148,14 @@ async function runtests({ selectedTests, reporter, dryRun, filterOpts }) {
             console.log("");
         }
     } else {
-        await mocha.loadFilesAsync();
+        try {
+            await mocha.loadFilesAsync();
+        } catch (err) {
+            for (const file of mocha.files) {
+                onLoadError && onLoadError(file, err);
+            }
+            return mocha.files.length;
+        }
     }
 
     return await new Promise((resolve) => {
