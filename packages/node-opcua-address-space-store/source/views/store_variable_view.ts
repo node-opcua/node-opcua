@@ -79,6 +79,14 @@ export class StoreVariableView extends StoreNodeView {
     }
 
     /**
+     * the status a Read of the Value gets from `context`, without reading the value: Good (0),
+     * or the status readValue would return in its place
+     */
+    public readValueStatus(context?: ISessionContext | null): number {
+        return this.space.permissions.readValueStatus(context, this.index);
+    }
+
+    /**
      * the current value: from the getter when one is bound, else from the columns. The gates
      * come first, the same ones as the node objects apply: the access level for every caller,
      * the access restrictions and the role permissions for a session. What is denied comes
