@@ -283,11 +283,13 @@ export class StorePermissions {
         ) {
             accessRestrictions = values.number(metadata.restrictions);
         }
-        // the user-specific policy wins when it carries a value, else the namespace policy
+        // the role default decides when the namespace has one (OPC 10000-3 5.2.9 / 5.2.10:
+        // DefaultUserRolePermissions is its view for the current Session); a stored
+        // DefaultUserRolePermissions value is used only when there is no role default
         const rolePermissions =
-            rolePermissionEntries(values, metadata.userRolePermissions) ??
             rolePermissionEntries(values, metadata.rolePermissions) ??
-            explicit.rolePermissions;
+            explicit.rolePermissions ??
+            rolePermissionEntries(values, metadata.userRolePermissions);
         return { accessRestrictions, rolePermissions };
     }
 }

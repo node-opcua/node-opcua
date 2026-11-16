@@ -45,6 +45,13 @@ const extraNodeset = `<?xml version="1.0" encoding="utf-8"?>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
     </References>
   </UAVariable>
+  <UAVariable NodeId="ns=1;i=3" BrowseName="DefaultUserRolePermissions" DataType="i=96" ValueRank="1" ParentNodeId="ns=1;i=1">
+    <DisplayName>DefaultUserRolePermissions</DisplayName>
+    <References>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+  </UAVariable>
   <UAVariable NodeId="ns=1;i=10" BrowseName="1:Inherits" DataType="Double" AccessLevel="3" ParentNodeId="i=85">
     <DisplayName>Inherits</DisplayName>
     <References>
@@ -235,6 +242,42 @@ describe("store permissions: access restrictions and role permissions on the sto
             "DefaultAccessRestrictions has no value: the application's setting applies"
         );
         space.permissions.setNamespaceDefaults(1, null);
+    });
+
+    it("lets DefaultRolePermissions decide before DefaultUserRolePermissions", () => {
+        const roleDefaults = space.findNode("ns=1;i=2") as StoreVariableView;
+        const userDefaults = space.findNode("ns=1;i=3") as StoreVariableView;
+        should(userDefaults).not.eql(null);
+        const entries = (role: NodeId) =>
+            new Variant({
+                dataType: DataType.ExtensionObject,
+                arrayType: VariantArrayType.Array,
+                value: [new RolePermissionType({ roleId: role, permissions: PermissionFlag.Browse | PermissionFlag.Read })]
+            });
+        // a user default alone applies
+        roleDefaults.setValueFromSource(new Variant({ dataType: DataType.Null }));
+        userDefaults.setValueFromSource(entries(securityAdmin));
+        space.permissions.invalidate();
+        should(inherits.readValue(session(MessageSecurityMode.None, [securityAdmin])).statusCode).eql(StatusCodes.Good);
+        should(inherits.readValue(session(MessageSecurityMode.None, [operator])).statusCode).eql(StatusCodes.BadUserAccessDenied);
+        // a role default decides, even when the user default grants another role
+        roleDefaults.setValueFromSource(entries(operator));
+        should(inherits.readValue(session(MessageSecurityMode.None, [operator])).statusCode).eql(StatusCodes.Good);
+        should(inherits.readValue(session(MessageSecurityMode.None, [securityAdmin])).statusCode).eql(
+            StatusCodes.BadUserAccessDenied
+        );
+        // the application's role default also comes before the user default
+        roleDefaults.setValueFromSource(new Variant({ dataType: DataType.Null }));
+        space.permissions.setNamespaceDefaults(1, {
+            accessRestrictions: 0,
+            rolePermissions: [{ roleId: operator, permissions: PermissionFlag.Browse | PermissionFlag.Read }]
+        });
+        should(inherits.readValue(session(MessageSecurityMode.None, [securityAdmin])).statusCode).eql(
+            StatusCodes.BadUserAccessDenied
+        );
+        space.permissions.setNamespaceDefaults(1, null);
+        userDefaults.setValueFromSource(new Variant({ dataType: DataType.Null }));
+        space.permissions.invalidate();
     });
 
     it("denies a value its access level does not expose, whoever asks", () => {

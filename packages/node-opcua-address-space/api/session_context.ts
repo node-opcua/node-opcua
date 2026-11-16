@@ -265,17 +265,13 @@ function getDefaultUserRolePermissionsOnNamespace(
         return null;
     }
 
+    // OPC 10000-3 5.2.9 / 5.2.10: DefaultRolePermissions is the namespace policy, and
+    // DefaultUserRolePermissions is its view for the current Session. So the role default decides
+    // when the namespace has one, from the metadata or from Namespace.setDefaultRolePermissions().
+    // A stored DefaultUserRolePermissions value is used only when the namespace has no role default.
     const namespaces = getServerNamespaces(namespace);
     const uaNamespaceObject = namespaces?.getChildByName(namespace.namespaceUri);
     if (uaNamespaceObject) {
-        // DefaultUserRolePermissions is the user-specific policy and wins when it carries a value.
-        const defaultUserRolePermissions = uaNamespaceObject.getChildByName("DefaultUserRolePermissions") as UAVariable;
-        if (defaultUserRolePermissions) {
-            const dataValue = defaultUserRolePermissions.readValue();
-            if (dataValue?.statusCode.isGood() && dataValue.value.value && dataValue.value.value.length > 0) {
-                return dataValue.value.value as RolePermissionType[];
-            }
-        }
         const defaultRolePermissions = uaNamespaceObject.getChildByName("DefaultRolePermissions") as UAVariable;
         if (defaultRolePermissions) {
             const dataValue = defaultRolePermissions.readValue();
@@ -295,7 +291,18 @@ function getDefaultUserRolePermissionsOnNamespace(
     // created namespace. Consulting the field here keeps the configured default consistent between
     // the local getter (BaseNode.getRolePermissions(inherited=true)) and this enforcement path,
     // so setDefaultRolePermissions() takes effect without also requiring setNamespaceMetaData().
-    return namespace.getDefaultRolePermissions();
+    const configured = namespace.getDefaultRolePermissions();
+    if (configured) {
+        return configured;
+    }
+    const defaultUserRolePermissions = uaNamespaceObject?.getChildByName("DefaultUserRolePermissions") as UAVariable | null;
+    if (defaultUserRolePermissions) {
+        const dataValue = defaultUserRolePermissions.readValue();
+        if (dataValue?.statusCode.isGood() && dataValue.value.value && dataValue.value.value.length > 0) {
+            return dataValue.value.value as RolePermissionType[];
+        }
+    }
+    return null;
 }
 
 /**
