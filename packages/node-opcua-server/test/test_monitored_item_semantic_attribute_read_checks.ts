@@ -77,7 +77,8 @@ describe("monitored item: semantic and attribute changes follow the Read result 
     async function makeItem(
         sessionContext: SessionContext,
         attributeId: AttributeIds,
-        keepInitial = false
+        keepInitial = false,
+        samplingInterval = 0
     ): Promise<MonitoredItem> {
         const monitoredItemId = nextMonitoredItemId++;
         const monitoredItem = new MonitoredItem({
@@ -88,13 +89,15 @@ describe("monitored item: semantic and attribute changes follow the Read result 
             minSupportedSampleRate: 0,
             monitoredItemId,
             queueSize: 100,
-            samplingInterval: 0,
+            samplingInterval,
             timestampsToReturn: TimestampsToReturn.Both
         } as unknown as MonitoredItemOptions);
         monitoredItems.push(monitoredItem);
         const subscription = { id: monitoredItemId, $session: { sessionContext } } as unknown as ISubscriptionBase;
         monitoredItem.$subscription = subscription as unknown as MonitoredItem["$subscription"];
         monitoredItem.setNode(item as never);
+        // a sampled item reads its node with the session context, as the server's sampling function does
+        monitoredItem.samplingFunc = (context, _oldDataValue, callback) => callback(null, item.readAttribute(context, attributeId));
         monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
         await new Promise<void>((resolve) => setImmediate(resolve));
         // the semantic change sends a new value only when no notification is queued
@@ -150,5 +153,18 @@ describe("monitored item: semantic and attribute changes follow the Read result 
         const forRefused = deliveredValues(refused);
         should(forRefused.map((dataValue) => dataValue.statusCode.name)).eql([StatusCodes.BadUserAccessDenied.name]);
         should(forRefused.map(shown)).not.containEql("Renamed");
+    });
+
+    it("SAR-4 a sampled item gives the refusal on a semantic change, as an exception-based one does", async () => {
+        // a long interval: the semantic change, not a sampling tick, makes the notification
+        const refused = await makeItem(contextForRoles(WellKnownRoles.Anonymous), AttributeIds.Value, false, 60_000);
+        const allowed = await makeItem(contextForRoles(WellKnownRoles.Operator), AttributeIds.Value, false, 60_000);
+        should(refused.isExceptionBased).eql(false);
+        changeEURange();
+        const forRefused = deliveredValues(refused);
+        should(forRefused.length).eql(1);
+        should(forRefused[0].statusCode.name.split("#")[0]).eql(StatusCodes.BadUserAccessDenied.name);
+        should(forRefused[0].value.value).not.eql(1234);
+        should(deliveredValues(allowed).map((dataValue) => dataValue.value.value)).eql([1234]);
     });
 });
