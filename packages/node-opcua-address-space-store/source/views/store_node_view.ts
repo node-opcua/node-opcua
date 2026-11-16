@@ -210,11 +210,21 @@ export class StoreNodeView extends EventEmitter {
 
     // ---- read
     public readAttribute(
-        _context: ISessionContext | null,
+        context: ISessionContext | null,
         attributeId: AttributeIds,
         indexRange?: NumericRange | null,
         dataEncoding?: QualifiedNameLike | null
     ): DataValue {
+        if (
+            attributeId !== AttributeIds.Value &&
+            attributeId !== AttributeIds.RolePermissions &&
+            attributeId !== AttributeIds.UserRolePermissions &&
+            !this.space.permissions.canBrowse(context, this.index)
+        ) {
+            // as the Read service: the Browse permission lets a Client read the attributes other
+            // than Value and RolePermissions (the Variable view answers the Value)
+            return new DataValue({ statusCode: StatusCodes.BadUserAccessDenied });
+        }
         // the Value alone takes a range or an encoding (the Variable view answers it)
         if (indexRange?.isDefined()) {
             return new DataValue({ statusCode: StatusCodes.BadIndexRangeNoData });

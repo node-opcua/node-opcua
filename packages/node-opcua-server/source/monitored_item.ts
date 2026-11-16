@@ -1239,7 +1239,15 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 // while the permission check runs whenever it can be resolved. The order is preserved
                 // on a live node.
                 let refusal: StatusCode | undefined;
-                if (canCheckRestriction && sessionContext.isAccessRestricted(restrictedNode)) {
+                // a compact-store view carries none of the fields above: the store answers the same
+                // checks, in the same order, for the session
+                const storeView = restrictedNode as unknown as { readValueStatus?: (context: ISessionContext) => number };
+                if (typeof storeView.readValueStatus === "function") {
+                    const status = storeView.readValueStatus(sessionContext);
+                    if (status !== StatusCodes.Good.value) {
+                        refusal = coerceStatusCode(status);
+                    }
+                } else if (canCheckRestriction && sessionContext.isAccessRestricted(restrictedNode)) {
                     refusal = StatusCodes.BadSecurityModeInsufficient;
                 } else if (liveNamespace && !restrictedNode.isReadable(sessionContext)) {
                     refusal = StatusCodes.BadNotReadable;
