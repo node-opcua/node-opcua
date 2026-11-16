@@ -1214,60 +1214,78 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
      * at that instant. The DataChangeFilter and the queue logic are applied by recordValue as
      * usual. This also bounds the cost of a fast writer, which the queue alone did not.
      */
-    private _on_value_changed_exception_based(dataValue: DataValue, indexRange?: NumericRange | null) {
-        // The value_changed listener is attached to the node and carries no session, so this value
-        // has not passed the node's read gate. Apply that gate on every delivery, as the sampled
-        // path does: a session that may not read the node receives the refusal status in place of
-        // the value. The gate runs readValue's checks in its order (see the inner comment). The
-        // refusal DataValue is built here rather than read through readAttribute(), because a
-        // detached (compact-store) node does not answer readAttribute() with its value. A readable
-        // node keeps the change value; an in-process context has no session and is always permitted.
-        //
-        // TODO: Read, HistoryRead, Write and this path each resolve these checks on their own; one
-        // address-space read-refusal helper would let them share a single gate.
+    /**
+     * the status a Read of the Value gives to the session of this item, when it is not Good; undefined
+     * when the session may read the Value, or when there is no session (an in-process context is always
+     * permitted).
+     *
+     * The listeners of the node (value_changed, semantic_changed) carry no session, so a value they give
+     * has not passed the node's read gate. Every path that delivers such a value applies this gate, as
+     * the sampled path does: a session that may not read the node receives the refusal in place of the
+     * value. The gate runs readValue's checks in its order (see the inner comment). The refusal is a
+     * status rather than a readAttribute() result, because a detached (compact-store) node does not
+     * answer readAttribute() with its value.
+     *
+     * TODO: Read, HistoryRead, Write and this path each resolve these checks on their own; one
+     * address-space read-refusal helper would let them share a single gate.
+     */
+    private _valueReadRefusal(): StatusCode | undefined {
         const restrictedNode = this.node as UAVariable | undefined;
-        if (restrictedNode) {
-            const sessionContext = this.getSessionContext() || SessionContext.defaultContext;
-            if (sessionContext.session) {
-                const liveNamespace = (restrictedNode.namespace as { addressSpace?: unknown })?.addressSpace !== undefined;
-                const canCheckRestriction = restrictedNode.accessRestrictions !== undefined || liveNamespace;
-                const canCheckPermission = restrictedNode.rolePermissions !== undefined || liveNamespace;
-                // readValue's order: security mode, then the access level, the Read permission and
-                // the user access level. On the front-thread delegation the node is a detached proxy
-                // whose access levels are not filled in - only its role permissions are - so the
-                // access-level checks (isReadable / isUserReadable) run only on a live namespace,
-                // while the permission check runs whenever it can be resolved. The order is preserved
-                // on a live node.
-                let refusal: StatusCode | undefined;
-                // a compact-store view carries none of the fields above: the store answers the same
-                // checks, in the same order, for the session
-                const storeView = restrictedNode as unknown as { readValueStatus?: (context: ISessionContext) => number };
-                if (typeof storeView.readValueStatus === "function") {
-                    const status = storeView.readValueStatus(sessionContext);
-                    if (status !== StatusCodes.Good.value) {
-                        refusal = coerceStatusCode(status);
-                    }
-                } else if (canCheckRestriction && sessionContext.isAccessRestricted(restrictedNode)) {
-                    refusal = StatusCodes.BadSecurityModeInsufficient;
-                } else if (liveNamespace && !restrictedNode.isReadable(sessionContext)) {
-                    refusal = StatusCodes.BadNotReadable;
-                } else if (canCheckPermission && !sessionContext.checkPermission(restrictedNode, PermissionType.Read)) {
-                    refusal = StatusCodes.BadUserAccessDenied;
-                } else if (liveNamespace && !restrictedNode.isUserReadable(sessionContext)) {
-                    refusal = StatusCodes.BadNotReadable;
-                }
-                if (refusal) {
-                    // stamp the refusal with the current clock, as readValue does.
-                    const { timestamp, picoseconds } = getCurrentClock();
-                    dataValue = new DataValue({
-                        statusCode: refusal,
-                        sourceTimestamp: timestamp,
-                        sourcePicoseconds: picoseconds,
-                        serverTimestamp: timestamp,
-                        serverPicoseconds: picoseconds
-                    });
-                }
-            }
+        if (!restrictedNode) {
+            return undefined;
+        }
+        const sessionContext = this.getSessionContext() || SessionContext.defaultContext;
+        if (!sessionContext.session) {
+            return undefined;
+        }
+        // a compact-store view carries none of the fields below: the store answers the same
+        // checks, in the same order, for the session
+        const storeView = restrictedNode as unknown as { readValueStatus?: (context: ISessionContext) => number };
+        if (typeof storeView.readValueStatus === "function") {
+            const status = storeView.readValueStatus(sessionContext);
+            return status !== StatusCodes.Good.value ? coerceStatusCode(status) : undefined;
+        }
+        // readValue's order: security mode, then the access level, the Read permission and
+        // the user access level. On the front-thread delegation the node is a detached proxy
+        // whose access levels are not filled in - only its role permissions are - so the
+        // access-level checks (isReadable / isUserReadable) run only on a live namespace,
+        // while the permission check runs whenever it can be resolved. The order is preserved
+        // on a live node.
+        const liveNamespace = (restrictedNode.namespace as { addressSpace?: unknown })?.addressSpace !== undefined;
+        const canCheckRestriction = restrictedNode.accessRestrictions !== undefined || liveNamespace;
+        const canCheckPermission = restrictedNode.rolePermissions !== undefined || liveNamespace;
+        if (canCheckRestriction && sessionContext.isAccessRestricted(restrictedNode)) {
+            return StatusCodes.BadSecurityModeInsufficient;
+        }
+        if (liveNamespace && !restrictedNode.isReadable(sessionContext)) {
+            return StatusCodes.BadNotReadable;
+        }
+        if (canCheckPermission && !sessionContext.checkPermission(restrictedNode, PermissionType.Read)) {
+            return StatusCodes.BadUserAccessDenied;
+        }
+        if (liveNamespace && !restrictedNode.isUserReadable(sessionContext)) {
+            return StatusCodes.BadNotReadable;
+        }
+        return undefined;
+    }
+
+    /** the DataValue a session receives in place of a value it may not read, stamped as readValue does */
+    private static _refusalDataValue(refusal: StatusCode): DataValue {
+        const { timestamp, picoseconds } = getCurrentClock();
+        return new DataValue({
+            statusCode: refusal,
+            sourceTimestamp: timestamp,
+            sourcePicoseconds: picoseconds,
+            serverTimestamp: timestamp,
+            serverPicoseconds: picoseconds
+        });
+    }
+
+    private _on_value_changed_exception_based(dataValue: DataValue, indexRange?: NumericRange | null) {
+        // a readable node keeps the change value; see _valueReadRefusal
+        const refusal = this._valueReadRefusal();
+        if (refusal) {
+            dataValue = MonitoredItem._refusalDataValue(refusal);
         }
         if (this.samplingInterval <= 0) {
             // the server advertises MinSupportedSampleRate 0: every change goes out
@@ -1323,6 +1341,20 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         this._record_pending_value();
     }
 
+    /**
+     * the listener of a non-Value attribute. The node emits the new attribute read with no session, so
+     * the item reads it again in the context of its session: the session then receives what a Read of
+     * the attribute gives it (for example the Browse check), as for the initial value. An in-process
+     * context has no session and keeps the emitted value.
+     */
+    private _on_attribute_changed(dataValue: DataValue, indexRange?: NumericRange | null) {
+        const sessionContext = this.getSessionContext();
+        if (this.node && sessionContext?.session) {
+            dataValue = this.node.readAttribute(sessionContext, this.itemToMonitor.attributeId);
+        }
+        this._on_value_changed(dataValue, indexRange);
+    }
+
     private _on_semantic_changed() {
         if (!this.node) {
             throw new Error("_on_semantic_changed: expecting a valid node");
@@ -1340,6 +1372,13 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 setSemanticChangeBit(notification);
             }
             this._semantic_version = (this.node as UAVariable).semantic_version;
+            return;
+        }
+        // the semantic_changed event carries no session: apply the read gate of the session, as the
+        // value_changed path does (see _valueReadRefusal)
+        const refusal = this._valueReadRefusal();
+        if (refusal) {
+            this._on_value_changed(MonitoredItem._refusalDataValue(refusal));
             return;
         }
         // readValue() hands out the node's own DataValue: recordValue stores what it is given, so
@@ -1553,7 +1592,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
 
             // non value attribute only react on value change
             if (!this._attribute_changed_callback) {
-                this._attribute_changed_callback = this._on_value_changed.bind(this);
+                this._attribute_changed_callback = this._on_attribute_changed.bind(this);
                 const event_name = makeAttributeEventName(this.itemToMonitor.attributeId);
                 (this.node as BaseNode).on(event_name, this._attribute_changed_callback);
             }
