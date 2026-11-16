@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-service-discovery",
     "type": "module",
-    "version": "2.187.19",
+    "version": "2.187.28",
     "description": "pure nodejs OPCUA SDK - module service-discovery",
     "scripts": {
         "build": "tsc -b",
@@ -20,11 +20,11 @@
         "node-opcua-assert": "2.186.7",
         "node-opcua-debug": "2.186.7",
         "node-opcua-object-registry": "2.186.7",
-        "node-opcua-types": "2.187.19",
+        "node-opcua-types": "2.187.28",
         "sterfive-bonjour-service": "1.1.4"
     },
     "devDependencies": {
-        "node-opcua-leak-detector": "2.186.7"
+        "node-opcua-leak-detector": "2.187.28"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

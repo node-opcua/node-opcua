@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-chunkmanager",
     "type": "module",
-    "version": "2.187.19",
+    "version": "2.187.28",
     "description": "pure nodejs OPCUA SDK - module chunkmanager",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -17,14 +17,14 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.186.7",
-        "node-opcua-basic-types": "2.187.0",
-        "node-opcua-binary-stream": "2.187.0",
-        "node-opcua-buffer-utils": "2.187.0",
-        "node-opcua-factory": "2.187.0",
-        "node-opcua-packet-assembler": "2.187.19"
+        "node-opcua-basic-types": "2.187.28",
+        "node-opcua-binary-stream": "2.187.28",
+        "node-opcua-buffer-utils": "2.187.28",
+        "node-opcua-factory": "2.187.28",
+        "node-opcua-packet-assembler": "2.187.28"
     },
     "devDependencies": {
-        "node-opcua-benchmarker": "2.187.0",
+        "node-opcua-benchmarker": "2.187.28",
         "node-opcua-debug": "2.186.7"
     },
     "author": "Etienne Rossignon",

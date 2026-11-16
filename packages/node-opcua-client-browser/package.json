@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-client-browser",
     "type": "module",
-    "version": "2.187.27",
+    "version": "2.187.28",
     "description": "OPC UA SDK - browser WebSocket client (opc.ws / opc.wss)",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -31,12 +31,12 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.186.7",
-        "node-opcua-client": "2.187.27",
-        "node-opcua-common": "2.187.26",
+        "node-opcua-client": "2.187.28",
+        "node-opcua-common": "2.187.28",
         "node-opcua-crypto": "6.2.5",
         "node-opcua-debug": "2.186.7",
-        "node-opcua-status-code": "2.187.0",
-        "node-opcua-transport": "2.187.19"
+        "node-opcua-status-code": "2.187.28",
+        "node-opcua-transport": "2.187.28"
     },
     "devDependencies": {
         "@playwright/test": "^1.65.0",
@@ -44,8 +44,8 @@
         "buffer": "^6.0.3",
         "esbuild": "^0.28.2",
         "events": "^3.3.0",
-        "node-opcua-leak-detector": "2.186.7",
-        "node-opcua-test-helpers": "2.184.0",
+        "node-opcua-leak-detector": "2.187.28",
+        "node-opcua-test-helpers": "2.187.28",
         "process": "^0.11.10",
         "util": "^0.12.5",
         "ws": "^8.22.2"
