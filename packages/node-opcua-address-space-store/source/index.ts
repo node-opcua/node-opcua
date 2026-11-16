@@ -13,6 +13,7 @@ export {
     type CompactStoreOptions,
     NAMESPACE_DEFAULT_RESTRICTIONS,
     NAMESPACE_DEFAULT_ROLE_PERMISSIONS,
+    NAMESPACE_UNRESOLVED_DENY,
     packedKey,
     type SharedStoreDescriptor
 } from "./compact_store.js";

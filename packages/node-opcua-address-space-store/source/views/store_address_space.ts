@@ -13,7 +13,12 @@ import type { DataValue } from "node-opcua-data-value";
 import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { AttributeReader } from "../attribute_reader.js";
 import { Browser } from "../browser.js";
-import { CompactStore, NAMESPACE_DEFAULT_RESTRICTIONS, NAMESPACE_DEFAULT_ROLE_PERMISSIONS } from "../compact_store.js";
+import {
+    CompactStore,
+    NAMESPACE_DEFAULT_RESTRICTIONS,
+    NAMESPACE_DEFAULT_ROLE_PERMISSIONS,
+    NAMESPACE_UNRESOLVED_DENY
+} from "../compact_store.js";
 import { DataTypeResolver } from "../data_type_resolver.js";
 import { NO_NODE } from "../node_id_index.js";
 import { type StoreMethodHandler, StoreMethodView } from "./store_method_view.js";
@@ -162,15 +167,18 @@ export class StoreAddressSpace {
 
     /**
      * the namespace policy table of the store, as readers in other threads see it: which
-     * namespaces have default access restrictions or role permissions (see SharedStoreReader#isOpen)
+     * namespaces have default access restrictions or role permissions, and whether the
+     * unresolved permission policy denies (see SharedStoreReader#isOpen)
      */
     public publishNamespacePolicy(): void {
         const table = this.store.namespacePolicy;
+        const unresolved = this.permissions.unresolvedPermissionPolicy === "deny" ? NAMESPACE_UNRESOLVED_DENY : 0;
         for (let ns = 0; ns < this.namespaceUris.length; ns++) {
             const defaults = this.permissions.namespaceDefaults(ns);
             table[ns] = // check-proto-pollution: ok - typed array, namespace index
                 (defaults.accessRestrictions !== 0 ? NAMESPACE_DEFAULT_RESTRICTIONS : 0) |
-                (defaults.rolePermissions !== null ? NAMESPACE_DEFAULT_ROLE_PERMISSIONS : 0);
+                (defaults.rolePermissions !== null ? NAMESPACE_DEFAULT_ROLE_PERMISSIONS : 0) |
+                unresolved;
         }
     }
 

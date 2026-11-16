@@ -27,6 +27,7 @@ import {
     type UAServerDiagnosticsSummary,
     type UAServerStatus,
     type UAVariable,
+    type UnresolvedPermissionPolicy,
     WellKnownRoles
 } from "node-opcua-address-space";
 import { generateAddressSpace, generateCompactAddressSpace } from "node-opcua-address-space/nodeJS.js";
@@ -295,6 +296,12 @@ export interface ServerEngineOptions {
      * @default false
      */
     allowAnonymousSubscriptionTransferOnUnsecuredChannel?: boolean;
+    /**
+     * how a remote Session's permission is resolved when no RolePermissions apply, on the
+     * compact address space as on the classic one. See OPCUAServerOptions.unresolvedPermissionPolicy.
+     * @default "allow"
+     */
+    unresolvedPermissionPolicy?: UnresolvedPermissionPolicy;
 }
 
 export interface CreateSessionOption {
@@ -337,6 +344,23 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     public compactAddressSpace: CompactAddressSpace | null = null;
     public addressSpaceAccessor: IAddressSpaceAccessor | null = null;
 
+    #unresolvedPermissionPolicy: UnresolvedPermissionPolicy;
+
+    /**
+     * how a remote Session's permission is resolved when no RolePermissions apply. The classic
+     * address space reads it from the server (SessionContext); the compact address space keeps its
+     * own copy, which this setter keeps equal.
+     */
+    public get unresolvedPermissionPolicy(): UnresolvedPermissionPolicy {
+        return this.#unresolvedPermissionPolicy;
+    }
+    public set unresolvedPermissionPolicy(policy: UnresolvedPermissionPolicy) {
+        this.#unresolvedPermissionPolicy = policy;
+        if (this.compactAddressSpace) {
+            this.compactAddressSpace.permissions.unresolvedPermissionPolicy = policy;
+        }
+    }
+
     // pseudo private
     public _internalState: "creating" | "initializing" | "initialized" | "shutdown" | "disposed";
 
@@ -373,6 +397,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         // transferSubscription) is always enforced regardless of this flag.
         this.allowAnonymousSubscriptionTransferOnUnsecuredChannel =
             options.allowAnonymousSubscriptionTransferOnUnsecuredChannel === true;
+        this.#unresolvedPermissionPolicy = options.unresolvedPermissionPolicy ?? "allow";
 
         options.buildInfo.buildDate = options.buildInfo.buildDate || new Date();
         // ---------------------------------------------------- ServerStatusDataType
@@ -849,9 +874,13 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         this.addressSpaceAccessor = new AddressSpaceAccessor(this.addressSpace);
         if (options.compactAddressSpace) {
-            this.compactAddressSpace = AddressSpace.createCompact(
-                typeof options.compactAddressSpace === "object" ? options.compactAddressSpace : undefined
-            );
+            // the compact address space applies the engine's unresolved permission policy, as the
+            // classic one applies the server's
+            const compactOptions = typeof options.compactAddressSpace === "object" ? options.compactAddressSpace : {};
+            this.compactAddressSpace = AddressSpace.createCompact({
+                ...compactOptions,
+                unresolvedPermissionPolicy: this.#unresolvedPermissionPolicy
+            });
         }
 
         if (!options.skipOwnNamespace) {

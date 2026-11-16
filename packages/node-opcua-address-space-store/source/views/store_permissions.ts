@@ -75,6 +75,8 @@ export class StorePermissions {
     }
     public set unresolvedPermissionPolicy(policy: UnresolvedPermissionPolicy) {
         this.#policy = policy;
+        // readers in other threads decide from the published table whether a node is open
+        this.#space.publishNamespacePolicy();
     }
 
     /**
