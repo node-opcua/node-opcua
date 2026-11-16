@@ -2026,12 +2026,26 @@ export abstract class OPCUAServerCore<
      */
     public roleResolvers: IRoleResolver[] = [];
 
+    #unresolvedPermissionPolicy: UnresolvedPermissionPolicy = "allow";
+
     /**
-     * how a remote Session's permission is resolved when no RolePermissions apply.
+     * how a remote Session's permission is resolved when no RolePermissions apply. A change also
+     * reaches the engine, so that the compact address space applies the same policy.
      * @default "allow"
      * @see OPCUAServerOptions.unresolvedPermissionPolicy
      */
-    public unresolvedPermissionPolicy: UnresolvedPermissionPolicy;
+    public get unresolvedPermissionPolicy(): UnresolvedPermissionPolicy {
+        return this.#unresolvedPermissionPolicy;
+    }
+    public set unresolvedPermissionPolicy(policy: UnresolvedPermissionPolicy) {
+        this.#unresolvedPermissionPolicy = policy;
+        // a ServerEngine holds the compact address space; an engine in another thread
+        // (RemoteEngine) takes the policy from FrontThreadEngineOptions instead
+        const engine = this.engine as Partial<Pick<ServerEngine, "unresolvedPermissionPolicy">> | undefined;
+        if (engine && "unresolvedPermissionPolicy" in engine) {
+            engine.unresolvedPermissionPolicy = policy;
+        }
+    }
 
     /**
      * true: CreateSessionResponse.serverCertificate carries the whole chain;
@@ -2134,6 +2148,8 @@ export abstract class OPCUAServerCore<
                 buildInfo,
                 isAuditing: options.isAuditing,
                 allowAnonymousSubscriptionTransferOnUnsecuredChannel: options.allowAnonymousSubscriptionTransferOnUnsecuredChannel,
+                // the current value: it may have changed since the constructor
+                unresolvedPermissionPolicy: this.unresolvedPermissionPolicy,
                 diagnosticsNamespaceUri: options.diagnosticsNamespaceUri,
                 serverCapabilities: options.serverCapabilities,
 

@@ -93,6 +93,8 @@ export interface FrontThreadEngineOptions {
     isAuditing?: boolean;
     /** see OPCUAServerOptions.allowAnonymousSubscriptionTransferOnUnsecuredChannel */
     allowAnonymousSubscriptionTransferOnUnsecuredChannel?: boolean;
+    /** see OPCUAServerOptions.unresolvedPermissionPolicy */
+    unresolvedPermissionPolicy?: ServerEngineOptions["unresolvedPermissionPolicy"];
     /** see OPCUAServerOptions.diagnosticsNamespaceUri */
     diagnosticsNamespaceUri?: string;
 }
@@ -206,6 +208,7 @@ export class FrontThreadEngine {
             serverCapabilities: options.serverCapabilities,
             isAuditing: options.isAuditing,
             allowAnonymousSubscriptionTransferOnUnsecuredChannel: options.allowAnonymousSubscriptionTransferOnUnsecuredChannel,
+            unresolvedPermissionPolicy: options.unresolvedPermissionPolicy,
             diagnosticsNamespaceUri: options.diagnosticsNamespaceUri
         });
         await new Promise<void>((resolve, reject) =>

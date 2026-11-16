@@ -24,6 +24,8 @@ export interface CompactStoreOptions {
 /** the bits of the namespace policy table */
 export const NAMESPACE_DEFAULT_RESTRICTIONS = 1;
 export const NAMESPACE_DEFAULT_ROLE_PERMISSIONS = 2;
+/** the unresolved permission policy is "deny": a node no RolePermissions cover is not open to every session */
+export const NAMESPACE_UNRESOLVED_DENY = 4;
 
 /** what a reader in another thread is handed: the buffers, and the layout they belong to */
 export interface SharedStoreDescriptor {
@@ -61,7 +63,7 @@ export class CompactStore {
     readonly #watches: Int32Array;
     /**
      * per namespace index, the defaults a reader in another thread cannot evaluate itself:
-     * NAMESPACE_DEFAULT_RESTRICTIONS, NAMESPACE_DEFAULT_ROLE_PERMISSIONS. Kept by the owner
+     * NAMESPACE_DEFAULT_RESTRICTIONS, NAMESPACE_DEFAULT_ROLE_PERMISSIONS, NAMESPACE_UNRESOLVED_DENY. Kept by the owner
      * (see StoreAddressSpace#publishNamespacePolicy)
      */
     public readonly namespacePolicy: Uint8Array;

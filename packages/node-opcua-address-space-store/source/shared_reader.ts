@@ -19,7 +19,12 @@
 import { NodeClass } from "node-opcua-data-model";
 import { type NodeId, NodeIdType } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
-import { NAMESPACE_DEFAULT_RESTRICTIONS, NAMESPACE_DEFAULT_ROLE_PERMISSIONS, type SharedStoreDescriptor } from "./compact_store.js";
+import {
+    NAMESPACE_DEFAULT_RESTRICTIONS,
+    NAMESPACE_DEFAULT_ROLE_PERMISSIONS,
+    NAMESPACE_UNRESOLVED_DENY,
+    type SharedStoreDescriptor
+} from "./compact_store.js";
 import { ACCEPTED_TYPES_KNOWN } from "./data_type_resolver.js";
 import { NO_NODE, NodeIdIndex } from "./node_id_index.js";
 import { BOUND, HISTORIZING, INHERITED_ACCESS_RESTRICTIONS, OWN_ROLE_PERMISSIONS, WATCHED } from "./node_store.js";
@@ -216,7 +221,8 @@ export class SharedStoreReader {
         const flags = this.#flags[i];
         if ((flags & (OWN_ROLE_PERMISSIONS | DELETED)) !== 0) return false;
         const policy = this.#namespacePolicy[this.#namespace[i]];
-        if ((policy & NAMESPACE_DEFAULT_ROLE_PERMISSIONS) !== 0) return false;
+        // a namespace default decides, or no RolePermissions apply and the unresolved policy denies
+        if ((policy & (NAMESPACE_DEFAULT_ROLE_PERMISSIONS | NAMESPACE_UNRESOLVED_DENY)) !== 0) return false;
         const own = this.#accessRestrictions[i];
         if (own === INHERITED_ACCESS_RESTRICTIONS) return (policy & NAMESPACE_DEFAULT_RESTRICTIONS) === 0;
         return own === 0;
