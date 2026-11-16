@@ -84,6 +84,7 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
     this.timeout(120000);
     let engine: FrontThreadEngine;
     let ns: number;
+    let hardenedNs: number;
     const clients: OPCUAClient[] = [];
     const sessions: ClientSession[] = [];
     let getterCalls = 0;
@@ -160,6 +161,21 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
                 value: { dataType: DataType[type as keyof typeof DataType] as DataType, value }
             });
         }
+        // a namespace hardened with a namespace default, as an application does it: Operators only
+        hardenedNs = engine.registerNamespace("urn:test:front-threads:hardened");
+        engine.serverEngine.addressSpace?.getNamespace("urn:test:front-threads:hardened").setDefaultRolePermissions([
+            {
+                roleId: resolveNodeId("ns=0;i=15680"),
+                permissions: PermissionType.Browse | PermissionType.Read | PermissionType.Write
+            }
+        ]);
+        space.addVariable({
+            nodeId: `ns=${hardenedNs};s=Hardened`,
+            browseName: "Hardened",
+            componentOf: plant,
+            dataType: "Double",
+            value: { dataType: DataType.Double, value: 3.5 }
+        });
         await engine.start({
             fronts: 2,
             serverModule: new URL("./fixtures/front_threads_server_options.mjs", import.meta.url),
@@ -184,6 +200,23 @@ describe("FrontThreadEngine: an engine thread and front threads on one port", fu
     it("starts the fronts on the same port", () => {
         should(engine.frontCount).eql(2);
         should(engine.endpointUrls.length).eql(2);
+    });
+
+    it("applies a namespace default to the sessions of the fronts", async () => {
+        // the anonymous sessions of this test are not Operators: the namespace default refuses them
+        for (const session of sessions) {
+            const value = await session.read({ nodeId: `ns=${hardenedNs};s=Hardened`, attributeId: AttributeIds.Value });
+            should(value.statusCode).eql(StatusCodes.BadUserAccessDenied);
+            should(value.value.value).not.eql(3.5);
+            const status = await session.write({
+                nodeId: `ns=${hardenedNs};s=Hardened`,
+                attributeId: AttributeIds.Value,
+                value: new DataValue({ value: new Variant({ dataType: DataType.Double, value: 9 }) })
+            });
+            should(status).eql(StatusCodes.BadUserAccessDenied);
+        }
+        const hardened = engine.addressSpace.findNode(`ns=${hardenedNs};s=Hardened`) as unknown as { readValue(): DataValue };
+        should(hardened.readValue().value.value).eql(3.5, "no write reached the engine");
     });
 
     it("answers a scalar under no permission rule without asking the engine", async () => {
