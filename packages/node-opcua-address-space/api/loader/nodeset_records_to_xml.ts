@@ -495,7 +495,9 @@ function writeScalar(xw: XmlWriter, dataType: DataType, value: unknown): void {
             xw.startElement(`${uax}String`).text(String(value)).endElement();
             break;
         case DataType.StatusCode:
-            xw.text(String((value as { value: number }).value));
+            xw.startElement(`${uax}Code`)
+                .text(String((value as { value: number }).value))
+                .endElement();
             break;
         case DataType.XmlElement:
             writeRaw(xw, String(value));

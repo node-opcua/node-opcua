@@ -413,7 +413,10 @@ function _dumpVariantInnerValue(
             _dumpXmlElement(xw, value as string);
             break;
         case DataType.StatusCode:
+            // <uax:StatusCode><uax:Code>2153644032</uax:Code></uax:StatusCode>, as Types.xsd defines it
+            xw.startElement(`${uax}Code`);
             xw.text((value as StatusCode).value.toString());
+            xw.endElement();
             break;
         case DataType.Variant: {
             const variantValue = value as Variant;

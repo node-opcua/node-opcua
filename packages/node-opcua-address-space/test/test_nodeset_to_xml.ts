@@ -8,10 +8,18 @@ import { checkDebugFlag } from "node-opcua-debug";
 import { getTempFilename } from "node-opcua-debug/nodeJS.js";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { nodesets } from "node-opcua-nodesets";
+import { StatusCodes } from "node-opcua-status-code";
 import { ThreeDCartesianCoordinates } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import XMLWriter from "xml-writer";
-import { AddressSpace, type BaseNode, type Namespace, type UARootFolder, type UAVariable } from "../dist/api/index.js";
+import {
+    AddressSpace,
+    type BaseNode,
+    type Namespace,
+    recordsToNodeset2XML,
+    type UARootFolder,
+    type UAVariable
+} from "../dist/api/index.js";
 import { generateAddressSpace } from "../nodeJS.js";
 import { createBoilerType, getMiniAddressSpace } from "../testHelpers.js";
 import { createCameraType } from "./fixture_camera_type.js";
@@ -1008,6 +1016,54 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         doDebug && console.log(match);
         should(match).not.eql(null);
         should(match?.length).eql(4); // 2 of input and output argument in Type and 2 for instance
+    });
+
+    it("NSXML13 should output an XML file - with Variant StatusCode (#1878)", () => {
+        namespace.addVariable({
+            browseName: "TestStatusCode",
+            dataType: DataType.StatusCode,
+            organizedBy: addressSpace.rootFolder.objects,
+            value: { dataType: DataType.StatusCode, value: StatusCodes.BadNodeIdUnknown }
+        });
+        namespace.addVariable({
+            browseName: "TestStatusCodeArray",
+            dataType: DataType.StatusCode,
+            valueRank: 1,
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.StatusCode,
+                arrayType: VariantArrayType.Array,
+                value: [StatusCodes.Good, StatusCodes.BadNodeIdUnknown]
+            }
+        });
+        // a StatusCode field of a structure goes through the same writer
+        const transactionErrorType = addressSpace.findDataType("TransactionErrorType")!;
+        namespace.addVariable({
+            browseName: "TestTransactionError",
+            dataType: transactionErrorType,
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.ExtensionObject,
+                value: addressSpace.constructExtensionObject(transactionErrorType, { error: StatusCodes.BadNodeIdUnknown })
+            }
+        });
+
+        // Types.xsd: <xs:complexType name="StatusCode"><xs:sequence><xs:element name="Code" .../>
+        const code = StatusCodes.BadNodeIdUnknown.value;
+        const scalar = new RegExp(`<uax:StatusCode>\\s*<uax:Code>${code}</uax:Code>\\s*</uax:StatusCode>`);
+        const array = new RegExp(
+            `<ListOfStatusCode[^>]*>\\s*<StatusCode>\\s*<Code>0</Code>\\s*</StatusCode>\\s*<StatusCode>\\s*<Code>${code}</Code>\\s*</StatusCode>\\s*</ListOfStatusCode>`
+        );
+        const field = new RegExp(`<Error>\\s*<Code>${code}</Code>\\s*</Error>`);
+
+        const xml = namespace.toNodeset2XML();
+        xml.should.match(scalar);
+        xml.should.match(array);
+        xml.should.match(field);
+
+        const recordsXml = recordsToNodeset2XML([...namespace.toNodesetRecords()]);
+        recordsXml.should.match(scalar);
+        recordsXml.should.match(array);
     });
 });
 
