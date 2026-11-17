@@ -448,6 +448,9 @@ const badDataUnavailable = new DataValue({ statusCode: StatusCodes.BadDataUnavai
  * - It is up to the  event receiver to call {{#crossLink "MonitoredItem/recordValue:method"}}{{/crossLink}}.
  *
  */
+/** a node that another thread owns reads its value for one session through its owner */
+type ReadValueForSession = (context: ISessionContext, callback: (err: Error | null, dataValue?: DataValue) => void) => void;
+
 export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     public get node(): MonitorableNode | null {
         return this._node;
@@ -1282,11 +1285,32 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     }
 
     private _on_value_changed_exception_based(dataValue: DataValue, indexRange?: NumericRange | null) {
+        // A stand-in for a node that another thread owns (the RemoteObjectNode of a session worker)
+        // carries none of the fields the read check needs, and the value it pushes is the same for
+        // every session. Ask the owner for the value in the context of this item's session, as a
+        // sample does: the session receives what a Read gives it.
+        const sessionContext = this.getSessionContext();
+        const standIn = this.node as unknown as { readValueForSession?: ReadValueForSession } | undefined;
+        if (sessionContext?.session && typeof standIn?.readValueForSession === "function") {
+            standIn.readValueForSession(sessionContext, (err, value) => {
+                // the item may have stopped while the owner answered
+                if (err || !value || !this._value_changed_callback) {
+                    return;
+                }
+                this._deliver_exception_based(value, indexRange);
+            });
+            return;
+        }
         // a readable node keeps the change value; see _valueReadRefusal
         const refusal = this._valueReadRefusal();
         if (refusal) {
             dataValue = MonitoredItem._refusalDataValue(refusal);
         }
+        this._deliver_exception_based(dataValue, indexRange);
+    }
+
+    /** records a change of an exception-based item, with the coalescing window of its samplingInterval */
+    private _deliver_exception_based(dataValue: DataValue, indexRange?: NumericRange | null) {
         if (this.samplingInterval <= 0) {
             // the server advertises MinSupportedSampleRate 0: every change goes out
             this._on_value_changed(dataValue, indexRange);
