@@ -46,6 +46,8 @@ export async function transferSubscriptionToSession(
     subscription.subscriptionDiagnostics.transferredToSameClientCount++;
     subscription.$session?._unexposeSubscriptionDiagnostics(subscription);
     subscription.$session = session;
+    // the new Session's context applies from now on
+    subscription.$ownerSessionContext = undefined;
     await ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
     session._exposeSubscriptionDiagnostics(subscription);
     return new TransferResult({

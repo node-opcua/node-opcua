@@ -1059,7 +1059,10 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     private getSessionContext(): ISessionContext | null {
         const session = this._getSession();
         if (!session) {
-            return null;
+            // a Subscription whose Session closed without deleting it keeps the context of that Session:
+            // its items read for that user, not with the default context, which permits everything
+            const owner = (this.$subscription as { $ownerSessionContext?: ISessionContext } | undefined)?.$ownerSessionContext;
+            return owner ?? null;
         }
         const sessionContext: ISessionContext = session.sessionContext;
         return sessionContext;
