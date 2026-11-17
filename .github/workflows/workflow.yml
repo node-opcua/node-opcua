@@ -263,6 +263,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          # depth 2 for the git-aware selection in "Run tests", as in the build job
+          fetch-depth: 2
       - uses: pnpm/action-setup@v6
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v7
@@ -290,6 +293,12 @@ jobs:
         # here for the same reason as the build job: its afterEach is what releases
         # the timers and handles that would otherwise keep a worker alive past its
         # last test. --expose-gc on the node line below is what it needs to measure.
+        #
+        # Pull requests run only the affected packages, as in the build job. HEAD~1,
+        # not HEAD^1: the argument goes through cmd, where an unquoted ^ is an escape
+        # character. Both name the first parent of the merge commit, the master tip.
+        env:
+          GIT_AWARE: ${{ github.event_name == 'pull_request' && '-g --since HEAD~1' || '' }}
         run: |
           $reportDir = Join-Path $env:RUNNER_TEMP 'node-reports'
           New-Item -ItemType Directory -Force -Path $reportDir | Out-Null
@@ -312,7 +321,7 @@ jobs:
           # part that matters here - loses the real exit code (a measured abort came
           # back as 134 instead of the NTSTATUS). cmd's `2>` passes a genuine file
           # handle and propagates the full 32-bit code unchanged.
-          cmd /c "node --expose-gc --max-old-space-size=4096 --report-on-fatalerror --report-uncaught-exception --report-directory=""$reportDir"" parallel_test.js 2> ""$stderrLog"""
+          cmd /c "node --expose-gc --max-old-space-size=4096 --report-on-fatalerror --report-uncaught-exception --report-directory=""$reportDir"" parallel_test.js $env:GIT_AWARE 2> ""$stderrLog"""
           $code = $LASTEXITCODE
           if ((Test-Path $stderrLog) -and (Get-Item $stderrLog).Length -gt 0) {
             Write-Host "----- node stderr (tail) -----"
@@ -408,10 +417,10 @@ jobs:
       # Pull requests run only the packages the PR touches plus every package that
       # depends on them (`-g --since HEAD^1`: HEAD^1 of the merge commit is the master
       # tip). A lockfile or root config change, or a PR with no change under
-      # packages/ at all, still runs everything. Pushes to master run the whole
-      # suite, and so do the coverage, per-package and Windows jobs on every event:
-      # they are the safety net for a test that depends on another package without
-      # declaring it in package.json.
+      # packages/ at all, still runs everything. The per-package and Windows jobs
+      # select the same way. Pushes to master run the whole suite everywhere, and the
+      # coverage job runs it on every event: that is the safety net for a test that
+      # depends on another package without declaring it in package.json.
       - run: pnpm run test:parallel ${{ github.event_name == 'pull_request' && '-g --since HEAD^1' || '' }}
         env:
           NODE_OPTIONS: --expose-gc
@@ -438,6 +447,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          # depth 2 for the git-aware package selection, as in the build job
+          fetch-depth: 2
       - uses: pnpm/action-setup@v6
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v7
@@ -467,13 +479,14 @@ jobs:
       # test body, so a config that cannot resolve fails here in seconds instead of
       # after the real run has been grinding through packages. It is a fail-fast, not a
       # substitute - the real run follows.
-      - run: pnpm run test:per-package:dry-run
+      - run: pnpm run test:per-package:dry-run ${{ github.event_name == 'pull_request' && '--since HEAD^1' || '' }}
         env:
           NODE_OPTIONS: --expose-gc
       # --expose-gc for the same reason as the build job: the leak detector's afterEach
       # is what releases the timers and handles that would otherwise keep mocha alive
       # past its last test, and it needs a real collector to measure with.
-      - run: pnpm run test:per-package
+      # Pull requests run only the affected packages, selected like the build job.
+      - run: pnpm run test:per-package ${{ github.event_name == 'pull_request' && '--since HEAD^1' || '' }}
         env:
           NODE_OPTIONS: --expose-gc
 
