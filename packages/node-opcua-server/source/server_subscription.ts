@@ -638,6 +638,13 @@ export class Subscription extends EventEmitter {
      */
     public $transferSessionIdentity?: ITransferSessionIdentity;
 
+    /**
+     * The read context of the Session that owned this Subscription, kept with its identity while the
+     * Subscription has no Session. The monitored items read in it, so the values they queue in that
+     * time are the ones a Read gives that user, and a later owner of the same identity receives no other.
+     */
+    public $ownerSessionContext?: ISessionContext;
+
     public get sessionId(): NodeId {
         return this.$session ? this.$session.nodeId : NodeId.nullNodeId;
     }

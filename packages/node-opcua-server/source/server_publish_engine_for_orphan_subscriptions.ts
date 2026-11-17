@@ -35,6 +35,8 @@ export class ServerSidePublishEngineForOrphanSubscription extends ServerSidePubl
         // session itself is about to be detached.
         if (subscription.$session) {
             subscription.$transferSessionIdentity = getTransferSessionIdentity(subscription.$session);
+            // and its read context: the monitored items go on reading in it, not in the default context
+            subscription.$ownerSessionContext = subscription.$session.sessionContext;
         }
 
         // detach subscription from old session
