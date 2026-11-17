@@ -164,7 +164,9 @@ function isTestFile(filePath) {
         /\.spec\./
     ];
     
-    return testPatterns.some(pattern => filePath.match(pattern));
+    // patterns use "/": normalise Windows separators, or every change looks like source
+    const p = filePath.split(path.sep).join("/");
+    return testPatterns.some((pattern) => pattern.test(p));
 }
 
 /**
