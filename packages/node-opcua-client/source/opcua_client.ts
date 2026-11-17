@@ -59,6 +59,19 @@ export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
     signServerCertificateChain?: boolean;
 
     /**
+     * Send a user name and password only to a server whose certificate this client trusts, and
+     * only in an encrypted UserNameIdentityToken.
+     *
+     * When it is set and the session uses a user name identity, ActivateSession fails before the
+     * password leaves the client if the server certificate of CreateSession does not pass the
+     * clientCertificateManager check, or if the token would carry the password in clear text (no
+     * server certificate, or a user token policy whose SecurityPolicy is None). This matters most
+     * on a SecurityMode None channel, where no other check of the server certificate runs.
+     * @default false
+     */
+    requireTrustedServerForUserName?: boolean;
+
+    /**
      * optional parameter to specify strategy used to extract DataTypeDefinition from server
      * default value : "Auto" : the client will attempt to extract DataTypeDefinition using the most efficient strategy
      */
