@@ -10,9 +10,9 @@ import {
     TimestampsToReturn,
     UserTokenType
 } from "node-opcua-client";
-import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
+import { AttributeIds, BrowseDirection, PermissionFlag } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import type { NodeId } from "node-opcua-nodeid";
+import { type NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { constructEventFilter, ofType } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
@@ -331,6 +331,68 @@ describe("FrontThreadEngine, one server: fronts give access to the engine's serv
         should(times.length >= 3).eql(true, "CurrentTime sampled");
         should(times[0].value.dataType).eql(DataType.DateTime);
         should(levels.some((v) => v.value.value === 123)).eql(true, "MaxTrustListSize pushed");
+        await subscription.terminate();
+        await session.close();
+    });
+
+    it("gives a session worker's item on a node object what a Read gives the session", async () => {
+        // a node object of the engine that only Operators may read; the sessions of this test are anonymous
+        const own = engine.serverEngine.addressSpace?.getOwnNamespace();
+        should(own).not.eql(undefined);
+        const restricted = own?.addVariable({
+            browseName: "RestrictedObject",
+            organizedBy: engine.serverEngine.addressSpace?.rootFolder.objects,
+            dataType: "Double",
+            accessLevel: 3,
+            userAccessLevel: 3,
+            minimumSamplingInterval: 0,
+            // Operators read it; an anonymous session may browse it, not read it
+            rolePermissions: [
+                { roleId: resolveNodeId("ns=0;i=15680"), permissions: PermissionFlag.Browse | PermissionFlag.Read },
+                { roleId: resolveNodeId("ns=0;i=15644"), permissions: PermissionFlag.Browse }
+            ],
+            value: { dataType: DataType.Double, value: 1 }
+        });
+        const nodeId = restricted?.nodeId.toString() as string;
+        const session = await sessionOn(1);
+        // control: the Read service refuses the value
+        const read = await session.read({ nodeId, attributeId: AttributeIds.Value });
+        should(read.statusCode).eql(StatusCodes.BadUserAccessDenied);
+
+        const subscription = ClientSubscription.create(session, {
+            requestedPublishingInterval: 50,
+            requestedLifetimeCount: 600,
+            requestedMaxKeepAliveCount: 10,
+            publishingEnabled: true
+        });
+        await new Promise<void>((resolve) => subscription.once("started", () => resolve()));
+        async function monitor(samplingInterval: number): Promise<DataValue[]> {
+            const values: DataValue[] = [];
+            const item = ClientMonitoredItem.create(
+                subscription,
+                { nodeId, attributeId: AttributeIds.Value },
+                { samplingInterval, queueSize: 10 },
+                TimestampsToReturn.Both
+            );
+            item.on("changed", (dataValue: DataValue) => values.push(dataValue));
+            await new Promise<void>((resolve, reject) => {
+                item.once("initialized", () => resolve());
+                item.once("err", (message: string) => reject(new Error(message)));
+            });
+            return values;
+        }
+        const sampled = await monitor(100);
+        const onChange = await monitor(0);
+        for (let k = 2; k <= 4; k++) {
+            restricted?.setValueFromSource({ dataType: DataType.Double, value: 1000 + k });
+            await new Promise((resolve) => setTimeout(resolve, 150));
+        }
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const leaked = (values: DataValue[]) => values.filter((v) => v.statusCode.isGood()).map((v) => v.value.value);
+        should(sampled.length).be.above(0, "the sampled item answers");
+        should(leaked(sampled)).eql([], "the sampled item gives no value");
+        should(onChange.length).be.above(0, "the item on change answers");
+        should(leaked(onChange)).eql([], "the item on change gives no value");
         await subscription.terminate();
         await session.close();
     });
