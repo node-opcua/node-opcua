@@ -444,6 +444,8 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
      * @see OPCUAClientOptions.signServerCertificateChain
      */
     public signServerCertificateChain: boolean;
+    /** @see OPCUAClientOptions.requireTrustedServerForUserName */
+    public requireTrustedServerForUserName: boolean;
 
     constructor(options?: OPCUAClientOptions) {
         options = options || {};
@@ -469,6 +471,7 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
         this.requestedSessionTimeout = options.requestedSessionTimeout || 60000; // 1 minute
 
         this.signServerCertificateChain = !!options.signServerCertificateChain;
+        this.requireTrustedServerForUserName = !!options.requireTrustedServerForUserName;
 
         this.localeIds = options.localeIds || [];
 
@@ -1299,6 +1302,25 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
         );
     }
     /**
+     * requireTrustedServerForUserName: the password goes only encrypted, and only to a server
+     * whose CreateSession certificate passes the client certificate manager
+     */
+    async #assertServerFitForUserName(context: IdentityTokenContext, token: UserNameIdentityToken): Promise<void> {
+        if (!token.encryptionAlgorithm) {
+            throw new Error(
+                "CLIENT: requireTrustedServerForUserName is set and the user name token would carry the password in clear text" +
+                    " (the server gives no certificate, or its user token policy uses SecurityPolicy None)"
+            );
+        }
+        const status = await this.clientCertificateManager.checkCertificate(context.serverCertificate);
+        if (!status.isGood()) {
+            throw new Error(
+                `CLIENT: requireTrustedServerForUserName is set and the server certificate of CreateSession is not trusted (${status.toString()})`
+            );
+        }
+    }
+
+    /**
      *
      * @private
      */
@@ -1353,7 +1375,15 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
                 case UserTokenType.UserName: {
                     const userName = userIdentityInfo.userName || "";
                     const password = userIdentityInfo.password || "";
-                    userIdentityToken = createUserNameIdentityToken(context, userName, password);
+                    const userNameToken = createUserNameIdentityToken(context, userName, password);
+                    if (this.requireTrustedServerForUserName) {
+                        this.#assertServerFitForUserName(context, userNameToken).then(
+                            () => callback(null, { userIdentityToken: userNameToken, userTokenSignature }),
+                            (err: Error) => callback(err)
+                        );
+                        return;
+                    }
+                    userIdentityToken = userNameToken;
                     break;
                 }
 
