@@ -81,8 +81,8 @@ export class RemoteObjectNode extends MonitoredNodeBase implements CompactMonito
 
     /**
      * the value as the engine reads it for one session. The pushed values are the same for every
-     * session and are not checked against its permissions, so an item that reports changes reads
-     * through here (see MonitoredItem._on_value_changed_exception_based).
+     * session, so an item that reports changes reads through here: the engine, owner of the node,
+     * answers what a Read gives the session (see valueForSession).
      */
     public readValueForSession(context: ISessionContext, callback: (err: Error | null, dataValue?: DataValue) => void): void {
         this.#host.readValue(context, this).then(

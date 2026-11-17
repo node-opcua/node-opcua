@@ -271,6 +271,15 @@ export interface UAVariable<T extends UAVariableEvents & ListenerSignature<T> = 
      */
     isUserWritable(context: ISessionContext): boolean;
 
+    /**
+     * the status a Read of the Value gives `context`, without reading the value: Good, or the status
+     * {@link readValue} returns in place of the value (BadSecurityModeInsufficient, BadNotReadable,
+     * BadUserAccessDenied), from the same checks in the same order. Every path that hands a value of
+     * this Variable to a session (Read, the samples and the change notifications of a subscription)
+     * asks this.
+     */
+    readValueStatus(context?: ISessionContext | null): StatusCode;
+
     /***
      * from OPC.UA.Spec 1.02 part 4
      *  5.10.2.4 StatusCodes

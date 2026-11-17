@@ -445,25 +445,9 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         // the encoding, Base Info Core Structure 2 001 for the arguments of a method the
         // nodeset reserves to a role nobody holds, FEAT-34). The clock of the denial is
         // the honest source timestamp: the value behind it stays undisclosed.
-        if (context.isAccessRestricted(this)) {
-            return makeNowDataValue({ statusCode: StatusCodes.BadSecurityModeInsufficient });
-        }
-
-        if (!this.isReadable(context)) {
-            return makeNowDataValue({ statusCode: StatusCodes.BadNotReadable });
-        }
-        if (!this.checkPermissionPrivate(context, PermissionType.Read)) {
-            return makeNowDataValue({ statusCode: StatusCodes.BadUserAccessDenied });
-        }
-        // isUserReadable() would evaluate isReadable() and the Read permission a second time, and the
-        // permission lookup walks the namespace metadata. Both just passed above, so only the access
-        // level is left, unless a node replaced isUserReadable (see makeNotReadableIfEnabledFlagIsFalse).
-        const userReadable =
-            this.isUserReadable === UAVariableImpl.prototype.isUserReadable
-                ? this.checkAccessLevelPrivate(context, AccessLevelFlag.CurrentRead)
-                : this.isUserReadable(context);
-        if (!userReadable) {
-            return makeNowDataValue({ statusCode: StatusCodes.BadNotReadable });
+        const readStatus = this.readValueStatus(context);
+        if (readStatus !== StatusCodes.Good) {
+            return makeNowDataValue({ statusCode: readStatus });
         }
         if (!isValidDataEncoding(dataEncoding)) {
             // Table 51: no encoding can be applied to a non-Structure value
@@ -973,15 +957,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         indexRange = NumericRange.coerce(indexRange);
 
         // A node with AccessRestrictions (for example EncryptionRequired) accepts a Write only over a
-        // channel that meets them, as readValue() applies the same to a Read.
-        //
-        // TODO: Read, Write and HistoryRead each resolve this on their own; a shared address-space
-        // helper would unify them. isAccessRestricted() resolves the namespace default through the
-        // address space, which a detached node (front-thread delegation) lacks, so evaluate it only
-        // when resolvable: an explicit value, or a live namespace.
-        const canCheckRestriction =
-            this.accessRestrictions !== undefined || (this.namespace as { addressSpace?: unknown })?.addressSpace !== undefined;
-        if (canCheckRestriction && context.isAccessRestricted(this)) {
+        // channel that meets them, as readValueStatus() applies the same to a Read.
+        if (this._channelRefused(context)) {
             callback?.(null, StatusCodes.BadSecurityModeInsufficient);
             return;
         }
@@ -1132,10 +1109,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         // A node with AccessRestrictions (for example EncryptionRequired) accepts a write to any of
         // its attributes only over a channel that meets them, as readValue() applies to a Read. Gate
         // here, before the attribute switch, so every attribute (Value, Historizing, ...) is covered.
-        // See writeValue() for the detached-node and shared-helper notes.
-        const canCheckRestriction =
-            this.accessRestrictions !== undefined || (this.namespace as { addressSpace?: unknown })?.addressSpace !== undefined;
-        if (canCheckRestriction && context.isAccessRestricted(this)) {
+        // See _channelRefused().
+        if (this._channelRefused(context)) {
             callback(null, StatusCodes.BadSecurityModeInsufficient);
             return;
         }
@@ -1402,33 +1377,45 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
     }
 
     /**
-     * why this context may not read the Value, or null when it may: the gates of readValue(),
-     * applied to every read of readValueAsync, including one that joins a refresh in flight.
-     * Runs once per sample of every monitored item: it allocates nothing
+     * true when the channel of `context` does not meet the AccessRestrictions of this Variable: the first
+     * check of a Write and of a HistoryRead. Unlike a Read (see readValueStatus), these evaluate it only
+     * when it can be resolved - an explicit value, or a namespace attached to an address space - since
+     * isAccessRestricted() resolves the namespace default through the address space.
      */
-    private _readDenial(context: ISessionContext): StatusCode | null {
+    private _channelRefused(context: ISessionContext): boolean {
+        const resolvable =
+            this.accessRestrictions !== undefined || (this.namespace as { addressSpace?: unknown })?.addressSpace !== undefined;
+        return resolvable && context.isAccessRestricted(this);
+    }
+
+    /**
+     * the status a Read of the Value gives `context`: Good, or the status readValue() returns in place
+     * of the value. The one place the read checks of this Variable are made: readValue(), every read of
+     * readValueAsync (including one that joins a refresh in flight, and the asyncRefresh branch that
+     * calls the getter without passing through readValue()), and the subscriptions, which hand the
+     * session a value the node emitted with no session. Order: the channel against the AccessRestrictions,
+     * the AccessLevel, the Read permission, the UserAccessLevel.
+     * Runs once per sample and per change of every monitored item: it allocates nothing.
+     */
+    public readValueStatus(context?: ISessionContext | null): StatusCode {
+        context = context || SessionContext.defaultContext;
         if (context.isAccessRestricted(this)) {
-            // same gate as readValue(): a variable bound with a simple get()
-            // also gets a refreshFunc, sending every read down the asyncRefresh
-            // branch of _readValueAsync - which calls the getter directly and never passes
-            // through readValue(). Without this check here, a node hardened
-            // with AccessRestrictions(EncryptionRequired) answered its value
-            // over an unencrypted channel.
             return StatusCodes.BadSecurityModeInsufficient;
-        } else if (!this.isReadable(context)) {
-            return StatusCodes.BadNotReadable;
-        } else if (!this.checkPermissionPrivate(context, PermissionType.Read)) {
-            return StatusCodes.BadUserAccessDenied;
-        } else if (
-            // as in readValue(): the Read permission has just passed, only the access level is
-            // left, unless a node replaced isUserReadable (see makeNotReadableIfEnabledFlagIsFalse)
-            this.isUserReadable === UAVariableImpl.prototype.isUserReadable
-                ? !this.checkAccessLevelPrivate(context, AccessLevelFlag.CurrentRead)
-                : !this.isUserReadable(context)
-        ) {
+        }
+        if (!this.isReadable(context)) {
             return StatusCodes.BadNotReadable;
         }
-        return null;
+        if (!this.checkPermissionPrivate(context, PermissionType.Read)) {
+            return StatusCodes.BadUserAccessDenied;
+        }
+        // isUserReadable() would evaluate isReadable() and the Read permission a second time, and the
+        // permission lookup walks the namespace metadata. Both just passed above, so only the access
+        // level is left, unless a node replaced isUserReadable (see makeNotReadableIfEnabledFlagIsFalse).
+        const userReadable =
+            this.isUserReadable === UAVariableImpl.prototype.isUserReadable
+                ? this.checkAccessLevelPrivate(context, AccessLevelFlag.CurrentRead)
+                : this.isUserReadable(context);
+        return userReadable ? StatusCodes.Good : StatusCodes.BadNotReadable;
     }
 
     private _readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>, readAt?: PreciseClock): void {
@@ -1437,8 +1424,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         if (this.__waiting_callback) {
             // a refresh is in progress: its value answers this read too, once this read's own
             // access checks have passed (they depend on its context, not on the first reader's)
-            const joinerDenied = this._readDenial(context);
-            if (joinerDenied) {
+            const joinerDenied = this.readValueStatus(context);
+            if (joinerDenied !== StatusCodes.Good) {
                 callback(null, makeNowDataValue({ statusCode: joinerDenied }));
                 return;
             }
@@ -1456,7 +1443,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
         // runs once per sample of every monitored item, so nothing here allocates a closure or
         // binds a function: the denial (if any) is a StatusCode, and the callback that releases
         // the waiting readers is made once per variable
-        const denied = this._readDenial(context);
+        const readStatus = this.readValueStatus(context);
+        const denied = readStatus !== StatusCodes.Good ? readStatus : null;
 
         this.__satisfy_waiting_callbacks ??= (err: Error | null, dataValue?: DataValue) => {
             // now call all pending callbacks, in the order of the reads
@@ -1906,11 +1894,8 @@ export class UAVariableImpl<T extends UAVariableEvents & ListenerSignature<T> = 
 
         // A node with AccessRestrictions (for example EncryptionRequired) answers a HistoryRead only
         // over a channel that meets them, as readValue() applies to a Read. Gate here, before the
-        // historian dispatch, so an installed or application historian is covered. See writeValue()
-        // for the detached-node and shared-helper notes.
-        const canCheckRestriction =
-            this.accessRestrictions !== undefined || (this.namespace as { addressSpace?: unknown })?.addressSpace !== undefined;
-        if (canCheckRestriction && context.isAccessRestricted(this)) {
+        // historian dispatch, so an installed or application historian is covered. See _channelRefused().
+        if (this._channelRefused(context)) {
             callback?.(null, new HistoryReadResult({ statusCode: StatusCodes.BadSecurityModeInsufficient }));
             return;
         }
