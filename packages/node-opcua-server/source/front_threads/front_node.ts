@@ -68,6 +68,13 @@ export class FrontMonitoredNode extends MonitoredNodeBase implements CompactMoni
     #last: DataValue | null = null;
     #disposed = false;
 
+    /**
+     * the values this node emits were read for the session of its item: a pushed value only when the
+     * store says every session may read it, else the value read again in the session of the item (see
+     * deliver). A subscription hands them on as they are (see valueForSession).
+     */
+    public readonly emitsSessionValues = true;
+
     constructor(host: FrontNodeHost, nodeId: NodeId, description: NodeDescription, trusted = false) {
         super(
             host,

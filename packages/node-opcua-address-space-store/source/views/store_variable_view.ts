@@ -12,7 +12,7 @@ import { DataValue, extractRange } from "node-opcua-data-value";
 import { getCurrentClock } from "node-opcua-date-time";
 import { NodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
-import { coerceStatusCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
+import { coerceStatusCode, getStatusCodeFromCode, type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, encodedVariant, sameVariant, Variant, VariantArrayType, type VariantLike } from "node-opcua-variant";
 import { ResolvedType } from "../data_type_resolver.js";
 import { NO_NODE } from "../node_id_index.js";
@@ -79,11 +79,12 @@ export class StoreVariableView extends StoreNodeView {
     }
 
     /**
-     * the status a Read of the Value gets from `context`, without reading the value: Good (0),
-     * or the status readValue would return in its place
+     * the status a Read of the Value gets from `context`, without reading the value: Good, or the
+     * status readValue returns in its place. The store answers, as for every Read of this node: the
+     * same contract as UAVariable.readValueStatus, which the subscriptions ask of any Variable.
      */
-    public readValueStatus(context?: ISessionContext | null): number {
-        return this.space.permissions.readValueStatus(context, this.index);
+    public readValueStatus(context?: ISessionContext | null): StatusCode {
+        return getStatusCodeFromCode(this.space.permissions.readValueStatus(context, this.index));
     }
 
     /**

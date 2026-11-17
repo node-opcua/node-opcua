@@ -30,7 +30,7 @@ import {
     extractRange,
     sameDataValue
 } from "node-opcua-data-value";
-import { getCurrentClock, type PreciseClock } from "node-opcua-date-time";
+import type { PreciseClock } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import type { ExtensionObject } from "node-opcua-extension-object";
 import type { NodeId } from "node-opcua-nodeid";
@@ -55,7 +55,6 @@ import { type CallbackT, coerceStatusCode, extraStatusCodeBits, StatusCode, Stat
 import {
     EventFieldList,
     type MonitoringFilter,
-    PermissionType,
     type ReadValueIdOptions,
     type SimpleAttributeOperand,
     type SubscriptionDiagnosticsDataType
@@ -69,6 +68,7 @@ import { appendToTimer, removeFromTimer } from "./node_sampler.js";
 import type { SamplingFunc } from "./sampling_func.js";
 import type { MonitoredItemBase } from "./server_subscription.js";
 import { validateFilter } from "./validate_filter.js";
+import { attributeForSession, type ValueReadOwner, valueForSession } from "./value_for_session.js";
 
 const errorLog = make_errorLog("monitored_item");
 
@@ -448,9 +448,6 @@ const badDataUnavailable = new DataValue({ statusCode: StatusCodes.BadDataUnavai
  * - It is up to the  event receiver to call {{#crossLink "MonitoredItem/recordValue:method"}}{{/crossLink}}.
  *
  */
-/** a node that another thread owns reads its value for one session through its owner */
-type ReadValueForSession = (context: ISessionContext, callback: (err: Error | null, dataValue?: DataValue) => void) => void;
-
 export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     public get node(): MonitorableNode | null {
         return this._node;
@@ -1028,12 +1025,35 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         // no need to resend if a value is already in the queue
         if (this.queue.length > 0) return;
 
-        const theValueToResend =
-            this.oldDataValue !== badDataUnavailable
-                ? this.oldDataValue
-                : this.node.readAttribute(sessionContext, this.itemToMonitor.attributeId);
+        // the subscription may now belong to another session, over another channel: the value it last saw,
+        // or the current one, goes to it as a Read with its own context would give it
+        const lastValue = this.oldDataValue;
         this.oldDataValue = badDataUnavailable;
-        this._enqueue_value(theValueToResend);
+        const attributeId = this.itemToMonitor.attributeId;
+        if (attributeId !== AttributeIds.Value) {
+            const emitted = lastValue !== badDataUnavailable ? lastValue : this.node.readAttribute(sessionContext, attributeId);
+            this._enqueue_value(attributeForSession(this.node, sessionContext, attributeId, emitted));
+            return;
+        }
+        const node = this.node;
+        await new Promise<void>((resolve) => {
+            valueForSession(
+                node as ValueReadOwner,
+                sessionContext,
+                lastValue !== badDataUnavailable ? lastValue : () => node.readAttribute(sessionContext, attributeId),
+                undefined,
+                (dataValue) => {
+                    this._enqueue_value(dataValue);
+                    resolve();
+                },
+                () => {
+                    // an answer of the owner after the item was disposed is dropped
+                    const live = this._node !== null && this.itemToMonitor !== null;
+                    if (!live) resolve();
+                    return live;
+                }
+            );
+        });
     }
 
     private getSessionContext(): ISessionContext | null {
@@ -1218,96 +1238,30 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
      * usual. This also bounds the cost of a fast writer, which the queue alone did not.
      */
     /**
-     * the status a Read of the Value gives to the session of this item, when it is not Good; undefined
-     * when the session may read the Value, or when there is no session (an in-process context is always
-     * permitted).
-     *
-     * The listeners of the node (value_changed, semantic_changed) carry no session, so a value they give
-     * has not passed the node's read gate. Every path that delivers such a value applies this gate, as
-     * the sampled path does: a session that may not read the node receives the refusal in place of the
-     * value. The gate runs readValue's checks in its order (see the inner comment). The refusal is a
-     * status rather than a readAttribute() result, because a detached (compact-store) node does not
-     * answer readAttribute() with its value.
-     *
-     * TODO: Read, HistoryRead, Write and this path each resolve these checks on their own; one
-     * address-space read-refusal helper would let them share a single gate.
+     * the value_changed listener of an exception-based item. The node emits the change with no session:
+     * the session of the item receives what a Read of the Value gives it, as the owner of the node
+     * answers (see valueForSession) - the change value when the session may read it, the refusal in its
+     * place when it may not.
      */
-    private _valueReadRefusal(): StatusCode | undefined {
-        const restrictedNode = this.node as UAVariable | undefined;
-        if (!restrictedNode) {
-            return undefined;
-        }
-        const sessionContext = this.getSessionContext() || SessionContext.defaultContext;
-        if (!sessionContext.session) {
-            return undefined;
-        }
-        // a compact-store view carries none of the fields below: the store answers the same
-        // checks, in the same order, for the session
-        const storeView = restrictedNode as unknown as { readValueStatus?: (context: ISessionContext) => number };
-        if (typeof storeView.readValueStatus === "function") {
-            const status = storeView.readValueStatus(sessionContext);
-            return status !== StatusCodes.Good.value ? coerceStatusCode(status) : undefined;
-        }
-        // readValue's order: security mode, then the access level, the Read permission and
-        // the user access level. On the front-thread delegation the node is a detached proxy
-        // whose access levels are not filled in - only its role permissions are - so the
-        // access-level checks (isReadable / isUserReadable) run only on a live namespace,
-        // while the permission check runs whenever it can be resolved. The order is preserved
-        // on a live node.
-        const liveNamespace = (restrictedNode.namespace as { addressSpace?: unknown })?.addressSpace !== undefined;
-        const canCheckRestriction = restrictedNode.accessRestrictions !== undefined || liveNamespace;
-        const canCheckPermission = restrictedNode.rolePermissions !== undefined || liveNamespace;
-        if (canCheckRestriction && sessionContext.isAccessRestricted(restrictedNode)) {
-            return StatusCodes.BadSecurityModeInsufficient;
-        }
-        if (liveNamespace && !restrictedNode.isReadable(sessionContext)) {
-            return StatusCodes.BadNotReadable;
-        }
-        if (canCheckPermission && !sessionContext.checkPermission(restrictedNode, PermissionType.Read)) {
-            return StatusCodes.BadUserAccessDenied;
-        }
-        if (liveNamespace && !restrictedNode.isUserReadable(sessionContext)) {
-            return StatusCodes.BadNotReadable;
-        }
-        return undefined;
-    }
-
-    /** the DataValue a session receives in place of a value it may not read, stamped as readValue does */
-    private static _refusalDataValue(refusal: StatusCode): DataValue {
-        const { timestamp, picoseconds } = getCurrentClock();
-        return new DataValue({
-            statusCode: refusal,
-            sourceTimestamp: timestamp,
-            sourcePicoseconds: picoseconds,
-            serverTimestamp: timestamp,
-            serverPicoseconds: picoseconds
-        });
-    }
-
     private _on_value_changed_exception_based(dataValue: DataValue, indexRange?: NumericRange | null) {
-        // A stand-in for a node that another thread owns (the RemoteObjectNode of a session worker)
-        // carries none of the fields the read check needs, and the value it pushes is the same for
-        // every session. Ask the owner for the value in the context of this item's session, as a
-        // sample does: the session receives what a Read gives it.
-        const sessionContext = this.getSessionContext();
-        const standIn = this.node as unknown as { readValueForSession?: ReadValueForSession } | undefined;
-        if (sessionContext?.session && typeof standIn?.readValueForSession === "function") {
-            standIn.readValueForSession(sessionContext, (err, value) => {
-                // the item may have stopped while the owner answered
-                if (err || !value || !this._value_changed_callback) {
-                    return;
-                }
-                this._deliver_exception_based(value, indexRange);
-            });
-            return;
-        }
-        // a readable node keeps the change value; see _valueReadRefusal
-        const refusal = this._valueReadRefusal();
-        if (refusal) {
-            dataValue = MonitoredItem._refusalDataValue(refusal);
-        }
-        this._deliver_exception_based(dataValue, indexRange);
+        valueForSession(
+            this.node as ValueReadOwner | null,
+            this.getSessionContext(),
+            dataValue,
+            indexRange,
+            this._deliverExceptionBased,
+            this._valueListening
+        );
     }
+
+    /** made once per item: the change paths run for every change and allocate no closure */
+    private readonly _deliverExceptionBased = (dataValue: DataValue, indexRange?: NumericRange | null): void =>
+        this._deliver_exception_based(dataValue, indexRange);
+    private readonly _recordChange = (dataValue: DataValue, indexRange?: NumericRange | null): void =>
+        this._on_value_changed(dataValue, indexRange);
+    /** an answer of the owner that comes after the item stopped listening (or turned sampled) is dropped */
+    private readonly _valueListening = (): boolean => this._value_changed_callback !== null;
+    private readonly _semanticListening = (): boolean => this._semantic_changed_callback !== null;
 
     /** records a change of an exception-based item, with the coalescing window of its samplingInterval */
     private _deliver_exception_based(dataValue: DataValue, indexRange?: NumericRange | null) {
@@ -1366,16 +1320,12 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     }
 
     /**
-     * the listener of a non-Value attribute. The node emits the new attribute read with no session, so
-     * the item reads it again in the context of its session: the session then receives what a Read of
-     * the attribute gives it (for example the Browse check), as for the initial value. An in-process
-     * context has no session and keeps the emitted value.
+     * the listener of a non-Value attribute. The node emits the new attribute read with no session: the
+     * session of the item receives what a Read of the attribute gives it (see attributeForSession), as
+     * for the initial value.
      */
     private _on_attribute_changed(dataValue: DataValue, indexRange?: NumericRange | null) {
-        const sessionContext = this.getSessionContext();
-        if (this.node && sessionContext?.session) {
-            dataValue = this.node.readAttribute(sessionContext, this.itemToMonitor.attributeId);
-        }
+        dataValue = attributeForSession(this.node, this.getSessionContext(), this.itemToMonitor.attributeId, dataValue);
         this._on_value_changed(dataValue, indexRange);
     }
 
@@ -1398,18 +1348,25 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             this._semantic_version = (this.node as UAVariable).semantic_version;
             return;
         }
-        // the semantic_changed event carries no session: apply the read gate of the session, as the
-        // value_changed path does (see _valueReadRefusal)
-        const refusal = this._valueReadRefusal();
-        if (refusal) {
-            this._on_value_changed(MonitoredItem._refusalDataValue(refusal));
-            return;
-        }
-        // readValue() hands out the node's own DataValue: recordValue stores what it is given, so
-        // a clone is required or the queue would alias the node's live value.
-        const dataValue: DataValue = (this.node as UAVariable).readValue().clone();
-        this._on_value_changed(dataValue);
+        // the semantic_changed event carries no session: the session of the item receives what a Read of
+        // the Value gives it, as on a value change (see valueForSession). The value is read only when it
+        // is handed out.
+        valueForSession(
+            this.node as ValueReadOwner,
+            this.getSessionContext(),
+            this._readNodeValueCopy,
+            undefined,
+            this._recordChange,
+            this._semanticListening
+        );
     }
+
+    /**
+     * the current value of the node, read in the context of the session once it was found to be given it.
+     * readValue() hands out the node's own DataValue: recordValue stores what it is given, so a clone is
+     * required or the queue would alias the node's live value.
+     */
+    private readonly _readNodeValueCopy = (): DataValue => (this.node as UAVariable).readValue(this.getSessionContext()).clone();
 
     /**
      * OPC 10000-9 5.5.7: the SubscriptionId argument of ConditionRefresh "indicat[es] which Client
