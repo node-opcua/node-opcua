@@ -9,6 +9,8 @@
  * for the newest one. Nothing accumulates in the package itself.
  */
 import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 import type { PeerRequirement } from "./commands.js";
 import { compareVersions, isVersion, type ReleaseSet } from "./index.js";
 
@@ -72,6 +74,8 @@ export async function fetchLatestSet(client: RegistryClient): Promise<ReleaseSet
  * packages on a private registry resolve exactly as they do for `npm install`
  */
 export function readPeerRequirements(name: string, specifier: string): PeerRequirement[] {
+    if (!isPackageName(name)) throw new Error(`not a package name: ${JSON.stringify(name)}`);
+    if (!isSpecifier(specifier)) throw new Error(`${name}: not a version, range or tag: ${JSON.stringify(specifier)}`);
     const output = npmView(`${name}@${specifier}`, ["version", "peerDependencies"]);
     if (!output) return [];
     const parsed = JSON.parse(output) as
@@ -84,13 +88,43 @@ export function readPeerRequirements(name: string, specifier: string): PeerRequi
     return Object.entries(entry.peerDependencies).map(([peer, range]) => ({ requiredBy, name: peer, range }));
 }
 
+/** an npm package name, scoped or not (the legacy names with capitals included) */
+export function isPackageName(name: string): boolean {
+    return /^(@[A-Za-z0-9][\w.-]*\/)?[A-Za-z0-9][\w.-]*$/.test(name) && name.length <= 214;
+}
+
+/**
+ * what a dependency of package.json may hold that `npm view` can answer: a version, a range
+ * (`^1.2.0`, `>=1 <2`, `1.x || 2.x`), a dist-tag or an `npm:` alias; nothing that starts like an option
+ */
+export function isSpecifier(specifier: string): boolean {
+    return /^[\w.^~<>=*|@/:+# -]{1,256}$/.test(specifier) && !specifier.startsWith("-");
+}
+
+/**
+ * how to run npm without a shell: npm's own script, run by this Node.js (npm.cmd is a batch
+ * file, which Node.js runs only through cmd.exe)
+ */
+export function npmCommand(): { file: string; args: string[] } {
+    const candidates = [
+        process.env.npm_execpath,
+        path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js")
+    ];
+    for (const script of candidates) {
+        if (script && /^npm-cli\.c?js$/.test(path.basename(script)) && fs.existsSync(script)) {
+            return { file: process.execPath, args: [script] };
+        }
+    }
+    return { file: "npm", args: [] };
+}
+
 function npmView(target: string, fields: string[]): string {
-    const npm = process.platform === "win32" ? "npm.cmd" : "npm";
+    const npm = npmCommand();
     try {
-        return execFileSync(npm, ["view", target, ...fields, "--json"], {
+        // `--` ends npm's options: the target is never read as one
+        return execFileSync(npm.file, [...npm.args, "view", "--json", "--", target, ...fields], {
             encoding: "utf8",
-            stdio: ["ignore", "pipe", "ignore"],
-            shell: process.platform === "win32"
+            stdio: ["ignore", "pipe", "ignore"]
         }).trim();
     } catch (err) {
         throw new Error(`npm view ${target} failed: ${(err as Error).message}`);
