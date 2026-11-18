@@ -482,4 +482,24 @@ describe("testing coerceNodeId with namespace arrays", () => {
         ref_nodeId.toString().should.equal("ns=1;i=85");
         ref_nodeId.toString({ namespaceArray }).should.equal("nsu=http://opcfoundation.org/UA/DI/;i=85");
     });
+
+    it("should read back a STRING NodeId whose identifier contains a NodeId-looking fragment", () => {
+        const nodeId = new NodeId(NodeIdType.STRING, "ns=2;i=5", 1);
+        const coerced = coerceNodeId(nodeId.toString());
+        coerced.identifierType.should.eql(NodeIdType.STRING);
+        coerced.namespace.should.eql(1);
+        coerced.value.should.eql("ns=2;i=5");
+
+        const namespaceArray = ["http://opcfoundation.org/UA/", "urn:a"];
+        const nsuCoerced = coerceNodeId("nsu=urn:a;s=ns=2;i=5", { namespaceArray });
+        nsuCoerced.identifierType.should.eql(NodeIdType.STRING);
+        nsuCoerced.namespace.should.eql(1);
+        nsuCoerced.value.should.eql("ns=2;i=5");
+    });
+
+    it("should reject malformed numeric NodeIds instead of truncating them", () => {
+        should.throws(() => coerceNodeId("ns=1;i=5abc"));
+        should.throws(() => coerceNodeId("garbage ns=1;i=5"));
+        should.throws(() => coerceNodeId("i=abc"));
+    });
 });

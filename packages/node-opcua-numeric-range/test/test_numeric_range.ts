@@ -939,4 +939,14 @@ describe("Testing numerical range", () => {
             NumericRange.overlap(new NumericRange("1:2"), new NumericRange("2:6")).should.eql(true);
         });
     });
+
+    describe("malformed ranges", () => {
+        it("should reject a range with a missing bound (OPC 10000-4 7.27)", () => {
+            new NumericRange(":5").isValid().should.eql(false);
+            new NumericRange("5:").isValid().should.eql(false);
+            new NumericRange("1:").isValid().should.eql(false);
+            new NumericRange(",").isValid().should.eql(false);
+            new NumericRange(":5,0").isValid().should.eql(false);
+        });
+    });
 });
