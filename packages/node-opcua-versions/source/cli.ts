@@ -111,7 +111,7 @@ function runInstalls(written: ManifestFile[], rootDir: string): void {
     )) {
         console.log(`
 $ ${command}   (in ${path.relative(process.cwd(), dir) || "."})`);
-        execSync(command, { cwd: dir, stdio: "inherit" });
+        execSync(command, { cwd: dir, stdio: "inherit" }); // check-child-process: ok - a fixed install command (npm/pnpm/yarn/bun install), no input
     }
 }
 

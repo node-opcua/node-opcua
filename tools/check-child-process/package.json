@@ -1,0 +1,17 @@
+{
+    "name": "@sterfive/check-child-process",
+    "version": "1.0.0",
+    "private": true,
+    "description": "shipped source does not run a child process through a shell",
+    "bin": {
+        "check-child-process": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "test": "node test/test_rule.js"
+    },
+    "devDependencies": {
+        "typescript-5": "npm:typescript@5.9.3"
+    }
+}
