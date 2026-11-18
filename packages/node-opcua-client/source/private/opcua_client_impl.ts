@@ -199,6 +199,22 @@ function findUserTokenPolicy(endpointDescription: EndpointDescription, userToken
     return r.length === 0 ? null : r[0];
 }
 
+/**
+ * The error raised when the endpoint has no UserTokenPolicy for the requested identity.
+ * The server lists every identity it accepts on an endpoint (Part 4, EndpointDescription),
+ * so this is a refusal by the server: the message names what the endpoint offers instead,
+ * so that a server configuration problem can be told apart from a client bug.
+ */
+function makeMissingUserTokenPolicyError(endpoint: EndpointDescription, label: string, userTokenType: UserTokenType): Error {
+    const offered = (endpoint.userIdentityTokens || []).map((policy) => UserTokenType[policy.tokenType] ?? `${policy.tokenType}`);
+    const where = `endpoint ${endpoint.endpointUrl} (${MessageSecurityMode[endpoint.securityMode]}, ${endpoint.securityPolicyUri})`;
+    const what =
+        offered.length === 0
+            ? `the ${where} advertises no user token policy at all (empty userIdentityTokens): check the user authentication settings of the server`
+            : `the ${where} only accepts: ${[...new Set(offered)].join(", ")}; enable ${UserTokenType[userTokenType]} on the server or connect with one of these identities`;
+    return new Error(`Cannot find ${label} user token policy in end point description: ${what}`);
+}
+
 interface IdentityTokenContext {
     endpoint: EndpointDescription;
     securityPolicy: SecurityPolicy;
@@ -210,7 +226,7 @@ function createAnonymousIdentityToken(context: IdentityTokenContext): AnonymousI
     const endpoint = context.endpoint;
     const userTokenPolicy = findUserTokenPolicy(endpoint, UserTokenType.Anonymous);
     if (!userTokenPolicy) {
-        throw new Error("Cannot find ANONYMOUS user token policy in end point description");
+        throw makeMissingUserTokenPolicyError(endpoint, "ANONYMOUS", UserTokenType.Anonymous);
     }
     return new AnonymousIdentityToken({ policyId: userTokenPolicy.policyId });
 }
@@ -237,7 +253,7 @@ async function createX509IdentityToken(
     const userTokenPolicy = findUserTokenPolicy(endpoint, UserTokenType.Certificate);
     /* c8 ignore next */
     if (!userTokenPolicy) {
-        throw new Error("Cannot find Certificate (X509) user token policy in end point description");
+        throw makeMissingUserTokenPolicyError(endpoint, "Certificate (X509)", UserTokenType.Certificate);
     }
     let securityPolicy = fromURI(userTokenPolicy.securityPolicyUri);
 
@@ -329,7 +345,7 @@ function createUserNameIdentityToken(
 
     /* c8 ignore next */
     if (!userTokenPolicy) {
-        throw new Error("Cannot find USERNAME user token policy in end point description");
+        throw makeMissingUserTokenPolicyError(endpoint, "USERNAME", UserTokenType.UserName);
     }
 
     let securityPolicy = fromURI(userTokenPolicy.securityPolicyUri);
