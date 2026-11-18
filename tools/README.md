@@ -97,6 +97,7 @@ Each has its own README with the reasoning behind the rule.
 - `check-test-types/`: ratchet on test-suite type-checking
 - `check-test-ports/`: no hard-coded ports in tests
 - `check-proto-pollution/`: a computed property key that could write `__proto__`/`constructor`/`prototype`
+- `check-child-process/`: a child process run through a shell (`exec`, `execSync`, a `shell` option)
 - `clean/`: Cleanup utilities
 - `fix-tsconfigs/`: TypeScript configuration fixes
 
@@ -124,6 +125,7 @@ tools/
 ├── check-build-graph/       # Publishable packages are actually built
 ├── check-package-shape/     # publint + attw on the published shape
 ├── check-test-types/        # Test-suite type-check ratchet
+├── check-child-process/     # Child processes run through a shell
 ├── clean/                   # Cleanup utilities
 ├── fix-tsconfigs/           # TypeScript config fixes
 ├── scan-deps.mjs            # Launcher for scan-dependencies
@@ -135,6 +137,7 @@ tools/
 ├── check-construction-cast.mjs
 ├── check-engines.mjs
 ├── check-dirname.mjs
+├── check-child-process.mjs
 ├── check-cjs-globals.mjs
 ├── check-c8-ignore.mjs
 ├── esm-convert.mjs
