@@ -40,7 +40,7 @@ import { ServerSidePublishEngine } from "../server_publish_engine.js";
 import { ServerSidePublishEngineForOrphanSubscription } from "../server_publish_engine_for_orphan_subscriptions.js";
 import type { ServerSession } from "../server_session.js";
 import { type DeleteMonitoredItemHook, Subscription, type SubscriptionTransferState } from "../server_subscription.js";
-import { ownerIdentityOf, transferSubscriptionToSession } from "../subscription_transfer.js";
+import { dropValuesOfPreviousChannel, ownerIdentityOf, transferSubscriptionToSession } from "../subscription_transfer.js";
 import { TurnBatches } from "./turn_batches.js";
 
 type ServerOptionsFactory = (
@@ -406,6 +406,8 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         ) {
             return StatusCodes.BadUserAccessDenied.value;
         }
+        // its values go on only over a channel that protects as much as the one they were read for
+        const lowerSecurity = subscription.readsOverChannel(dest.securityMode);
         // what its items collected and the client has not received goes with it to the new session
         const pending = subscription.takePendingNotifications();
         // the old session hears of the transfer (Good_SubscriptionTransferred) on a sequence number of its own: now when
@@ -415,6 +417,9 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
         const state = subscription.exportTransferState();
         if (statusLater) state.nextSequenceNumber += 1;
         state.pendingNotifications = pending;
+        if (lowerSecurity) {
+            dropValuesOfPreviousChannel(state);
+        }
         (subscription.publishEngine as unknown as ServerSidePublishEngine | null)?.detach_subscription(subscription);
         subscription.terminate();
         return encodeTransferState(state);
@@ -474,7 +479,7 @@ class WorkerEngine extends RemoteEngine implements RemoteObjectHost {
                 item.monitoredItemId
             );
             if (monitoredItem) {
-                monitoredItem.silentInitialValue = !sendInitialValues;
+                monitoredItem.silentInitialValue = !(sendInitialValues || state.resendValues);
                 subscription.postCreateMonitoredItem(monitoredItem, item.request, createResult);
             }
         }

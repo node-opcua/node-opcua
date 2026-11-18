@@ -79,7 +79,7 @@ export function valueReadStatus(node: ValueReadOwner | null | undefined, context
  * hands `deliver` what a Read of the Value of `node` gives `context`, for a value the node gave with no
  * session: the value itself when the session may read it, a stamped refusal in its place when it may not,
  * the value the owner reads for the session when only the owner can tell (then `deliver` is called later,
- * and only if `isLive()` still holds). `value` is a DataValue, or a function that reads it, called only
+ * and only if `isLive(generation)` still holds: `generation` is the caller's, when the read started). `value` is a DataValue, or a function that reads it, called only
  * when the value is handed out: a refused session costs no read. `indexRange` (the range a write touched)
  * is passed on to `deliver` with the value, so that a caller needs no closure per change.
  *
@@ -92,7 +92,8 @@ export function valueForSession(
     value: DataValue | (() => DataValue),
     indexRange: NumericRange | null | undefined,
     deliver: (dataValue: DataValue, indexRange?: NumericRange | null) => void,
-    isLive: () => boolean
+    isLive: (generation: number) => boolean,
+    generation = 0
 ): void {
     const status = valueReadStatus(node, context);
     if (status === undefined) {
@@ -101,7 +102,7 @@ export function valueForSession(
             context as ISessionContext,
             (err, dataValue) => {
                 // the item may have stopped while the owner answered
-                if (err || !dataValue || !isLive()) {
+                if (err || !dataValue || !isLive(generation)) {
                     return;
                 }
                 deliver(dataValue, indexRange);

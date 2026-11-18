@@ -468,6 +468,8 @@ export interface TransferredSubscription {
     pendingEvents: Uint8Array;
     pendingEventItems: number[];
     items: { monitoredItemId: number; timestampsToReturn: number; linkedItems: number[] }[];
+    /** the items send the values they sample first, even without sendInitialValues (see SubscriptionTransferState) */
+    resendValues?: boolean;
 }
 
 export function encodeTransferState(state: SubscriptionTransferState): TransferredSubscription {
@@ -493,7 +495,8 @@ export function encodeTransferState(state: SubscriptionTransferState): Transferr
             monitoredItemId: item.monitoredItemId,
             timestampsToReturn: item.timestampsToReturn,
             linkedItems: item.linkedItems
-        }))
+        })),
+        resendValues: state.resendValues
     };
 }
 
@@ -524,7 +527,8 @@ export function decodeTransferState(transferred: TransferredSubscription): Subsc
             timestampsToReturn: item.timestampsToReturn as TimestampsToReturn,
             linkedItems: item.linkedItems,
             request: requests[k]
-        }))
+        })),
+        resendValues: transferred.resendValues
     };
 }
 
