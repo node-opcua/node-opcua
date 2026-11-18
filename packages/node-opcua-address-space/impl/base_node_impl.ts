@@ -1742,6 +1742,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
      */
     setRolePermissions(rolePermissions: RolePermissionTypeOptions[]): void {
         this._rolePermissions = coerceRolePermissions(rolePermissions);
+        this._notifyAttributeChange(AttributeIds.RolePermissions);
     }
     getRolePermissions(inherited: boolean): RolePermissionType[] | null {
         if (this.rolePermissions === undefined && inherited) {
@@ -1755,6 +1756,7 @@ export abstract class BaseNodeImpl<T extends BaseNodeEvents & ListenerSignature<
 
     setAccessRestrictions(accessRestrictions: AccessRestrictionsFlag): void {
         this._accessRestrictions = accessRestrictions;
+        this._notifyAttributeChange(AttributeIds.AccessRestrictions);
     }
     get accessRestrictions(): AccessRestrictionsFlag | undefined {
         return this._accessRestrictions;

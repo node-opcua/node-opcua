@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
+    <NamespaceUris>
+        <Uri>urn:test:front-mirrored-rules</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="urn:test:front-mirrored-rules" Version="1.0">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.03"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="UInt32">i=7</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+    </Aliases>
+    <!-- a Variable that declares no permission rule: the application restricts it at start -->
+    <UAVariable NodeId="ns=1;i=1001" BrowseName="1:Setpoint" DataType="UInt32" AccessLevel="3" UserAccessLevel="3">
+        <DisplayName>Setpoint</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+        <Value>
+            <uax:UInt32>1</uax:UInt32>
+        </Value>
+    </UAVariable>
+    <!-- a Variable that the application leaves open at start, then restricts -->
+    <UAVariable NodeId="ns=1;i=1002" BrowseName="1:Limit" DataType="UInt32" AccessLevel="3" UserAccessLevel="3">
+        <DisplayName>Limit</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+        <Value>
+            <uax:UInt32>17</uax:UInt32>
+        </Value>
+    </UAVariable>
+</UANodeSet>
