@@ -50,7 +50,9 @@ describe("OPC 10000-17: AliasNames end to end", function (this: Mocha.Suite) {
                 const [entry] = await aliases.findAlias("TI101");
 
                 const dataValue = await session.read({
-                    nodeId: resolveNodeId(entry.referencedNodes[0].toString()),
+                    // referencedNodes holds ExpandedNodeIds, which are NodeIds: no need to go through
+                    // their text form, whose ";namespaceUri:..." suffix is not part of a NodeId string
+                    nodeId: resolveNodeId(entry.referencedNodes[0]),
                     attributeId: AttributeIds.Value
                 });
                 dataValue.statusCode.should.eql(StatusCodes.Good);
