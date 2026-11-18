@@ -1631,6 +1631,9 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      * with the same nodesets as the node objects, so that a compact node can hang under the
      * Objects folder. Subscriptions do not reach those nodes yet. The options of the store
      * (`{ shared: true }` for a store front threads read) may be given instead of true.
+     *
+     * Experimental: off by default, and the API can change. The server logs a warning at start
+     * when it is on. See the Experimental Features section of SECURITY.md.
      */
     compactAddressSpace?: boolean | StoreAddressSpaceOptions;
     transportSettings?: IServerTransportSettings;
