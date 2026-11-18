@@ -1,79 +1,127 @@
 # Security Policy
 
-The maintainers of this project at Sterfive take security seriously and are committed to addressing potential security issues promptly and responsibly.
+Sterfive maintains `node-opcua`. We take security seriously. We fix security weaknesses quickly, and we disclose them openly and responsibly.
 
-If you believe you have found a security vulnerability in any `node-opcua` repository, please report it to us as described below. 
+If you find a security weakness in a `node-opcua` repository, please report it to us as described below.
 
 ## Supported Versions
 
-Only the latest release series will receive patches and new versions in case of a security issue. 
+We fix security weaknesses in the latest release series.
 
-We may consider patching or fixing prior versions of `node-opcua` only for users who are regular subscribers to the NodeOPCUA Support Membership program ([https://support.sterfive.com](https://support.sterfive.com)).
+We can also fix earlier versions of `node-opcua` for members of the NodeOPCUA Support Program ([https://support.sterfive.com](https://support.sterfive.com)).
 
- | Version       | Supported          |
- | ------------- | ------------------ |
- | 2@latest      | ✅ (master branch) |
- | 2.163 to 2<@latest |  (for members only) |
- | 0.x           | :x:                |
+| Version             | Supported          |
+| ------------------- | ------------------ |
+| 2@latest            | ✅ (master branch) |
+| 2.163 to 2<@latest  | (for members only) |
+| 0.x                 | :x:                |
 
-## How to Report a Security Vulnerability
+## Experimental Features
 
-If you discover a security vulnerability within `node-opcua`, we appreciate your efforts in responsibly disclosing it to us.
+`node-opcua` is released continuously, and some new features ship before they are complete. We mark such a feature as **Experimental**. Do not use an Experimental feature in production where security matters.
 
-To ensure a smooth, confidential, and effective resolution process, please use one of the following methods:
+A feature is Experimental when all of these are true:
 
-### Method 1: GitHub Private Vulnerability Reporting (Preferred)
-We recommend reporting security issues privately directly through GitHub:
-1. Navigate to the main page of the **[node-opcua/node-opcua](https://github.com/node-opcua/node-opcua)** repository.
-2. Click on the **Security** tab.
-3. In the left sidebar, click on **Advisories**.
-4. Click on **Report a vulnerability** to open the private draft advisory form.
-5. Provide a detailed description, reproduction steps, and any proof-of-concept code, then submit.
+- Its API documentation says "Experimental".
+- It is off by default. You must turn it on with an explicit option or class.
+- The server writes a warning to its log when you turn it on.
 
-### Method 2: Secure Email Reporting
-If you prefer not to use GitHub's advisory system, please send a detailed confidential report to our security team at **`security@sterfive.com`**, including:
-- A clear description of the vulnerability.
-- Steps to reproduce the issue.
-- Any relevant code snippets, logs, or screenshots.
-- Your contact information (if you wish to be credited).
+These features are Experimental now:
 
----
+| Feature | How you turn it on |
+| --- | --- |
+| Compact address space | the `compactAddressSpace` option of `OPCUAServer` |
+| Front-thread engine (front threads and session workers) | the `FrontThreadEngine` class |
 
-### Acknowledgment
+### How we handle a weakness in an Experimental feature
 
-We will acknowledge receipt of your report (usually within 24 hours) and provide an estimated timeline for resolution.
+- Report it in the same way as any other weakness. We acknowledge it, confirm it and fix it with the same targets, and we add a regression test.
+- We do not publish a security advisory and we do not request a CVE for it.
+- The release notes name the fix and credit the reporter, unless the reporter asks to stay anonymous. The fix is not silent.
+- Members of the NodeOPCUA Support Program receive the details in the next bulletin, because some of them test Experimental features.
+- If the same weakness also affects a feature that is not Experimental, or a default configuration, it is an ordinary weakness: it gets an advisory and a CVE.
 
-## Security Vulnerability Disclosure Policy
+When a feature stops being Experimental, the release notes say so. From that release, the full policy applies to it.
 
-### Investigation
+This section applies to reports that we receive after the date this section is published. A report that we received before that date keeps the handling that we agreed with its reporter.
 
-Our security team will investigate the reported vulnerability to assess its impact and validity. We may contact you for additional information if necessary.
+## How to Report a Security Weakness
 
-### Remediation
+Please do not report a security weakness in a public issue. Use one of these private channels.
 
-If the vulnerability is confirmed, we will prioritize developing a fix. The patch will be included in the next release of `node-opcua`. For critical vulnerabilities, we may issue an emergency release.
+### Method 1: GitHub Private Vulnerability Reporting (preferred)
 
-### Notification
+1. Go to the main page of the **[node-opcua/node-opcua](https://github.com/node-opcua/node-opcua)** repository.
+2. Click the **Security** tab.
+3. In the left sidebar, click **Advisories**.
+4. Click **Report a vulnerability**.
+5. Give a description, the steps to reproduce, and a proof of concept if you have one. Then submit the form.
 
-- Once the fix is released, we will notify you and credit you in the release notes, unless you prefer to remain anonymous. 
-- Members of the [NodeOPCUA Support Program](https://support.sterfive.com) will be directly informed about the vulnerability and the steps taken to address it, 90 days before the official public announcement. This allows them to put in place a remediation plan. 
-- We will then publish a security advisory to inform the broader community about the vulnerability and the availability of the patch.
+### Method 2: Email
 
-### Coordinated Disclosure
+Send a confidential report to **`security@sterfive.com`**. Include:
 
-- We encourage coordinated disclosure, where the vulnerability details are made public only after a fix has been released and our customers (members of the NodeOPCUA Support Program) have been confidentially informed. 
-- This approach helps protect  our committed users by giving them time to update to the patched version before the vulnerability is publicly known and also addresses the security issue for the broader community.
+- A clear description of the weakness.
+- The steps to reproduce it.
+- Code, logs or screenshots that help.
+- Your contact details, if you want credit.
+
+### What makes a good report
+
+- A proof of concept that runs against a released version of `node-opcua`.
+- The affected version range, if you know it.
+- The real impact: what an attacker can do, and what the attacker needs first.
+
+We accept reports that use AI tools. Please check that the weakness is real and reproducible before you send the report.
+
+## Our Commitments
+
+| Step | Our target |
+| --- | --- |
+| Acknowledge your report | within 24 hours on business days |
+| Confirm or reject the weakness | within 7 days |
+| Release a fix | within 90 days of your report, and much faster for a severe weakness |
+| Publish the public advisory | 90 days after we inform the members of the NodeOPCUA Support Program |
+
+If we cannot release a fix within 90 days, we agree a disclosure date with you.
+
+## Disclosure Policy
+
+### 1. Investigation
+
+We reproduce the weakness and assess its real impact. We can contact you for more information.
+
+### 2. Fix and release
+
+We fix the weakness and add a regression test. The fix ships in the next release of `node-opcua`. For a severe weakness, we make an emergency release.
+
+The release notes describe the change in neutral words. The full details come with the advisory.
+
+### 3. Member notification
+
+On the day of the fixed release, we inform the members of the [NodeOPCUA Support Program](https://support.sterfive.com). We send them the details of the weakness and the steps to correct it. When several fixes ship close together, we send one bulletin, so that members update once.
+
+### 4. Public advisory
+
+We publish a GitHub security advisory **90 days after the member notification**. This gives members the time to update before the details are public. We request the CVE before that date; it stays reserved until we publish. The advisory gives the affected versions, the fixed version, the severity and the remediation steps. We credit the reporter, unless the reporter asks to stay anonymous.
+
+### Exceptions
+
+- **Critical or actively exploited weakness**: we publish the advisory on the day of the fixed release, at the same time as the member notification.
+- **Weakness already public**: we publish the advisory as soon as the fix is available.
+
+### No silent fixes
+
+Every security fix gets an advisory. This includes weaknesses that we find ourselves, and weaknesses that a fix closes as a side effect. The only exception is a weakness that affects only an Experimental feature (see [Experimental Features](#experimental-features)): its fix is named in the release notes, with credit, but it gets no advisory.
 
 ## Receiving Security Updates
 
-To receive all general updates to vulnerabilities, please subscribe to our Support Program at [https://support.sterfive.com](https://support.sterfive.com).
+- Everyone: watch the [GitHub security advisories](https://github.com/node-opcua/node-opcua/security/advisories) of this repository, or use a dependency scanner (Dependabot, OSV, Snyk).
+- Members of the [NodeOPCUA Support Program](https://support.sterfive.com): you also receive the details on the day of each fixed release, remediation guidance, and fixes for supported earlier versions.
 
 ## Contact
 
-- For any security-related inquiries, please contact us at `security@sterfive.com`.
-  
-- For general inquiries or join the NodeOPCUA support programm,  please contact us at `contact@sterfive.com`
+- Security questions: `security@sterfive.com`
+- General questions, or to join the NodeOPCUA Support Program: `contact@sterfive.com`
 
----
-
-By following this security policy, we aim to maintain a secure and reliable project for all users. Thank you for your cooperation and support.
+Thank you for helping us keep `node-opcua` and its users safe.

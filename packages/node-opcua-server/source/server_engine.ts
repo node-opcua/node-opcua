@@ -106,6 +106,8 @@ import { ownerIdentityOf, transferSubscriptionToSession } from "./subscription_t
 const debugLog = make_debugLog("server_engine");
 const errorLog = make_errorLog("server_engine");
 const warningLog = make_warningLog("server_engine");
+// the experimental compact address space is reported once per process
+let compactAddressSpaceReported = false;
 const doDebug = checkDebugFlag("server_engine");
 
 function upperCaseFirst(str: string) {
@@ -874,6 +876,12 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         this.addressSpaceAccessor = new AddressSpaceAccessor(this.addressSpace);
         if (options.compactAddressSpace) {
+            if (!compactAddressSpaceReported) {
+                compactAddressSpaceReported = true;
+                warningLog(
+                    "the compact address space (compactAddressSpace) is experimental: do not use it in production where security matters"
+                );
+            }
             // the compact address space applies the engine's unresolved permission policy, as the
             // classic one applies the server's
             const compactOptions = typeof options.compactAddressSpace === "object" ? options.compactAddressSpace : {};

@@ -127,6 +127,13 @@ export interface FrontThreadsStartOptions {
     ownPorts?: boolean;
 }
 
+// the experimental front-thread engine is reported once per process
+let frontThreadEngineReported = false;
+
+/**
+ * Experimental: the API can change. The engine logs a warning when it is created. See the
+ * Experimental Features section of SECURITY.md.
+ */
 export class FrontThreadEngine {
     /** the model: build it here, before or after start() */
     public readonly addressSpace: CompactAddressSpace;
@@ -201,6 +208,10 @@ export class FrontThreadEngine {
 
     /** an engine with its store loaded with the nodesets */
     public static async create(options: FrontThreadEngineOptions = {}): Promise<FrontThreadEngine> {
+        if (!frontThreadEngineReported) {
+            frontThreadEngineReported = true;
+            warningLog("FrontThreadEngine is experimental: do not use it in production where security matters");
+        }
         const nodesets = options.nodesets ?? [standardNodesets.standard];
         const serverEngine = new ServerEngine({
             applicationUri: options.applicationUri ?? "",
