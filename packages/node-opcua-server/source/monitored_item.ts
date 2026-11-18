@@ -490,6 +490,13 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     private _semantic_version: number;
     private _is_sampling = false;
     private _onSampled?: (err: Error | null, dataValue?: DataValue) => void;
+    /**
+     * counts the times the values the item read were dropped (forgetValues): a read that started before
+     * answers for a channel the item no longer reads for, and is dropped when it answers
+     */
+    private _readGeneration = 0;
+    /** the generation of the sample in flight (sampling is not re-entrant: one at a time) */
+    private _sampleGeneration = 0;
     private _holdSample = false;
     private _heldSample?: DataValue;
     private _on_opcua_event_received_callback: ((eventData: IEventData) => void) | null = null;
@@ -1022,6 +1029,9 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         // c8 ignore next
         if (!sessionContext) return;
 
+        // the initial values are those of the items that monitor an attribute, not of the event items
+        if (this.itemToMonitor.attributeId === AttributeIds.EventNotifier) return;
+
         // no need to resend if a value is already in the queue
         if (this.queue.length > 0) return;
 
@@ -1046,14 +1056,30 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                     this._enqueue_value(dataValue);
                     resolve();
                 },
-                () => {
-                    // an answer of the owner after the item was disposed is dropped
-                    const live = this._node !== null && this.itemToMonitor !== null;
+                (generation) => {
+                    // an answer of the owner after the item was disposed, or read for a channel it left, is dropped
+                    const live = this._node !== null && this.itemToMonitor !== null && generation === this._readGeneration;
                     if (!live) resolve();
                     return live;
-                }
+                },
+                this._readGeneration
             );
         });
+    }
+
+    /**
+     * @internal the item goes on over a channel that protects less than the one its values were read for
+     * (Subscription.forgetValuesOfPreviousChannel): the data changes it holds, and the value the next one is
+     * compared with, are dropped. Its next value, read in the new session's context, then goes out.
+     */
+    public forgetValues(): void {
+        this.queue = this.queue.filter((notification) => !(notification instanceof MonitoredItemNotification));
+        if (this.queue.length === 0) {
+            this.overflow = false;
+        }
+        this._pendingDataValue = null;
+        this.oldDataValue = badDataUnavailable;
+        this._readGeneration++;
     }
 
     private getSessionContext(): ISessionContext | null {
@@ -1126,6 +1152,11 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                     // was taking place ... just ignore this
                     return;
                 }
+                if (this._sampleGeneration !== this._readGeneration) {
+                    // read for a channel the item no longer reads for (forgetValues): dropped
+                    this._is_sampling = false;
+                    return;
+                }
                 // c8 ignore next
                 if (err) {
                     errorLog(" SAMPLING ERROR =>", err);
@@ -1143,6 +1174,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             };
             // only a value obtained during this call is held: one that comes later is recorded when it comes
             this._holdSample = hold === true;
+            this._sampleGeneration = this._readGeneration;
             this.samplingFunc.call(this, sessionContext, this.oldDataValue, this._onSampled, clock);
             this._holdSample = false;
         } else {
@@ -1253,7 +1285,8 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             dataValue,
             indexRange,
             this._deliverExceptionBased,
-            this._valueListening
+            this._valueListening,
+            this._readGeneration
         );
     }
 
@@ -1263,8 +1296,10 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     private readonly _recordChange = (dataValue: DataValue, indexRange?: NumericRange | null): void =>
         this._on_value_changed(dataValue, indexRange);
     /** an answer of the owner that comes after the item stopped listening (or turned sampled) is dropped */
-    private readonly _valueListening = (): boolean => this._value_changed_callback !== null;
-    private readonly _semanticListening = (): boolean => this._semantic_changed_callback !== null;
+    private readonly _valueListening = (generation: number): boolean =>
+        this._value_changed_callback !== null && generation === this._readGeneration;
+    private readonly _semanticListening = (generation: number): boolean =>
+        this._semantic_changed_callback !== null && generation === this._readGeneration;
 
     /** records a change of an exception-based item, with the coalescing window of its samplingInterval */
     private _deliver_exception_based(dataValue: DataValue, indexRange?: NumericRange | null) {
@@ -1360,7 +1395,8 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             this._readNodeValueCopy,
             undefined,
             this._recordChange,
-            this._semanticListening
+            this._semanticListening,
+            this._readGeneration
         );
     }
 
@@ -1518,8 +1554,10 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         }
         const variable = this.node as UAVariable;
         if (this.oldDataValue === badDataUnavailable) {
+            const generation = this._readGeneration;
             variable.readValueAsync(sessionContext, (err: Error | null, dataValue?: DataValue) => {
-                callback(err, dataValue);
+                // read for a channel the item no longer reads for (forgetValues): not recorded
+                callback(err, generation === this._readGeneration ? dataValue : undefined);
             });
         } else {
             const o = this.oldDataValue;

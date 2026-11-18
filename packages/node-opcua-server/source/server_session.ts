@@ -818,6 +818,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         const subscription = this.parent._createSubscriptionOnSession(this, parameters, id);
         assert(!Object.hasOwn(parameters, "id"));
         this.assignSubscription(subscription);
+        subscription.readsOverChannel(this.channelSecurity?.securityMode);
         assert(subscription.$session === this);
         assert(subscription.sessionId instanceof NodeId);
         assert(sameNodeId(subscription.sessionId, this.nodeId));
@@ -844,6 +845,14 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         // when channel is aborting
         this.channel_abort_event_handler = on_channel_abort.bind(this);
         channel.on("abort", this.channel_abort_event_handler);
+
+        // its subscriptions read their values for this channel from now on: over one that protects less than the
+        // one their kept values were read for, those are dropped and the current ones read again
+        for (const subscription of this.publishEngine?.subscriptions ?? []) {
+            if (subscription.readsOverChannel(this.channelSecurity?.securityMode)) {
+                void subscription.resendInitialValues();
+            }
+        }
     }
 
     public _detach_channel(): void {

@@ -117,12 +117,15 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
      * @param subscription
      * @param destPublishEngine
      * @param sendInitialValues true if initial values should be sent
+     * @param resendValues the values the subscription kept were dropped (Subscription.readsOverChannel): its current
+     *                     values are sent as the new session reads them, even without sendInitialValues
      * @private
      */
     public static async transferSubscription(
         subscription: Subscription,
         destPublishEngine: ServerSidePublishEngine,
-        sendInitialValues: boolean
+        sendInitialValues: boolean,
+        resendValues = false
     ): Promise<Subscription> {
         const srcPublishEngine = subscription.publishEngine as ServerSidePublishEngine;
 
@@ -153,7 +156,12 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         destPublishEngine.add_subscription(tmp);
 
         subscription.resetLifeTimeCounter();
-        if (sendInitialValues) {
+        if (resendValues) {
+            // the Good_SubscriptionTransferred notifyTransfer published to the old session (when a Publish waited
+            // there) is not offered to the new one for Republish either
+            subscription.forgetValuesOfPreviousChannel();
+        }
+        if (sendInitialValues || resendValues) {
             /*  A Boolean parameter with the following values:
                 TRUE  the first Publish response(s) after the TransferSubscriptions call
                       shall contain the current values of all Monitored Items in the

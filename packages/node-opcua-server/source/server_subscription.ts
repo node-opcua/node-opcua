@@ -24,7 +24,7 @@ import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug
 import { NodeId } from "node-opcua-nodeid";
 import type { NumericRange } from "node-opcua-numeric-range";
 import { ObjectRegistry } from "node-opcua-object-registry";
-import { SequenceNumberGenerator } from "node-opcua-secure-channel";
+import { type MessageSecurityMode, SequenceNumberGenerator } from "node-opcua-secure-channel";
 import { checkSelectClauses, EventFilter } from "node-opcua-service-filter";
 import {
     AggregateFilter,
@@ -53,7 +53,7 @@ import type { CompactMonitorableNode, INodeFinder, MonitorableNode } from "./mon
 import { MonitoredItem, type MonitoredItemOptions, type QueueItem } from "./monitored_item.js";
 import { Queue } from "./queue.js";
 import type { ServerSession } from "./server_session.js";
-import type { ITransferSessionIdentity } from "./sessions_compatible_for_transfer.js";
+import { type ITransferSessionIdentity, isLowerSecurityMode } from "./sessions_compatible_for_transfer.js";
 import { validateFilter } from "./validate_filter.js";
 
 const debugLog = make_debugLog("server_subscription");
@@ -361,6 +361,11 @@ export interface SubscriptionTransferState {
         /** the items this one triggers */
         linkedItems: number[];
     }[];
+    /**
+     * the data changes it kept were dropped (the new session's channel protects less than the one they were read
+     * for): its items send the values they sample first, as the new session reads them, even without sendInitialValues
+     */
+    resendValues?: boolean;
 }
 
 export interface SubscriptionOptions {
@@ -1400,6 +1405,39 @@ export class Subscription extends EventEmitter {
         }
         this._pending_notifications.filterOut(ofAnItem);
         return taken;
+    }
+
+    /**
+     * the subscription goes on over a channel that protects less than the one its values were read for
+     * (TransferSubscriptions): the data changes not published yet and the messages kept for Republish are
+     * dropped. Its events are kept: receiving them does not depend on the channel. The current values then go
+     * out as the new session reads them (resendInitialValues).
+     */
+    /** the security mode of the channel its values are read for (see readsOverChannel) */
+    private _valuesSecurityMode?: MessageSecurityMode;
+
+    /**
+     * its values are read from now on for a channel of `securityMode`: at its creation, when its session is attached
+     * to a channel, when it is transferred. True when that channel protects less than the one the values it keeps
+     * were read for: they are then dropped (forgetValuesOfPreviousChannel), and the caller has the current ones
+     * read again for the new channel (resendInitialValues).
+     */
+    public readsOverChannel(securityMode: MessageSecurityMode | undefined): boolean {
+        const lower = isLowerSecurityMode(this._valuesSecurityMode, securityMode);
+        if (lower) {
+            this.forgetValuesOfPreviousChannel();
+        }
+        // without a drop the mode only rises: the values kept were read for this channel or one that protects less
+        this._valuesSecurityMode = securityMode;
+        return lower;
+    }
+
+    public forgetValuesOfPreviousChannel(): void {
+        for (const monitoredItem of this.monitoredItems.values()) {
+            monitoredItem.forgetValues();
+        }
+        this._pending_notifications.filterOut((e) => e.notification instanceof MonitoredItemNotification);
+        this._sent_notification_messages = [];
     }
 
     /** the notifications another thread took (takePendingNotifications), to publish as if collected here */

@@ -80,6 +80,28 @@ export function getTransferSessionIdentity(session: ServerSession): ITransferSes
     };
 }
 
+function securityModeRank(securityMode: MessageSecurityMode | undefined): number {
+    switch (securityMode) {
+        case MessageSecurityMode.SignAndEncrypt:
+            return 3;
+        case MessageSecurityMode.Sign:
+            return 2;
+        case MessageSecurityMode.None:
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+/**
+ * true when a Subscription whose values were read for a channel of security mode `from` goes on over a channel
+ * of mode `to` that protects less: what it read and kept (queued data changes, messages kept for Republish)
+ * was read for the channel it leaves. An unknown `from` is not compared.
+ */
+export function isLowerSecurityMode(from: MessageSecurityMode | undefined, to: MessageSecurityMode | undefined): boolean {
+    return securityModeRank(to) < securityModeRank(from);
+}
+
 function isSecuredChannel(securityMode: MessageSecurityMode | undefined): boolean {
     return securityMode === MessageSecurityMode.Sign || securityMode === MessageSecurityMode.SignAndEncrypt;
 }
