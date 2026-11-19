@@ -91,7 +91,7 @@ Each has its own README with the reasoning behind the rule.
 - `check-c8-ignore/`: a coverage ignore hint c8 does not read, so the line is counted anyway
 - `esm-convert/`: the mechanical half of converting a package to ESM (not a gate)
 - `check-module-identity/`: a file must reach any one package by a single route
-- `check-pack/`: declared entry points must actually be published
+- `check-pack/`: declared entry points must actually be published, and every shipped dist file must have a source
 - `check-build-graph/`: every publishable package is reachable in the build graph
 - `check-package-shape/`: publint and attw on the published shape, ratcheted
 - `check-test-types/`: ratchet on test-suite type-checking
@@ -121,7 +121,7 @@ tools/
 ├── check-entry-points/      # types describes the module main loads
 ├── check-short-circuit-assertion/  # Assertions an optional chain can switch off
 ├── check-proto-pollution/   # __proto__/constructor/prototype as a computed key
-├── check-pack/              # Declared entry points are published
+├── check-pack/              # Declared entry points are published, dist files have a source
 ├── check-build-graph/       # Publishable packages are actually built
 ├── check-package-shape/     # publint + attw on the published shape
 ├── check-test-types/        # Test-suite type-check ratchet

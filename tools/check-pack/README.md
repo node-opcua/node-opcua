@@ -42,6 +42,32 @@ redirect to another package, not a file in this tarball, so it is skipped.
 A package that cannot be packed at all is reported as a failure rather than passing
 quietly.
 
+### Every shipped build file has a source
+
+The same file list is also read the other way round. A file under a top folder whose
+name starts with `dist` (`dist`, `dist-esm`, `distNodeJS`, `distHelpers`, ...) is build
+output, and some source file must still produce it. A `dist` folder that was not cleaned
+keeps the output of a source file that has since been removed or renamed; `npm pack`
+ships it, nothing imports it, and no test notices, but a consumer can still load it by
+its path.
+
+Package layouts differ, so the rule does not read `tsconfig` files. It compares paths:
+`dist*/<rel>.js` (or `.d.ts`, `.mjs`, `.cjs`, `.map`) has a source when `<rel>.ts` (or
+`.tsx`, `.mts`, `.cts`, `.js`) exists at the package root or below any top folder of the
+package. So `dist/foo/bar.js` matches `source/foo/bar.ts`, and `dist/source/x.js` (a
+package whose `rootDir` is `.`) matches `source/x.ts`. Files that are not JavaScript or
+declarations (`.json`, `.md`, ...) are not checked.
+
+The fix for a finding is a clean build: `pnpm run clean`, then `pnpm run build:all`. A
+file that ships on purpose without a source goes in `unsourced-allowlist.json`, next to
+this README, with a reason:
+
+```json
+{ "packages": { "node-opcua-foo": [{ "file": "dist/generated.js", "reason": "written by the build script, not by tsc" }] } }
+```
+
+The publish workflow runs this check right before `lerna publish`.
+
 ## Cost
 
 This one is slower than the other checks, because it invokes npm once per publishable

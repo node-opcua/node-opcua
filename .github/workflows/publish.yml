@@ -59,6 +59,12 @@ jobs:
         # and regenerating here would restamp versions lerna is about to set.
         run: pnpm run build:all
 
+      - name: Check what each package ships
+        # Every declared entry point is in the tarball, and every shipped dist file still has
+        # a source file. A dist file without a source is left over from an earlier build; it
+        # must not be published. See tools/check-pack/README.md.
+        run: pnpm run check:pack
+
       - name: Publish
         # --concurrency 1: avoids OIDC token request collisions with provenance.
         # node-opcua-versions is marked private in the repository, so this pass skips it.
