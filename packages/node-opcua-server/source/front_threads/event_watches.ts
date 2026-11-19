@@ -8,7 +8,7 @@
 
 import type { EventEmitter } from "node:events";
 import type { Worker } from "node:worker_threads";
-import { type IConditionRefreshScopeHolder, type IEventData, SessionContext } from "node-opcua-address-space";
+import type { IConditionRefreshScopeHolder, IEventData } from "node-opcua-address-space";
 import type { DataValue } from "node-opcua-data-value";
 import { EventFilter, extractEventFields } from "node-opcua-service-filter";
 import { EventFieldList } from "node-opcua-types";
@@ -98,11 +98,11 @@ export class EventWatches {
             if (
                 !bracket &&
                 filter.whereClause &&
-                !checkWhereClauseOnAdressSpace(addressSpace, SessionContext.defaultContext, filter.whereClause, eventData)
+                !checkWhereClauseOnAdressSpace(addressSpace, context, filter.whereClause, eventData)
             ) {
                 return;
             }
-            const eventFields = extractEventFields(SessionContext.defaultContext, filter.selectClauses ?? [], eventData);
+            const eventFields = extractEventFields(context, filter.selectClauses ?? [], eventData);
             this.#queueEvent(worker, id, new EventFieldList({ clientHandle: 0, eventFields }));
         };
         node.on("event", listener);

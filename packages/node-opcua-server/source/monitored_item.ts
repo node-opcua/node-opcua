@@ -1492,16 +1492,20 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             return;
         }
 
+        // a field that a select clause or the where clause reads from a Variable is read as the Session
+        // would read that Variable
+        const fieldContext = sessionContext ?? SessionContext.defaultContext;
+
         if (
             !isRefreshBracketForMe &&
-            !checkWhereClauseOnAddressSpace(addressSpace, SessionContext.defaultContext, this.filter.whereClause, eventData)
+            !checkWhereClauseOnAddressSpace(addressSpace, fieldContext, this.filter.whereClause, eventData)
         ) {
             return;
         }
 
         const selectClauses = this.filter.selectClauses ? this.filter.selectClauses : ([] as SimpleAttributeOperand[]);
 
-        const eventFields: Variant[] = extractEventFields(SessionContext.defaultContext, selectClauses, eventData);
+        const eventFields: Variant[] = extractEventFields(fieldContext, selectClauses, eventData);
 
         // c8 ignore next
         if (doDebug) {

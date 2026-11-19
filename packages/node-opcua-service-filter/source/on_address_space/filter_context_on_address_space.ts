@@ -81,13 +81,26 @@ export class FilterContextOnAddressSpace implements FilterContext {
     readNodeValue(nodeId: NodeIdLike): Variant {
         nodeId = coerceNodeId(nodeId);
 
+        const addressSpace = this.getAddressSpace();
+
         // use  cache/snapshot if available
         const value = this.eventData._readValue(nodeId);
         if (value) {
+            // a field of a condition is the value of one of its Variables: the session gets it only if a
+            // Read of that Variable would give it (the fields of an event raised from its type are no
+            // node's value, so they need no check)
+            if (this.eventData.getEventDataSource().nodeClass === NodeClass.Object) {
+                const fieldNode = addressSpace.findNode(nodeId);
+                if (fieldNode && fieldNode.nodeClass === NodeClass.Variable) {
+                    const status = (fieldNode as UAVariable).readValueStatus(this.sessionContext);
+                    if (status.isNotGood()) {
+                        return new Variant({ dataType: DataType.StatusCode, value: status });
+                    }
+                }
+            }
             return value;
         }
 
-        const addressSpace = this.getAddressSpace();
         const node = addressSpace.findNode(nodeId);
         if (!node || node.nodeClass !== NodeClass.Variable) {
             return new Variant();
