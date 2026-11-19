@@ -77,6 +77,9 @@ jobs:
         # A failed publish leaves the manifests lerna rewrote (it writes "gitHead" into
         # every package.json still to publish and restores them only on success), so the
         # next attempt would stop on EUNCOMMIT: the loop shows that diff, then reverts it.
+        # The 409 can come after npm accepted the package, and lerna then stops the whole
+        # pass; each retry can stop on the next one. So after a failed attempt the loop asks
+        # the registry: when every version of the tree is there, the release is complete.
         run: |
           for attempt in 1 2 3; do
             npx lerna publish from-package \
@@ -84,6 +87,10 @@ jobs:
               --dist-tag "$DIST_TAG" \
               --concurrency 1 && exit 0
             echo "::warning::lerna publish failed (attempt $attempt of 3)"
+            if node tools/check-published.mjs; then
+              echo "::warning::lerna reported a failure, but every package version is on the registry"
+              exit 0
+            fi
             git status --porcelain
             git diff -- '*package.json'
             git diff --name-only -z -- '*package.json' | xargs -0 -r git checkout --
@@ -110,6 +117,10 @@ jobs:
               --dist-tag "$DIST_TAG" \
               --concurrency 1 && exit 0
             echo "::warning::lerna publish failed (attempt $attempt of 3)"
+            if node tools/check-published.mjs --include-private node-opcua-versions; then
+              echo "::warning::lerna reported a failure, but every package version is on the registry"
+              exit 0
+            fi
             git status --porcelain
             git diff -- '*package.json'
             git diff --name-only -z -- '*package.json' | xargs -0 -r git checkout --
