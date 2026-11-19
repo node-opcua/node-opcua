@@ -104,6 +104,95 @@ export function missingEntryPoints(pkg, packedFiles) {
     return out;
 }
 
+// --- build output without a source ---------------------------------------------------
+//
+// A release built from a working tree whose dist folder was not cleaned ships the build
+// output of a source file that no longer exists. Nothing imports such a file, so no test
+// notices it, but it is published and a consumer can still load it by its path. The rule
+// below asks, for every shipped build file, whether a source file still produces it.
+//
+// Package layouts differ (dist, dist-esm, distNodeJS, distHelpers; rootDir source, src, ".",
+// or computed), so the rule does not read tsconfig files. It compares paths: a build file
+// dist*/<rel>.js has a source when <rel>.ts exists at the package root or below any top
+// folder. dist/foo/bar.js matches source/foo/bar.ts; dist/source/x.js (rootDir ".")
+// matches source/x.ts.
+
+/** a top-level folder that holds build output */
+export const isBuildDir = (segment) => /^dist/i.test(segment);
+
+const BUILD_FILE = /(\.d)?\.[mc]?(js|ts)(\.map)?$/;
+const SOURCE_FILE = /(\.d)?\.[mc]?(ts|tsx|js|jsx)$/;
+
+/**
+ * The keys a set of package-relative source paths can satisfy: each path without its
+ * extension, from the package root and from below its top folder. Pure.
+ */
+export function sourceKeys(sourceFiles) {
+    const keys = new Set();
+    for (const file of sourceFiles) {
+        const p = normalize(file);
+        const top = p.split("/")[0];
+        if (!SOURCE_FILE.test(p) || isBuildDir(top) || top === "node_modules") {
+            continue;
+        }
+        const stem = p.replace(SOURCE_FILE, "");
+        keys.add(stem);
+        keys.add(stem.split("/").slice(1).join("/"));
+    }
+    return keys;
+}
+
+/**
+ * The shipped build files that no source file produces. `packedFiles` are tarball-relative
+ * paths, `keys` comes from sourceKeys, `allowed` lists paths that ship on purpose without a
+ * source (each with a reason, see unsourced-allowlist.json). Pure.
+ */
+export function unsourcedBuildFiles(packedFiles, keys, allowed = []) {
+    const out = [];
+    for (const file of packedFiles) {
+        const p = normalize(file);
+        const segments = p.split("/");
+        if (segments.length < 2 || !isBuildDir(segments[0]) || !BUILD_FILE.test(p)) {
+            continue;
+        }
+        const rel = segments.slice(1).join("/").replace(BUILD_FILE, "");
+        if (keys.has(rel) || allowed.includes(p)) {
+            continue;
+        }
+        out.push(p);
+    }
+    return out;
+}
+
+/** every file of a package directory except node_modules, build output and dot folders */
+export function listSourceFiles(dir) {
+    const out = [];
+    const walk = (rel) => {
+        for (const entry of fs.readdirSync(path.join(dir, rel), { withFileTypes: true })) {
+            const child = rel ? `${rel}/${entry.name}` : entry.name;
+            if (entry.isDirectory()) {
+                if (entry.name === "node_modules" || entry.name.startsWith(".") || (!rel && isBuildDir(entry.name))) {
+                    continue;
+                }
+                walk(child);
+            } else {
+                out.push(child);
+            }
+        }
+    };
+    walk("");
+    return out;
+}
+
+/** the reviewed exceptions: { "<package name>": ["dist/path.js", ...] } */
+export function loadAllowlist(file = new URL("../unsourced-allowlist.json", import.meta.url)) {
+    if (!fs.existsSync(file)) {
+        return {};
+    }
+    const { packages = {} } = JSON.parse(fs.readFileSync(file, "utf8"));
+    return Object.fromEntries(Object.entries(packages).map(([name, entries]) => [name, entries.map((e) => e.file)]));
+}
+
 /** every publishable workspace package: [{ name, dir, pkg }] */
 export function publishablePackages(repoRoot = ".", packageFilter) {
     const out = [];
@@ -147,9 +236,16 @@ export function packFileList(dir) {
     return (entry?.files ?? []).map((f) => f.path);
 }
 
-export function analyze({ repoRoot = ".", packageFilter, pack = packFileList } = {}) {
+export function analyze({
+    repoRoot = ".",
+    packageFilter,
+    pack = packFileList,
+    sources = listSourceFiles,
+    allowlist = loadAllowlist()
+} = {}) {
     const packages = publishablePackages(repoRoot, packageFilter);
     const findings = [];
+    const unsourced = [];
     const failures = [];
     for (const { name, dir, pkg } of packages) {
         let files;
@@ -162,19 +258,36 @@ export function analyze({ repoRoot = ".", packageFilter, pack = packFileList } =
         for (const m of missingEntryPoints(pkg, files)) {
             findings.push({ name, dir: dir.replace(/\\/g, "/"), ...m });
         }
+        for (const file of unsourcedBuildFiles(files, sourceKeys(sources(dir)), allowlist[name] ?? [])) {
+            unsourced.push({ name, file });
+        }
     }
-    return { scanned: packages.length, findings, failures };
+    return { scanned: packages.length, findings, unsourced, failures };
 }
 
 export function exitCode(result) {
-    return result.findings.length > 0 || result.failures.length > 0 ? 1 : 0;
+    return result.findings.length > 0 || (result.unsourced?.length ?? 0) > 0 || result.failures.length > 0 ? 1 : 0;
 }
 
 export function formatReport(result) {
     const lines = [];
-    if (result.findings.length === 0 && result.failures.length === 0) {
-        lines.push(`check-pack: ${result.scanned} publishable packages, every declared entry point is in the tarball.`);
+    const unsourced = result.unsourced ?? [];
+    if (result.findings.length === 0 && unsourced.length === 0 && result.failures.length === 0) {
+        lines.push(
+            `check-pack: ${result.scanned} publishable packages, every declared entry point is in the tarball, every shipped build file has a source.`
+        );
         return lines.join("\n");
+    }
+    if (unsourced.length) {
+        lines.push(`check-pack: ${unsourced.length} shipped build files have no source file, across ${result.scanned} packages`, "");
+        for (const u of unsourced) {
+            lines.push(`  ${u.name}: ${u.file}`);
+        }
+        lines.push("");
+        lines.push("A build file without a source is left over from an earlier build. Clean the dist");
+        lines.push("folder and build again (pnpm run clean, then pnpm run build:all). A file that ships on");
+        lines.push("purpose without a source goes in tools/check-pack/unsourced-allowlist.json, with a reason.");
+        lines.push("");
     }
     if (result.findings.length) {
         lines.push(`check-pack: ${result.findings.length} declared entry points are not shipped, across ${result.scanned} packages`, "");

@@ -15,7 +15,17 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { declaredEntryPoints, missingEntryPoints, publishablePackages, analyze, exitCode, formatReport } from "../src/rule.js";
+import {
+    declaredEntryPoints,
+    missingEntryPoints,
+    publishablePackages,
+    analyze,
+    exitCode,
+    formatReport,
+    sourceKeys,
+    unsourcedBuildFiles,
+    listSourceFiles
+} from "../src/rule.js";
 
 // --- what a manifest promises -------------------------------------------------------
 
@@ -172,9 +182,124 @@ test("a package that cannot be packed is a failure, not a silent pass", () => {
 });
 
 test("a clean tree reports clean", () => {
-    withTree({ "packages/a/package.json": JSON.stringify({ name: "a", main: "./dist/index.js" }) }, (root) => {
-        const result = analyze({ repoRoot: root, pack: () => ["dist/index.js"] });
-        assert.equal(exitCode(result), 0);
-        assert.match(formatReport(result), /every declared entry point is in the tarball/);
-    });
+    withTree(
+        {
+            "packages/a/package.json": JSON.stringify({ name: "a", main: "./dist/index.js" }),
+            "packages/a/source/index.ts": "export {};"
+        },
+        (root) => {
+            const result = analyze({ repoRoot: root, pack: () => ["dist/index.js"], allowlist: {} });
+            assert.equal(exitCode(result), 0);
+            assert.match(formatReport(result), /every declared entry point is in the tarball/);
+            assert.match(formatReport(result), /every shipped build file has a source/);
+        }
+    );
+});
+
+// --- build output without a source -----------------------------------------------------
+
+test("a build file matches its source in the layouts this repo has", () => {
+    const keys = sourceKeys([
+        "source/index.ts",
+        "source/sub/tool.ts",
+        "source_nodejs/fs_helper.ts",
+        "test_helpers/fixture.ts",
+        "bin/cli.ts",
+        "src/index.tsx"
+    ]);
+    const shipped = [
+        "dist/index.js",
+        "dist/index.d.ts",
+        "dist/index.js.map",
+        "dist/index.d.ts.map",
+        "dist/sub/tool.js",
+        "dist-esm/sub/tool.mjs",
+        "distNodeJS/fs_helper.js",
+        "distHelpers/fixture.d.ts",
+        "dist/source/sub/tool.js", // rootDir "."
+        "dist/cli.js", // rootDir bin
+        "dist/index.cjs"
+    ];
+    assert.deepEqual(unsourcedBuildFiles(shipped, keys), []);
+});
+
+test("a build file left over from a removed source is reported", () => {
+    // the shape that shipped by mistake: a dist file whose source file was removed earlier
+    const keys = sourceKeys(["source/index.ts", "source/alarms_and_conditions/client_alarm_tools.ts"]);
+    const shipped = [
+        "dist/index.js",
+        "dist/alarms_and_conditions/client_alarm_tools.js",
+        "dist/alarms_and_conditions/client_alarm.js",
+        "dist/alarms_and_conditions/client_alarm.d.ts",
+        "dist/alarms_and_conditions/client_alarm.js.map"
+    ];
+    assert.deepEqual(unsourcedBuildFiles(shipped, keys), [
+        "dist/alarms_and_conditions/client_alarm.js",
+        "dist/alarms_and_conditions/client_alarm.d.ts",
+        "dist/alarms_and_conditions/client_alarm.js.map"
+    ]);
+});
+
+test("only build folders are checked, and other file types are ignored", () => {
+    const keys = sourceKeys([]);
+    // files outside a dist* folder, and non-code files inside one, are not build output of a source
+    assert.deepEqual(unsourcedBuildFiles(["index.js", "bin/run.js", "dist/schema.json", "dist/readme.md", "package.json"], keys), []);
+});
+
+test("sources inside build or dependency folders do not count", () => {
+    const keys = sourceKeys(["dist/old.ts", "node_modules/x/old.ts"]);
+    assert.deepEqual(unsourcedBuildFiles(["dist/old.js"], keys), ["dist/old.js"]);
+});
+
+test("an allowed file is not reported, and only that file", () => {
+    const keys = sourceKeys([]);
+    assert.deepEqual(unsourcedBuildFiles(["dist/generated.js", "dist/stale.js"], keys, ["dist/generated.js"]), ["dist/stale.js"]);
+});
+
+test("listSourceFiles skips node_modules, top-level build folders and dot folders", () => {
+    withTree(
+        {
+            "source/index.ts": "",
+            "source/dist/keep.ts": "", // a nested folder named dist is source, not build output
+            "dist/index.js": "",
+            "dist-esm/index.js": "",
+            "node_modules/x/index.ts": "",
+            ".cache/y.ts": ""
+        },
+        (root) => {
+            assert.deepEqual(listSourceFiles(root).sort(), ["source/dist/keep.ts", "source/index.ts"]);
+        }
+    );
+});
+
+test("end to end: a leftover build file fails the check and is named in the report", () => {
+    withTree(
+        {
+            "packages/client/package.json": JSON.stringify({ name: "client", main: "./dist/index.js" }),
+            "packages/client/source/index.ts": "export {};"
+        },
+        (root) => {
+            const pack = () => ["dist/index.js", "dist/old_module.js"];
+            const result = analyze({ repoRoot: root, pack, allowlist: {} });
+            assert.deepEqual(result.unsourced, [{ name: "client", file: "dist/old_module.js" }]);
+            assert.equal(result.findings.length, 0);
+            assert.equal(exitCode(result), 1);
+            assert.match(formatReport(result), /client: dist\/old_module\.js/);
+            assert.match(formatReport(result), /pnpm run clean/);
+        }
+    );
+});
+
+test("end to end: the allowlist is applied per package", () => {
+    withTree(
+        {
+            "packages/client/package.json": JSON.stringify({ name: "client", main: "./dist/index.js" }),
+            "packages/client/source/index.ts": "export {};"
+        },
+        (root) => {
+            const pack = () => ["dist/index.js", "dist/old_module.js"];
+            assert.equal(exitCode(analyze({ repoRoot: root, pack, allowlist: { client: ["dist/old_module.js"] } })), 0);
+            assert.equal(exitCode(analyze({ repoRoot: root, pack, allowlist: { other: ["dist/old_module.js"] } })), 1);
+        }
+    );
 });
