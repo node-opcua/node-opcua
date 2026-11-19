@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-types",
     "type": "module",
-    "version": "2.187.28",
+    "version": "2.187.32",
     "description": "pure nodejs OPCUA SDK - module types",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -18,20 +18,20 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.186.7",
-        "node-opcua-basic-types": "2.187.28",
+        "node-opcua-basic-types": "2.187.32",
         "node-opcua-binary-stream": "2.187.28",
-        "node-opcua-data-model": "2.187.28",
-        "node-opcua-data-value": "2.187.28",
+        "node-opcua-data-model": "2.187.32",
+        "node-opcua-data-value": "2.187.32",
         "node-opcua-enum": "2.187.28",
-        "node-opcua-extension-object": "2.187.28",
-        "node-opcua-factory": "2.187.28",
-        "node-opcua-nodeid": "2.187.28",
-        "node-opcua-numeric-range": "2.187.28",
+        "node-opcua-extension-object": "2.187.32",
+        "node-opcua-factory": "2.187.32",
+        "node-opcua-nodeid": "2.187.32",
+        "node-opcua-numeric-range": "2.187.32",
         "node-opcua-status-code": "2.187.28",
-        "node-opcua-variant": "2.187.28"
+        "node-opcua-variant": "2.187.32"
     },
     "devDependencies": {
-        "node-opcua-generator": "2.187.28"
+        "node-opcua-generator": "2.187.32"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-service-browse",
     "type": "module",
-    "version": "2.187.28",
+    "version": "2.187.32",
     "description": "pure nodejs OPCUA SDK - module service-browse",
     "scripts": {
         "build": "tsc -b",
@@ -15,14 +15,14 @@
         "node": ">=22.13.0"
     },
     "dependencies": {
-        "node-opcua-data-model": "2.187.28",
-        "node-opcua-types": "2.187.28"
+        "node-opcua-data-model": "2.187.32",
+        "node-opcua-types": "2.187.32"
     },
     "devDependencies": {
         "node-opcua-date-time": "2.187.28",
         "node-opcua-debug": "2.186.7",
-        "node-opcua-nodeid": "2.187.28",
-        "node-opcua-packet-analyzer": "2.187.28",
+        "node-opcua-nodeid": "2.187.32",
+        "node-opcua-packet-analyzer": "2.187.32",
         "node-opcua-status-code": "2.187.28"
     },
     "author": "Etienne Rossignon",
