@@ -1,13 +1,16 @@
 // the server options of a front thread in test_front_threads.ts: built in the front, with a
-// certificate folder of its own (fronts must not share one)
+// certificate folder of its own (threads must not share one: two threads that create the key of
+// one folder at the same time can read it half written)
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { makeRoles } from "node-opcua-address-space";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 
-export default async function frontServerOptions(data, { front }) {
-    const rootFolder = path.join(os.tmpdir(), "node-opcua-tmp", `front-threads-${data.port}-${front}`);
+export default async function frontServerOptions(data, { front, sessionWorker }) {
+    // every session worker is called with front -1: its index keeps the folders apart
+    const thread = sessionWorker === undefined ? `${front}` : `sw${sessionWorker}`;
+    const rootFolder = path.join(os.tmpdir(), "node-opcua-tmp", `front-threads-${data.port}-${thread}`);
     fs.mkdirSync(rootFolder, { recursive: true });
     const serverCertificateManager = new OPCUACertificateManager({ automaticallyAcceptUnknownCertificate: true, rootFolder });
     await serverCertificateManager.initialize();
