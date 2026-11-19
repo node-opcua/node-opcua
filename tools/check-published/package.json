@@ -1,0 +1,14 @@
+{
+    "name": "@sterfive/check-published",
+    "version": "1.0.0",
+    "private": true,
+    "description": "is every package version of the working tree on the registry",
+    "bin": {
+        "check-published": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "test": "node test/test_rule.js"
+    }
+}
