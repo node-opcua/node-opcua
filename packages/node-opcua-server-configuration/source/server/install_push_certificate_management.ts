@@ -16,17 +16,11 @@ import {
     resolvePrivateKeyProviderIfNeeded
 } from "node-opcua-common";
 import { readPrivateKey } from "node-opcua-crypto";
-import {
-    type Certificate,
-    exploreCertificateInfo,
-    makeSHA1Thumbprint,
-    split_der,
-    verifyCertificateSignature
-} from "node-opcua-crypto/web";
+import { type Certificate, exploreCertificateInfo, makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
 import { addProfileUri } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName, getHostname, getIpAddresses } from "node-opcua-hostname";
-import type { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
+import { isSelfSignedCertificate, type OPCUAServer, type OPCUAServerEndPoint } from "node-opcua-server";
 import { type StatusCode, StatusCodes } from "node-opcua-status-code";
 import { type ApplicationDescriptionOptions, ServerState } from "node-opcua-types";
 
@@ -563,14 +557,6 @@ async function _closeChannelsNoLongerTrusted(server: OPCUAServer): Promise<numbe
 
 // ── Leaving the application setup state (§G.2) ─────────────────
 
-function isSelfSigned(certificate: Certificate): boolean {
-    try {
-        return verifyCertificateSignature(certificate, certificate);
-    } catch {
-        return false;
-    }
-}
-
 /**
  * Move to Running once ApplyChanges has put a CA-issued certificate into
  * service and the TrustList holds a certificate that was not trusted
@@ -581,7 +567,7 @@ async function leaveApplicationSetupIfConfigured(server: OPCUAServer, cm: OPCUAC
     if (server.engine.getServerState() !== ServerState.NoConfiguration) {
         return;
     }
-    if (isSelfSigned(server.getCertificate())) {
+    if (isSelfSignedCertificate(server.getCertificate())) {
         doDebug && debugLog("[ApplicationSetup] still self-signed: staying in NoConfiguration");
         return;
     }

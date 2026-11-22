@@ -43,6 +43,7 @@ export {
 } from "./front_threads/front_thread_engine.js";
 export * from "./helper.js";
 export * from "./invalidate_server_certificate_cache.js";
+export * from "./is_self_signed_certificate.js";
 export * from "./monitored_item.js";
 export * from "./opcua_server.js";
 export * from "./register_server_manager.js";
