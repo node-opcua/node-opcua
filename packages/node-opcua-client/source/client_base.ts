@@ -14,12 +14,15 @@ import type {
     SecurityPolicy
 } from "node-opcua-secure-channel";
 import type { FindServersOnNetworkRequestOptions, FindServersRequestOptions, ServerOnNetwork } from "node-opcua-service-discovery";
-import type { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
+import type { ApplicationDescription, ApplicationType, EndpointDescription } from "node-opcua-service-endpoints";
 import type { ChannelSecurityToken, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import type { ErrorCallback } from "node-opcua-status-code";
 import type { IClientTransportFactory } from "node-opcua-transport";
 import type { Request, Response } from "./common.js";
 import type { ClientReverseConnect, ReverseConnectExpectation } from "./reverse/client_reverse_connect.js";
+
+/** the application types a client may announce in CreateSession */
+export type ClientApplicationType = ApplicationType.Client | ApplicationType.ClientAndServer;
 
 export type FindServersRequestLike = FindServersRequestOptions;
 export type FindServersOnNetworkRequestLike = FindServersOnNetworkRequestOptions;
@@ -62,6 +65,20 @@ export interface OPCUAClientBaseOptions {
      * @default: `urn:${hostname}:${applicationName}`
      */
     applicationUri?: string;
+
+    /**
+     * the application type announced in the CreateSession clientDescription.
+     * Use ClientAndServer for an application whose server and client share
+     * one application instance certificate and identity (a gateway, for example).
+     * @default ApplicationType.Client
+     */
+    applicationType?: ClientApplicationType;
+
+    /**
+     * the product Uri announced in the CreateSession clientDescription
+     * @default "NodeOPCUA-Client"
+     */
+    productUri?: string;
 
     connectionStrategy?: ConnectionStrategyOptions;
 
@@ -419,6 +436,8 @@ export interface OPCUAClientBase {
     readonly keepPendingSessionsOnDisconnect: boolean;
     readonly endpointUrl: string;
     readonly applicationName: string;
+    readonly applicationType: ClientApplicationType;
+    readonly productUri: string;
 }
 
 export const OPCUAClientBase = {

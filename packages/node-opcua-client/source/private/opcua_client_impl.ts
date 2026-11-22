@@ -879,12 +879,12 @@ export class OPCUAClientImpl extends ClientBaseImpl<OPCUAClientBaseEvents> {
 
         const applicationDescription: ApplicationDescriptionOptions = {
             applicationName: new LocalizedText({ text: this.applicationName, locale: null }),
-            applicationType: ApplicationType.Client,
+            applicationType: this.applicationType,
             applicationUri,
             discoveryProfileUri: undefined,
             discoveryUrls: [],
             gatewayServerUri: undefined,
-            productUri: "NodeOPCUA-Client"
+            productUri: this.productUri
         };
 
         // note : do not confuse CreateSessionRequest.clientNonce with OpenSecureChannelRequest.clientNonce
