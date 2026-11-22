@@ -512,11 +512,25 @@ describe("US-AE-08/09: Certificate SAN mismatch check and regeneration", () => {
             const sanBefore = infoBefore.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
             sanBefore.should.containEql("regen-host");
 
+            // fill the endpoints' certificate caches, as a first channel would
+            for (const endpoint of server.endpoints) {
+                should(endpoint.getCertificate().equals(certBefore)).eql(true);
+                should(endpoint.endpointDescriptions().length).above(0);
+            }
+
             // Now regenerate
             await server.regenerateSelfSignedCertificate();
 
             // New cert should also have regen-host
             const certAfter = server.getCertificate();
+            should(certAfter.equals(certBefore)).eql(false);
+            // endpoints must serve the new certificate, not a cached copy of the old one
+            for (const endpoint of server.endpoints) {
+                should(endpoint.getCertificate().equals(certAfter)).eql(true);
+                for (const description of endpoint.endpointDescriptions()) {
+                    should(description.serverCertificate?.equals(certAfter)).eql(true);
+                }
+            }
             const infoAfter = exploreCertificate(certAfter);
             const sanAfter = infoAfter.tbsCertificate.extensions?.subjectAltName?.dNSName || [];
             sanAfter.should.containEql("regen-host");

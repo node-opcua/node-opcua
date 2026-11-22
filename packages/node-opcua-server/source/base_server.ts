@@ -609,8 +609,12 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
         }
         // recreate with current hostnames
         await this.createDefaultCertificate();
-        // invalidate cached cert so next getCertificate() reloads from disk
+        // invalidate cached cert so next getCertificate() reloads from disk,
+        // and the endpoints' copies so new channels get the new certificate
         this.invalidateCachedCertificates();
+        for (const endpoint of this.endpoints) {
+            endpoint.invalidateCertificates();
+        }
     }
 
     private _checkCertificateSanMismatch(): void {
