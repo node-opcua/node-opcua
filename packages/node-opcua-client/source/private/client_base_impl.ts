@@ -46,6 +46,7 @@ import {
 } from "node-opcua-service-discovery";
 import {
     type ApplicationDescription,
+    ApplicationType,
     type EndpointDescription,
     GetEndpointsRequest,
     GetEndpointsResponse
@@ -66,6 +67,7 @@ import {
 } from "node-opcua-transport";
 import { checkFileExistsAndIsNotEmpty, matchUri } from "node-opcua-utils";
 import {
+    type ClientApplicationType,
     type CreateSecureChannelCallbackFunc,
     type FindEndpointCallback,
     type FindEndpointOptions,
@@ -397,6 +399,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     public endpointUrl: string;
     public discoveryUrl: string;
     public readonly applicationName: string;
+    public readonly applicationType: ClientApplicationType;
+    public readonly productUri: string;
     private _applicationUri: string;
     public defaultTransactionTimeout?: number;
 
@@ -509,6 +513,15 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         this.applicationName = options.applicationName || "NodeOPCUA-Client";
         assert(!this.applicationName.match(/^locale=/), "applicationName badly converted from LocalizedText");
         assert(!this.applicationName.match(/urn:/), "applicationName should not be a URI");
+
+        const applicationType = options.applicationType ?? ApplicationType.Client;
+        if (applicationType !== ApplicationType.Client && applicationType !== ApplicationType.ClientAndServer) {
+            throw new Error(
+                `invalid applicationType ${ApplicationType[applicationType] ?? applicationType}: a client announces Client or ClientAndServer`
+            );
+        }
+        this.applicationType = applicationType;
+        this.productUri = options.productUri || "NodeOPCUA-Client";
 
         // we need to delay _applicationUri initialization
         this._applicationUri = options.applicationUri || this._getBuiltApplicationUri();
