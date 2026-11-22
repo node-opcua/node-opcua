@@ -43,6 +43,7 @@ import { type ApplicationDescriptionOptions, EndpointDescription, type GetEndpoi
 import { checkFileExistsAndIsNotEmpty, matchUri } from "node-opcua-utils";
 import type { IChannelData } from "./i_channel_data.js";
 import type { ISocketData } from "./i_socket_data.js";
+import { isSelfSignedCertificate } from "./is_self_signed_certificate.js";
 import type { OPCUAServerEndPoint } from "./server_end_point.js";
 
 const doDebug = checkDebugFlag("base_server");
@@ -505,13 +506,10 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
             const chain = this.getCertificateChain();
             if (chain.length === 0) return;
 
-            const leafInfo = exploreCertificate(chain[0]);
-            const isSelfSigned =
-                leafInfo.tbsCertificate.extensions?.subjectKeyIdentifier ===
-                leafInfo.tbsCertificate.extensions?.authorityKeyIdentifier?.keyIdentifier;
-
             // Self-signed certificates don't need a chain
-            if (isSelfSigned) return;
+            if (isSelfSignedCertificate(chain[0])) return;
+
+            const leafInfo = exploreCertificate(chain[0]);
 
             if (chain.length >= 2) {
                 // Chain already contains at least leaf + issuer — good
@@ -601,12 +599,7 @@ export class OPCUABaseServer<T extends OPCUABaseServerEvents = any> extends OPCU
      */
     public async regenerateSelfSignedCertificate(): Promise<void> {
         // guard: only allow regeneration of self-signed certs
-        const certDer = this.getCertificate();
-        const info = exploreCertificate(certDer);
-        const issuer = info.tbsCertificate.issuer;
-        const subject = info.tbsCertificate.subject;
-        const isSelfSigned = issuer.commonName === subject.commonName && issuer.organizationName === subject.organizationName;
-        if (!isSelfSigned) {
+        if (!isSelfSignedCertificate(this.getCertificate())) {
             throw new Error("Cannot regenerate certificate: current certificate is not self-signed (issued by a CA or GDS)");
         }
 
