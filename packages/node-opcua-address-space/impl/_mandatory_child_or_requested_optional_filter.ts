@@ -54,13 +54,18 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
                 warningLog(" cannot find node ", r.nodeId.toString());
                 return false;
             }
-            return n.browseName?.name?.toString() === node.browseName?.name?.toString();
+            // the whole QualifiedName: a subtype's 2:SerialNumber is a member of its own,
+            // not an override of the 1:SerialNumber its supertype declares
+            return (
+                n.browseName.namespaceIndex === node.browseName.namespaceIndex &&
+                n.browseName.name?.toString() === node.browseName.name?.toString()
+            );
         });
 
         if (alreadyIn.length > 0) {
             assert(alreadyIn.length === 1, "Duplication found ?");
-            // a child with the same browse name has already been install
-            // probably from a SuperClass, we should ignore this.
+            // a child with the same browse name has already been installed, from a nearer
+            // declaration (a subtype overriding it): this base declaration is skipped
             return false; // ignore
         }
 
