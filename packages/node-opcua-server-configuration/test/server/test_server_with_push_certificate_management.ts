@@ -295,10 +295,11 @@ describe("Testing server configured with push certificate management", function 
     }
 
     async function replaceServerCertificateAndPrivateKeyUsingPushCertificateManagerMethod(
-        endpointUrl: string
+        endpointUrl: string,
+        applicationUri: string
     ): Promise<{ certificate: Certificate; privateKey: PrivateKey }> {
-        // create a new key pair
-        const { certificate, privateKey, privateKeyPEM } = await produceCertificateAndPrivateKey(_folder);
+        // create a new key pair, for the same application
+        const { certificate, privateKey, privateKeyPEM } = await produceCertificateAndPrivateKey(_folder, applicationUri);
 
         const privateKeyFormat = "PEM"; // or PFX
 
@@ -721,8 +722,10 @@ describe("Testing server configured with push certificate management", function 
 
         try {
             step("when an administrative client replaces the certificate & private key");
-            const { certificate, privateKey } =
-                await replaceServerCertificateAndPrivateKeyUsingPushCertificateManagerMethod(endpointUrl);
+            const { certificate, privateKey } = await replaceServerCertificateAndPrivateKeyUsingPushCertificateManagerMethod(
+                endpointUrl,
+                server.serverInfo.applicationUri ?? ""
+            );
 
             await new Promise((resolve) => setTimeout(resolve, 3000));
 

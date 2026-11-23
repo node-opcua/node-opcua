@@ -190,7 +190,8 @@ describe("Testing Server Side PushCertificateManager with an OPAQUE (HSM/KMS-hel
         });
         const blindPushManager = new PushCertificateManagerServerImpl({
             applicationGroup: blindGroup,
-            applicationUri: "urn:NodeOPCUA-Server-Opaque-Blind"
+            // same application as pushManager, whose CSR it receives
+            applicationUri: "urn:NodeOPCUA-Server-Opaque"
         });
         await blindPushManager.initialize();
         const { certificate: caCertificate, crl } = await _getFakeAuthorityCertificate(_folder);

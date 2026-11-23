@@ -29,6 +29,15 @@ const warningLog = make_warningLog("ServerConfiguration");
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
 
+function certificateHasApplicationUri(certificate: Certificate, applicationUri: string): boolean {
+    try {
+        const uris = exploreCertificate(certificate).tbsCertificate.extensions?.subjectAltName?.uniformResourceIdentifier ?? [];
+        return uris.includes(applicationUri);
+    } catch {
+        return false;
+    }
+}
+
 // Helper: Stage issuer certificates to temporary files
 async function preInstallIssuerCertificates(
     serverImpl: PushCertificateManagerInternalContext,
@@ -175,6 +184,21 @@ export async function executeUpdateCertificate(
         if (validationResult.statusCode !== StatusCodes.Good) {
             await serverImpl.fileTransactionManager.abortTransaction();
             return { statusCode: validationResult.statusCode, applyChangesRequired: false };
+        }
+
+        // OPC 10000-12 §7.10.5 validates an application certificate with the OPC 10000-4
+        // process, whose URI step (Table 100) may not be suppressed: the certificate's
+        // URI shall match the application's own ApplicationUri.
+        if (
+            isApplicationGroup &&
+            serverImpl.applicationUri &&
+            !certificateHasApplicationUri(certificate, serverImpl.applicationUri)
+        ) {
+            warningLog(
+                `updateCertificate: the certificate's URI does not match the server's applicationUri ${serverImpl.applicationUri}`
+            );
+            await serverImpl.fileTransactionManager.abortTransaction();
+            return { statusCode: StatusCodes.BadCertificateUriInvalid, applyChangesRequired: false };
         }
 
         doDebug && debugLog(" updateCertificate ", makeSHA1Thumbprint(certificate).toString("hex"));

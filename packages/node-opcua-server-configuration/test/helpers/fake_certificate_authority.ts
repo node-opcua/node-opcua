@@ -67,7 +67,8 @@ export async function initializeHelpers(prefix: string, _n: number): Promise<str
 }
 
 export async function produceCertificateAndPrivateKey(
-    subfolder: string
+    subfolder: string,
+    applicationUri = "applicationUri"
 ): Promise<{ certificate: Certificate; privateKey: PrivateKey; privateKeyPEM: string }> {
     // Use a unique directory per invocation so CertificateManager
     // always generates a fresh key pair rather than reusing an
@@ -82,7 +83,7 @@ export async function produceCertificateAndPrivateKey(
     const certFile = path.join(certificateManager.rootDir, "own/certs/certificate.pem");
 
     await certificateManager.createSelfSignedCertificate({
-        applicationUri: "applicationUri",
+        applicationUri,
         subject: "CN=TOTO",
 
         dns: [getFullyQualifiedDomainName()],
