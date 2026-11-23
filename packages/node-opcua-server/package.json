@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-server",
     "type": "module",
-    "version": "2.187.32",
+    "version": "2.187.33",
     "description": "pure nodejs OPCUA SDK - module server",
     "scripts": {
         "build": "tsc -b",
@@ -29,7 +29,7 @@
         "node-opcua-basic-types": "2.187.32",
         "node-opcua-binary-stream": "2.187.28",
         "node-opcua-certificate-manager": "2.187.32",
-        "node-opcua-client": "2.187.32",
+        "node-opcua-client": "2.187.33",
         "node-opcua-common": "2.187.32",
         "node-opcua-constants": "2.185.0",
         "node-opcua-crypto": "6.2.5",

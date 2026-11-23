@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-client",
     "type": "module",
-    "version": "2.187.32",
+    "version": "2.187.33",
     "description": "pure nodejs OPCUA SDK - module client",
     "scripts": {
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo certificates",
