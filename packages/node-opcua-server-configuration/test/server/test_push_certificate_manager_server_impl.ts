@@ -29,6 +29,10 @@ import { getCertificateDER } from "../helpers/tools.js";
 
 const { readFile } = fs.promises;
 
+// UpdateCertificate refuses an application certificate whose URI is not the server's own,
+// so every certificate this suite pushes to DefaultApplicationGroup is requested for it.
+const serverApplicationUri = "urn:NodeOPCUA-Server";
+
 const injectFailingTask = (pushManager: PushCertificateManagerServerImpl, errorMessage: string) => {
     console.log("Injecting failing task");
 
@@ -76,7 +80,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         pushManager = new PushCertificateManagerServerImpl({
             applicationGroup,
             userTokenGroup,
-            applicationUri: "--missing--applicationUri--"
+            applicationUri: serverApplicationUri
         });
 
         // Initialize pushManager (this calls initialize on the certificate managers)
@@ -173,7 +177,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             startDate: new Date(),
             validity: 365,
             subject: "/O=NodeOPCUA/CN=NodeOPCUA-Server",
-            applicationUri: "urn:APPLICATION:URI",
+            applicationUri: serverApplicationUri,
             dns: ["localhost", "my.domain.com"],
             ip: ["192.123.145.121"]
         });
@@ -443,6 +447,35 @@ describe("Testing Server Side PushCertificateManager", () => {
         result.applyChangesRequired.should.eql(true);
     });
 
+    // OPC 10000-12 §7.10.5 + OPC 10000-4 Table 100 (URI step, not suppressible)
+    it("updateCertificate should refuse an application certificate issued for another applicationUri", async () => {
+        // Given a valid, CA-signed certificate and key issued for another application
+        const otherApplication = new CertificateManager({
+            location: path.join(_folder, "other_application")
+        });
+        await otherApplication.initialize();
+        const csrFile = await otherApplication.createCertificateRequest({
+            subject: "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server",
+            applicationUri: "urn:somebody:else"
+        });
+        const certificateFullChain = await produceCertificate(_folder, convertPEMtoDER(await readFile(csrFile, "utf-8")));
+        const privateKeyPEM = await readFile(otherApplication.privateKey, "utf-8");
+
+        // When it is pushed to the server's application group
+        const result: UpdateCertificateResult = await pushManager.updateCertificate(
+            "DefaultApplicationGroup",
+            "",
+            certificateFullChain[0],
+            certificateFullChain.slice(1),
+            "PEM",
+            privateKeyPEM
+        );
+
+        // Then it is refused, and nothing waits for ApplyChanges
+        should(result.statusCode).eql(StatusCodes.BadCertificateUriInvalid);
+        should(result.applyChangesRequired).eql(false);
+    });
+
     it("updateCertificate should store issuer certificates when private key is provided", async () => {
         // Given a certificate manager with a private key
         const testCertManager = new CertificateManager({
@@ -453,7 +486,7 @@ describe("Testing Server Side PushCertificateManager", () => {
         // Create a CSR
         const csrFile = await testCertManager.createCertificateRequest({
             subject: "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server",
-            applicationUri: "urn:NodeOPCUA-Server"
+            applicationUri: serverApplicationUri
         });
         const csrPEM = await readFile(csrFile, "utf-8");
         const csr = convertPEMtoDER(csrPEM);
@@ -720,7 +753,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         const csrFile = await testCertManager.createCertificateRequest({
             subject: "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server",
-            applicationUri: "urn:NodeOPCUA-Server"
+            applicationUri: serverApplicationUri
         });
         const csrPEM = await readFile(csrFile, "utf-8");
         const csr = convertPEMtoDER(csrPEM);
@@ -755,7 +788,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         const csrFile1 = await testCertManager1.createCertificateRequest({
             subject: "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server1",
-            applicationUri: "urn:NodeOPCUA-Server1"
+            applicationUri: serverApplicationUri
         });
         const csrPEM1 = await readFile(csrFile1, "utf-8");
         const csr1 = convertPEMtoDER(csrPEM1);
@@ -820,7 +853,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         const csrFile = await testCertManager.createCertificateRequest({
             subject: "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-KeyOnly",
-            applicationUri: "urn:NodeOPCUA-Server-KeyOnly"
+            applicationUri: serverApplicationUri
         });
         const csrPEM = await readFile(csrFile, "utf-8");
         const csr = convertPEMtoDER(csrPEM);
@@ -855,7 +888,7 @@ describe("Testing Server Side PushCertificateManager", () => {
 
         const csrFile = await testCertManager.createCertificateRequest({
             subject: "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server-EmptyFormat",
-            applicationUri: "urn:NodeOPCUA-Server-EmptyFormat"
+            applicationUri: serverApplicationUri
         });
         const csrPEM = await readFile(csrFile, "utf-8");
         const csr = convertPEMtoDER(csrPEM);

@@ -161,7 +161,10 @@ describe("Push certificate management with a passphrase-protected server key", f
 
         // Push a brand-new certificate + matching private key (the explicit
         // privateKeyFormat/privateKey branch of UpdateCertificate)
-        const { certificate, privateKeyPEM } = await produceCertificateAndPrivateKey(folder);
+        const { certificate, privateKeyPEM } = await produceCertificateAndPrivateKey(
+            folder,
+            server.serverInfo.applicationUri ?? ""
+        );
 
         await withSecureClient(endpointUrl, async (session) => {
             const pm = new ClientPushCertificateManagement(session);
