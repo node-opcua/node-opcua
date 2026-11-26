@@ -141,8 +141,11 @@ export interface AliasQuery {
 /**
  * Where a server's own AliasNames live.
  *
- * @experimental The shape of this interface is expected to move before it is
- * considered stable. It is exported so a server can supply its own backing
+ * @unstable The shape of this interface is expected to move before it is
+ * considered stable. It is an Unstable API of EXPERIMENTAL.md: it is on when you use it, there
+ * is no switch and it logs no warning, but its shape can change in any release.
+ *
+ * It is exported so a server can supply its own backing
  * store (a database, a configuration file, an existing tag dictionary) instead
  * of the address-space-backed default, but treat it as provisional: in
  * particular the optional mutation half may grow a transaction boundary once

@@ -1633,7 +1633,10 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      * (`{ shared: true }` for a store front threads read) may be given instead of true.
      *
      * Experimental: off by default, and the API can change. The server logs a warning at start
-     * when it is on. See the Experimental Features section of SECURITY.md.
+     * when it is on. See EXPERIMENTAL.md for what the status means, and SECURITY.md for how a
+     * report is handled.
+     *
+     * @experimental
      */
     compactAddressSpace?: boolean | StoreAddressSpaceOptions;
     transportSettings?: IServerTransportSettings;
