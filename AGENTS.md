@@ -68,9 +68,9 @@ not use an em-dash.
 
 Make the `=` underline the same length as the heading above it.
 
-Sections before 2.187.32 keep a descriptive heading, and carry their release in square brackets at the
-end, for example `OPC UA JSON follows Part 6 1.04 and 1.05 [2.187.10]`. Leave those headings as they
-are. Write a new section as `Unreleased`.
+Sections before 2.187.32 keep a descriptive heading. They carry their release in square brackets at
+the end, for example `OPC UA JSON follows Part 6 1.04 and 1.05 [2.187.10]`. Leave those headings as
+they are. Write a new section as `Unreleased`.
 
 ### GitHub release note shape
 
@@ -156,3 +156,37 @@ Each tag also makes the entry actionable, and the check enforces all three:
 - the doc block names `EXPERIMENTAL.md`, so an editor shows where to read;
 - the start-up warning of an `@experimental` feature names `EXPERIMENTAL.md`, so an operator who reads
   a log knows where to go.
+
+## Pull request message
+
+Write these four parts, then stop:
+
+- **Symptom.** What a reader saw. Give the error string that they would search for.
+- **Cause.** One or two sentences.
+- **Fix.** One or two sentences. Spell a new option or method exactly as the code spells it.
+- **Test.** The command to run, and how to see it fail without the change.
+
+Keep the whole message under about 250 words. Use a table only when it replaces prose.
+
+Leave these out:
+
+- text that repeats the diff;
+- a list for each file;
+- the story of how you found the defect;
+- the solutions that you did not take;
+- anything that the commits say.
+
+### What to do with a caveat
+
+**A caveat is a defect that you decided to keep. Fix it instead.**
+
+Before you write one, find out which kind it is:
+
+- a defect, or a gap: correct it in this pull request;
+- a step that must come first: put it in the merge order, not in a caveat. If another pull request
+  must merge first, name it in one line;
+- behaviour that you intended: put it in the documentation of the tool;
+- a limit that no code can remove: give it one line.
+
+Three things always stay, because a reviewer assumes the opposite: what you took out, what you did
+not verify, and how to see the test fail. Give each one a line.
