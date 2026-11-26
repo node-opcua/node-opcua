@@ -55,6 +55,76 @@ const JUST_RELEASED = lines(
     ""
 );
 
+const ATX = `## Unreleased
+
+  - server: it does the thing now. (#1234)
+
+## Release 2.187.35
+
+  - something older.
+`;
+
+// ── both heading styles ─────────────────────────────────────────
+
+test("reads an ATX heading", () => {
+    const s = parseSections(ATX);
+    assert.deepEqual(s.map((x) => x.title), ["Unreleased", "Release 2.187.35"]);
+    assert.ok(s.every((x) => x.atx));
+});
+
+test("an ATX section keeps its body", () => {
+    const s = parseSections(ATX);
+    assert.ok(s[0].body.some((l) => l.includes("does the thing")));
+    assert.ok(!s[0].body.some((l) => l.includes("something older")));
+});
+
+test("marks a setext heading as not ATX", () => {
+    assert.ok(parseSections(WITH_BULLET).every((x) => x.atx === false));
+});
+
+test("reads a file that mixes the two styles", () => {
+    const mixed = `## Unreleased
+
+  - written in ATX.
+
+Release 2.188.0
+===============
+
+  - older setext.
+`;
+    const s = parseSections(mixed);
+    assert.deepEqual(s.map((x) => x.title), ["Unreleased", "Release 2.188.0"]);
+    assert.deepEqual(s.map((x) => x.atx), [true, false]);
+});
+
+test("format accepts an ATX file, and asks for no underline", () => {
+    assert.deepEqual(checkFormat(ATX), []);
+});
+
+test("releasable accepts an ATX file with a bullet", () => {
+    assert.deepEqual(checkReleasable(ATX), []);
+});
+
+test("a deeper heading is not a section", () => {
+    assert.equal(parseSections(lines("### Not a section", "", "  - a.")).length, 0);
+});
+
+test("promote keeps the ATX style and adds no underline", () => {
+    const { text, changed, to } = promote(ATX, "2.188.0");
+    assert.equal(changed, true);
+    assert.equal(to, "Release 2.188.0");
+    const out = text.split(/\r?\n/);
+    assert.equal(out[0], "## Release 2.188.0");
+    assert.ok(!/^=+$/.test(out[1]));
+});
+
+test("promote keeps the setext style and resizes its underline", () => {
+    const { text } = promote(WITH_BULLET, "2.188.0");
+    const out = text.split(/\r?\n/);
+    assert.equal(out[0], "Release 2.188.0");
+    assert.equal(out[1], "=".repeat("Release 2.188.0".length));
+});
+
 // ── parsing ─────────────────────────────────────────────────────────────────────
 
 test("reads every section in order", () => {

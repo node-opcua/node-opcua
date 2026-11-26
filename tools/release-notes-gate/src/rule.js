@@ -11,7 +11,13 @@
  *               test-only change has nothing user-visible to say and must not be blocked.
  *   releasable  `Unreleased` exists and carries at least one bullet. Run before a release only.
  *
- * RELEASE_NOTES.md uses setext headings: a title line, then a line of `=` of the same length.
+ * A section heading is written either way:
+ *
+ *   ATX      `## Title`               preferred, and what a new section uses
+ *   setext   Title over a line of `=`  the older style, still read
+ *
+ * ATX carries no underline to keep in step with its title, so it removes a whole kind of mistake.
+ * The underline length is checked for a setext heading only.
  */
 
 export const UNRELEASED = "Unreleased";
@@ -20,24 +26,38 @@ const LEGACY_RE = /^version \d+\.\d+$/;
 const BULLET_RE = /^\s*-\s+\S/;
 
 /**
- * Every setext section of the document, in order.
- * @returns {{title: string, line: number, body: string[]}[]}
+ * Every section of the document, in order, in either heading style.
+ * @returns {{title: string, line: number, atx: boolean, underline?: string, body: string[]}[]}
  */
 export function parseSections(text) {
     const lines = text.split(/\r?\n/);
     const marks = [];
-    for (let i = 0; i < lines.length - 1; i++) {
-        const title = lines[i].trim();
-        const underline = lines[i + 1].trim();
-        if (title === "" || !/^=+$/.test(underline) || /^=+$/.test(title)) {
+    for (let i = 0; i < lines.length; i++) {
+        const atx = /^##\s+(.*\S)\s*$/.exec(lines[i]);
+        if (atx) {
+            marks.push({ title: atx[1], line: i, underline: undefined, atx: true });
             continue;
         }
-        marks.push({ title: lines[i].trimEnd(), line: i, underline: lines[i + 1] });
+        if (i + 1 >= lines.length) {
+            continue;
+        }
+        const title = lines[i].trim();
+        const underline = lines[i + 1].trim();
+        if (title === "" || !/^=+$/.test(underline) || /^=+$/.test(title) || title.startsWith("#")) {
+            continue;
+        }
+        marks.push({ title: lines[i].trimEnd(), line: i, underline: lines[i + 1], atx: false });
     }
     return marks.map((m, k) => {
-        const from = m.line + 2;
+        const from = m.line + (m.atx ? 1 : 2);
         const to = k + 1 < marks.length ? marks[k + 1].line : lines.length;
-        return { title: m.title, line: m.line, underline: m.underline, body: lines.slice(from, to) };
+        return {
+            title: m.title,
+            line: m.line,
+            atx: m.atx,
+            underline: m.underline,
+            body: lines.slice(from, to)
+        };
     });
 }
 
@@ -70,6 +90,9 @@ export function checkFormat(text) {
         return problems;
     }
     for (const s of sections) {
+        if (s.atx) {
+            continue;
+        }
         if (s.underline.length !== s.title.length) {
             problems.push(
                 `line ${s.line + 2}: the '=' underline is ${s.underline.length} long, the title "${s.title}" is ${s.title.length}`
@@ -143,8 +166,12 @@ export function promote(text, version) {
     }
     const lines = text.split(/\r?\n/);
     const title = `Release ${version}`;
-    lines[top.line] = title;
-    lines[top.line + 1] = "=".repeat(title.length);
+    if (top.atx) {
+        lines[top.line] = `## ${title}`;
+    } else {
+        lines[top.line] = title;
+        lines[top.line + 1] = "=".repeat(title.length);
+    }
     return { text: lines.join("\n"), changed: true, from: UNRELEASED, to: title };
 }
 
