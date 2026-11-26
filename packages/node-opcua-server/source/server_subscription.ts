@@ -1440,6 +1440,13 @@ export class Subscription extends EventEmitter {
         this._sent_notification_messages = [];
     }
 
+    /** the subscription now belongs to another session (TransferSubscriptions): its items read for that one */
+    public sessionChanged(): void {
+        for (const monitoredItem of this.monitoredItems.values()) {
+            monitoredItem.sessionChanged();
+        }
+    }
+
     /** the notifications another thread took (takePendingNotifications), to publish as if collected here */
     public requeueNotifications(notifications: { monitoredItemId: number; notification: QueueItem }[]): void {
         for (const { monitoredItemId, notification } of notifications) this._addNotificationMessage(notification, monitoredItemId);

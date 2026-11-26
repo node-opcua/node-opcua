@@ -1046,6 +1046,18 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             return;
         }
         const node = this.node;
+        if (lastValue === badDataUnavailable && (node as ValueReadOwner).emitsSessionValues === true) {
+            // a node that reads for the session of its item has no value for this session yet: it reads one
+            await new Promise<void>((resolve) => {
+                this.__acquireInitialValue(sessionContext, (err, dataValue) => {
+                    if (!err && dataValue && this._node !== null && this.itemToMonitor !== null) {
+                        this._enqueue_value(dataValue);
+                    }
+                    resolve();
+                });
+            });
+            return;
+        }
         await new Promise<void>((resolve) => {
             valueForSession(
                 node as ValueReadOwner,
@@ -1065,6 +1077,20 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 this._readGeneration
             );
         });
+    }
+
+    /**
+     * @internal the subscription of the item now belongs to another session. A node that reads its values for
+     * the session of its item (FrontMonitoredNode) reads them for the new one from now on, and the value the
+     * item last saw, read for the old session, is not the one the next value is compared with or sent again.
+     */
+    public sessionChanged(): void {
+        const node = this._node as { sessionChanged?(context: ISessionContext | null): void } | null;
+        if (typeof node?.sessionChanged !== "function") return;
+        node.sessionChanged(this.getSessionContext());
+        this.oldDataValue = badDataUnavailable;
+        // a read still on its way was made for the old session: its answer is dropped
+        this._readGeneration++;
     }
 
     /**

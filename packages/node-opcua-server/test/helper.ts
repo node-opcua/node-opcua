@@ -33,6 +33,9 @@ export function add_mock_monitored_item(subscription: Subscription) {
         dispose() {
             /**  empty */
         },
+        sessionChanged() {
+            /**  empty */
+        },
         async resendInitialValue() {
             this.simulateMonitoredItemAddingNotification();
         },
