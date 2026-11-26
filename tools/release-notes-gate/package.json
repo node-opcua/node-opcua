@@ -1,0 +1,14 @@
+{
+    "name": "@sterfive/release-notes-gate",
+    "version": "1.0.0",
+    "private": true,
+    "description": "a release has notes: Unreleased is non-empty before a release, and the heading is stamped with the version",
+    "bin": {
+        "release-notes-gate": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js check",
+        "test": "node test/test_rule.js"
+    }
+}

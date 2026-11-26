@@ -100,6 +100,7 @@ Each has its own README with the reasoning behind the rule.
 - `check-proto-pollution/`: a computed property key that could write `__proto__`/`constructor`/`prototype`
 - `check-child-process/`: a child process run through a shell (`exec`, `execSync`, a `shell` option)
 - `check-experimental/`: the experimental tag, EXPERIMENTAL.md and the start-up warnings name the same features
+- `release-notes-gate/`: a release has notes, and its heading is stamped with the version
 - `clean/`: Cleanup utilities
 - `fix-tsconfigs/`: TypeScript configuration fixes
 
@@ -130,6 +131,7 @@ tools/
 ├── check-test-types/        # Test-suite type-check ratchet
 ├── check-child-process/     # Child processes run through a shell
 ├── check-experimental/      # Experimental tag, EXPERIMENTAL.md and warnings agree
+├── release-notes-gate/      # Unreleased is non-empty, and gets stamped at release
 ├── clean/                   # Cleanup utilities
 ├── fix-tsconfigs/           # TypeScript config fixes
 ├── scan-deps.mjs            # Launcher for scan-dependencies
