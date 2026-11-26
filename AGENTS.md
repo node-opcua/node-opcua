@@ -66,6 +66,12 @@ Unreleased
 Indent each bullet two spaces. Write a pull request as `(#1234)`. Write an issue as `issue #1234`. Do
 not use an em-dash.
 
+Make the `=` underline the same length as the heading above it.
+
+Sections before 2.187.32 keep a descriptive heading, and carry their release in square brackets at the
+end, for example `OPC UA JSON follows Part 6 1.04 and 1.05 [2.187.10]`. Leave those headings as they
+are. Write a new section as `Unreleased`.
+
 ### GitHub release note shape
 
 Write the title as `vX.Y.Z: <caption>`. Use three or four words for the caption.
