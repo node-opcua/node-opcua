@@ -114,8 +114,8 @@ Release 2.187.32
     runs it before `lerna publish` (#1895).
 
 
-The setter of a Variable is told the index range of a partial write
-===================================================================
+The setter of a Variable is told the index range of a partial write [2.187.14]
+==============================================================================
 
   - fix: a write to part of an array (`indexRange`, e.g. `1:2`) called the setter with the elements
     written and no way to know where they go. The setter now receives the range: callback-style
@@ -125,8 +125,8 @@ The setter of a Variable is told the index range of a partial write
     Promise-style `set` and `timestamped_set` cannot receive it: use `timestamped_set_ctx`.
 
 
-Getters and setters of a Variable know the session context
-==========================================================
+Getters and setters of a Variable know the session context [2.187.14]
+=====================================================================
 
 The getters and setters of a Variable were never told which session reads or writes it, although the
 server knows it (`prepareRead`, `writeValue`). They now receive the `ISessionContext`
@@ -147,8 +147,8 @@ server knows it (`prepareRead`, `writeValue`). They now receive the `ISessionCon
     refresh function. A refresh shared by concurrent reads gets the context of the first one.
 
 
-An asynchronous getter is no longer run by the synchronous read
-===============================================================
+An asynchronous getter is no longer run by the synchronous read [2.187.14]
+==========================================================================
 
   - fix: a Variable bound with an asynchronous `timestamped_get` (one that returns a Promise) had its
     getter run by `readValue()` as well as by the refresh, so every Read service call ran it twice and
@@ -157,8 +157,8 @@ An asynchronous getter is no longer run by the synchronous read
     synchronous getter is unchanged: `readValue()` still evaluates it.
 
 
-A Variable write its setter rejects is no longer stored
-=======================================================
+A Variable write its setter rejects is no longer stored [2.187.13]
+==================================================================
 
   - fix: `UAVariable.writeValue` stored the written value whenever the setter reported no error,
     whatever the status it answered. A write answered Bad (`BadOutOfRange`, ...) therefore changed
@@ -170,8 +170,8 @@ A Variable write its setter rejects is no longer stored
     (`timestamped_set`, see the "form 3" case of `test_issue_1119.ts`).
 
 
-A read that joins a read in flight is checked on its own
-========================================================
+A read that joins a read in flight is checked on its own [2.187.13]
+===================================================================
 
   - fix: `UAVariable.readValueAsync` lets a read that arrives while the Variable is refreshing
     (`refreshFunc`, or a getter) wait for that refresh instead of starting another one, but it
@@ -181,8 +181,8 @@ A read that joins a read in flight is checked on its own
     the refresh is still shared.
 
 
-TranslateBrowsePaths follows the Browse permission of the session
-=================================================================
+TranslateBrowsePaths follows the Browse permission of the session [2.187.13]
+============================================================================
 
 `browse` already hid a node the caller's role cannot Browse; `translateBrowsePath` did not.
 
@@ -202,8 +202,8 @@ TranslateBrowsePaths follows the Browse permission of the session
     methods it resolved: create a new one after the roles change).
 
 
-OPC UA JSON follows Part 6 1.04 and 1.05
-========================================
+OPC UA JSON follows Part 6 1.04 and 1.05 [2.187.10]
+===================================================
 
 Every decoder change is backward compatible: the forms node-opcua wrote before still decode. The
 **breaking** lines change what the encoders write.
@@ -249,8 +249,8 @@ Every decoder change is backward compatible: the forms node-opcua wrote before s
     field as a one-dimensional array, so its dimensions are lost before any encoder runs.
 
 
-Secure channel: one chunk writer for every message
-==================================================
+Secure channel: one chunk writer for every message [2.187.8]
+============================================================
 
   - every message a secure channel sends (MSG, CLO and OpenSecureChannel, under None, Sign and
     SignAndEncrypt, with a local or a remote HSM/KMS key) is written by a `SecureChunkWriter`: one
@@ -267,8 +267,8 @@ Secure channel: one chunk writer for every message
     `chunkSecureMessageAsync`.
 
 
-Faster Read, Write and sampling, and less memory per node
-=========================================================
+Faster Read, Write and sampling, and less memory per node [2.187.0]
+===================================================================
 
   - a Read or a Write whose items the server can serve at once is answered from the bytes of the
     request: no ReadRequest, WriteRequest, RequestHeader or ReadValueId is built and the service
@@ -294,16 +294,16 @@ Faster Read, Write and sampling, and less memory per node
     through `getChildByName()` and Browse. A parent with a hundred thousand children no longer slows
     every access to it.
 
-SignAndEncrypt: node-opcua-crypto 6.2.0, node-opcua-pki 7.1.0
-=============================================================
+SignAndEncrypt: node-opcua-crypto 6.2.0, node-opcua-pki 7.1.0 [2.187.0]
+=======================================================================
 
   - node-opcua-crypto 6.2.0 signs and encrypts each chunk with KeyObjects made once per derived key,
     instead of handing node:crypto the key bytes, which Node.js checked and wrapped on every call.
     Measured with SignAndEncrypt (Basic256Sha256): Reads of one 10 KB value +47%, Reads of
     1000 x 10 KB values +29%, server CPU per small read 1.1 to 0.67 ms.
 
-A channel admits requests as fast as their responses leave
-==========================================================
+A channel admits requests as fast as their responses leave [2.187.0]
+====================================================================
 
   - **behaviour change** a channel starts a request only while the requests in progress, each counted
     at the recent response size of its service, and what its socket has not sent yet stay within
@@ -316,8 +316,8 @@ A channel admits requests as fast as their responses leave
     longer a dependency of node-opcua-transport.
   - the packet assembler of a connection is kept when its limits change during the handshake.
 
-Compact address space and front threads (new, experimental)
-==========================================================
+Compact address space and front threads (new, experimental) [2.187.0]
+=====================================================================
 
   - `OPCUAServerOptions.compactAddressSpace` adds a compact store next to the node objects: nodes,
     references, strings and values in typed columns (`node-opcua-address-space-store`).
@@ -340,8 +340,8 @@ Compact address space and front threads (new, experimental)
     server creates while it runs (Sessions, their diagnostics, the diagnostics of their
     Subscriptions) in a namespace of their own; without it they stay in namespace 1, as before.
 
-Fixes
-=====
+Fixes [2.187.0]
+===============
 
   - **behaviour change** a namespace's default access restrictions are applied. The check looked up
     a `defaultAccessRestriction` child of the NamespaceMetadata object while the property is
@@ -355,14 +355,14 @@ Fixes
   - a Session closed while its user is being checked is not activated.
   - node-opcua-date-time no longer depends on `long` at run time.
 
-New nodesets
-============
+New nodesets [2.187.0]
+======================
 
   - the UAFX nodesets (FX Data, AC, CM 1.00.04): `node-opcua-nodeset-fx-data`,
     `node-opcua-nodeset-fxac` and `node-opcua-nodeset-fxcm`.
 
-A node keeps the `<Documentation>` link and the `<Category>` elements of its nodeset
-==================================================================================
+A node keeps the `<Documentation>` link and the `<Category>` elements of its nodeset [2.186.0]
+==============================================================================================
 
   - `BaseNode` gains two optional fields, `nodesetDocumentation?: string` and
     `nodesetCategory?: string[]`. A NodeSet2 document states, for many nodes, where the
@@ -379,8 +379,8 @@ A node keeps the `<Documentation>` link and the `<Category>` elements of its nod
   - unchanged: neither is an OPC UA attribute and no service exposes them. They are set only on
     the nodes whose document declared them, and an instance does not inherit them from its type.
 
-Nodeset packages load fewer files at startup, and need TypeScript 5.0 to compile against
-=======================================================================================
+Nodeset packages load fewer files at startup, and need TypeScript 5.0 to compile against [2.184.0]
+==================================================================================================
 
   - the generated nodeset packages describe types, and all but their enum files compile to modules
     with no run-time content. Their index re-exported every file with `export *`, which keeps a
@@ -394,8 +394,8 @@ Nodeset packages load fewer files at startup, and need TypeScript 5.0 to compile
     project compiling against node-opcua needs TypeScript 5.0 or above; TypeScript 4.x cannot parse
     those declaration files.
 
-TransferSubscriptions: the anonymous rule is now enforced by default (OPC UA Part 4 §5.13.7)
-============================================================================================
+TransferSubscriptions: the anonymous rule is now enforced by default (OPC UA Part 4 §5.13.7) [2.183.0]
+======================================================================================================
 
   - **behaviour change** `OPCUAServerOptions.allowAnonymousSubscriptionTransferOnUnsecuredChannel`
     now defaults to `false` (it used to default to `true`). As required by Part 4 §5.13.7, a
@@ -411,8 +411,8 @@ TransferSubscriptions: the anonymous rule is now enforced by default (OPC UA Par
   - unchanged: the cross-user ownership check (a transfer is refused unless the destination Session
     operates on behalf of the same user as the Subscription owner) is always enforced.
 
-Local Discovery Server: registration conformance (OPC UA Part 4 §5.5.5 / §5.5.6)
-================================================================================
+Local Discovery Server: registration conformance (OPC UA Part 4 §5.5.5 / §5.5.6) [2.182.0]
+==========================================================================================
 
   - **breaking** `OPCUADiscoveryServer` no longer accepts `RegisterServer` / `RegisterServer2`
     from unauthenticated callers. As required by OPC UA Part 4 §5.5.5 / §5.5.6:
@@ -441,8 +441,8 @@ Local Discovery Server: registration conformance (OPC UA Part 4 §5.5.5 / §5.5.
   - `OPCUADiscoveryServer.shutdown()` no longer sleeps one second after the endpoints are closed; the
     endpoint shutdown already waits for the listening socket to be released
 
-Private key passphrase protection
-==================================
+Private key passphrase protection [2.178.0]
+===========================================
 
   - opt-in private-key-at-rest protection, built on `node-opcua-pki` 6.20.0 / `node-opcua-crypto` 5.6.0
     - `OPCUACertificateManagerOptions.privateKeyPassphrase` (`string | () => Promise<string>`) encrypts the
@@ -461,8 +461,8 @@ Private key passphrase protection
       exactly as before
     - see documentation/creating_a_server.md
 
-Reverse Connect
-===============
+Reverse Connect [2.176.0]
+=========================
 
   - implement OPC UA Reverse Connect (Part 6 §7.1.3) on client and server
     - new `ReverseHelloMessage` / `"RHE"` transport message in node-opcua-transport
