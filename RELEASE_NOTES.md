@@ -1,5 +1,5 @@
-Release 2.188.0
-===============
+Unreleased
+==========
 
 This release collects the patch releases 2.187.4 to 2.187.35. It adds no code of its own: it refreshes
 the dependencies, with an audit update, and gives the work of those patches one version to point at.
@@ -24,7 +24,7 @@ the dependencies, with an audit update, and gives the work of those patches one 
   - dependencies: `node-opcua-crypto` 6.2.5, `node-opcua-pki` 7.1.6, and an audit update of the
     development dependencies. The Node floor stays at 22.13.
 
-See the sections below for each change, and the GitHub release for v2.188.0 for the whole list.
+See the sections below for each change, and the GitHub release of this version for the whole list.
 
 
 Release 2.187.35

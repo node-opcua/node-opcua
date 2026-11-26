@@ -29,21 +29,33 @@ note small.
 `RELEASE_NOTES.md` is in the root of the repository. It is the primary record. The newest section is at
 the top. The file goes into the tarball, so a consumer can read it.
 
-Write the `RELEASE_NOTES.md` lines in the pull request that makes the change. Do not wait for the
-release.
+**Write the lines in the pull request that makes the change. Put them under the `Unreleased` heading at
+the top of the file.** Create that heading if the last release consumed it. Do not wait for the release,
+and do not write a version number: you do not know it yet.
 
-A patch gets a short `Release X.Y.Z` section. Write one bullet for each change. Do not write prose.
+The release stamps the version. `Unreleased` becomes `Release X.Y.Z`, so the heading is never a guess.
+Two lerna lifecycle scripts do this. `preversion` refuses a release while `Unreleased` is missing or
+empty. `version` renames the heading after lerna writes `lerna.json`. The stamped file then lands in
+lerna's own release commit.
 
-A minor gets a `Release X.Y.0` section. This section collects the patches after the last minor. A minor
-also gets a GitHub release with a full note.
+**In this repository the rename is still manual.** Rename the heading yourself when you cut the release,
+until the hook is wired here.
+
+Write one bullet for each change. Do not write prose for a patch.
+
+A minor also gets a GitHub release with a full note. That note collects the sections of the patches
+after the last minor.
 
 Write a GitHub release for a minor only. Do not write a full note for a patch tag.
+
+**A release with nothing to say is a defect.** If `Unreleased` is empty, either the change was not
+user-visible, or somebody forgot the bullet. Find out which before you release.
 
 ### Section format
 
 ```
-Release 2.188.0
-===============
+Unreleased
+==========
 
   - area: what the change does, in short active present tense. (#1234)
   - **behaviour change** what a consumer sees differently, and the new default.
