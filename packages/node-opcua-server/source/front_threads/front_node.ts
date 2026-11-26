@@ -61,6 +61,8 @@ export class FrontMonitoredNode extends MonitoredNodeBase implements CompactMoni
     #rangeWatch: FrontMonitoredNode | null = null;
     // the session of the item, from its reads: what a value pushed under a permission rule is read again with
     #context: ISessionContext | null | undefined = undefined;
+    // counts the changes of session (sessionChanged): a read made for an earlier session is not emitted
+    #sessionChanges = 0;
     #refetching = false;
     #refetchAgain = false;
     // the newest value seen and its version word; -1: none yet
@@ -194,6 +196,16 @@ export class FrontMonitoredNode extends MonitoredNodeBase implements CompactMoni
         }
     }
 
+    /**
+     * the subscription of the item went to another session: the values are read for that one from now on, and
+     * the last value, read for the old session, is not given to it
+     */
+    public sessionChanged(context: ISessionContext | null): void {
+        this.#context = context;
+        this.#last = null;
+        this.#sessionChanges++;
+    }
+
     /** what the samplers call: in place when it can be, else from the engine, with the session's permissions */
     public readValueAsync(context: ISessionContext | null, callback: (err: Error | null, dataValue?: DataValue) => void): void {
         this.#context = context;
@@ -247,9 +259,16 @@ export class FrontMonitoredNode extends MonitoredNodeBase implements CompactMoni
             return;
         }
         this.#refetching = true;
+        const sessionChanges = this.#sessionChanges;
         this.#host.fetchValue(this.#context, this).then(
             ({ dataValue, version }) => {
                 this.#refetching = false;
+                if (sessionChanges !== this.#sessionChanges) {
+                    // read for the session the item had before: read again for its session now
+                    this.#refetchAgain = false;
+                    this.#readAgain();
+                    return;
+                }
                 if (version >= 0 && this.#note(dataValue, version)) {
                     this.emit("value_changed", dataValue);
                 }
