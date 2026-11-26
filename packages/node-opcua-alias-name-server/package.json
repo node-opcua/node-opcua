@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-alias-name-server",
     "type": "module",
-    "version": "2.187.35",
+    "version": "2.188.0",
     "description": "pure nodejs OPCUA SDK - server-side alias names (OPC 10000-17)",
     "scripts": {
         "build": "tsc -b",
@@ -18,7 +18,7 @@
     },
     "dependencies": {
         "node-opcua-address-space-base": "2.187.32",
-        "node-opcua-alias-name-common": "2.187.32",
+        "node-opcua-alias-name-common": "2.188.0",
         "node-opcua-constants": "2.185.0",
         "node-opcua-data-model": "2.187.32",
         "node-opcua-nodeid": "2.187.32",
