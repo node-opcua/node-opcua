@@ -1,3 +1,119 @@
+Release 2.188.0
+===============
+
+This release collects the patch releases 2.187.4 to 2.187.35. It adds no code of its own: it refreshes
+the dependencies, with an audit update, and gives the work of those patches one version to point at.
+
+  - the access checks of the Read service apply on every path that gives a value to a session: sampled
+    monitored items, exception-based monitored items, the select clauses and the where clause of an
+    event, semantic-change and attribute notifications, a value resent after TransferSubscriptions, a
+    subscription whose session closed, and a subscription moved to another channel. Each path carried
+    its own copy of the checks; they now take what a Read gives, from the owner of the node
+    (`UAVariable.readValueStatus` for a node object, the store for a compact view, the engine for a
+    session-worker stand-in).
+  - **behaviour change** the Browse permission applies to the node itself in Read, Browse and
+    TranslateBrowsePath (OPC 10000-3 §8.55). A role with Read or Call but no Browse no longer reads the
+    attributes of a node; the Value still reads.
+  - **behaviour change** AccessRestrictions apply to Write and HistoryRead, as they already did to
+    Read. A Write or a HistoryRead over a `None` channel on a node that declares them is refused.
+  - **behaviour change** the default user certificate store accepts only the certificates in its
+    trusted folder. The default application store is secure too, and
+    `NODE_OPCUA_AUTO_ACCEPT_CERTS=true` turns auto-accept on for development.
+  - **api** `UAVariable` gains a required `readValueStatus`. An application that implements
+    `UAVariable` itself must add it.
+  - dependencies: `node-opcua-crypto` 6.2.5, `node-opcua-pki` 7.1.6, and an audit update of the
+    development dependencies. The Node floor stays at 22.13.
+
+See the sections below for each change, and the GitHub release for v2.188.0 for the whole list.
+
+
+Release 2.187.35
+================
+
+  - certificate manager: `getDefaultCertificateManager("UserPKI")` logs `[NODE-OPCUA-W40]` once per
+    process when the trusted folder of the default user certificate store is not empty. The log gives
+    the folder and the number of certificates. Keep only the certificates you add on purpose: versions
+    before 2.187.23 put unknown user certificates in this folder. A server that passes its own
+    `userCertificateManager` logs nothing. (#1902)
+  - front threads (experimental, opt-in, off by default): after TransferSubscriptions, a monitored item
+    reads its values with the session context of the new session, and a resent initial value is read
+    again for it, as the classic server does. Thanks to aolin118 for the report. (#1903)
+
+
+Release 2.187.34
+================
+
+  - address-space: `instantiate()` keeps a Mandatory base member that a subtype declares again under
+    another namespace. An ObjectType that subtypes DI `DeviceType` and declares its own `SerialNumber`
+    now gets both `1:SerialNumber` and `2:SerialNumber`. The filter compared the browse name only; it
+    compares the whole QualifiedName, as `getChildByName` does. A real override in the same namespace
+    still gives one member. (#1900)
+
+
+Release 2.187.33
+================
+
+  - server-configuration: `UpdateCertificate` on the application group compares the certificate's
+    application URI with the server's `applicationUri` and answers `BadCertificateUriInvalid` when they
+    differ. OPC 10000-12 §7.10.5 applies the OPC 10000-4 process, whose URI step (Part 4, Table 100)
+    "may not be suppressed", so there is no opt-out: to change the identity of a server, change its
+    `applicationUri`. `produceCertificateAndPrivateKey()` takes an optional `applicationUri`. (#1899)
+  - server: `isSelfSignedCertificate()` is exported, and checks the signature against the certificate's
+    own key, with SubjectKeyIdentifier equal to AuthorityKeyIdentifier as a fallback.
+    `regenerateSelfSignedCertificate()` compared the CommonName and Organization of issuer and subject,
+    so it replaced a CA-signed certificate whose subject repeats the names of its CA. The
+    chain-completeness warning and the push certificate management check use the same function. (#1898)
+  - server: `regenerateSelfSignedCertificate()` on a running server invalidates the caches of the
+    endpoint descriptions, as push certificate management does after ApplyChanges. The endpoints kept
+    the old certificate. (#1898)
+  - client: two `OPCUAClient` options, `applicationType` (`Client` or `ClientAndServer`) and
+    `productUri`, go into the CreateSession `clientDescription`. A gateway whose server and client share
+    one application instance certificate can announce `ClientAndServer` and its own product URI. The
+    defaults do not change. Any other `applicationType` throws when the client is created. (#1897)
+  - ci: the publish job passes when every package version is on the registry. A provenance answer of
+    `409 equivalent entry already exists` arrives after npm accepts the package, so the 2.187.32 job
+    failed although all 117 packages reached npm. `tools/check-published.mjs` asks the registry for
+    every `name@version` of the tree after a failed attempt. A registry error never counts as a pass.
+    (#1896)
+
+
+Release 2.187.32
+================
+
+  - server: event fields that come from a Variable (the select clauses and the where clause) are read
+    with the session context of the subscription, as a Read of that Variable is. A field that the Read
+    refuses carries the same status code. (#1894)
+  - server: a subscription that moves to another channel reads its values again for its session, as a
+    Read does. (#1892)
+  - front threads (experimental, opt-in, off by default): the store carries the RolePermissions and the
+    AccessRestrictions of the node objects it mirrors, and follows their changes. Thanks to EZO Labs
+    Security for the report. (#1887)
+  - node-opcua-versions: `expand` runs `npm view` through npm's own script, and refuses a dependency
+    entry that is not a package name or a version, range or tag. Thanks to Torch4084 for the report.
+    (#1889)
+  - nodeid, numeric-range: malformed string input is rejected instead of coerced. `coerceNodeId` read
+    `ns=1;s=ns=2;i=5` back as the numeric id `ns=2;i=5`, accepted `ns=1;i=5abc`, and turned `i=abc` into
+    `ns=0;i=0`; `NumericRange` reported `":5"`, `"5:"` and `","` as valid, which gave a Read
+    `BadInternalError` in place of `BadIndexRangeInvalid`. The `ns=` patterns are anchored and every
+    index needs at least one digit. `new NumericRange("")` is an `Empty` range, so an empty `indexRange`
+    still means "no range". A nodeset file with a malformed NodeId now fails to load with a clear error
+    instead of pointing at another node. (#1873, issue #1869)
+  - address-space: both NodeSet2 writers write a StatusCode with its `Code` element
+    (`<uax:StatusCode><uax:Code>2150891520</uax:Code></uax:StatusCode>`), for a `ListOfStatusCode` item
+    and for a StatusCode field of a structure too. Types.xsd defines a complex type with one `Code`
+    element, and `xmllint` refuses the previous text form. (#1885)
+  - client: when a user token policy is missing, the error says which identities the endpoint offers.
+    (#1893)
+  - client: thanks to Dickson Wu (SEAL & CertiK) for the report behind the user token options added in
+    2.187.30. (#1882)
+  - docs: the security policy names the experimental features (`FrontThreadEngine`, the
+    `compactAddressSpace` option). Both are experimental: opt-in, off by default, marked "Experimental"
+    in their documentation, and each logs a warning once per process when it starts. (#1888)
+  - tooling: `lint:ci` refuses a child process that runs through a shell (#1890). `check-pack` also
+    fails when a package would ship a `dist` file that no source file produces, and the publish workflow
+    runs it before `lerna publish` (#1895).
+
+
 The setter of a Variable is told the index range of a partial write
 ===================================================================
 
