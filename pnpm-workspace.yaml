@@ -87,4 +87,8 @@ overrides:
   esbuild: ">=0.28.1"
   glob@>=9.0.0 <=14.0.1: ^14.0.2
   minimatch@>=7.0.0 <11.0.1: ^11.0.1
+  # typedoc 0.28.20 needs minimatch ^10.2.5 and calls Minimatch#matchOne, which minimatch 11
+  # removed: the override above would take it to 11 and the documentation build then fails
+  # with "mini.matchOne is not a function". Keep typedoc on 10 until it supports 11.
+  typedoc>minimatch: ^10.2.6
   serialize-javascript@<7.1.3: ^7.1.3
