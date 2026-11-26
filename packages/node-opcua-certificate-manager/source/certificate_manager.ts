@@ -449,6 +449,34 @@ function shouldAutoAcceptApplicationCertificates(): boolean {
     return envValue === "true" || envValue === "1";
 }
 
+/**
+ * Return the warning to log when the default user PKI at `pkiFolder` already holds
+ * trusted certificates, or `null` when its trusted folder is empty or absent.
+ *
+ * Versions before 2.187.23 added every unknown user certificate to this folder, and
+ * a certificate in it still opens a session with the roles of its CommonName.
+ * @internal
+ */
+export function defaultUserStoreWarning(pkiFolder: string): string | null {
+    const trustedFolder = path.join(pkiFolder, "trusted", "certs");
+    let files: string[];
+    try {
+        files = fs.readdirSync(trustedFolder).filter((f) => /\.(pem|der|crt|cer)$/i.test(f));
+    } catch {
+        return null;
+    }
+    if (files.length === 0) {
+        return null;
+    }
+    return (
+        `[NODE-OPCUA-W40] the default user certificate store holds ${files.length} trusted certificate(s) in ${trustedFolder}. ` +
+        "Each one opens a session with the roles of its CommonName. " +
+        "Versions before 2.187.23 added unknown user certificates to this folder automatically: " +
+        "keep only the certificates that you added on purpose. " +
+        "Pass a userCertificateManager to the server to use a store of your choice."
+    );
+}
+
 export function getDefaultCertificateManager(name: "PKI" | "UserPKI"): OPCUACertificateManager {
     let cm = _defaultCertificateManagers.get(name);
     if (!cm) {
@@ -466,6 +494,14 @@ export function getDefaultCertificateManager(name: "PKI" | "UserPKI"): OPCUACert
                     chalk.white(" User certificates ALWAYS require explicit trust.") +
                     chalk.white(" Set NODE_OPCUA_AUTO_ACCEPT_CERTS=false to disable.")
             );
+        }
+
+        if (name === "UserPKI") {
+            // Once per process: the default user PKI is memoized below.
+            const warning = defaultUserStoreWarning(pkiFolder);
+            if (warning) {
+                warningLog(warning);
+            }
         }
 
         cm = new OPCUACertificateManager({
