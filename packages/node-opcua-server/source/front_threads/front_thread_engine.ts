@@ -212,7 +212,9 @@ export class FrontThreadEngine {
     public static async create(options: FrontThreadEngineOptions = {}): Promise<FrontThreadEngine> {
         if (!frontThreadEngineReported) {
             frontThreadEngineReported = true;
-            warningLog("FrontThreadEngine is experimental: do not use it in production where security matters, see EXPERIMENTAL.md");
+            warningLog(
+                "FrontThreadEngine is experimental: do not use it in production where security matters, see EXPERIMENTAL.md"
+            );
         }
         const nodesets = options.nodesets ?? [standardNodesets.standard];
         const serverEngine = new ServerEngine({
