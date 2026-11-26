@@ -1,8 +1,9 @@
 Unreleased
 ==========
 
-This release collects the patch releases 2.187.4 to 2.187.35. It adds no code of its own: it refreshes
-the dependencies, with an audit update, and gives the work of those patches one version to point at.
+This release collects the patch releases 2.187.4 to 2.187.35, and gives their work one version to
+point at. It also refreshes the dependencies, with an audit update, and marks the two experimental
+parts of the API.
 
   - the access checks of the Read service apply on every path that gives a value to a session: sampled
     monitored items, exception-based monitored items, the select clauses and the where clause of an
@@ -21,6 +22,17 @@ the dependencies, with an audit update, and gives the work of those patches one 
     `NODE_OPCUA_AUTO_ACCEPT_CERTS=true` turns auto-accept on for development.
   - **api** `UAVariable` gains a required `readValueStatus`. An application that implements
     `UAVariable` itself must add it.
+  - `EXPERIMENTAL.md` is new. It names the parts of the API that are not stable, in two groups: an
+    Experimental feature, which is off by default and writes a warning at start (`FrontThreadEngine`,
+    the `compactAddressSpace` option of `OPCUAServer`), and an Unstable API, which is on when you use
+    it and whose shape can change (the `IAliasStore` interface). `SECURITY.md` keeps the policy for a
+    report about one, and links to the new page. `README.md` links it too.
+  - **behaviour change** the two start-up warnings of the experimental features name
+    `EXPERIMENTAL.md`, so the log says where to read. The text of those two lines changed.
+  - **api** the API documentation of `FrontThreadEngine` and of the `compactAddressSpace` option
+    carries the `experimental` tag. `IAliasStore` carries `unstable` in place of `experimental`: it is
+    an Unstable API and not an Experimental feature, because you do not turn it on. The tags reach the
+    published `.d.ts`.
   - dependencies: `node-opcua-crypto` 6.2.5, `node-opcua-pki` 7.1.6, and an audit update of the
     development dependencies. The Node floor stays at 22.13.
 
