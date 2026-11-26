@@ -99,6 +99,7 @@ Each has its own README with the reasoning behind the rule.
 - `check-test-ports/`: no hard-coded ports in tests
 - `check-proto-pollution/`: a computed property key that could write `__proto__`/`constructor`/`prototype`
 - `check-child-process/`: a child process run through a shell (`exec`, `execSync`, a `shell` option)
+- `check-experimental/`: the experimental tag, EXPERIMENTAL.md and the start-up warnings name the same features
 - `clean/`: Cleanup utilities
 - `fix-tsconfigs/`: TypeScript configuration fixes
 
@@ -128,6 +129,7 @@ tools/
 ├── check-package-shape/     # publint + attw on the published shape
 ├── check-test-types/        # Test-suite type-check ratchet
 ├── check-child-process/     # Child processes run through a shell
+├── check-experimental/      # Experimental tag, EXPERIMENTAL.md and warnings agree
 ├── clean/                   # Cleanup utilities
 ├── fix-tsconfigs/           # TypeScript config fixes
 ├── scan-deps.mjs            # Launcher for scan-dependencies

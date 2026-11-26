@@ -1,0 +1,14 @@
+{
+    "name": "@sterfive/check-experimental",
+    "version": "1.0.0",
+    "private": true,
+    "description": "the experimental TSDoc tag, EXPERIMENTAL.md and the start-up warnings name the same features",
+    "bin": {
+        "check-experimental": "src/index.js"
+    },
+    "type": "module",
+    "scripts": {
+        "check": "node src/index.js",
+        "test": "node test/test_rule.js"
+    }
+}

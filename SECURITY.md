@@ -18,20 +18,9 @@ We can also fix earlier versions of `node-opcua` for members of the NodeOPCUA Su
 
 ## Experimental Features
 
-`node-opcua` is released continuously, and some new features ship before they are complete. We mark such a feature as **Experimental**. Do not use an Experimental feature in production where security matters.
+Some new features ship before they are complete. We mark such a feature as **Experimental**. Do not use an Experimental feature in production where security matters.
 
-A feature is Experimental when all of these are true:
-
-- Its API documentation says "Experimental".
-- It is off by default. You must turn it on with an explicit option or class.
-- The server writes a warning to its log when you turn it on.
-
-These features are Experimental now:
-
-| Feature | How you turn it on |
-| --- | --- |
-| Compact address space | the `compactAddressSpace` option of `OPCUAServer` |
-| Front-thread engine (front threads and session workers) | the `FrontThreadEngine` class |
+[EXPERIMENTAL.md](EXPERIMENTAL.md) holds the list of these features, the conditions that put a feature in that state, and how a feature leaves it. This section says only how we handle a report about one.
 
 ### How we handle a weakness in an Experimental feature
 

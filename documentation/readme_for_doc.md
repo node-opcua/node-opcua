@@ -48,6 +48,11 @@ await client.disconnect();
   Every package is now an ES module. `require()` still works; a CommonJS TypeScript project
   needs one `tsconfig.json` line changed. Covers `TS1479` / `TS1541` / `TS1542`.
 
+## Feature Status
+
+- 🧪 [**Experimental features**](https://github.com/node-opcua/node-opcua/blob/master/EXPERIMENTAL.md):
+  off by default, the API can change, and the server logs a warning when you turn one on.
+
 ## Learn More
 
 - 📘 [**NodeOPCUA by Example**](https://leanpub.com/node-opcuabyexample-edition2024) —

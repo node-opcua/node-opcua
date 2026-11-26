@@ -126,6 +126,10 @@ node-opcua implements a comprehensive set of OPC UA services, transport protocol
 
 👉 **[View the full supported features matrix](./supported_features.md)**
 
+Some features ship before they are complete, and we mark those **Experimental**. An Experimental feature is off by default, its API can change, and the server logs a warning when you turn it on.
+
+👉 **[What Experimental means, and which features are Experimental now](./EXPERIMENTAL.md)**
+
 ---
 
 

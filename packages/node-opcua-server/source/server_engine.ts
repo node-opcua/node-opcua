@@ -879,7 +879,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             if (!compactAddressSpaceReported) {
                 compactAddressSpaceReported = true;
                 warningLog(
-                    "the compact address space (compactAddressSpace) is experimental: do not use it in production where security matters"
+                    "the compact address space (compactAddressSpace) is experimental: do not use it in production where security matters, see EXPERIMENTAL.md"
                 );
             }
             // the compact address space applies the engine's unresolved permission policy, as the

@@ -131,8 +131,10 @@ export interface FrontThreadsStartOptions {
 let frontThreadEngineReported = false;
 
 /**
- * Experimental: the API can change. The engine logs a warning when it is created. See the
- * Experimental Features section of SECURITY.md.
+ * Experimental: the API can change. The engine logs a warning when it is created. See
+ * EXPERIMENTAL.md for what the status means, and SECURITY.md for how a report is handled.
+ *
+ * @experimental
  */
 export class FrontThreadEngine {
     /** the model: build it here, before or after start() */
@@ -210,7 +212,7 @@ export class FrontThreadEngine {
     public static async create(options: FrontThreadEngineOptions = {}): Promise<FrontThreadEngine> {
         if (!frontThreadEngineReported) {
             frontThreadEngineReported = true;
-            warningLog("FrontThreadEngine is experimental: do not use it in production where security matters");
+            warningLog("FrontThreadEngine is experimental: do not use it in production where security matters, see EXPERIMENTAL.md");
         }
         const nodesets = options.nodesets ?? [standardNodesets.standard];
         const serverEngine = new ServerEngine({
