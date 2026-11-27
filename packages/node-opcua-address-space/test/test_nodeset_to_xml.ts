@@ -981,6 +981,9 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         xml2.should.match(/<uax:QualifiedName>/gm);
         xml2.should.match(/ <uax:Name>/gm);
         xml2.should.match(/ <uax:NamespaceIndex>/gm);
+        xml2.should.match(
+            /<uax:QualifiedName>\s*<uax:NamespaceIndex>1<\/uax:NamespaceIndex>\s*<uax:Name>Hello<\/uax:Name>\s*<\/uax:QualifiedName>/
+        );
     });
 
     it("NSXML12 - instance of methods", async () => {
