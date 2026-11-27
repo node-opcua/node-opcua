@@ -7,7 +7,7 @@
   "di": {
     "uri": "http://opcfoundation.org/UA/DI/",
     "length": 311321,
-    "sha1": "1c73d17a2325b35c06f1d3cb0c73d3111c4f44f9"
+    "sha1": "470d6206b6f71e76a0483acd401569e351add091"
   },
   "adi": {
     "uri": "http://opcfoundation.org/UA/ADI/",
@@ -32,7 +32,7 @@
   "amb": {
     "uri": "http://opcfoundation.org/UA/AMB/",
     "length": 78112,
-    "sha1": "9a0d817156351c55f8e935375d8e5c1a668821c9"
+    "sha1": "ee77f8f01fe06ce5040d7ffd729fa32c1dd258ba"
   },
   "gds": {
     "uri": "http://opcfoundation.org/UA/GDS/",
@@ -42,7 +42,7 @@
   "robotics": {
     "uri": "http://opcfoundation.org/UA/Robotics/",
     "length": 402678,
-    "sha1": "25649be13a318188a42f2dba89f5e2ec402c7b7c"
+    "sha1": "a44c7071cc73744e1df554feffdb3e7c96788389"
   },
   "isa95JobControl": {
     "uri": "http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/",
@@ -52,17 +52,17 @@
   "machineryJobs": {
     "uri": "http://opcfoundation.org/UA/Machinery/Jobs/",
     "length": 65061,
-    "sha1": "86f01009b2293069c3c5132afdfacc22f5c73719"
+    "sha1": "379ae32a7f058914e48fc91774208f1a885a3732"
   },
   "machineryResult": {
     "uri": "http://opcfoundation.org/UA/Machinery/Result/",
     "length": 139934,
-    "sha1": "7e263fd1db70c347f83c6427a38d0fa10a4feb2b"
+    "sha1": "e9e393e0564abdb4ef337ac5189c204dbcb3df16"
   },
   "machinery": {
     "uri": "http://opcfoundation.org/UA/Machinery/",
     "length": 115020,
-    "sha1": "c8cf46283d3dc6ca563cc155ca0631fad606a058"
+    "sha1": "7c99680c310bb12347d88cd6b90a2b5e1413dbe4"
   },
   "ia": {
     "uri": "http://opcfoundation.org/UA/IA/",
@@ -72,7 +72,7 @@
   "machineTool": {
     "uri": "http://opcfoundation.org/UA/MachineTool/",
     "length": 402758,
-    "sha1": "a3d88d1554eb7da3a03c8eb08852e47dce963ff9"
+    "sha1": "ab446107104be14f2545406ef4ad6490abcf0b6e"
   },
   "cnc": {
     "uri": "http://opcfoundation.org/UA/CNC",
@@ -92,7 +92,7 @@
   "ijtBase": {
     "uri": "http://opcfoundation.org/UA/IJT/Base/",
     "length": 1018399,
-    "sha1": "75b1f95973eed3c8f1bb3837717c5a0dd238508c"
+    "sha1": "6efe5337a4990fa6ca9d6f60d948a3cdbe551499"
   },
   "tightening": {
     "uri": "http://opcfoundation.org/UA/IJT/Tightening/",
@@ -127,7 +127,7 @@
   "padim": {
     "uri": "http://opcfoundation.org/UA/PADIM/",
     "length": 709134,
-    "sha1": "4a164209f17624761405fe2bf07d4dd42aa81ba4"
+    "sha1": "0db8155faebba5c77e40749df1721bcbcfd3a5cc"
   },
   "machineryProcessValues": {
     "uri": "http://opcfoundation.org/UA/Machinery/ProcessValues/",
