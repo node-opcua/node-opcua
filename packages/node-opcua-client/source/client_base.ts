@@ -37,6 +37,7 @@ export interface FindEndpointOptions {
     applicationName: string;
     applicationUri: string;
     clientCertificateManager: OPCUACertificateManager | ICertificateStore;
+    transportFactory?: IClientTransportFactory;
 }
 
 export interface FindEndpointResult {

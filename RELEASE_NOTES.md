@@ -3,6 +3,8 @@
   - server-configuration: a TrustList change no longer closes a SecureChannel whose
     OpenSecureChannelRequest the server is refusing. The client receives the refusal
     (BadSecurityChecksFailed) instead of a socket closed before the answer.
+  - client: a secured connection fetches the server certificate through the `transportFactory` of
+    the client too, as the secure channel does. (#1914)
 
 ## Release 2.188.1
 
