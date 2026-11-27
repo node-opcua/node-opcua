@@ -434,6 +434,8 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
     private _reverseConnectRegistration?: ICancelableRegistration;
 
     public clientCertificateManager: ICertificateStore;
+    /** the reference the constructor took on clientCertificateManager, given back once by disconnect() */
+    #holdsCertificateManagerReference = false;
     /** true when the caller supplied a certificateKeyPairProvider — the private-key resolution escape hatch. */
     #hasUserProvidedProvider = false;
 
@@ -531,6 +533,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         }
         this.clientCertificateManager = options.clientCertificateManager;
         this.clientCertificateManager.referenceCounter++;
+        this.#holdsCertificateManagerReference = true;
 
         this._secureChannel = null;
 
@@ -1077,6 +1080,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             return;
         }
 
+        this.#holdCertificateManager();
         this._setInternalState("connecting");
 
         this.initializeCM()
@@ -1195,6 +1199,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         // it from the RHE. Prefer an explicitly-expected URL when the caller provided one.
         const placeholderEndpointUrl = expectation?.endpointUrl || reverseConnect.connectionUrl || "opc.tcp://reverse-connect";
 
+        this.#holdCertificateManager();
         this._setInternalState("connecting");
 
         this.initializeCM()
@@ -1548,6 +1553,32 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         });
     }
 
+    /** A client connected again after a disconnect() takes back the reference it gave. */
+    #holdCertificateManager(): void {
+        if (this.#holdsCertificateManagerReference) return;
+        this.clientCertificateManager.referenceCounter++;
+        this.#holdsCertificateManagerReference = true;
+    }
+
+    /**
+     * Give back, once, the reference the constructor took on the certificate
+     * manager (or that connect took back): a client whose connect failed is
+     * already "disconnected", and a second disconnect() must not release it twice.
+     */
+    #releaseCertificateManager(): void {
+        if (!this.#holdsCertificateManagerReference) return;
+        this.#holdsCertificateManagerReference = false;
+        // ICertificateStore requires dispose(), but a store written in plain JavaScript
+        // may lack it: a client that never connected did not call it before, and must
+        // not start throwing (a connected one would have)
+        const store = this.clientCertificateManager as ICertificateStore & { dispose?: () => Promise<void> };
+        if (typeof store.dispose !== "function") return;
+        store.dispose().catch((err: Error) => {
+            // c8 ignore next
+            doDebug && debugLog("Error disposing clientCertificateManager", err.message);
+        });
+    }
+
     public disconnect(): Promise<void>;
     public disconnect(callback: ErrorCallback): void;
     public disconnect(...args: unknown[]): undefined | Promise<void> {
@@ -1573,6 +1604,9 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
                     "[NODE-OPCUA-W26] OPCUAClient#disconnect called while already disconnecting. clientName=",
                     this.clientName
                 );
+            } else {
+                // never connected, or its connect failed: give back the reference the constructor took
+                this.#releaseCertificateManager();
             }
             if (!this._reconnectionIsCanceled && this.isReconnecting) {
                 errorLog("Internal Error : _reconnectionIsCanceled should be true if isReconnecting is true");
@@ -1615,14 +1649,7 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
         // c8 ignore next
         doDebug && debugLog("Disconnecting !");
         this._setInternalState("disconnecting");
-        if (this.clientCertificateManager) {
-            const tmp = this.clientCertificateManager;
-            // (this as any).clientCertificateManager = null;
-            tmp.dispose().catch((err: Error) => {
-                // c8 ignore next
-                doDebug && debugLog("Error disposing clientCertificateManager", err.message);
-            });
-        }
+        this.#releaseCertificateManager();
 
         if (this._sessions.length) {
             // transfer active session to  orphan and detach them from channel
