@@ -1,6 +1,13 @@
 ## Release 2.188.1
 
   - address-space: write QualifiedName XML fields in schema order. (issue #1901)
+  - server-configuration: a server restarted before it left NoConfiguration withdraws, when push
+    certificate management is installed, the certificates a setup trusted automatically. New
+    export `isApplicationConfigured(server)`. (#1911)
+  - **behaviour change** client: a client gives back its certificate manager reference once, at
+    every disconnect, also after a failed connect. A shared `InMemoryCertificateStore` whose count
+    reaches zero clears its lists: a caller that keeps one for several clients should hold a
+    reference of its own. (#1912)
 
 ## Release 2.188.0
 
