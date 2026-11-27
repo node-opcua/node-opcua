@@ -1,4 +1,4 @@
-## Unreleased
+## Release 2.188.2
 
   - server-configuration: a TrustList change no longer closes a SecureChannel whose
     OpenSecureChannelRequest the server is refusing. The client receives the refusal

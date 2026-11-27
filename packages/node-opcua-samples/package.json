@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-samples",
     "type": "module",
-    "version": "2.188.1",
+    "version": "2.188.2",
     "description": "pure nodejs OPCUA SDK - module samples",
     "bin": {
         "simple_client": "./bin/client_example.cjs",
@@ -37,7 +37,7 @@
         "node-opcua-crypto": "6.2.5",
         "node-opcua-packet-analyzer": "2.187.32",
         "node-opcua-pki": "7.1.6",
-        "node-opcua-server-configuration": "2.188.1",
+        "node-opcua-server-configuration": "2.188.2",
         "node-opcua-utils": "2.187.28",
         "node-opcua-vendor-diagnostic": "2.188.1",
         "sprintf-js": "^1.1.3",
