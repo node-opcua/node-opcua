@@ -1,3 +1,9 @@
+## Unreleased
+
+  - server-configuration: a TrustList change no longer closes a SecureChannel whose
+    OpenSecureChannelRequest the server is refusing. The client receives the refusal
+    (BadSecurityChecksFailed) instead of a socket closed before the answer.
+
 ## Release 2.188.1
 
   - address-space: write QualifiedName XML fields in schema order. (issue #1901)

@@ -512,7 +512,10 @@ const REEVALUATION_DELAY_MS = 250;
  * state an untrusted certificate is therefore still admitted. Returns the
  * number of channels closed.
  *
- * The check never trusts a certificate on its own.
+ * The check never trusts a certificate on its own. A channel the server is
+ * already closing is not closed again, only its Sessions: one whose
+ * OpenSecureChannelRequest is being refused still has the refusal to send,
+ * and closes itself after it.
  */
 export function closeChannelsNoLongerTrusted(server: OPCUAServer): Promise<number> {
     const run = (reevaluations.get(server) ?? Promise.resolve()).then(() => _closeChannelsNoLongerTrusted(server));
@@ -521,6 +524,10 @@ export function closeChannelsNoLongerTrusted(server: OPCUAServer): Promise<numbe
         run.catch(() => undefined)
     );
     return run;
+}
+
+function isClosing(channel: { status: string }): boolean {
+    return channel.status === "closing" || channel.status === "closed";
 }
 
 async function _closeChannelsNoLongerTrusted(server: OPCUAServer): Promise<number> {
@@ -549,12 +556,17 @@ async function _closeChannelsNoLongerTrusted(server: OPCUAServer): Promise<numbe
             if (statusCode.isGood()) {
                 continue;
             }
-            warningLog(`[TrustList] closing SecureChannel ${channel.channelId}: client certificate is now ${statusCode.name}`);
+            // Sessions outlive their channel: close them whatever the channel's state.
             for (const session of server.engine.getSessions()) {
                 if (session.channel === channel) {
                     server.engine.closeSession(session.authenticationToken, false, "Terminated");
                 }
             }
+            // Read after the asynchronous checks: the server may have started closing it meanwhile.
+            if (isClosing(channel)) {
+                continue;
+            }
+            warningLog(`[TrustList] closing SecureChannel ${channel.channelId}: client certificate is now ${statusCode.name}`);
             channel.close();
             closed++;
         }
