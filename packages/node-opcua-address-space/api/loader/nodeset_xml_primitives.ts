@@ -183,14 +183,16 @@ export function _dumpLocalizedText(xw: XmlWriter, v: LocalizedText): void {
 export function _dumpQualifiedName(xw: XmlWriter, v: QualifiedName): void {
     const uax = getPrefix(xw, UAX_TYPES_XSD);
     const t = translateBrowseName(xw, v);
-    if (t.name) {
-        xw.startElement(`${uax}Name`);
-        xw.text(t.name);
-        xw.endElement();
-    }
+
+    // NamespaceIndex must be written before Name according to the OPC UA XML schema.
     if (t.namespaceIndex) {
         xw.startElement(`${uax}NamespaceIndex`);
         xw.text(t.namespaceIndex.toString());
+        xw.endElement();
+    }
+    if (t.name) {
+        xw.startElement(`${uax}Name`);
+        xw.text(t.name);
         xw.endElement();
     }
 }

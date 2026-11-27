@@ -1,3 +1,7 @@
+## Unreleased
+
+  - address-space: write QualifiedName XML fields in schema order. (issue #1901)
+
 ## Release 2.188.0
 
 This release collects the patch releases 2.187.4 to 2.187.35, and gives their work one version to
