@@ -297,10 +297,16 @@ export interface ApplicationSetupOptions {
      *   removed again, except those a TrustList write kept (CloseAndUpdate
      *   of the trusted list, AddCertificate). Whoever configured the server
      *   stays trusted through the TrustList it wrote; anyone else who
-     *   connected during the setup does not.
+     *   connected during the setup does not;
+     * - a server restarted before it left `NoConfiguration` withdraws that
+     *   trust when push certificate management is installed again. A setup
+     *   that goes on loses nothing: once the application sets
+     *   `NoConfiguration` again, the next client is admitted and trusted
+     *   the same way.
      *
      * Without it the application decides when the setup ends, and the
-     * certificates trusted automatically stay trusted.
+     * certificates trusted automatically stay trusted. A record left by an
+     * earlier run that had the option is still withdrawn at install.
      *
      * @defaultValue false
      */
@@ -334,6 +340,7 @@ export async function installPushCertificateManagementOnServer(
         );
     }
     const cm = server.serverCertificateManager;
+    await withdrawLeftoverProvisionalTrust(cm);
     // Reuse the server's own provider (installed by install() above, and
     // already resolved if the key is passphrase-encrypted) rather than
     // constructing a fresh DiskCertificateKeyPairProvider from the file
@@ -556,6 +563,39 @@ async function _closeChannelsNoLongerTrusted(server: OPCUAServer): Promise<numbe
 }
 
 // ── Leaving the application setup state (§G.2) ─────────────────
+
+/**
+ * Whether the server is configured, as the application setup state sees it
+ * (OPC 10000-12 §G.2): a CA-issued certificate is in service and the
+ * TrustList holds a certificate that was not trusted automatically during a
+ * setup. The condition `applicationSetup.leaveWhenConfigured` leaves
+ * NoConfiguration on.
+ */
+export async function isApplicationConfigured(server: OPCUAServer): Promise<boolean> {
+    if (isSelfSignedCertificate(server.getCertificate())) return false;
+    return hasConfirmedTrust(server.serverCertificateManager as OPCUACertificateManager);
+}
+
+/**
+ * At install, before the endpoints serve a client: what a setup trusted
+ * automatically and a previous run did not withdraw (it stopped before the
+ * server left NoConfiguration) is withdrawn now, whatever comes next.
+ *
+ * Install cannot tell whether the setup will go on: initialize() leaves the
+ * engine Running, and the application sets NoConfiguration (or not) after
+ * install. Withdrawing is safe either way: in NoConfiguration the next
+ * client is admitted and trusted again; otherwise it must not be trusted.
+ * Without leaveWhenConfigured node-opcua records nothing, so a record there
+ * came from a run that had the option and promised to withdraw.
+ */
+async function withdrawLeftoverProvisionalTrust(cm: OPCUACertificateManager): Promise<void> {
+    const withdrawn = await withdrawProvisionalTrust(cm);
+    if (withdrawn > 0) {
+        warningLog(
+            `[ApplicationSetup] ${withdrawn} certificate(s) trusted automatically during an earlier setup are no longer trusted`
+        );
+    }
+}
 
 /**
  * Move to Running once ApplyChanges has put a CA-issued certificate into

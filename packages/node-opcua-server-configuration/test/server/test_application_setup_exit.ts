@@ -33,7 +33,11 @@ import { StatusCodes } from "node-opcua-status-code";
 import { ServerState, TrustListDataType, UserTokenType } from "node-opcua-types";
 import should from "should";
 
-import { ClientPushCertificateManagement, installPushCertificateManagementOnServer } from "../../dist/index.js";
+import {
+    ClientPushCertificateManagement,
+    installPushCertificateManagementOnServer,
+    isApplicationConfigured
+} from "../../dist/index.js";
 import { recordProvisionalTrust, withdrawProvisionalTrust } from "../../dist/server/application_setup.js";
 import { TrustListMasks } from "../../dist/server/trust_list_server.js";
 import {
@@ -500,6 +504,93 @@ describe("Application setup state: leaving NoConfiguration once configured (Part
             should(await serverCm.isCertificateTrusted(open.certificate)).eql("BadCertificateUntrusted");
         } finally {
             await open?.client.disconnect().catch(() => undefined);
+            await server.shutdown();
+        }
+    });
+
+    // ── A restart before the setup ended: what install does with the record ──
+    // installPushCertificateManagementOnServer runs between initialize() and
+    // start(): the server is not started, except where ASE-13 shows the setup goes on.
+
+    /** A PKI store as a stopped run left it: `bystander` trusted, and recorded as trusted provisionally. */
+    async function pkiLeftBySetup(name: string, { configured }: { configured: boolean }) {
+        const cm = await makeCertificateManager(_folder, `${name}ServerPKI`, false);
+        const bystander = await createSomeCertificate(cm, "bystander.pem");
+        await cm.trustCertificate(bystander);
+        await recordProvisionalTrust(cm, "trusted", makeSHA1Thumbprint(bystander).toString("hex"));
+        // the premise: trusted before the restart, so "untrusted after" means withdrawn
+        should(await cm.isCertificateTrusted(bystander)).eql("Good");
+        if (configured) {
+            // a CA-issued certificate in service, and the CA in the trusted list, written by a TrustList
+            const csrFile = await cm.createCertificateRequest({
+                applicationUri: makeApplicationUrn(os.hostname(), `${name}Server`),
+                subject: `CN=${name}Server`,
+                dns: [os.hostname()],
+                startDate: new Date(),
+                validity: 30
+            });
+            const chain = await produceCertificate(_folder, await readCertificateSigningRequest(csrFile));
+            fs.writeFileSync(
+                path.join(cm.rootDir, "own/certs/certificate.pem"),
+                chain.map((c) => toPem(c, "CERTIFICATE")).join("\n")
+            );
+            await cm.trustCertificate((await _getFakeAuthorityCertificate(_folder)).certificate);
+        }
+        await cm.dispose();
+        return bystander;
+    }
+
+    /** The restarted server: the same store, push management installed, not started. */
+    async function restartAndInstall(name: string, options?: Record<string, unknown>) {
+        const serverCm = await makeCertificateManager(_folder, `${name}ServerPKI`, false);
+        const userCm = await makeCertificateManager(_folder, `${name}UserPKI`, false);
+        const server = new OPCUAServer({
+            port,
+            nodeset_filename: nodesets.standard,
+            serverCertificateManager: serverCm,
+            userCertificateManager: userCm
+        });
+        await server.initialize();
+        await installPushCertificateManagementOnServer(server, options);
+        return { server, serverCm };
+    }
+
+    it("ASE-12 without the option, a record an earlier setup left is withdrawn when push management is installed", async () => {
+        const bystander = await pkiLeftBySetup("ASE12", { configured: false });
+        const { server, serverCm } = await restartAndInstall("ASE12");
+        try {
+            should(await serverCm.isCertificateTrusted(bystander)).eql("BadCertificateUntrusted");
+            should(fs.existsSync(path.join(serverCm.rootDir, "provisional_trust.json"))).eql(false);
+        } finally {
+            await server.shutdown();
+        }
+    });
+
+    it("ASE-13 with the option, a setup interrupted while still self-signed is withdrawn too, and can go on", async () => {
+        const bystander = await pkiLeftBySetup("ASE13", { configured: false });
+        const { server, serverCm } = await restartAndInstall("ASE13", { applicationSetup: { leaveWhenConfigured: true } });
+        try {
+            should(await isApplicationConfigured(server)).eql(false);
+            // install cannot know whether the application will set NoConfiguration again:
+            // a server it leaves Running must not keep trusting the bystander
+            should(await serverCm.isCertificateTrusted(bystander)).eql("BadCertificateUntrusted");
+            // and the setup is not lost: back in NoConfiguration, the next client is admitted again
+            server.engine.setServerState(ServerState.NoConfiguration);
+            await server.start();
+            const guestCm = await makeCertificateManager(_folder, "ASE13GuestPKI", true);
+            should(await canConnect(server.getEndpointUrl(), guestCm)).eql(true);
+        } finally {
+            await server.shutdown();
+        }
+    });
+
+    it("ASE-14 with the option, a server configured before the restart withdraws it when push management is installed", async () => {
+        const bystander = await pkiLeftBySetup("ASE14", { configured: true });
+        const { server, serverCm } = await restartAndInstall("ASE14", { applicationSetup: { leaveWhenConfigured: true } });
+        try {
+            should(await isApplicationConfigured(server)).eql(true);
+            should(await serverCm.isCertificateTrusted(bystander)).eql("BadCertificateUntrusted");
+        } finally {
             await server.shutdown();
         }
     });
