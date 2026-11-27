@@ -149,7 +149,10 @@ function __findEndpoint(this: ClientBaseImpl, endpointUrl: string, params: FindE
         // (already resolved, if needed) instead of letting it build a fresh
         // disk provider from certificateFile/privateKeyFile, which would
         // re-read the file and fail synchronously on an encrypted key.
-        certificateKeyPairProvider: masterClient.getProvider()
+        certificateKeyPairProvider: masterClient.getProvider(),
+
+        // open the discovery connection the same way as the master client opens its own
+        transportFactory: params.transportFactory
     };
 
     const client = new TmpClient(options);
@@ -1785,7 +1788,9 @@ export class ClientBaseImpl<Events extends OPCUAClientBaseEvents = OPCUAClientBa
             certificateFile,
             privateKeyFile,
 
-            clientCertificateManager: this.clientCertificateManager
+            clientCertificateManager: this.clientCertificateManager,
+
+            transportFactory: this._transportFactory
         };
         // through unknown: see the note in base_server.ts, `this` is ClientBaseImpl<Events> and
         // Events could be a narrower subtype than the helper's parameter declares.
